@@ -14,3 +14,8 @@ Current status:
 - Supabase magic-link auth flow
 - protected `workspace` route
 - first-login user and workspace bootstrap via Supabase migration
+- reusable LiteLLM client and local text-generation test script
+
+LiteLLM test command:
+
+- `npm run litellm:test -- --model <your-model-name>`

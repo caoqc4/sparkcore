@@ -10,3 +10,16 @@ export function getSupabaseEnv() {
 
   return { url, anonKey };
 }
+
+export function getLiteLLMEnv() {
+  const baseUrl = process.env.LITELLM_BASE_URL;
+  const apiKey = process.env.LITELLM_API_KEY;
+
+  if (!baseUrl || !apiKey) {
+    throw new Error(
+      "Missing LiteLLM environment variables. Set LITELLM_BASE_URL and LITELLM_API_KEY."
+    );
+  }
+
+  return { baseUrl, apiKey };
+}

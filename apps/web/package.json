@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "litellm:test": "tsx scripts/test-litellm.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
@@ -14,5 +15,12 @@
     "next": "^16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "^19.2.2",
+    "tsx": "^4.20.6",
+    "typescript": "5.9.3"
   }
 }
