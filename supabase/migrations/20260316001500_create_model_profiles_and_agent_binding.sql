@@ -70,7 +70,7 @@ create index if not exists agents_default_model_profile_id_idx
 
 update public.agents
 set default_model_profile_id = model_profiles.id,
-    metadata = metadata - 'default_model',
+    metadata = public.agents.metadata - 'default_model',
     updated_at = timezone('utc', now())
 from public.model_profiles
 where model_profiles.slug = 'spark-default'
