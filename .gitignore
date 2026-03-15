@@ -1,0 +1,17 @@
+# OS / editor noise
+.DS_Store
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Internal planning and product docs kept out of the open-source repo
+/00_文档索引与阅读顺序.md
+/01_项目背景与可行性方案 v1.0.md
+/02_产品与技术方案草案 v1.1.md
+/03_多Agent长记忆IM底座_整合PRD_v1.2.md
+/04_多Agent长记忆IM底座_技术方案_v1.3.1_模型路由增强版.md
+/05_多Agent长记忆IM底座_开发任务拆解_v1.4.1.md
+/10_多Agent长记忆IM底座_Skills层设计草案_v0.1.md
+/90_历史归档/
