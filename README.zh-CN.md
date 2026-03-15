@@ -57,9 +57,37 @@ SparkCore 计划提供一套共享核心能力，用于支持：
 3. 增加第一个可执行的项目脚手架
 4. 补充安装、架构和协作文档
 
+## 仓库结构
+
+当前仓库已经先搭好了最小骨架，后续功能可以直接落到对应目录，避免后面反复调整顶层结构。
+
+- `apps/web`：主 Web 应用
+- `packages`：共享代码与复用模块
+- `supabase`：数据库与后端相关资源
+- `scripts`：开发与自动化脚本
+- `docs-public`：未来公开文档
+
 ## 开源说明
 
 部分内部规划文档目前有意不放入公开仓库，因为项目还在整理开源结构。后续会逐步把适合公开的文档沉淀到仓库中。
+
+## 环境变量
+
+开始开发时，可以把 `.env.example` 复制为本地环境文件使用。
+
+当前 MVP 相关变量：
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `LITELLM_BASE_URL`
+- `LITELLM_API_KEY`
+- `NEXT_PUBLIC_APP_URL`
+
+后续预留变量：
+
+- Telegram 相关变量
+- 对象存储 / S3 兼容存储变量
 
 ## 参与贡献
 
