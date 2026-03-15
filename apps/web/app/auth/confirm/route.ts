@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get("code");
   const tokenHash = requestUrl.searchParams.get("token_hash");
   const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
-  const next = requestUrl.searchParams.get("next") ?? "/workspace";
+  const next = requestUrl.searchParams.get("next") ?? "/chat";
 
   const supabase = await createClient();
 

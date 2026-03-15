@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { createClient } from "@/lib/supabase/server";
@@ -46,6 +47,11 @@ export default async function WorkspacePage() {
             screen already have a valid Supabase session stored in cookies, and
             unauthenticated visitors are redirected to the login page.
           </p>
+          <div className="hero-actions">
+            <Link className="button button-secondary" href="/chat">
+              Open chat foundation
+            </Link>
+          </div>
         </section>
 
         <section className="grid">
