@@ -1,4 +1,12 @@
-# SparkCore
+<p align="center">
+  <img src="./logo.png" alt="SparkCore logo" width="160" />
+</p>
+
+<h1 align="center">SparkCore</h1>
+
+<p align="center">
+  English | <a href="./README.zh-CN.md">简体中文</a>
+</p>
 
 SparkCore is an open foundation for building long-memory, persona-driven AI agents that can run across web chat and IM channels.
 
@@ -23,6 +31,7 @@ What is available now:
 
 - Repository bootstrap and ignore rules
 - Public project positioning
+- Bilingual repository landing documentation
 
 What is planned next:
 
