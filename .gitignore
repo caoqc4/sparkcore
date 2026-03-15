@@ -1,6 +1,12 @@
 # OS / editor noise
 .DS_Store
 
+# JavaScript / Next.js
+node_modules/
+.next/
+.vercel/
+*.tsbuildinfo
+
 # Local environment files
 .env
 .env.*
