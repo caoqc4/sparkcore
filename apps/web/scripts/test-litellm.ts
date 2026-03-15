@@ -1,4 +1,7 @@
+import { loadEnvConfig } from "@next/env";
 import { generateText, LiteLLMError } from "@/lib/litellm/client";
+
+loadEnvConfig(process.cwd());
 
 function getArgValue(flag: string) {
   const index = process.argv.indexOf(flag);
