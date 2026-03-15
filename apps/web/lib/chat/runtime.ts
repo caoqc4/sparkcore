@@ -1,8 +1,9 @@
 import { generateText } from "@/lib/litellm/client";
+import { recallRelevantMemories } from "@/lib/chat/memory";
 import { createClient } from "@/lib/supabase/server";
 
-const DEFAULT_MODEL = "replicate-llama-3-8b";
 const DEFAULT_PERSONA_SLUGS = ["companion_default", "spark-guide"];
+const DEFAULT_MODEL_PROFILE_SLUG = "spark-default";
 
 type WorkspaceRecord = {
   id: string;
@@ -25,6 +26,18 @@ type AgentRecord = {
   persona_summary: string;
   style_prompt: string;
   system_prompt: string;
+  default_model_profile_id: string | null;
+  metadata: Record<string, unknown>;
+};
+
+type ModelProfileRecord = {
+  id: string;
+  slug: string;
+  name: string;
+  provider: string;
+  model: string;
+  temperature: number;
+  max_output_tokens: number | null;
   metadata: Record<string, unknown>;
 };
 
@@ -35,12 +48,41 @@ type MessageRecord = {
   created_at: string;
 };
 
-function buildAgentSystemPrompt(agent: AgentRecord) {
+function buildMemoryRecallPrompt(
+  recalledMemories: Array<{
+    memory_type: "profile" | "preference";
+    content: string;
+    confidence: number;
+  }>
+) {
+  if (recalledMemories.length === 0) {
+    return "";
+  }
+
+  return [
+    "Relevant long-term memory for this reply:",
+    ...recalledMemories.map(
+      (memory, index) =>
+        `${index + 1}. [${memory.memory_type}] ${memory.content} (confidence ${memory.confidence.toFixed(2)})`
+    ),
+    "Use these memories only when they are genuinely relevant to the current user message. Do not force them into the reply."
+  ].join("\n");
+}
+
+function buildAgentSystemPrompt(
+  agent: AgentRecord,
+  recalledMemories: Array<{
+    memory_type: "profile" | "preference";
+    content: string;
+    confidence: number;
+  }> = []
+) {
   const sections = [
     `You are ${agent.name}.`,
     agent.persona_summary ? `Persona summary: ${agent.persona_summary}` : "",
     agent.style_prompt ? `Style guidance: ${agent.style_prompt}` : "",
-    agent.system_prompt
+    agent.system_prompt,
+    buildMemoryRecallPrompt(recalledMemories)
   ].filter(Boolean);
 
   return sections.join("\n\n");
@@ -83,6 +125,84 @@ async function getDefaultPersonaPack() {
   return personaPack;
 }
 
+async function getDefaultModelProfile() {
+  const supabase = await createClient();
+
+  const { data: defaultProfile } = await supabase
+    .from("model_profiles")
+    .select("id, slug, name, provider, model, temperature, max_output_tokens, metadata")
+    .eq("slug", DEFAULT_MODEL_PROFILE_SLUG)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (defaultProfile) {
+    return defaultProfile as ModelProfileRecord;
+  }
+
+  const { data: fallbackProfile } = await supabase
+    .from("model_profiles")
+    .select("id, slug, name, provider, model, temperature, max_output_tokens, metadata")
+    .eq("is_active", true)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (!fallbackProfile) {
+    throw new Error(
+      "No active model profile is available. Apply the model profile migration first."
+    );
+  }
+
+  return fallbackProfile as ModelProfileRecord;
+}
+
+async function resolveModelProfileForAgent({
+  agent,
+  workspaceId,
+  userId
+}: {
+  agent: AgentRecord;
+  workspaceId: string;
+  userId: string;
+}) {
+  const supabase = await createClient();
+
+  if (agent.default_model_profile_id) {
+    const { data: boundProfile } = await supabase
+      .from("model_profiles")
+      .select("id, slug, name, provider, model, temperature, max_output_tokens, metadata")
+      .eq("id", agent.default_model_profile_id)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (boundProfile) {
+      return boundProfile as ModelProfileRecord;
+    }
+  }
+
+  const defaultProfile = await getDefaultModelProfile();
+
+  const { error } = await supabase
+    .from("agents")
+    .update({
+      default_model_profile_id: defaultProfile.id,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", agent.id)
+    .eq("workspace_id", workspaceId)
+    .eq("owner_user_id", userId);
+
+  if (error) {
+    throw new Error(
+      `Failed to bind a default model profile to the active agent: ${error.message}`
+    );
+  }
+
+  agent.default_model_profile_id = defaultProfile.id;
+
+  return defaultProfile;
+}
+
 export async function resolveAgentForWorkspace({
   workspaceId,
   userId
@@ -94,7 +214,9 @@ export async function resolveAgentForWorkspace({
 
   const { data: existingAgent } = await supabase
     .from("agents")
-    .select("id, name, persona_summary, style_prompt, system_prompt, metadata")
+    .select(
+      "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata"
+    )
     .eq("workspace_id", workspaceId)
     .eq("owner_user_id", userId)
     .eq("status", "active")
@@ -107,6 +229,7 @@ export async function resolveAgentForWorkspace({
   }
 
   const personaPack = await getDefaultPersonaPack();
+  const defaultModelProfile = await getDefaultModelProfile();
 
   const { data: createdAgent, error } = await supabase
     .from("agents")
@@ -118,14 +241,16 @@ export async function resolveAgentForWorkspace({
       persona_summary: personaPack.persona_summary,
       style_prompt: personaPack.style_prompt,
       system_prompt: personaPack.system_prompt,
+      default_model_profile_id: defaultModelProfile.id,
       is_custom: false,
       metadata: {
         auto_created: true,
-        source_slug: personaPack.slug,
-        default_model: DEFAULT_MODEL
+        source_slug: personaPack.slug
       }
     })
-    .select("id, name, persona_summary, style_prompt, system_prompt, metadata")
+    .select(
+      "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata"
+    )
     .single();
 
   if (error || !createdAgent) {
@@ -179,7 +304,9 @@ export async function getChatState() {
   if (thread?.agent_id) {
     const { data: boundAgent } = await supabase
       .from("agents")
-      .select("id, name, persona_summary, style_prompt, system_prompt, metadata")
+      .select(
+        "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata"
+      )
       .eq("id", thread.agent_id)
       .eq("workspace_id", workspace.id)
       .eq("owner_user_id", user.id)
@@ -276,10 +403,25 @@ export async function generateAgentReply({
   messages: MessageRecord[];
 }) {
   const supabase = await createClient();
+  const latestUserMessage = [...messages]
+    .reverse()
+    .find((message) => message.role === "user");
+  const recalledMemories = latestUserMessage
+    ? await recallRelevantMemories({
+        workspaceId: workspace.id,
+        userId,
+        latestUserMessage: latestUserMessage.content
+      })
+    : [];
+  const modelProfile = await resolveModelProfileForAgent({
+    agent,
+    workspaceId: workspace.id,
+    userId
+  });
   const promptMessages = [
     {
       role: "system" as const,
-      content: buildAgentSystemPrompt(agent)
+      content: buildAgentSystemPrompt(agent, recalledMemories)
     },
     ...messages.map((message) => ({
       role: message.role,
@@ -288,21 +430,29 @@ export async function generateAgentReply({
   ];
 
   const result = await generateText({
-    model: DEFAULT_MODEL,
-    messages: promptMessages
+    model: modelProfile.model,
+    messages: promptMessages,
+    temperature: modelProfile.temperature,
+    maxOutputTokens: modelProfile.max_output_tokens
   });
 
   const { error } = await supabase.from("messages").insert({
     thread_id: thread.id,
     workspace_id: workspace.id,
     user_id: userId,
-    role: "assistant",
-    content: result.content,
-    metadata: {
-      agent_id: agent.id,
-      model: result.model
-    }
-  });
+      role: "assistant",
+      content: result.content,
+      metadata: {
+        agent_id: agent.id,
+        model: result.model,
+        model_profile_id: modelProfile.id,
+        recalled_memories: recalledMemories.map((memory) => ({
+          memory_type: memory.memory_type,
+          content: memory.content,
+          confidence: memory.confidence
+        }))
+      }
+    });
 
   if (error) {
     throw new Error(`Failed to store assistant reply: ${error.message}`);

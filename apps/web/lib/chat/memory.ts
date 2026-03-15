@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_MODEL = "replicate-llama-3-8b";
 const MEMORY_CONFIDENCE_THRESHOLD = 0.8;
+const MEMORY_RECALL_LIMIT = 3;
+const MEMORY_RELEVANCE_THRESHOLD = 0.35;
 
 type MemoryType = "profile" | "preference";
 
@@ -19,6 +21,14 @@ type MemoryCandidate = {
   reason: string;
 };
 
+type StoredMemory = {
+  id: string;
+  memory_type: MemoryType;
+  content: string;
+  confidence: number;
+  created_at: string;
+};
+
 type MemoryExtractionResponse = {
   memories: MemoryCandidate[];
 };
@@ -33,6 +43,40 @@ function stripCodeFence(text: string) {
 
 function normalizeMemoryContent(content: string) {
   return content.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function tokenize(content: string) {
+  return normalizeMemoryContent(content)
+    .split(/[^a-z0-9\u4e00-\u9fff]+/i)
+    .filter((token) => token.length >= 2);
+}
+
+function scoreMemoryRelevance(message: string, memory: StoredMemory) {
+  const messageTokens = new Set(tokenize(message));
+  const memoryTokens = tokenize(memory.content);
+
+  if (messageTokens.size === 0 || memoryTokens.length === 0) {
+    return 0;
+  }
+
+  let overlap = 0;
+
+  for (const token of memoryTokens) {
+    if (messageTokens.has(token)) {
+      overlap += 1;
+    }
+  }
+
+  if (overlap === 0) {
+    return 0;
+  }
+
+  const normalizedOverlap = overlap / new Set(memoryTokens).size;
+  const typeWeight = memory.memory_type === "preference" ? 0.08 : 0.04;
+
+  return Number(
+    (normalizedOverlap + memory.confidence * 0.25 + typeWeight).toFixed(4)
+  );
 }
 
 function buildExtractionPrompt({
@@ -205,4 +249,62 @@ export async function extractAndStoreMemories({
   if (error) {
     throw new Error(`Failed to store memory items: ${error.message}`);
   }
+}
+
+export async function recallRelevantMemories({
+  workspaceId,
+  userId,
+  latestUserMessage
+}: {
+  workspaceId: string;
+  userId: string;
+  latestUserMessage: string;
+}) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("memory_items")
+    .select("id, memory_type, content, confidence, created_at")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .in("memory_type", ["profile", "preference"])
+    .gte("confidence", MEMORY_CONFIDENCE_THRESHOLD)
+    .order("created_at", { ascending: false })
+    .limit(25);
+
+  if (error) {
+    throw new Error(`Failed to load memory items: ${error.message}`);
+  }
+
+  const memories = (data ?? []) as StoredMemory[];
+
+  if (memories.length === 0) {
+    return [];
+  }
+
+  const scored = memories
+    .map((memory) => ({
+      memory,
+      score: scoreMemoryRelevance(latestUserMessage, memory)
+    }))
+    .filter((entry) => entry.score >= MEMORY_RELEVANCE_THRESHOLD)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 2)
+    .map((entry) => entry.memory);
+
+  if (scored.length > 0) {
+    return scored.slice(0, MEMORY_RECALL_LIMIT);
+  }
+
+  return memories
+    .slice()
+    .sort((left, right) => {
+      if (right.confidence !== left.confidence) {
+        return right.confidence - left.confidence;
+      }
+
+      return (
+        new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
+      );
+    })
+    .slice(0, 2);
 }

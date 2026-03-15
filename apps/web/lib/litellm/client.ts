@@ -38,11 +38,13 @@ function normalizeBaseUrl(baseUrl: string) {
 export async function generateText({
   model,
   messages,
-  temperature = 0.7
+  temperature = 0.7,
+  maxOutputTokens
 }: {
   model: string;
   messages: LiteLLMMessage[];
   temperature?: number;
+  maxOutputTokens?: number | null;
 }) {
   if (!model.trim()) {
     throw new Error("LiteLLM model is required.");
@@ -64,7 +66,10 @@ export async function generateText({
     body: JSON.stringify({
       model,
       messages,
-      temperature
+      temperature,
+      ...(typeof maxOutputTokens === "number"
+        ? { max_tokens: maxOutputTokens }
+        : {})
     })
   });
 
