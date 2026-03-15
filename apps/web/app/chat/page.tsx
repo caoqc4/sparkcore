@@ -3,75 +3,7 @@ import { redirect } from "next/navigation";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { signOut } from "@/app/login/actions";
 import { sendMessage } from "@/app/chat/actions";
-import { createClient } from "@/lib/supabase/server";
-
-async function getChatState() {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("id, name, kind")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (!workspace) {
-    redirect("/workspace");
-  }
-
-  let { data: thread } = await supabase
-    .from("threads")
-    .select("id, title, status, created_at, updated_at")
-    .eq("workspace_id", workspace.id)
-    .eq("owner_user_id", user.id)
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!thread) {
-    const { data: createdThread, error } = await supabase
-      .from("threads")
-      .insert({
-        workspace_id: workspace.id,
-        owner_user_id: user.id,
-        title: "New chat"
-      })
-      .select("id, title, status, created_at, updated_at")
-      .single();
-
-    if (error) {
-      throw new Error(`Failed to create default chat thread: ${error.message}`);
-    }
-
-    thread = createdThread;
-  }
-
-  const { data: messages, error: messagesError } = await supabase
-    .from("messages")
-    .select("id, role, content, created_at")
-    .eq("thread_id", thread.id)
-    .eq("workspace_id", workspace.id)
-    .order("created_at", { ascending: true });
-
-  if (messagesError) {
-    throw new Error(`Failed to load messages: ${messagesError.message}`);
-  }
-
-  return {
-    user,
-    workspace,
-    thread,
-    messages: messages ?? []
-  };
-}
+import { getChatState } from "@/lib/chat/runtime";
 
 export default async function ChatPage({
   searchParams
@@ -79,7 +11,17 @@ export default async function ChatPage({
   searchParams?: Promise<{ error?: string }>;
 }) {
   const params = (await searchParams) ?? {};
-  const { user, workspace, thread, messages } = await getChatState();
+  const chatState = await getChatState();
+
+  if (!chatState) {
+    redirect("/login");
+  }
+
+  if (!chatState.workspace || !chatState.thread || !chatState.agent) {
+    redirect("/workspace");
+  }
+
+  const { user, workspace, thread, agent, messages } = chatState;
 
   return (
     <main className="shell">
@@ -107,9 +49,9 @@ export default async function ChatPage({
         <section className="hero">
           <h2>Chat foundation for issue #10</h2>
           <p>
-            This page keeps the first chat flow intentionally narrow: one active
-            thread, user-authenticated reads and writes, and a composer that
-            saves messages into Supabase. Agent replies will be added next.
+            The first runtime loop is now active: each thread is bound to a
+            single agent, user messages are persisted, and assistant replies are
+            generated from the agent prompt plus thread history.
           </p>
         </section>
 
@@ -120,6 +62,7 @@ export default async function ChatPage({
             <ul className="list">
               <li>Workspace: {workspace.name}</li>
               <li>Thread status: {thread.status}</li>
+              <li>Active agent: {agent.name}</li>
               <li>Signed in as: {user.email}</li>
               <li>Messages stored: {messages.length}</li>
             </ul>
@@ -172,8 +115,8 @@ export default async function ChatPage({
 
               <div className="composer-footer">
                 <p className="helper-copy">
-                  Messages are saved to Supabase now. Agent responses will be
-                  added in the next runtime issue.
+                  This thread stays bound to one agent instance. Sending a
+                  message will also trigger an assistant reply through LiteLLM.
                 </p>
                 <FormSubmitButton
                   idleText="Send message"

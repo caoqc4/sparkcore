@@ -1,6 +1,6 @@
 import { getLiteLLMEnv } from "@/lib/env";
 
-type LiteLLMRole = "user" | "assistant";
+type LiteLLMRole = "system" | "user" | "assistant";
 
 export type LiteLLMMessage = {
   role: LiteLLMRole;

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { generateAgentReply, getChatState } from "@/lib/chat/runtime";
 
 function summarizeThreadTitle(content: string) {
   const normalized = content.replace(/\s+/g, " ").trim();
@@ -35,23 +36,17 @@ export async function sendMessage(formData: FormData) {
     redirect("/login");
   }
 
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("id")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const chatState = await getChatState();
 
-  if (!workspace) {
+  if (!chatState || !chatState.workspace || !chatState.thread || !chatState.agent) {
     redirect("/workspace");
   }
 
   const { data: thread } = await supabase
     .from("threads")
-    .select("id, title")
+    .select("id, title, agent_id")
     .eq("id", threadId)
-    .eq("workspace_id", workspace.id)
+    .eq("workspace_id", chatState.workspace.id)
     .eq("owner_user_id", user.id)
     .maybeSingle();
 
@@ -63,7 +58,7 @@ export async function sendMessage(formData: FormData) {
 
   const { error: insertError } = await supabase.from("messages").insert({
     thread_id: thread.id,
-    workspace_id: workspace.id,
+    workspace_id: chatState.workspace.id,
     user_id: user.id,
     role: "user",
     content: trimmedContent
@@ -89,6 +84,39 @@ export async function sendMessage(formData: FormData) {
     .update(threadPatch)
     .eq("id", thread.id)
     .eq("owner_user_id", user.id);
+
+  const updatedMessages = [
+    ...chatState.messages,
+    {
+      id: "pending-user-message",
+      role: "user" as const,
+      content: trimmedContent,
+      created_at: new Date().toISOString()
+    }
+  ];
+
+  try {
+    await generateAgentReply({
+      userId: user.id,
+      workspace: chatState.workspace,
+      thread: {
+        ...chatState.thread,
+        id: thread.id,
+        title: threadPatch.title ?? thread.title,
+        updated_at: threadPatch.updated_at,
+        agent_id: thread.agent_id ?? chatState.agent.id
+      },
+      agent: chatState.agent,
+      messages: updatedMessages
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to generate an assistant reply.";
+
+    redirect(`/chat?error=${encodeURIComponent(message)}`);
+  }
 
   revalidatePath("/chat");
   redirect("/chat");
