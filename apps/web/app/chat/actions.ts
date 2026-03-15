@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { generateAgentReply, getChatState } from "@/lib/chat/runtime";
+import { extractAndStoreMemories } from "@/lib/chat/memory";
 
 function summarizeThreadTitle(content: string) {
   const normalized = content.replace(/\s+/g, " ").trim();
@@ -56,16 +57,24 @@ export async function sendMessage(formData: FormData) {
 
   const trimmedContent = content.trim();
 
-  const { error: insertError } = await supabase.from("messages").insert({
-    thread_id: thread.id,
-    workspace_id: chatState.workspace.id,
-    user_id: user.id,
-    role: "user",
-    content: trimmedContent
-  });
+  const { data: insertedMessage, error: insertError } = await supabase
+    .from("messages")
+    .insert({
+      thread_id: thread.id,
+      workspace_id: chatState.workspace.id,
+      user_id: user.id,
+      role: "user",
+      content: trimmedContent
+    })
+    .select("id")
+    .single();
 
-  if (insertError) {
-    redirect(`/chat?error=${encodeURIComponent(insertError.message)}`);
+  if (insertError || !insertedMessage) {
+    redirect(
+      `/chat?error=${encodeURIComponent(
+        insertError?.message ?? "Failed to store the user message."
+      )}`
+    );
   }
 
   const threadPatch: {
@@ -109,6 +118,22 @@ export async function sendMessage(formData: FormData) {
       agent: chatState.agent,
       messages: updatedMessages
     });
+
+    try {
+      await extractAndStoreMemories({
+        workspaceId: chatState.workspace.id,
+        userId: user.id,
+        agentId: thread.agent_id ?? chatState.agent.id,
+        sourceMessageId: insertedMessage.id,
+        latestUserMessage: trimmedContent,
+        recentContext: updatedMessages.slice(-3).map((message) => ({
+          role: message.role,
+          content: message.content
+        }))
+      });
+    } catch (memoryError) {
+      console.error("Memory extraction failed:", memoryError);
+    }
   } catch (error) {
     const message =
       error instanceof Error
