@@ -62,6 +62,7 @@ type AvailableAgentRecord = {
   default_model_profile_id: string | null;
   source_persona_pack_name: string | null;
   default_model_profile_name: string | null;
+  is_default_for_workspace: boolean;
 };
 
 type AvailablePersonaPackRecord = {
@@ -455,6 +456,7 @@ export async function getChatPageState({
       workspace: null,
       availablePersonaPacks: [],
       availableAgents: [],
+      defaultAgentId: null,
       visibleMemories: [],
       threads: [],
       thread: null,
@@ -492,7 +494,7 @@ export async function getChatPageState({
   const { data: availableAgentsData, error: availableAgentsError } = await supabase
     .from("agents")
     .select(
-      "id, name, is_custom, source_persona_pack_id, default_model_profile_id"
+      "id, name, is_custom, source_persona_pack_id, default_model_profile_id, metadata"
     )
     .eq("workspace_id", workspace.id)
     .eq("owner_user_id", user.id)
@@ -526,6 +528,7 @@ export async function getChatPageState({
     is_custom: boolean;
     source_persona_pack_id: string | null;
     default_model_profile_id: string | null;
+    metadata: Record<string, unknown>;
   }>;
   const personaPackIds = [
     ...new Set(
@@ -586,8 +589,14 @@ export async function getChatPageState({
       : null,
     default_model_profile_name: agent.default_model_profile_id
       ? modelProfileNameById.get(agent.default_model_profile_id) ?? null
-      : null
+      : null,
+    is_default_for_workspace:
+      agent.metadata?.is_default_for_workspace === true
   })) as AvailableAgentRecord[];
+  const defaultAgentId =
+    availableAgents.find((agent) => agent.is_default_for_workspace)?.id ??
+    availableAgents[0]?.id ??
+    null;
   const availablePersonaPacks = (personaPacksData ?? []) as AvailablePersonaPackRecord[];
   const visibleMemories = (visibleMemoriesData ?? []) as VisibleMemoryRecord[];
   const threads = (rawThreads ?? []) as ThreadRecord[];
@@ -598,6 +607,7 @@ export async function getChatPageState({
       workspace: workspace as WorkspaceRecord,
       availablePersonaPacks,
       availableAgents,
+      defaultAgentId,
       visibleMemories,
       threads: [],
       thread: null,
@@ -674,6 +684,7 @@ export async function getChatPageState({
     workspace: workspace as WorkspaceRecord,
     availablePersonaPacks,
     availableAgents,
+    defaultAgentId,
     visibleMemories,
     threads: threadItems,
     thread: activeThread,

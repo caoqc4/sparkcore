@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { signOut } from "@/app/login/actions";
 import { ChatThreadView } from "@/app/chat/chat-thread-view";
-import { createThread } from "@/app/chat/actions";
+import { createThread, setDefaultAgent } from "@/app/chat/actions";
 import { CreateAgentSheet } from "@/app/chat/create-agent-sheet";
 import { ThreadUrlSync } from "@/app/chat/thread-url-sync";
 import { getChatPageState } from "@/lib/chat/runtime";
@@ -80,6 +80,7 @@ export default async function ChatPage({
     workspace,
     availablePersonaPacks,
     availableAgents,
+    defaultAgentId,
     visibleMemories,
     threads,
     thread,
@@ -140,7 +141,7 @@ export default async function ChatPage({
                   <span className="label">Start a new chat</span>
                   <select
                     className="input"
-                    defaultValue={availableAgents[0]?.id ?? ""}
+                    defaultValue={defaultAgentId ?? availableAgents[0]?.id ?? ""}
                     id="agent_id"
                     name="agent_id"
                     required
@@ -232,9 +233,14 @@ export default async function ChatPage({
                       >
                         <div className="agent-card-row">
                           <h4 className="agent-card-title">{availableAgent.name}</h4>
-                          {isCurrent ? (
-                            <span className="thread-badge">Current thread</span>
-                          ) : null}
+                          <div className="agent-card-badges">
+                            {availableAgent.is_default_for_workspace ? (
+                              <span className="thread-badge">Default</span>
+                            ) : null}
+                            {isCurrent ? (
+                              <span className="thread-badge">Current thread</span>
+                            ) : null}
+                          </div>
                         </div>
                         <p className="thread-link-meta">
                           Persona pack:{" "}
@@ -245,6 +251,27 @@ export default async function ChatPage({
                           Model profile:{" "}
                           {availableAgent.default_model_profile_name ?? "Unassigned"}
                         </p>
+                        <form action={setDefaultAgent} className="agent-card-action">
+                          <input name="agent_id" type="hidden" value={availableAgent.id} />
+                          <input
+                            name="redirect_thread_id"
+                            type="hidden"
+                            value={thread?.id ?? ""}
+                          />
+                          <FormSubmitButton
+                            className="button button-secondary agent-default-button"
+                            idleText={
+                              availableAgent.is_default_for_workspace
+                                ? "Default agent"
+                                : "Set as default"
+                            }
+                            pendingText={
+                              availableAgent.is_default_for_workspace
+                                ? "Saving..."
+                                : "Setting..."
+                            }
+                          />
+                        </form>
                       </article>
                     );
                   })}

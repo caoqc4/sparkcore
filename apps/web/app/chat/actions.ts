@@ -266,6 +266,99 @@ export async function createThread(formData: FormData) {
   redirect(`/chat?thread=${encodeURIComponent(createdThread.id)}`);
 }
 
+export async function setDefaultAgent(formData: FormData) {
+  const agentId = formData.get("agent_id");
+  const redirectThreadId = formData.get("redirect_thread_id");
+  const redirectTarget =
+    typeof redirectThreadId === "string" && redirectThreadId.trim().length > 0
+      ? `/chat?thread=${encodeURIComponent(redirectThreadId)}`
+      : "/chat";
+
+  if (typeof agentId !== "string" || agentId.trim().length === 0) {
+    redirect(
+      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
+        "Choose an active agent before setting a default."
+      )}`
+    );
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: workspace } = await supabase
+    .from("workspaces")
+    .select("id")
+    .eq("owner_user_id", user.id)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (!workspace) {
+    redirect("/workspace");
+  }
+
+  const { data: activeAgents, error: activeAgentsError } = await supabase
+    .from("agents")
+    .select("id, metadata")
+    .eq("workspace_id", workspace.id)
+    .eq("owner_user_id", user.id)
+    .eq("status", "active")
+    .order("updated_at", { ascending: false });
+
+  if (activeAgentsError || !activeAgents) {
+    redirect(
+      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
+        activeAgentsError?.message ?? "Failed to load active agents."
+      )}`
+    );
+  }
+
+  if (!activeAgents.some((agent) => agent.id === agentId)) {
+    redirect(
+      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
+        "The selected default agent is unavailable."
+      )}`
+    );
+  }
+
+  for (const activeAgent of activeAgents) {
+    const nextMetadata = { ...(activeAgent.metadata ?? {}) } as Record<string, unknown>;
+
+    if (activeAgent.id === agentId) {
+      nextMetadata.is_default_for_workspace = true;
+    } else {
+      delete nextMetadata.is_default_for_workspace;
+    }
+
+    const { error } = await supabase
+      .from("agents")
+      .update({
+        metadata: nextMetadata,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", activeAgent.id)
+      .eq("workspace_id", workspace.id)
+      .eq("owner_user_id", user.id);
+
+    if (error) {
+      redirect(
+        `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
+          error.message
+        )}`
+      );
+    }
+  }
+
+  revalidatePath("/chat");
+  redirect(redirectTarget);
+}
+
 export async function sendMessage(
   formData: FormData
 ): Promise<SendMessageResult> {

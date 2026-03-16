@@ -334,10 +334,26 @@ a {
   flex-wrap: wrap;
 }
 
+.agent-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .agent-card-title {
   margin: 0;
   color: var(--text);
   font-size: 1rem;
+}
+
+.agent-card-action {
+  margin-top: 4px;
+}
+
+.agent-default-button {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 0.95rem;
 }
 
 .thread-create-form {
