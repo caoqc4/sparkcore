@@ -5,6 +5,7 @@ import { signOut } from "@/app/login/actions";
 import { ChatThreadView } from "@/app/chat/chat-thread-view";
 import { createThread, hideMemory, setDefaultAgent } from "@/app/chat/actions";
 import { CreateAgentSheet } from "@/app/chat/create-agent-sheet";
+import { AgentEditSheet } from "@/app/chat/agent-edit-sheet";
 import { ThreadUrlSync } from "@/app/chat/thread-url-sync";
 import { getChatPageState } from "@/lib/chat/runtime";
 
@@ -251,27 +252,39 @@ export default async function ChatPage({
                           Model profile:{" "}
                           {availableAgent.default_model_profile_name ?? "Unassigned"}
                         </p>
-                        <form action={setDefaultAgent} className="agent-card-action">
-                          <input name="agent_id" type="hidden" value={availableAgent.id} />
-                          <input
-                            name="redirect_thread_id"
-                            type="hidden"
-                            value={thread?.id ?? ""}
+                        <div className="agent-card-actions">
+                          <form action={setDefaultAgent} className="agent-card-action">
+                            <input name="agent_id" type="hidden" value={availableAgent.id} />
+                            <input
+                              name="redirect_thread_id"
+                              type="hidden"
+                              value={thread?.id ?? ""}
+                            />
+                            <FormSubmitButton
+                              className="button button-secondary agent-default-button"
+                              idleText={
+                                availableAgent.is_default_for_workspace
+                                  ? "Default agent"
+                                  : "Set as default"
+                              }
+                              pendingText={
+                                availableAgent.is_default_for_workspace
+                                  ? "Saving..."
+                                  : "Setting..."
+                              }
+                            />
+                          </form>
+
+                          <AgentEditSheet
+                            agent={{
+                              id: availableAgent.id,
+                              name: availableAgent.name,
+                              persona_summary: availableAgent.persona_summary,
+                              system_prompt_summary:
+                                availableAgent.system_prompt_summary
+                            }}
                           />
-                          <FormSubmitButton
-                            className="button button-secondary agent-default-button"
-                            idleText={
-                              availableAgent.is_default_for_workspace
-                                ? "Default agent"
-                                : "Set as default"
-                            }
-                            pendingText={
-                              availableAgent.is_default_for_workspace
-                                ? "Saving..."
-                                : "Setting..."
-                            }
-                          />
-                        </form>
+                        </div>
                       </article>
                     );
                   })}

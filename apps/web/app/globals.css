@@ -393,7 +393,20 @@ a {
   margin-top: 4px;
 }
 
+.agent-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
 .agent-default-button {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 0.95rem;
+}
+
+.agent-edit-trigger {
   min-height: 40px;
   padding: 0 14px;
   font-size: 0.95rem;

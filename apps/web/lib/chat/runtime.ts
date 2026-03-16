@@ -58,6 +58,8 @@ type AvailableAgentRecord = {
   id: string;
   name: string;
   is_custom: boolean;
+  persona_summary: string;
+  system_prompt_summary: string;
   source_persona_pack_id: string | null;
   default_model_profile_id: string | null;
   source_persona_pack_name: string | null;
@@ -94,6 +96,16 @@ type RequestedThreadFallback = {
 
 function isMemoryHidden(metadata: Record<string, unknown> | null | undefined) {
   return metadata?.is_hidden === true;
+}
+
+function summarizeAgentPrompt(prompt: string) {
+  const normalized = prompt.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= 180) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, 177).trimEnd()}...`;
 }
 
 function buildMemoryRecallPrompt(
@@ -503,7 +515,7 @@ export async function getChatPageState({
   const { data: availableAgentsData, error: availableAgentsError } = await supabase
     .from("agents")
     .select(
-      "id, name, is_custom, source_persona_pack_id, default_model_profile_id, metadata"
+      "id, name, is_custom, persona_summary, system_prompt, source_persona_pack_id, default_model_profile_id, metadata"
     )
     .eq("workspace_id", workspace.id)
     .eq("owner_user_id", user.id)
@@ -537,6 +549,8 @@ export async function getChatPageState({
     id: string;
     name: string;
     is_custom: boolean;
+    persona_summary: string;
+    system_prompt: string;
     source_persona_pack_id: string | null;
     default_model_profile_id: string | null;
     metadata: Record<string, unknown>;
@@ -667,6 +681,8 @@ export async function getChatPageState({
 
   const availableAgents = rawAvailableAgents.map((agent) => ({
     ...agent,
+    persona_summary: agent.persona_summary,
+    system_prompt_summary: summarizeAgentPrompt(agent.system_prompt),
     source_persona_pack_name: agent.source_persona_pack_id
       ? personaPackNameById.get(agent.source_persona_pack_id) ?? null
       : null,

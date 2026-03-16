@@ -23,6 +23,10 @@ export type CreateAgentResult =
   | { ok: true; agentId: string; agentName: string }
   | { ok: false; agentId: null; message: string };
 
+export type RenameAgentResult =
+  | { ok: true; agentId: string; agentName: string }
+  | { ok: false; agentId: string | null; message: string };
+
 type AssistantErrorType = "timeout" | "provider_error" | "generation_failed";
 
 function summarizeThreadTitle(content: string) {
@@ -199,6 +203,88 @@ export async function createAgentFromPersonaPack(
     ok: true,
     agentId: createdAgent.id,
     agentName: createdAgent.name
+  };
+}
+
+export async function renameAgent(
+  formData: FormData
+): Promise<RenameAgentResult> {
+  const agentId = formData.get("agent_id");
+  const agentName = formData.get("agent_name");
+
+  if (typeof agentId !== "string" || agentId.trim().length === 0) {
+    return {
+      ok: false,
+      agentId: null,
+      message: "The agent to rename could not be determined."
+    };
+  }
+
+  if (typeof agentName !== "string") {
+    return {
+      ok: false,
+      agentId,
+      message: "Type an agent name before saving."
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      ok: false,
+      agentId,
+      message: "Your session expired. Sign in again to continue."
+    };
+  }
+
+  const { data: agent } = await supabase
+    .from("agents")
+    .select("id, name, workspace_id")
+    .eq("id", agentId)
+    .eq("owner_user_id", user.id)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (!agent) {
+    return {
+      ok: false,
+      agentId,
+      message: "The selected agent is unavailable."
+    };
+  }
+
+  const normalizedName = normalizeAgentName(agentName, agent.name);
+
+  const { data: updatedAgent, error } = await supabase
+    .from("agents")
+    .update({
+      name: normalizedName,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", agent.id)
+    .eq("workspace_id", agent.workspace_id)
+    .eq("owner_user_id", user.id)
+    .select("id, name")
+    .single();
+
+  if (error || !updatedAgent) {
+    return {
+      ok: false,
+      agentId,
+      message: error?.message ?? "Failed to rename the agent."
+    };
+  }
+
+  revalidatePath("/chat");
+
+  return {
+    ok: true,
+    agentId: updatedAgent.id,
+    agentName: updatedAgent.name
   };
 }
 
