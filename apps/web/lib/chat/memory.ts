@@ -30,6 +30,15 @@ type StoredMemory = {
   created_at: string;
 };
 
+type RecalledMemory = Pick<StoredMemory, "memory_type" | "content" | "confidence">;
+
+type RecallOutcome = {
+  memories: RecalledMemory[];
+  usedMemoryTypes: MemoryType[];
+  hiddenExclusionCount: number;
+  incorrectExclusionCount: number;
+};
+
 type NormalizedMemoryCandidate = MemoryCandidate & {
   normalized_content: string;
 };
@@ -432,7 +441,7 @@ export async function recallRelevantMemories({
   workspaceId: string;
   userId: string;
   latestUserMessage: string;
-}) {
+}): Promise<RecallOutcome> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("memory_items")
@@ -448,16 +457,23 @@ export async function recallRelevantMemories({
     throw new Error(`Failed to load memory items: ${error.message}`);
   }
 
-  const memories = ((data ?? []) as StoredMemory[]).filter(
-    (memory) =>
-      !isMemoryHidden(memory.metadata) && !isMemoryIncorrect(memory.metadata)
+  const allMemories = (data ?? []) as StoredMemory[];
+  const activeMemories = allMemories.filter((memory) => isMemoryActive(memory.metadata));
+  const hiddenCandidates = allMemories.filter((memory) => isMemoryHidden(memory.metadata));
+  const incorrectCandidates = allMemories.filter((memory) =>
+    isMemoryIncorrect(memory.metadata)
   );
 
-  if (memories.length === 0) {
-    return [];
+  if (activeMemories.length === 0) {
+    return {
+      memories: [],
+      usedMemoryTypes: [],
+      hiddenExclusionCount: hiddenCandidates.length > 0 ? 1 : 0,
+      incorrectExclusionCount: incorrectCandidates.length > 0 ? 1 : 0
+    };
   }
 
-  const scored = memories
+  const scored = activeMemories
     .map((memory) => ({
       memory,
       score: scoreMemoryRelevance(latestUserMessage, memory)
@@ -467,20 +483,33 @@ export async function recallRelevantMemories({
     .slice(0, 2)
     .map((entry) => entry.memory);
 
-  if (scored.length > 0) {
-    return scored.slice(0, MEMORY_RECALL_LIMIT);
-  }
+  const recalledMemories =
+    scored.length > 0
+      ? scored.slice(0, MEMORY_RECALL_LIMIT)
+      : activeMemories
+          .slice()
+          .sort((left, right) => {
+            if (right.confidence !== left.confidence) {
+              return right.confidence - left.confidence;
+            }
 
-  return memories
-    .slice()
-    .sort((left, right) => {
-      if (right.confidence !== left.confidence) {
-        return right.confidence - left.confidence;
-      }
+            return (
+              new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
+            );
+          })
+          .slice(0, 2);
 
-      return (
-        new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
-      );
-    })
-    .slice(0, 2);
+  const countRelevantExclusions = (memories: StoredMemory[]) =>
+    memories.filter(
+      (memory) => scoreMemoryRelevance(latestUserMessage, memory) >= MEMORY_RELEVANCE_THRESHOLD
+    ).length;
+
+  return {
+    memories: recalledMemories,
+    usedMemoryTypes: Array.from(
+      new Set(recalledMemories.map((memory) => memory.memory_type))
+    ),
+    hiddenExclusionCount: countRelevantExclusions(hiddenCandidates),
+    incorrectExclusionCount: countRelevantExclusions(incorrectCandidates)
+  };
 }

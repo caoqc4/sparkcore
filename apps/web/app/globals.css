@@ -769,6 +769,18 @@ a {
   line-height: 1.5;
 }
 
+.runtime-summary-outcomes {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.runtime-summary-outcomes li + li {
+  margin-top: 4px;
+}
+
 .runtime-summary-grid dt {
   margin: 0;
   color: var(--muted);

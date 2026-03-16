@@ -36,6 +36,7 @@ type RuntimeSummary = {
   agentName: string | null;
   modelProfileName: string | null;
   memoryLabel: string | null;
+  outcomeHints: string[];
 };
 
 function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
@@ -74,15 +75,51 @@ function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
           ? `${memoryHitCount} memory hit${memoryHitCount === 1 ? "" : "s"}`
           : "Yes"
         : "No";
+  const memoryTypesUsed = Array.isArray(message.metadata?.memory_types_used)
+    ? message.metadata.memory_types_used.filter(
+        (type): type is "profile" | "preference" =>
+          type === "profile" || type === "preference"
+      )
+    : [];
+  const hiddenExclusionCount =
+    typeof message.metadata?.hidden_memory_exclusion_count === "number"
+      ? message.metadata.hidden_memory_exclusion_count
+      : 0;
+  const incorrectExclusionCount =
+    typeof message.metadata?.incorrect_memory_exclusion_count === "number"
+      ? message.metadata.incorrect_memory_exclusion_count
+      : 0;
+  const outcomeHints: string[] = [];
 
-  if (!agentName && !modelProfileName && !memoryLabel) {
+  if (memoryTypesUsed.length > 0) {
+    outcomeHints.push(
+      `This turn used ${memoryTypesUsed.join(" + ")} memory.`
+    );
+  } else if (memoryUsed === false) {
+    outcomeHints.push("No long-term memory was used for this reply.");
+  }
+
+  if (hiddenExclusionCount > 0) {
+    outcomeHints.push(
+      `${hiddenExclusionCount} hidden memor${hiddenExclusionCount === 1 ? "y was" : "ies were"} kept out of recall.`
+    );
+  }
+
+  if (incorrectExclusionCount > 0) {
+    outcomeHints.push(
+      `${incorrectExclusionCount} incorrect memor${incorrectExclusionCount === 1 ? "y was" : "ies were"} kept out of recall.`
+    );
+  }
+
+  if (!agentName && !modelProfileName && !memoryLabel && outcomeHints.length === 0) {
     return null;
   }
 
   return {
     agentName,
     modelProfileName,
-    memoryLabel
+    memoryLabel,
+    outcomeHints
   };
 }
 
@@ -488,6 +525,13 @@ export function ChatThreadView({
                         <p className="runtime-summary-headline">
                           {getRuntimeSummaryHeadline(runtimeSummary)}
                         </p>
+                        {runtimeSummary.outcomeHints.length > 0 ? (
+                          <ul className="runtime-summary-outcomes">
+                            {runtimeSummary.outcomeHints.map((hint) => (
+                              <li key={hint}>{hint}</li>
+                            ))}
+                          </ul>
+                        ) : null}
                         <dl className="runtime-summary-grid">
                           {runtimeSummary.agentName ? (
                             <>

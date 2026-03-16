@@ -963,13 +963,19 @@ export async function generateAgentReply({
   const latestUserMessage = [...messages]
     .reverse()
     .find((message) => message.role === "user");
-  const recalledMemories = latestUserMessage
+  const memoryRecall = latestUserMessage
     ? await recallRelevantMemories({
         workspaceId: workspace.id,
         userId,
         latestUserMessage: latestUserMessage.content
       })
-    : [];
+    : {
+        memories: [],
+        usedMemoryTypes: [],
+        hiddenExclusionCount: 0,
+        incorrectExclusionCount: 0
+      };
+  const recalledMemories = memoryRecall.memories;
   const modelProfile = await resolveModelProfileForAgent({
     agent,
     workspaceId: workspace.id,
@@ -1007,6 +1013,9 @@ export async function generateAgentReply({
       model_profile_name: modelProfile.name,
       memory_hit_count: recalledMemories.length,
       memory_used: recalledMemories.length > 0,
+      memory_types_used: memoryRecall.usedMemoryTypes,
+      hidden_memory_exclusion_count: memoryRecall.hiddenExclusionCount,
+      incorrect_memory_exclusion_count: memoryRecall.incorrectExclusionCount,
       recalled_memories: recalledMemories.map((memory) => ({
         memory_type: memory.memory_type,
         content: memory.content,
