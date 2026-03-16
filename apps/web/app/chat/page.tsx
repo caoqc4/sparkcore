@@ -9,6 +9,27 @@ import { AgentEditSheet } from "@/app/chat/agent-edit-sheet";
 import { ThreadUrlSync } from "@/app/chat/thread-url-sync";
 import { getChatPageState } from "@/lib/chat/runtime";
 
+function getMemoryConfidenceView(confidence: number) {
+  if (confidence >= 0.9) {
+    return {
+      tone: "strong",
+      label: "High confidence"
+    } as const;
+  }
+
+  if (confidence >= 0.8) {
+    return {
+      tone: "medium",
+      label: "Moderate confidence"
+    } as const;
+  }
+
+  return {
+    tone: "low",
+    label: "Low confidence"
+  } as const;
+}
+
 export default async function ChatPage({
   searchParams
 }: {
@@ -315,59 +336,68 @@ export default async function ChatPage({
                 </div>
               ) : (
                 <div className="memory-list">
-                  {visibleMemories.map((memory) => (
-                    <article className="memory-card" key={memory.id}>
-                      <div className="memory-card-row">
-                        <span className="thread-badge">{memory.memory_type}</span>
-                        <span className="memory-confidence">
-                          Confidence {memory.confidence.toFixed(2)}
-                        </span>
-                      </div>
-                      <p className="memory-content">{memory.content}</p>
-                      <p className="thread-link-meta">
-                        Stored {new Date(memory.created_at).toLocaleString()}
-                      </p>
-                      <div className="memory-trace">
-                        <p className="memory-trace-copy">
-                          {memory.source_thread_id ? (
-                            <>
-                              From{" "}
-                              <span className="memory-trace-emphasis">
-                                {memory.source_thread_title ?? "Untitled thread"}
-                              </span>
-                              {memory.source_timestamp
-                                ? ` · ${new Date(memory.source_timestamp).toLocaleString()}`
-                                : ""}
-                            </>
-                          ) : (
-                            "Source trace is unavailable for this memory."
-                          )}
-                        </p>
-                        {memory.source_thread_id ? (
-                          <Link
-                            className="memory-trace-link"
-                            href={`/chat?thread=${memory.source_thread_id}`}
-                            prefetch={false}
+                  {visibleMemories.map((memory) => {
+                    const confidenceView = getMemoryConfidenceView(memory.confidence);
+
+                    return (
+                      <article
+                        className={`memory-card memory-card-${confidenceView.tone}`}
+                        key={memory.id}
+                      >
+                        <div className="memory-card-row">
+                          <span className="thread-badge">{memory.memory_type}</span>
+                          <span
+                            className={`memory-confidence memory-confidence-${confidenceView.tone}`}
                           >
-                            View context
-                          </Link>
-                        ) : null}
-                      </div>
-                      <form action={hideMemory} className="memory-card-actions">
-                        <input name="memory_id" type="hidden" value={memory.id} />
-                        <input
-                          name="redirect_thread_id"
-                          type="hidden"
-                          value={thread?.id ?? ""}
-                        />
-                        <FormSubmitButton
-                          className="button button-secondary memory-hide-button"
-                          idleText="Hide"
-                          pendingText="Hiding..."
-                        />
-                      </form>
-                    </article>
-                  ))}
+                            {confidenceView.label} · {memory.confidence.toFixed(2)}
+                          </span>
+                        </div>
+                        <p className="memory-content">{memory.content}</p>
+                        <p className="thread-link-meta">
+                          Stored {new Date(memory.created_at).toLocaleString()}
+                        </p>
+                        <div className="memory-trace">
+                          <p className="memory-trace-copy">
+                            {memory.source_thread_id ? (
+                              <>
+                                From{" "}
+                                <span className="memory-trace-emphasis">
+                                  {memory.source_thread_title ?? "Untitled thread"}
+                                </span>
+                                {memory.source_timestamp
+                                  ? ` · ${new Date(memory.source_timestamp).toLocaleString()}`
+                                  : ""}
+                              </>
+                            ) : (
+                              "Source trace is unavailable for this memory."
+                            )}
+                          </p>
+                          {memory.source_thread_id ? (
+                            <Link
+                              className="memory-trace-link"
+                              href={`/chat?thread=${memory.source_thread_id}`}
+                              prefetch={false}
+                            >
+                              View context
+                            </Link>
+                          ) : null}
+                        </div>
+                        <form action={hideMemory} className="memory-card-actions">
+                          <input name="memory_id" type="hidden" value={memory.id} />
+                          <input
+                            name="redirect_thread_id"
+                            type="hidden"
+                            value={thread?.id ?? ""}
+                          />
+                          <FormSubmitButton
+                            className="button button-secondary memory-hide-button"
+                            idleText="Hide"
+                            pendingText="Hiding..."
+                          />
+                        </form>
+                      </article>
+                    );
+                  })}
                 </div>
               )}
             </section>

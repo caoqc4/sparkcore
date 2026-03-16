@@ -292,6 +292,19 @@ a {
   background: linear-gradient(180deg, #ffffff, #f8fafc);
 }
 
+.memory-card-strong {
+  border-color: rgba(15, 118, 110, 0.18);
+}
+
+.memory-card-medium {
+  background: linear-gradient(180deg, #ffffff, #f9fafb);
+}
+
+.memory-card-low {
+  opacity: 0.72;
+  background: linear-gradient(180deg, #fcfcfd, #f8fafc);
+}
+
 .memory-card-row {
   display: flex;
   align-items: center;
@@ -304,6 +317,18 @@ a {
   color: var(--muted);
   font-size: 0.88rem;
   font-weight: 600;
+}
+
+.memory-confidence-strong {
+  color: var(--accent-strong);
+}
+
+.memory-confidence-medium {
+  color: #64748b;
+}
+
+.memory-confidence-low {
+  color: #94a3b8;
 }
 
 .memory-content {
