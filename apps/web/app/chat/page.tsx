@@ -243,8 +243,8 @@ export default async function ChatPage({
 
                 <p className="helper-copy">
                   {workspaceDefaultAgent
-                    ? `Workspace default agent: ${workspaceDefaultAgent.name}. New threads start here unless you choose another active agent.`
-                    : "No workspace default agent is set yet. Choose the active agent you want for this thread."}
+                    ? `Workspace default agent: ${workspaceDefaultAgent.name}. This only preselects the agent for future new threads. It does not switch the agent already bound to the thread you are viewing.`
+                    : "No workspace default agent is set yet. Choose the active agent you want for the next thread. This choice does not change the current thread."}
                 </p>
 
                 <FormSubmitButton
@@ -350,6 +350,13 @@ export default async function ChatPage({
                           <p className="thread-link-meta">
                             Model profile:{" "}
                             {availableAgent.default_model_profile_name ?? "Unassigned"}
+                          </p>
+                          <p className="agent-impact-copy">
+                            {isCurrent
+                              ? "This agent is bound to the current thread. Editing it changes future replies from this thread, but does not rewrite older turns."
+                              : availableAgent.is_default_for_workspace
+                                ? "This agent is the workspace default for future new threads. It does not replace the agent already bound to the current thread."
+                                : "This agent is available for future threads when you choose it, but it is not replying in the current thread right now."}
                           </p>
                           <div className="agent-card-actions">
                             <form action={setDefaultAgent} className="agent-card-action">

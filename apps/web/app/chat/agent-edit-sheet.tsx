@@ -111,6 +111,11 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
               and review the current persona summary and system prompt summary
               without leaving the thread workspace.
             </p>
+            <p className="helper-copy">
+              Changes here update the agent object for future replies that use
+              this agent. They do not rewrite older thread content or past
+              runtime summaries.
+            </p>
 
             {feedback ? <div className="notice notice-error">{feedback}</div> : null}
 
@@ -146,6 +151,10 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
                     </option>
                   ))}
                 </select>
+                <span className="helper-copy">
+                  Switching the model profile only affects future replies from
+                  this agent.
+                </span>
               </label>
 
               <div className="sheet-pack-preview">

@@ -122,9 +122,9 @@ export function ChatThreadView({
   const threadAgentSummary = agentName ?? "Unassigned";
   const defaultAgentCopy = workspaceDefaultAgentName
     ? workspaceDefaultAgentName === agentName
-      ? "This thread is using the workspace default agent."
-      : `Workspace default agent: ${workspaceDefaultAgentName}.`
-    : "No workspace default agent is set.";
+      ? "This thread is using the workspace default agent. Future replies in this thread come from the same agent unless you start a different thread."
+      : `Workspace default agent: ${workspaceDefaultAgentName}. It only affects future new threads, not the agent already bound to this thread.`
+    : "No workspace default agent is set. This thread still keeps its own bound agent.";
   const firstTurnExamples = [
     "Help me plan my top three priorities for this week.",
     "Ask me a few questions so we can decide the best planning style for me.",
@@ -329,6 +329,11 @@ export function ChatThreadView({
                   Thread agent: {threadAgentSummary} · Updated{" "}
                   {new Date(thread.updated_at).toLocaleString()}
                 </p>
+                <p className="helper-copy">
+                  Current thread view first: the bound thread agent controls
+                  later replies here, while the workspace default agent is only a
+                  fallback for future new threads.
+                </p>
                 <p className="helper-copy">{defaultAgentCopy}</p>
               </div>
             </>
@@ -469,6 +474,10 @@ export function ChatThreadView({
                             </>
                           ) : null}
                         </dl>
+                        <p className="runtime-summary-note">
+                          This summary belongs only to this assistant turn. It
+                          explains who replied here, not the whole thread.
+                        </p>
                       </details>
                     ) : null}
                   </>
