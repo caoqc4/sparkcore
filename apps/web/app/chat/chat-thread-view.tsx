@@ -21,7 +21,6 @@ type ChatMessage = {
 };
 
 type ChatThreadViewProps = {
-  initialError?: string;
   thread: {
     id: string;
     title: string;
@@ -58,23 +57,23 @@ function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
     typeof message.metadata?.memory_hit_count === "number"
       ? message.metadata.memory_hit_count
       : Array.isArray(message.metadata?.recalled_memories)
-      ? message.metadata.recalled_memories.length
-      : null;
+        ? message.metadata.recalled_memories.length
+        : null;
   const memoryUsed =
     typeof message.metadata?.memory_used === "boolean"
       ? message.metadata.memory_used
       : typeof memoryHitCount === "number"
-      ? memoryHitCount > 0
-      : null;
+        ? memoryHitCount > 0
+        : null;
 
   const memoryLabel =
     memoryUsed === null
       ? null
       : memoryUsed
-      ? typeof memoryHitCount === "number"
-        ? `${memoryHitCount} memory hit${memoryHitCount === 1 ? "" : "s"}`
-        : "Yes"
-      : "No";
+        ? typeof memoryHitCount === "number"
+          ? `${memoryHitCount} memory hit${memoryHitCount === 1 ? "" : "s"}`
+          : "Yes"
+        : "No";
 
   if (!agentName && !modelProfileName && !memoryLabel) {
     return null;
@@ -104,7 +103,6 @@ function getRuntimeSummaryHeadline(summary: RuntimeSummary) {
 }
 
 export function ChatThreadView({
-  initialError,
   thread,
   agentName,
   workspaceDefaultAgentName,
@@ -112,9 +110,11 @@ export function ChatThreadView({
 }: ChatThreadViewProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
-  const renameFormRef = useRef<HTMLFormElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
-  const [pendingError, setPendingError] = useState<string | null>(initialError ?? null);
+  const [feedback, setFeedback] = useState<{
+    tone: "error" | "success";
+    message: string;
+  } | null>(null);
   const [optimisticMessages, setOptimisticMessages] =
     useState<ChatMessage[]>(initialMessages);
   const [threadTitle, setThreadTitle] = useState(thread.title);
@@ -127,11 +127,11 @@ export function ChatThreadView({
 
   useEffect(() => {
     setOptimisticMessages(initialMessages);
-    setPendingError(initialError ?? null);
+    setFeedback(null);
     setThreadTitle(thread.title);
     setDraftTitle(thread.title);
     setIsRenaming(false);
-  }, [initialError, initialMessages, thread.id, thread.title]);
+  }, [initialMessages, thread.id, thread.title]);
 
   const isComposerDisabled = isSending || isRetryPending || isRenamePending;
   const isFirstTurn = optimisticMessages.length === 0;
@@ -191,11 +191,14 @@ export function ChatThreadView({
     const trimmedContent = content.trim();
 
     if (!trimmedContent) {
-      setPendingError("Type a message before sending.");
+      setFeedback({
+        tone: "error",
+        message: "Type a message before sending."
+      });
       return;
     }
 
-    setPendingError(null);
+    setFeedback(null);
     setOptimisticMessages((current) => [
       ...current,
       {
@@ -214,7 +217,10 @@ export function ChatThreadView({
       const result: SendMessageResult = await sendMessage(formData);
 
       if (!result.ok) {
-        setPendingError(result.message);
+        setFeedback({
+          tone: "error",
+          message: result.message
+        });
       }
 
       router.refresh();
@@ -226,7 +232,7 @@ export function ChatThreadView({
       return;
     }
 
-    setPendingError(null);
+    setFeedback(null);
     setRetryingMessageId(failedMessageId);
 
     startRetryTransition(async () => {
@@ -237,7 +243,10 @@ export function ChatThreadView({
       const result: RetryAssistantReplyResult = await retryAssistantReply(retryFormData);
 
       if (!result.ok) {
-        setPendingError(result.message);
+        setFeedback({
+          tone: "error",
+          message: result.message
+        });
       }
 
       setRetryingMessageId(null);
@@ -248,7 +257,7 @@ export function ChatThreadView({
   function handleRenameCancel() {
     setDraftTitle(threadTitle);
     setIsRenaming(false);
-    setPendingError(initialError ?? null);
+    setFeedback(null);
   }
 
   function useFirstTurnPrompt(prompt: string) {
@@ -257,7 +266,12 @@ export function ChatThreadView({
     }
 
     messageInputRef.current?.focus();
-    messageInputRef.current?.setRangeText(prompt, 0, messageInputRef.current.value.length, "end");
+    messageInputRef.current?.setRangeText(
+      prompt,
+      0,
+      messageInputRef.current.value.length,
+      "end"
+    );
   }
 
   async function handleRename(formData: FormData) {
@@ -269,11 +283,17 @@ export function ChatThreadView({
       const result: RenameThreadResult = await renameThread(formData);
 
       if (!result.ok) {
-        setPendingError(result.message);
+        setFeedback({
+          tone: "error",
+          message: result.message
+        });
         return;
       }
 
-      setPendingError(null);
+      setFeedback({
+        tone: "success",
+        message: "Thread title updated."
+      });
       setThreadTitle(result.title);
       setDraftTitle(result.title);
       setIsRenaming(false);
@@ -283,16 +303,14 @@ export function ChatThreadView({
 
   return (
     <>
-      {pendingError ? <div className="notice notice-error">{pendingError}</div> : null}
+      {feedback ? (
+        <div className={`notice notice-${feedback.tone}`}>{feedback.message}</div>
+      ) : null}
 
       <div className="thread-detail-header">
         <div className="thread-detail-copy">
           {isRenaming ? (
-            <form
-              action={handleRename}
-              className="thread-rename-form"
-              ref={renameFormRef}
-            >
+            <form action={handleRename} className="thread-rename-form">
               <input name="thread_id" type="hidden" value={thread.id} />
               <label className="sr-only" htmlFor={`thread-title-${thread.id}`}>
                 Rename thread
@@ -307,12 +325,8 @@ export function ChatThreadView({
                 value={draftTitle}
               />
               <div className="thread-rename-actions">
-                <button
-                  className="button"
-                  disabled={isRenamePending}
-                  type="submit"
-                >
-                  {isRenamePending ? "Saving..." : "Save"}
+                <button className="button" disabled={isRenamePending} type="submit">
+                  {isRenamePending ? "Saving..." : "Save changes"}
                 </button>
                 <button
                   className="button button-secondary"
@@ -346,8 +360,8 @@ export function ChatThreadView({
                   {new Date(thread.updated_at).toLocaleString()}
                 </p>
                 <p className="helper-copy">
-                  Current thread view first: the bound thread agent controls
-                  later replies here, while the workspace default agent is only a
+                  Current thread view first: the bound thread agent controls later
+                  replies here, while the workspace default agent is only a
                   fallback for future new threads.
                 </p>
                 <p className="helper-copy">{defaultAgentCopy}</p>
@@ -371,8 +385,9 @@ export function ChatThreadView({
             <p className="message-role">Assistant</p>
             <div className="first-turn-state">
               <p className="message-content">
-                This thread is ready for its first turn. Start with a goal, a planning
-                problem, or a short description of what you want help with.
+                This thread is ready for its first turn. Start with a goal, a
+                planning problem, or a short description of what you want help
+                with.
               </p>
               <p className="helper-copy">
                 Keep it lightweight: one clear request is enough to get the
@@ -416,14 +431,14 @@ export function ChatThreadView({
               errorType === "timeout"
                 ? "Reply timed out"
                 : errorType === "provider_error"
-                ? "Provider error"
-                : "Reply failed";
+                  ? "Provider error"
+                  : "Reply failed";
             const failureHint =
               errorType === "timeout"
                 ? "The reply took too long. Retry this turn without resending the user message."
                 : errorType === "provider_error"
-                ? "The model provider returned an error. Retry when the provider is available again."
-                : "Something interrupted generation. Retry this turn when ready.";
+                  ? "The model provider returned an error. Retry when the provider is available again."
+                  : "Something interrupted generation. Retry this turn when ready.";
             const runtimeSummary = getRuntimeSummary(message);
 
             return (
@@ -494,8 +509,8 @@ export function ChatThreadView({
                           ) : null}
                         </dl>
                         <p className="runtime-summary-note">
-                          This summary belongs only to this assistant turn. It
-                          explains this reply, not the whole thread.
+                          This summary belongs only to this assistant turn. It explains
+                          this reply, not the whole thread.
                         </p>
                       </details>
                     ) : null}

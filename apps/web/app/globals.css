@@ -230,6 +230,10 @@ a {
   grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
 }
 
+.chat-page-feedback {
+  margin-top: -8px;
+}
+
 .chat-sidebar,
 .chat-panel {
   min-height: 0;

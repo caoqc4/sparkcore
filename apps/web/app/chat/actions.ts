@@ -28,6 +28,7 @@ export type RenameAgentResult =
   | { ok: false; agentId: string | null; message: string };
 
 type AssistantErrorType = "timeout" | "provider_error" | "generation_failed";
+type ChatFeedbackTone = "success" | "error";
 
 function summarizeThreadTitle(content: string) {
   const normalized = content.replace(/\s+/g, " ").trim();
@@ -100,6 +101,23 @@ function buildChatRedirectTarget(threadId: FormDataEntryValue | null) {
   return typeof threadId === "string" && threadId.trim().length > 0
     ? `/chat?thread=${encodeURIComponent(threadId)}`
     : "/chat";
+}
+
+function appendChatFeedback(
+  target: string,
+  feedback: {
+    type: ChatFeedbackTone;
+    message: string;
+  }
+) {
+  const [pathname, query = ""] = target.split("?");
+  const nextParams = new URLSearchParams(query);
+  nextParams.delete("error");
+  nextParams.set("feedback", feedback.message);
+  nextParams.set("feedback_type", feedback.type);
+
+  const nextQuery = nextParams.toString();
+  return nextQuery ? `${pathname}?${nextQuery}` : pathname;
 }
 
 export async function createAgentFromPersonaPack(
@@ -315,7 +333,10 @@ export async function createThread(formData: FormData) {
 
   if (typeof agentId !== "string" || agentId.trim().length === 0) {
     redirect(
-      `/chat?error=${encodeURIComponent("Choose an agent before creating a new thread.")}`
+      appendChatFeedback("/chat", {
+        type: "error",
+        message: "Choose an agent before creating a new thread."
+      })
     );
   }
 
@@ -351,9 +372,10 @@ export async function createThread(formData: FormData) {
 
   if (!agent) {
     redirect(
-      `/chat?error=${encodeURIComponent(
-        "The selected agent is unavailable for this workspace."
-      )}`
+      appendChatFeedback("/chat", {
+        type: "error",
+        message: "The selected agent is unavailable for this workspace."
+      })
     );
   }
 
@@ -370,14 +392,20 @@ export async function createThread(formData: FormData) {
 
   if (error || !createdThread) {
     redirect(
-      `/chat?error=${encodeURIComponent(
-        error?.message ?? "Failed to create the new thread."
-      )}`
+      appendChatFeedback("/chat", {
+        type: "error",
+        message: error?.message ?? "Failed to create the new thread."
+      })
     );
   }
 
   revalidatePath("/chat");
-  redirect(`/chat?thread=${encodeURIComponent(createdThread.id)}`);
+  redirect(
+    appendChatFeedback(`/chat?thread=${encodeURIComponent(createdThread.id)}`, {
+      type: "success",
+      message: "New chat is ready. Send the first message when you are ready."
+    })
+  );
 }
 
 export async function setDefaultAgent(formData: FormData) {
@@ -387,9 +415,10 @@ export async function setDefaultAgent(formData: FormData) {
 
   if (typeof agentId !== "string" || agentId.trim().length === 0) {
     redirect(
-      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
-        "Choose an active agent before setting a default."
-      )}`
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: "Choose an active agent before setting a default."
+      })
     );
   }
 
@@ -424,17 +453,19 @@ export async function setDefaultAgent(formData: FormData) {
 
   if (activeAgentsError || !activeAgents) {
     redirect(
-      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
-        activeAgentsError?.message ?? "Failed to load active agents."
-      )}`
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: activeAgentsError?.message ?? "Failed to load active agents."
+      })
     );
   }
 
   if (!activeAgents.some((agent) => agent.id === agentId)) {
     redirect(
-      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
-        "The selected default agent is unavailable."
-      )}`
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: "The selected default agent is unavailable."
+      })
     );
   }
 
@@ -459,15 +490,21 @@ export async function setDefaultAgent(formData: FormData) {
 
     if (error) {
       redirect(
-        `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
-          error.message
-        )}`
+        appendChatFeedback(redirectTarget, {
+          type: "error",
+          message: error.message
+        })
       );
     }
   }
 
   revalidatePath("/chat");
-  redirect(redirectTarget);
+  redirect(
+    appendChatFeedback(redirectTarget, {
+      type: "success",
+      message: "Workspace default agent updated."
+    })
+  );
 }
 
 export async function hideMemory(formData: FormData) {
@@ -476,9 +513,10 @@ export async function hideMemory(formData: FormData) {
 
   if (typeof memoryId !== "string" || memoryId.trim().length === 0) {
     redirect(
-      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
-        "The memory to hide could not be determined."
-      )}`
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: "The memory to hide could not be determined."
+      })
     );
   }
 
@@ -500,9 +538,10 @@ export async function hideMemory(formData: FormData) {
 
   if (!memoryItem) {
     redirect(
-      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
-        "The selected memory is unavailable."
-      )}`
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: "The selected memory is unavailable."
+      })
     );
   }
 
@@ -521,14 +560,20 @@ export async function hideMemory(formData: FormData) {
 
   if (error) {
     redirect(
-      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
-        error.message
-      )}`
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: error.message
+      })
     );
   }
 
   revalidatePath("/chat");
-  redirect(redirectTarget);
+  redirect(
+    appendChatFeedback(redirectTarget, {
+      type: "success",
+      message: "Memory hidden from recall."
+    })
+  );
 }
 
 export async function restoreMemory(formData: FormData) {
@@ -537,9 +582,10 @@ export async function restoreMemory(formData: FormData) {
 
   if (typeof memoryId !== "string" || memoryId.trim().length === 0) {
     redirect(
-      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
-        "The memory to restore could not be determined."
-      )}`
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: "The memory to restore could not be determined."
+      })
     );
   }
 
@@ -561,9 +607,10 @@ export async function restoreMemory(formData: FormData) {
 
   if (!memoryItem) {
     redirect(
-      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
-        "The selected hidden memory is unavailable."
-      )}`
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: "The selected hidden memory is unavailable."
+      })
     );
   }
 
@@ -583,14 +630,20 @@ export async function restoreMemory(formData: FormData) {
 
   if (error) {
     redirect(
-      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
-        error.message
-      )}`
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: error.message
+      })
     );
   }
 
   revalidatePath("/chat");
-  redirect(redirectTarget);
+  redirect(
+    appendChatFeedback(redirectTarget, {
+      type: "success",
+      message: "Memory restored to recall."
+    })
+  );
 }
 
 export async function sendMessage(

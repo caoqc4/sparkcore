@@ -93,7 +93,12 @@ function formatThreadUpdatedAt(dateString: string) {
 export default async function ChatPage({
   searchParams
 }: {
-  searchParams?: Promise<{ error?: string; thread?: string }>;
+  searchParams?: Promise<{
+    error?: string;
+    feedback?: string;
+    feedback_type?: string;
+    thread?: string;
+  }>;
 }) {
   const params = (await searchParams) ?? {};
   let chatState;
@@ -177,12 +182,24 @@ export default async function ChatPage({
   const workspaceDefaultAgent =
     availableAgents.find((availableAgent) => availableAgent.is_default_for_workspace) ??
     null;
+  const pageFeedback = params.feedback
+    ? {
+        tone: params.feedback_type === "success" ? "success" : "error",
+        message: params.feedback
+      }
+    : params.error
+      ? {
+          tone: "error",
+          message: params.error
+        }
+      : null;
 
   return (
     <main className="shell">
       <div className="app-shell">
         <ThreadUrlSync
           canonicalThreadId={canonicalThreadId}
+          clearTransientFeedback={Boolean(params.feedback || params.error)}
           enabled={shouldReplaceUrl}
         />
 
@@ -214,6 +231,12 @@ export default async function ChatPage({
             message history.
           </p>
         </section>
+
+        {pageFeedback ? (
+          <div className={`notice notice-${pageFeedback.tone} chat-page-feedback`}>
+            {pageFeedback.message}
+          </div>
+        ) : null}
 
         <section className="chat-layout">
           <aside className="panel chat-sidebar">
@@ -377,11 +400,7 @@ export default async function ChatPage({
                                     ? "Default agent"
                                     : "Set as default"
                                 }
-                                pendingText={
-                                  availableAgent.is_default_for_workspace
-                                    ? "Saving..."
-                                    : "Setting..."
-                                }
+                                pendingText="Saving..."
                               />
                             </form>
 
@@ -594,7 +613,6 @@ export default async function ChatPage({
               <ChatThreadView
                 agentName={agent?.name ?? null}
                 workspaceDefaultAgentName={workspaceDefaultAgent?.name ?? null}
-                initialError={params.error}
                 initialMessages={messages}
                 key={thread.id}
                 thread={thread}
