@@ -87,6 +87,22 @@ function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
   };
 }
 
+function getRuntimeSummaryHeadline(summary: RuntimeSummary) {
+  if (summary.agentName && summary.memoryLabel && summary.memoryLabel !== "No") {
+    return "This reply used the current agent and memory context.";
+  }
+
+  if (summary.agentName) {
+    return "This reply was generated from the current thread setup.";
+  }
+
+  if (summary.memoryLabel && summary.memoryLabel !== "No") {
+    return "This reply was shaped by stored memory context.";
+  }
+
+  return "This reply used the current chat setup.";
+}
+
 export function ChatThreadView({
   initialError,
   thread,
@@ -452,31 +468,34 @@ export function ChatThreadView({
                     {runtimeSummary ? (
                       <details className="runtime-summary">
                         <summary className="runtime-summary-toggle">
-                          Runtime summary
+                          How this reply was generated
                         </summary>
+                        <p className="runtime-summary-headline">
+                          {getRuntimeSummaryHeadline(runtimeSummary)}
+                        </p>
                         <dl className="runtime-summary-grid">
                           {runtimeSummary.agentName ? (
                             <>
-                              <dt>Replying agent</dt>
+                              <dt>Agent used</dt>
                               <dd>{runtimeSummary.agentName}</dd>
                             </>
                           ) : null}
                           {runtimeSummary.modelProfileName ? (
                             <>
-                              <dt>Model profile</dt>
+                              <dt>Model profile used</dt>
                               <dd>{runtimeSummary.modelProfileName}</dd>
                             </>
                           ) : null}
                           {runtimeSummary.memoryLabel ? (
                             <>
-                              <dt>Memory used</dt>
+                              <dt>Memory context</dt>
                               <dd>{runtimeSummary.memoryLabel}</dd>
                             </>
                           ) : null}
                         </dl>
                         <p className="runtime-summary-note">
                           This summary belongs only to this assistant turn. It
-                          explains who replied here, not the whole thread.
+                          explains this reply, not the whole thread.
                         </p>
                       </details>
                     ) : null}
