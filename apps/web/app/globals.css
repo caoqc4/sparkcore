@@ -321,6 +321,17 @@ a {
   margin-top: 16px;
 }
 
+.memory-trust-note {
+  padding: 12px 14px;
+  border: 1px dashed rgba(148, 163, 184, 0.5);
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.memory-trust-note .helper-copy {
+  margin: 0;
+}
+
 .memory-list {
   display: grid;
   gap: 10px;
@@ -356,6 +367,13 @@ a {
   flex-wrap: wrap;
 }
 
+.memory-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .memory-confidence {
   color: var(--muted);
   font-size: 0.88rem;
@@ -378,6 +396,13 @@ a {
   margin: 0;
   color: var(--text);
   line-height: 1.6;
+}
+
+.memory-trust-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .memory-trace {
@@ -458,6 +483,11 @@ a {
 .memory-card-hidden {
   opacity: 0.84;
   background: linear-gradient(180deg, #fcfcfd, #f5f7fb);
+}
+
+.thread-badge-muted {
+  background: #e2e8f0;
+  color: var(--muted);
 }
 
 .agent-card {

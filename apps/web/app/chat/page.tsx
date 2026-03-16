@@ -35,6 +35,35 @@ function getMemoryConfidenceView(confidence: number) {
   } as const;
 }
 
+function hasMetadataFlag(
+  metadata: Record<string, unknown> | undefined,
+  key: string
+) {
+  return typeof metadata?.[key] === "string" && metadata[key] !== "";
+}
+
+function getMemoryTrustHint({
+  confidence,
+  metadata
+}: {
+  confidence: number;
+  metadata: Record<string, unknown> | undefined;
+}) {
+  if (hasMetadataFlag(metadata, "restored_at")) {
+    return "Restored memory. It is visible again and can be used in recall.";
+  }
+
+  if (confidence >= 0.9) {
+    return "Strong signal from a clear, stable user statement.";
+  }
+
+  if (confidence >= 0.8) {
+    return "Useful signal, but shown with slightly lighter emphasis.";
+  }
+
+  return "Lower-confidence memory. It stays readable, but is visually softened.";
+}
+
 function formatThreadUpdatedAt(dateString: string) {
   const timestamp = new Date(dateString).getTime();
   const now = Date.now();
@@ -383,6 +412,14 @@ export default async function ChatPage({
               </summary>
 
               <div className="sidebar-section-body agent-panel memory-panel">
+                <div className="memory-trust-note">
+                  <p className="helper-copy">
+                    Trust cues stay lightweight here: lower-confidence memories
+                    are softened visually, and hidden memories stay out of
+                    recall until restored.
+                  </p>
+                </div>
+
                 {visibleMemories.length === 0 ? (
                   <div className="empty-state">
                     <p className="helper-copy">
@@ -394,6 +431,14 @@ export default async function ChatPage({
                   <div className="memory-list">
                     {visibleMemories.map((memory) => {
                       const confidenceView = getMemoryConfidenceView(memory.confidence);
+                      const trustHint = getMemoryTrustHint({
+                        confidence: memory.confidence,
+                        metadata: memory.metadata
+                      });
+                      const isRestored = hasMetadataFlag(
+                        memory.metadata,
+                        "restored_at"
+                      );
 
                       return (
                         <article
@@ -401,7 +446,14 @@ export default async function ChatPage({
                           key={memory.id}
                         >
                           <div className="memory-card-row">
-                            <span className="thread-badge">{memory.memory_type}</span>
+                            <div className="memory-badges">
+                              <span className="thread-badge">{memory.memory_type}</span>
+                              {isRestored ? (
+                                <span className="thread-badge thread-badge-muted">
+                                  Restored
+                                </span>
+                              ) : null}
+                            </div>
                             <span
                               className={`memory-confidence memory-confidence-${confidenceView.tone}`}
                             >
@@ -409,6 +461,7 @@ export default async function ChatPage({
                             </span>
                           </div>
                           <p className="memory-content">{memory.content}</p>
+                          <p className="memory-trust-copy">{trustHint}</p>
                           <p className="thread-link-meta">
                             Stored {new Date(memory.created_at).toLocaleString()}
                           </p>
@@ -473,6 +526,10 @@ export default async function ChatPage({
                             </span>
                           </div>
                           <p className="memory-content">{memory.content}</p>
+                          <p className="memory-trust-copy">
+                            Hidden memories stay out of recall until you restore
+                            them.
+                          </p>
                           <p className="thread-link-meta">
                             Hidden from{" "}
                             {memory.source_thread_title ?? "an older thread"}
