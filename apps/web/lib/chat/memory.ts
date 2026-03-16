@@ -26,8 +26,13 @@ type StoredMemory = {
   memory_type: MemoryType;
   content: string;
   confidence: number;
+  metadata?: Record<string, unknown>;
   created_at: string;
 };
+
+function isMemoryHidden(metadata: Record<string, unknown> | null | undefined) {
+  return metadata?.is_hidden === true;
+}
 
 type MemoryExtractionResponse = {
   memories: MemoryCandidate[];
@@ -263,19 +268,21 @@ export async function recallRelevantMemories({
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("memory_items")
-    .select("id, memory_type, content, confidence, created_at")
+    .select("id, memory_type, content, confidence, metadata, created_at")
     .eq("workspace_id", workspaceId)
     .eq("user_id", userId)
     .in("memory_type", ["profile", "preference"])
     .gte("confidence", MEMORY_CONFIDENCE_THRESHOLD)
     .order("created_at", { ascending: false })
-    .limit(25);
+    .limit(60);
 
   if (error) {
     throw new Error(`Failed to load memory items: ${error.message}`);
   }
 
-  const memories = (data ?? []) as StoredMemory[];
+  const memories = ((data ?? []) as StoredMemory[]).filter(
+    (memory) => !isMemoryHidden(memory.metadata)
+  );
 
   if (memories.length === 0) {
     return [];

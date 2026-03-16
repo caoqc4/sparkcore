@@ -92,6 +92,12 @@ function classifyAssistantError(error: unknown): {
   };
 }
 
+function buildChatRedirectTarget(threadId: FormDataEntryValue | null) {
+  return typeof threadId === "string" && threadId.trim().length > 0
+    ? `/chat?thread=${encodeURIComponent(threadId)}`
+    : "/chat";
+}
+
 export async function createAgentFromPersonaPack(
   formData: FormData
 ): Promise<CreateAgentResult> {
@@ -269,10 +275,7 @@ export async function createThread(formData: FormData) {
 export async function setDefaultAgent(formData: FormData) {
   const agentId = formData.get("agent_id");
   const redirectThreadId = formData.get("redirect_thread_id");
-  const redirectTarget =
-    typeof redirectThreadId === "string" && redirectThreadId.trim().length > 0
-      ? `/chat?thread=${encodeURIComponent(redirectThreadId)}`
-      : "/chat";
+  const redirectTarget = buildChatRedirectTarget(redirectThreadId);
 
   if (typeof agentId !== "string" || agentId.trim().length === 0) {
     redirect(
@@ -353,6 +356,67 @@ export async function setDefaultAgent(formData: FormData) {
         )}`
       );
     }
+  }
+
+  revalidatePath("/chat");
+  redirect(redirectTarget);
+}
+
+export async function hideMemory(formData: FormData) {
+  const memoryId = formData.get("memory_id");
+  const redirectTarget = buildChatRedirectTarget(formData.get("redirect_thread_id"));
+
+  if (typeof memoryId !== "string" || memoryId.trim().length === 0) {
+    redirect(
+      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
+        "The memory to hide could not be determined."
+      )}`
+    );
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: memoryItem } = await supabase
+    .from("memory_items")
+    .select("id, metadata")
+    .eq("id", memoryId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!memoryItem) {
+    redirect(
+      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
+        "The selected memory is unavailable."
+      )}`
+    );
+  }
+
+  const nextMetadata = { ...(memoryItem.metadata ?? {}) } as Record<string, unknown>;
+  nextMetadata.is_hidden = true;
+  nextMetadata.hidden_at = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("memory_items")
+    .update({
+      metadata: nextMetadata,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", memoryItem.id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    redirect(
+      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
+        error.message
+      )}`
+    );
   }
 
   revalidatePath("/chat");

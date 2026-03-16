@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { signOut } from "@/app/login/actions";
 import { ChatThreadView } from "@/app/chat/chat-thread-view";
-import { createThread, setDefaultAgent } from "@/app/chat/actions";
+import { createThread, hideMemory, setDefaultAgent } from "@/app/chat/actions";
 import { CreateAgentSheet } from "@/app/chat/create-agent-sheet";
 import { ThreadUrlSync } from "@/app/chat/thread-url-sync";
 import { getChatPageState } from "@/lib/chat/runtime";
@@ -336,6 +336,19 @@ export default async function ChatPage({
                           </Link>
                         ) : null}
                       </div>
+                      <form action={hideMemory} className="memory-card-actions">
+                        <input name="memory_id" type="hidden" value={memory.id} />
+                        <input
+                          name="redirect_thread_id"
+                          type="hidden"
+                          value={thread?.id ?? ""}
+                        />
+                        <FormSubmitButton
+                          className="button button-secondary memory-hide-button"
+                          idleText="Hide"
+                          pendingText="Hiding..."
+                        />
+                      </form>
                     </article>
                   ))}
                 </div>

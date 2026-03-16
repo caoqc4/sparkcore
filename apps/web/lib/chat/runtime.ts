@@ -78,6 +78,7 @@ type VisibleMemoryRecord = {
   memory_type: "profile" | "preference";
   content: string;
   confidence: number;
+  metadata: Record<string, unknown>;
   source_message_id: string | null;
   source_thread_id: string | null;
   source_thread_title: string | null;
@@ -90,6 +91,10 @@ type RequestedThreadFallback = {
   requestedThreadId: string;
   reasonCode: "invalid_or_unauthorized";
 };
+
+function isMemoryHidden(metadata: Record<string, unknown> | null | undefined) {
+  return metadata?.is_hidden === true;
+}
 
 function buildMemoryRecallPrompt(
   recalledMemories: Array<{
@@ -514,13 +519,13 @@ export async function getChatPageState({
   const { data: visibleMemoriesData, error: visibleMemoriesError } = await supabase
     .from("memory_items")
     .select(
-      "id, memory_type, content, confidence, source_message_id, created_at, updated_at"
+      "id, memory_type, content, confidence, metadata, source_message_id, created_at, updated_at"
     )
     .eq("workspace_id", workspace.id)
     .eq("user_id", user.id)
     .in("memory_type", ["profile", "preference"])
     .order("created_at", { ascending: false })
-    .limit(20);
+    .limit(60);
 
   if (visibleMemoriesError) {
     throw new Error(
@@ -555,13 +560,17 @@ export async function getChatPageState({
     memory_type: "profile" | "preference";
     content: string;
     confidence: number;
+    metadata: Record<string, unknown>;
     source_message_id: string | null;
     created_at: string;
     updated_at: string;
   }>;
+  const filteredVisibleMemories = rawVisibleMemories
+    .filter((memory) => !isMemoryHidden(memory.metadata))
+    .slice(0, 20);
   const sourceMessageIds = [
     ...new Set(
-      rawVisibleMemories
+      filteredVisibleMemories
         .map((memory) => memory.source_message_id)
         .filter((id): id is string => Boolean(id))
     )
@@ -672,7 +681,7 @@ export async function getChatPageState({
     availableAgents[0]?.id ??
     null;
   const availablePersonaPacks = (personaPacksData ?? []) as AvailablePersonaPackRecord[];
-  const visibleMemories = rawVisibleMemories.map((memory) => {
+  const visibleMemories = filteredVisibleMemories.map((memory) => {
     const sourceMessage = memory.source_message_id
       ? sourceMessageById.get(memory.source_message_id) ?? null
       : null;

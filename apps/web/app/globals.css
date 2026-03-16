@@ -345,6 +345,16 @@ a {
   text-decoration: underline;
 }
 
+.memory-card-actions {
+  margin-top: 4px;
+}
+
+.memory-hide-button {
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 0.92rem;
+}
+
 .agent-card {
   display: grid;
   gap: 6px;
