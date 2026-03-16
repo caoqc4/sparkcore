@@ -274,6 +274,44 @@ a {
   gap: 10px;
 }
 
+.memory-panel {
+  margin-top: 16px;
+}
+
+.memory-list {
+  display: grid;
+  gap: 10px;
+}
+
+.memory-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.memory-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.memory-confidence {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.memory-content {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.6;
+}
+
 .agent-card {
   display: grid;
   gap: 6px;

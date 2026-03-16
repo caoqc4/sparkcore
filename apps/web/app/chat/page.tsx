@@ -80,6 +80,7 @@ export default async function ChatPage({
     workspace,
     availablePersonaPacks,
     availableAgents,
+    visibleMemories,
     threads,
     thread,
     agent,
@@ -247,6 +248,43 @@ export default async function ChatPage({
                       </article>
                     );
                   })}
+                </div>
+              )}
+            </section>
+
+            <section className="agent-panel memory-panel">
+              <div className="agent-panel-header">
+                <h3>Memory</h3>
+                <p className="helper-copy">
+                  Recent profile and preference memories stay visible inside the
+                  chat workspace so users can understand what the system has
+                  retained.
+                </p>
+              </div>
+
+              {visibleMemories.length === 0 ? (
+                <div className="empty-state">
+                  <p className="helper-copy">
+                    No long-term memory has been written yet. Once a clear
+                    profile or preference is extracted, it will appear here.
+                  </p>
+                </div>
+              ) : (
+                <div className="memory-list">
+                  {visibleMemories.map((memory) => (
+                    <article className="memory-card" key={memory.id}>
+                      <div className="memory-card-row">
+                        <span className="thread-badge">{memory.memory_type}</span>
+                        <span className="memory-confidence">
+                          Confidence {memory.confidence.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="memory-content">{memory.content}</p>
+                      <p className="thread-link-meta">
+                        Stored {new Date(memory.created_at).toLocaleString()}
+                      </p>
+                    </article>
+                  ))}
                 </div>
               )}
             </section>

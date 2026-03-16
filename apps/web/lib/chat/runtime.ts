@@ -72,6 +72,15 @@ type AvailablePersonaPackRecord = {
   persona_summary: string;
 };
 
+type VisibleMemoryRecord = {
+  id: string;
+  memory_type: "profile" | "preference";
+  content: string;
+  confidence: number;
+  created_at: string;
+  updated_at: string;
+};
+
 type RequestedThreadFallback = {
   requestedThreadId: string;
   reasonCode: "invalid_or_unauthorized";
@@ -446,6 +455,7 @@ export async function getChatPageState({
       workspace: null,
       availablePersonaPacks: [],
       availableAgents: [],
+      visibleMemories: [],
       threads: [],
       thread: null,
       agent: null,
@@ -492,6 +502,21 @@ export async function getChatPageState({
   if (availableAgentsError) {
     throw new Error(
       `Failed to load available agents: ${availableAgentsError.message}`
+    );
+  }
+
+  const { data: visibleMemoriesData, error: visibleMemoriesError } = await supabase
+    .from("memory_items")
+    .select("id, memory_type, content, confidence, created_at, updated_at")
+    .eq("workspace_id", workspace.id)
+    .eq("user_id", user.id)
+    .in("memory_type", ["profile", "preference"])
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (visibleMemoriesError) {
+    throw new Error(
+      `Failed to load visible memories: ${visibleMemoriesError.message}`
     );
   }
 
@@ -564,6 +589,7 @@ export async function getChatPageState({
       : null
   })) as AvailableAgentRecord[];
   const availablePersonaPacks = (personaPacksData ?? []) as AvailablePersonaPackRecord[];
+  const visibleMemories = (visibleMemoriesData ?? []) as VisibleMemoryRecord[];
   const threads = (rawThreads ?? []) as ThreadRecord[];
 
   if (threads.length === 0) {
@@ -572,6 +598,7 @@ export async function getChatPageState({
       workspace: workspace as WorkspaceRecord,
       availablePersonaPacks,
       availableAgents,
+      visibleMemories,
       threads: [],
       thread: null,
       agent: null,
@@ -647,6 +674,7 @@ export async function getChatPageState({
     workspace: workspace as WorkspaceRecord,
     availablePersonaPacks,
     availableAgents,
+    visibleMemories,
     threads: threadItems,
     thread: activeThread,
     agent: activeAgent,
