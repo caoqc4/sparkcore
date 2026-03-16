@@ -32,6 +32,60 @@ type ChatThreadViewProps = {
   initialMessages: ChatMessage[];
 };
 
+type RuntimeSummary = {
+  agentName: string | null;
+  modelProfileName: string | null;
+  memoryLabel: string | null;
+};
+
+function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
+  if (message.role !== "assistant" || message.status !== "completed") {
+    return null;
+  }
+
+  const agentName =
+    typeof message.metadata?.agent_name === "string" &&
+    message.metadata.agent_name.trim().length > 0
+      ? message.metadata.agent_name
+      : null;
+  const modelProfileName =
+    typeof message.metadata?.model_profile_name === "string" &&
+    message.metadata.model_profile_name.trim().length > 0
+      ? message.metadata.model_profile_name
+      : null;
+  const memoryHitCount =
+    typeof message.metadata?.memory_hit_count === "number"
+      ? message.metadata.memory_hit_count
+      : Array.isArray(message.metadata?.recalled_memories)
+      ? message.metadata.recalled_memories.length
+      : null;
+  const memoryUsed =
+    typeof message.metadata?.memory_used === "boolean"
+      ? message.metadata.memory_used
+      : typeof memoryHitCount === "number"
+      ? memoryHitCount > 0
+      : null;
+
+  const memoryLabel =
+    memoryUsed === null
+      ? null
+      : memoryUsed
+      ? typeof memoryHitCount === "number"
+        ? `${memoryHitCount} memory hit${memoryHitCount === 1 ? "" : "s"}`
+        : "Yes"
+      : "No";
+
+  if (!agentName && !modelProfileName && !memoryLabel) {
+    return null;
+  }
+
+  return {
+    agentName,
+    modelProfileName,
+    memoryLabel
+  };
+}
+
 export function ChatThreadView({
   initialError,
   thread,
@@ -303,6 +357,7 @@ export function ChatThreadView({
                 : errorType === "provider_error"
                 ? "The model provider returned an error. Retry when the provider is available again."
                 : "Something interrupted generation. Retry this turn when ready.";
+            const runtimeSummary = getRuntimeSummary(message);
 
             return (
               <article
@@ -341,7 +396,36 @@ export function ChatThreadView({
                     </button>
                   </div>
                 ) : (
-                  <p className="message-content">{message.content}</p>
+                  <>
+                    <p className="message-content">{message.content}</p>
+                    {runtimeSummary ? (
+                      <details className="runtime-summary">
+                        <summary className="runtime-summary-toggle">
+                          Runtime summary
+                        </summary>
+                        <dl className="runtime-summary-grid">
+                          {runtimeSummary.agentName ? (
+                            <>
+                              <dt>Agent</dt>
+                              <dd>{runtimeSummary.agentName}</dd>
+                            </>
+                          ) : null}
+                          {runtimeSummary.modelProfileName ? (
+                            <>
+                              <dt>Model profile</dt>
+                              <dd>{runtimeSummary.modelProfileName}</dd>
+                            </>
+                          ) : null}
+                          {runtimeSummary.memoryLabel ? (
+                            <>
+                              <dt>Memory used</dt>
+                              <dd>{runtimeSummary.memoryLabel}</dd>
+                            </>
+                          ) : null}
+                        </dl>
+                      </details>
+                    ) : null}
+                  </>
                 )}
               </article>
             );

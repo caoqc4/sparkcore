@@ -520,6 +520,57 @@ a {
   border-color: rgba(15, 118, 110, 0.18);
 }
 
+.runtime-summary {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.45);
+}
+
+.runtime-summary-toggle {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  list-style: none;
+}
+
+.runtime-summary-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.runtime-summary-toggle::before {
+  content: "+";
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--accent-strong);
+  font-weight: 800;
+}
+
+.runtime-summary[open] .runtime-summary-toggle::before {
+  content: "-";
+}
+
+.runtime-summary-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  margin: 10px 0 0;
+}
+
+.runtime-summary-grid dt {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.runtime-summary-grid dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .message-assistant {
   justify-self: start;
   background: #f8fafc;

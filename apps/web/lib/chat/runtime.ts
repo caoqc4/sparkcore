@@ -840,8 +840,12 @@ export async function generateAgentReply({
     status: "completed",
     metadata: {
       agent_id: agent.id,
+      agent_name: agent.name,
       model: result.model,
       model_profile_id: modelProfile.id,
+      model_profile_name: modelProfile.name,
+      memory_hit_count: recalledMemories.length,
+      memory_used: recalledMemories.length > 0,
       recalled_memories: recalledMemories.map((memory) => ({
         memory_type: memory.memory_type,
         content: memory.content,
