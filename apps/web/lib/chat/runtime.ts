@@ -75,6 +75,13 @@ type AvailablePersonaPackRecord = {
   persona_summary: string;
 };
 
+type AvailableModelProfileRecord = {
+  id: string;
+  name: string;
+  provider: string;
+  model: string;
+};
+
 type VisibleMemoryRecord = {
   id: string;
   memory_type: "profile" | "preference";
@@ -476,6 +483,7 @@ export async function getChatPageState({
       user,
       workspace: null,
       availablePersonaPacks: [],
+      availableModelProfiles: [],
       availableAgents: [],
       defaultAgentId: null,
       visibleMemories: [],
@@ -525,6 +533,19 @@ export async function getChatPageState({
   if (availableAgentsError) {
     throw new Error(
       `Failed to load available agents: ${availableAgentsError.message}`
+    );
+  }
+
+  const { data: availableModelProfilesData, error: availableModelProfilesError } =
+    await supabase
+      .from("model_profiles")
+      .select("id, name, provider, model")
+      .eq("is_active", true)
+      .order("created_at", { ascending: true });
+
+  if (availableModelProfilesError) {
+    throw new Error(
+      `Failed to load available model profiles: ${availableModelProfilesError.message}`
     );
   }
 
@@ -697,6 +718,8 @@ export async function getChatPageState({
     availableAgents[0]?.id ??
     null;
   const availablePersonaPacks = (personaPacksData ?? []) as AvailablePersonaPackRecord[];
+  const availableModelProfiles =
+    (availableModelProfilesData ?? []) as AvailableModelProfileRecord[];
   const visibleMemories = filteredVisibleMemories.map((memory) => {
     const sourceMessage = memory.source_message_id
       ? sourceMessageById.get(memory.source_message_id) ?? null
@@ -718,6 +741,7 @@ export async function getChatPageState({
       user,
       workspace: workspace as WorkspaceRecord,
       availablePersonaPacks,
+      availableModelProfiles,
       availableAgents,
       defaultAgentId,
       visibleMemories,
@@ -795,6 +819,7 @@ export async function getChatPageState({
     user,
     workspace: workspace as WorkspaceRecord,
     availablePersonaPacks,
+    availableModelProfiles,
     availableAgents,
     defaultAgentId,
     visibleMemories,

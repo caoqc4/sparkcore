@@ -211,6 +211,7 @@ export async function renameAgent(
 ): Promise<RenameAgentResult> {
   const agentId = formData.get("agent_id");
   const agentName = formData.get("agent_name");
+  const modelProfileId = formData.get("model_profile_id");
 
   if (typeof agentId !== "string" || agentId.trim().length === 0) {
     return {
@@ -243,7 +244,7 @@ export async function renameAgent(
 
   const { data: agent } = await supabase
     .from("agents")
-    .select("id, name, workspace_id")
+    .select("id, name, workspace_id, default_model_profile_id")
     .eq("id", agentId)
     .eq("owner_user_id", user.id)
     .eq("status", "active")
@@ -258,11 +259,32 @@ export async function renameAgent(
   }
 
   const normalizedName = normalizeAgentName(agentName, agent.name);
+  let nextModelProfileId = agent.default_model_profile_id ?? null;
+
+  if (typeof modelProfileId === "string" && modelProfileId.trim().length > 0) {
+    const { data: modelProfile } = await supabase
+      .from("model_profiles")
+      .select("id")
+      .eq("id", modelProfileId)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!modelProfile) {
+      return {
+        ok: false,
+        agentId,
+        message: "The selected model profile is unavailable."
+      };
+    }
+
+    nextModelProfileId = modelProfile.id;
+  }
 
   const { data: updatedAgent, error } = await supabase
     .from("agents")
     .update({
       name: normalizedName,
+      default_model_profile_id: nextModelProfileId,
       updated_at: new Date().toISOString()
     })
     .eq("id", agent.id)

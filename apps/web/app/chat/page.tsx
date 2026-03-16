@@ -80,6 +80,7 @@ export default async function ChatPage({
     user,
     workspace,
     availablePersonaPacks,
+    availableModelProfiles,
     availableAgents,
     defaultAgentId,
     visibleMemories,
@@ -281,8 +282,11 @@ export default async function ChatPage({
                               name: availableAgent.name,
                               persona_summary: availableAgent.persona_summary,
                               system_prompt_summary:
-                                availableAgent.system_prompt_summary
+                                availableAgent.system_prompt_summary,
+                              default_model_profile_id:
+                                availableAgent.default_model_profile_id
                             }}
+                            modelProfiles={availableModelProfiles}
                           />
                         </div>
                       </article>

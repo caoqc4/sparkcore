@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { renameAgent, type RenameAgentResult } from "@/app/chat/actions";
 
@@ -10,15 +10,32 @@ type AgentEditSheetProps = {
     name: string;
     persona_summary: string;
     system_prompt_summary: string;
+    default_model_profile_id: string | null;
   };
+  modelProfiles: Array<{
+    id: string;
+    name: string;
+    provider: string;
+    model: string;
+  }>;
 };
 
-export function AgentEditSheet({ agent }: AgentEditSheetProps) {
+export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [draftName, setDraftName] = useState(agent.name);
+  const [selectedModelProfileId, setSelectedModelProfileId] = useState(
+    agent.default_model_profile_id ?? modelProfiles[0]?.id ?? ""
+  );
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setDraftName(agent.name);
+    setSelectedModelProfileId(
+      agent.default_model_profile_id ?? modelProfiles[0]?.id ?? ""
+    );
+  }, [agent.default_model_profile_id, agent.name, modelProfiles]);
 
   function closeSheet() {
     if (isPending) {
@@ -26,6 +43,7 @@ export function AgentEditSheet({ agent }: AgentEditSheetProps) {
     }
 
     setDraftName(agent.name);
+    setSelectedModelProfileId(agent.default_model_profile_id ?? modelProfiles[0]?.id ?? "");
     setFeedback(null);
     setIsOpen(false);
   }
@@ -109,6 +127,25 @@ export function AgentEditSheet({ agent }: AgentEditSheetProps) {
                   onChange={(event) => setDraftName(event.currentTarget.value)}
                   value={draftName}
                 />
+              </label>
+
+              <label className="field" htmlFor={`agent-model-profile-${agent.id}`}>
+                <span className="label">Model profile</span>
+                <select
+                  className="input"
+                  id={`agent-model-profile-${agent.id}`}
+                  name="model_profile_id"
+                  onChange={(event) =>
+                    setSelectedModelProfileId(event.currentTarget.value)
+                  }
+                  value={selectedModelProfileId}
+                >
+                  {modelProfiles.map((modelProfile) => (
+                    <option key={modelProfile.id} value={modelProfile.id}>
+                      {modelProfile.name} · {modelProfile.provider}/{modelProfile.model}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <div className="sheet-pack-preview">
