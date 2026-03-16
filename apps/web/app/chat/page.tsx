@@ -310,6 +310,32 @@ export default async function ChatPage({
                       <p className="thread-link-meta">
                         Stored {new Date(memory.created_at).toLocaleString()}
                       </p>
+                      <div className="memory-trace">
+                        <p className="memory-trace-copy">
+                          {memory.source_thread_id ? (
+                            <>
+                              From{" "}
+                              <span className="memory-trace-emphasis">
+                                {memory.source_thread_title ?? "Untitled thread"}
+                              </span>
+                              {memory.source_timestamp
+                                ? ` · ${new Date(memory.source_timestamp).toLocaleString()}`
+                                : ""}
+                            </>
+                          ) : (
+                            "Source trace is unavailable for this memory."
+                          )}
+                        </p>
+                        {memory.source_thread_id ? (
+                          <Link
+                            className="memory-trace-link"
+                            href={`/chat?thread=${memory.source_thread_id}`}
+                            prefetch={false}
+                          >
+                            View context
+                          </Link>
+                        ) : null}
+                      </div>
                     </article>
                   ))}
                 </div>

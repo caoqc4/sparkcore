@@ -78,6 +78,10 @@ type VisibleMemoryRecord = {
   memory_type: "profile" | "preference";
   content: string;
   confidence: number;
+  source_message_id: string | null;
+  source_thread_id: string | null;
+  source_thread_title: string | null;
+  source_timestamp: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -509,7 +513,9 @@ export async function getChatPageState({
 
   const { data: visibleMemoriesData, error: visibleMemoriesError } = await supabase
     .from("memory_items")
-    .select("id, memory_type, content, confidence, created_at, updated_at")
+    .select(
+      "id, memory_type, content, confidence, source_message_id, created_at, updated_at"
+    )
     .eq("workspace_id", workspace.id)
     .eq("user_id", user.id)
     .in("memory_type", ["profile", "preference"])
@@ -544,8 +550,29 @@ export async function getChatPageState({
         .filter((id): id is string => Boolean(id))
     )
   ];
+  const rawVisibleMemories = (visibleMemoriesData ?? []) as Array<{
+    id: string;
+    memory_type: "profile" | "preference";
+    content: string;
+    confidence: number;
+    source_message_id: string | null;
+    created_at: string;
+    updated_at: string;
+  }>;
+  const sourceMessageIds = [
+    ...new Set(
+      rawVisibleMemories
+        .map((memory) => memory.source_message_id)
+        .filter((id): id is string => Boolean(id))
+    )
+  ];
   let personaPackNameById = new Map<string, string>();
   let modelProfileNameById = new Map<string, string>();
+  let sourceMessageById = new Map<
+    string,
+    { thread_id: string; created_at: string }
+  >();
+  let sourceThreadTitleById = new Map<string, string>();
 
   if (personaPackIds.length > 0) {
     const { data: personaPacks, error: personaPacksError } = await supabase
@@ -582,6 +609,53 @@ export async function getChatPageState({
     );
   }
 
+  if (sourceMessageIds.length > 0) {
+    const { data: sourceMessages, error: sourceMessagesError } = await supabase
+      .from("messages")
+      .select("id, thread_id, created_at")
+      .in("id", sourceMessageIds)
+      .eq("workspace_id", workspace.id);
+
+    if (sourceMessagesError) {
+      throw new Error(
+        `Failed to load memory source messages: ${sourceMessagesError.message}`
+      );
+    }
+
+    sourceMessageById = new Map(
+      (sourceMessages ?? []).map((message) => [
+        message.id,
+        {
+          thread_id: message.thread_id,
+          created_at: message.created_at
+        }
+      ])
+    );
+
+    const sourceThreadIds = [
+      ...new Set((sourceMessages ?? []).map((message) => message.thread_id))
+    ];
+
+    if (sourceThreadIds.length > 0) {
+      const { data: sourceThreads, error: sourceThreadsError } = await supabase
+        .from("threads")
+        .select("id, title")
+        .in("id", sourceThreadIds)
+        .eq("workspace_id", workspace.id)
+        .eq("owner_user_id", user.id);
+
+      if (sourceThreadsError) {
+        throw new Error(
+          `Failed to load memory source threads: ${sourceThreadsError.message}`
+        );
+      }
+
+      sourceThreadTitleById = new Map(
+        (sourceThreads ?? []).map((thread) => [thread.id, thread.title])
+      );
+    }
+  }
+
   const availableAgents = rawAvailableAgents.map((agent) => ({
     ...agent,
     source_persona_pack_name: agent.source_persona_pack_id
@@ -598,7 +672,20 @@ export async function getChatPageState({
     availableAgents[0]?.id ??
     null;
   const availablePersonaPacks = (personaPacksData ?? []) as AvailablePersonaPackRecord[];
-  const visibleMemories = (visibleMemoriesData ?? []) as VisibleMemoryRecord[];
+  const visibleMemories = rawVisibleMemories.map((memory) => {
+    const sourceMessage = memory.source_message_id
+      ? sourceMessageById.get(memory.source_message_id) ?? null
+      : null;
+
+    return {
+      ...memory,
+      source_thread_id: sourceMessage?.thread_id ?? null,
+      source_thread_title: sourceMessage?.thread_id
+        ? sourceThreadTitleById.get(sourceMessage.thread_id) ?? null
+        : null,
+      source_timestamp: sourceMessage?.created_at ?? null
+    };
+  }) as VisibleMemoryRecord[];
   const threads = (rawThreads ?? []) as ThreadRecord[];
 
   if (threads.length === 0) {
