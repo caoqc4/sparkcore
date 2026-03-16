@@ -453,6 +453,19 @@ export default async function ChatPage({
                   </p>
                 </div>
 
+                <div className="memory-policy-note">
+                  <p className="helper-copy">
+                    SparkCore is more likely to remember clear, stable profile
+                    facts and preferences. It is less likely to keep one-off
+                    moods, temporary plans, or vague guesses as long-term
+                    memory.
+                  </p>
+                  <p className="helper-copy">
+                    Hidden memory stays out of recall until restored. Lower-confidence
+                    memory can still appear, but it is shown with lighter emphasis.
+                  </p>
+                </div>
+
                 {visibleMemories.length === 0 ? (
                   <div className="empty-state">
                     <p className="helper-copy">

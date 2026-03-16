@@ -336,6 +336,19 @@ a {
   margin: 0;
 }
 
+.memory-policy-note {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgba(15, 118, 110, 0.14);
+  border-radius: 14px;
+  background: #f8fffd;
+}
+
+.memory-policy-note .helper-copy {
+  margin: 0;
+}
+
 .memory-list {
   display: grid;
   gap: 10px;
