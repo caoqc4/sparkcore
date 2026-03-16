@@ -6,6 +6,8 @@ node_modules/
 .next/
 .vercel/
 *.tsbuildinfo
+apps/web/playwright-report/
+apps/web/test-results/
 
 # Local environment files
 .env

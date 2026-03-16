@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "litellm:test": "tsx scripts/test-litellm.ts"
+    "litellm:test": "tsx scripts/test-litellm.ts",
+    "smoke:test": "playwright test"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
@@ -17,6 +18,7 @@
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/node": "^24.5.2",
     "@types/react": "19.2.14",
     "@types/react-dom": "^19.2.2",
