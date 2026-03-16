@@ -95,6 +95,7 @@ export function ChatThreadView({
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const renameFormRef = useRef<HTMLFormElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
   const [pendingError, setPendingError] = useState<string | null>(initialError ?? null);
   const [optimisticMessages, setOptimisticMessages] =
     useState<ChatMessage[]>(initialMessages);
@@ -115,6 +116,12 @@ export function ChatThreadView({
   }, [initialError, initialMessages, thread.id, thread.title]);
 
   const isComposerDisabled = isSending || isRetryPending || isRenamePending;
+  const isFirstTurn = optimisticMessages.length === 0;
+  const firstTurnExamples = [
+    "Help me plan my top three priorities for this week.",
+    "Ask me a few questions so we can decide the best planning style for me.",
+    "Let's turn my current goals into a simple weekly plan."
+  ];
 
   const visibleMessages = useMemo(() => {
     if (!isSending && !retryingMessageId) {
@@ -220,6 +227,15 @@ export function ChatThreadView({
     setPendingError(initialError ?? null);
   }
 
+  function useFirstTurnPrompt(prompt: string) {
+    if (isComposerDisabled) {
+      return;
+    }
+
+    messageInputRef.current?.focus();
+    messageInputRef.current?.setRangeText(prompt, 0, messageInputRef.current.value.length, "end");
+  }
+
   async function handleRename(formData: FormData) {
     if (isComposerDisabled) {
       return;
@@ -321,10 +337,29 @@ export function ChatThreadView({
         {visibleMessages.length === 0 ? (
           <div className="message message-assistant">
             <p className="message-role">Assistant</p>
-            <p className="message-content">
-              No messages yet. Send the first user message to create the initial
-              chat history for this thread.
-            </p>
+            <div className="first-turn-state">
+              <p className="message-content">
+                This thread is ready for its first turn. Start with a goal, a planning
+                problem, or a short description of what you want help with.
+              </p>
+              <p className="helper-copy">
+                Keep it lightweight: one clear request is enough to get the
+                conversation moving.
+              </p>
+              <div className="first-turn-examples" aria-label="First-turn examples">
+                {firstTurnExamples.map((example) => (
+                  <button
+                    className="first-turn-chip"
+                    disabled={isComposerDisabled}
+                    key={example}
+                    onClick={() => useFirstTurnPrompt(example)}
+                    type="button"
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           visibleMessages.map((message) => {
@@ -442,7 +477,12 @@ export function ChatThreadView({
             disabled={isComposerDisabled}
             id={`content-${thread.id}`}
             name="content"
-            placeholder="Send a message into the active thread..."
+            placeholder={
+              isFirstTurn
+                ? "Start the thread with a goal, question, or planning problem..."
+                : "Send a message into the active thread..."
+            }
+            ref={messageInputRef}
             required
             rows={4}
           />
@@ -450,9 +490,9 @@ export function ChatThreadView({
 
         <div className="composer-footer">
           <p className="helper-copy">
-            This thread stays bound to one agent instance. Sending a message
-            will keep feedback local to the active thread and avoid duplicate
-            submits while pending.
+            {isFirstTurn
+              ? "This guidance only appears for an empty thread. Once the first message is sent, the conversation continues without extra onboarding."
+              : "This thread stays bound to one agent instance. Sending a message will keep feedback local to the active thread and avoid duplicate submits while pending."}
           </p>
           <button className="button" disabled={isComposerDisabled} type="submit">
             {isSending ? "Assistant thinking..." : "Send message"}
