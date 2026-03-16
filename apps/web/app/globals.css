@@ -578,6 +578,11 @@ a {
   min-width: 0;
 }
 
+.thread-detail-meta {
+  display: grid;
+  gap: 4px;
+}
+
 .thread-title-row {
   display: flex;
   align-items: center;

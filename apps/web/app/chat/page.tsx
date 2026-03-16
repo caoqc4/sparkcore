@@ -119,6 +119,9 @@ export default async function ChatPage({
     shouldReplaceUrl,
     requestedThreadFallback
   } = chatState;
+  const workspaceDefaultAgent =
+    availableAgents.find((availableAgent) => availableAgent.is_default_for_workspace) ??
+    null;
 
   return (
     <main className="shell">
@@ -182,6 +185,12 @@ export default async function ChatPage({
                     ))}
                   </select>
                 </label>
+
+                <p className="helper-copy">
+                  {workspaceDefaultAgent
+                    ? `Workspace default agent: ${workspaceDefaultAgent.name}. New threads start here unless you choose another active agent.`
+                    : "No workspace default agent is set yet. Choose the active agent you want for this thread."}
+                </p>
 
                 <FormSubmitButton
                   className="button"
@@ -267,10 +276,10 @@ export default async function ChatPage({
                             <h4 className="agent-card-title">{availableAgent.name}</h4>
                             <div className="agent-card-badges">
                               {availableAgent.is_default_for_workspace ? (
-                                <span className="thread-badge">Default</span>
+                                <span className="thread-badge">Workspace default</span>
                               ) : null}
                               {isCurrent ? (
-                                <span className="thread-badge">Current thread</span>
+                                <span className="thread-badge">This thread</span>
                               ) : null}
                             </div>
                           </div>
@@ -490,6 +499,7 @@ export default async function ChatPage({
             ) : (
               <ChatThreadView
                 agentName={agent?.name ?? null}
+                workspaceDefaultAgentName={workspaceDefaultAgent?.name ?? null}
                 initialError={params.error}
                 initialMessages={messages}
                 key={thread.id}

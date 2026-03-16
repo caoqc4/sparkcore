@@ -29,6 +29,7 @@ type ChatThreadViewProps = {
     updated_at: string;
   };
   agentName: string | null;
+  workspaceDefaultAgentName: string | null;
   initialMessages: ChatMessage[];
 };
 
@@ -90,6 +91,7 @@ export function ChatThreadView({
   initialError,
   thread,
   agentName,
+  workspaceDefaultAgentName,
   initialMessages
 }: ChatThreadViewProps) {
   const router = useRouter();
@@ -117,6 +119,12 @@ export function ChatThreadView({
 
   const isComposerDisabled = isSending || isRetryPending || isRenamePending;
   const isFirstTurn = optimisticMessages.length === 0;
+  const threadAgentSummary = agentName ?? "Unassigned";
+  const defaultAgentCopy = workspaceDefaultAgentName
+    ? workspaceDefaultAgentName === agentName
+      ? "This thread is using the workspace default agent."
+      : `Workspace default agent: ${workspaceDefaultAgentName}.`
+    : "No workspace default agent is set.";
   const firstTurnExamples = [
     "Help me plan my top three priorities for this week.",
     "Ask me a few questions so we can decide the best planning style for me.",
@@ -316,10 +324,13 @@ export function ChatThreadView({
                   Rename
                 </button>
               </div>
-              <p className="helper-copy">
-                Bound agent: {agentName ?? "Unassigned"} · Updated{" "}
-                {new Date(thread.updated_at).toLocaleString()}
-              </p>
+              <div className="thread-detail-meta">
+                <p className="helper-copy">
+                  Thread agent: {threadAgentSummary} · Updated{" "}
+                  {new Date(thread.updated_at).toLocaleString()}
+                </p>
+                <p className="helper-copy">{defaultAgentCopy}</p>
+              </div>
             </>
           )}
         </div>
@@ -441,7 +452,7 @@ export function ChatThreadView({
                         <dl className="runtime-summary-grid">
                           {runtimeSummary.agentName ? (
                             <>
-                              <dt>Agent</dt>
+                              <dt>Replying agent</dt>
                               <dd>{runtimeSummary.agentName}</dd>
                             </>
                           ) : null}
