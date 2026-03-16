@@ -13,9 +13,58 @@ export default async function ChatPage({
   searchParams?: Promise<{ error?: string; thread?: string }>;
 }) {
   const params = (await searchParams) ?? {};
-  const chatState = await getChatPageState({
-    requestedThreadId: params.thread
-  });
+  let chatState;
+
+  try {
+    chatState = await getChatPageState({
+      requestedThreadId: params.thread
+    });
+  } catch (error) {
+    const fetchFailedMessage =
+      error instanceof Error
+        ? error.message
+        : "Chat data could not be loaded right now.";
+
+    return (
+      <main className="shell">
+        <div className="app-shell">
+          <div className="topbar">
+            <div>
+              <p className="eyebrow">Chat</p>
+              <h1 className="title">Thread workspace is unavailable</h1>
+            </div>
+
+            <div className="toolbar">
+              <Link className="button button-secondary" href="/workspace">
+                Workspace
+              </Link>
+            </div>
+          </div>
+
+          <section className="panel thread-status-panel">
+            <div className="thread-status-copy">
+              <h2>Chat data could not be loaded</h2>
+              <p className="helper-copy">
+                This is a thread data load failure, not an empty workspace.
+                Refresh the page to retry the current thread.
+              </p>
+            </div>
+
+            <div className="notice notice-error">{fetchFailedMessage}</div>
+
+            <div className="thread-status-actions">
+              <Link className="button" href="/chat" prefetch={false}>
+                Retry chat
+              </Link>
+              <Link className="button button-secondary" href="/workspace">
+                Back to workspace
+              </Link>
+            </div>
+          </section>
+        </div>
+      </main>
+    );
+  }
 
   if (!chatState) {
     redirect("/login");
@@ -34,7 +83,8 @@ export default async function ChatPage({
     agent,
     messages,
     canonicalThreadId,
-    shouldReplaceUrl
+    shouldReplaceUrl,
+    requestedThreadFallback
   } = chatState;
 
   return (
@@ -198,11 +248,22 @@ export default async function ChatPage({
           </aside>
 
           <section className="panel chat-panel">
+            {requestedThreadFallback ? (
+              <div className="notice notice-warning">
+                The requested thread is unavailable in your current workspace, so
+                the latest accessible thread is shown instead.
+              </div>
+            ) : null}
+
             {!thread ? (
               <div className="empty-state">
-                <h2>No active thread</h2>
+                <h2>
+                  {requestedThreadFallback ? "Thread unavailable" : "No active thread"}
+                </h2>
                 <p className="helper-copy">
-                  {availableAgents.length > 0
+                  {requestedThreadFallback
+                    ? "The thread in the URL is no longer available in this user scope. If another thread exists, it should appear in the sidebar."
+                    : availableAgents.length > 0
                     ? "Create a thread from the sidebar to bind it to one agent and open it here."
                     : "There is no active thread and no available agent yet, so this workspace cannot open a chat thread."}
                 </p>

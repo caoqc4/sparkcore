@@ -157,6 +157,11 @@ a {
   color: var(--success-text);
 }
 
+.notice-warning {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
 .app-shell {
   width: min(100%, 960px);
   display: grid;
@@ -513,6 +518,22 @@ a {
   display: grid;
   gap: 12px;
   padding: 12px 0;
+}
+
+.thread-status-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.thread-status-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.thread-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .skeleton {

@@ -64,6 +64,11 @@ type AvailableAgentRecord = {
   default_model_profile_name: string | null;
 };
 
+type RequestedThreadFallback = {
+  requestedThreadId: string;
+  reasonCode: "invalid_or_unauthorized";
+};
+
 function buildMemoryRecallPrompt(
   recalledMemories: Array<{
     memory_type: "profile" | "preference";
@@ -437,7 +442,8 @@ export async function getChatPageState({
       agent: null,
       messages: [],
       canonicalThreadId: null,
-      shouldReplaceUrl: false
+      shouldReplaceUrl: false,
+      requestedThreadFallback: null as RequestedThreadFallback | null
     };
   }
 
@@ -548,7 +554,13 @@ export async function getChatPageState({
       agent: null,
       messages: [],
       canonicalThreadId: null,
-      shouldReplaceUrl: false
+      shouldReplaceUrl: false,
+      requestedThreadFallback: requestedThreadId
+        ? ({
+            requestedThreadId,
+            reasonCode: "invalid_or_unauthorized"
+          } satisfies RequestedThreadFallback)
+        : null
     };
   }
 
@@ -584,6 +596,13 @@ export async function getChatPageState({
     ? threadItems.find((thread) => thread.id === requestedThreadId) ?? null
     : null;
   const activeThread = matchedThread ?? threadItems[0];
+  const requestedThreadFallback =
+    requestedThreadId && !matchedThread
+      ? ({
+          requestedThreadId,
+          reasonCode: "invalid_or_unauthorized"
+        } satisfies RequestedThreadFallback)
+      : null;
   const shouldReplaceUrl =
     Boolean(activeThread) && activeThread.id !== (requestedThreadId ?? null);
   const activeAgent =
@@ -609,7 +628,8 @@ export async function getChatPageState({
     agent: activeAgent,
     messages: (messages ?? []) as MessageRecord[],
     canonicalThreadId: activeThread.id,
-    shouldReplaceUrl
+    shouldReplaceUrl,
+    requestedThreadFallback
   };
 }
 
