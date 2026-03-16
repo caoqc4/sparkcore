@@ -553,6 +553,37 @@ a {
   gap: 12px;
 }
 
+.message-failure-header {
+  display: grid;
+  gap: 8px;
+}
+
+.message-failure-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.failure-badge {
+  width: fit-content;
+}
+
+.failure-timeout {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.failure-provider_error {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.failure-generation_failed {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .retry-button {
   width: fit-content;
 }

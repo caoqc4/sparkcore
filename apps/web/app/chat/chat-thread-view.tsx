@@ -283,10 +283,26 @@ export function ChatThreadView({
               !isThinking &&
               message.role === "assistant" &&
               message.status === "failed";
+            const errorType =
+              typeof message.metadata?.error_type === "string"
+                ? message.metadata.error_type
+                : "generation_failed";
             const failedReason =
               typeof message.metadata?.error_message === "string"
                 ? message.metadata.error_message
                 : "Assistant reply failed. Retry this turn when ready.";
+            const failureLabel =
+              errorType === "timeout"
+                ? "Reply timed out"
+                : errorType === "provider_error"
+                ? "Provider error"
+                : "Reply failed";
+            const failureHint =
+              errorType === "timeout"
+                ? "The reply took too long. Retry this turn without resending the user message."
+                : errorType === "provider_error"
+                ? "The model provider returned an error. Retry when the provider is available again."
+                : "Something interrupted generation. Retry this turn when ready.";
 
             return (
               <article
@@ -308,6 +324,12 @@ export function ChatThreadView({
                   </div>
                 ) : isFailed ? (
                   <div className="message-failure">
+                    <div className="message-failure-header">
+                      <span className={`thread-badge failure-badge failure-${errorType}`}>
+                        {failureLabel}
+                      </span>
+                      <p className="message-failure-hint">{failureHint}</p>
+                    </div>
                     <p className="message-content">{failedReason}</p>
                     <button
                       className="button button-secondary retry-button"

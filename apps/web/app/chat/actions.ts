@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { generateAgentReply, getDefaultModelProfile } from "@/lib/chat/runtime";
 import { extractAndStoreMemories } from "@/lib/chat/memory";
+import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 
 export type SendMessageResult =
   | { ok: true; threadId: string }
@@ -21,6 +22,8 @@ export type RenameThreadResult =
 export type CreateAgentResult =
   | { ok: true; agentId: string; agentName: string }
   | { ok: false; agentId: null; message: string };
+
+type AssistantErrorType = "timeout" | "provider_error" | "generation_failed";
 
 function summarizeThreadTitle(content: string) {
   const normalized = content.replace(/\s+/g, " ").trim();
@@ -55,6 +58,38 @@ function normalizeAgentName(name: string, fallbackName: string) {
   }
 
   return candidate.slice(0, 80).trimEnd();
+}
+
+function classifyAssistantError(error: unknown): {
+  errorType: AssistantErrorType;
+  message: string;
+} {
+  if (error instanceof LiteLLMTimeoutError) {
+    return {
+      errorType: "timeout",
+      message:
+        "Assistant reply timed out. You can retry this turn without resending your message."
+    };
+  }
+
+  if (error instanceof LiteLLMError) {
+    return {
+      errorType: "provider_error",
+      message: `Provider error: ${error.message}`
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      errorType: "generation_failed",
+      message: error.message
+    };
+  }
+
+  return {
+    errorType: "generation_failed",
+    message: "Failed to generate an assistant reply."
+  };
 }
 
 export async function createAgentFromPersonaPack(
@@ -459,6 +494,8 @@ export async function sendMessage(
       console.error("Memory extraction failed:", memoryError);
     }
   } catch (error) {
+    const assistantFailure = classifyAssistantError(error);
+
     await supabase
       .from("messages")
       .update({
@@ -467,10 +504,8 @@ export async function sendMessage(
         metadata: {
           agent_id: thread.agent_id,
           user_message_id: insertedMessage.id,
-          error_message:
-            error instanceof Error
-              ? error.message
-              : "Failed to generate an assistant reply."
+          error_type: assistantFailure.errorType,
+          error_message: assistantFailure.message
         },
         updated_at: new Date().toISOString()
       })
@@ -482,10 +517,7 @@ export async function sendMessage(
     return {
       ok: false,
       threadId: thread.id,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Failed to generate an assistant reply."
+      message: assistantFailure.message
     };
   }
 
@@ -696,6 +728,8 @@ export async function retryAssistantReply(
       assistantMessageId: failedMessage.id
     });
   } catch (error) {
+    const assistantFailure = classifyAssistantError(error);
+
     await supabase
       .from("messages")
       .update({
@@ -703,10 +737,8 @@ export async function retryAssistantReply(
         content: "",
         metadata: {
           ...failedMessage.metadata,
-          error_message:
-            error instanceof Error
-              ? error.message
-              : "Failed to generate an assistant reply."
+          error_type: assistantFailure.errorType,
+          error_message: assistantFailure.message
         },
         updated_at: new Date().toISOString()
       })
@@ -718,10 +750,7 @@ export async function retryAssistantReply(
     return {
       ok: false,
       threadId,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Failed to generate an assistant reply."
+      message: assistantFailure.message
     };
   }
 

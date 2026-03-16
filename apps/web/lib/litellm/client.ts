@@ -31,9 +31,21 @@ export class LiteLLMError extends Error {
   }
 }
 
+export class LiteLLMTimeoutError extends Error {
+  readonly timeoutMs: number;
+
+  constructor(timeoutMs: number) {
+    super(`The assistant reply timed out after ${Math.round(timeoutMs / 1000)} seconds.`);
+    this.name = "LiteLLMTimeoutError";
+    this.timeoutMs = timeoutMs;
+  }
+}
+
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
 }
+
+const DEFAULT_LITELLM_TIMEOUT_MS = 18_000;
 
 export async function generateText({
   model,
@@ -56,22 +68,37 @@ export async function generateText({
 
   const { baseUrl, apiKey } = getLiteLLMEnv();
   const endpoint = `${normalizeBaseUrl(baseUrl)}/chat/completions`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_LITELLM_TIMEOUT_MS);
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature,
-      ...(typeof maxOutputTokens === "number"
-        ? { max_tokens: maxOutputTokens }
-        : {})
-    })
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature,
+        ...(typeof maxOutputTokens === "number"
+          ? { max_tokens: maxOutputTokens }
+          : {})
+      }),
+      signal: controller.signal
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new LiteLLMTimeoutError(DEFAULT_LITELLM_TIMEOUT_MS);
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   let payload: unknown = null;
 
