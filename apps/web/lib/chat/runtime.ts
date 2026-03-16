@@ -48,6 +48,17 @@ type MessageRecord = {
   created_at: string;
 };
 
+type ThreadListItem = ThreadRecord & {
+  agent_name: string | null;
+};
+
+type AvailableAgentRecord = {
+  id: string;
+  name: string;
+  source_persona_pack_id: string | null;
+  default_model_profile_id: string | null;
+};
+
 function buildMemoryRecallPrompt(
   recalledMemories: Array<{
     memory_type: "profile" | "preference";
@@ -386,6 +397,145 @@ export async function getChatState() {
     thread: thread as ThreadRecord,
     agent,
     messages: (messages ?? []) as MessageRecord[]
+  };
+}
+
+export async function getChatPageState({
+  requestedThreadId
+}: {
+  requestedThreadId?: string;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const { data: workspace } = await supabase
+    .from("workspaces")
+    .select("id, name, kind")
+    .eq("owner_user_id", user.id)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (!workspace) {
+    return {
+      user,
+      workspace: null,
+      availableAgents: [],
+      threads: [],
+      thread: null,
+      agent: null,
+      messages: [],
+      canonicalThreadId: null,
+      shouldReplaceUrl: false
+    };
+  }
+
+  const { data: rawThreads, error: threadsError } = await supabase
+    .from("threads")
+    .select("id, title, status, agent_id, created_at, updated_at")
+    .eq("workspace_id", workspace.id)
+    .eq("owner_user_id", user.id)
+    .order("updated_at", { ascending: false });
+
+  if (threadsError) {
+    throw new Error(`Failed to load threads: ${threadsError.message}`);
+  }
+
+  const { data: availableAgentsData, error: availableAgentsError } = await supabase
+    .from("agents")
+    .select("id, name, source_persona_pack_id, default_model_profile_id")
+    .eq("workspace_id", workspace.id)
+    .eq("owner_user_id", user.id)
+    .eq("status", "active")
+    .order("updated_at", { ascending: false });
+
+  if (availableAgentsError) {
+    throw new Error(
+      `Failed to load available agents: ${availableAgentsError.message}`
+    );
+  }
+
+  const availableAgents = (availableAgentsData ?? []) as AvailableAgentRecord[];
+  const threads = (rawThreads ?? []) as ThreadRecord[];
+
+  if (threads.length === 0) {
+    return {
+      user,
+      workspace: workspace as WorkspaceRecord,
+      availableAgents,
+      threads: [],
+      thread: null,
+      agent: null,
+      messages: [],
+      canonicalThreadId: null,
+      shouldReplaceUrl: false
+    };
+  }
+
+  const agentIds = [...new Set(threads.map((thread) => thread.agent_id).filter(Boolean))];
+  let agentById = new Map<string, AgentRecord>();
+
+  if (agentIds.length > 0) {
+    const { data: agents, error: agentsError } = await supabase
+      .from("agents")
+      .select(
+        "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata"
+      )
+      .in("id", agentIds)
+      .eq("workspace_id", workspace.id)
+      .eq("owner_user_id", user.id)
+      .eq("status", "active");
+
+    if (agentsError) {
+      throw new Error(`Failed to load thread agents: ${agentsError.message}`);
+    }
+
+    agentById = new Map(
+      ((agents ?? []) as AgentRecord[]).map((agent) => [agent.id, agent])
+    );
+  }
+
+  const threadItems: ThreadListItem[] = threads.map((thread) => ({
+    ...thread,
+    agent_name: thread.agent_id ? agentById.get(thread.agent_id)?.name ?? null : null
+  }));
+
+  const matchedThread = requestedThreadId
+    ? threadItems.find((thread) => thread.id === requestedThreadId) ?? null
+    : null;
+  const activeThread = matchedThread ?? threadItems[0];
+  const shouldReplaceUrl =
+    Boolean(activeThread) && activeThread.id !== (requestedThreadId ?? null);
+  const activeAgent =
+    activeThread?.agent_id ? agentById.get(activeThread.agent_id) ?? null : null;
+
+  const { data: messages, error: messagesError } = await supabase
+    .from("messages")
+    .select("id, role, content, created_at")
+    .eq("thread_id", activeThread.id)
+    .eq("workspace_id", workspace.id)
+    .order("created_at", { ascending: true });
+
+  if (messagesError) {
+    throw new Error(`Failed to load messages: ${messagesError.message}`);
+  }
+
+  return {
+    user,
+    workspace: workspace as WorkspaceRecord,
+    availableAgents,
+    threads: threadItems,
+    thread: activeThread,
+    agent: activeAgent,
+    messages: (messages ?? []) as MessageRecord[],
+    canonicalThreadId: activeThread.id,
+    shouldReplaceUrl
   };
 }
 
