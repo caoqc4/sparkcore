@@ -382,10 +382,10 @@ export default async function ChatPage({
                           </p>
                           <p className="agent-impact-copy">
                             {isCurrent
-                              ? "This agent is bound to the current thread. Editing it changes future replies from this thread, but does not rewrite older turns."
+                              ? "This agent is bound to the current thread. It can reference long-term memory when relevant, and any edits here only affect future replies from this thread."
                               : availableAgent.is_default_for_workspace
-                                ? "This agent is the workspace default for future new threads. It does not replace the agent already bound to the current thread."
-                                : "This agent is available for future threads when you choose it, but it is not replying in the current thread right now."}
+                                ? "This agent is the workspace default for future new threads. It does not replace the thread agent that is already replying here."
+                                : "This agent is available for future threads when you choose it, but it is not the one replying in the current thread right now."}
                           </p>
                           <div className="agent-card-actions">
                             <form action={setDefaultAgent} className="agent-card-action">

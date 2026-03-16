@@ -157,15 +157,15 @@ function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
 
 function getRuntimeSummaryHeadline(summary: RuntimeSummary) {
   if (summary.agentName && summary.memoryLabel && summary.memoryLabel !== "No") {
-    return "This reply used the current agent and memory context.";
+    return "This reply came from the current thread agent with long-term memory support.";
   }
 
   if (summary.agentName) {
-    return "This reply was generated from the current thread setup.";
+    return "This reply came from the current thread agent.";
   }
 
   if (summary.memoryLabel && summary.memoryLabel !== "No") {
-    return "This reply was shaped by stored memory context.";
+    return "This reply used stored memory context.";
   }
 
   return "This reply used the current chat setup.";
@@ -433,6 +433,11 @@ export function ChatThreadView({
                   replies here, while the workspace default agent is only a
                   fallback for future new threads.
                 </p>
+                <p className="helper-copy">
+                  When this agent replies, it can reference relevant long-term
+                  memory for this thread. If you switch the agent later, that only
+                  affects future replies and does not rewrite older turns.
+                </p>
                 <p className="helper-copy">{defaultAgentCopy}</p>
               </div>
             </>
@@ -591,8 +596,9 @@ export function ChatThreadView({
                           ) : null}
                         </dl>
                         <p className="runtime-summary-note">
-                          This summary belongs only to this assistant turn. It explains
-                          this reply, not the whole thread.
+                          This summary belongs only to this assistant turn. It shows
+                          how the current thread agent handled this reply and does
+                          not rewrite older turns in the thread.
                         </p>
                       </details>
                     ) : null}

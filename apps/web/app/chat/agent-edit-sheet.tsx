@@ -116,6 +116,11 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
               this agent. They do not rewrite older thread content or past
               runtime summaries.
             </p>
+            <p className="helper-copy">
+              In the current thread, this agent can reference long-term memory
+              when it is relevant. Switching the agent or model here only affects
+              future replies.
+            </p>
 
             {feedback ? <div className="notice notice-error">{feedback}</div> : null}
 
