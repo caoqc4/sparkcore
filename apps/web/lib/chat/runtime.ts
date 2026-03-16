@@ -52,6 +52,8 @@ type MessageRecord = {
 
 type ThreadListItem = ThreadRecord & {
   agent_name: string | null;
+  latest_message_preview: string | null;
+  latest_message_created_at: string | null;
 };
 
 type AvailableAgentRecord = {
@@ -115,6 +117,20 @@ function summarizeAgentPrompt(prompt: string) {
   }
 
   return `${normalized.slice(0, 177).trimEnd()}...`;
+}
+
+function buildMessagePreview(content: string) {
+  const normalized = content.replace(/\s+/g, " ").trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (normalized.length <= 88) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, 85).trimEnd()}...`;
 }
 
 function buildMemoryRecallPrompt(
@@ -783,6 +799,10 @@ export async function getChatPageState({
 
   const agentIds = [...new Set(threads.map((thread) => thread.agent_id).filter(Boolean))];
   let agentById = new Map<string, AgentRecord>();
+  let latestMessageByThreadId = new Map<
+    string,
+    { content: string; created_at: string }
+  >();
 
   if (agentIds.length > 0) {
     const { data: agents, error: agentsError } = await supabase
@@ -804,9 +824,42 @@ export async function getChatPageState({
     );
   }
 
+  if (threads.length > 0) {
+    const threadIds = threads.map((thread) => thread.id);
+    const { data: latestMessages, error: latestMessagesError } = await supabase
+      .from("messages")
+      .select("thread_id, content, created_at, status")
+      .in("thread_id", threadIds)
+      .eq("workspace_id", workspace.id)
+      .in("status", ["completed"])
+      .order("created_at", { ascending: false });
+
+    if (latestMessagesError) {
+      throw new Error(
+        `Failed to load thread previews: ${latestMessagesError.message}`
+      );
+    }
+
+    latestMessageByThreadId = new Map();
+
+    for (const message of latestMessages ?? []) {
+      if (!latestMessageByThreadId.has(message.thread_id)) {
+        latestMessageByThreadId.set(message.thread_id, {
+          content: message.content,
+          created_at: message.created_at
+        });
+      }
+    }
+  }
+
   const threadItems: ThreadListItem[] = threads.map((thread) => ({
     ...thread,
-    agent_name: thread.agent_id ? agentById.get(thread.agent_id)?.name ?? null : null
+    agent_name: thread.agent_id ? agentById.get(thread.agent_id)?.name ?? null : null,
+    latest_message_preview: latestMessageByThreadId.get(thread.id)
+      ? buildMessagePreview(latestMessageByThreadId.get(thread.id)!.content)
+      : null,
+    latest_message_created_at:
+      latestMessageByThreadId.get(thread.id)?.created_at ?? null
   }));
 
   const matchedThread = requestedThreadId

@@ -35,6 +35,32 @@ function getMemoryConfidenceView(confidence: number) {
   } as const;
 }
 
+function formatThreadUpdatedAt(dateString: string) {
+  const timestamp = new Date(dateString).getTime();
+  const now = Date.now();
+  const diffMs = timestamp - now;
+  const diffMinutes = Math.round(diffMs / (1000 * 60));
+  const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  const relativeFormatter = new Intl.RelativeTimeFormat("en", {
+    numeric: "auto"
+  });
+
+  if (Math.abs(diffMinutes) < 60) {
+    return relativeFormatter.format(diffMinutes, "minute");
+  }
+
+  if (Math.abs(diffHours) < 24) {
+    return relativeFormatter.format(diffHours, "hour");
+  }
+
+  if (Math.abs(diffDays) < 7) {
+    return relativeFormatter.format(diffDays, "day");
+  }
+
+  return new Date(dateString).toLocaleDateString();
+}
+
 export default async function ChatPage({
   searchParams
 }: {
@@ -231,8 +257,12 @@ export default async function ChatPage({
                       <p className="thread-link-meta">
                         {item.agent_name ?? "Unassigned agent"}
                       </p>
+                      <p className="thread-link-preview">
+                        {item.latest_message_preview ??
+                          "No messages yet. Start the first turn in this thread."}
+                      </p>
                       <p className="thread-link-meta">
-                        Updated {new Date(item.updated_at).toLocaleString()}
+                        Updated {formatThreadUpdatedAt(item.updated_at)}
                       </p>
                     </Link>
                   );

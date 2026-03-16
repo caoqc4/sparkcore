@@ -532,18 +532,29 @@ a {
   background: #f8fafc;
   text-decoration: none;
   transition: border-color 120ms ease, background 120ms ease,
-    box-shadow 120ms ease;
+    box-shadow 120ms ease, transform 120ms ease;
+  position: relative;
 }
 
 .thread-link:hover {
   border-color: rgba(15, 118, 110, 0.35);
   background: #f3fbfa;
+  transform: translateY(-1px);
 }
 
 .thread-link-active {
   border-color: rgba(15, 118, 110, 0.4);
   background: #ecfdf5;
   box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.08);
+}
+
+.thread-link-active::before {
+  content: "";
+  position: absolute;
+  inset: 12px auto 12px 8px;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--accent);
 }
 
 .thread-link-loading {
@@ -562,6 +573,13 @@ a {
   color: var(--muted);
   font-size: 0.92rem;
   line-height: 1.5;
+}
+
+.thread-link-preview {
+  margin: 0;
+  color: #475569;
+  font-size: 0.94rem;
+  line-height: 1.45;
 }
 
 .thread-detail-header {
