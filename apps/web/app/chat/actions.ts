@@ -932,7 +932,7 @@ export async function sendMessage(
     });
 
     try {
-      await extractAndStoreMemories({
+      const memoryWriteOutcome = await extractAndStoreMemories({
         workspaceId: workspace.id,
         userId: user.id,
         agentId: thread.agent_id,
@@ -943,6 +943,45 @@ export async function sendMessage(
           content: message.content
         }))
       });
+
+      if (
+        memoryWriteOutcome.createdCount > 0 ||
+        memoryWriteOutcome.updatedCount > 0
+      ) {
+        const { data: assistantMessage } = await supabase
+          .from("messages")
+          .select("metadata")
+          .eq("id", assistantPlaceholder.id)
+          .eq("thread_id", thread.id)
+          .eq("workspace_id", workspace.id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        const nextMetadata = {
+          ...(assistantMessage?.metadata ?? {}),
+          memory_write_count:
+            memoryWriteOutcome.createdCount + memoryWriteOutcome.updatedCount,
+          memory_write_types: Array.from(
+            new Set([
+              ...memoryWriteOutcome.createdTypes,
+              ...memoryWriteOutcome.updatedTypes
+            ])
+          ),
+          new_memory_count: memoryWriteOutcome.createdCount,
+          updated_memory_count: memoryWriteOutcome.updatedCount
+        };
+
+        await supabase
+          .from("messages")
+          .update({
+            metadata: nextMetadata,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", assistantPlaceholder.id)
+          .eq("thread_id", thread.id)
+          .eq("workspace_id", workspace.id)
+          .eq("user_id", user.id);
+      }
     } catch (memoryError) {
       console.error("Memory extraction failed:", memoryError);
     }

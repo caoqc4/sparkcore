@@ -36,6 +36,7 @@ type RuntimeSummary = {
   agentName: string | null;
   modelProfileName: string | null;
   memoryLabel: string | null;
+  memoryActivityLabel: string | null;
   outcomeHints: string[];
 };
 
@@ -81,6 +82,12 @@ function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
           type === "profile" || type === "preference"
       )
     : [];
+  const memoryWriteTypes = Array.isArray(message.metadata?.memory_write_types)
+    ? message.metadata.memory_write_types.filter(
+        (type): type is "profile" | "preference" =>
+          type === "profile" || type === "preference"
+      )
+    : [];
   const hiddenExclusionCount =
     typeof message.metadata?.hidden_memory_exclusion_count === "number"
       ? message.metadata.hidden_memory_exclusion_count
@@ -90,6 +97,24 @@ function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
       ? message.metadata.incorrect_memory_exclusion_count
       : 0;
   const outcomeHints: string[] = [];
+  const newMemoryCount =
+    typeof message.metadata?.new_memory_count === "number"
+      ? message.metadata.new_memory_count
+      : 0;
+  const updatedMemoryCount =
+    typeof message.metadata?.updated_memory_count === "number"
+      ? message.metadata.updated_memory_count
+      : 0;
+  const memoryActivityLabel =
+    newMemoryCount > 0
+      ? `Saved new ${
+          memoryWriteTypes.length > 0 ? memoryWriteTypes.join(" + ") : "memory"
+        }`
+      : updatedMemoryCount > 0
+        ? `Updated ${
+            memoryWriteTypes.length > 0 ? memoryWriteTypes.join(" + ") : "memory"
+          }`
+        : "No new memory saved";
 
   if (memoryTypesUsed.length > 0) {
     outcomeHints.push(
@@ -111,7 +136,13 @@ function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
     );
   }
 
-  if (!agentName && !modelProfileName && !memoryLabel && outcomeHints.length === 0) {
+  if (
+    !agentName &&
+    !modelProfileName &&
+    !memoryLabel &&
+    !memoryActivityLabel &&
+    outcomeHints.length === 0
+  ) {
     return null;
   }
 
@@ -119,6 +150,7 @@ function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
     agentName,
     modelProfileName,
     memoryLabel,
+    memoryActivityLabel,
     outcomeHints
   };
 }
@@ -549,6 +581,12 @@ export function ChatThreadView({
                             <>
                               <dt>Memory context</dt>
                               <dd>{runtimeSummary.memoryLabel}</dd>
+                            </>
+                          ) : null}
+                          {runtimeSummary.memoryActivityLabel ? (
+                            <>
+                              <dt>Memory activity</dt>
+                              <dd>{runtimeSummary.memoryActivityLabel}</dd>
                             </>
                           ) : null}
                         </dl>

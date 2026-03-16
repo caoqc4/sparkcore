@@ -39,6 +39,13 @@ type RecallOutcome = {
   incorrectExclusionCount: number;
 };
 
+type MemoryWriteOutcome = {
+  createdCount: number;
+  createdTypes: MemoryType[];
+  updatedCount: number;
+  updatedTypes: MemoryType[];
+};
+
 type NormalizedMemoryCandidate = MemoryCandidate & {
   normalized_content: string;
 };
@@ -289,9 +296,14 @@ export async function extractAndStoreMemories({
   sourceMessageId: string;
   latestUserMessage: string;
   recentContext: ContextMessage[];
-}) {
+}): Promise<MemoryWriteOutcome> {
   if (!shouldAttemptExtraction(latestUserMessage)) {
-    return;
+    return {
+      createdCount: 0,
+      createdTypes: [],
+      updatedCount: 0,
+      updatedTypes: []
+    };
   }
 
   const extraction = await generateText({
@@ -320,7 +332,12 @@ export async function extractAndStoreMemories({
   );
 
   if (candidates.length === 0) {
-    return;
+    return {
+      createdCount: 0,
+      createdTypes: [],
+      updatedCount: 0,
+      updatedTypes: []
+    };
   }
 
   const supabase = await createClient();
@@ -353,6 +370,7 @@ export async function extractAndStoreMemories({
   const rowsToInsert: Array<Record<string, unknown>> = [];
   const rowsToUpdate: Array<{
     id: string;
+    memory_type: MemoryType;
     content: string;
     confidence: number;
     metadata: Record<string, unknown>;
@@ -398,6 +416,7 @@ export async function extractAndStoreMemories({
 
     rowsToUpdate.push({
       id: matchingExisting.id,
+      memory_type: candidate.memory_type,
       content: candidate.content,
       confidence: Number(candidate.confidence.toFixed(2)),
       metadata: nextMetadata
@@ -423,7 +442,14 @@ export async function extractAndStoreMemories({
   }
 
   if (rowsToInsert.length === 0) {
-    return;
+    return {
+      createdCount: 0,
+      createdTypes: [],
+      updatedCount: rowsToUpdate.length,
+      updatedTypes: Array.from(
+        new Set(rowsToUpdate.map((row) => row.memory_type))
+      )
+    };
   }
 
   const { error } = await supabase.from("memory_items").insert(rowsToInsert);
@@ -431,6 +457,21 @@ export async function extractAndStoreMemories({
   if (error) {
     throw new Error(`Failed to store memory items: ${error.message}`);
   }
+
+  return {
+    createdCount: rowsToInsert.length,
+    createdTypes: Array.from(
+      new Set(
+        rowsToInsert
+          .map((row) => row.memory_type)
+          .filter((type): type is MemoryType => type === "profile" || type === "preference")
+      )
+    ),
+    updatedCount: rowsToUpdate.length,
+    updatedTypes: Array.from(
+      new Set(rowsToUpdate.map((row) => row.memory_type))
+    )
+  };
 }
 
 export async function recallRelevantMemories({
