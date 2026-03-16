@@ -34,6 +34,12 @@ function isMemoryHidden(metadata: Record<string, unknown> | null | undefined) {
   return metadata?.is_hidden === true;
 }
 
+function isMemoryIncorrect(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return metadata?.is_incorrect === true;
+}
+
 type MemoryExtractionResponse = {
   memories: MemoryCandidate[];
 };
@@ -281,7 +287,8 @@ export async function recallRelevantMemories({
   }
 
   const memories = ((data ?? []) as StoredMemory[]).filter(
-    (memory) => !isMemoryHidden(memory.metadata)
+    (memory) =>
+      !isMemoryHidden(memory.metadata) && !isMemoryIncorrect(memory.metadata)
   );
 
   if (memories.length === 0) {

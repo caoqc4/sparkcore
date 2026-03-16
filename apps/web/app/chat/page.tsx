@@ -6,6 +6,7 @@ import { ChatThreadView } from "@/app/chat/chat-thread-view";
 import {
   createThread,
   hideMemory,
+  markMemoryIncorrect,
   restoreMemory,
   setDefaultAgent
 } from "@/app/chat/actions";
@@ -40,6 +41,10 @@ function hasMetadataFlag(
   key: string
 ) {
   return typeof metadata?.[key] === "string" && metadata[key] !== "";
+}
+
+function isMemoryIncorrect(metadata: Record<string, unknown> | undefined) {
+  return metadata?.is_incorrect === true;
 }
 
 function getMemoryTrustHint({
@@ -171,6 +176,7 @@ export default async function ChatPage({
     defaultAgentId,
     visibleMemories,
     hiddenMemories,
+    incorrectMemories,
     threads,
     thread,
     agent,
@@ -441,8 +447,9 @@ export default async function ChatPage({
                 <div className="memory-trust-note">
                   <p className="helper-copy">
                     Trust cues stay lightweight here: lower-confidence memories
-                    are softened visually, and hidden memories stay out of
-                    recall until restored.
+                    are softened visually, hidden memories stay out of recall
+                    until restored, and incorrect memories send a stronger
+                    correction signal.
                   </p>
                 </div>
 
@@ -530,6 +537,24 @@ export default async function ChatPage({
                               pendingText="Hiding..."
                             />
                           </form>
+                          {!isMemoryIncorrect(memory.metadata) ? (
+                            <form
+                              action={markMemoryIncorrect}
+                              className="memory-card-actions"
+                            >
+                              <input name="memory_id" type="hidden" value={memory.id} />
+                              <input
+                                name="redirect_thread_id"
+                                type="hidden"
+                                value={thread?.id ?? ""}
+                              />
+                              <FormSubmitButton
+                                className="button button-secondary memory-hide-button"
+                                idleText="Incorrect"
+                                pendingText="Saving..."
+                              />
+                            </form>
+                          ) : null}
                         </article>
                       );
                     })}
@@ -554,10 +579,65 @@ export default async function ChatPage({
                           <p className="memory-content">{memory.content}</p>
                           <p className="memory-trust-copy">
                             Hidden memories stay out of recall until you restore
-                            them.
+                            them. Use this when you do not want to see a memory
+                            right now, but are not marking it as wrong.
                           </p>
                           <p className="thread-link-meta">
                             Hidden from{" "}
+                            {memory.source_thread_title ?? "an older thread"}
+                            {memory.source_timestamp
+                              ? ` · ${new Date(memory.source_timestamp).toLocaleString()}`
+                              : ""}
+                          </p>
+                          <form
+                            action={restoreMemory}
+                            className="memory-card-actions"
+                          >
+                            <input name="memory_id" type="hidden" value={memory.id} />
+                            <input
+                              name="redirect_thread_id"
+                              type="hidden"
+                              value={thread?.id ?? ""}
+                            />
+                            <FormSubmitButton
+                              className="button button-secondary memory-hide-button"
+                              idleText="Restore"
+                              pendingText="Restoring..."
+                            />
+                          </form>
+                        </article>
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
+
+                {incorrectMemories.length > 0 ? (
+                  <details className="memory-hidden-shell">
+                    <summary className="memory-hidden-summary">
+                      Incorrect memories ({incorrectMemories.length})
+                    </summary>
+
+                    <div className="memory-list memory-list-hidden">
+                      {incorrectMemories.map((memory) => (
+                        <article className="memory-card memory-card-hidden" key={memory.id}>
+                          <div className="memory-card-row">
+                            <div className="memory-badges">
+                              <span className="thread-badge">{memory.memory_type}</span>
+                              <span className="thread-badge thread-badge-muted">
+                                Incorrect
+                              </span>
+                            </div>
+                            <span className="memory-confidence memory-confidence-low">
+                              Removed from recall
+                            </span>
+                          </div>
+                          <p className="memory-content">{memory.content}</p>
+                          <p className="memory-trust-copy">
+                            Marked incorrect. This is stronger than hide and keeps
+                            the memory out of recall until you restore it.
+                          </p>
+                          <p className="thread-link-meta">
+                            Flagged from{" "}
                             {memory.source_thread_title ?? "an older thread"}
                             {memory.source_timestamp
                               ? ` · ${new Date(memory.source_timestamp).toLocaleString()}`
