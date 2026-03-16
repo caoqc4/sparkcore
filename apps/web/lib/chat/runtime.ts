@@ -57,8 +57,11 @@ type ThreadListItem = ThreadRecord & {
 type AvailableAgentRecord = {
   id: string;
   name: string;
+  is_custom: boolean;
   source_persona_pack_id: string | null;
   default_model_profile_id: string | null;
+  source_persona_pack_name: string | null;
+  default_model_profile_name: string | null;
 };
 
 function buildMemoryRecallPrompt(
@@ -451,7 +454,9 @@ export async function getChatPageState({
 
   const { data: availableAgentsData, error: availableAgentsError } = await supabase
     .from("agents")
-    .select("id, name, source_persona_pack_id, default_model_profile_id")
+    .select(
+      "id, name, is_custom, source_persona_pack_id, default_model_profile_id"
+    )
     .eq("workspace_id", workspace.id)
     .eq("owner_user_id", user.id)
     .eq("status", "active")
@@ -463,7 +468,74 @@ export async function getChatPageState({
     );
   }
 
-  const availableAgents = (availableAgentsData ?? []) as AvailableAgentRecord[];
+  const rawAvailableAgents = (availableAgentsData ?? []) as Array<{
+    id: string;
+    name: string;
+    is_custom: boolean;
+    source_persona_pack_id: string | null;
+    default_model_profile_id: string | null;
+  }>;
+  const personaPackIds = [
+    ...new Set(
+      rawAvailableAgents
+        .map((agent) => agent.source_persona_pack_id)
+        .filter((id): id is string => Boolean(id))
+    )
+  ];
+  const modelProfileIds = [
+    ...new Set(
+      rawAvailableAgents
+        .map((agent) => agent.default_model_profile_id)
+        .filter((id): id is string => Boolean(id))
+    )
+  ];
+  let personaPackNameById = new Map<string, string>();
+  let modelProfileNameById = new Map<string, string>();
+
+  if (personaPackIds.length > 0) {
+    const { data: personaPacks, error: personaPacksError } = await supabase
+      .from("persona_packs")
+      .select("id, name")
+      .in("id", personaPackIds);
+
+    if (personaPacksError) {
+      throw new Error(
+        `Failed to load agent persona packs: ${personaPacksError.message}`
+      );
+    }
+
+    personaPackNameById = new Map(
+      (personaPacks ?? []).map((personaPack) => [personaPack.id, personaPack.name])
+    );
+  }
+
+  if (modelProfileIds.length > 0) {
+    const { data: modelProfiles, error: modelProfilesError } = await supabase
+      .from("model_profiles")
+      .select("id, name")
+      .in("id", modelProfileIds)
+      .eq("is_active", true);
+
+    if (modelProfilesError) {
+      throw new Error(
+        `Failed to load agent model profiles: ${modelProfilesError.message}`
+      );
+    }
+
+    modelProfileNameById = new Map(
+      (modelProfiles ?? []).map((modelProfile) => [modelProfile.id, modelProfile.name])
+    );
+  }
+
+  const availableAgents = rawAvailableAgents.map((agent) => ({
+    ...agent,
+    source_persona_pack_name: agent.source_persona_pack_id
+      ? personaPackNameById.get(agent.source_persona_pack_id) ?? null
+      : null,
+    default_model_profile_name: agent.default_model_profile_id
+      ? modelProfileNameById.get(agent.default_model_profile_id) ?? null
+      : null
+  })) as AvailableAgentRecord[];
   const threads = (rawThreads ?? []) as ThreadRecord[];
 
   if (threads.length === 0) {

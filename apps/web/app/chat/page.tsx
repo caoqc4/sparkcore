@@ -147,6 +147,54 @@ export default async function ChatPage({
                 })}
               </nav>
             )}
+
+            <section className="agent-panel">
+              <div className="agent-panel-header">
+                <h3>Agents</h3>
+                <p className="helper-copy">
+                  Visible here so new threads can bind to a known agent without
+                  opening a separate management screen.
+                </p>
+              </div>
+
+              {availableAgents.length === 0 ? (
+                <div className="empty-state">
+                  <p className="helper-copy">
+                    No active agent is available yet. Once one exists, it will
+                    appear here with its persona and default model profile.
+                  </p>
+                </div>
+              ) : (
+                <div className="agent-list">
+                  {availableAgents.map((availableAgent) => {
+                    const isCurrent = availableAgent.id === thread?.agent_id;
+
+                    return (
+                      <article
+                        className={`agent-card ${isCurrent ? "agent-card-active" : ""}`}
+                        key={availableAgent.id}
+                      >
+                        <div className="agent-card-row">
+                          <h4 className="agent-card-title">{availableAgent.name}</h4>
+                          {isCurrent ? (
+                            <span className="thread-badge">Current thread</span>
+                          ) : null}
+                        </div>
+                        <p className="thread-link-meta">
+                          Persona pack:{" "}
+                          {availableAgent.source_persona_pack_name ??
+                            (availableAgent.is_custom ? "Custom" : "System preset")}
+                        </p>
+                        <p className="thread-link-meta">
+                          Model profile:{" "}
+                          {availableAgent.default_model_profile_name ?? "Unassigned"}
+                        </p>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
           </aside>
 
           <section className="panel chat-panel">

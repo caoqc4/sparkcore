@@ -246,6 +246,52 @@ a {
   gap: 10px;
 }
 
+.agent-panel {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.agent-panel-header {
+  display: grid;
+  gap: 4px;
+}
+
+.agent-list {
+  display: grid;
+  gap: 10px;
+}
+
+.agent-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.agent-card-active {
+  border-color: rgba(15, 118, 110, 0.28);
+  background: #f0fdfa;
+}
+
+.agent-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.agent-card-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+}
+
 .thread-create-form {
   display: grid;
   gap: 12px;
