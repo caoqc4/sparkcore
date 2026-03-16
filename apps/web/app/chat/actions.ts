@@ -14,6 +14,10 @@ export type RetryAssistantReplyResult =
   | { ok: true; threadId: string }
   | { ok: false; threadId: string | null; message: string };
 
+export type RenameThreadResult =
+  | { ok: true; threadId: string; title: string }
+  | { ok: false; threadId: string | null; message: string };
+
 function summarizeThreadTitle(content: string) {
   const normalized = content.replace(/\s+/g, " ").trim();
 
@@ -22,6 +26,20 @@ function summarizeThreadTitle(content: string) {
   }
 
   return `${normalized.slice(0, 45).trimEnd()}...`;
+}
+
+function normalizeThreadTitle(title: string) {
+  const normalized = title.replace(/\s+/g, " ").trim();
+
+  if (normalized.length === 0) {
+    return "";
+  }
+
+  if (normalized.length <= 80) {
+    return normalized;
+  }
+
+  return normalized.slice(0, 80).trimEnd();
 }
 
 export async function createThread(formData: FormData) {
@@ -592,5 +610,77 @@ export async function retryAssistantReply(
   return {
     ok: true,
     threadId
+  };
+}
+
+export async function renameThread(
+  formData: FormData
+): Promise<RenameThreadResult> {
+  const threadId = formData.get("thread_id");
+  const title = formData.get("title");
+
+  if (typeof threadId !== "string" || threadId.trim().length === 0) {
+    return {
+      ok: false,
+      threadId: null,
+      message: "The thread to rename could not be determined."
+    };
+  }
+
+  if (typeof title !== "string") {
+    return {
+      ok: false,
+      threadId,
+      message: "Type a title before saving."
+    };
+  }
+
+  const normalizedTitle = normalizeThreadTitle(title);
+
+  if (!normalizedTitle) {
+    return {
+      ok: false,
+      threadId,
+      message: "Type a title before saving."
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      ok: false,
+      threadId,
+      message: "Your session expired. Sign in again to continue."
+    };
+  }
+
+  const { data: thread, error } = await supabase
+    .from("threads")
+    .update({
+      title: normalizedTitle,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", threadId)
+    .eq("owner_user_id", user.id)
+    .select("id, title")
+    .single();
+
+  if (error || !thread) {
+    return {
+      ok: false,
+      threadId,
+      message: error?.message ?? "Failed to rename the thread."
+    };
+  }
+
+  revalidatePath("/chat");
+  return {
+    ok: true,
+    threadId: thread.id,
+    title: thread.title
   };
 }

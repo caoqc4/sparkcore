@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
+  renameThread,
   retryAssistantReply,
   sendMessage,
+  type RenameThreadResult,
   type RetryAssistantReplyResult,
   type SendMessageResult
 } from "@/app/chat/actions";
@@ -38,19 +40,30 @@ export function ChatThreadView({
 }: ChatThreadViewProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const renameFormRef = useRef<HTMLFormElement>(null);
   const [pendingError, setPendingError] = useState<string | null>(initialError ?? null);
   const [optimisticMessages, setOptimisticMessages] =
     useState<ChatMessage[]>(initialMessages);
-  const [isPending, startTransition] = useTransition();
+  const [threadTitle, setThreadTitle] = useState(thread.title);
+  const [draftTitle, setDraftTitle] = useState(thread.title);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [isSending, startSendTransition] = useTransition();
+  const [isRetryPending, startRetryTransition] = useTransition();
+  const [isRenamePending, startRenameTransition] = useTransition();
   const [retryingMessageId, setRetryingMessageId] = useState<string | null>(null);
 
   useEffect(() => {
     setOptimisticMessages(initialMessages);
     setPendingError(initialError ?? null);
-  }, [initialError, initialMessages, thread.id]);
+    setThreadTitle(thread.title);
+    setDraftTitle(thread.title);
+    setIsRenaming(false);
+  }, [initialError, initialMessages, thread.id, thread.title]);
+
+  const isComposerDisabled = isSending || isRetryPending || isRenamePending;
 
   const visibleMessages = useMemo(() => {
-    if (!isPending && !retryingMessageId) {
+    if (!isSending && !retryingMessageId) {
       return optimisticMessages;
     }
 
@@ -77,10 +90,10 @@ export function ChatThreadView({
         created_at: new Date().toISOString()
       }
     ];
-  }, [isPending, optimisticMessages, retryingMessageId, thread.id]);
+  }, [isSending, optimisticMessages, retryingMessageId, thread.id]);
 
   async function handleSubmit(formData: FormData) {
-    if (isPending) {
+    if (isComposerDisabled) {
       return;
     }
 
@@ -112,7 +125,7 @@ export function ChatThreadView({
 
     formRef.current?.reset();
 
-    startTransition(async () => {
+    startSendTransition(async () => {
       const result: SendMessageResult = await sendMessage(formData);
 
       if (!result.ok) {
@@ -124,14 +137,14 @@ export function ChatThreadView({
   }
 
   function handleRetry(failedMessageId: string) {
-    if (isPending || retryingMessageId) {
+    if (isComposerDisabled || retryingMessageId) {
       return;
     }
 
     setPendingError(null);
     setRetryingMessageId(failedMessageId);
 
-    startTransition(async () => {
+    startRetryTransition(async () => {
       const retryFormData = new FormData();
       retryFormData.set("thread_id", thread.id);
       retryFormData.set("failed_message_id", failedMessageId);
@@ -147,17 +160,98 @@ export function ChatThreadView({
     });
   }
 
+  function handleRenameCancel() {
+    setDraftTitle(threadTitle);
+    setIsRenaming(false);
+    setPendingError(initialError ?? null);
+  }
+
+  async function handleRename(formData: FormData) {
+    if (isComposerDisabled) {
+      return;
+    }
+
+    startRenameTransition(async () => {
+      const result: RenameThreadResult = await renameThread(formData);
+
+      if (!result.ok) {
+        setPendingError(result.message);
+        return;
+      }
+
+      setPendingError(null);
+      setThreadTitle(result.title);
+      setDraftTitle(result.title);
+      setIsRenaming(false);
+      router.refresh();
+    });
+  }
+
   return (
     <>
       {pendingError ? <div className="notice notice-error">{pendingError}</div> : null}
 
       <div className="thread-detail-header">
-        <div>
-          <h2 className="thread-detail-title">{thread.title}</h2>
-          <p className="helper-copy">
-            Bound agent: {agentName ?? "Unassigned"} · Updated{" "}
-            {new Date(thread.updated_at).toLocaleString()}
-          </p>
+        <div className="thread-detail-copy">
+          {isRenaming ? (
+            <form
+              action={handleRename}
+              className="thread-rename-form"
+              ref={renameFormRef}
+            >
+              <input name="thread_id" type="hidden" value={thread.id} />
+              <label className="sr-only" htmlFor={`thread-title-${thread.id}`}>
+                Rename thread
+              </label>
+              <input
+                className="input thread-rename-input"
+                id={`thread-title-${thread.id}`}
+                maxLength={80}
+                name="title"
+                onChange={(event) => setDraftTitle(event.target.value)}
+                required
+                value={draftTitle}
+              />
+              <div className="thread-rename-actions">
+                <button
+                  className="button"
+                  disabled={isRenamePending}
+                  type="submit"
+                >
+                  {isRenamePending ? "Saving..." : "Save"}
+                </button>
+                <button
+                  className="button button-secondary"
+                  disabled={isRenamePending}
+                  onClick={handleRenameCancel}
+                  type="button"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <div className="thread-title-row">
+                <h2 className="thread-detail-title">{threadTitle}</h2>
+                <button
+                  className="button button-secondary thread-rename-trigger"
+                  disabled={isComposerDisabled}
+                  onClick={() => {
+                    setDraftTitle(threadTitle);
+                    setIsRenaming(true);
+                  }}
+                  type="button"
+                >
+                  Rename
+                </button>
+              </div>
+              <p className="helper-copy">
+                Bound agent: {agentName ?? "Unassigned"} · Updated{" "}
+                {new Date(thread.updated_at).toLocaleString()}
+              </p>
+            </>
+          )}
         </div>
 
         <div className="thread-detail-badges">
@@ -181,7 +275,7 @@ export function ChatThreadView({
         ) : (
           visibleMessages.map((message) => {
             const isThinking =
-              ((isPending && message.id === `assistant-thinking-${thread.id}`) ||
+              ((isSending && message.id === `assistant-thinking-${thread.id}`) ||
                 retryingMessageId === message.id ||
                 message.status === "pending") &&
               message.role === "assistant";
@@ -217,7 +311,7 @@ export function ChatThreadView({
                     <p className="message-content">{failedReason}</p>
                     <button
                       className="button button-secondary retry-button"
-                      disabled={isPending || Boolean(retryingMessageId)}
+                      disabled={isComposerDisabled || Boolean(retryingMessageId)}
                       onClick={() => handleRetry(message.id)}
                       type="button"
                     >
@@ -239,7 +333,7 @@ export function ChatThreadView({
           <span className="label">Message</span>
           <textarea
             className="input textarea"
-            disabled={isPending}
+            disabled={isComposerDisabled}
             id={`content-${thread.id}`}
             name="content"
             placeholder="Send a message into the active thread..."
@@ -254,8 +348,8 @@ export function ChatThreadView({
             will keep feedback local to the active thread and avoid duplicate
             submits while pending.
           </p>
-          <button className="button" disabled={isPending} type="submit">
-            {isPending ? "Assistant thinking..." : "Send message"}
+          <button className="button" disabled={isComposerDisabled} type="submit">
+            {isSending ? "Assistant thinking..." : "Send message"}
           </button>
         </div>
       </form>

@@ -30,6 +30,18 @@ body {
   min-height: 100vh;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 a {
   color: inherit;
 }
@@ -289,8 +301,43 @@ a {
   margin-bottom: 18px;
 }
 
+.thread-detail-copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.thread-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .thread-detail-title {
   margin: 0 0 8px;
+}
+
+.thread-rename-trigger {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 0.95rem;
+}
+
+.thread-rename-form {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 420px);
+}
+
+.thread-rename-input {
+  min-height: 46px;
+}
+
+.thread-rename-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .thread-detail-badges {
