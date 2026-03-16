@@ -225,182 +225,194 @@ export default async function ChatPage({
               </nav>
             )}
 
-            <section className="agent-panel">
-              <div className="agent-panel-header">
-                <h3>Agents</h3>
-                <p className="helper-copy">
-                  Visible here so new threads can bind to a known agent without
-                  opening a separate management screen.
-                </p>
-              </div>
-
-              <CreateAgentSheet personaPacks={availablePersonaPacks} />
-
-              {availableAgents.length === 0 ? (
-                <div className="empty-state">
+            <details className="sidebar-section" open>
+              <summary className="sidebar-section-summary">
+                <div className="agent-panel-header">
+                  <h3>Agents</h3>
                   <p className="helper-copy">
-                    No active agent is available yet. Create one from a persona
-                    pack here, then it will appear with its model profile and
-                    become selectable for new threads.
+                    Visible here so new threads can bind to a known agent without
+                    opening a separate management screen.
                   </p>
                 </div>
-              ) : (
-                <div className="agent-list">
-                  {availableAgents.map((availableAgent) => {
-                    const isCurrent = availableAgent.id === thread?.agent_id;
+              </summary>
 
-                    return (
-                      <article
-                        className={`agent-card ${isCurrent ? "agent-card-active" : ""}`}
-                        key={availableAgent.id}
-                      >
-                        <div className="agent-card-row">
-                          <h4 className="agent-card-title">{availableAgent.name}</h4>
-                          <div className="agent-card-badges">
-                            {availableAgent.is_default_for_workspace ? (
-                              <span className="thread-badge">Default</span>
-                            ) : null}
-                            {isCurrent ? (
-                              <span className="thread-badge">Current thread</span>
+              <div className="sidebar-section-body agent-panel">
+                <CreateAgentSheet personaPacks={availablePersonaPacks} />
+
+                {availableAgents.length === 0 ? (
+                  <div className="empty-state">
+                    <p className="helper-copy">
+                      No active agent is available yet. Create one from a persona
+                      pack here, then it will appear with its model profile and
+                      become selectable for new threads.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="agent-list">
+                    {availableAgents.map((availableAgent) => {
+                      const isCurrent = availableAgent.id === thread?.agent_id;
+
+                      return (
+                        <article
+                          className={`agent-card ${isCurrent ? "agent-card-active" : ""}`}
+                          key={availableAgent.id}
+                        >
+                          <div className="agent-card-row">
+                            <h4 className="agent-card-title">{availableAgent.name}</h4>
+                            <div className="agent-card-badges">
+                              {availableAgent.is_default_for_workspace ? (
+                                <span className="thread-badge">Default</span>
+                              ) : null}
+                              {isCurrent ? (
+                                <span className="thread-badge">Current thread</span>
+                              ) : null}
+                            </div>
+                          </div>
+                          <p className="thread-link-meta">
+                            Persona pack:{" "}
+                            {availableAgent.source_persona_pack_name ??
+                              (availableAgent.is_custom ? "Custom" : "System preset")}
+                          </p>
+                          <p className="thread-link-meta">
+                            Model profile:{" "}
+                            {availableAgent.default_model_profile_name ?? "Unassigned"}
+                          </p>
+                          <div className="agent-card-actions">
+                            <form action={setDefaultAgent} className="agent-card-action">
+                              <input
+                                name="agent_id"
+                                type="hidden"
+                                value={availableAgent.id}
+                              />
+                              <input
+                                name="redirect_thread_id"
+                                type="hidden"
+                                value={thread?.id ?? ""}
+                              />
+                              <FormSubmitButton
+                                className="button button-secondary agent-default-button"
+                                idleText={
+                                  availableAgent.is_default_for_workspace
+                                    ? "Default agent"
+                                    : "Set as default"
+                                }
+                                pendingText={
+                                  availableAgent.is_default_for_workspace
+                                    ? "Saving..."
+                                    : "Setting..."
+                                }
+                              />
+                            </form>
+
+                            <AgentEditSheet
+                              agent={{
+                                id: availableAgent.id,
+                                name: availableAgent.name,
+                                persona_summary: availableAgent.persona_summary,
+                                system_prompt_summary:
+                                  availableAgent.system_prompt_summary,
+                                default_model_profile_id:
+                                  availableAgent.default_model_profile_id
+                              }}
+                              modelProfiles={availableModelProfiles}
+                            />
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </details>
+
+            <details className="sidebar-section sidebar-section-memory" open>
+              <summary className="sidebar-section-summary">
+                <div className="agent-panel-header">
+                  <h3>Memory</h3>
+                  <p className="helper-copy">
+                    Recent profile and preference memories stay visible inside the
+                    chat workspace so users can understand what the system has
+                    retained.
+                  </p>
+                </div>
+              </summary>
+
+              <div className="sidebar-section-body agent-panel memory-panel">
+                {visibleMemories.length === 0 ? (
+                  <div className="empty-state">
+                    <p className="helper-copy">
+                      No long-term memory has been written yet. Once a clear
+                      profile or preference is extracted, it will appear here.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="memory-list">
+                    {visibleMemories.map((memory) => {
+                      const confidenceView = getMemoryConfidenceView(memory.confidence);
+
+                      return (
+                        <article
+                          className={`memory-card memory-card-${confidenceView.tone}`}
+                          key={memory.id}
+                        >
+                          <div className="memory-card-row">
+                            <span className="thread-badge">{memory.memory_type}</span>
+                            <span
+                              className={`memory-confidence memory-confidence-${confidenceView.tone}`}
+                            >
+                              {confidenceView.label} · {memory.confidence.toFixed(2)}
+                            </span>
+                          </div>
+                          <p className="memory-content">{memory.content}</p>
+                          <p className="thread-link-meta">
+                            Stored {new Date(memory.created_at).toLocaleString()}
+                          </p>
+                          <div className="memory-trace">
+                            <p className="memory-trace-copy">
+                              {memory.source_thread_id ? (
+                                <>
+                                  From{" "}
+                                  <span className="memory-trace-emphasis">
+                                    {memory.source_thread_title ?? "Untitled thread"}
+                                  </span>
+                                  {memory.source_timestamp
+                                    ? ` · ${new Date(memory.source_timestamp).toLocaleString()}`
+                                    : ""}
+                                </>
+                              ) : (
+                                "Source trace is unavailable for this memory."
+                              )}
+                            </p>
+                            {memory.source_thread_id ? (
+                              <Link
+                                className="memory-trace-link"
+                                href={`/chat?thread=${memory.source_thread_id}`}
+                                prefetch={false}
+                              >
+                                View context
+                              </Link>
                             ) : null}
                           </div>
-                        </div>
-                        <p className="thread-link-meta">
-                          Persona pack:{" "}
-                          {availableAgent.source_persona_pack_name ??
-                            (availableAgent.is_custom ? "Custom" : "System preset")}
-                        </p>
-                        <p className="thread-link-meta">
-                          Model profile:{" "}
-                          {availableAgent.default_model_profile_name ?? "Unassigned"}
-                        </p>
-                        <div className="agent-card-actions">
-                          <form action={setDefaultAgent} className="agent-card-action">
-                            <input name="agent_id" type="hidden" value={availableAgent.id} />
+                          <form action={hideMemory} className="memory-card-actions">
+                            <input name="memory_id" type="hidden" value={memory.id} />
                             <input
                               name="redirect_thread_id"
                               type="hidden"
                               value={thread?.id ?? ""}
                             />
                             <FormSubmitButton
-                              className="button button-secondary agent-default-button"
-                              idleText={
-                                availableAgent.is_default_for_workspace
-                                  ? "Default agent"
-                                  : "Set as default"
-                              }
-                              pendingText={
-                                availableAgent.is_default_for_workspace
-                                  ? "Saving..."
-                                  : "Setting..."
-                              }
+                              className="button button-secondary memory-hide-button"
+                              idleText="Hide"
+                              pendingText="Hiding..."
                             />
                           </form>
-
-                          <AgentEditSheet
-                            agent={{
-                              id: availableAgent.id,
-                              name: availableAgent.name,
-                              persona_summary: availableAgent.persona_summary,
-                              system_prompt_summary:
-                                availableAgent.system_prompt_summary,
-                              default_model_profile_id:
-                                availableAgent.default_model_profile_id
-                            }}
-                            modelProfiles={availableModelProfiles}
-                          />
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-
-            <section className="agent-panel memory-panel">
-              <div className="agent-panel-header">
-                <h3>Memory</h3>
-                <p className="helper-copy">
-                  Recent profile and preference memories stay visible inside the
-                  chat workspace so users can understand what the system has
-                  retained.
-                </p>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-
-              {visibleMemories.length === 0 ? (
-                <div className="empty-state">
-                  <p className="helper-copy">
-                    No long-term memory has been written yet. Once a clear
-                    profile or preference is extracted, it will appear here.
-                  </p>
-                </div>
-              ) : (
-                <div className="memory-list">
-                  {visibleMemories.map((memory) => {
-                    const confidenceView = getMemoryConfidenceView(memory.confidence);
-
-                    return (
-                      <article
-                        className={`memory-card memory-card-${confidenceView.tone}`}
-                        key={memory.id}
-                      >
-                        <div className="memory-card-row">
-                          <span className="thread-badge">{memory.memory_type}</span>
-                          <span
-                            className={`memory-confidence memory-confidence-${confidenceView.tone}`}
-                          >
-                            {confidenceView.label} · {memory.confidence.toFixed(2)}
-                          </span>
-                        </div>
-                        <p className="memory-content">{memory.content}</p>
-                        <p className="thread-link-meta">
-                          Stored {new Date(memory.created_at).toLocaleString()}
-                        </p>
-                        <div className="memory-trace">
-                          <p className="memory-trace-copy">
-                            {memory.source_thread_id ? (
-                              <>
-                                From{" "}
-                                <span className="memory-trace-emphasis">
-                                  {memory.source_thread_title ?? "Untitled thread"}
-                                </span>
-                                {memory.source_timestamp
-                                  ? ` · ${new Date(memory.source_timestamp).toLocaleString()}`
-                                  : ""}
-                              </>
-                            ) : (
-                              "Source trace is unavailable for this memory."
-                            )}
-                          </p>
-                          {memory.source_thread_id ? (
-                            <Link
-                              className="memory-trace-link"
-                              href={`/chat?thread=${memory.source_thread_id}`}
-                              prefetch={false}
-                            >
-                              View context
-                            </Link>
-                          ) : null}
-                        </div>
-                        <form action={hideMemory} className="memory-card-actions">
-                          <input name="memory_id" type="hidden" value={memory.id} />
-                          <input
-                            name="redirect_thread_id"
-                            type="hidden"
-                            value={thread?.id ?? ""}
-                          />
-                          <FormSubmitButton
-                            className="button button-secondary memory-hide-button"
-                            idleText="Hide"
-                            pendingText="Hiding..."
-                          />
-                        </form>
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
+            </details>
           </aside>
 
           <section className="panel chat-panel">
