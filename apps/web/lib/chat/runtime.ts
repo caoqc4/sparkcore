@@ -45,6 +45,8 @@ type MessageRecord = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  status: string;
+  metadata: Record<string, unknown>;
   created_at: string;
 };
 
@@ -517,7 +519,7 @@ export async function getChatPageState({
 
   const { data: messages, error: messagesError } = await supabase
     .from("messages")
-    .select("id, role, content, created_at")
+    .select("id, role, content, status, metadata, created_at")
     .eq("thread_id", activeThread.id)
     .eq("workspace_id", workspace.id)
     .order("created_at", { ascending: true });
@@ -544,13 +546,15 @@ export async function generateAgentReply({
   workspace,
   thread,
   agent,
-  messages
+  messages,
+  assistantMessageId
 }: {
   userId: string;
   workspace: WorkspaceRecord;
   thread: ThreadRecord;
   agent: AgentRecord;
   messages: MessageRecord[];
+  assistantMessageId?: string;
 }) {
   const supabase = await createClient();
   const latestUserMessage = [...messages]
@@ -573,10 +577,12 @@ export async function generateAgentReply({
       role: "system" as const,
       content: buildAgentSystemPrompt(agent, recalledMemories)
     },
-    ...messages.map((message) => ({
-      role: message.role,
-      content: message.content
-    }))
+    ...messages
+      .filter((message) => message.status !== "failed" && message.status !== "pending")
+      .map((message) => ({
+        role: message.role,
+        content: message.content
+      }))
   ];
 
   const result = await generateText({
@@ -586,23 +592,39 @@ export async function generateAgentReply({
     maxOutputTokens: modelProfile.max_output_tokens
   });
 
-  const { error } = await supabase.from("messages").insert({
-    thread_id: thread.id,
-    workspace_id: workspace.id,
-    user_id: userId,
-      role: "assistant",
-      content: result.content,
-      metadata: {
-        agent_id: agent.id,
-        model: result.model,
-        model_profile_id: modelProfile.id,
-        recalled_memories: recalledMemories.map((memory) => ({
-          memory_type: memory.memory_type,
-          content: memory.content,
-          confidence: memory.confidence
-        }))
-      }
-    });
+  const assistantPayload = {
+    role: "assistant",
+    content: result.content,
+    status: "completed",
+    metadata: {
+      agent_id: agent.id,
+      model: result.model,
+      model_profile_id: modelProfile.id,
+      recalled_memories: recalledMemories.map((memory) => ({
+        memory_type: memory.memory_type,
+        content: memory.content,
+        confidence: memory.confidence
+      }))
+    }
+  };
+
+  const { error } = assistantMessageId
+    ? await supabase
+        .from("messages")
+        .update({
+          ...assistantPayload,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", assistantMessageId)
+        .eq("thread_id", thread.id)
+        .eq("workspace_id", workspace.id)
+        .eq("user_id", userId)
+    : await supabase.from("messages").insert({
+        thread_id: thread.id,
+        workspace_id: workspace.id,
+        user_id: userId,
+        ...assistantPayload
+      });
 
   if (error) {
     throw new Error(`Failed to store assistant reply: ${error.message}`);

@@ -339,6 +339,11 @@ a {
   border-style: dashed;
 }
 
+.message-failed {
+  border-color: rgba(185, 28, 28, 0.2);
+  background: #fff7f7;
+}
+
 .message-role {
   margin: 0 0 8px;
   color: var(--accent);
@@ -400,6 +405,15 @@ a {
 
 .thinking-dots span:nth-child(3) {
   animation-delay: 0.3s;
+}
+
+.message-failure {
+  display: grid;
+  gap: 12px;
+}
+
+.retry-button {
+  width: fit-content;
 }
 
 .empty-state {

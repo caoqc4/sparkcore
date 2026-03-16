@@ -2,12 +2,19 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { sendMessage, type SendMessageResult } from "@/app/chat/actions";
+import {
+  retryAssistantReply,
+  sendMessage,
+  type RetryAssistantReplyResult,
+  type SendMessageResult
+} from "@/app/chat/actions";
 
 type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  status: string;
+  metadata: Record<string, unknown>;
   created_at: string;
 };
 
@@ -35,6 +42,7 @@ export function ChatThreadView({
   const [optimisticMessages, setOptimisticMessages] =
     useState<ChatMessage[]>(initialMessages);
   const [isPending, startTransition] = useTransition();
+  const [retryingMessageId, setRetryingMessageId] = useState<string | null>(null);
 
   useEffect(() => {
     setOptimisticMessages(initialMessages);
@@ -42,8 +50,20 @@ export function ChatThreadView({
   }, [initialError, initialMessages, thread.id]);
 
   const visibleMessages = useMemo(() => {
-    if (!isPending) {
+    if (!isPending && !retryingMessageId) {
       return optimisticMessages;
+    }
+
+    if (retryingMessageId) {
+      return optimisticMessages.map((message) =>
+        message.id === retryingMessageId
+          ? {
+              ...message,
+              status: "pending",
+              content: ""
+            }
+          : message
+      );
     }
 
     return [
@@ -52,10 +72,12 @@ export function ChatThreadView({
         id: `assistant-thinking-${thread.id}`,
         role: "assistant" as const,
         content: "",
+        status: "pending",
+        metadata: {},
         created_at: new Date().toISOString()
       }
     ];
-  }, [isPending, optimisticMessages, thread.id]);
+  }, [isPending, optimisticMessages, retryingMessageId, thread.id]);
 
   async function handleSubmit(formData: FormData) {
     if (isPending) {
@@ -82,6 +104,8 @@ export function ChatThreadView({
         id: `pending-user-${Date.now()}`,
         role: "user",
         content: trimmedContent,
+        status: "completed",
+        metadata: {},
         created_at: new Date().toISOString()
       }
     ]);
@@ -95,6 +119,30 @@ export function ChatThreadView({
         setPendingError(result.message);
       }
 
+      router.refresh();
+    });
+  }
+
+  function handleRetry(failedMessageId: string) {
+    if (isPending || retryingMessageId) {
+      return;
+    }
+
+    setPendingError(null);
+    setRetryingMessageId(failedMessageId);
+
+    startTransition(async () => {
+      const retryFormData = new FormData();
+      retryFormData.set("thread_id", thread.id);
+      retryFormData.set("failed_message_id", failedMessageId);
+
+      const result: RetryAssistantReplyResult = await retryAssistantReply(retryFormData);
+
+      if (!result.ok) {
+        setPendingError(result.message);
+      }
+
+      setRetryingMessageId(null);
       router.refresh();
     });
   }
@@ -133,15 +181,26 @@ export function ChatThreadView({
         ) : (
           visibleMessages.map((message) => {
             const isThinking =
-              isPending &&
-              message.id === `assistant-thinking-${thread.id}` &&
+              ((isPending && message.id === `assistant-thinking-${thread.id}`) ||
+                retryingMessageId === message.id ||
+                message.status === "pending") &&
               message.role === "assistant";
+            const isFailed =
+              !isThinking &&
+              message.role === "assistant" &&
+              message.status === "failed";
+            const failedReason =
+              typeof message.metadata?.error_message === "string"
+                ? message.metadata.error_message
+                : "Assistant reply failed. Retry this turn when ready.";
 
             return (
               <article
                 className={`message ${
                   message.role === "user" ? "message-user" : "message-assistant"
-                } ${isThinking ? "message-thinking" : ""}`}
+                } ${isThinking ? "message-thinking" : ""} ${
+                  isFailed ? "message-failed" : ""
+                }`}
                 key={message.id}
               >
                 <p className="message-role">
@@ -152,6 +211,18 @@ export function ChatThreadView({
                     <span />
                     <span />
                     <span />
+                  </div>
+                ) : isFailed ? (
+                  <div className="message-failure">
+                    <p className="message-content">{failedReason}</p>
+                    <button
+                      className="button button-secondary retry-button"
+                      disabled={isPending || Boolean(retryingMessageId)}
+                      onClick={() => handleRetry(message.id)}
+                      type="button"
+                    >
+                      {retryingMessageId === message.id ? "Retrying..." : "Retry reply"}
+                    </button>
                   </div>
                 ) : (
                   <p className="message-content">{message.content}</p>
