@@ -4,6 +4,7 @@ import { FormSubmitButton } from "@/components/form-submit-button";
 import { signOut } from "@/app/login/actions";
 import { ChatThreadView } from "@/app/chat/chat-thread-view";
 import { createThread } from "@/app/chat/actions";
+import { CreateAgentSheet } from "@/app/chat/create-agent-sheet";
 import { ThreadUrlSync } from "@/app/chat/thread-url-sync";
 import { getChatPageState } from "@/lib/chat/runtime";
 
@@ -77,6 +78,7 @@ export default async function ChatPage({
   const {
     user,
     workspace,
+    availablePersonaPacks,
     availableAgents,
     threads,
     thread,
@@ -207,11 +209,14 @@ export default async function ChatPage({
                 </p>
               </div>
 
+              <CreateAgentSheet personaPacks={availablePersonaPacks} />
+
               {availableAgents.length === 0 ? (
                 <div className="empty-state">
                   <p className="helper-copy">
-                    No active agent is available yet. Once one exists, it will
-                    appear here with its persona and default model profile.
+                    No active agent is available yet. Create one from a persona
+                    pack here, then it will appear with its model profile and
+                    become selectable for new threads.
                   </p>
                 </div>
               ) : (

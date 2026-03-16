@@ -264,6 +264,11 @@ a {
   gap: 4px;
 }
 
+.create-agent-shell {
+  display: grid;
+  gap: 12px;
+}
+
 .agent-list {
   display: grid;
   gap: 10px;
@@ -520,6 +525,83 @@ a {
   padding: 12px 0;
 }
 
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.44);
+  backdrop-filter: blur(8px);
+}
+
+.sheet-panel {
+  width: min(100%, 520px);
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid rgba(216, 222, 233, 0.9);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98)),
+    var(--panel);
+  box-shadow: 0 28px 90px rgba(15, 23, 42, 0.22);
+}
+
+.sheet-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sheet-title {
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 1.15;
+}
+
+.sheet-close {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sheet-form {
+  display: grid;
+  gap: 16px;
+}
+
+.sheet-pack-preview {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid rgba(15, 118, 110, 0.16);
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f0fdfa, #f8fafc);
+}
+
+.sheet-pack-name {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .thread-status-panel {
   display: grid;
   gap: 18px;
@@ -608,8 +690,14 @@ a {
     align-items: stretch;
   }
 
+  .sheet-header,
   .thread-detail-header {
     flex-direction: column;
+  }
+
+  .sheet-actions,
+  .sheet-close {
+    width: 100%;
   }
 }
 

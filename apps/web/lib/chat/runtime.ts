@@ -64,6 +64,14 @@ type AvailableAgentRecord = {
   default_model_profile_name: string | null;
 };
 
+type AvailablePersonaPackRecord = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  persona_summary: string;
+};
+
 type RequestedThreadFallback = {
   requestedThreadId: string;
   reasonCode: "invalid_or_unauthorized";
@@ -146,7 +154,7 @@ async function getDefaultPersonaPack() {
   return personaPack;
 }
 
-async function getDefaultModelProfile() {
+export async function getDefaultModelProfile() {
   const supabase = await createClient();
 
   const { data: defaultProfile } = await supabase
@@ -436,6 +444,7 @@ export async function getChatPageState({
     return {
       user,
       workspace: null,
+      availablePersonaPacks: [],
       availableAgents: [],
       threads: [],
       thread: null,
@@ -456,6 +465,18 @@ export async function getChatPageState({
 
   if (threadsError) {
     throw new Error(`Failed to load threads: ${threadsError.message}`);
+  }
+
+  const { data: personaPacksData, error: personaPacksError } = await supabase
+    .from("persona_packs")
+    .select("id, slug, name, description, persona_summary")
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
+
+  if (personaPacksError) {
+    throw new Error(
+      `Failed to load available persona packs: ${personaPacksError.message}`
+    );
   }
 
   const { data: availableAgentsData, error: availableAgentsError } = await supabase
@@ -542,12 +563,14 @@ export async function getChatPageState({
       ? modelProfileNameById.get(agent.default_model_profile_id) ?? null
       : null
   })) as AvailableAgentRecord[];
+  const availablePersonaPacks = (personaPacksData ?? []) as AvailablePersonaPackRecord[];
   const threads = (rawThreads ?? []) as ThreadRecord[];
 
   if (threads.length === 0) {
     return {
       user,
       workspace: workspace as WorkspaceRecord,
+      availablePersonaPacks,
       availableAgents,
       threads: [],
       thread: null,
@@ -622,6 +645,7 @@ export async function getChatPageState({
   return {
     user,
     workspace: workspace as WorkspaceRecord,
+    availablePersonaPacks,
     availableAgents,
     threads: threadItems,
     thread: activeThread,

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { generateAgentReply } from "@/lib/chat/runtime";
+import { generateAgentReply, getDefaultModelProfile } from "@/lib/chat/runtime";
 import { extractAndStoreMemories } from "@/lib/chat/memory";
 
 export type SendMessageResult =
@@ -17,6 +17,10 @@ export type RetryAssistantReplyResult =
 export type RenameThreadResult =
   | { ok: true; threadId: string; title: string }
   | { ok: false; threadId: string | null; message: string };
+
+export type CreateAgentResult =
+  | { ok: true; agentId: string; agentName: string }
+  | { ok: false; agentId: null; message: string };
 
 function summarizeThreadTitle(content: string) {
   const normalized = content.replace(/\s+/g, " ").trim();
@@ -40,6 +44,121 @@ function normalizeThreadTitle(title: string) {
   }
 
   return normalized.slice(0, 80).trimEnd();
+}
+
+function normalizeAgentName(name: string, fallbackName: string) {
+  const normalized = name.replace(/\s+/g, " ").trim();
+  const candidate = normalized.length > 0 ? normalized : fallbackName;
+
+  if (candidate.length <= 80) {
+    return candidate;
+  }
+
+  return candidate.slice(0, 80).trimEnd();
+}
+
+export async function createAgentFromPersonaPack(
+  formData: FormData
+): Promise<CreateAgentResult> {
+  const personaPackId = formData.get("persona_pack_id");
+  const requestedName = formData.get("agent_name");
+
+  if (typeof personaPackId !== "string" || personaPackId.trim().length === 0) {
+    return {
+      ok: false,
+      agentId: null,
+      message: "Choose a persona pack before creating an agent."
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      ok: false,
+      agentId: null,
+      message: "Your session expired. Sign in again to continue."
+    };
+  }
+
+  const { data: workspace } = await supabase
+    .from("workspaces")
+    .select("id")
+    .eq("owner_user_id", user.id)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (!workspace) {
+    return {
+      ok: false,
+      agentId: null,
+      message: "No workspace is available for this account."
+    };
+  }
+
+  const { data: personaPack } = await supabase
+    .from("persona_packs")
+    .select(
+      "id, slug, name, description, persona_summary, style_prompt, system_prompt"
+    )
+    .eq("id", personaPackId)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (!personaPack) {
+    return {
+      ok: false,
+      agentId: null,
+      message: "The selected persona pack is unavailable."
+    };
+  }
+
+  const defaultModelProfile = await getDefaultModelProfile();
+  const agentName = normalizeAgentName(
+    typeof requestedName === "string" ? requestedName : "",
+    personaPack.name
+  );
+
+  const { data: createdAgent, error } = await supabase
+    .from("agents")
+    .insert({
+      workspace_id: workspace.id,
+      owner_user_id: user.id,
+      source_persona_pack_id: personaPack.id,
+      name: agentName,
+      persona_summary: personaPack.persona_summary,
+      style_prompt: personaPack.style_prompt,
+      system_prompt: personaPack.system_prompt,
+      default_model_profile_id: defaultModelProfile.id,
+      is_custom: false,
+      metadata: {
+        created_from_chat: true,
+        source_slug: personaPack.slug,
+        source_description: personaPack.description
+      }
+    })
+    .select("id, name")
+    .single();
+
+  if (error || !createdAgent) {
+    return {
+      ok: false,
+      agentId: null,
+      message: error?.message ?? "Failed to create the new agent."
+    };
+  }
+
+  revalidatePath("/chat");
+
+  return {
+    ok: true,
+    agentId: createdAgent.id,
+    agentName: createdAgent.name
+  };
 }
 
 export async function createThread(formData: FormData) {
