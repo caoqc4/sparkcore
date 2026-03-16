@@ -30,6 +30,10 @@ type StoredMemory = {
   created_at: string;
 };
 
+type NormalizedMemoryCandidate = MemoryCandidate & {
+  normalized_content: string;
+};
+
 function isMemoryHidden(metadata: Record<string, unknown> | null | undefined) {
   return metadata?.is_hidden === true;
 }
@@ -38,6 +42,10 @@ function isMemoryIncorrect(
   metadata: Record<string, unknown> | null | undefined
 ) {
   return metadata?.is_incorrect === true;
+}
+
+function isMemoryActive(metadata: Record<string, unknown> | null | undefined) {
+  return !isMemoryHidden(metadata) && !isMemoryIncorrect(metadata);
 }
 
 type MemoryExtractionResponse = {
@@ -60,6 +68,107 @@ function tokenize(content: string) {
   return normalizeMemoryContent(content)
     .split(/[^a-z0-9\u4e00-\u9fff]+/i)
     .filter((token) => token.length >= 2);
+}
+
+function getTokenSet(content: string) {
+  return new Set(tokenize(content));
+}
+
+function getJaccardSimilarity(left: Set<string>, right: Set<string>) {
+  if (left.size === 0 || right.size === 0) {
+    return 0;
+  }
+
+  let intersection = 0;
+
+  for (const token of left) {
+    if (right.has(token)) {
+      intersection += 1;
+    }
+  }
+
+  const union = new Set([...left, ...right]).size;
+
+  if (union === 0) {
+    return 0;
+  }
+
+  return intersection / union;
+}
+
+function isNearDuplicateMemory(
+  left: { normalized_content: string },
+  right: { normalized_content: string }
+) {
+  if (left.normalized_content === right.normalized_content) {
+    return true;
+  }
+
+  if (
+    left.normalized_content.includes(right.normalized_content) ||
+    right.normalized_content.includes(left.normalized_content)
+  ) {
+    return true;
+  }
+
+  const similarity = getJaccardSimilarity(
+    getTokenSet(left.normalized_content),
+    getTokenSet(right.normalized_content)
+  );
+
+  return similarity >= 0.72;
+}
+
+function shouldPreferIncomingMemory({
+  candidate,
+  existing
+}: {
+  candidate: {
+    confidence: number;
+    normalized_content: string;
+  };
+  existing: {
+    confidence: number;
+    normalized_content: string;
+  };
+}) {
+  if (candidate.confidence >= existing.confidence + 0.05) {
+    return true;
+  }
+
+  if (
+    candidate.confidence >= existing.confidence - 0.02 &&
+    candidate.normalized_content.length >= existing.normalized_content.length + 12
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function coalesceCandidates(candidates: NormalizedMemoryCandidate[]) {
+  const deduped: NormalizedMemoryCandidate[] = [];
+
+  for (const candidate of candidates) {
+    const existingIndex = deduped.findIndex(
+      (existing) =>
+        existing.memory_type === candidate.memory_type &&
+        isNearDuplicateMemory(existing, candidate)
+    );
+
+    if (existingIndex === -1) {
+      deduped.push(candidate);
+      continue;
+    }
+
+    const existing = deduped[existingIndex];
+
+    if (shouldPreferIncomingMemory({ candidate, existing })) {
+      deduped[existingIndex] = candidate;
+    }
+  }
+
+  return deduped;
 }
 
 function scoreMemoryRelevance(message: string, memory: StoredMemory) {
@@ -206,14 +315,16 @@ export async function extractAndStoreMemories({
   }
 
   const supabase = await createClient();
-  const normalizedCandidates = candidates.map((candidate) => ({
-    ...candidate,
-    normalized_content: normalizeMemoryContent(candidate.content)
-  }));
+  const normalizedCandidates = coalesceCandidates(
+    candidates.map((candidate) => ({
+      ...candidate,
+      normalized_content: normalizeMemoryContent(candidate.content)
+    }))
+  );
 
   const { data: existingMemories } = await supabase
     .from("memory_items")
-    .select("memory_type, content")
+    .select("id, memory_type, content, confidence, metadata, created_at")
     .eq("workspace_id", workspaceId)
     .eq("user_id", userId)
     .in(
@@ -223,33 +334,84 @@ export async function extractAndStoreMemories({
     .order("created_at", { ascending: false })
     .limit(50);
 
-  const existingSet = new Set(
-    (existingMemories ?? []).map(
-      (item) =>
-        `${item.memory_type}:${normalizeMemoryContent(String(item.content ?? ""))}`
-    )
-  );
+  const activeExistingMemories = ((existingMemories ?? []) as StoredMemory[])
+    .filter((memory) => isMemoryActive(memory.metadata))
+    .map((memory) => ({
+      ...memory,
+      normalized_content: normalizeMemoryContent(memory.content)
+    }));
 
-  const rowsToInsert = normalizedCandidates
-    .filter(
-      (candidate) =>
-        !existingSet.has(`${candidate.memory_type}:${candidate.normalized_content}`)
-    )
-    .map((candidate) => ({
-      workspace_id: workspaceId,
-      user_id: userId,
-      agent_id: agentId,
-      source_message_id: sourceMessageId,
-      memory_type: candidate.memory_type,
+  const rowsToInsert: Array<Record<string, unknown>> = [];
+  const rowsToUpdate: Array<{
+    id: string;
+    content: string;
+    confidence: number;
+    metadata: Record<string, unknown>;
+  }> = [];
+
+  for (const candidate of normalizedCandidates) {
+    const matchingExisting = activeExistingMemories.find(
+      (memory) =>
+        memory.memory_type === candidate.memory_type &&
+        isNearDuplicateMemory(memory, candidate)
+    );
+
+    if (!matchingExisting) {
+      rowsToInsert.push({
+        workspace_id: workspaceId,
+        user_id: userId,
+        agent_id: agentId,
+        source_message_id: sourceMessageId,
+        memory_type: candidate.memory_type,
+        content: candidate.content,
+        confidence: Number(candidate.confidence.toFixed(2)),
+        importance: 0.5,
+        metadata: {
+          extraction_reason: candidate.reason,
+          source: "llm_extraction",
+          threshold: MEMORY_CONFIDENCE_THRESHOLD
+        }
+      });
+      continue;
+    }
+
+    if (!shouldPreferIncomingMemory({ candidate, existing: matchingExisting })) {
+      continue;
+    }
+
+    const nextMetadata = {
+      ...(matchingExisting.metadata ?? {}),
+      extraction_reason: candidate.reason,
+      source: "llm_extraction",
+      threshold: MEMORY_CONFIDENCE_THRESHOLD,
+      convergence_updated_at: new Date().toISOString()
+    } as Record<string, unknown>;
+
+    rowsToUpdate.push({
+      id: matchingExisting.id,
       content: candidate.content,
       confidence: Number(candidate.confidence.toFixed(2)),
-      importance: 0.5,
-      metadata: {
-        extraction_reason: candidate.reason,
-        source: "llm_extraction",
-        threshold: MEMORY_CONFIDENCE_THRESHOLD
-      }
-    }));
+      metadata: nextMetadata
+    });
+  }
+
+  for (const row of rowsToUpdate) {
+    const { error: updateError } = await supabase
+      .from("memory_items")
+      .update({
+        content: row.content,
+        confidence: row.confidence,
+        source_message_id: sourceMessageId,
+        agent_id: agentId,
+        metadata: row.metadata,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", row.id);
+
+    if (updateError) {
+      throw new Error(`Failed to converge memory items: ${updateError.message}`);
+    }
+  }
 
   if (rowsToInsert.length === 0) {
     return;
