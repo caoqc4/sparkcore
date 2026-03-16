@@ -531,6 +531,68 @@ export async function hideMemory(formData: FormData) {
   redirect(redirectTarget);
 }
 
+export async function restoreMemory(formData: FormData) {
+  const memoryId = formData.get("memory_id");
+  const redirectTarget = buildChatRedirectTarget(formData.get("redirect_thread_id"));
+
+  if (typeof memoryId !== "string" || memoryId.trim().length === 0) {
+    redirect(
+      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
+        "The memory to restore could not be determined."
+      )}`
+    );
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: memoryItem } = await supabase
+    .from("memory_items")
+    .select("id, metadata")
+    .eq("id", memoryId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!memoryItem) {
+    redirect(
+      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
+        "The selected hidden memory is unavailable."
+      )}`
+    );
+  }
+
+  const nextMetadata = { ...(memoryItem.metadata ?? {}) } as Record<string, unknown>;
+  delete nextMetadata.is_hidden;
+  delete nextMetadata.hidden_at;
+  nextMetadata.restored_at = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("memory_items")
+    .update({
+      metadata: nextMetadata,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", memoryItem.id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    redirect(
+      `${redirectTarget}${redirectTarget.includes("?") ? "&" : "?"}error=${encodeURIComponent(
+        error.message
+      )}`
+    );
+  }
+
+  revalidatePath("/chat");
+  redirect(redirectTarget);
+}
+
 export async function sendMessage(
   formData: FormData
 ): Promise<SendMessageResult> {

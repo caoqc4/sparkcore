@@ -3,7 +3,12 @@ import { redirect } from "next/navigation";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { signOut } from "@/app/login/actions";
 import { ChatThreadView } from "@/app/chat/chat-thread-view";
-import { createThread, hideMemory, setDefaultAgent } from "@/app/chat/actions";
+import {
+  createThread,
+  hideMemory,
+  restoreMemory,
+  setDefaultAgent
+} from "@/app/chat/actions";
 import { CreateAgentSheet } from "@/app/chat/create-agent-sheet";
 import { AgentEditSheet } from "@/app/chat/agent-edit-sheet";
 import { ThreadUrlSync } from "@/app/chat/thread-url-sync";
@@ -105,6 +110,7 @@ export default async function ChatPage({
     availableAgents,
     defaultAgentId,
     visibleMemories,
+    hiddenMemories,
     threads,
     thread,
     agent,
@@ -411,6 +417,51 @@ export default async function ChatPage({
                     })}
                   </div>
                 )}
+
+                {hiddenMemories.length > 0 ? (
+                  <details className="memory-hidden-shell">
+                    <summary className="memory-hidden-summary">
+                      Hidden memories ({hiddenMemories.length})
+                    </summary>
+
+                    <div className="memory-list memory-list-hidden">
+                      {hiddenMemories.map((memory) => (
+                        <article className="memory-card memory-card-hidden" key={memory.id}>
+                          <div className="memory-card-row">
+                            <span className="thread-badge">{memory.memory_type}</span>
+                            <span className="memory-confidence memory-confidence-low">
+                              Hidden
+                            </span>
+                          </div>
+                          <p className="memory-content">{memory.content}</p>
+                          <p className="thread-link-meta">
+                            Hidden from{" "}
+                            {memory.source_thread_title ?? "an older thread"}
+                            {memory.source_timestamp
+                              ? ` · ${new Date(memory.source_timestamp).toLocaleString()}`
+                              : ""}
+                          </p>
+                          <form
+                            action={restoreMemory}
+                            className="memory-card-actions"
+                          >
+                            <input name="memory_id" type="hidden" value={memory.id} />
+                            <input
+                              name="redirect_thread_id"
+                              type="hidden"
+                              value={thread?.id ?? ""}
+                            />
+                            <FormSubmitButton
+                              className="button button-secondary memory-hide-button"
+                              idleText="Restore"
+                              pendingText="Restoring..."
+                            />
+                          </form>
+                        </article>
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
               </div>
             </details>
           </aside>

@@ -96,6 +96,8 @@ type VisibleMemoryRecord = {
   updated_at: string;
 };
 
+type HiddenMemoryRecord = VisibleMemoryRecord;
+
 type RequestedThreadFallback = {
   requestedThreadId: string;
   reasonCode: "invalid_or_unauthorized";
@@ -487,6 +489,7 @@ export async function getChatPageState({
       availableAgents: [],
       defaultAgentId: null,
       visibleMemories: [],
+      hiddenMemories: [],
       threads: [],
       thread: null,
       agent: null,
@@ -603,9 +606,12 @@ export async function getChatPageState({
   const filteredVisibleMemories = rawVisibleMemories
     .filter((memory) => !isMemoryHidden(memory.metadata))
     .slice(0, 20);
+  const filteredHiddenMemories = rawVisibleMemories
+    .filter((memory) => isMemoryHidden(memory.metadata))
+    .slice(0, 20);
   const sourceMessageIds = [
     ...new Set(
-      filteredVisibleMemories
+      [...filteredVisibleMemories, ...filteredHiddenMemories]
         .map((memory) => memory.source_message_id)
         .filter((id): id is string => Boolean(id))
     )
@@ -734,6 +740,20 @@ export async function getChatPageState({
       source_timestamp: sourceMessage?.created_at ?? null
     };
   }) as VisibleMemoryRecord[];
+  const hiddenMemories = filteredHiddenMemories.map((memory) => {
+    const sourceMessage = memory.source_message_id
+      ? sourceMessageById.get(memory.source_message_id) ?? null
+      : null;
+
+    return {
+      ...memory,
+      source_thread_id: sourceMessage?.thread_id ?? null,
+      source_thread_title: sourceMessage?.thread_id
+        ? sourceThreadTitleById.get(sourceMessage.thread_id) ?? null
+        : null,
+      source_timestamp: sourceMessage?.created_at ?? null
+    };
+  }) as HiddenMemoryRecord[];
   const threads = (rawThreads ?? []) as ThreadRecord[];
 
   if (threads.length === 0) {
@@ -745,6 +765,7 @@ export async function getChatPageState({
       availableAgents,
       defaultAgentId,
       visibleMemories,
+      hiddenMemories,
       threads: [],
       thread: null,
       agent: null,
@@ -823,6 +844,7 @@ export async function getChatPageState({
     availableAgents,
     defaultAgentId,
     visibleMemories,
+    hiddenMemories,
     threads: threadItems,
     thread: activeThread,
     agent: activeAgent,
