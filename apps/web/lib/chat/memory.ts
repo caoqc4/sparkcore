@@ -1,12 +1,17 @@
 import { generateText } from "@/lib/litellm/client";
 import {
   buildMemoryV2Fields,
+  canTransitionMemoryStatus,
   getMemoryStatus,
+  isSupportedSingleSlotPath,
   inferLegacyMemoryStability,
   isMemoryActive,
   isMemoryHidden,
   isMemoryIncorrect,
   LEGACY_MEMORY_KEY,
+  normalizeSingleSlotValue,
+  type MemoryCategory,
+  type MemoryScope,
   type MemoryStability
 } from "@/lib/chat/memory-v2";
 import { createClient } from "@/lib/supabase/server";
@@ -68,6 +73,11 @@ type MemoryWriteOutcome = {
   updatedCount: number;
   updatedTypes: MemoryType[];
 };
+
+type SingleSlotMemoryKey =
+  | "profession"
+  | "reply_language"
+  | "agent_nickname";
 
 type NormalizedMemoryCandidate = MemoryCandidate & {
   normalized_content: string;
@@ -289,6 +299,219 @@ function shouldAttemptExtraction(message: string) {
   const normalized = message.replace(/\s+/g, " ").trim();
 
   return normalized.length >= 12;
+}
+
+export async function upsertSingleSlotMemory({
+  workspaceId,
+  userId,
+  agentId,
+  sourceMessageId,
+  category,
+  key,
+  value,
+  scope,
+  confidence,
+  stability,
+  targetAgentId = null,
+  targetThreadId = null,
+  metadata = {}
+}: {
+  workspaceId: string;
+  userId: string;
+  agentId: string | null;
+  sourceMessageId: string;
+  category: MemoryCategory;
+  key: SingleSlotMemoryKey;
+  value: string;
+  scope: MemoryScope;
+  confidence: number;
+  stability: MemoryStability;
+  targetAgentId?: string | null;
+  targetThreadId?: string | null;
+  metadata?: Record<string, unknown>;
+}) {
+  const path = `${category}.${key}`;
+
+  if (!isSupportedSingleSlotPath(path)) {
+    throw new Error(`Unsupported single-slot memory path: ${path}`);
+  }
+
+  if (scope === "user_agent" && !targetAgentId) {
+    throw new Error("user_agent single-slot memories require targetAgentId.");
+  }
+
+  if (scope === "thread_local" && !targetThreadId) {
+    throw new Error("thread_local single-slot memories require targetThreadId.");
+  }
+
+  const normalizedValue = normalizeSingleSlotValue(value);
+
+  if (normalizedValue.length === 0) {
+    throw new Error(`Single-slot memory value is empty for ${path}.`);
+  }
+
+  const supabase = await createClient();
+  let query = supabase
+    .from("memory_items")
+    .select(
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at"
+    )
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .eq("category", category)
+    .eq("key", key)
+    .eq("scope", scope);
+
+  if (scope === "user_agent") {
+    query = query.eq("target_agent_id", targetAgentId);
+  } else {
+    query = query.is("target_agent_id", null);
+  }
+
+  if (scope === "thread_local") {
+    query = query.eq("target_thread_id", targetThreadId);
+  } else {
+    query = query.is("target_thread_id", null);
+  }
+
+  const { data: existingRows, error: loadError } = await query.order("created_at", {
+    ascending: false
+  });
+
+  if (loadError) {
+    throw new Error(`Failed to load single-slot memories: ${loadError.message}`);
+  }
+
+  const activeRows = ((existingRows ?? []) as StoredMemory[]).filter((row) =>
+    isMemoryActive(row)
+  );
+
+  const sameValueRow = activeRows.find((row) => {
+    const rowValue =
+      typeof row.value === "string"
+        ? row.value
+        : typeof row.content === "string"
+          ? row.content
+          : "";
+
+    return normalizeSingleSlotValue(rowValue) === normalizedValue;
+  });
+
+  const nextSourceRefs = [
+    {
+      kind: "message",
+      source_message_id: sourceMessageId
+    }
+  ];
+
+  if (sameValueRow) {
+    const nextMetadata = {
+      ...(sameValueRow.metadata ?? {}),
+      ...metadata,
+      normalization: normalizedValue
+    } as Record<string, unknown>;
+
+    const { error: updateError } = await supabase
+      .from("memory_items")
+      .update({
+        content: value,
+        confidence: Number(confidence.toFixed(2)),
+        source_message_id: sourceMessageId,
+        agent_id: agentId ?? targetAgentId,
+        value,
+        stability,
+        status: "active",
+        source_refs: nextSourceRefs,
+        last_confirmed_at: new Date().toISOString(),
+        metadata: nextMetadata,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", sameValueRow.id);
+
+    if (updateError) {
+      throw new Error(
+        `Failed to refresh single-slot memory: ${updateError.message}`
+      );
+    }
+
+    return {
+      created: false,
+      updated: true,
+      supersededIds: [] as string[]
+    };
+  }
+
+  const supersededIds: string[] = [];
+
+  for (const row of activeRows) {
+    const currentStatus = getMemoryStatus(row);
+
+    if (!canTransitionMemoryStatus(currentStatus, "superseded")) {
+      continue;
+    }
+
+    const nextMetadata = {
+      ...(row.metadata ?? {}),
+      superseded_at: new Date().toISOString(),
+      superseded_by_source_message_id: sourceMessageId
+    } as Record<string, unknown>;
+
+    const { error: supersedeError } = await supabase
+      .from("memory_items")
+      .update({
+        status: "superseded",
+        metadata: nextMetadata,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", row.id);
+
+    if (supersedeError) {
+      throw new Error(
+        `Failed to supersede single-slot memory: ${supersedeError.message}`
+      );
+    }
+
+    supersededIds.push(row.id);
+  }
+
+  const { error: insertError } = await supabase.from("memory_items").insert({
+    workspace_id: workspaceId,
+    user_id: userId,
+    agent_id: agentId ?? targetAgentId,
+    source_message_id: sourceMessageId,
+    memory_type:
+      category === "profile" || category === "preference" ? category : null,
+    content: value,
+    confidence: Number(confidence.toFixed(2)),
+    importance: 0.5,
+    ...buildMemoryV2Fields({
+      category,
+      key,
+      value,
+      scope,
+      subjectUserId: userId,
+      targetAgentId,
+      targetThreadId,
+      stability,
+      status: "active",
+      sourceRefs: nextSourceRefs,
+      lastConfirmedAt: new Date().toISOString()
+    }),
+    metadata: {
+      ...metadata,
+      normalization: normalizedValue
+    }
+  });
+
+  if (insertError) {
+    throw new Error(`Failed to insert single-slot memory: ${insertError.message}`);
+  }
+
+  return {
+    created: true,
+    updated: false,
+    supersededIds
+  };
 }
 
 export async function extractAndStoreMemories({

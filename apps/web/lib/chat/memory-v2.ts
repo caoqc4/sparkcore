@@ -11,8 +11,17 @@ export type MemoryStatus =
   | "hidden"
   | "incorrect"
   | "superseded";
+export type SupportedSingleSlotKey =
+  | "profile.profession"
+  | "preference.reply_language"
+  | "relationship.agent_nickname";
 
 export const LEGACY_MEMORY_KEY = "legacy_content";
+export const SUPPORTED_SINGLE_SLOT_KEYS = new Set<SupportedSingleSlotKey>([
+  "profile.profession",
+  "preference.reply_language",
+  "relationship.agent_nickname"
+]);
 
 type MemoryLike = {
   memory_type?: string | null;
@@ -177,6 +186,54 @@ export function isMemoryScopeValid(memory: MemoryLike) {
   }
 
   return true;
+}
+
+export function getMemoryPath(memory: MemoryLike) {
+  return `${getMemoryCategory(memory)}.${getMemoryKey(memory)}`;
+}
+
+export function isSupportedSingleSlotPath(
+  path: string
+): path is SupportedSingleSlotKey {
+  return SUPPORTED_SINGLE_SLOT_KEYS.has(path as SupportedSingleSlotKey);
+}
+
+export function normalizeSingleSlotValue(value: string) {
+  const normalized = value
+    .normalize("NFKC")
+    .trim()
+    .replace(/^[\s"'“”‘’.,!?;:()（）【】\[\]{}<>《》]+/g, "")
+    .replace(/[\s"'“”‘’.,!?;:()（）【】\[\]{}<>《》]+$/g, "")
+    .replace(/\s+/g, " ");
+
+  if (/^[\x00-\x7F]+$/.test(normalized)) {
+    return normalized.toLowerCase();
+  }
+
+  return normalized;
+}
+
+export function canTransitionMemoryStatus(
+  currentStatus: MemoryStatus,
+  nextStatus: MemoryStatus
+) {
+  if (currentStatus === nextStatus) {
+    return true;
+  }
+
+  if (currentStatus === "active") {
+    return (
+      nextStatus === "hidden" ||
+      nextStatus === "incorrect" ||
+      nextStatus === "superseded"
+    );
+  }
+
+  if (currentStatus === "hidden" || currentStatus === "incorrect") {
+    return nextStatus === "active";
+  }
+
+  return false;
 }
 
 export function buildMemoryV2Fields({

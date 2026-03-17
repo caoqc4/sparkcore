@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  canTransitionMemoryStatus,
+  getMemoryStatus
+} from "@/lib/chat/memory-v2";
 import { generateAgentReply, getDefaultModelProfile } from "@/lib/chat/runtime";
 import { extractAndStoreMemories } from "@/lib/chat/memory";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
@@ -623,6 +627,15 @@ export async function hideMemory(formData: FormData) {
     );
   }
 
+  if (!canTransitionMemoryStatus(getMemoryStatus(memoryItem), "hidden")) {
+    redirect(
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: "This memory cannot be hidden from its current state."
+      })
+    );
+  }
+
   const nextMetadata = { ...(memoryItem.metadata ?? {}) } as Record<string, unknown>;
   nextMetadata.is_hidden = true;
   nextMetadata.hidden_at = new Date().toISOString();
@@ -689,6 +702,15 @@ export async function restoreMemory(formData: FormData) {
       appendChatFeedback(redirectTarget, {
         type: "error",
         message: "The selected hidden memory is unavailable."
+      })
+    );
+  }
+
+  if (!canTransitionMemoryStatus(getMemoryStatus(memoryItem), "active")) {
+    redirect(
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: "This memory cannot be restored from its current state."
       })
     );
   }
@@ -762,6 +784,15 @@ export async function markMemoryIncorrect(formData: FormData) {
       appendChatFeedback(redirectTarget, {
         type: "error",
         message: "The selected memory is unavailable."
+      })
+    );
+  }
+
+  if (!canTransitionMemoryStatus(getMemoryStatus(memoryItem), "incorrect")) {
+    redirect(
+      appendChatFeedback(redirectTarget, {
+        type: "error",
+        message: "This memory cannot be marked incorrect from its current state."
       })
     );
   }
