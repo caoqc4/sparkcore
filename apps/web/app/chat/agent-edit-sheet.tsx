@@ -17,6 +17,8 @@ type AgentEditSheetProps = {
     name: string;
     provider: string;
     model: string;
+    tier_label: string | null;
+    usage_note: string | null;
   }>;
 };
 
@@ -29,6 +31,9 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
   );
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const selectedModelProfile =
+    modelProfiles.find((modelProfile) => modelProfile.id === selectedModelProfileId) ??
+    null;
 
   useEffect(() => {
     setDraftName(agent.name);
@@ -152,7 +157,8 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
                 >
                   {modelProfiles.map((modelProfile) => (
                     <option key={modelProfile.id} value={modelProfile.id}>
-                      {modelProfile.name} · {modelProfile.provider}/{modelProfile.model}
+                      {modelProfile.name}
+                      {modelProfile.tier_label ? ` · ${modelProfile.tier_label}` : ""}
                     </option>
                   ))}
                 </select>
@@ -160,6 +166,12 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
                   Switching the model profile only affects future replies from
                   this agent.
                 </span>
+                {selectedModelProfile ? (
+                  <span className="helper-copy">
+                    {selectedModelProfile.usage_note ??
+                      `${selectedModelProfile.provider}/${selectedModelProfile.model}`}
+                  </span>
+                ) : null}
               </label>
 
               <div className="sheet-pack-preview">

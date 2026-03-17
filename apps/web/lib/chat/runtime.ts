@@ -66,6 +66,7 @@ type AvailableAgentRecord = {
   default_model_profile_id: string | null;
   source_persona_pack_name: string | null;
   default_model_profile_name: string | null;
+  default_model_profile_tier_label: string | null;
   is_default_for_workspace: boolean;
 };
 
@@ -82,6 +83,9 @@ type AvailableModelProfileRecord = {
   name: string;
   provider: string;
   model: string;
+  metadata: Record<string, unknown>;
+  tier_label: string | null;
+  usage_note: string | null;
 };
 
 type VisibleMemoryRecord = {
@@ -565,7 +569,7 @@ export async function getChatPageState({
   const { data: availableModelProfilesData, error: availableModelProfilesError } =
     await supabase
       .from("model_profiles")
-      .select("id, name, provider, model")
+      .select("id, name, provider, model, metadata")
       .eq("is_active", true)
       .order("created_at", { ascending: true });
 
@@ -654,6 +658,7 @@ export async function getChatPageState({
   ];
   let personaPackNameById = new Map<string, string>();
   let modelProfileNameById = new Map<string, string>();
+  let modelProfileTierLabelById = new Map<string, string>();
   let sourceMessageById = new Map<
     string,
     { thread_id: string; created_at: string }
@@ -680,7 +685,7 @@ export async function getChatPageState({
   if (modelProfileIds.length > 0) {
     const { data: modelProfiles, error: modelProfilesError } = await supabase
       .from("model_profiles")
-      .select("id, name")
+      .select("id, name, metadata")
       .in("id", modelProfileIds)
       .eq("is_active", true);
 
@@ -693,6 +698,16 @@ export async function getChatPageState({
     modelProfileNameById = new Map(
       (modelProfiles ?? []).map((modelProfile) => [modelProfile.id, modelProfile.name])
     );
+    modelProfileTierLabelById = new Map();
+
+    for (const modelProfile of modelProfiles ?? []) {
+      if (typeof modelProfile.metadata?.tier_label === "string") {
+        modelProfileTierLabelById.set(
+          modelProfile.id,
+          modelProfile.metadata.tier_label
+        );
+      }
+    }
   }
 
   if (sourceMessageIds.length > 0) {
@@ -752,6 +767,9 @@ export async function getChatPageState({
     default_model_profile_name: agent.default_model_profile_id
       ? modelProfileNameById.get(agent.default_model_profile_id) ?? null
       : null,
+    default_model_profile_tier_label: agent.default_model_profile_id
+      ? modelProfileTierLabelById.get(agent.default_model_profile_id) ?? null
+      : null,
     is_default_for_workspace:
       agent.metadata?.is_default_for_workspace === true
   })) as AvailableAgentRecord[];
@@ -760,8 +778,24 @@ export async function getChatPageState({
     availableAgents[0]?.id ??
     null;
   const availablePersonaPacks = (personaPacksData ?? []) as AvailablePersonaPackRecord[];
-  const availableModelProfiles =
-    (availableModelProfilesData ?? []) as AvailableModelProfileRecord[];
+  const availableModelProfiles = ((availableModelProfilesData ?? []) as Array<{
+    id: string;
+    name: string;
+    provider: string;
+    model: string;
+    metadata: Record<string, unknown> | null;
+  }>).map((modelProfile) => ({
+    ...modelProfile,
+    metadata: modelProfile.metadata ?? {},
+    tier_label:
+      typeof modelProfile.metadata?.tier_label === "string"
+        ? modelProfile.metadata.tier_label
+        : null,
+    usage_note:
+      typeof modelProfile.metadata?.usage_note === "string"
+        ? modelProfile.metadata.usage_note
+        : null
+  })) as AvailableModelProfileRecord[];
   const visibleMemories = filteredVisibleMemories.map((memory) => {
     const sourceMessage = memory.source_message_id
       ? sourceMessageById.get(memory.source_message_id) ?? null

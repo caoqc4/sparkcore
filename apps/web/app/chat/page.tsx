@@ -421,6 +421,9 @@ export default async function ChatPage({
                           <p className="thread-link-meta">
                             Model profile:{" "}
                             {availableAgent.default_model_profile_name ?? "Unassigned"}
+                            {availableAgent.default_model_profile_tier_label
+                              ? ` · ${availableAgent.default_model_profile_tier_label}`
+                              : ""}
                           </p>
                           <p className="agent-impact-copy">
                             {isCurrent

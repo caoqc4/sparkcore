@@ -29,6 +29,17 @@ cd apps/web
 npm run quality:eval -- --format=json
 ```
 
+## Suggested Stage 1 Profile Tiers
+
+Use the same eval cases across a small, named set of model profiles so you can compare behavior without changing the scenario:
+
+- `Spark Default`
+  Stable conversation baseline for everyday chat quality.
+- `Spark Memory Sensitive`
+  Lower-temperature profile for direct memory-recall checks and factual follow-up turns.
+- `Spark Low-Cost Testing`
+  Cheaper comparison profile for rough prompt and language checks before trying a stronger profile.
+
 ## Stage 1 Cases
 
 ### 1. Memory-hit follow-up stays grounded in recalled facts

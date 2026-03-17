@@ -21,7 +21,11 @@ const SMOKE_MODEL_PROFILES = [
     metadata: {
       seed: true,
       default: true,
-      smoke_seed: true
+      smoke_seed: true,
+      tier: "stable-conversation",
+      tier_label: "Stable conversation",
+      usage_note:
+        "Balanced baseline for everyday chat and stage-1 comparison runs."
     }
   },
   {
@@ -33,7 +37,11 @@ const SMOKE_MODEL_PROFILES = [
     max_output_tokens: null,
     metadata: {
       seed: true,
-      smoke_seed: true
+      smoke_seed: true,
+      tier: "low-cost-testing",
+      tier_label: "Low-cost testing",
+      usage_note:
+        "Lighter comparison profile for smoke checks and quick runtime verification."
     }
   }
 ] as const;

@@ -29,6 +29,17 @@ cd apps/web
 npm run quality:eval -- --format=json
 ```
 
+## 推荐的 Stage 1 Profile 分层
+
+建议用同一组评测样例去对比一小组命名清晰的 model profile，这样你比较的是 profile 差异，而不是场景差异：
+
+- `Spark Default`
+  作为日常对话质量的稳定基线。
+- `Spark Memory Sensitive`
+  用更保守的生成风格检查 memory recall 和直接追问场景。
+- `Spark Low-Cost Testing`
+  适合先做粗粒度 prompt / 语言测试，再决定是否切回更强 profile。
+
 ## Stage 1 样例
 
 ### 1. 命中 memory 后的追问仍然忠实使用记忆
