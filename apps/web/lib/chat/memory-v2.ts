@@ -165,6 +165,20 @@ export function getMemorySourceRefs(memory: MemoryLike) {
   return [];
 }
 
+export function isMemoryScopeValid(memory: MemoryLike) {
+  const scope = getMemoryScope(memory);
+
+  if (scope === "user_agent") {
+    return typeof memory.target_agent_id === "string" && memory.target_agent_id.length > 0;
+  }
+
+  if (scope === "thread_local") {
+    return typeof memory.target_thread_id === "string" && memory.target_thread_id.length > 0;
+  }
+
+  return true;
+}
+
 export function buildMemoryV2Fields({
   category,
   key,

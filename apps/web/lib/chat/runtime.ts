@@ -7,7 +7,8 @@ import {
   getMemoryStability,
   getMemoryStatus,
   isMemoryHidden,
-  isMemoryIncorrect
+  isMemoryIncorrect,
+  isMemoryScopeValid
 } from "@/lib/chat/memory-v2";
 import { recallRelevantMemories } from "@/lib/chat/memory";
 import { createClient } from "@/lib/supabase/server";
@@ -102,7 +103,7 @@ type AvailableModelProfileRecord = {
 
 type VisibleMemoryRecord = {
   id: string;
-  memory_type: "profile" | "preference";
+  memory_type: string | null;
   category: string;
   key: string;
   value: unknown;
@@ -692,7 +693,6 @@ export async function getChatPageState({
     )
     .eq("workspace_id", workspace.id)
     .eq("user_id", user.id)
-    .in("memory_type", ["profile", "preference"])
     .order("created_at", { ascending: false })
     .limit(60);
 
@@ -728,7 +728,7 @@ export async function getChatPageState({
   ];
   const rawVisibleMemories = (visibleMemoriesData ?? []) as Array<{
     id: string;
-    memory_type: "profile" | "preference";
+    memory_type: string | null;
     category?: string | null;
     key?: string | null;
     value?: unknown;
@@ -746,17 +746,20 @@ export async function getChatPageState({
     created_at: string;
     updated_at: string;
   }>;
-  const filteredVisibleMemories = rawVisibleMemories
+  const validVisibleMemories = rawVisibleMemories.filter((memory) =>
+    isMemoryScopeValid(memory)
+  );
+  const filteredVisibleMemories = validVisibleMemories
     .filter(
       (memory) => !isMemoryHidden(memory) && !isMemoryIncorrect(memory)
     )
     .slice(0, 20);
-  const filteredHiddenMemories = rawVisibleMemories
+  const filteredHiddenMemories = validVisibleMemories
     .filter(
       (memory) => isMemoryHidden(memory) && !isMemoryIncorrect(memory)
     )
     .slice(0, 20);
-  const filteredIncorrectMemories = rawVisibleMemories
+  const filteredIncorrectMemories = validVisibleMemories
     .filter((memory) => isMemoryIncorrect(memory))
     .slice(0, 20);
   const sourceMessageIds = [

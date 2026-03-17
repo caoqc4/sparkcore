@@ -55,6 +55,10 @@ function isMemoryIncorrect(metadata: Record<string, unknown> | undefined) {
   return metadata?.is_incorrect === true;
 }
 
+function getMemoryCategoryLabel(category: string) {
+  return category.replace(/_/g, " ");
+}
+
 function getMemoryTrustHint({
   confidence,
   metadata,
@@ -562,7 +566,9 @@ export default async function ChatPage({
                         >
                           <div className="memory-card-row">
                             <div className="memory-badges">
-                              <span className="thread-badge">{memory.memory_type}</span>
+                              <span className="thread-badge">
+                                {getMemoryCategoryLabel(memory.category)}
+                              </span>
                               {isRestored ? (
                                 <span className="thread-badge thread-badge-muted">
                                   {copy.memory.restoredBadge}
@@ -655,7 +661,9 @@ export default async function ChatPage({
                       {hiddenMemories.map((memory) => (
                         <article className="memory-card memory-card-hidden" key={memory.id}>
                           <div className="memory-card-row">
-                            <span className="thread-badge">{memory.memory_type}</span>
+                            <span className="thread-badge">
+                              {getMemoryCategoryLabel(memory.category)}
+                            </span>
                             <span className="memory-confidence memory-confidence-low">
                               {copy.memory.hiddenStatus}
                             </span>
@@ -702,7 +710,9 @@ export default async function ChatPage({
                         <article className="memory-card memory-card-hidden" key={memory.id}>
                           <div className="memory-card-row">
                             <div className="memory-badges">
-                              <span className="thread-badge">{memory.memory_type}</span>
+                              <span className="thread-badge">
+                                {getMemoryCategoryLabel(memory.category)}
+                              </span>
                               <span className="thread-badge thread-badge-muted">
                                 {copy.memory.incorrectBadge}
                               </span>
