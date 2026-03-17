@@ -5,6 +5,11 @@ import {
 } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv } from "@/lib/env";
+import {
+  buildMemoryV2Fields,
+  inferLegacyMemoryStability,
+  LEGACY_MEMORY_KEY
+} from "@/lib/chat/memory-v2";
 
 const DEV_SMOKE_SECRET = "sparkcore-smoke-local";
 const DEV_SMOKE_EMAIL = "smoke@example.com";
@@ -749,6 +754,7 @@ export async function createSmokeTurn({
       await admin
         .from("memory_items")
         .update({
+          status: "active",
           metadata: {
             ...((existingMemory.metadata ?? {}) as Record<string, unknown>),
             smoke_seed: true
@@ -768,6 +774,21 @@ export async function createSmokeTurn({
       content: value,
       confidence,
       source_message_id: ensuredUserMessage.id,
+      ...buildMemoryV2Fields({
+        category: memoryType,
+        key: LEGACY_MEMORY_KEY,
+        value,
+        scope: "user_global",
+        subjectUserId: smokeUser.id,
+        stability: inferLegacyMemoryStability(memoryType),
+        status: "active",
+        sourceRefs: [
+          {
+            kind: "message",
+            source_message_id: ensuredUserMessage.id
+          }
+        ]
+      }),
       metadata: {
         smoke_seed: true
       }

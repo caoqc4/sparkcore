@@ -1,4 +1,14 @@
 import { generateText } from "@/lib/litellm/client";
+import {
+  buildMemoryV2Fields,
+  getMemoryStatus,
+  inferLegacyMemoryStability,
+  isMemoryActive,
+  isMemoryHidden,
+  isMemoryIncorrect,
+  LEGACY_MEMORY_KEY,
+  type MemoryStability
+} from "@/lib/chat/memory-v2";
 import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_MODEL = "replicate-llama-3-8b";
@@ -26,6 +36,19 @@ type StoredMemory = {
   memory_type: MemoryType;
   content: string;
   confidence: number;
+  category?: string | null;
+  key?: string | null;
+  value?: unknown;
+  scope?: string | null;
+  subject_user_id?: string | null;
+  target_agent_id?: string | null;
+  target_thread_id?: string | null;
+  stability?: string | null;
+  status?: string | null;
+  source_refs?: unknown;
+  source_message_id?: string | null;
+  last_used_at?: string | null;
+  last_confirmed_at?: string | null;
   metadata?: Record<string, unknown>;
   created_at: string;
 };
@@ -49,20 +72,6 @@ type MemoryWriteOutcome = {
 type NormalizedMemoryCandidate = MemoryCandidate & {
   normalized_content: string;
 };
-
-function isMemoryHidden(metadata: Record<string, unknown> | null | undefined) {
-  return metadata?.is_hidden === true;
-}
-
-function isMemoryIncorrect(
-  metadata: Record<string, unknown> | null | undefined
-) {
-  return metadata?.is_incorrect === true;
-}
-
-function isMemoryActive(metadata: Record<string, unknown> | null | undefined) {
-  return !isMemoryHidden(metadata) && !isMemoryIncorrect(metadata);
-}
 
 type MemoryExtractionResponse = {
   memories: MemoryCandidate[];
@@ -350,7 +359,9 @@ export async function extractAndStoreMemories({
 
   const { data: existingMemories } = await supabase
     .from("memory_items")
-    .select("id, memory_type, content, confidence, metadata, created_at")
+    .select(
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at"
+    )
     .eq("workspace_id", workspaceId)
     .eq("user_id", userId)
     .in(
@@ -361,7 +372,7 @@ export async function extractAndStoreMemories({
     .limit(50);
 
   const activeExistingMemories = ((existingMemories ?? []) as StoredMemory[])
-    .filter((memory) => isMemoryActive(memory.metadata))
+    .filter((memory) => isMemoryActive(memory))
     .map((memory) => ({
       ...memory,
       normalized_content: normalizeMemoryContent(memory.content)
@@ -373,6 +384,16 @@ export async function extractAndStoreMemories({
     memory_type: MemoryType;
     content: string;
     confidence: number;
+    category: MemoryType;
+    key: string;
+    value: string;
+    scope: "user_global";
+    subject_user_id: string;
+    target_agent_id: null;
+    target_thread_id: null;
+    stability: MemoryStability;
+    status: string;
+    source_refs: Array<Record<string, string>>;
     metadata: Record<string, unknown>;
   }> = [];
 
@@ -393,6 +414,21 @@ export async function extractAndStoreMemories({
         content: candidate.content,
         confidence: Number(candidate.confidence.toFixed(2)),
         importance: 0.5,
+        ...buildMemoryV2Fields({
+          category: candidate.memory_type,
+          key: LEGACY_MEMORY_KEY,
+          value: candidate.content,
+          scope: "user_global",
+          subjectUserId: userId,
+          stability: inferLegacyMemoryStability(candidate.memory_type),
+          status: "active",
+          sourceRefs: [
+            {
+              kind: "message",
+              source_message_id: sourceMessageId
+            }
+          ]
+        }),
         metadata: {
           extraction_reason: candidate.reason,
           source: "llm_extraction",
@@ -419,7 +455,22 @@ export async function extractAndStoreMemories({
       memory_type: candidate.memory_type,
       content: candidate.content,
       confidence: Number(candidate.confidence.toFixed(2)),
-      metadata: nextMetadata
+      metadata: nextMetadata,
+      category: candidate.memory_type,
+      key: LEGACY_MEMORY_KEY,
+      value: candidate.content,
+      scope: "user_global",
+      subject_user_id: userId,
+      target_agent_id: null,
+      target_thread_id: null,
+      stability: inferLegacyMemoryStability(candidate.memory_type),
+      status: getMemoryStatus(matchingExisting),
+      source_refs: [
+        {
+          kind: "message",
+          source_message_id: sourceMessageId
+        }
+      ]
     });
   }
 
@@ -431,6 +482,16 @@ export async function extractAndStoreMemories({
         confidence: row.confidence,
         source_message_id: sourceMessageId,
         agent_id: agentId,
+        category: row.category,
+        key: row.key,
+        value: row.value,
+        scope: row.scope,
+        subject_user_id: row.subject_user_id,
+        target_agent_id: row.target_agent_id,
+        target_thread_id: row.target_thread_id,
+        stability: row.stability,
+        status: row.status,
+        source_refs: row.source_refs,
         metadata: row.metadata,
         updated_at: new Date().toISOString()
       })
@@ -486,7 +547,9 @@ export async function recallRelevantMemories({
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("memory_items")
-    .select("id, memory_type, content, confidence, metadata, created_at")
+    .select(
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at"
+    )
     .eq("workspace_id", workspaceId)
     .eq("user_id", userId)
     .in("memory_type", ["profile", "preference"])
@@ -499,10 +562,10 @@ export async function recallRelevantMemories({
   }
 
   const allMemories = (data ?? []) as StoredMemory[];
-  const activeMemories = allMemories.filter((memory) => isMemoryActive(memory.metadata));
-  const hiddenCandidates = allMemories.filter((memory) => isMemoryHidden(memory.metadata));
+  const activeMemories = allMemories.filter((memory) => isMemoryActive(memory));
+  const hiddenCandidates = allMemories.filter((memory) => isMemoryHidden(memory));
   const incorrectCandidates = allMemories.filter((memory) =>
-    isMemoryIncorrect(memory.metadata)
+    isMemoryIncorrect(memory)
   );
 
   if (activeMemories.length === 0) {

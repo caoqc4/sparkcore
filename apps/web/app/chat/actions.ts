@@ -609,7 +609,7 @@ export async function hideMemory(formData: FormData) {
 
   const { data: memoryItem } = await supabase
     .from("memory_items")
-    .select("id, metadata")
+    .select("id, metadata, status")
     .eq("id", memoryId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -630,6 +630,7 @@ export async function hideMemory(formData: FormData) {
   const { error } = await supabase
     .from("memory_items")
     .update({
+      status: "hidden",
       metadata: nextMetadata,
       updated_at: new Date().toISOString()
     })
@@ -678,7 +679,7 @@ export async function restoreMemory(formData: FormData) {
 
   const { data: memoryItem } = await supabase
     .from("memory_items")
-    .select("id, metadata")
+    .select("id, metadata, status")
     .eq("id", memoryId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -702,6 +703,7 @@ export async function restoreMemory(formData: FormData) {
   const { error } = await supabase
     .from("memory_items")
     .update({
+      status: "active",
       metadata: nextMetadata,
       updated_at: new Date().toISOString()
     })
@@ -750,7 +752,7 @@ export async function markMemoryIncorrect(formData: FormData) {
 
   const { data: memoryItem } = await supabase
     .from("memory_items")
-    .select("id, metadata")
+    .select("id, metadata, status")
     .eq("id", memoryId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -773,6 +775,7 @@ export async function markMemoryIncorrect(formData: FormData) {
   const { error } = await supabase
     .from("memory_items")
     .update({
+      status: "incorrect",
       metadata: nextMetadata,
       updated_at: new Date().toISOString()
     })

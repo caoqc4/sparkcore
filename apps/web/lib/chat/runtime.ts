@@ -1,4 +1,14 @@
 import { generateText } from "@/lib/litellm/client";
+import {
+  getMemoryCategory,
+  getMemoryKey,
+  getMemoryScope,
+  getMemorySourceRefs,
+  getMemoryStability,
+  getMemoryStatus,
+  isMemoryHidden,
+  isMemoryIncorrect
+} from "@/lib/chat/memory-v2";
 import { recallRelevantMemories } from "@/lib/chat/memory";
 import { createClient } from "@/lib/supabase/server";
 
@@ -93,6 +103,13 @@ type AvailableModelProfileRecord = {
 type VisibleMemoryRecord = {
   id: string;
   memory_type: "profile" | "preference";
+  category: string;
+  key: string;
+  value: unknown;
+  scope: string;
+  stability: string;
+  status: string;
+  source_refs: unknown[];
   content: string;
   confidence: number;
   metadata: Record<string, unknown>;
@@ -113,16 +130,6 @@ type RequestedThreadFallback = {
 };
 
 type RuntimeReplyLanguage = "zh-Hans" | "en" | "unknown";
-
-function isMemoryHidden(metadata: Record<string, unknown> | null | undefined) {
-  return metadata?.is_hidden === true;
-}
-
-function isMemoryIncorrect(
-  metadata: Record<string, unknown> | null | undefined
-) {
-  return metadata?.is_incorrect === true;
-}
 
 function summarizeAgentPrompt(prompt: string) {
   const normalized = prompt.replace(/\s+/g, " ").trim();
@@ -681,7 +688,7 @@ export async function getChatPageState({
   const { data: visibleMemoriesData, error: visibleMemoriesError } = await supabase
     .from("memory_items")
     .select(
-      "id, memory_type, content, confidence, metadata, source_message_id, created_at, updated_at"
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, metadata, source_message_id, created_at, updated_at"
     )
     .eq("workspace_id", workspace.id)
     .eq("user_id", user.id)
@@ -722,6 +729,16 @@ export async function getChatPageState({
   const rawVisibleMemories = (visibleMemoriesData ?? []) as Array<{
     id: string;
     memory_type: "profile" | "preference";
+    category?: string | null;
+    key?: string | null;
+    value?: unknown;
+    scope?: string | null;
+    subject_user_id?: string | null;
+    target_agent_id?: string | null;
+    target_thread_id?: string | null;
+    stability?: string | null;
+    status?: string | null;
+    source_refs?: unknown;
     content: string;
     confidence: number;
     metadata: Record<string, unknown>;
@@ -731,18 +748,16 @@ export async function getChatPageState({
   }>;
   const filteredVisibleMemories = rawVisibleMemories
     .filter(
-      (memory) =>
-        !isMemoryHidden(memory.metadata) && !isMemoryIncorrect(memory.metadata)
+      (memory) => !isMemoryHidden(memory) && !isMemoryIncorrect(memory)
     )
     .slice(0, 20);
   const filteredHiddenMemories = rawVisibleMemories
     .filter(
-      (memory) =>
-        isMemoryHidden(memory.metadata) && !isMemoryIncorrect(memory.metadata)
+      (memory) => isMemoryHidden(memory) && !isMemoryIncorrect(memory)
     )
     .slice(0, 20);
   const filteredIncorrectMemories = rawVisibleMemories
-    .filter((memory) => isMemoryIncorrect(memory.metadata))
+    .filter((memory) => isMemoryIncorrect(memory))
     .slice(0, 20);
   const sourceMessageIds = [
     ...new Set(
@@ -912,6 +927,13 @@ export async function getChatPageState({
 
     return {
       ...memory,
+      category: getMemoryCategory(memory),
+      key: getMemoryKey(memory),
+      value: memory.value ?? memory.content,
+      scope: getMemoryScope(memory),
+      stability: getMemoryStability(memory),
+      status: getMemoryStatus(memory),
+      source_refs: getMemorySourceRefs(memory),
       source_thread_id: sourceMessage?.thread_id ?? null,
       source_thread_title: sourceMessage?.thread_id
         ? sourceThreadTitleById.get(sourceMessage.thread_id) ?? null
@@ -926,6 +948,13 @@ export async function getChatPageState({
 
     return {
       ...memory,
+      category: getMemoryCategory(memory),
+      key: getMemoryKey(memory),
+      value: memory.value ?? memory.content,
+      scope: getMemoryScope(memory),
+      stability: getMemoryStability(memory),
+      status: getMemoryStatus(memory),
+      source_refs: getMemorySourceRefs(memory),
       source_thread_id: sourceMessage?.thread_id ?? null,
       source_thread_title: sourceMessage?.thread_id
         ? sourceThreadTitleById.get(sourceMessage.thread_id) ?? null
@@ -940,6 +969,13 @@ export async function getChatPageState({
 
     return {
       ...memory,
+      category: getMemoryCategory(memory),
+      key: getMemoryKey(memory),
+      value: memory.value ?? memory.content,
+      scope: getMemoryScope(memory),
+      stability: getMemoryStability(memory),
+      status: getMemoryStatus(memory),
+      source_refs: getMemorySourceRefs(memory),
       source_thread_id: sourceMessage?.thread_id ?? null,
       source_thread_title: sourceMessage?.thread_id
         ? sourceThreadTitleById.get(sourceMessage.thread_id) ?? null
