@@ -69,6 +69,8 @@ type SmokeThread = {
   title: string;
 };
 
+type SmokeReplyLanguage = "zh-Hans" | "en" | "unknown";
+
 function getFallbackValue(envKey: "secret" | "email" | "password") {
   if (process.env.NODE_ENV !== "development") {
     return undefined;
@@ -480,6 +482,25 @@ function summarizeThreadTitle(content: string) {
   return `${normalized.slice(0, 45).trimEnd()}...`;
 }
 
+function detectSmokeReplyLanguage(content: string): SmokeReplyLanguage {
+  const hanMatches = content.match(/[\u3400-\u9fff]/g) ?? [];
+  const latinMatches = content.match(/[A-Za-z]/g) ?? [];
+
+  if (hanMatches.length === 0 && latinMatches.length === 0) {
+    return "unknown";
+  }
+
+  if (hanMatches.length > latinMatches.length) {
+    return "zh-Hans";
+  }
+
+  if (latinMatches.length > hanMatches.length) {
+    return "en";
+  }
+
+  return hanMatches.length > 0 ? "zh-Hans" : "en";
+}
+
 function buildSmokeAssistantReply({
   content,
   modelProfileName
@@ -488,19 +509,40 @@ function buildSmokeAssistantReply({
   modelProfileName: string;
 }) {
   const normalized = content.toLowerCase();
+  const replyLanguage = detectSmokeReplyLanguage(content);
 
   if (normalized.includes("reply in one sentence with a quick hello")) {
-    return `Hello from SparkCore via ${modelProfileName}.`;
+    return replyLanguage === "zh-Hans"
+      ? `你好，我是通过 ${modelProfileName} 回复的 SparkCore。`
+      : `Hello from SparkCore via ${modelProfileName}.`;
   }
 
   if (
     normalized.includes("product designer") &&
     normalized.includes("concise weekly planning")
   ) {
-    return "Thanks. I understand that you work as a product designer and prefer concise weekly planning.";
+    return replyLanguage === "zh-Hans"
+      ? "谢谢，我知道你是一名产品设计师，并且偏好简洁的每周规划方式。"
+      : "Thanks. I understand that you work as a product designer and prefer concise weekly planning.";
   }
 
-  return "Thanks, I noted that and I am ready to help with the next step.";
+  if (
+    content.includes("请用两句话介绍你自己") ||
+    content.includes("你能如何帮助我")
+  ) {
+    return "我是 SparkCore，可以用中文帮助你梳理计划、整理记忆，并继续当前线程里的对话。";
+  }
+
+  if (
+    normalized.includes("please introduce yourself in two short sentences") ||
+    normalized.includes("explain how you can help me")
+  ) {
+    return "I am SparkCore, and I can help you organize plans, reuse memory, and continue conversations across threads.";
+  }
+
+  return replyLanguage === "zh-Hans"
+    ? "好的，我已经记下来了，接下来可以继续帮你。"
+    : "Thanks, I noted that and I am ready to help with the next step.";
 }
 
 export async function createSmokeTurn({
@@ -746,6 +788,8 @@ export async function createSmokeTurn({
           model: modelProfile.model,
           model_profile_id: modelProfile.id,
           model_profile_name: modelProfile.name,
+          reply_language_target: detectSmokeReplyLanguage(trimmedContent),
+          reply_language_detected: detectSmokeReplyLanguage(assistantContent),
           memory_hit_count: recalledMemories.length,
           memory_used: recalledMemories.length > 0,
           memory_types_used: usedMemoryTypes,

@@ -90,6 +90,11 @@ function buildSmokeAssistantResponse(messages: LiteLLMMessage[]) {
     [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
   const normalizedUserMessage = latestUserMessage.toLowerCase();
   const normalizedSystemPrompt = systemPrompt.toLowerCase();
+  const targetLanguage = normalizedSystemPrompt.includes("simplified chinese")
+    ? "zh-Hans"
+    : normalizedSystemPrompt.includes("reply in english")
+      ? "en"
+      : "unknown";
 
   const remembersProductDesigner = normalizedSystemPrompt.includes("product designer");
   const remembersPlanningPreference = normalizedSystemPrompt.includes(
@@ -97,24 +102,49 @@ function buildSmokeAssistantResponse(messages: LiteLLMMessage[]) {
   );
 
   if (normalizedUserMessage.includes("what profession do you remember")) {
+    if (targetLanguage === "zh-Hans") {
+      return remembersProductDesigner ? "你告诉过我，你是一名产品设计师。" : "我不知道。";
+    }
+
     return remembersProductDesigner
       ? "You told me that you work as a product designer."
       : "I don't know.";
   }
 
   if (normalizedUserMessage.includes("reply in one sentence with a quick hello")) {
-    return "Hello from SparkCore.";
+    return targetLanguage === "zh-Hans" ? "你好，我是 SparkCore。" : "Hello from SparkCore.";
   }
 
   if (
     normalizedUserMessage.includes("what kind of weekly planning style would fit me best")
   ) {
+    if (targetLanguage === "zh-Hans") {
+      return remembersPlanningPreference
+        ? "简洁的每周规划方式会更适合你。"
+        : "简单清晰的每周规划方式可能会比较适合你。";
+    }
+
     return remembersPlanningPreference
       ? "A concise weekly planning style should fit you best."
       : "A simple weekly planning style could work well.";
   }
 
-  return "Thanks, I noted that and I am ready to help with the next step.";
+  if (
+    normalizedUserMessage.includes("please introduce yourself in two short sentences")
+  ) {
+    return "I am SparkCore, a chat workspace that helps you plan, remember key facts, and continue conversations across threads.";
+  }
+
+  if (
+    latestUserMessage.includes("请用两句话介绍你自己") ||
+    latestUserMessage.includes("你能如何帮助我")
+  ) {
+    return "我是 SparkCore，可以用中文帮助你梳理计划、整理记忆，并继续当前线程里的对话。";
+  }
+
+  return targetLanguage === "zh-Hans"
+    ? "好的，我已经记下来了，接下来可以继续帮你。"
+    : "Thanks, I noted that and I am ready to help with the next step.";
 }
 
 export async function generateText({

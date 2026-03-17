@@ -110,6 +110,8 @@ type RequestedThreadFallback = {
   reasonCode: "invalid_or_unauthorized";
 };
 
+type RuntimeReplyLanguage = "zh-Hans" | "en" | "unknown";
+
 function isMemoryHidden(metadata: Record<string, unknown> | null | undefined) {
   return metadata?.is_hidden === true;
 }
@@ -165,18 +167,50 @@ function buildMemoryRecallPrompt(
   ].join("\n");
 }
 
+function detectReplyLanguageFromText(content: string): RuntimeReplyLanguage {
+  const hanMatches = content.match(/[\u3400-\u9fff]/g) ?? [];
+  const latinMatches = content.match(/[A-Za-z]/g) ?? [];
+
+  if (hanMatches.length === 0 && latinMatches.length === 0) {
+    return "unknown";
+  }
+
+  if (hanMatches.length > latinMatches.length) {
+    return "zh-Hans";
+  }
+
+  if (latinMatches.length > hanMatches.length) {
+    return "en";
+  }
+
+  return hanMatches.length > 0 ? "zh-Hans" : "en";
+}
+
+function getReplyLanguageInstruction(language: RuntimeReplyLanguage) {
+  switch (language) {
+    case "zh-Hans":
+      return "Runtime language target: reply in Simplified Chinese by default for this turn unless the user explicitly asks you to switch languages.";
+    case "en":
+      return "Runtime language target: reply in English by default for this turn unless the user explicitly asks you to switch languages.";
+    default:
+      return "Runtime language target: follow the latest user message language and avoid unnecessary language switching within the same reply.";
+  }
+}
+
 function buildAgentSystemPrompt(
   agent: AgentRecord,
   recalledMemories: Array<{
     memory_type: "profile" | "preference";
     content: string;
     confidence: number;
-  }> = []
+  }> = [],
+  replyLanguage: RuntimeReplyLanguage = "unknown"
 ) {
   const sections = [
     `You are ${agent.name}.`,
     agent.persona_summary ? `Persona summary: ${agent.persona_summary}` : "",
     agent.style_prompt ? `Style guidance: ${agent.style_prompt}` : "",
+    getReplyLanguageInstruction(replyLanguage),
     agent.system_prompt,
     buildMemoryRecallPrompt(recalledMemories)
   ].filter(Boolean);
@@ -997,6 +1031,9 @@ export async function generateAgentReply({
   const latestUserMessage = [...messages]
     .reverse()
     .find((message) => message.role === "user");
+  const replyLanguage = latestUserMessage
+    ? detectReplyLanguageFromText(latestUserMessage.content)
+    : "unknown";
   const memoryRecall = latestUserMessage
     ? await recallRelevantMemories({
         workspaceId: workspace.id,
@@ -1018,7 +1055,7 @@ export async function generateAgentReply({
   const promptMessages = [
     {
       role: "system" as const,
-      content: buildAgentSystemPrompt(agent, recalledMemories)
+      content: buildAgentSystemPrompt(agent, recalledMemories, replyLanguage)
     },
     ...messages
       .filter((message) => message.status !== "failed" && message.status !== "pending")
@@ -1045,6 +1082,8 @@ export async function generateAgentReply({
       model: result.model,
       model_profile_id: modelProfile.id,
       model_profile_name: modelProfile.name,
+      reply_language_target: replyLanguage,
+      reply_language_detected: detectReplyLanguageFromText(result.content),
       memory_hit_count: recalledMemories.length,
       memory_used: recalledMemories.length > 0,
       memory_types_used: memoryRecall.usedMemoryTypes,

@@ -230,4 +230,80 @@ test.describe("core chat smoke", () => {
       timeout: 45_000
     });
   });
+
+  test("keeps reply language aligned with the latest user message", async ({
+    page,
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${threadId}`
+    );
+
+    const zhTurnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "请用两句话介绍你自己，并说明你能如何帮助我。"
+      }
+    });
+
+    expect(zhTurnResponse.ok()).toBeTruthy();
+    await page.reload();
+    await expect(page.getByText("可以用中文帮助你").first()).toBeVisible({
+      timeout: 45_000
+    });
+
+    const secondThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(secondThreadResponse.ok()).toBeTruthy();
+    const { threadId: englishThreadId } = (await secondThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${englishThreadId}`
+    );
+
+    const enTurnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: englishThreadId,
+        content:
+          "Please introduce yourself in two short sentences and explain how you can help me."
+      }
+    });
+
+    expect(enTurnResponse.ok()).toBeTruthy();
+    await page.reload();
+    await expect(page.getByText("I am SparkCore").first()).toBeVisible({
+      timeout: 45_000
+    });
+  });
 });
