@@ -25,20 +25,15 @@ SparkCore is intended to provide a shared core for:
 
 ## Current Status
 
-This repository is currently in the early open-source setup stage.
+SparkCore now includes a working v1 chat workspace for local trial:
 
-What is available now:
+- multi-thread chat with stable `/chat?thread=<id>` restoration
+- thread-bound agents with lightweight creation, default selection, and editing
+- long-memory visibility, trace, correction, and restore flows
+- per-turn runtime summary for agent, model profile, and memory usage
+- Supabase auth, persistence, and local smoke regression coverage
 
-- Repository bootstrap and ignore rules
-- Public project positioning
-- Bilingual repository landing documentation
-
-What is planned next:
-
-- Initial codebase structure
-- Core runtime modules
-- Memory and persona foundations
-- Basic developer documentation
+The project is still early, but it is already usable as a local trial build rather than just a repository scaffold.
 
 ## Principles
 
@@ -67,13 +62,29 @@ The project is organized with a minimal scaffold so future work can land without
 - `scripts`: development and automation scripts
 - `docs-public`: public-facing project documentation
 
+## Quick Trial
+
+If you want to run the current v1 locally, start here:
+
+1. Read the web quickstart: [`apps/web/README.md`](./apps/web/README.md)
+2. Copy [`.env.example`](./.env.example) into your local env file
+3. Prepare a Supabase project and a LiteLLM gateway or local proxy
+4. Run the web app and verify the trial checklist
+
+Useful docs:
+
+- English quickstart: [`apps/web/README.md`](./apps/web/README.md)
+- Chinese quickstart: [`apps/web/README.zh-CN.md`](./apps/web/README.zh-CN.md)
+- Trial checklist: [`docs-public/v1-trial-checklist.md`](./docs-public/v1-trial-checklist.md)
+- 中文试用清单: [`docs-public/v1-trial-checklist.zh-CN.md`](./docs-public/v1-trial-checklist.zh-CN.md)
+
 ## Open Source Notes
 
 Some internal planning documents are intentionally kept out of the public repository while the open-source structure is being prepared. Public-facing documentation will be added here incrementally as the project is formalized.
 
 ## Environment Variables
 
-Copy `.env.example` to your local env file when development starts.
+Copy `.env.example` to your local env file before local development or trial.
 
 Current MVP variables:
 
@@ -82,6 +93,7 @@ Current MVP variables:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `LITELLM_BASE_URL`
 - `LITELLM_API_KEY`
+- `REPLICATE_API_KEY` if you use the provided local LiteLLM proxy
 - `NEXT_PUBLIC_APP_URL`
 
 Reserved for later integrations:

@@ -25,20 +25,15 @@ SparkCore 计划提供一套共享核心能力，用于支持：
 
 ## 当前状态
 
-当前仓库仍处于开源准备阶段。
+SparkCore 现在已经具备一个可本地试用的 v1 聊天工作台：
 
-目前已具备：
+- 支持多线程聊天与稳定的 `/chat?thread=<id>` 恢复
+- 支持 thread 绑定 agent，以及轻量创建、默认 agent、轻量编辑
+- 支持长期记忆的可见、trace、纠错、恢复与轻量收敛
+- 支持按回合展示的 runtime summary，说明 agent、model profile 和 memory 使用情况
+- 已接好 Supabase 登录与持久化，并补了本地 smoke 回归保护
 
-- 仓库初始化与忽略规则
-- 对外项目定位说明
-- 中英双语的仓库首页文档
-
-接下来计划补充：
-
-- 初始代码结构
-- 核心 Runtime 模块
-- Memory 与 Persona 基础能力
-- 面向开发者的基础文档
+项目仍然处于早期，但已经不是只有脚手架的状态，而是可以交给别人本地试用的一版工作台。
 
 ## 设计原则
 
@@ -67,13 +62,29 @@ SparkCore 计划提供一套共享核心能力，用于支持：
 - `scripts`：开发与自动化脚本
 - `docs-public`：未来公开文档
 
+## 快速试用
+
+如果你想把当前 v1 在本地跑起来，建议按下面顺序开始：
+
+1. 先看 Web 快速启动说明：[`apps/web/README.md`](./apps/web/README.md)
+2. 把 [`.env.example`](./.env.example) 复制为本地环境文件
+3. 准备一个 Supabase 项目，以及 LiteLLM 网关或本地 LiteLLM proxy
+4. 启动 Web 应用，并按试用清单逐项验证
+
+可直接查看的文档：
+
+- 英文快速启动：[`apps/web/README.md`](./apps/web/README.md)
+- 中文快速启动：[`apps/web/README.zh-CN.md`](./apps/web/README.zh-CN.md)
+- 英文试用清单：[`docs-public/v1-trial-checklist.md`](./docs-public/v1-trial-checklist.md)
+- 中文试用清单：[`docs-public/v1-trial-checklist.zh-CN.md`](./docs-public/v1-trial-checklist.zh-CN.md)
+
 ## 开源说明
 
 部分内部规划文档目前有意不放入公开仓库，因为项目还在整理开源结构。后续会逐步把适合公开的文档沉淀到仓库中。
 
 ## 环境变量
 
-开始开发时，可以把 `.env.example` 复制为本地环境文件使用。
+开始本地开发或试用前，可以把 `.env.example` 复制为本地环境文件使用。
 
 当前 MVP 相关变量：
 
@@ -82,6 +93,7 @@ SparkCore 计划提供一套共享核心能力，用于支持：
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `LITELLM_BASE_URL`
 - `LITELLM_API_KEY`
+- 如果你使用仓库内置的本地 LiteLLM proxy，还需要 `REPLICATE_API_KEY`
 - `NEXT_PUBLIC_APP_URL`
 
 后续预留变量：
