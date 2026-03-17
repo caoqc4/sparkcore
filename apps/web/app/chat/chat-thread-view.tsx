@@ -37,6 +37,7 @@ type ChatThreadViewProps = {
 type RuntimeSummary = {
   agentName: string | null;
   modelProfileName: string | null;
+  underlyingModelLabel: string | null;
   memoryLabel: string | null;
   memoryActivityLabel: string | null;
   outcomeHints: string[];
@@ -62,6 +63,14 @@ function getRuntimeSummary(
     message.metadata.model_profile_name.trim().length > 0
       ? message.metadata.model_profile_name
       : null;
+  const underlyingModelLabel =
+    typeof message.metadata?.underlying_model_label === "string" &&
+    message.metadata.underlying_model_label.trim().length > 0
+      ? message.metadata.underlying_model_label
+      : typeof message.metadata?.model === "string" &&
+          message.metadata.model.trim().length > 0
+        ? message.metadata.model
+        : null;
   const memoryHitCount =
     typeof message.metadata?.memory_hit_count === "number"
       ? message.metadata.memory_hit_count
@@ -168,6 +177,7 @@ function getRuntimeSummary(
   if (
     !agentName &&
     !modelProfileName &&
+    !underlyingModelLabel &&
     !memoryLabel &&
     !memoryActivityLabel &&
     outcomeHints.length === 0
@@ -178,6 +188,7 @@ function getRuntimeSummary(
   return {
     agentName,
     modelProfileName,
+    underlyingModelLabel,
     memoryLabel,
     memoryActivityLabel,
     outcomeHints
@@ -628,6 +639,12 @@ export function ChatThreadView({
                             <>
                               <dt>{copy.thread.modelProfileUsed}</dt>
                               <dd>{runtimeSummary.modelProfileName}</dd>
+                            </>
+                          ) : null}
+                          {runtimeSummary.underlyingModelLabel ? (
+                            <>
+                              <dt>{copy.thread.underlyingModelUsed}</dt>
+                              <dd>{runtimeSummary.underlyingModelLabel}</dd>
                             </>
                           ) : null}
                           {runtimeSummary.memoryLabel ? (

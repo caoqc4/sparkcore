@@ -173,6 +173,7 @@ export function getChatCopy(locale: ChatLocale) {
         personaSummary: "角色摘要",
         modelProfile: "模型配置",
         profileHelper: "切换模型配置只会影响这个 agent 之后的回复。",
+        underlyingModel: "底层模型",
         systemPromptSummary: "系统提示摘要"
       },
       thread: {
@@ -208,6 +209,7 @@ export function getChatCopy(locale: ChatLocale) {
         howGenerated: "这条回复是如何生成的",
         agentUsed: "使用的 agent",
         modelProfileUsed: "使用的模型配置",
+        underlyingModelUsed: "实际调用的模型",
         memoryContext: "记忆上下文",
         memoryActivity: "记忆活动",
         summaryNote:
@@ -403,6 +405,7 @@ export function getChatCopy(locale: ChatLocale) {
       personaSummary: "Persona summary",
       modelProfile: "Model profile",
       profileHelper: "Switching the model profile only affects future replies from this agent.",
+      underlyingModel: "Underlying model",
       systemPromptSummary: "System prompt summary"
     },
     thread: {
@@ -438,6 +441,7 @@ export function getChatCopy(locale: ChatLocale) {
       howGenerated: "How this reply was generated",
       agentUsed: "Agent used",
       modelProfileUsed: "Model profile used",
+      underlyingModelUsed: "Underlying model",
       memoryContext: "Memory context",
       memoryActivity: "Memory activity",
       summaryNote:

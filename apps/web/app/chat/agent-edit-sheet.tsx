@@ -237,10 +237,17 @@ export function AgentEditSheet({
                   {copy.sheets.profileHelper}
                 </span>
                 {selectedModelProfile ? (
-                  <span className="helper-copy">
-                    {selectedModelProfile.usage_note ??
-                      `${selectedModelProfile.provider}/${selectedModelProfile.model}`}
-                  </span>
+                  <>
+                    {selectedModelProfile.usage_note ? (
+                      <span className="helper-copy">
+                        {selectedModelProfile.usage_note}
+                      </span>
+                    ) : null}
+                    <span className="helper-copy">
+                      {copy.sheets.underlyingModel}:{" "}
+                      {selectedModelProfile.provider}/{selectedModelProfile.model}
+                    </span>
+                  </>
                 ) : null}
               </label>
 

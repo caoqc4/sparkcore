@@ -154,9 +154,11 @@ function buildMemoryRecallPrompt(
     memory_type: "profile" | "preference";
     content: string;
     confidence: number;
-  }>
+  }>,
+  replyLanguage: RuntimeReplyLanguage
 ) {
   const normalizedUserMessage = latestUserMessage.toLowerCase();
+  const isZh = replyLanguage === "zh-Hans";
   const isDirectMemoryQuestion =
     normalizedUserMessage.includes("what do you remember") ||
     normalizedUserMessage.includes("what profession do you remember") ||
@@ -171,27 +173,52 @@ function buildMemoryRecallPrompt(
       return "";
     }
 
-    return [
-      "Relevant long-term memory for this reply:",
-      "None.",
-      "The user is directly asking what you remember. No relevant long-term memory was recalled for this turn.",
-      "Do not invent specifics. If the user asks whether you remember something and no relevant long-term memory is available, say you do not know."
-    ].join("\n");
+    return isZh
+      ? [
+          "与这条回复相关的长期记忆：",
+          "无。",
+          "用户正在直接追问你记得什么，但本轮没有召回到相关长期记忆。",
+          "不要编造具体事实。如果用户在问你是否记得某件事，而本轮没有相关长期记忆，就直接说明你不知道。"
+        ].join("\n")
+      : [
+          "Relevant long-term memory for this reply:",
+          "None.",
+          "The user is directly asking what you remember. No relevant long-term memory was recalled for this turn.",
+          "Do not invent specifics. If the user asks whether you remember something and no relevant long-term memory is available, say you do not know."
+        ].join("\n");
   }
 
-  const sections = [
-    "Relevant long-term memory for this reply:",
-    ...recalledMemories.map(
-      (memory, index) =>
-        `${index + 1}. [${memory.memory_type}] ${memory.content} (confidence ${memory.confidence.toFixed(2)})`
-    ),
-    "Use these memories only when they are genuinely relevant to the current user message. Do not force them into the reply."
-  ];
+  const sections = isZh
+    ? [
+        "与这条回复相关的长期记忆：",
+        ...recalledMemories.map(
+          (memory, index) =>
+            `${index + 1}. [${memory.memory_type}] ${memory.content}（置信度 ${memory.confidence.toFixed(2)}）`
+        ),
+        "只在这些记忆确实与当前用户消息相关时才使用它们，不要生硬地强塞进回复。",
+        "即使记忆片段或内部说明是英文，只要当前轮目标语言是中文，也要整条回复保持简体中文。"
+      ]
+    : [
+        "Relevant long-term memory for this reply:",
+        ...recalledMemories.map(
+          (memory, index) =>
+            `${index + 1}. [${memory.memory_type}] ${memory.content} (confidence ${memory.confidence.toFixed(2)})`
+        ),
+        "Use these memories only when they are genuinely relevant to the current user message. Do not force them into the reply.",
+        "Even if a recalled memory snippet was originally stored in another language, keep the full reply in the current target language."
+      ];
 
   if (isDirectMemoryQuestion) {
     sections.push(
-      "The user is directly asking what you remember. If the answer is covered by the recalled memory above, answer with that remembered fact plainly.",
-      "Do not say that you have no prior knowledge, no previous conversation, or no memory when relevant long-term memory is listed above."
+      ...(isZh
+        ? [
+            "用户正在直接追问你记得什么。如果上面的召回记忆已经覆盖答案，就直接、明确地回答那个记住的事实。",
+            "当上面已经列出相关长期记忆时，不要再说你没有先前知识、没有对话历史，或不记得。"
+          ]
+        : [
+            "The user is directly asking what you remember. If the answer is covered by the recalled memory above, answer with that remembered fact plainly.",
+            "Do not say that you have no prior knowledge, no previous conversation, or no memory when relevant long-term memory is listed above."
+          ])
     );
   }
 
@@ -220,9 +247,15 @@ function detectReplyLanguageFromText(content: string): RuntimeReplyLanguage {
 function getReplyLanguageInstruction(language: RuntimeReplyLanguage) {
   switch (language) {
     case "zh-Hans":
-      return "Runtime language target: reply in Simplified Chinese by default for this turn unless the user explicitly asks you to switch languages.";
+      return [
+        "Runtime language target: reply in Simplified Chinese for this turn unless the user explicitly asks to switch languages.",
+        "Do not drift into English just because recalled memory, model labels, or internal notes contain English text."
+      ].join(" ");
     case "en":
-      return "Runtime language target: reply in English by default for this turn unless the user explicitly asks you to switch languages.";
+      return [
+        "Runtime language target: reply in English for this turn unless the user explicitly asks to switch languages.",
+        "Do not switch to another language just because recalled memory, model labels, or internal notes contain that language."
+      ].join(" ");
     default:
       return "Runtime language target: follow the latest user message language and avoid unnecessary language switching within the same reply.";
   }
@@ -244,7 +277,7 @@ function buildAgentSystemPrompt(
     agent.style_prompt ? `Style guidance: ${agent.style_prompt}` : "",
     getReplyLanguageInstruction(replyLanguage),
     agent.system_prompt,
-    buildMemoryRecallPrompt(latestUserMessage, recalledMemories)
+    buildMemoryRecallPrompt(latestUserMessage, recalledMemories, replyLanguage)
   ].filter(Boolean);
 
   return sections.join("\n\n");
@@ -1127,6 +1160,9 @@ export async function generateAgentReply({
       agent_id: agent.id,
       agent_name: agent.name,
       model: result.model,
+      model_provider: modelProfile.provider,
+      model_requested: modelProfile.model,
+      underlying_model_label: `${modelProfile.provider}/${result.model ?? modelProfile.model}`,
       model_profile_id: modelProfile.id,
       model_profile_name: modelProfile.name,
       reply_language_target: replyLanguage,
