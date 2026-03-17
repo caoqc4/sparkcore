@@ -22,6 +22,7 @@ const MEMORY_RECALL_LIMIT = 3;
 const MEMORY_RELEVANCE_THRESHOLD = 0.35;
 
 type MemoryType = "profile" | "preference";
+type MemoryUsageType = MemoryType | "relationship";
 
 type ContextMessage = {
   role: "user" | "assistant";
@@ -38,7 +39,7 @@ type MemoryCandidate = {
 
 type StoredMemory = {
   id: string;
-  memory_type: MemoryType;
+  memory_type: string | null;
   content: string;
   confidence: number;
   category?: string | null;
@@ -58,20 +59,24 @@ type StoredMemory = {
   created_at: string;
 };
 
-type RecalledMemory = Pick<StoredMemory, "memory_type" | "content" | "confidence">;
+type RecalledMemory = {
+  memory_type: MemoryUsageType;
+  content: string;
+  confidence: number;
+};
 
 type RecallOutcome = {
   memories: RecalledMemory[];
-  usedMemoryTypes: MemoryType[];
+  usedMemoryTypes: MemoryUsageType[];
   hiddenExclusionCount: number;
   incorrectExclusionCount: number;
 };
 
 type MemoryWriteOutcome = {
   createdCount: number;
-  createdTypes: MemoryType[];
+  createdTypes: MemoryUsageType[];
   updatedCount: number;
-  updatedTypes: MemoryType[];
+  updatedTypes: MemoryUsageType[];
 };
 
 type SingleSlotMemoryKey =
@@ -299,6 +304,114 @@ function shouldAttemptExtraction(message: string) {
   const normalized = message.replace(/\s+/g, " ").trim();
 
   return normalized.length >= 12;
+}
+
+function detectRelationshipAgentNicknameCandidate(message: string) {
+  const normalized = message.normalize("NFKC").trim();
+  const patterns = [
+    /以后(?:我)?叫你([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})可以吗/u,
+    /以后你就叫([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})/u,
+    /我以后叫你([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})/u,
+    /can i call you ([a-z0-9][a-z0-9 _-]{0,30})/i,
+    /i(?:'ll| will) call you ([a-z0-9][a-z0-9 _-]{0,30})/i,
+    /from now on i(?:'ll| will) call you ([a-z0-9][a-z0-9 _-]{0,30})/i
+  ];
+
+  for (const pattern of patterns) {
+    const match = normalized.match(pattern);
+    const candidate = match?.[1]?.trim();
+
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+export function isDirectAgentNamingQuestion(message: string) {
+  const normalized = message.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("你叫什么") ||
+    normalized.includes("我以后怎么叫你") ||
+    normalized.includes("你不是叫") ||
+    normalized.includes("你叫啥") ||
+    normalized.includes("what should i call you") ||
+    normalized.includes("what do i call you") ||
+    normalized.includes("what is your name") ||
+    normalized.includes("aren't you called")
+  );
+}
+
+export async function recallAgentNickname({
+  workspaceId,
+  userId,
+  agentId,
+  latestUserMessage
+}: {
+  workspaceId: string;
+  userId: string;
+  agentId: string;
+  latestUserMessage: string;
+}): Promise<{
+  directNamingQuestion: boolean;
+  nicknameMemory: {
+    memory_type: "relationship";
+    content: string;
+    confidence: number;
+  } | null;
+}> {
+  const directNamingQuestion = isDirectAgentNamingQuestion(latestUserMessage);
+
+  if (!directNamingQuestion) {
+    return {
+      directNamingQuestion: false,
+      nicknameMemory: null
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("memory_items")
+    .select(
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at"
+    )
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .eq("category", "relationship")
+    .eq("key", "agent_nickname")
+    .eq("scope", "user_agent")
+    .eq("target_agent_id", agentId)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error) {
+    throw new Error(`Failed to load relationship memory: ${error.message}`);
+  }
+
+  const nicknameRow = ((data ?? []) as StoredMemory[]).find((memory) =>
+    isMemoryActive(memory)
+  );
+
+  if (!nicknameRow) {
+    return {
+      directNamingQuestion: true,
+      nicknameMemory: null
+    };
+  }
+
+  return {
+    directNamingQuestion: true,
+    nicknameMemory: {
+      memory_type: "relationship" as const,
+      content:
+        typeof nicknameRow.value === "string"
+          ? nicknameRow.value
+          : nicknameRow.content,
+      confidence: nicknameRow.confidence
+    }
+  };
 }
 
 export async function upsertSingleSlotMemory({
@@ -529,12 +642,46 @@ export async function extractAndStoreMemories({
   latestUserMessage: string;
   recentContext: ContextMessage[];
 }): Promise<MemoryWriteOutcome> {
+  const createdTypes: MemoryUsageType[] = [];
+  const updatedTypes: MemoryUsageType[] = [];
+  const relationshipNickname = detectRelationshipAgentNicknameCandidate(
+    latestUserMessage
+  );
+
+  if (relationshipNickname && agentId) {
+    const relationshipWrite = await upsertSingleSlotMemory({
+      workspaceId,
+      userId,
+      agentId,
+      sourceMessageId,
+      category: "relationship",
+      key: "agent_nickname",
+      value: relationshipNickname,
+      scope: "user_agent",
+      targetAgentId: agentId,
+      confidence: 0.96,
+      stability: "high",
+      metadata: {
+        source: "relationship_parser",
+        relation_kind: "agent_nickname"
+      }
+    });
+
+    if (relationshipWrite.created) {
+      createdTypes.push("relationship");
+    }
+
+    if (relationshipWrite.updated) {
+      updatedTypes.push("relationship");
+    }
+  }
+
   if (!shouldAttemptExtraction(latestUserMessage)) {
     return {
-      createdCount: 0,
-      createdTypes: [],
-      updatedCount: 0,
-      updatedTypes: []
+      createdCount: createdTypes.length,
+      createdTypes,
+      updatedCount: updatedTypes.length,
+      updatedTypes
     };
   }
 
@@ -565,10 +712,10 @@ export async function extractAndStoreMemories({
 
   if (candidates.length === 0) {
     return {
-      createdCount: 0,
-      createdTypes: [],
-      updatedCount: 0,
-      updatedTypes: []
+      createdCount: createdTypes.length,
+      createdTypes,
+      updatedCount: updatedTypes.length,
+      updatedTypes
     };
   }
 
@@ -727,11 +874,14 @@ export async function extractAndStoreMemories({
 
   if (rowsToInsert.length === 0) {
     return {
-      createdCount: 0,
-      createdTypes: [],
-      updatedCount: rowsToUpdate.length,
+      createdCount: createdTypes.length,
+      createdTypes,
+      updatedCount: rowsToUpdate.length + updatedTypes.length,
       updatedTypes: Array.from(
-        new Set(rowsToUpdate.map((row) => row.memory_type))
+        new Set<MemoryUsageType>([
+          ...updatedTypes,
+          ...rowsToUpdate.map((row) => row.memory_type)
+        ])
       )
     };
   }
@@ -743,17 +893,24 @@ export async function extractAndStoreMemories({
   }
 
   return {
-    createdCount: rowsToInsert.length,
+    createdCount: rowsToInsert.length + createdTypes.length,
     createdTypes: Array.from(
-      new Set(
-        rowsToInsert
+      new Set<MemoryUsageType>([
+        ...createdTypes,
+        ...rowsToInsert
           .map((row) => row.memory_type)
-          .filter((type): type is MemoryType => type === "profile" || type === "preference")
-      )
+          .filter(
+            (type): type is MemoryType =>
+              type === "profile" || type === "preference"
+          )
+      ])
     ),
-    updatedCount: rowsToUpdate.length,
+    updatedCount: rowsToUpdate.length + updatedTypes.length,
     updatedTypes: Array.from(
-      new Set(rowsToUpdate.map((row) => row.memory_type))
+      new Set<MemoryUsageType>([
+        ...updatedTypes,
+        ...rowsToUpdate.map((row) => row.memory_type)
+      ])
     )
   };
 }
@@ -810,9 +967,14 @@ export async function recallRelevantMemories({
     .slice(0, 2)
     .map((entry) => entry.memory);
 
-  const recalledMemories =
+  const recalledMemories: RecalledMemory[] =
     scored.length > 0
-      ? scored.slice(0, MEMORY_RECALL_LIMIT)
+      ? scored.slice(0, MEMORY_RECALL_LIMIT).map((memory) => ({
+          memory_type:
+            memory.memory_type === "preference" ? "preference" : "profile",
+          content: memory.content,
+          confidence: memory.confidence
+        }))
       : activeMemories
           .slice()
           .sort((left, right) => {
@@ -824,7 +986,13 @@ export async function recallRelevantMemories({
               new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
             );
           })
-          .slice(0, 2);
+          .slice(0, 2)
+          .map((memory) => ({
+            memory_type:
+              memory.memory_type === "preference" ? "preference" : "profile",
+            content: memory.content,
+            confidence: memory.confidence
+          }));
 
   const countRelevantExclusions = (memories: StoredMemory[]) =>
     memories.filter(
@@ -834,7 +1002,7 @@ export async function recallRelevantMemories({
   return {
     memories: recalledMemories,
     usedMemoryTypes: Array.from(
-      new Set(recalledMemories.map((memory) => memory.memory_type))
+      new Set<MemoryUsageType>(recalledMemories.map((memory) => memory.memory_type))
     ),
     hiddenExclusionCount: countRelevantExclusions(hiddenCandidates),
     incorrectExclusionCount: countRelevantExclusions(incorrectCandidates)

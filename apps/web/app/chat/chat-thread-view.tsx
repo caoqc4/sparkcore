@@ -43,6 +43,23 @@ type RuntimeSummary = {
   outcomeHints: string[];
 };
 
+function formatMemoryTypeLabel(type: string, locale: ChatLocale) {
+  const isZh = locale === "zh-CN";
+
+  switch (type) {
+    case "profile":
+      return isZh ? "profile" : "profile";
+    case "preference":
+      return isZh ? "preference" : "preference";
+    case "relationship":
+      return isZh ? "relationship" : "relationship";
+    case "goal":
+      return isZh ? "goal" : "goal";
+    default:
+      return type;
+  }
+}
+
 function getRuntimeSummary(
   message: ChatMessage,
   locale: ChatLocale
@@ -100,14 +117,12 @@ function getRuntimeSummary(
           : "No";
   const memoryTypesUsed = Array.isArray(message.metadata?.memory_types_used)
     ? message.metadata.memory_types_used.filter(
-        (type): type is "profile" | "preference" =>
-          type === "profile" || type === "preference"
+        (type): type is string => typeof type === "string" && type.length > 0
       )
     : [];
   const memoryWriteTypes = Array.isArray(message.metadata?.memory_write_types)
     ? message.metadata.memory_write_types.filter(
-        (type): type is "profile" | "preference" =>
-          type === "profile" || type === "preference"
+        (type): type is string => typeof type === "string" && type.length > 0
       )
     : [];
   const hiddenExclusionCount =
@@ -130,15 +145,35 @@ function getRuntimeSummary(
   const memoryActivityLabel =
     newMemoryCount > 0
       ? isZh
-        ? `新增了${memoryWriteTypes.length > 0 ? ` ${memoryWriteTypes.join(" + ")}` : ""}记忆`
+        ? `新增了${
+            memoryWriteTypes.length > 0
+              ? ` ${memoryWriteTypes
+                  .map((type) => formatMemoryTypeLabel(type, locale))
+                  .join(" + ")}`
+              : ""
+          }记忆`
         : `Saved new ${
-            memoryWriteTypes.length > 0 ? memoryWriteTypes.join(" + ") : "memory"
+            memoryWriteTypes.length > 0
+              ? memoryWriteTypes
+                  .map((type) => formatMemoryTypeLabel(type, locale))
+                  .join(" + ")
+              : "memory"
           }`
       : updatedMemoryCount > 0
         ? isZh
-          ? `更新了${memoryWriteTypes.length > 0 ? ` ${memoryWriteTypes.join(" + ")}` : ""}记忆`
+          ? `更新了${
+              memoryWriteTypes.length > 0
+                ? ` ${memoryWriteTypes
+                    .map((type) => formatMemoryTypeLabel(type, locale))
+                    .join(" + ")}`
+                : ""
+            }记忆`
           : `Updated ${
-              memoryWriteTypes.length > 0 ? memoryWriteTypes.join(" + ") : "memory"
+              memoryWriteTypes.length > 0
+                ? memoryWriteTypes
+                    .map((type) => formatMemoryTypeLabel(type, locale))
+                    .join(" + ")
+                : "memory"
             }`
         : isZh
           ? "本轮没有新增记忆"
@@ -147,8 +182,12 @@ function getRuntimeSummary(
   if (memoryTypesUsed.length > 0) {
     outcomeHints.push(
       isZh
-        ? `本轮使用了 ${memoryTypesUsed.join(" + ")} 记忆。`
-        : `This turn used ${memoryTypesUsed.join(" + ")} memory.`
+        ? `本轮使用了 ${memoryTypesUsed
+            .map((type) => formatMemoryTypeLabel(type, locale))
+            .join(" + ")} 记忆。`
+        : `This turn used ${memoryTypesUsed
+            .map((type) => formatMemoryTypeLabel(type, locale))
+            .join(" + ")} memory.`
     );
   } else if (memoryUsed === false) {
     outcomeHints.push(

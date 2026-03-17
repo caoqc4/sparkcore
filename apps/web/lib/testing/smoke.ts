@@ -506,15 +506,46 @@ function detectSmokeReplyLanguage(content: string): SmokeReplyLanguage {
   return hanMatches.length > 0 ? "zh-Hans" : "en";
 }
 
+function detectSmokeNicknameCandidate(content: string) {
+  const normalized = content.normalize("NFKC").trim();
+  const match = normalized.match(
+    /以后(?:我)?叫你([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})可以吗/u
+  );
+
+  return match?.[1]?.trim() ?? null;
+}
+
+function isSmokeDirectNamingQuestion(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("你叫什么") ||
+    normalized.includes("我以后怎么叫你") ||
+    normalized.includes("你不是叫") ||
+    normalized.includes("what should i call you") ||
+    normalized.includes("what do i call you") ||
+    normalized.includes("what is your name") ||
+    normalized.includes("aren't you called")
+  );
+}
+
 function buildSmokeAssistantReply({
   content,
   modelProfileName,
-  recalledMemories
+  recalledMemories,
+  agentName,
+  nicknameMemory
 }: {
   content: string;
   modelProfileName: string;
+  agentName: string;
+  nicknameMemory: {
+    memory_type: "relationship";
+    content: string;
+    confidence: number;
+  } | null;
   recalledMemories: Array<{
-    memory_type: "profile" | "preference";
+    memory_type: "profile" | "preference" | "relationship";
     content: string;
     confidence: number;
   }>;
@@ -550,6 +581,18 @@ function buildSmokeAssistantReply({
     return replyLanguage === "zh-Hans"
       ? "我记得你是一名产品设计师。"
       : "I remember that you work as a product designer.";
+  }
+
+  if (isSmokeDirectNamingQuestion(content)) {
+    if (nicknameMemory) {
+      return replyLanguage === "zh-Hans"
+        ? `哈哈，我叫${nicknameMemory.content}！`
+        : `You can call me ${nicknameMemory.content}.`;
+    }
+
+    return replyLanguage === "zh-Hans"
+      ? `我叫${agentName}。`
+      : `My name is ${agentName}.`;
   }
 
   if (
@@ -647,18 +690,18 @@ export async function createSmokeTurn({
     .from("memory_items")
     .select("id, metadata", { count: "exact" })
     .eq("workspace_id", smokeUser.workspaceId)
-    .eq("user_id", smokeUser.id)
-    .eq("memory_type", "profile");
+    .eq("user_id", smokeUser.id);
   const incorrectMemoryCountResponse = await admin
     .from("memory_items")
     .select("id, metadata", { count: "exact" })
     .eq("workspace_id", smokeUser.workspaceId)
-    .eq("user_id", smokeUser.id)
-    .eq("memory_type", "profile");
+    .eq("user_id", smokeUser.id);
 
   const { data: existingMemories, error: memoriesError } = await admin
     .from("memory_items")
-    .select("id, memory_type, content, confidence, metadata")
+    .select(
+      "id, memory_type, content, confidence, category, key, value, scope, target_agent_id, metadata"
+    )
     .eq("workspace_id", smokeUser.workspaceId)
     .eq("user_id", smokeUser.id)
     .order("created_at", { ascending: false });
@@ -682,15 +725,46 @@ export async function createSmokeTurn({
         ((memory.metadata ?? {}) as Record<string, unknown>).is_incorrect === true
     ).length ?? 0;
 
-  const recalledMemories = activeMemories.filter((memory) => {
-    const normalizedContent = memory.content.toLowerCase();
-    return (
-      (trimmedContent.toLowerCase().includes("profession") &&
-        normalizedContent.includes("product designer")) ||
-      (trimmedContent.toLowerCase().includes("weekly planning") &&
-        normalizedContent.includes("concise weekly planning"))
-    );
-  });
+  const recalledMemories: Array<{
+    memory_type: "profile" | "preference" | "relationship";
+    content: string;
+    confidence: number;
+  }> = activeMemories
+    .filter((memory) => {
+      const normalizedContent = memory.content.toLowerCase();
+      return (
+        (trimmedContent.toLowerCase().includes("profession") &&
+          normalizedContent.includes("product designer")) ||
+        (trimmedContent.toLowerCase().includes("weekly planning") &&
+          normalizedContent.includes("concise weekly planning"))
+      );
+    })
+    .map((memory) => ({
+      memory_type:
+        memory.memory_type === "preference" ? "preference" : "profile",
+      content: memory.content,
+      confidence: memory.confidence
+    }));
+  const nicknameMemory = isSmokeDirectNamingQuestion(trimmedContent)
+    ? activeMemories.find(
+        (memory) =>
+          memory.category === "relationship" &&
+          memory.key === "agent_nickname" &&
+          memory.scope === "user_agent" &&
+          memory.target_agent_id === ensuredAgent.id
+      )
+    : null;
+
+  if (nicknameMemory) {
+    recalledMemories.unshift({
+      memory_type: "relationship",
+      content:
+        typeof nicknameMemory.value === "string"
+          ? nicknameMemory.value
+          : nicknameMemory.content,
+      confidence: nicknameMemory.confidence
+    });
+  }
 
   const usedMemoryTypes = Array.from(
     new Set(recalledMemories.map((memory) => memory.memory_type))
@@ -737,7 +811,7 @@ export async function createSmokeTurn({
     );
   }
 
-  const createdTypes: Array<"profile" | "preference"> = [];
+  const createdTypes: Array<"profile" | "preference" | "relationship"> = [];
   const loweredContent = trimmedContent.toLowerCase();
 
   async function upsertMemory(memoryType: "profile" | "preference", value: string, confidence: number) {
@@ -809,9 +883,75 @@ export async function createSmokeTurn({
     await upsertMemory("preference", "concise weekly planning", 0.93);
   }
 
+  const smokeNickname = detectSmokeNicknameCandidate(trimmedContent);
+
+  if (smokeNickname) {
+    const { data: existingNickname } = await admin
+      .from("memory_items")
+      .select("id")
+      .eq("workspace_id", smokeUser.workspaceId)
+      .eq("user_id", smokeUser.id)
+      .eq("category", "relationship")
+      .eq("key", "agent_nickname")
+      .eq("scope", "user_agent")
+      .eq("target_agent_id", ensuredAgent.id)
+      .eq("value", smokeNickname)
+      .maybeSingle();
+
+    if (!existingNickname) {
+      const { error } = await admin.from("memory_items").insert({
+        workspace_id: smokeUser.workspaceId,
+        user_id: smokeUser.id,
+        agent_id: ensuredAgent.id,
+        source_message_id: ensuredUserMessage.id,
+        memory_type: null,
+        content: smokeNickname,
+        confidence: 0.96,
+        importance: 0.5,
+        ...buildMemoryV2Fields({
+          category: "relationship",
+          key: "agent_nickname",
+          value: smokeNickname,
+          scope: "user_agent",
+          subjectUserId: smokeUser.id,
+          targetAgentId: ensuredAgent.id,
+          stability: "high",
+          status: "active",
+          sourceRefs: [
+            {
+              kind: "message",
+              source_message_id: ensuredUserMessage.id
+            }
+          ]
+        }),
+        metadata: {
+          smoke_seed: true,
+          relation_kind: "agent_nickname"
+        }
+      });
+
+      if (error) {
+        throw new Error(`Failed to seed nickname memory: ${error.message}`);
+      }
+
+      createdTypes.push("relationship");
+    }
+  }
+
   const assistantContent = buildSmokeAssistantReply({
     content: trimmedContent,
     modelProfileName: modelProfile.name,
+    agentName: ensuredAgent.name,
+    nicknameMemory: nicknameMemory
+      ? {
+          memory_type: "relationship",
+          content:
+            typeof nicknameMemory.value === "string"
+              ? nicknameMemory.value
+              : nicknameMemory.content,
+          confidence: nicknameMemory.confidence
+        }
+      : null,
     recalledMemories
   });
 
