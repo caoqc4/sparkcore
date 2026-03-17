@@ -5,10 +5,10 @@ export default function ChatLoading() {
         <div className="topbar">
           <div>
             <p className="eyebrow">Chat</p>
-            <h1 className="title">Loading current thread...</h1>
+            <h1 className="title">Loading chat workspace...</h1>
             <p className="helper-copy">
               The loading state belongs to the currently selected thread and will
-              be replaced as soon as that thread resolves.
+              settle as soon as that chat view resolves.
             </p>
           </div>
         </div>
@@ -28,12 +28,13 @@ export default function ChatLoading() {
           </aside>
 
           <section className="panel chat-panel">
-            <div className="thread-status-panel">
-              <div className="thread-status-copy">
+            <div className="thread-state-card thread-state-card-loading">
+              <div className="thread-state-copy">
+                <p className="eyebrow thread-state-eyebrow">Loading</p>
                 <h2>Loading thread data</h2>
                 <p className="helper-copy">
-                  Messages, thread metadata, and agent binding are resolving for
-                  the active thread.
+                  Messages, thread metadata, and the bound agent are resolving
+                  for the current thread.
                 </p>
               </div>
 

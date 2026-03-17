@@ -95,6 +95,39 @@ function formatThreadUpdatedAt(dateString: string) {
   return new Date(dateString).toLocaleDateString();
 }
 
+function ChatStateCard({
+  eyebrow,
+  title,
+  description,
+  notice,
+  actions
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  notice?: {
+    tone: "error" | "warning" | "success";
+    message: string;
+  } | null;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <section className="panel thread-state-card">
+      <div className="thread-state-copy">
+        <p className="eyebrow thread-state-eyebrow">{eyebrow}</p>
+        <h2>{title}</h2>
+        <p className="helper-copy">{description}</p>
+      </div>
+
+      {notice ? (
+        <div className={`notice notice-${notice.tone}`}>{notice.message}</div>
+      ) : null}
+
+      {actions ? <div className="thread-status-actions">{actions}</div> : null}
+    </section>
+  );
+}
+
 export default async function ChatPage({
   searchParams
 }: {
@@ -124,7 +157,7 @@ export default async function ChatPage({
           <div className="topbar">
             <div>
               <p className="eyebrow">Chat</p>
-              <h1 className="title">Thread workspace is unavailable</h1>
+              <h1 className="title">Chat workspace is unavailable</h1>
             </div>
 
             <div className="toolbar">
@@ -134,26 +167,25 @@ export default async function ChatPage({
             </div>
           </div>
 
-          <section className="panel thread-status-panel">
-            <div className="thread-status-copy">
-              <h2>Chat data could not be loaded</h2>
-              <p className="helper-copy">
-                This is a thread data load failure, not an empty workspace.
-                Refresh the page to retry the current thread.
-              </p>
-            </div>
-
-            <div className="notice notice-error">{fetchFailedMessage}</div>
-
-            <div className="thread-status-actions">
-              <Link className="button" href="/chat" prefetch={false}>
-                Retry chat
-              </Link>
-              <Link className="button button-secondary" href="/workspace">
-                Back to workspace
-              </Link>
-            </div>
-          </section>
+          <ChatStateCard
+            actions={
+              <>
+                <Link className="button" href="/chat" prefetch={false}>
+                  Retry chat
+                </Link>
+                <Link className="button button-secondary" href="/workspace">
+                  Back to workspace
+                </Link>
+              </>
+            }
+            description="This is a chat data load failure, not an empty workspace. Refresh to retry the current chat view."
+            eyebrow="Fetch failed"
+            notice={{
+              tone: "error",
+              message: fetchFailedMessage
+            }}
+            title="Chat data could not be loaded"
+          />
         </div>
       </main>
     );
@@ -283,9 +315,12 @@ export default async function ChatPage({
                 />
               </form>
             ) : (
-              <div className="notice notice-error">
-                No active agent is available for this workspace yet. Add or
-                restore an agent before creating a new thread.
+              <div className="empty-state section-empty-state">
+                <p className="lead chat-thread-title">No active agent available</p>
+                <p className="helper-copy">
+                  Add or restore an agent before creating a new thread. Once an
+                  active agent is available, it can be selected here.
+                </p>
               </div>
             )}
 
@@ -343,7 +378,7 @@ export default async function ChatPage({
                 <CreateAgentSheet personaPacks={availablePersonaPacks} />
 
                 {availableAgents.length === 0 ? (
-                  <div className="empty-state">
+                  <div className="empty-state section-empty-state">
                     <p className="helper-copy">
                       No active agent is available yet. Create one from a persona
                       pack here, then it will appear with its model profile and
@@ -467,7 +502,7 @@ export default async function ChatPage({
                 </div>
 
                 {visibleMemories.length === 0 ? (
-                  <div className="empty-state">
+                  <div className="empty-state section-empty-state">
                     <p className="helper-copy">
                       No long-term memory has been written yet. Once a clear
                       profile or preference is extracted, it will appear here.
@@ -683,25 +718,39 @@ export default async function ChatPage({
 
           <section className="panel chat-panel">
             {requestedThreadFallback ? (
-              <div className="notice notice-warning">
+              <div className="notice notice-warning chat-inline-notice">
                 The requested thread is unavailable in your current workspace, so
                 the latest accessible thread is shown instead.
               </div>
             ) : null}
 
             {!thread ? (
-              <div className="empty-state">
-                <h2>
-                  {requestedThreadFallback ? "Thread unavailable" : "No active thread"}
-                </h2>
-                <p className="helper-copy">
-                  {requestedThreadFallback
-                    ? "The thread in the URL is no longer available in this user scope. If another thread exists, it should appear in the sidebar."
+              <ChatStateCard
+                actions={
+                  availableAgents.length > 0 ? (
+                    <Link className="button" href="/chat" prefetch={false}>
+                      Refresh thread view
+                    </Link>
+                  ) : (
+                    <Link className="button button-secondary" href="/workspace">
+                      Back to workspace
+                    </Link>
+                  )
+                }
+                description={
+                  requestedThreadFallback
+                    ? "The thread in the URL is no longer available in this user scope. If another accessible thread exists, it will appear in the sidebar."
                     : availableAgents.length > 0
-                    ? "Create a thread from the sidebar to bind it to one agent and open it here."
-                    : "There is no active thread and no available agent yet, so this workspace cannot open a chat thread."}
-                </p>
-              </div>
+                      ? "Create a thread from the sidebar to bind it to one agent and open the conversation here."
+                      : "There is no active thread yet, and this workspace also needs an active agent before chat can start."
+                }
+                eyebrow={requestedThreadFallback ? "Thread unavailable" : "Empty state"}
+                title={
+                  requestedThreadFallback
+                    ? "This thread is not available"
+                    : "No active thread yet"
+                }
+              />
             ) : (
               <ChatThreadView
                 agentName={agent?.name ?? null}

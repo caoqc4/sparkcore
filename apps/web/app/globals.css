@@ -234,6 +234,10 @@ a {
   margin-top: -8px;
 }
 
+.chat-inline-notice {
+  margin-bottom: 16px;
+}
+
 .chat-sidebar,
 .chat-panel {
   min-height: 0;
@@ -961,6 +965,34 @@ a {
   display: grid;
   gap: 12px;
   padding: 12px 0;
+}
+
+.section-empty-state {
+  padding: 2px 0 6px;
+}
+
+.thread-state-card {
+  display: grid;
+  gap: 18px;
+  min-height: 220px;
+  align-content: center;
+}
+
+.thread-state-card-loading {
+  min-height: 100%;
+}
+
+.thread-state-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.thread-state-copy h2 {
+  margin: 0;
+}
+
+.thread-state-eyebrow {
+  margin-bottom: 0;
 }
 
 .sheet-backdrop {
