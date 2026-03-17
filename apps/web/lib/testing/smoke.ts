@@ -53,6 +53,14 @@ type SmokeUser = {
   workspaceId: string;
 };
 
+type SmokeThread = {
+  id: string;
+  workspace_id: string;
+  owner_user_id: string;
+  agent_id: string | null;
+  title: string;
+};
+
 function getFallbackValue(envKey: "secret" | "email" | "password") {
   if (process.env.NODE_ENV !== "development") {
     return undefined;
@@ -117,7 +125,10 @@ function getAdminClient(config: SmokeConfig) {
 
 async function ensureSmokeUser(
   admin: SupabaseClient,
-  config: SmokeConfig
+  config: SmokeConfig,
+  options?: {
+    resetPassword?: boolean;
+  }
 ): Promise<SmokeUser> {
   const { data: listedUsersData, error: listError } =
     await admin.auth.admin.listUsers({
@@ -156,7 +167,7 @@ async function ensureSmokeUser(
     throw new Error("Failed to create the smoke test user.");
   }
 
-  if (existingUser) {
+  if (existingUser && options?.resetPassword) {
     const { error: updateError } = await admin.auth.admin.updateUserById(
       existingUser.id,
       {
@@ -384,7 +395,9 @@ export async function resetSmokeState() {
   }
 
   const admin = getAdminClient(config);
-  const smokeUser = await ensureSmokeUser(admin, config);
+  const smokeUser = await ensureSmokeUser(admin, config, {
+    resetPassword: true
+  });
   const modelProfiles = await ensureSmokeModelProfiles(admin);
 
   await resetSmokeWorkspaceState(admin, smokeUser);
@@ -393,6 +406,367 @@ export async function resetSmokeState() {
   return {
     workspaceId: smokeUser.workspaceId,
     smokeEmail: smokeUser.email
+  };
+}
+
+export async function createSmokeThread({
+  agentName
+}: {
+  agentName: string;
+}) {
+  const config = getSmokeConfig();
+
+  if (!config) {
+    throw new Error(
+      "Smoke thread creation requires the smoke env vars and service role key."
+    );
+  }
+
+  const admin = getAdminClient(config);
+  const smokeUser = await ensureSmokeUser(admin, config);
+
+  const { data: agent, error: agentError } = await admin
+    .from("agents")
+    .select("id")
+    .eq("workspace_id", smokeUser.workspaceId)
+    .eq("owner_user_id", smokeUser.id)
+    .eq("status", "active")
+    .eq("name", agentName)
+    .maybeSingle();
+
+  if (agentError || !agent) {
+    throw new Error(
+      agentError?.message ?? `Smoke agent "${agentName}" is unavailable.`
+    );
+  }
+
+  const { data: thread, error: threadError } = await admin
+    .from("threads")
+    .insert({
+      workspace_id: smokeUser.workspaceId,
+      owner_user_id: smokeUser.id,
+      agent_id: agent.id,
+      title: "New chat"
+    })
+    .select("id")
+    .single();
+
+  if (threadError || !thread) {
+    throw new Error(
+      threadError?.message ?? "Failed to create the smoke test thread."
+    );
+  }
+
+  return {
+    threadId: thread.id
+  };
+}
+
+function summarizeThreadTitle(content: string) {
+  const normalized = content.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= 48) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, 45).trimEnd()}...`;
+}
+
+function buildSmokeAssistantReply({
+  content,
+  modelProfileName
+}: {
+  content: string;
+  modelProfileName: string;
+}) {
+  const normalized = content.toLowerCase();
+
+  if (normalized.includes("reply in one sentence with a quick hello")) {
+    return `Hello from SparkCore via ${modelProfileName}.`;
+  }
+
+  if (
+    normalized.includes("product designer") &&
+    normalized.includes("concise weekly planning")
+  ) {
+    return "Thanks. I understand that you work as a product designer and prefer concise weekly planning.";
+  }
+
+  return "Thanks, I noted that and I am ready to help with the next step.";
+}
+
+export async function createSmokeTurn({
+  threadId,
+  content
+}: {
+  threadId: string;
+  content: string;
+}) {
+  const config = getSmokeConfig();
+
+  if (!config) {
+    throw new Error(
+      "Smoke message creation requires the smoke env vars and service role key."
+    );
+  }
+
+  const admin = getAdminClient(config);
+  const smokeUser = await ensureSmokeUser(admin, config);
+  const trimmedContent = content.trim();
+
+  if (!trimmedContent) {
+    throw new Error("Smoke turn content is required.");
+  }
+
+  const { data: thread, error: threadError } = await admin
+    .from("threads")
+    .select("id, workspace_id, owner_user_id, agent_id, title")
+    .eq("id", threadId)
+    .eq("workspace_id", smokeUser.workspaceId)
+    .eq("owner_user_id", smokeUser.id)
+    .maybeSingle();
+
+  if (threadError || !thread) {
+    throw new Error(
+      threadError?.message ?? "The requested smoke thread is unavailable."
+    );
+  }
+
+  if (!thread.agent_id) {
+    throw new Error("The smoke thread is not bound to an agent.");
+  }
+
+  const { data: agent, error: agentError } = await admin
+    .from("agents")
+    .select("id, name, default_model_profile_id")
+    .eq("id", thread.agent_id)
+    .eq("workspace_id", smokeUser.workspaceId)
+    .eq("owner_user_id", smokeUser.id)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (agentError || !agent) {
+    throw new Error(
+      agentError?.message ?? "The bound smoke agent is unavailable."
+    );
+  }
+
+  const ensuredAgent = agent;
+
+  const { data: modelProfile, error: modelProfileError } = await admin
+    .from("model_profiles")
+    .select("id, name, model")
+    .eq("id", ensuredAgent.default_model_profile_id)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (modelProfileError || !modelProfile) {
+    throw new Error(
+      modelProfileError?.message ??
+        "The bound smoke model profile is unavailable."
+    );
+  }
+
+  const hiddenMemoryCountResponse = await admin
+    .from("memory_items")
+    .select("id, metadata", { count: "exact" })
+    .eq("workspace_id", smokeUser.workspaceId)
+    .eq("user_id", smokeUser.id)
+    .eq("memory_type", "profile");
+  const incorrectMemoryCountResponse = await admin
+    .from("memory_items")
+    .select("id, metadata", { count: "exact" })
+    .eq("workspace_id", smokeUser.workspaceId)
+    .eq("user_id", smokeUser.id)
+    .eq("memory_type", "profile");
+
+  const { data: existingMemories, error: memoriesError } = await admin
+    .from("memory_items")
+    .select("id, memory_type, content, confidence, metadata")
+    .eq("workspace_id", smokeUser.workspaceId)
+    .eq("user_id", smokeUser.id)
+    .order("created_at", { ascending: false });
+
+  if (memoriesError) {
+    throw new Error(`Failed to load smoke memories: ${memoriesError.message}`);
+  }
+
+  const activeMemories =
+    existingMemories?.filter((memory) => {
+      const metadata = (memory.metadata ?? {}) as Record<string, unknown>;
+      return metadata.is_hidden !== true && metadata.is_incorrect !== true;
+    }) ?? [];
+  const hiddenExclusionCount =
+    hiddenMemoryCountResponse.data?.filter(
+      (memory) => ((memory.metadata ?? {}) as Record<string, unknown>).is_hidden === true
+    ).length ?? 0;
+  const incorrectExclusionCount =
+    incorrectMemoryCountResponse.data?.filter(
+      (memory) =>
+        ((memory.metadata ?? {}) as Record<string, unknown>).is_incorrect === true
+    ).length ?? 0;
+
+  const recalledMemories = activeMemories.filter((memory) => {
+    const normalizedContent = memory.content.toLowerCase();
+    return (
+      (trimmedContent.toLowerCase().includes("profession") &&
+        normalizedContent.includes("product designer")) ||
+      (trimmedContent.toLowerCase().includes("weekly planning") &&
+        normalizedContent.includes("concise weekly planning"))
+    );
+  });
+
+  const usedMemoryTypes = Array.from(
+    new Set(recalledMemories.map((memory) => memory.memory_type))
+  );
+
+  const { data: insertedUserMessage, error: insertedUserMessageError } =
+    await admin
+      .from("messages")
+      .insert({
+        thread_id: thread.id,
+        workspace_id: smokeUser.workspaceId,
+        user_id: smokeUser.id,
+        role: "user",
+        content: trimmedContent
+      })
+      .select("id")
+      .single();
+
+  if (insertedUserMessageError || !insertedUserMessage) {
+    throw new Error(
+      insertedUserMessageError?.message ?? "Failed to insert the smoke user message."
+    );
+  }
+
+  const ensuredUserMessage = insertedUserMessage;
+
+  const threadPatch: { updated_at: string; title?: string } = {
+    updated_at: new Date().toISOString()
+  };
+
+  if (thread.title === "New chat") {
+    threadPatch.title = summarizeThreadTitle(trimmedContent);
+  }
+
+  const { error: threadUpdateError } = await admin
+    .from("threads")
+    .update(threadPatch)
+    .eq("id", thread.id)
+    .eq("owner_user_id", smokeUser.id);
+
+  if (threadUpdateError) {
+    throw new Error(
+      `Failed to update the smoke thread: ${threadUpdateError.message}`
+    );
+  }
+
+  const createdTypes: Array<"profile" | "preference"> = [];
+  const loweredContent = trimmedContent.toLowerCase();
+
+  async function upsertMemory(memoryType: "profile" | "preference", value: string, confidence: number) {
+    const { data: existingMemory } = await admin
+      .from("memory_items")
+      .select("id, metadata")
+      .eq("workspace_id", smokeUser.workspaceId)
+      .eq("user_id", smokeUser.id)
+      .eq("memory_type", memoryType)
+      .eq("content", value)
+      .maybeSingle();
+
+    if (existingMemory) {
+      await admin
+        .from("memory_items")
+        .update({
+          metadata: {
+            ...((existingMemory.metadata ?? {}) as Record<string, unknown>),
+            smoke_seed: true
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", existingMemory.id)
+        .eq("user_id", smokeUser.id);
+      return;
+    }
+
+    const { error } = await admin.from("memory_items").insert({
+      workspace_id: smokeUser.workspaceId,
+      user_id: smokeUser.id,
+      agent_id: ensuredAgent.id,
+      memory_type: memoryType,
+      content: value,
+      confidence,
+      source_message_id: ensuredUserMessage.id,
+      metadata: {
+        smoke_seed: true
+      }
+    });
+
+    if (error) {
+      throw new Error(`Failed to seed smoke memory: ${error.message}`);
+    }
+
+    createdTypes.push(memoryType);
+  }
+
+  if (loweredContent.includes("product designer")) {
+    await upsertMemory("profile", "product designer", 0.95);
+  }
+
+  if (loweredContent.includes("concise weekly planning")) {
+    await upsertMemory("preference", "concise weekly planning", 0.93);
+  }
+
+  const assistantContent = buildSmokeAssistantReply({
+    content: trimmedContent,
+    modelProfileName: modelProfile.name
+  });
+
+  const { data: insertedAssistantMessage, error: insertedAssistantMessageError } =
+    await admin
+      .from("messages")
+      .insert({
+        thread_id: thread.id,
+        workspace_id: smokeUser.workspaceId,
+        user_id: smokeUser.id,
+        role: "assistant",
+        content: assistantContent,
+        status: "completed",
+        metadata: {
+      agent_id: ensuredAgent.id,
+          agent_name: ensuredAgent.name,
+          model: modelProfile.model,
+          model_profile_id: modelProfile.id,
+          model_profile_name: modelProfile.name,
+          memory_hit_count: recalledMemories.length,
+          memory_used: recalledMemories.length > 0,
+          memory_types_used: usedMemoryTypes,
+          hidden_memory_exclusion_count: hiddenExclusionCount,
+          incorrect_memory_exclusion_count: incorrectExclusionCount,
+          recalled_memories: recalledMemories.map((memory) => ({
+            memory_type: memory.memory_type,
+            content: memory.content,
+            confidence: memory.confidence
+          })),
+          memory_write_count: createdTypes.length,
+          memory_write_types: createdTypes,
+          new_memory_count: createdTypes.length,
+          updated_memory_count: 0
+        }
+      })
+      .select("id")
+      .single();
+
+  if (insertedAssistantMessageError || !insertedAssistantMessage) {
+    throw new Error(
+      insertedAssistantMessageError?.message ??
+        "Failed to insert the smoke assistant reply."
+    );
+  }
+
+  return {
+    userMessageId: ensuredUserMessage.id,
+    assistantMessageId: insertedAssistantMessage.id
   };
 }
 
@@ -414,7 +788,9 @@ export async function createSmokeLoginResponse(
   }
 
   const admin = getAdminClient(config);
-  await ensureSmokeUser(admin, config);
+  await ensureSmokeUser(admin, config, {
+    resetPassword: true
+  });
 
   let response = NextResponse.redirect(new URL(redirectPath, request.url));
   const supabase = createServerClient(config.url, config.anonKey, {

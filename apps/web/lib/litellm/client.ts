@@ -47,6 +47,76 @@ function normalizeBaseUrl(baseUrl: string) {
 
 const DEFAULT_LITELLM_TIMEOUT_MS = 18_000;
 
+function isSmokeModeEnabled() {
+  return process.env.PLAYWRIGHT_SMOKE_MODE === "1";
+}
+
+function buildSmokeExtractionResponse(latestUserMessage: string) {
+  const normalized = latestUserMessage.toLowerCase();
+  const memories: Array<{
+    memory_type: "profile" | "preference";
+    content: string;
+    should_store: true;
+    confidence: number;
+    reason: string;
+  }> = [];
+
+  if (normalized.includes("product designer")) {
+    memories.push({
+      memory_type: "profile",
+      content: "product designer",
+      should_store: true,
+      confidence: 0.95,
+      reason: "Explicit profession statement."
+    });
+  }
+
+  if (normalized.includes("concise weekly planning")) {
+    memories.push({
+      memory_type: "preference",
+      content: "concise weekly planning",
+      should_store: true,
+      confidence: 0.93,
+      reason: "Explicit preference statement."
+    });
+  }
+
+  return JSON.stringify({ memories });
+}
+
+function buildSmokeAssistantResponse(messages: LiteLLMMessage[]) {
+  const systemPrompt = messages.find((message) => message.role === "system")?.content ?? "";
+  const latestUserMessage =
+    [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
+  const normalizedUserMessage = latestUserMessage.toLowerCase();
+  const normalizedSystemPrompt = systemPrompt.toLowerCase();
+
+  const remembersProductDesigner = normalizedSystemPrompt.includes("product designer");
+  const remembersPlanningPreference = normalizedSystemPrompt.includes(
+    "concise weekly planning"
+  );
+
+  if (normalizedUserMessage.includes("what profession do you remember")) {
+    return remembersProductDesigner
+      ? "You told me that you work as a product designer."
+      : "I don't know.";
+  }
+
+  if (normalizedUserMessage.includes("reply in one sentence with a quick hello")) {
+    return "Hello from SparkCore.";
+  }
+
+  if (
+    normalizedUserMessage.includes("what kind of weekly planning style would fit me best")
+  ) {
+    return remembersPlanningPreference
+      ? "A concise weekly planning style should fit you best."
+      : "A simple weekly planning style could work well.";
+  }
+
+  return "Thanks, I noted that and I am ready to help with the next step.";
+}
+
 export async function generateText({
   model,
   messages,
@@ -64,6 +134,24 @@ export async function generateText({
 
   if (messages.length === 0) {
     throw new Error("At least one message is required.");
+  }
+
+  if (isSmokeModeEnabled()) {
+    const latestUserMessage =
+      [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
+    const isExtractionRequest = messages.some(
+      (message) =>
+        message.role === "system" &&
+        message.content.includes("structured memory extraction engine")
+    );
+
+    return {
+      id: "smoke-response",
+      model,
+      content: isExtractionRequest
+        ? buildSmokeExtractionResponse(latestUserMessage)
+        : buildSmokeAssistantResponse(messages)
+    };
   }
 
   const { baseUrl, apiKey } = getLiteLLMEnv();

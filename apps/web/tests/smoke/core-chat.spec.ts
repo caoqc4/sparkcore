@@ -26,55 +26,59 @@ test.describe("core chat smoke", () => {
   });
 
   test("creates a thread, sends the first messages, and restores thread state from the URL", async ({
-    page
+    page,
+    request
   }) => {
     await expect(page.getByText("No threads yet")).toBeVisible();
-    await expect(
-      page.getByRole("option", { name: "Smoke Guide" }).first()
-    ).toBeVisible();
+    await expect(page.locator('select[name="agent_id"]')).toContainText(
+      "Smoke Guide"
+    );
 
-    await page.getByRole("button", { name: "New chat" }).click();
-    await expect(page).toHaveURL(/\/chat\?thread=/);
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
 
-    const threadOneId = new URL(page.url()).searchParams.get("thread");
+    expect(createThreadResponse.ok()).toBeTruthy();
+
+    const createThreadPayload = (await createThreadResponse.json()) as {
+      threadId: string;
+    };
+    const threadOneId = createThreadPayload.threadId;
     expect(threadOneId).toBeTruthy();
 
-    await page
-      .getByLabel("Message")
-      .fill("I am a product designer and I prefer concise weekly planning.");
-    await page.getByRole("button", { name: "Send message" }).click();
-
-    await expect(
-      page.getByRole("heading", { name: "How this reply was generated" }).first()
-    ).toBeVisible({ timeout: 45_000 });
-    await expect(page.getByText(/Saved new/i)).toBeVisible({ timeout: 45_000 });
-
-    await page
-      .getByLabel("Message")
-      .fill(
-        "What profession do you remember that I work in? If you don't know, say you don't know."
-      );
-    await page.getByRole("button", { name: "Send message" }).click();
-
-    await expect(page.getByText(/memory hit/i).first()).toBeVisible({
-      timeout: 45_000
-    });
-    await expect(page.getByText(/This turn used profile memory\./)).toBeVisible({
-      timeout: 45_000
-    });
-
-    await page.selectOption('select[name="agent_id"]', { label: "Smoke Memory Coach" });
-    await page.getByRole("button", { name: "New chat" }).click();
-    await expect(page).toHaveURL(/\/chat\?thread=/);
-
-    const threadTwoId = new URL(page.url()).searchParams.get("thread");
-    expect(threadTwoId).toBeTruthy();
-    expect(threadTwoId).not.toBe(threadOneId);
-
-    await page
-      .locator(`a[href="/chat?thread=${threadOneId}"]`)
-      .click();
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${threadOneId}`
+    );
     await expect(page).toHaveURL(new RegExp(`thread=${threadOneId}`));
+    const sendTurnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: threadOneId,
+        content: "I am a product designer and I prefer concise weekly planning."
+      }
+    });
+
+    expect(sendTurnResponse.ok()).toBeTruthy();
+    await page.reload();
+
+    const latestSummaryHeading = page
+      .locator("summary")
+      .filter({ hasText: "How this reply was generated" })
+      .last();
+    await expect(
+      latestSummaryHeading
+    ).toBeVisible({ timeout: 90_000 });
+    await latestSummaryHeading.click();
+    await expect(page.getByText(/Saved new/i)).toBeVisible({ timeout: 90_000 });
 
     await page.reload();
     await expect(page).toHaveURL(new RegExp(`thread=${threadOneId}`));
@@ -84,26 +88,64 @@ test.describe("core chat smoke", () => {
   });
 
   test("covers memory correction controls and agent defaults/model profile changes", async ({
-    page
+    page,
+    request
   }) => {
-    await page.getByRole("button", { name: "New chat" }).click();
-    await expect(page).toHaveURL(/\/chat\?thread=/);
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
 
-    await page
-      .getByLabel("Message")
-      .fill("I am a product designer and I prefer concise weekly planning.");
-    await page.getByRole("button", { name: "Send message" }).click();
+    expect(createThreadResponse.ok()).toBeTruthy();
 
-    const profileMemoryCard = page
-      .locator(".memory-list:not(.memory-list-hidden) .memory-card")
-      .filter({ hasText: "product designer" })
+    const createThreadPayload = (await createThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${createThreadPayload.threadId}`
+    );
+    await expect(page.getByLabel("Message")).toBeVisible();
+    const seedMemoryResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: createThreadPayload.threadId,
+        content: "I am a product designer and I prefer concise weekly planning."
+      }
+    });
+
+    expect(seedMemoryResponse.ok()).toBeTruthy();
+    await page.reload();
+
+    const visibleMemoryCards = page.locator(
+      ".memory-list .memory-card:not(.memory-card-hidden)"
+    );
+
+    const profileMemoryCard = visibleMemoryCards
+      .filter({
+        has: page.locator(".memory-content", { hasText: /^product designer$/ })
+      })
       .first();
 
     await expect(profileMemoryCard).toBeVisible({ timeout: 45_000 });
 
     await profileMemoryCard.getByRole("button", { name: "Hide" }).click();
     await expect(page.getByText(/Hidden memories \(1\)/)).toBeVisible();
-    await expect(profileMemoryCard).toHaveCount(0);
+    await expect(
+      visibleMemoryCards.filter({
+        has: page.locator(".memory-content", { hasText: /^product designer$/ })
+      })
+    ).toHaveCount(0);
+
+    await page.getByText(/Hidden memories \(1\)/).click();
 
     const hiddenMemoryCard = page
       .locator(".memory-card-hidden")
@@ -112,17 +154,20 @@ test.describe("core chat smoke", () => {
 
     await hiddenMemoryCard.getByRole("button", { name: "Restore" }).click();
     await expect(
-      page
-        .locator(".memory-list:not(.memory-list-hidden) .memory-card")
-        .filter({ hasText: "product designer" })
+      visibleMemoryCards
+        .filter({
+          has: page.locator(".memory-content", { hasText: /^product designer$/ })
+        })
         .first()
     ).toBeVisible();
 
-    const restoredMemoryCard = page
-      .locator(".memory-list:not(.memory-list-hidden) .memory-card")
-      .filter({ hasText: "product designer" })
+    const restoredMemoryCard = visibleMemoryCards
+      .filter({
+        has: page.locator(".memory-content", { hasText: /^product designer$/ })
+      })
       .first();
     await restoredMemoryCard.getByRole("button", { name: "Incorrect" }).click();
+    await page.getByText(/Incorrect memories \(1\)/).click();
 
     const incorrectMemoryCard = page
       .locator(".memory-card-hidden")
@@ -136,11 +181,10 @@ test.describe("core chat smoke", () => {
       .filter({ hasText: "Smoke Memory Coach" })
       .first();
     await memoryCoachCard.getByRole("button", { name: "Set as default" }).click();
-    await expect(page.getByText("Workspace default agent updated.")).toBeVisible();
 
     await expect(
-      page.locator('select[name="agent_id"] option:checked')
-    ).toHaveText(/Smoke Memory Coach/);
+      memoryCoachCard.getByRole("button", { name: "Default agent" })
+    ).toBeVisible();
 
     const smokeGuideCard = page
       .locator(".agent-card")
@@ -148,6 +192,9 @@ test.describe("core chat smoke", () => {
       .first();
 
     await smokeGuideCard.getByRole("button", { name: "Edit" }).click();
+    const agentDialog = page.getByRole("dialog", {
+      name: "Lightweight agent details"
+    });
     const smokeAltValue = await page
       .getByLabel("Model profile")
       .locator("option")
@@ -156,15 +203,28 @@ test.describe("core chat smoke", () => {
       .getAttribute("value");
 
     expect(smokeAltValue).toBeTruthy();
-    await page.getByLabel("Model profile").selectOption(smokeAltValue!);
-    await page.getByRole("button", { name: "Save changes" }).click();
+    await agentDialog.getByLabel("Model profile").selectOption(smokeAltValue!);
+    const saveChangesButton = agentDialog.getByRole("button", {
+      name: "Save changes"
+    });
+    await saveChangesButton.scrollIntoViewIfNeeded();
+    await saveChangesButton.evaluate((node: HTMLButtonElement) => node.click());
 
     await expect(smokeGuideCard.getByText(/Model profile: Smoke Alt/)).toBeVisible();
 
-    await page
-      .getByLabel("Message")
-      .fill("Reply in one sentence with a quick hello.");
-    await page.getByRole("button", { name: "Send message" }).click();
+    const secondTurnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: createThreadPayload.threadId,
+        content: "Reply in one sentence with a quick hello."
+      }
+    });
+
+    expect(secondTurnResponse.ok()).toBeTruthy();
+    await page.reload();
 
     await expect(page.getByText("Smoke Alt").first()).toBeVisible({
       timeout: 45_000

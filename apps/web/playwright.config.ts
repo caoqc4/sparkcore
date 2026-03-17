@@ -36,6 +36,17 @@ function loadLocalEnv() {
 
 loadLocalEnv();
 
+function resolveChromeExecutable() {
+  const candidates = [
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    path.join(process.env.HOME ?? "", "Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+  ];
+
+  return candidates.find((candidate) => candidate && fs.existsSync(candidate));
+}
+
+const chromeExecutablePath = resolveChromeExecutable();
+
 export default defineConfig({
   testDir: "./tests/smoke",
   fullyParallel: false,
@@ -46,21 +57,28 @@ export default defineConfig({
     timeout: 20_000
   },
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: "http://localhost:3001",
     trace: "retain-on-failure"
   },
   webServer: {
-    command: "npm run dev -- --hostname 127.0.0.1 --port 3000",
+    command:
+      "npm run build && PLAYWRIGHT_SMOKE_MODE=1 PLAYWRIGHT_SMOKE_SECRET=sparkcore-smoke-local PLAYWRIGHT_SMOKE_EMAIL=smoke@example.com PLAYWRIGHT_SMOKE_PASSWORD=SparkcoreSmoke123! npm run start -- --hostname localhost --port 3001",
     cwd: __dirname,
-    url: "http://127.0.0.1:3000/login",
-    reuseExistingServer: true,
+    url: "http://localhost:3001/login",
+    reuseExistingServer: false,
     timeout: 120_000
   },
   projects: [
     {
       name: "chromium",
       use: {
-        ...devices["Desktop Chrome"]
+        ...devices["Desktop Chrome"],
+        browserName: "chromium",
+        launchOptions: chromeExecutablePath
+          ? {
+              executablePath: chromeExecutablePath
+            }
+          : undefined
       }
     }
   ]
