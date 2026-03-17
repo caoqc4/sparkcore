@@ -281,6 +281,9 @@ export default async function ChatPage({
             <div className="thread-sidebar-header">
               <h2>Threads</h2>
               <p className="helper-copy">Workspace: {workspace.name}</p>
+              <p className="section-hint">
+                Each thread keeps its own URL, bound agent, and message history.
+              </p>
             </div>
 
             {availableAgents.length > 0 ? (
@@ -370,6 +373,10 @@ export default async function ChatPage({
                   <p className="helper-copy">
                     Visible here so new threads can bind to a known agent without
                     opening a separate management screen.
+                  </p>
+                  <p className="section-hint">
+                    Create or adjust agents here, then use them when starting the
+                    next thread.
                   </p>
                 </div>
               </summary>
@@ -474,6 +481,10 @@ export default async function ChatPage({
                     Recent profile and preference memories stay visible inside the
                     chat workspace so users can understand what the system has
                     retained.
+                  </p>
+                  <p className="section-hint">
+                    Use this panel to see what long-term memory is available,
+                    hidden, or marked incorrect.
                   </p>
                 </div>
               </summary>

@@ -439,6 +439,11 @@ export function ChatThreadView({
                   affects future replies and does not rewrite older turns.
                 </p>
                 <p className="helper-copy">{defaultAgentCopy}</p>
+                <p className="section-hint">
+                  Look for the lightweight summary under assistant replies when
+                  you want to understand which agent, model profile, and memory
+                  context were used for that turn.
+                </p>
               </div>
             </>
           )}
