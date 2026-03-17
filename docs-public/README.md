@@ -7,3 +7,4 @@ Examples for later:
 - architecture notes
 - roadmap
 - API docs
+- quality evaluation baselines

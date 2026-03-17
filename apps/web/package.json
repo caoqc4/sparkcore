@@ -8,7 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "litellm:test": "tsx scripts/test-litellm.ts",
-    "smoke:test": "playwright test"
+    "smoke:test": "playwright test",
+    "quality:eval": "tsx scripts/quality-eval.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",

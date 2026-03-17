@@ -99,6 +99,7 @@ npm run typecheck
 npm run build
 npm run litellm:test -- --model <your-model-name>
 npm run smoke:test
+npm run quality:eval
 ```
 
 ## 说明
@@ -107,3 +108,4 @@ npm run smoke:test
 - smoke 回归会通过测试专用接口自动 seed 测试数据，不需要你手工准备一整套演示数据
 - 当前试用文档同时提供英文版：[`README.md`](./README.md)
 - 更完整的试用检查项见：[`../../docs-public/v1-trial-checklist.zh-CN.md`](../../docs-public/v1-trial-checklist.zh-CN.md)
+- Stage 1 质量评测样例集见：[`../../docs-public/stage1-quality-eval-set.zh-CN.md`](../../docs-public/stage1-quality-eval-set.zh-CN.md)

@@ -97,6 +97,7 @@ npm run typecheck
 npm run build
 npm run litellm:test -- --model <your-model-name>
 npm run smoke:test
+npm run quality:eval
 ```
 
 ## Notes
@@ -105,3 +106,4 @@ npm run smoke:test
 - smoke coverage uses deterministic test helpers and seeds its own test data through test-only routes
 - Chinese quickstart is available at [`README.zh-CN.md`](./README.zh-CN.md)
 - Trial checklist: [`../../docs-public/v1-trial-checklist.md`](../../docs-public/v1-trial-checklist.md)
+- Stage 1 quality baseline: [`../../docs-public/stage1-quality-eval-set.md`](../../docs-public/stage1-quality-eval-set.md)
