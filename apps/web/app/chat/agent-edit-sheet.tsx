@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { renameAgent, type RenameAgentResult } from "@/app/chat/actions";
+import { getChatCopy, type ChatLocale } from "@/lib/i18n/chat-ui";
 
 type AgentEditSheetProps = {
   agent: {
@@ -14,6 +15,7 @@ type AgentEditSheetProps = {
     system_prompt_summary: string;
     default_model_profile_id: string | null;
   };
+  locale: ChatLocale;
   modelProfiles: Array<{
     id: string;
     name: string;
@@ -24,8 +26,13 @@ type AgentEditSheetProps = {
   }>;
 };
 
-export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
+export function AgentEditSheet({
+  agent,
+  locale,
+  modelProfiles
+}: AgentEditSheetProps) {
   const router = useRouter();
+  const copy = getChatCopy(locale);
   const [isOpen, setIsOpen] = useState(false);
   const [draftName, setDraftName] = useState(agent.name);
   const [draftPersonaSummary, setDraftPersonaSummary] = useState(
@@ -99,7 +106,7 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
         onClick={() => setIsOpen(true)}
         type="button"
       >
-        Edit
+        {copy.common.edit}
       </button>
 
       {isOpen ? (
@@ -117,36 +124,30 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
           >
             <div className="sheet-header">
               <div>
-                <p className="eyebrow">Agent</p>
+                <p className="eyebrow">{copy.sheets.editAgentEyebrow}</p>
                 <h3 className="sheet-title" id={`edit-agent-title-${agent.id}`}>
-                  Lightweight agent details
+                  {copy.sheets.editAgentTitle}
                 </h3>
               </div>
               <button
-                aria-label="Close agent details"
+                aria-label={copy.common.close}
                 className="sheet-close"
                 disabled={isPending}
                 onClick={closeSheet}
                 type="button"
               >
-                Close
+                {copy.common.close}
               </button>
             </div>
 
             <p className="helper-copy">
-              Keep agent editing lightweight inside chat. Update the agent name,
-              avatar cue, background summary, and persona summary here without
-              leaving the thread workspace.
+              {copy.sheets.editAgentHelper1}
             </p>
             <p className="helper-copy">
-              Changes here update the agent object for future replies that use
-              this agent. They do not rewrite older thread content or past
-              runtime summaries.
+              {copy.sheets.editAgentHelper2}
             </p>
             <p className="helper-copy">
-              In the current thread, this agent can reference long-term memory
-              when it is relevant. Switching the agent or model here only affects
-              future replies.
+              {copy.sheets.editAgentHelper3}
             </p>
 
             {feedback ? <div className="notice notice-error">{feedback}</div> : null}
@@ -155,7 +156,7 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
               <input name="agent_id" type="hidden" value={agent.id} />
 
               <label className="field" htmlFor={`agent-name-${agent.id}`}>
-                <span className="label">Agent name</span>
+                <span className="label">{copy.sheets.agentName}</span>
                 <input
                   className="input"
                   id={`agent-name-${agent.id}`}
@@ -167,7 +168,7 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
               </label>
 
               <label className="field" htmlFor={`agent-avatar-${agent.id}`}>
-                <span className="label">Avatar cue</span>
+                <span className="label">{copy.sheets.avatarCue}</span>
                 <input
                   className="input"
                   id={`agent-avatar-${agent.id}`}
@@ -178,13 +179,12 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
                   value={draftAvatarEmoji}
                 />
                 <span className="helper-copy">
-                  Use a short emoji or symbol to give this agent a lightweight
-                  identity inside chat.
+                  {copy.sheets.avatarCueHelper}
                 </span>
               </label>
 
               <label className="field" htmlFor={`agent-background-${agent.id}`}>
-                <span className="label">Background summary</span>
+                <span className="label">{copy.sheets.backgroundSummary}</span>
                 <textarea
                   className="input textarea"
                   id={`agent-background-${agent.id}`}
@@ -193,17 +193,16 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
                   onChange={(event) =>
                     setDraftBackgroundSummary(event.currentTarget.value)
                   }
-                  placeholder="A calm planning partner who helps turn goals into practical next steps."
+                  placeholder={copy.sheets.backgroundPlaceholder}
                   value={draftBackgroundSummary}
                 />
                 <span className="helper-copy">
-                  Keep this short. It helps the agent feel more like a character
-                  without turning the sidebar into a full studio.
+                  {copy.sheets.backgroundHelper}
                 </span>
               </label>
 
               <label className="field" htmlFor={`agent-persona-${agent.id}`}>
-                <span className="label">Persona summary</span>
+                <span className="label">{copy.sheets.personaSummary}</span>
                 <textarea
                   className="input textarea"
                   id={`agent-persona-${agent.id}`}
@@ -217,7 +216,7 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
               </label>
 
               <label className="field" htmlFor={`agent-model-profile-${agent.id}`}>
-                <span className="label">Model profile</span>
+                <span className="label">{copy.sheets.modelProfile}</span>
                 <select
                   className="input"
                   id={`agent-model-profile-${agent.id}`}
@@ -235,8 +234,7 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
                   ))}
                 </select>
                 <span className="helper-copy">
-                  Switching the model profile only affects future replies from
-                  this agent.
+                  {copy.sheets.profileHelper}
                 </span>
                 {selectedModelProfile ? (
                   <span className="helper-copy">
@@ -247,7 +245,7 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
               </label>
 
               <div className="sheet-pack-preview">
-                <p className="sheet-pack-name">System prompt summary</p>
+                <p className="sheet-pack-name">{copy.sheets.systemPromptSummary}</p>
                 <p className="thread-link-meta">
                   {agent.system_prompt_summary ||
                     "No system prompt summary is available yet."}
@@ -256,7 +254,7 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
 
               <div className="sheet-actions">
                 <button className="button" disabled={isPending} type="submit">
-                  {isPending ? "Saving..." : "Save changes"}
+                  {isPending ? copy.common.saving : copy.common.saveChanges}
                 </button>
                 <button
                   className="button button-secondary"
@@ -264,7 +262,7 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
                   onClick={closeSheet}
                   type="button"
                 >
-                  Cancel
+                  {copy.common.cancel}
                 </button>
               </div>
             </form>

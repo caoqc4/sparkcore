@@ -6,6 +6,7 @@ import {
   createAgentFromPersonaPack,
   type CreateAgentResult
 } from "@/app/chat/actions";
+import { getChatCopy, type ChatLocale } from "@/lib/i18n/chat-ui";
 
 type PersonaPackOption = {
   id: string;
@@ -17,14 +18,16 @@ type PersonaPackOption = {
 
 type CreateAgentSheetProps = {
   personaPacks: PersonaPackOption[];
+  locale: ChatLocale;
 };
 
 function buildDefaultAgentName(personaPack: PersonaPackOption | null) {
   return personaPack?.name ?? "";
 }
 
-export function CreateAgentSheet({ personaPacks }: CreateAgentSheetProps) {
+export function CreateAgentSheet({ personaPacks, locale }: CreateAgentSheetProps) {
   const router = useRouter();
+  const copy = getChatCopy(locale);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPersonaPackId, setSelectedPersonaPackId] = useState(
     personaPacks[0]?.id ?? ""
@@ -86,7 +89,7 @@ export function CreateAgentSheet({ personaPacks }: CreateAgentSheetProps) {
 
       setFeedback({
         tone: "success",
-        message: `${result.agentName} is ready for new threads.`
+        message: `${result.agentName}${copy.sheets.createAgentSuccessSuffix}`
       });
       setIsOpen(false);
       router.refresh();
@@ -95,9 +98,8 @@ export function CreateAgentSheet({ personaPacks }: CreateAgentSheetProps) {
 
   if (personaPacks.length === 0) {
     return (
-      <div className="notice notice-error">
-        No active persona pack is available right now, so chat cannot create a
-        new agent yet.
+        <div className="notice notice-error">
+        {copy.sheets.noPersonaPack}
       </div>
     );
   }
@@ -115,7 +117,7 @@ export function CreateAgentSheet({ personaPacks }: CreateAgentSheetProps) {
       ) : null}
 
       <button className="button button-secondary" onClick={() => setIsOpen(true)} type="button">
-        Create agent
+        {copy.sheets.createAgent}
       </button>
 
       {isOpen ? (
@@ -133,31 +135,29 @@ export function CreateAgentSheet({ personaPacks }: CreateAgentSheetProps) {
           >
             <div className="sheet-header">
               <div>
-                <p className="eyebrow">Create agent</p>
+                <p className="eyebrow">{copy.sheets.createAgentEyebrow}</p>
                 <h3 className="sheet-title" id="create-agent-title">
-                  Start from a persona pack
+                  {copy.sheets.createAgentTitle}
                 </h3>
               </div>
               <button
-                aria-label="Close create agent sheet"
+                aria-label={copy.common.close}
                 className="sheet-close"
                 disabled={isPending}
                 onClick={closeSheet}
                 type="button"
               >
-                Close
+                {copy.common.close}
               </button>
             </div>
 
             <p className="helper-copy">
-              Create a new agent inside the current chat workspace, keep the
-              starting persona lightweight, and make it immediately available for
-              new threads.
+              {copy.sheets.createAgentHelper}
             </p>
 
             <form action={handleSubmit} className="sheet-form">
               <label className="field" htmlFor="persona-pack-id">
-                <span className="label">Persona pack</span>
+                <span className="label">{copy.sheets.personaPack}</span>
                 <select
                   className="input"
                   id="persona-pack-id"
@@ -186,21 +186,21 @@ export function CreateAgentSheet({ personaPacks }: CreateAgentSheetProps) {
               ) : null}
 
               <label className="field" htmlFor="agent-name">
-                <span className="label">Agent name</span>
+                <span className="label">{copy.sheets.agentName}</span>
                 <input
                   className="input"
                   id="agent-name"
                   maxLength={80}
                   name="agent_name"
                   onChange={(event) => setAgentName(event.currentTarget.value)}
-                  placeholder="Leave as the persona name or rename it here"
+                  placeholder={copy.sheets.agentNamePlaceholder}
                   value={agentName}
                 />
               </label>
 
               <div className="sheet-actions">
                 <button className="button" disabled={isPending} type="submit">
-                  {isPending ? "Creating..." : "Create agent"}
+                  {isPending ? copy.sheets.createPending : copy.sheets.createAgent}
                 </button>
                 <button
                   className="button button-secondary"
@@ -208,7 +208,7 @@ export function CreateAgentSheet({ personaPacks }: CreateAgentSheetProps) {
                   onClick={closeSheet}
                   type="button"
                 >
-                  Cancel
+                  {copy.common.cancel}
                 </button>
               </div>
             </form>

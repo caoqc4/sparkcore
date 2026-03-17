@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { signOut } from "@/app/login/actions";
@@ -8,31 +9,38 @@ import {
   hideMemory,
   markMemoryIncorrect,
   restoreMemory,
+  setChatUiLanguage,
   setDefaultAgent
 } from "@/app/chat/actions";
 import { CreateAgentSheet } from "@/app/chat/create-agent-sheet";
 import { AgentEditSheet } from "@/app/chat/agent-edit-sheet";
+import { LanguageSwitch } from "@/app/chat/language-switch";
 import { ThreadUrlSync } from "@/app/chat/thread-url-sync";
 import { getChatPageState } from "@/lib/chat/runtime";
+import {
+  CHAT_UI_LANGUAGE_COOKIE,
+  getChatCopy,
+  resolveChatLocale
+} from "@/lib/i18n/chat-ui";
 
 function getMemoryConfidenceView(confidence: number) {
   if (confidence >= 0.9) {
     return {
       tone: "strong",
-      label: "High confidence"
+      labelKey: "highConfidence"
     } as const;
   }
 
   if (confidence >= 0.8) {
     return {
       tone: "medium",
-      label: "Moderate confidence"
+      labelKey: "mediumConfidence"
     } as const;
   }
 
   return {
     tone: "low",
-    label: "Low confidence"
+    labelKey: "lowConfidence"
   } as const;
 }
 
@@ -49,34 +57,38 @@ function isMemoryIncorrect(metadata: Record<string, unknown> | undefined) {
 
 function getMemoryTrustHint({
   confidence,
-  metadata
+  metadata,
+  locale
 }: {
   confidence: number;
   metadata: Record<string, unknown> | undefined;
+  locale: "en" | "zh-CN";
 }) {
+  const memoryCopy = getChatCopy(locale).memory;
+
   if (hasMetadataFlag(metadata, "restored_at")) {
-    return "Restored memory. It is visible again and can be used in recall.";
+    return memoryCopy.restoredHint;
   }
 
   if (confidence >= 0.9) {
-    return "Strong signal from a clear, stable user statement.";
+    return memoryCopy.highHint;
   }
 
   if (confidence >= 0.8) {
-    return "Useful signal, but shown with slightly lighter emphasis.";
+    return memoryCopy.mediumHint;
   }
 
-  return "Lower-confidence memory. It stays readable, but is visually softened.";
+  return memoryCopy.lowHint;
 }
 
-function formatThreadUpdatedAt(dateString: string) {
+function formatThreadUpdatedAt(dateString: string, locale: string) {
   const timestamp = new Date(dateString).getTime();
   const now = Date.now();
   const diffMs = timestamp - now;
   const diffMinutes = Math.round(diffMs / (1000 * 60));
   const diffHours = Math.round(diffMs / (1000 * 60 * 60));
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-  const relativeFormatter = new Intl.RelativeTimeFormat("en", {
+  const relativeFormatter = new Intl.RelativeTimeFormat(locale, {
     numeric: "auto"
   });
 
@@ -92,7 +104,7 @@ function formatThreadUpdatedAt(dateString: string) {
     return relativeFormatter.format(diffDays, "day");
   }
 
-  return new Date(dateString).toLocaleDateString();
+  return new Date(dateString).toLocaleDateString(locale);
 }
 
 function ChatStateCard({
@@ -139,6 +151,11 @@ export default async function ChatPage({
   }>;
 }) {
   const params = (await searchParams) ?? {};
+  const cookieStore = await cookies();
+  const locale = resolveChatLocale(
+    cookieStore.get(CHAT_UI_LANGUAGE_COOKIE)?.value
+  );
+  const copy = getChatCopy(locale);
   let chatState;
 
   try {
@@ -149,20 +166,20 @@ export default async function ChatPage({
     const fetchFailedMessage =
       error instanceof Error
         ? error.message
-        : "Chat data could not be loaded right now.";
+        : copy.states.fetchFailedTitle;
 
     return (
       <main className="shell">
         <div className="app-shell">
           <div className="topbar">
             <div>
-              <p className="eyebrow">Chat</p>
-              <h1 className="title">Chat workspace is unavailable</h1>
+              <p className="eyebrow">{copy.page.eyebrow}</p>
+              <h1 className="title">{copy.page.titleUnavailable}</h1>
             </div>
 
             <div className="toolbar">
               <Link className="button button-secondary" href="/workspace">
-                Workspace
+                {copy.common.workspace}
               </Link>
             </div>
           </div>
@@ -171,20 +188,20 @@ export default async function ChatPage({
             actions={
               <>
                 <Link className="button" href="/chat" prefetch={false}>
-                  Retry chat
+                  {copy.states.retryChat}
                 </Link>
                 <Link className="button button-secondary" href="/workspace">
-                  Back to workspace
+                  {copy.states.backToWorkspace}
                 </Link>
               </>
             }
-            description="This is a chat data load failure, not an empty workspace. Refresh to retry the current chat view."
-            eyebrow="Fetch failed"
+            description={copy.states.fetchFailedDescription}
+            eyebrow={copy.states.fetchFailedEyebrow}
             notice={{
               tone: "error",
               message: fetchFailedMessage
             }}
-            title="Chat data could not be loaded"
+            title={copy.states.fetchFailedTitle}
           />
         </div>
       </main>
@@ -231,6 +248,9 @@ export default async function ChatPage({
           message: params.error
         }
       : null;
+  const redirectPath = params.thread
+    ? `/chat?thread=${encodeURIComponent(params.thread)}`
+    : "/chat";
 
   return (
     <main className="shell">
@@ -243,31 +263,34 @@ export default async function ChatPage({
 
         <div className="topbar">
           <div>
-            <p className="eyebrow">Chat</p>
-            <h1 className="title">Thread workspace is ready</h1>
+            <p className="eyebrow">{copy.page.eyebrow}</p>
+            <h1 className="title">{copy.page.titleReady}</h1>
           </div>
 
           <div className="toolbar">
+            <LanguageSwitch
+              action={setChatUiLanguage}
+              currentLocale={locale}
+              label={copy.languageSwitchLabel}
+              languages={copy.languages}
+              redirectPath={redirectPath}
+            />
             <Link className="button button-secondary" href="/workspace">
-              Workspace
+              {copy.common.workspace}
             </Link>
             <form action={signOut}>
               <FormSubmitButton
                 className="button button-secondary"
-                idleText="Sign out"
-                pendingText="Signing out..."
+                idleText={copy.common.signOut}
+                pendingText={copy.common.signingOut}
               />
             </form>
           </div>
         </div>
 
         <section className="hero">
-          <h2>Chat foundation for multi-thread work</h2>
-          <p>
-            Threads now resolve from the URL, the sidebar stays aligned with the
-            active conversation, and each thread keeps its own agent binding and
-            message history.
-          </p>
+          <h2>{copy.page.heroTitle}</h2>
+          <p>{copy.page.heroDescription}</p>
         </section>
 
         {pageFeedback ? (
@@ -279,17 +302,17 @@ export default async function ChatPage({
         <section className="chat-layout">
           <aside className="panel chat-sidebar">
             <div className="thread-sidebar-header">
-              <h2>Threads</h2>
-              <p className="helper-copy">Workspace: {workspace.name}</p>
-              <p className="section-hint">
-                Each thread keeps its own URL, bound agent, and message history.
+              <h2>{copy.sidebar.threadsTitle}</h2>
+              <p className="helper-copy">
+                {copy.sidebar.workspaceLabel}: {workspace.name}
               </p>
+              <p className="section-hint">{copy.sidebar.threadHint}</p>
             </div>
 
             {availableAgents.length > 0 ? (
               <form action={createThread} className="thread-create-form">
                 <label className="field" htmlFor="agent_id">
-                  <span className="label">Start a new chat</span>
+                  <span className="label">{copy.sidebar.startNewChat}</span>
                   <select
                     className="input"
                     defaultValue={defaultAgentId ?? availableAgents[0]?.id ?? ""}
@@ -307,33 +330,30 @@ export default async function ChatPage({
 
                 <p className="helper-copy">
                   {workspaceDefaultAgent
-                    ? `Workspace default agent: ${workspaceDefaultAgent.name}. This only preselects the agent for future new threads. It does not switch the agent already bound to the thread you are viewing.`
-                    : "No workspace default agent is set yet. Choose the active agent you want for the next thread. This choice does not change the current thread."}
+                    ? `${copy.sidebar.workspaceDefaultPrefix}${workspaceDefaultAgent.name}${copy.sidebar.workspaceDefaultSuffix}`
+                    : copy.sidebar.noWorkspaceDefault}
                 </p>
 
                 <FormSubmitButton
                   className="button"
-                  idleText="New chat"
-                  pendingText="Creating..."
+                  idleText={copy.sidebar.newChat}
+                  pendingText={copy.sidebar.creating}
                 />
               </form>
             ) : (
               <div className="empty-state section-empty-state">
-                <p className="lead chat-thread-title">No active agent available</p>
-                <p className="helper-copy">
-                  Add or restore an agent before creating a new thread. Once an
-                  active agent is available, it can be selected here.
-                </p>
+                <p className="lead chat-thread-title">{copy.states.noActiveAgentTitle}</p>
+                <p className="helper-copy">{copy.states.noActiveAgentDescription}</p>
               </div>
             )}
 
             {threads.length === 0 ? (
               <div className="empty-state">
-                <p className="lead chat-thread-title">No threads yet</p>
+                <p className="lead chat-thread-title">{copy.states.noThreadsTitle}</p>
                 <p className="helper-copy">
                   {availableAgents.length > 0
-                    ? "Choose an agent above to create the first thread. Once it exists, it will appear here and stay synced with the URL."
-                    : "Create or restore an agent first, then come back here to open the first thread."}
+                    ? copy.states.noThreadsWithAgent
+                    : copy.states.noThreadsWithoutAgent}
                 </p>
               </div>
             ) : (
@@ -351,14 +371,15 @@ export default async function ChatPage({
                     >
                       <p className="thread-link-title">{item.title}</p>
                       <p className="thread-link-meta">
-                        {item.agent_name ?? "Unassigned agent"}
+                        {item.agent_name ?? copy.sidebar.unassignedAgent}
                       </p>
                       <p className="thread-link-preview">
                         {item.latest_message_preview ??
-                          "No messages yet. Start the first turn in this thread."}
+                          copy.sidebar.noMessagesYet}
                       </p>
                       <p className="thread-link-meta">
-                        Updated {formatThreadUpdatedAt(item.updated_at)}
+                        {copy.sidebar.updatedPrefix}
+                        {formatThreadUpdatedAt(item.updated_at, locale)}
                       </p>
                     </Link>
                   );
@@ -369,28 +390,21 @@ export default async function ChatPage({
             <details className="sidebar-section" open>
               <summary className="sidebar-section-summary">
                 <div className="agent-panel-header">
-                  <h3>Agents</h3>
-                  <p className="helper-copy">
-                    Visible here so new threads can bind to a known agent without
-                    opening a separate management screen.
-                  </p>
-                  <p className="section-hint">
-                    Create or adjust agents here, then use them when starting the
-                    next thread.
-                  </p>
+                  <h3>{copy.sidebar.agentsTitle}</h3>
+                  <p className="helper-copy">{copy.sidebar.agentsHelper}</p>
+                  <p className="section-hint">{copy.sidebar.agentsHint}</p>
                 </div>
               </summary>
 
               <div className="sidebar-section-body agent-panel">
-                <CreateAgentSheet personaPacks={availablePersonaPacks} />
+                <CreateAgentSheet
+                  locale={locale}
+                  personaPacks={availablePersonaPacks}
+                />
 
                 {availableAgents.length === 0 ? (
                   <div className="empty-state section-empty-state">
-                    <p className="helper-copy">
-                      No active agent is available yet. Create one from a persona
-                      pack here, then it will appear with its model profile and
-                      become selectable for new threads.
-                    </p>
+                    <p className="helper-copy">{copy.sidebar.noAgentDescription}</p>
                   </div>
                 ) : (
                   <div className="agent-list">
@@ -411,41 +425,49 @@ export default async function ChatPage({
                             </div>
                             <div className="agent-card-badges">
                               {availableAgent.is_default_for_workspace ? (
-                                <span className="thread-badge">Workspace default</span>
+                                <span className="thread-badge">
+                                  {copy.sidebar.workspaceDefaultBadge}
+                                </span>
                               ) : null}
                               {isCurrent ? (
-                                <span className="thread-badge">This thread</span>
+                                <span className="thread-badge">
+                                  {copy.sidebar.thisThreadBadge}
+                                </span>
                               ) : null}
                             </div>
                           </div>
                           <p className="thread-link-meta">
-                            Persona pack:{" "}
+                            {copy.sidebar.personaPackPrefix}
                             {availableAgent.source_persona_pack_name ??
-                              (availableAgent.is_custom ? "Custom" : "System preset")}
+                              (availableAgent.is_custom
+                                ? copy.sidebar.customPreset
+                                : copy.sidebar.systemPreset)}
                           </p>
                           <p className="thread-link-meta">
-                            Persona:{" "}
+                            {copy.sidebar.personaPrefix}
                             {availableAgent.persona_summary ||
-                              "No persona summary is available yet."}
+                              copy.sidebar.noPersonaSummary}
                           </p>
                           {availableAgent.background_summary ? (
                             <p className="agent-background-copy">
-                              Background: {availableAgent.background_summary}
+                              {copy.sidebar.backgroundPrefix}
+                              {availableAgent.background_summary}
                             </p>
                           ) : null}
                           <p className="thread-link-meta">
-                            Model profile:{" "}
-                            {availableAgent.default_model_profile_name ?? "Unassigned"}
+                            {copy.sidebar.modelProfilePrefix}
+                            {availableAgent.default_model_profile_name ??
+                              copy.sidebar.modelProfileUnassigned}
                             {availableAgent.default_model_profile_tier_label
                               ? ` · ${availableAgent.default_model_profile_tier_label}`
                               : ""}
                           </p>
                           <p className="agent-impact-copy">
                             {isCurrent
-                              ? "This agent is bound to the current thread. It can reference long-term memory when relevant, and any edits here only affect future replies from this thread."
+                              ? copy.sidebar.currentAgentImpact
                               : availableAgent.is_default_for_workspace
-                                ? "This agent is the workspace default for future new threads. It does not replace the thread agent that is already replying here."
-                                : "This agent is available for future threads when you choose it, but it is not the one replying in the current thread right now."}
+                                ? copy.sidebar.defaultAgentImpact
+                                : copy.sidebar.availableAgentImpact}
                           </p>
                           <div className="agent-card-actions">
                             <form action={setDefaultAgent} className="agent-card-action">
@@ -463,10 +485,10 @@ export default async function ChatPage({
                                 className="button button-secondary agent-default-button"
                                 idleText={
                                   availableAgent.is_default_for_workspace
-                                    ? "Default agent"
-                                    : "Set as default"
+                                    ? copy.sidebar.workspaceDefaultBadge
+                                    : copy.sidebar.setAsDefault
                                 }
-                                pendingText="Saving..."
+                                pendingText={copy.common.saving}
                               />
                             </form>
 
@@ -483,6 +505,7 @@ export default async function ChatPage({
                                 default_model_profile_id:
                                   availableAgent.default_model_profile_id
                               }}
+                              locale={locale}
                               modelProfiles={availableModelProfiles}
                             />
                           </div>
@@ -497,48 +520,26 @@ export default async function ChatPage({
             <details className="sidebar-section sidebar-section-memory" open>
               <summary className="sidebar-section-summary">
                 <div className="agent-panel-header">
-                  <h3>Memory</h3>
-                  <p className="helper-copy">
-                    Recent profile and preference memories stay visible inside the
-                    chat workspace so users can understand what the system has
-                    retained.
-                  </p>
-                  <p className="section-hint">
-                    Use this panel to see what long-term memory is available,
-                    hidden, or marked incorrect.
-                  </p>
+                  <h3>{copy.memory.title}</h3>
+                  <p className="helper-copy">{copy.memory.helper}</p>
+                  <p className="section-hint">{copy.memory.hint}</p>
                 </div>
               </summary>
 
               <div className="sidebar-section-body agent-panel memory-panel">
                 <div className="memory-trust-note">
-                  <p className="helper-copy">
-                    Trust cues stay lightweight here: lower-confidence memories
-                    are softened visually, hidden memories stay out of recall
-                    until restored, and incorrect memories send a stronger
-                    correction signal.
-                  </p>
+                  <p className="helper-copy">{copy.memory.trustNote}</p>
                 </div>
 
                 <div className="memory-policy-note">
-                  <p className="helper-copy">
-                    SparkCore is more likely to remember clear, stable profile
-                    facts and preferences. It is less likely to keep one-off
-                    moods, temporary plans, or vague guesses as long-term
-                    memory.
-                  </p>
-                  <p className="helper-copy">
-                    Hidden memory stays out of recall until restored. Lower-confidence
-                    memory can still appear, but it is shown with lighter emphasis.
-                  </p>
+                  <p className="helper-copy">{copy.memory.policyTitle1}</p>
+                  <p className="helper-copy">{copy.memory.policyTitle2}</p>
+                  <p className="helper-copy">{copy.memory.policyHint}</p>
                 </div>
 
                 {visibleMemories.length === 0 ? (
                   <div className="empty-state section-empty-state">
-                    <p className="helper-copy">
-                      No long-term memory has been written yet. Once a clear
-                      profile or preference is extracted, it will appear here.
-                    </p>
+                    <p className="helper-copy">{copy.memory.empty}</p>
                   </div>
                 ) : (
                   <div className="memory-list">
@@ -546,7 +547,8 @@ export default async function ChatPage({
                       const confidenceView = getMemoryConfidenceView(memory.confidence);
                       const trustHint = getMemoryTrustHint({
                         confidence: memory.confidence,
-                        metadata: memory.metadata
+                        metadata: memory.metadata,
+                        locale
                       });
                       const isRestored = hasMetadataFlag(
                         memory.metadata,
@@ -563,35 +565,37 @@ export default async function ChatPage({
                               <span className="thread-badge">{memory.memory_type}</span>
                               {isRestored ? (
                                 <span className="thread-badge thread-badge-muted">
-                                  Restored
+                                  {copy.memory.restoredBadge}
                                 </span>
                               ) : null}
                             </div>
                             <span
                               className={`memory-confidence memory-confidence-${confidenceView.tone}`}
                             >
-                              {confidenceView.label} · {memory.confidence.toFixed(2)}
+                              {copy.memory[confidenceView.labelKey]} ·{" "}
+                              {memory.confidence.toFixed(2)}
                             </span>
                           </div>
                           <p className="memory-content">{memory.content}</p>
                           <p className="memory-trust-copy">{trustHint}</p>
                           <p className="thread-link-meta">
-                            Stored {new Date(memory.created_at).toLocaleString()}
+                            {copy.memory.storedPrefix}
+                            {new Date(memory.created_at).toLocaleString(locale)}
                           </p>
                           <div className="memory-trace">
                             <p className="memory-trace-copy">
                               {memory.source_thread_id ? (
                                 <>
-                                  From{" "}
+                                  {copy.memory.traceFromPrefix}
                                   <span className="memory-trace-emphasis">
-                                    {memory.source_thread_title ?? "Untitled thread"}
+                                    {memory.source_thread_title ?? copy.states.noThreadsTitle}
                                   </span>
                                   {memory.source_timestamp
-                                    ? ` · ${new Date(memory.source_timestamp).toLocaleString()}`
+                                    ? ` · ${new Date(memory.source_timestamp).toLocaleString(locale)}`
                                     : ""}
                                 </>
                               ) : (
-                                "Source trace is unavailable for this memory."
+                                copy.memory.traceUnavailable
                               )}
                             </p>
                             {memory.source_thread_id ? (
@@ -600,7 +604,7 @@ export default async function ChatPage({
                                 href={`/chat?thread=${memory.source_thread_id}`}
                                 prefetch={false}
                               >
-                                View context
+                                {copy.memory.viewContext}
                               </Link>
                             ) : null}
                           </div>
@@ -613,8 +617,8 @@ export default async function ChatPage({
                             />
                             <FormSubmitButton
                               className="button button-secondary memory-hide-button"
-                              idleText="Hide"
-                              pendingText="Hiding..."
+                              idleText={copy.memory.hide}
+                              pendingText={copy.memory.hiding}
                             />
                           </form>
                           {!isMemoryIncorrect(memory.metadata) ? (
@@ -630,8 +634,8 @@ export default async function ChatPage({
                               />
                               <FormSubmitButton
                                 className="button button-secondary memory-hide-button"
-                                idleText="Incorrect"
-                                pendingText="Saving..."
+                                idleText={copy.memory.incorrect}
+                                pendingText={copy.common.saving}
                               />
                             </form>
                           ) : null}
@@ -644,7 +648,7 @@ export default async function ChatPage({
                 {hiddenMemories.length > 0 ? (
                   <details className="memory-hidden-shell">
                     <summary className="memory-hidden-summary">
-                      Hidden memories ({hiddenMemories.length})
+                      {copy.memory.hiddenTitle} ({hiddenMemories.length})
                     </summary>
 
                     <div className="memory-list memory-list-hidden">
@@ -653,20 +657,16 @@ export default async function ChatPage({
                           <div className="memory-card-row">
                             <span className="thread-badge">{memory.memory_type}</span>
                             <span className="memory-confidence memory-confidence-low">
-                              Hidden
+                              {copy.memory.hiddenStatus}
                             </span>
                           </div>
                           <p className="memory-content">{memory.content}</p>
-                          <p className="memory-trust-copy">
-                            Hidden memories stay out of recall until you restore
-                            them. Use this when you do not want to see a memory
-                            right now, but are not marking it as wrong.
-                          </p>
+                          <p className="memory-trust-copy">{copy.memory.hiddenHint}</p>
                           <p className="thread-link-meta">
-                            Hidden from{" "}
-                            {memory.source_thread_title ?? "an older thread"}
+                            {copy.memory.hiddenFromPrefix}
+                            {memory.source_thread_title ?? copy.states.noThreadsTitle}
                             {memory.source_timestamp
-                              ? ` · ${new Date(memory.source_timestamp).toLocaleString()}`
+                              ? ` · ${new Date(memory.source_timestamp).toLocaleString(locale)}`
                               : ""}
                           </p>
                           <form
@@ -681,8 +681,8 @@ export default async function ChatPage({
                             />
                             <FormSubmitButton
                               className="button button-secondary memory-hide-button"
-                              idleText="Restore"
-                              pendingText="Restoring..."
+                              idleText={copy.memory.restore}
+                              pendingText={copy.memory.restoring}
                             />
                           </form>
                         </article>
@@ -694,7 +694,7 @@ export default async function ChatPage({
                 {incorrectMemories.length > 0 ? (
                   <details className="memory-hidden-shell">
                     <summary className="memory-hidden-summary">
-                      Incorrect memories ({incorrectMemories.length})
+                      {copy.memory.incorrectTitle} ({incorrectMemories.length})
                     </summary>
 
                     <div className="memory-list memory-list-hidden">
@@ -704,23 +704,20 @@ export default async function ChatPage({
                             <div className="memory-badges">
                               <span className="thread-badge">{memory.memory_type}</span>
                               <span className="thread-badge thread-badge-muted">
-                                Incorrect
+                                {copy.memory.incorrectBadge}
                               </span>
                             </div>
                             <span className="memory-confidence memory-confidence-low">
-                              Removed from recall
+                              {copy.memory.removedFromRecall}
                             </span>
                           </div>
                           <p className="memory-content">{memory.content}</p>
-                          <p className="memory-trust-copy">
-                            Marked incorrect. This is stronger than hide and keeps
-                            the memory out of recall until you restore it.
-                          </p>
+                          <p className="memory-trust-copy">{copy.memory.incorrectHint}</p>
                           <p className="thread-link-meta">
-                            Flagged from{" "}
-                            {memory.source_thread_title ?? "an older thread"}
+                            {copy.memory.incorrectFromPrefix}
+                            {memory.source_thread_title ?? copy.states.noThreadsTitle}
                             {memory.source_timestamp
-                              ? ` · ${new Date(memory.source_timestamp).toLocaleString()}`
+                              ? ` · ${new Date(memory.source_timestamp).toLocaleString(locale)}`
                               : ""}
                           </p>
                           <form
@@ -735,8 +732,8 @@ export default async function ChatPage({
                             />
                             <FormSubmitButton
                               className="button button-secondary memory-hide-button"
-                              idleText="Restore"
-                              pendingText="Restoring..."
+                              idleText={copy.memory.restore}
+                              pendingText={copy.memory.restoring}
                             />
                           </form>
                         </article>
@@ -751,8 +748,7 @@ export default async function ChatPage({
           <section className="panel chat-panel">
             {requestedThreadFallback ? (
               <div className="notice notice-warning chat-inline-notice">
-                The requested thread is unavailable in your current workspace, so
-                the latest accessible thread is shown instead.
+                {copy.states.requestedThreadFallback}
               </div>
             ) : null}
 
@@ -761,26 +757,30 @@ export default async function ChatPage({
                 actions={
                   availableAgents.length > 0 ? (
                     <Link className="button" href="/chat" prefetch={false}>
-                      Refresh thread view
+                      {copy.states.retryChat}
                     </Link>
                   ) : (
                     <Link className="button button-secondary" href="/workspace">
-                      Back to workspace
+                      {copy.states.backToWorkspace}
                     </Link>
                   )
                 }
                 description={
                   requestedThreadFallback
-                    ? "The thread in the URL is no longer available in this user scope. If another accessible thread exists, it will appear in the sidebar."
+                    ? copy.states.threadUnavailableDescription
                     : availableAgents.length > 0
-                      ? "Create a thread from the sidebar to bind it to one agent and open the conversation here."
-                      : "There is no active thread yet, and this workspace also needs an active agent before chat can start."
+                      ? copy.states.noActiveThreadWithAgent
+                      : copy.states.noActiveThreadWithoutAgent
                 }
-                eyebrow={requestedThreadFallback ? "Thread unavailable" : "Empty state"}
+                eyebrow={
+                  requestedThreadFallback
+                    ? copy.states.threadUnavailableEyebrow
+                    : copy.states.emptyStateEyebrow
+                }
                 title={
                   requestedThreadFallback
-                    ? "This thread is not available"
-                    : "No active thread yet"
+                    ? copy.states.threadUnavailableTitle
+                    : copy.states.noActiveThreadTitle
                 }
               />
             ) : (
@@ -789,6 +789,7 @@ export default async function ChatPage({
                 workspaceDefaultAgentName={workspaceDefaultAgent?.name ?? null}
                 initialMessages={messages}
                 key={thread.id}
+                locale={locale}
                 thread={thread}
               />
             )}

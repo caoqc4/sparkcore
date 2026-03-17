@@ -10,6 +10,7 @@ import {
   type RetryAssistantReplyResult,
   type SendMessageResult
 } from "@/app/chat/actions";
+import { getChatCopy, type ChatLocale } from "@/lib/i18n/chat-ui";
 
 type ChatMessage = {
   id: string;
@@ -30,6 +31,7 @@ type ChatThreadViewProps = {
   agentName: string | null;
   workspaceDefaultAgentName: string | null;
   initialMessages: ChatMessage[];
+  locale: ChatLocale;
 };
 
 type RuntimeSummary = {
@@ -40,10 +42,15 @@ type RuntimeSummary = {
   outcomeHints: string[];
 };
 
-function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
+function getRuntimeSummary(
+  message: ChatMessage,
+  locale: ChatLocale
+): RuntimeSummary | null {
   if (message.role !== "assistant" || message.status !== "completed") {
     return null;
   }
+
+  const isZh = locale === "zh-CN";
 
   const agentName =
     typeof message.metadata?.agent_name === "string" &&
@@ -73,9 +80,15 @@ function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
       ? null
       : memoryUsed
         ? typeof memoryHitCount === "number"
-          ? `${memoryHitCount} memory hit${memoryHitCount === 1 ? "" : "s"}`
-          : "Yes"
-        : "No";
+          ? isZh
+            ? `命中 ${memoryHitCount} 条记忆`
+            : `${memoryHitCount} memory hit${memoryHitCount === 1 ? "" : "s"}`
+          : isZh
+            ? "是"
+            : "Yes"
+        : isZh
+          ? "否"
+          : "No";
   const memoryTypesUsed = Array.isArray(message.metadata?.memory_types_used)
     ? message.metadata.memory_types_used.filter(
         (type): type is "profile" | "preference" =>
@@ -107,32 +120,48 @@ function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
       : 0;
   const memoryActivityLabel =
     newMemoryCount > 0
-      ? `Saved new ${
-          memoryWriteTypes.length > 0 ? memoryWriteTypes.join(" + ") : "memory"
-        }`
-      : updatedMemoryCount > 0
-        ? `Updated ${
+      ? isZh
+        ? `新增了${memoryWriteTypes.length > 0 ? ` ${memoryWriteTypes.join(" + ")}` : ""}记忆`
+        : `Saved new ${
             memoryWriteTypes.length > 0 ? memoryWriteTypes.join(" + ") : "memory"
           }`
-        : "No new memory saved";
+      : updatedMemoryCount > 0
+        ? isZh
+          ? `更新了${memoryWriteTypes.length > 0 ? ` ${memoryWriteTypes.join(" + ")}` : ""}记忆`
+          : `Updated ${
+              memoryWriteTypes.length > 0 ? memoryWriteTypes.join(" + ") : "memory"
+            }`
+        : isZh
+          ? "本轮没有新增记忆"
+          : "No new memory saved";
 
   if (memoryTypesUsed.length > 0) {
     outcomeHints.push(
-      `This turn used ${memoryTypesUsed.join(" + ")} memory.`
+      isZh
+        ? `本轮使用了 ${memoryTypesUsed.join(" + ")} 记忆。`
+        : `This turn used ${memoryTypesUsed.join(" + ")} memory.`
     );
   } else if (memoryUsed === false) {
-    outcomeHints.push("No long-term memory was used for this reply.");
+    outcomeHints.push(
+      isZh
+        ? "这条回复没有使用长期记忆。"
+        : "No long-term memory was used for this reply."
+    );
   }
 
   if (hiddenExclusionCount > 0) {
     outcomeHints.push(
-      `${hiddenExclusionCount} hidden memor${hiddenExclusionCount === 1 ? "y was" : "ies were"} kept out of recall.`
+      isZh
+        ? `${hiddenExclusionCount} 条已隐藏记忆被排除在 recall 之外。`
+        : `${hiddenExclusionCount} hidden memor${hiddenExclusionCount === 1 ? "y was" : "ies were"} kept out of recall.`
     );
   }
 
   if (incorrectExclusionCount > 0) {
     outcomeHints.push(
-      `${incorrectExclusionCount} incorrect memor${incorrectExclusionCount === 1 ? "y was" : "ies were"} kept out of recall.`
+      isZh
+        ? `${incorrectExclusionCount} 条已标错记忆被排除在 recall 之外。`
+        : `${incorrectExclusionCount} incorrect memor${incorrectExclusionCount === 1 ? "y was" : "ies were"} kept out of recall.`
     );
   }
 
@@ -155,29 +184,44 @@ function getRuntimeSummary(message: ChatMessage): RuntimeSummary | null {
   };
 }
 
-function getRuntimeSummaryHeadline(summary: RuntimeSummary) {
+function getRuntimeSummaryHeadline(
+  summary: RuntimeSummary,
+  locale: ChatLocale
+) {
+  const copy = getChatCopy(locale);
+
   if (summary.agentName && summary.memoryLabel && summary.memoryLabel !== "No") {
-    return "This reply came from the current thread agent with long-term memory support.";
+    return copy.locale === "zh-CN"
+      ? "这条回复来自当前线程绑定的 agent，并参考了长期记忆支持。"
+      : "This reply came from the current thread agent with long-term memory support.";
   }
 
   if (summary.agentName) {
-    return "This reply came from the current thread agent.";
+    return copy.locale === "zh-CN"
+      ? "这条回复来自当前线程绑定的 agent。"
+      : "This reply came from the current thread agent.";
   }
 
   if (summary.memoryLabel && summary.memoryLabel !== "No") {
-    return "This reply used stored memory context.";
+    return copy.locale === "zh-CN"
+      ? "这条回复使用了已存储的记忆上下文。"
+      : "This reply used stored memory context.";
   }
 
-  return "This reply used the current chat setup.";
+  return copy.locale === "zh-CN"
+    ? "这条回复使用了当前聊天配置。"
+    : "This reply used the current chat setup.";
 }
 
 export function ChatThreadView({
   thread,
   agentName,
   workspaceDefaultAgentName,
-  initialMessages
+  initialMessages,
+  locale
 }: ChatThreadViewProps) {
   const router = useRouter();
+  const copy = getChatCopy(locale);
   const formRef = useRef<HTMLFormElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
   const [feedback, setFeedback] = useState<{
@@ -204,17 +248,13 @@ export function ChatThreadView({
 
   const isComposerDisabled = isSending || isRetryPending || isRenamePending;
   const isFirstTurn = optimisticMessages.length === 0;
-  const threadAgentSummary = agentName ?? "Unassigned";
+  const threadAgentSummary = agentName ?? copy.sidebar.unassignedAgent;
   const defaultAgentCopy = workspaceDefaultAgentName
     ? workspaceDefaultAgentName === agentName
-      ? "This thread is using the workspace default agent. Future replies in this thread come from the same agent unless you start a different thread."
-      : `Workspace default agent: ${workspaceDefaultAgentName}. It only affects future new threads, not the agent already bound to this thread.`
-    : "No workspace default agent is set. This thread still keeps its own bound agent.";
-  const firstTurnExamples = [
-    "Help me plan my top three priorities for this week.",
-    "Ask me a few questions so we can decide the best planning style for me.",
-    "Let's turn my current goals into a simple weekly plan."
-  ];
+      ? copy.thread.defaultSameAgent
+      : `${copy.thread.defaultDifferentAgentPrefix}${workspaceDefaultAgentName}${copy.thread.defaultDifferentAgentSuffix}`
+    : copy.thread.noWorkspaceDefault;
+  const firstTurnExamples = copy.thread.firstTurnExamples;
 
   const visibleMessages = useMemo(() => {
     if (!isSending && !retryingMessageId) {
@@ -361,7 +401,7 @@ export function ChatThreadView({
 
       setFeedback({
         tone: "success",
-        message: "Thread title updated."
+        message: copy.thread.saveThreadNameSuccess
       });
       setThreadTitle(result.title);
       setDraftTitle(result.title);
@@ -395,7 +435,7 @@ export function ChatThreadView({
               />
               <div className="thread-rename-actions">
                 <button className="button" disabled={isRenamePending} type="submit">
-                  {isRenamePending ? "Saving..." : "Save changes"}
+                  {isRenamePending ? copy.common.saving : copy.common.saveChanges}
                 </button>
                 <button
                   className="button button-secondary"
@@ -403,7 +443,7 @@ export function ChatThreadView({
                   onClick={handleRenameCancel}
                   type="button"
                 >
-                  Cancel
+                  {copy.common.cancel}
                 </button>
               </div>
             </form>
@@ -420,29 +460,24 @@ export function ChatThreadView({
                   }}
                   type="button"
                 >
-                  Rename
+                  {copy.thread.rename}
                 </button>
               </div>
               <div className="thread-detail-meta">
                 <p className="helper-copy">
-                  Thread agent: {threadAgentSummary} · Updated{" "}
+                  {copy.thread.threadAgentPrefix}
+                  {threadAgentSummary} · Updated{" "}
                   {new Date(thread.updated_at).toLocaleString()}
                 </p>
                 <p className="helper-copy">
-                  Current thread view first: the bound thread agent controls later
-                  replies here, while the workspace default agent is only a
-                  fallback for future new threads.
+                  {copy.thread.currentThreadViewFirst}
                 </p>
                 <p className="helper-copy">
-                  When this agent replies, it can reference relevant long-term
-                  memory for this thread. If you switch the agent later, that only
-                  affects future replies and does not rewrite older turns.
+                  {copy.thread.memoryHint}
                 </p>
                 <p className="helper-copy">{defaultAgentCopy}</p>
                 <p className="section-hint">
-                  Look for the lightweight summary under assistant replies when
-                  you want to understand which agent, model profile, and memory
-                  context were used for that turn.
+                  {copy.thread.runtimeHint}
                 </p>
               </div>
             </>
@@ -450,10 +485,11 @@ export function ChatThreadView({
         </div>
 
         <div className="thread-detail-badges">
-          <span className="thread-badge">{thread.status}</span>
           <span className="thread-badge">
-            {optimisticMessages.length} message
-            {optimisticMessages.length === 1 ? "" : "s"}
+            {thread.status === "active" ? copy.thread.statusActive : thread.status}
+          </span>
+          <span className="thread-badge">
+            {optimisticMessages.length} {copy.thread.messagesSuffix}
           </span>
         </div>
       </div>
@@ -461,17 +497,10 @@ export function ChatThreadView({
       <div className="message-list" data-thread-id={thread.id}>
         {visibleMessages.length === 0 ? (
           <div className="message message-assistant">
-            <p className="message-role">Assistant</p>
+            <p className="message-role">{copy.thread.assistantLabel}</p>
             <div className="first-turn-state">
-              <p className="message-content">
-                This thread is ready for its first turn. Start with a goal, a
-                planning problem, or a short description of what you want help
-                with.
-              </p>
-              <p className="helper-copy">
-                Keep it lightweight: one clear request is enough to get the
-                conversation moving.
-              </p>
+              <p className="message-content">{copy.thread.firstTurnLead}</p>
+              <p className="helper-copy">{copy.thread.firstTurnHelper}</p>
               <div className="first-turn-examples" aria-label="First-turn examples">
                 {firstTurnExamples.map((example) => (
                   <button
@@ -505,20 +534,28 @@ export function ChatThreadView({
             const failedReason =
               typeof message.metadata?.error_message === "string"
                 ? message.metadata.error_message
-                : "Assistant reply failed. Retry this turn when ready.";
+                : locale === "zh-CN"
+                  ? "这条 assistant 回复失败了，你可以在准备好后重试本轮。"
+                  : "Assistant reply failed. Retry this turn when ready.";
             const failureLabel =
               errorType === "timeout"
-                ? "Reply timed out"
+                ? copy.thread.failureTimedOut
                 : errorType === "provider_error"
-                  ? "Provider error"
-                  : "Reply failed";
+                  ? copy.thread.failureProvider
+                  : copy.thread.failureGeneric;
             const failureHint =
               errorType === "timeout"
-                ? "The reply took too long. Retry this turn without resending the user message."
+                ? locale === "zh-CN"
+                  ? "这条回复耗时过长。直接重试本轮即可，不需要重新发送用户消息。"
+                  : "The reply took too long. Retry this turn without resending the user message."
                 : errorType === "provider_error"
-                  ? "The model provider returned an error. Retry when the provider is available again."
-                  : "Something interrupted generation. Retry this turn when ready.";
-            const runtimeSummary = getRuntimeSummary(message);
+                  ? locale === "zh-CN"
+                    ? "模型提供方返回了错误。等 provider 恢复后再重试。"
+                    : "The model provider returned an error. Retry when the provider is available again."
+                  : locale === "zh-CN"
+                    ? "生成过程被中断了。准备好后可以直接重试本轮。"
+                    : "Something interrupted generation. Retry this turn when ready.";
+            const runtimeSummary = getRuntimeSummary(message, locale);
 
             return (
               <article
@@ -530,7 +567,11 @@ export function ChatThreadView({
                 key={message.id}
               >
                 <p className="message-role">
-                  {isThinking ? "Assistant thinking" : message.role}
+                  {isThinking
+                    ? copy.thread.assistantThinking
+                    : message.role === "assistant"
+                      ? copy.thread.assistantLabel
+                      : message.role}
                 </p>
                 {isThinking ? (
                   <div className="thinking-dots" aria-label="Assistant is thinking">
@@ -553,7 +594,9 @@ export function ChatThreadView({
                       onClick={() => handleRetry(message.id)}
                       type="button"
                     >
-                      {retryingMessageId === message.id ? "Retrying..." : "Retry reply"}
+                      {retryingMessageId === message.id
+                        ? copy.thread.retrying
+                        : copy.thread.retryReply}
                     </button>
                   </div>
                 ) : (
@@ -562,10 +605,10 @@ export function ChatThreadView({
                     {runtimeSummary ? (
                       <details className="runtime-summary">
                         <summary className="runtime-summary-toggle">
-                          How this reply was generated
+                          {copy.thread.howGenerated}
                         </summary>
                         <p className="runtime-summary-headline">
-                          {getRuntimeSummaryHeadline(runtimeSummary)}
+                          {getRuntimeSummaryHeadline(runtimeSummary, locale)}
                         </p>
                         {runtimeSummary.outcomeHints.length > 0 ? (
                           <ul className="runtime-summary-outcomes">
@@ -577,33 +620,31 @@ export function ChatThreadView({
                         <dl className="runtime-summary-grid">
                           {runtimeSummary.agentName ? (
                             <>
-                              <dt>Agent used</dt>
+                              <dt>{copy.thread.agentUsed}</dt>
                               <dd>{runtimeSummary.agentName}</dd>
                             </>
                           ) : null}
                           {runtimeSummary.modelProfileName ? (
                             <>
-                              <dt>Model profile used</dt>
+                              <dt>{copy.thread.modelProfileUsed}</dt>
                               <dd>{runtimeSummary.modelProfileName}</dd>
                             </>
                           ) : null}
                           {runtimeSummary.memoryLabel ? (
                             <>
-                              <dt>Memory context</dt>
+                              <dt>{copy.thread.memoryContext}</dt>
                               <dd>{runtimeSummary.memoryLabel}</dd>
                             </>
                           ) : null}
                           {runtimeSummary.memoryActivityLabel ? (
                             <>
-                              <dt>Memory activity</dt>
+                              <dt>{copy.thread.memoryActivity}</dt>
                               <dd>{runtimeSummary.memoryActivityLabel}</dd>
                             </>
                           ) : null}
                         </dl>
                         <p className="runtime-summary-note">
-                          This summary belongs only to this assistant turn. It shows
-                          how the current thread agent handled this reply and does
-                          not rewrite older turns in the thread.
+                          {copy.thread.summaryNote}
                         </p>
                       </details>
                     ) : null}
@@ -618,7 +659,7 @@ export function ChatThreadView({
       <form action={handleSubmit} className="composer" ref={formRef}>
         <input name="thread_id" type="hidden" value={thread.id} />
         <label className="field" htmlFor={`content-${thread.id}`}>
-          <span className="label">Message</span>
+          <span className="label">{copy.thread.messageLabel}</span>
           <textarea
             className="input textarea"
             disabled={isComposerDisabled}
@@ -626,8 +667,8 @@ export function ChatThreadView({
             name="content"
             placeholder={
               isFirstTurn
-                ? "Start the thread with a goal, question, or planning problem..."
-                : "Send a message into the active thread..."
+                ? copy.thread.placeholderFirstTurn
+                : copy.thread.placeholderOngoing
             }
             ref={messageInputRef}
             required
@@ -638,11 +679,11 @@ export function ChatThreadView({
         <div className="composer-footer">
           <p className="helper-copy">
             {isFirstTurn
-              ? "This guidance only appears for an empty thread. Once the first message is sent, the conversation continues without extra onboarding."
-              : "This thread stays bound to one agent instance. Sending a message will keep feedback local to the active thread and avoid duplicate submits while pending."}
+              ? copy.thread.firstTurnFooter
+              : copy.thread.ongoingFooter}
           </p>
           <button className="button" disabled={isComposerDisabled} type="submit">
-            {isSending ? "Assistant thinking..." : "Send message"}
+            {isSending ? copy.thread.assistantThinking : copy.thread.sendMessage}
           </button>
         </div>
       </form>

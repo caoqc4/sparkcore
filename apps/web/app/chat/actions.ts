@@ -1,11 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { generateAgentReply, getDefaultModelProfile } from "@/lib/chat/runtime";
 import { extractAndStoreMemories } from "@/lib/chat/memory";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
+import {
+  CHAT_UI_LANGUAGE_COOKIE,
+  resolveChatLocale
+} from "@/lib/i18n/chat-ui";
 
 export type SendMessageResult =
   | { ok: true; threadId: string }
@@ -142,6 +147,28 @@ function appendChatFeedback(
 
   const nextQuery = nextParams.toString();
   return nextQuery ? `${pathname}?${nextQuery}` : pathname;
+}
+
+export async function setChatUiLanguage(formData: FormData) {
+  const languageValue = formData.get("language");
+  const redirectPathValue = formData.get("redirect_path");
+  const nextLocale = resolveChatLocale(
+    typeof languageValue === "string" ? languageValue : undefined
+  );
+  const redirectPath =
+    typeof redirectPathValue === "string" && redirectPathValue.startsWith("/")
+      ? redirectPathValue
+      : "/chat";
+
+  const cookieStore = await cookies();
+  cookieStore.set(CHAT_UI_LANGUAGE_COOKIE, nextLocale, {
+    httpOnly: false,
+    path: "/",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 365
+  });
+
+  redirect(redirectPath);
 }
 
 export async function createAgentFromPersonaPack(
