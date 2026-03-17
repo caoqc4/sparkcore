@@ -503,13 +503,24 @@ function detectSmokeReplyLanguage(content: string): SmokeReplyLanguage {
 
 function buildSmokeAssistantReply({
   content,
-  modelProfileName
+  modelProfileName,
+  recalledMemories
 }: {
   content: string;
   modelProfileName: string;
+  recalledMemories: Array<{
+    memory_type: "profile" | "preference";
+    content: string;
+    confidence: number;
+  }>;
 }) {
   const normalized = content.toLowerCase();
   const replyLanguage = detectSmokeReplyLanguage(content);
+  const rememberedProfession = recalledMemories.find(
+    (memory) =>
+      memory.memory_type === "profile" &&
+      memory.content.toLowerCase().includes("product designer")
+  );
 
   if (normalized.includes("reply in one sentence with a quick hello")) {
     return replyLanguage === "zh-Hans"
@@ -524,6 +535,16 @@ function buildSmokeAssistantReply({
     return replyLanguage === "zh-Hans"
       ? "谢谢，我知道你是一名产品设计师，并且偏好简洁的每周规划方式。"
       : "Thanks. I understand that you work as a product designer and prefer concise weekly planning.";
+  }
+
+  if (normalized.includes("what profession do you remember")) {
+    if (!rememberedProfession) {
+      return replyLanguage === "zh-Hans" ? "我不知道。" : "I don't know.";
+    }
+
+    return replyLanguage === "zh-Hans"
+      ? "我记得你是一名产品设计师。"
+      : "I remember that you work as a product designer.";
   }
 
   if (
@@ -769,7 +790,8 @@ export async function createSmokeTurn({
 
   const assistantContent = buildSmokeAssistantReply({
     content: trimmedContent,
-    modelProfileName: modelProfile.name
+    modelProfileName: modelProfile.name,
+    recalledMemories
   });
 
   const { data: insertedAssistantMessage, error: insertedAssistantMessageError } =

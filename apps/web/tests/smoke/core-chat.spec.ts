@@ -87,6 +87,86 @@ test.describe("core chat smoke", () => {
     ).toBeVisible();
   });
 
+  test("grounds direct memory recall questions in remembered facts", async ({
+    page,
+    request
+  }) => {
+    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(seedThreadResponse.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await seedThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const seedTurnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "I am a product designer and I prefer concise weekly planning."
+      }
+    });
+
+    expect(seedTurnResponse.ok()).toBeTruthy();
+
+    const recallThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(recallThreadResponse.ok()).toBeTruthy();
+    const { threadId: recallThreadId } = (await recallThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${recallThreadId}`
+    );
+
+    const recallTurnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: recallThreadId,
+        content:
+          "What profession do you remember that I work in? If you do not know, say you do not know."
+      }
+    });
+
+    expect(recallTurnResponse.ok()).toBeTruthy();
+    await page.reload();
+
+    await expect(
+      page.getByText("I remember that you work as a product designer.").first()
+    ).toBeVisible({ timeout: 45_000 });
+
+    const latestSummaryHeading = page
+      .locator("summary")
+      .filter({ hasText: "How this reply was generated" })
+      .last();
+    await latestSummaryHeading.click();
+    await expect(page.getByText(/1 memory hit/)).toBeVisible({
+      timeout: 45_000
+    });
+  });
+
   test("covers memory correction controls and agent defaults/model profile changes", async ({
     page,
     request

@@ -147,24 +147,53 @@ function buildMessagePreview(content: string) {
 }
 
 function buildMemoryRecallPrompt(
+  latestUserMessage: string,
   recalledMemories: Array<{
     memory_type: "profile" | "preference";
     content: string;
     confidence: number;
   }>
 ) {
+  const normalizedUserMessage = latestUserMessage.toLowerCase();
+  const isDirectMemoryQuestion =
+    normalizedUserMessage.includes("what do you remember") ||
+    normalizedUserMessage.includes("what profession do you remember") ||
+    normalizedUserMessage.includes("what kind of weekly planning style would fit me best") ||
+    normalizedUserMessage.includes("if you do not know, say you do not know") ||
+    normalizedUserMessage.includes("如果你不知道") ||
+    normalizedUserMessage.includes("你记得") ||
+    normalizedUserMessage.includes("你还记得");
+
   if (recalledMemories.length === 0) {
-    return "";
+    if (!isDirectMemoryQuestion) {
+      return "";
+    }
+
+    return [
+      "Relevant long-term memory for this reply:",
+      "None.",
+      "The user is directly asking what you remember. No relevant long-term memory was recalled for this turn.",
+      "Do not invent specifics. If the user asks whether you remember something and no relevant long-term memory is available, say you do not know."
+    ].join("\n");
   }
 
-  return [
+  const sections = [
     "Relevant long-term memory for this reply:",
     ...recalledMemories.map(
       (memory, index) =>
         `${index + 1}. [${memory.memory_type}] ${memory.content} (confidence ${memory.confidence.toFixed(2)})`
     ),
     "Use these memories only when they are genuinely relevant to the current user message. Do not force them into the reply."
-  ].join("\n");
+  ];
+
+  if (isDirectMemoryQuestion) {
+    sections.push(
+      "The user is directly asking what you remember. If the answer is covered by the recalled memory above, answer with that remembered fact plainly.",
+      "Do not say that you have no prior knowledge, no previous conversation, or no memory when relevant long-term memory is listed above."
+    );
+  }
+
+  return sections.join("\n");
 }
 
 function detectReplyLanguageFromText(content: string): RuntimeReplyLanguage {
@@ -199,6 +228,7 @@ function getReplyLanguageInstruction(language: RuntimeReplyLanguage) {
 
 function buildAgentSystemPrompt(
   agent: AgentRecord,
+  latestUserMessage: string,
   recalledMemories: Array<{
     memory_type: "profile" | "preference";
     content: string;
@@ -212,7 +242,7 @@ function buildAgentSystemPrompt(
     agent.style_prompt ? `Style guidance: ${agent.style_prompt}` : "",
     getReplyLanguageInstruction(replyLanguage),
     agent.system_prompt,
-    buildMemoryRecallPrompt(recalledMemories)
+    buildMemoryRecallPrompt(latestUserMessage, recalledMemories)
   ].filter(Boolean);
 
   return sections.join("\n\n");
@@ -1055,7 +1085,12 @@ export async function generateAgentReply({
   const promptMessages = [
     {
       role: "system" as const,
-      content: buildAgentSystemPrompt(agent, recalledMemories, replyLanguage)
+      content: buildAgentSystemPrompt(
+        agent,
+        latestUserMessage?.content ?? "",
+        recalledMemories,
+        replyLanguage
+      )
     },
     ...messages
       .filter((message) => message.status !== "failed" && message.status !== "pending")
