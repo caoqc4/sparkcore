@@ -9,6 +9,8 @@ type AgentEditSheetProps = {
     id: string;
     name: string;
     persona_summary: string;
+    background_summary: string | null;
+    avatar_emoji: string | null;
     system_prompt_summary: string;
     default_model_profile_id: string | null;
   };
@@ -26,6 +28,13 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [draftName, setDraftName] = useState(agent.name);
+  const [draftPersonaSummary, setDraftPersonaSummary] = useState(
+    agent.persona_summary
+  );
+  const [draftBackgroundSummary, setDraftBackgroundSummary] = useState(
+    agent.background_summary ?? ""
+  );
+  const [draftAvatarEmoji, setDraftAvatarEmoji] = useState(agent.avatar_emoji ?? "");
   const [selectedModelProfileId, setSelectedModelProfileId] = useState(
     agent.default_model_profile_id ?? modelProfiles[0]?.id ?? ""
   );
@@ -37,10 +46,20 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
 
   useEffect(() => {
     setDraftName(agent.name);
+    setDraftPersonaSummary(agent.persona_summary);
+    setDraftBackgroundSummary(agent.background_summary ?? "");
+    setDraftAvatarEmoji(agent.avatar_emoji ?? "");
     setSelectedModelProfileId(
       agent.default_model_profile_id ?? modelProfiles[0]?.id ?? ""
     );
-  }, [agent.default_model_profile_id, agent.name, modelProfiles]);
+  }, [
+    agent.avatar_emoji,
+    agent.background_summary,
+    agent.default_model_profile_id,
+    agent.name,
+    agent.persona_summary,
+    modelProfiles
+  ]);
 
   function closeSheet() {
     if (isPending) {
@@ -48,6 +67,9 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
     }
 
     setDraftName(agent.name);
+    setDraftPersonaSummary(agent.persona_summary);
+    setDraftBackgroundSummary(agent.background_summary ?? "");
+    setDraftAvatarEmoji(agent.avatar_emoji ?? "");
     setSelectedModelProfileId(agent.default_model_profile_id ?? modelProfiles[0]?.id ?? "");
     setFeedback(null);
     setIsOpen(false);
@@ -112,9 +134,9 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
             </div>
 
             <p className="helper-copy">
-              Keep agent editing lightweight inside chat. Rename the agent here
-              and review the current persona summary and system prompt summary
-              without leaving the thread workspace.
+              Keep agent editing lightweight inside chat. Update the agent name,
+              avatar cue, background summary, and persona summary here without
+              leaving the thread workspace.
             </p>
             <p className="helper-copy">
               Changes here update the agent object for future replies that use
@@ -141,6 +163,56 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
                   name="agent_name"
                   onChange={(event) => setDraftName(event.currentTarget.value)}
                   value={draftName}
+                />
+              </label>
+
+              <label className="field" htmlFor={`agent-avatar-${agent.id}`}>
+                <span className="label">Avatar cue</span>
+                <input
+                  className="input"
+                  id={`agent-avatar-${agent.id}`}
+                  maxLength={8}
+                  name="avatar_emoji"
+                  onChange={(event) => setDraftAvatarEmoji(event.currentTarget.value)}
+                  placeholder="🧠"
+                  value={draftAvatarEmoji}
+                />
+                <span className="helper-copy">
+                  Use a short emoji or symbol to give this agent a lightweight
+                  identity inside chat.
+                </span>
+              </label>
+
+              <label className="field" htmlFor={`agent-background-${agent.id}`}>
+                <span className="label">Background summary</span>
+                <textarea
+                  className="input textarea"
+                  id={`agent-background-${agent.id}`}
+                  maxLength={280}
+                  name="background_summary"
+                  onChange={(event) =>
+                    setDraftBackgroundSummary(event.currentTarget.value)
+                  }
+                  placeholder="A calm planning partner who helps turn goals into practical next steps."
+                  value={draftBackgroundSummary}
+                />
+                <span className="helper-copy">
+                  Keep this short. It helps the agent feel more like a character
+                  without turning the sidebar into a full studio.
+                </span>
+              </label>
+
+              <label className="field" htmlFor={`agent-persona-${agent.id}`}>
+                <span className="label">Persona summary</span>
+                <textarea
+                  className="input textarea"
+                  id={`agent-persona-${agent.id}`}
+                  maxLength={280}
+                  name="persona_summary"
+                  onChange={(event) =>
+                    setDraftPersonaSummary(event.currentTarget.value)
+                  }
+                  value={draftPersonaSummary}
                 />
               </label>
 
@@ -173,13 +245,6 @@ export function AgentEditSheet({ agent, modelProfiles }: AgentEditSheetProps) {
                   </span>
                 ) : null}
               </label>
-
-              <div className="sheet-pack-preview">
-                <p className="sheet-pack-name">Persona summary</p>
-                <p className="thread-link-meta">
-                  {agent.persona_summary || "No persona summary is available yet."}
-                </p>
-              </div>
 
               <div className="sheet-pack-preview">
                 <p className="sheet-pack-name">System prompt summary</p>

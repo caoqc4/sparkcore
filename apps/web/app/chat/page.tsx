@@ -403,7 +403,12 @@ export default async function ChatPage({
                           key={availableAgent.id}
                         >
                           <div className="agent-card-row">
-                            <h4 className="agent-card-title">{availableAgent.name}</h4>
+                            <div className="agent-card-identity">
+                              <span className="agent-avatar-chip" aria-hidden="true">
+                                {availableAgent.avatar_emoji ?? "✨"}
+                              </span>
+                              <h4 className="agent-card-title">{availableAgent.name}</h4>
+                            </div>
                             <div className="agent-card-badges">
                               {availableAgent.is_default_for_workspace ? (
                                 <span className="thread-badge">Workspace default</span>
@@ -418,6 +423,16 @@ export default async function ChatPage({
                             {availableAgent.source_persona_pack_name ??
                               (availableAgent.is_custom ? "Custom" : "System preset")}
                           </p>
+                          <p className="thread-link-meta">
+                            Persona:{" "}
+                            {availableAgent.persona_summary ||
+                              "No persona summary is available yet."}
+                          </p>
+                          {availableAgent.background_summary ? (
+                            <p className="agent-background-copy">
+                              Background: {availableAgent.background_summary}
+                            </p>
+                          ) : null}
                           <p className="thread-link-meta">
                             Model profile:{" "}
                             {availableAgent.default_model_profile_name ?? "Unassigned"}
@@ -460,6 +475,9 @@ export default async function ChatPage({
                                 id: availableAgent.id,
                                 name: availableAgent.name,
                                 persona_summary: availableAgent.persona_summary,
+                                background_summary:
+                                  availableAgent.background_summary,
+                                avatar_emoji: availableAgent.avatar_emoji,
                                 system_prompt_summary:
                                   availableAgent.system_prompt_summary,
                                 default_model_profile_id:

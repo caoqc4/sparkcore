@@ -65,6 +65,30 @@ function normalizeAgentName(name: string, fallbackName: string) {
   return candidate.slice(0, 80).trimEnd();
 }
 
+function normalizeAgentIdentityText(value: string, maxLength: number) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  return normalized.slice(0, maxLength).trimEnd();
+}
+
+function normalizeAvatarEmoji(value: string) {
+  const normalized = value.trim();
+
+  if (normalized.length === 0) {
+    return "";
+  }
+
+  if (normalized.length <= 8) {
+    return normalized;
+  }
+
+  return normalized.slice(0, 8).trim();
+}
+
 function classifyAssistantError(error: unknown): {
   errorType: AssistantErrorType;
   message: string;
@@ -230,6 +254,9 @@ export async function renameAgent(
   const agentId = formData.get("agent_id");
   const agentName = formData.get("agent_name");
   const modelProfileId = formData.get("model_profile_id");
+  const personaSummary = formData.get("persona_summary");
+  const backgroundSummary = formData.get("background_summary");
+  const avatarEmoji = formData.get("avatar_emoji");
 
   if (typeof agentId !== "string" || agentId.trim().length === 0) {
     return {
@@ -262,7 +289,7 @@ export async function renameAgent(
 
   const { data: agent } = await supabase
     .from("agents")
-    .select("id, name, workspace_id, default_model_profile_id")
+    .select("id, name, workspace_id, default_model_profile_id, persona_summary, metadata")
     .eq("id", agentId)
     .eq("owner_user_id", user.id)
     .eq("status", "active")
@@ -277,6 +304,22 @@ export async function renameAgent(
   }
 
   const normalizedName = normalizeAgentName(agentName, agent.name);
+  const normalizedPersonaSummary =
+    typeof personaSummary === "string"
+      ? normalizeAgentIdentityText(personaSummary, 280)
+      : agent.persona_summary;
+  const normalizedBackgroundSummary =
+    typeof backgroundSummary === "string"
+      ? normalizeAgentIdentityText(backgroundSummary, 280)
+      : typeof agent.metadata?.background_summary === "string"
+        ? agent.metadata.background_summary
+        : "";
+  const normalizedAvatarEmoji =
+    typeof avatarEmoji === "string"
+      ? normalizeAvatarEmoji(avatarEmoji)
+      : typeof agent.metadata?.avatar_emoji === "string"
+        ? agent.metadata.avatar_emoji
+        : "";
   let nextModelProfileId = agent.default_model_profile_id ?? null;
 
   if (typeof modelProfileId === "string" && modelProfileId.trim().length > 0) {
@@ -298,11 +341,19 @@ export async function renameAgent(
     nextModelProfileId = modelProfile.id;
   }
 
+  const nextMetadata = {
+    ...(agent.metadata ?? {}),
+    background_summary: normalizedBackgroundSummary || null,
+    avatar_emoji: normalizedAvatarEmoji || null
+  };
+
   const { data: updatedAgent, error } = await supabase
     .from("agents")
     .update({
       name: normalizedName,
+      persona_summary: normalizedPersonaSummary,
       default_model_profile_id: nextModelProfileId,
+      metadata: nextMetadata,
       updated_at: new Date().toISOString()
     })
     .eq("id", agent.id)

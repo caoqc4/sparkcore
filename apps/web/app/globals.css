@@ -533,6 +533,26 @@ a {
   flex-wrap: wrap;
 }
 
+.agent-card-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.agent-avatar-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #e6fffb;
+  border: 1px solid rgba(15, 118, 110, 0.16);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
 .agent-card-badges {
   display: flex;
   flex-wrap: wrap;
@@ -550,6 +570,13 @@ a {
   color: var(--muted);
   font-size: 0.9rem;
   line-height: 1.5;
+}
+
+.agent-background-copy {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.55;
 }
 
 .agent-card-action {

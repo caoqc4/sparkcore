@@ -61,6 +61,8 @@ type AvailableAgentRecord = {
   name: string;
   is_custom: boolean;
   persona_summary: string;
+  background_summary: string | null;
+  avatar_emoji: string | null;
   system_prompt_summary: string;
   source_persona_pack_id: string | null;
   default_model_profile_id: string | null;
@@ -824,6 +826,16 @@ export async function getChatPageState({
   const availableAgents = rawAvailableAgents.map((agent) => ({
     ...agent,
     persona_summary: agent.persona_summary,
+    background_summary:
+      typeof agent.metadata?.background_summary === "string" &&
+      agent.metadata.background_summary.trim().length > 0
+        ? agent.metadata.background_summary
+        : null,
+    avatar_emoji:
+      typeof agent.metadata?.avatar_emoji === "string" &&
+      agent.metadata.avatar_emoji.trim().length > 0
+        ? agent.metadata.avatar_emoji
+        : null,
     system_prompt_summary: summarizeAgentPrompt(agent.system_prompt),
     source_persona_pack_name: agent.source_persona_pack_id
       ? personaPackNameById.get(agent.source_persona_pack_id) ?? null
