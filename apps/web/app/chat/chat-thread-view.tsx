@@ -35,29 +35,114 @@ type ChatThreadViewProps = {
 };
 
 type RuntimeSummary = {
-  agentName: string | null;
   modelProfileName: string | null;
+  modelProfileTierLabel: string | null;
+  modelProfileUsageNote: string | null;
   underlyingModelLabel: string | null;
   memoryLabel: string | null;
   memoryActivityLabel: string | null;
+  memoryReasonLabel: string | null;
+  profileReasonLabel: string | null;
   outcomeHints: string[];
 };
 
 function formatMemoryTypeLabel(type: string, locale: ChatLocale) {
   const isZh = locale === "zh-CN";
+  const labels: Record<string, string> = {
+    profile: isZh ? "profile" : "profile",
+    preference: isZh ? "preference" : "preference",
+    relationship: isZh ? "relationship" : "relationship",
+    goal: isZh ? "goal" : "goal"
+  };
 
-  switch (type) {
-    case "profile":
-      return isZh ? "profile" : "profile";
-    case "preference":
-      return isZh ? "preference" : "preference";
-    case "relationship":
-      return isZh ? "relationship" : "relationship";
-    case "goal":
-      return isZh ? "goal" : "goal";
-    default:
-      return type;
+  return labels[type] ?? type;
+}
+
+function getProfileReasonLabel(
+  tierLabel: string | null,
+  usageNote: string | null,
+  locale: ChatLocale
+) {
+  const normalizedTier = tierLabel?.trim().toLowerCase() ?? "";
+
+  if (normalizedTier.includes("stable")) {
+    return locale === "zh-CN"
+      ? "这轮沿用了更均衡的日常对话配置，所以回答会更偏稳定、自然。"
+      : "This turn used the balanced everyday-chat profile, so the answer stays more stable and natural.";
   }
+
+  if (normalizedTier.includes("memory")) {
+    return locale === "zh-CN"
+      ? "这轮沿用了偏记忆敏感的配置，所以会更努力把已召回的事实直接体现在回答里。"
+      : "This turn used the memory-sensitive profile, so it leans harder on recalled facts in the final answer.";
+  }
+
+  if (normalizedTier.includes("low-cost")) {
+    return locale === "zh-CN"
+      ? "这轮沿用了低成本测试配置，所以回答会更偏轻量、适合快速对比。"
+      : "This turn used the low-cost testing profile, so the answer is lighter and tuned for faster comparisons.";
+  }
+
+  if (usageNote && usageNote.trim().length > 0) {
+    return usageNote;
+  }
+
+  return locale === "zh-CN"
+    ? "这轮沿用了当前模型配置来平衡回答质量与成本。"
+    : "This turn used the selected model profile to balance quality and cost.";
+}
+
+function getMemoryReasonLabel(params: {
+  locale: ChatLocale;
+  memoryTypesUsed: string[];
+  memoryUsed: boolean | null;
+  hiddenExclusionCount: number;
+  incorrectExclusionCount: number;
+}) {
+  const {
+    locale,
+    memoryTypesUsed,
+    memoryUsed,
+    hiddenExclusionCount,
+    incorrectExclusionCount
+  } = params;
+
+  const isZh = locale === "zh-CN";
+  const typeList = memoryTypesUsed
+    .map((type) => formatMemoryTypeLabel(type, locale))
+    .join(" + ");
+
+  if (memoryTypesUsed.length > 0) {
+    return isZh
+      ? `这轮用了 ${typeList} 记忆，因为它和你刚刚的问题最相关。`
+      : `This turn used ${typeList} memory because it was the most relevant stored context for your latest question.`;
+  }
+
+  if (memoryUsed === false && (hiddenExclusionCount > 0 || incorrectExclusionCount > 0)) {
+    if (hiddenExclusionCount > 0 && incorrectExclusionCount > 0) {
+      return isZh
+        ? "这轮没有使用长期记忆，因为相关记忆里有一部分已隐藏，另一部分已被标记为错误。"
+        : "This turn did not use long-term memory because some relevant memory was hidden and some was marked incorrect.";
+    }
+
+    if (hiddenExclusionCount > 0) {
+      return isZh
+        ? "这轮没有使用长期记忆，因为相关记忆目前处于隐藏状态。"
+        : "This turn did not use long-term memory because the relevant memory is currently hidden.";
+    }
+
+    return isZh
+      ? "这轮没有使用长期记忆，因为相关记忆目前被标记为错误。"
+      : "This turn did not use long-term memory because the relevant memory is currently marked incorrect.";
+  }
+
+  if (memoryUsed === false) {
+    return isZh
+      ? "这轮没有用到长期记忆，因为当前问题不需要它。"
+      : "This turn did not use long-term memory because the current question did not need it.";
+  }
+
+  return null;
 }
 
 function getRuntimeSummary(
@@ -70,15 +155,20 @@ function getRuntimeSummary(
 
   const isZh = locale === "zh-CN";
 
-  const agentName =
-    typeof message.metadata?.agent_name === "string" &&
-    message.metadata.agent_name.trim().length > 0
-      ? message.metadata.agent_name
-      : null;
   const modelProfileName =
     typeof message.metadata?.model_profile_name === "string" &&
     message.metadata.model_profile_name.trim().length > 0
       ? message.metadata.model_profile_name
+      : null;
+  const modelProfileTierLabel =
+    typeof message.metadata?.model_profile_tier_label === "string" &&
+    message.metadata.model_profile_tier_label.trim().length > 0
+      ? message.metadata.model_profile_tier_label
+      : null;
+  const modelProfileUsageNote =
+    typeof message.metadata?.model_profile_usage_note === "string" &&
+    message.metadata.model_profile_usage_note.trim().length > 0
+      ? message.metadata.model_profile_usage_note
       : null;
   const underlyingModelLabel =
     typeof message.metadata?.underlying_model_label === "string" &&
@@ -213,23 +303,38 @@ function getRuntimeSummary(
     );
   }
 
+  const memoryReasonLabel = getMemoryReasonLabel({
+    locale,
+    memoryTypesUsed,
+    memoryUsed,
+    hiddenExclusionCount,
+    incorrectExclusionCount
+  });
+  const profileReasonLabel = modelProfileName
+    ? getProfileReasonLabel(modelProfileTierLabel, modelProfileUsageNote, locale)
+    : null;
+
   if (
-    !agentName &&
     !modelProfileName &&
     !underlyingModelLabel &&
     !memoryLabel &&
     !memoryActivityLabel &&
+    !memoryReasonLabel &&
+    !profileReasonLabel &&
     outcomeHints.length === 0
   ) {
     return null;
   }
 
   return {
-    agentName,
     modelProfileName,
+    modelProfileTierLabel,
+    modelProfileUsageNote,
     underlyingModelLabel,
     memoryLabel,
     memoryActivityLabel,
+    memoryReasonLabel,
+    profileReasonLabel,
     outcomeHints
   };
 }
@@ -239,28 +344,30 @@ function getRuntimeSummaryHeadline(
   locale: ChatLocale
 ) {
   const copy = getChatCopy(locale);
+  const hasMemoryReason = Boolean(summary.memoryReasonLabel);
+  const hasProfileReason = Boolean(summary.profileReasonLabel);
 
-  if (summary.agentName && summary.memoryLabel && summary.memoryLabel !== "No") {
+  if (hasMemoryReason && hasProfileReason) {
     return copy.locale === "zh-CN"
-      ? "这条回复来自当前线程绑定的 agent，并参考了长期记忆支持。"
-      : "This reply came from the current thread agent with long-term memory support.";
+      ? "这轮的回答主要受已命中的记忆和当前模型配置共同影响。"
+      : "This turn was shaped mainly by the recalled memory and the current model profile.";
   }
 
-  if (summary.agentName) {
+  if (hasMemoryReason) {
     return copy.locale === "zh-CN"
-      ? "这条回复来自当前线程绑定的 agent。"
-      : "This reply came from the current thread agent.";
+      ? "这轮的回答主要受已命中的记忆影响。"
+      : "This turn was shaped mainly by the recalled memory.";
   }
 
-  if (summary.memoryLabel && summary.memoryLabel !== "No") {
+  if (hasProfileReason) {
     return copy.locale === "zh-CN"
-      ? "这条回复使用了已存储的记忆上下文。"
-      : "This reply used stored memory context.";
+      ? "这轮的回答主要受当前模型配置影响。"
+      : "This turn was shaped mainly by the current model profile.";
   }
 
   return copy.locale === "zh-CN"
-    ? "这条回复使用了当前聊天配置。"
-    : "This reply used the current chat setup.";
+    ? "这条摘要解释了这轮回答背后的主要原因。"
+    : "This summary explains the main reasons behind the turn.";
 }
 
 export function ChatThreadView({
@@ -660,6 +767,16 @@ export function ChatThreadView({
                         <p className="runtime-summary-headline">
                           {getRuntimeSummaryHeadline(runtimeSummary, locale)}
                         </p>
+                        {runtimeSummary.memoryReasonLabel ? (
+                          <p className="runtime-summary-reason">
+                            {runtimeSummary.memoryReasonLabel}
+                          </p>
+                        ) : null}
+                        {runtimeSummary.profileReasonLabel ? (
+                          <p className="runtime-summary-reason">
+                            {runtimeSummary.profileReasonLabel}
+                          </p>
+                        ) : null}
                         {runtimeSummary.outcomeHints.length > 0 ? (
                           <ul className="runtime-summary-outcomes">
                             {runtimeSummary.outcomeHints.map((hint) => (
@@ -668,16 +785,15 @@ export function ChatThreadView({
                           </ul>
                         ) : null}
                         <dl className="runtime-summary-grid">
-                          {runtimeSummary.agentName ? (
-                            <>
-                              <dt>{copy.thread.agentUsed}</dt>
-                              <dd>{runtimeSummary.agentName}</dd>
-                            </>
-                          ) : null}
                           {runtimeSummary.modelProfileName ? (
                             <>
                               <dt>{copy.thread.modelProfileUsed}</dt>
-                              <dd>{runtimeSummary.modelProfileName}</dd>
+                              <dd>
+                                {runtimeSummary.modelProfileName}
+                                {runtimeSummary.modelProfileTierLabel
+                                  ? ` · ${runtimeSummary.modelProfileTierLabel}`
+                                  : ""}
+                              </dd>
                             </>
                           ) : null}
                           {runtimeSummary.underlyingModelLabel ? (

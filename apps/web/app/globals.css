@@ -855,6 +855,13 @@ a {
   line-height: 1.5;
 }
 
+.runtime-summary-reason {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.89rem;
+  line-height: 1.55;
+}
+
 .runtime-summary-outcomes {
   margin: 10px 0 0;
   padding-left: 18px;

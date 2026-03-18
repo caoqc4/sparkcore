@@ -1740,6 +1740,14 @@ export async function generateAgentReply({
         `${modelProfile.provider}/${result.model ?? modelProfile.model}`,
       model_profile_id: modelProfile.id,
       model_profile_name: modelProfile.name,
+      model_profile_tier_label:
+        typeof modelProfile.metadata?.tier_label === "string"
+          ? modelProfile.metadata.tier_label
+          : null,
+      model_profile_usage_note:
+        typeof modelProfile.metadata?.usage_note === "string"
+          ? modelProfile.metadata.usage_note
+          : null,
       reply_language_target: replyLanguage,
       reply_language_detected: detectReplyLanguageFromText(result.content),
       memory_hit_count: allRecalledMemories.length,
