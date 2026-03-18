@@ -85,6 +85,11 @@ type MessageRecord = {
   created_at: string;
 };
 
+type ThreadContinuitySignal = {
+  establishedReplyLanguage: RuntimeReplyLanguage;
+  hasPriorAssistantTurn: boolean;
+};
+
 type ThreadListItem = ThreadRecord & {
   agent_name: string | null;
   latest_message_preview: string | null;
@@ -245,6 +250,7 @@ function buildMemoryRecallPrompt(
     directNamingQuestion: boolean;
     directPreferredNameQuestion: boolean;
     relationshipStylePrompt: boolean;
+    sameThreadContinuity: boolean;
     addressStyleMemory: {
       memory_type: "relationship";
       content: string;
@@ -298,7 +304,8 @@ function buildMemoryRecallPrompt(
 
   const relationshipSections =
     (relationshipRecall.directNamingQuestion ||
-      relationshipRecall.relationshipStylePrompt) &&
+      relationshipRecall.relationshipStylePrompt ||
+      relationshipRecall.sameThreadContinuity) &&
     relationshipRecall.nicknameMemory
       ? isZh
         ? [
@@ -331,7 +338,8 @@ function buildMemoryRecallPrompt(
 
   const preferredNameSections =
     (relationshipRecall.directPreferredNameQuestion ||
-      relationshipRecall.relationshipStylePrompt) &&
+      relationshipRecall.relationshipStylePrompt ||
+      relationshipRecall.sameThreadContinuity) &&
     relationshipRecall.preferredNameMemory
       ? isZh
         ? [
@@ -626,6 +634,131 @@ function getReplyLanguageInstruction(language: RuntimeReplyLanguage) {
   }
 }
 
+function isRuntimeReplyLanguage(value: unknown): value is RuntimeReplyLanguage {
+  return value === "zh-Hans" || value === "en" || value === "unknown";
+}
+
+function getMostRecentCompletedAssistantMessage(messages: MessageRecord[]) {
+  return [...messages]
+    .reverse()
+    .find(
+      (message) => message.role === "assistant" && message.status === "completed"
+    );
+}
+
+function getThreadContinuitySignal(messages: MessageRecord[]): ThreadContinuitySignal {
+  const previousAssistantMessage = getMostRecentCompletedAssistantMessage(messages);
+
+  if (!previousAssistantMessage) {
+    return {
+      establishedReplyLanguage: "unknown",
+      hasPriorAssistantTurn: false
+    };
+  }
+
+  const metadataLanguage = previousAssistantMessage.metadata
+    ?.reply_language_detected;
+  const establishedReplyLanguage = isRuntimeReplyLanguage(metadataLanguage)
+    ? metadataLanguage
+    : detectReplyLanguageFromText(previousAssistantMessage.content);
+
+  return {
+    establishedReplyLanguage,
+    hasPriorAssistantTurn: true
+  };
+}
+
+function resolveReplyLanguageForTurn({
+  latestUserMessage,
+  threadContinuity
+}: {
+  latestUserMessage: string | null;
+  threadContinuity: ThreadContinuitySignal;
+}) {
+  if (!latestUserMessage) {
+    return threadContinuity.establishedReplyLanguage;
+  }
+
+  const latestUserLanguage = detectReplyLanguageFromText(latestUserMessage);
+
+  if (latestUserLanguage !== "unknown") {
+    return latestUserLanguage;
+  }
+
+  return threadContinuity.establishedReplyLanguage;
+}
+
+function buildThreadContinuityPrompt({
+  threadContinuity,
+  replyLanguage,
+  relationshipRecall
+}: {
+  threadContinuity: ThreadContinuitySignal;
+  replyLanguage: RuntimeReplyLanguage;
+  relationshipRecall: {
+    addressStyleMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    nicknameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    preferredNameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    sameThreadContinuity: boolean;
+  };
+}) {
+  if (!threadContinuity.hasPriorAssistantTurn) {
+    return "";
+  }
+
+  const effectiveLanguage =
+    replyLanguage !== "unknown"
+      ? replyLanguage
+      : threadContinuity.establishedReplyLanguage;
+  const isZh = effectiveLanguage === "zh-Hans";
+  const relationshipContinuity = Boolean(
+    relationshipRecall.addressStyleMemory ||
+      relationshipRecall.nicknameMemory ||
+      relationshipRecall.preferredNameMemory
+  );
+  const sections = [
+    isZh
+      ? "同线程连续性：优先延续这个线程里最近一轮 assistant 已经建立的语言、称呼方式和整体语气，除非用户当前这轮明确要求切换。"
+      : "Same-thread continuity: prefer continuing the language, address terms, and overall tone established by the most recent assistant turn in this thread unless the current user message clearly changes it."
+  ];
+
+  if (relationshipContinuity) {
+    sections.push(
+      isZh
+        ? "如果这个线程里已经形成了昵称、对用户的称呼或更正式/更轻松的互动方式，让这些关系约定继续自然体现在开场、过渡和收尾里。"
+        : "If this thread has already established a nickname, a preferred way to address the user, or a more formal or casual relationship tone, let those choices continue naturally in openings, transitions, and closings."
+    );
+  }
+
+  if (threadContinuity.establishedReplyLanguage !== "unknown") {
+    sections.push(
+      isZh
+        ? `如果用户当前这条消息本身语言不明显，就沿用这个线程里最近一轮 assistant 的语言：${threadContinuity.establishedReplyLanguage === "zh-Hans" ? "简体中文" : "英文"}。`
+        : `If the current user message is language-ambiguous, fall back to the language used by the most recent assistant turn in this thread: ${threadContinuity.establishedReplyLanguage === "zh-Hans" ? "Simplified Chinese" : "English"}.`
+    );
+  }
+
+  sections.push(
+    isZh
+      ? "不要让远处历史、全局记忆或 profile 默认值无端打断当前线程已经形成的说话方式。"
+      : "Do not let distant history, global memory, or profile defaults unnecessarily reset the speaking style already established in this thread."
+  );
+
+  return sections.join("\n");
+}
+
 function buildAgentSystemPrompt(
   agent: AgentRecord,
   latestUserMessage: string,
@@ -639,6 +772,7 @@ function buildAgentSystemPrompt(
     directNamingQuestion: boolean;
     directPreferredNameQuestion: boolean;
     relationshipStylePrompt: boolean;
+    sameThreadContinuity: boolean;
     addressStyleMemory: {
       memory_type: "relationship";
       content: string;
@@ -658,16 +792,19 @@ function buildAgentSystemPrompt(
     directNamingQuestion: false,
     directPreferredNameQuestion: false,
     relationshipStylePrompt: false,
+    sameThreadContinuity: false,
     addressStyleMemory: null,
     nicknameMemory: null,
     preferredNameMemory: null
-  }
+  },
+  threadContinuityPrompt = ""
 ) {
   const sections = [
     `You are ${agent.name}.`,
     agent.persona_summary ? `Persona summary: ${agent.persona_summary}` : "",
     agent.style_prompt ? `Style guidance: ${agent.style_prompt}` : "",
     getReplyLanguageInstruction(replyLanguage),
+    threadContinuityPrompt,
     agent.system_prompt,
     buildMemoryRecallPrompt(
       latestUserMessage,
@@ -1590,9 +1727,11 @@ export async function generateAgentReply({
   const latestUserMessage = [...messages]
     .reverse()
     .find((message) => message.role === "user");
-  const replyLanguage = latestUserMessage
-    ? detectReplyLanguageFromText(latestUserMessage.content)
-    : "unknown";
+  const threadContinuity = getThreadContinuitySignal(messages);
+  const replyLanguage = resolveReplyLanguageForTurn({
+    latestUserMessage: latestUserMessage?.content ?? null,
+    threadContinuity
+  });
   const memoryRecall = latestUserMessage
     ? await recallRelevantMemories({
         workspaceId: workspace.id,
@@ -1609,6 +1748,7 @@ export async function generateAgentReply({
     directNamingQuestion: boolean;
     directPreferredNameQuestion: boolean;
     relationshipStylePrompt: boolean;
+    sameThreadContinuity: boolean;
     addressStyleMemory: {
       memory_type: "relationship";
       content: string;
@@ -1628,6 +1768,7 @@ export async function generateAgentReply({
     directNamingQuestion: false,
     directPreferredNameQuestion: false,
     relationshipStylePrompt: false,
+    sameThreadContinuity: false,
     addressStyleMemory: null,
     nicknameMemory: null,
     preferredNameMemory: null
@@ -1637,13 +1778,15 @@ export async function generateAgentReply({
     const relationshipStylePrompt = isRelationshipStylePrompt(
       latestUserMessage.content
     );
+    const sameThreadContinuity = threadContinuity.hasPriorAssistantTurn;
     const directNamingQuestion = isDirectAgentNamingQuestion(
       latestUserMessage.content
     );
     const directPreferredNameQuestion = isDirectUserPreferredNameQuestion(
       latestUserMessage.content
     );
-    const nicknameRecall = directNamingQuestion || relationshipStylePrompt
+    const nicknameRecall =
+      directNamingQuestion || relationshipStylePrompt || sameThreadContinuity
       ? await recallAgentNickname({
           workspaceId: workspace.id,
           userId,
@@ -1655,7 +1798,10 @@ export async function generateAgentReply({
           nicknameMemory: null
         };
 
-    const preferredNameRecall = directPreferredNameQuestion || relationshipStylePrompt
+    const preferredNameRecall =
+      directPreferredNameQuestion ||
+      relationshipStylePrompt ||
+      sameThreadContinuity
       ? await recallUserPreferredName({
           workspaceId: workspace.id,
           userId,
@@ -1675,6 +1821,7 @@ export async function generateAgentReply({
     relationshipRecall = {
       ...relationshipRecall,
       relationshipStylePrompt,
+      sameThreadContinuity,
       ...addressStyleRecall,
       ...nicknameRecall,
       ...preferredNameRecall
@@ -1699,6 +1846,11 @@ export async function generateAgentReply({
     workspaceId: workspace.id,
     userId
   });
+  const threadContinuityPrompt = buildThreadContinuityPrompt({
+    threadContinuity,
+    replyLanguage,
+    relationshipRecall
+  });
   const promptMessages = [
     {
       role: "system" as const,
@@ -1707,7 +1859,8 @@ export async function generateAgentReply({
         latestUserMessage?.content ?? "",
         allRecalledMemories,
         replyLanguage,
-        relationshipRecall
+        relationshipRecall,
+        threadContinuityPrompt
       )
     },
     ...messages

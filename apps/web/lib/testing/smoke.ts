@@ -76,6 +76,11 @@ type SmokeThread = {
 
 type SmokeReplyLanguage = "zh-Hans" | "en" | "unknown";
 
+type SmokeContinuityReply = {
+  content: string;
+  replyLanguage: SmokeReplyLanguage;
+};
+
 function detectSmokeExplicitLanguageOverride(content: string): SmokeReplyLanguage {
   const normalized = content.normalize("NFKC").toLowerCase();
 
@@ -565,6 +570,52 @@ function detectSmokeReplyLanguage(content: string): SmokeReplyLanguage {
   return hanMatches.length > 0 ? "zh-Hans" : "en";
 }
 
+function getSmokeRecentAssistantReply(
+  messages: Array<{
+    role: "user" | "assistant";
+    content: string;
+    status: string;
+    metadata: Record<string, unknown>;
+  }>
+): SmokeContinuityReply | null {
+  const previousAssistant = [...messages]
+    .reverse()
+    .find(
+      (message) => message.role === "assistant" && message.status === "completed"
+    );
+
+  if (!previousAssistant) {
+    return null;
+  }
+
+  const metadataLanguage = previousAssistant.metadata?.reply_language_detected;
+  const replyLanguage =
+    metadataLanguage === "zh-Hans" || metadataLanguage === "en"
+      ? metadataLanguage
+      : detectSmokeReplyLanguage(previousAssistant.content);
+
+  return {
+    content: previousAssistant.content,
+    replyLanguage
+  };
+}
+
+function resolveSmokeReplyLanguage({
+  content,
+  recentAssistantReply
+}: {
+  content: string;
+  recentAssistantReply: SmokeContinuityReply | null;
+}) {
+  const latestUserLanguage = detectSmokeReplyLanguage(content);
+
+  if (latestUserLanguage !== "unknown") {
+    return latestUserLanguage;
+  }
+
+  return recentAssistantReply?.replyLanguage ?? "unknown";
+}
+
 function detectSmokeNicknameCandidate(content: string) {
   const normalized = content.normalize("NFKC").trim();
   const match = normalized.match(
@@ -738,6 +789,8 @@ function isSmokeDirectReplyStyleQuestion(content: string) {
 function buildSmokeAssistantReply({
   content,
   modelProfileName,
+  replyLanguage,
+  recentAssistantReply,
   recalledMemories,
   agentName,
   addressStyleMemory,
@@ -746,6 +799,8 @@ function buildSmokeAssistantReply({
 }: {
   content: string;
   modelProfileName: string;
+  replyLanguage: SmokeReplyLanguage;
+  recentAssistantReply: SmokeContinuityReply | null;
   agentName: string;
   addressStyleMemory: {
     memory_type: "relationship";
@@ -769,7 +824,6 @@ function buildSmokeAssistantReply({
   }>;
 }) {
   const normalized = content.toLowerCase();
-  const replyLanguage = detectSmokeReplyLanguage(content);
   const rememberedProfession = recalledMemories.find(
     (memory) =>
       memory.memory_type === "profile" &&
@@ -1007,8 +1061,62 @@ function buildSmokeAssistantReply({
   }
 
   return replyLanguage === "zh-Hans"
-    ? "好的，我已经记下来了，接下来可以继续帮你。"
-    : "Thanks, I noted that and I am ready to help with the next step.";
+    ? (() => {
+        const styleValue = addressStyleMemory?.content ?? null;
+        const userName = preferredNameMemory?.content ?? null;
+
+        if (styleValue === "formal") {
+          return userName
+            ? `好的，${userName}，我会继续用正式一点的方式协助你。`
+            : "好的，我会继续用正式一点的方式协助你。";
+        }
+
+        if (styleValue === "friendly") {
+          return userName
+            ? `好呀，${userName}，我们继续聊。`
+            : "好呀，我们继续聊。";
+        }
+
+        if (styleValue === "casual") {
+          return userName
+            ? `好呀，${userName}，我们继续。`
+            : "好呀，我们继续。";
+        }
+
+        if (recentAssistantReply?.replyLanguage === "zh-Hans") {
+          return userName ? `好的，${userName}，我们继续。` : "好的，我们继续。";
+        }
+
+        return "好的，我已经记下来了，接下来可以继续帮你。";
+      })()
+    : (() => {
+        const styleValue = addressStyleMemory?.content ?? null;
+        const userName = preferredNameMemory?.content ?? null;
+
+        if (styleValue === "formal") {
+          return userName
+            ? `Certainly, ${userName}. I will continue in a more formal way.`
+            : "Certainly. I will continue in a more formal way.";
+        }
+
+        if (styleValue === "friendly") {
+          return userName
+            ? `Sure, ${userName}. Let's keep chatting.`
+            : "Sure, let's keep chatting.";
+        }
+
+        if (styleValue === "casual") {
+          return userName
+            ? `Sure, ${userName}. We can keep going.`
+            : "Sure, we can keep going.";
+        }
+
+        if (recentAssistantReply?.replyLanguage === "en") {
+          return userName ? `Sure, ${userName}. We can keep going.` : "Sure, we can keep going.";
+        }
+
+        return "Thanks, I noted that and I am ready to help with the next step.";
+      })();
 }
 
 export async function createSmokeTurn({
@@ -1107,6 +1215,26 @@ export async function createSmokeTurn({
     throw new Error(`Failed to load smoke memories: ${memoriesError.message}`);
   }
 
+  const { data: existingMessages, error: messagesError } = await admin
+    .from("messages")
+    .select("role, content, status, metadata")
+    .eq("thread_id", thread.id)
+    .eq("workspace_id", smokeUser.workspaceId)
+    .order("created_at", { ascending: true });
+
+  if (messagesError) {
+    throw new Error(`Failed to load smoke messages: ${messagesError.message}`);
+  }
+
+  const recentAssistantReply = getSmokeRecentAssistantReply(
+    (existingMessages ?? []) as Array<{
+      role: "user" | "assistant";
+      content: string;
+      status: string;
+      metadata: Record<string, unknown>;
+    }>
+  );
+
   const activeMemories =
     existingMemories?.filter((memory) => {
       const metadata = (memory.metadata ?? {}) as Record<string, unknown>;
@@ -1146,8 +1274,11 @@ export async function createSmokeTurn({
       confidence: memory.confidence
     }));
   const relationshipStylePrompt = isSmokeSelfIntroGreetingRequest(trimmedContent);
+  const sameThreadContinuity = recentAssistantReply !== null;
   const nicknameMemory =
-    isSmokeDirectNamingQuestion(trimmedContent) || relationshipStylePrompt
+    isSmokeDirectNamingQuestion(trimmedContent) ||
+    relationshipStylePrompt ||
+    sameThreadContinuity
     ? activeMemories.find(
         (memory) =>
           memory.category === "relationship" &&
@@ -1168,7 +1299,9 @@ export async function createSmokeTurn({
     });
   }
   const preferredNameMemory =
-    isSmokeDirectUserPreferredNameQuestion(trimmedContent) || relationshipStylePrompt
+    isSmokeDirectUserPreferredNameQuestion(trimmedContent) ||
+    relationshipStylePrompt ||
+    sameThreadContinuity
     ? activeMemories.find(
         (memory) =>
           memory.category === "relationship" &&
@@ -1329,6 +1462,10 @@ export async function createSmokeTurn({
   const smokePreferredName = detectSmokeUserPreferredNameCandidate(trimmedContent);
   const smokeUserAddressStyle =
     detectSmokeUserAddressStyleCandidate(trimmedContent);
+  const replyLanguage = resolveSmokeReplyLanguage({
+    content: trimmedContent,
+    recentAssistantReply
+  });
 
   if (smokeNickname) {
     const { data: existingNickname } = await admin
@@ -1492,6 +1629,8 @@ export async function createSmokeTurn({
   const assistantContent = buildSmokeAssistantReply({
     content: trimmedContent,
     modelProfileName: modelProfile.name,
+    replyLanguage,
+    recentAssistantReply,
     agentName: ensuredAgent.name,
     addressStyleMemory: addressStyleMemory
       ? {
@@ -1542,7 +1681,7 @@ export async function createSmokeTurn({
           model: modelProfile.model,
           model_profile_id: modelProfile.id,
           model_profile_name: modelProfile.name,
-          reply_language_target: detectSmokeReplyLanguage(trimmedContent),
+          reply_language_target: replyLanguage,
           reply_language_detected: detectSmokeReplyLanguage(assistantContent),
           memory_hit_count: recalledMemories.length,
           memory_used: recalledMemories.length > 0,
