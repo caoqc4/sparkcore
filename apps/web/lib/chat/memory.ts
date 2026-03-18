@@ -83,7 +83,8 @@ type SingleSlotMemoryKey =
   | "profession"
   | "reply_language"
   | "agent_nickname"
-  | "user_preferred_name";
+  | "user_preferred_name"
+  | "user_address_style";
 
 type NormalizedMemoryCandidate = MemoryCandidate & {
   normalized_content: string;
@@ -354,6 +355,59 @@ function detectRelationshipUserPreferredNameCandidate(message: string) {
   return null;
 }
 
+function detectRelationshipUserAddressStyleCandidate(message: string) {
+  const normalized = message.normalize("NFKC").trim().toLowerCase();
+
+  const casualPatterns = [
+    "跟我说话轻松一点",
+    "和我说话轻松一点",
+    "别太正式",
+    "不用太正式",
+    "轻松一点",
+    "casual with me",
+    "be more casual",
+    "less formal"
+  ];
+  const formalPatterns = [
+    "正式一点",
+    "更正式一点",
+    "请正式一点",
+    "more formal",
+    "be more formal"
+  ];
+  const friendlyPatterns = [
+    "像朋友一点",
+    "像朋友那样",
+    "更像朋友",
+    "like a friend",
+    "friendlier"
+  ];
+  const noFullNamePatterns = [
+    "别叫我全名",
+    "不要叫我全名",
+    "do not call me by my full name",
+    "don't call me by my full name"
+  ];
+
+  if (noFullNamePatterns.some((pattern) => normalized.includes(pattern))) {
+    return "no_full_name";
+  }
+
+  if (friendlyPatterns.some((pattern) => normalized.includes(pattern))) {
+    return "friendly";
+  }
+
+  if (formalPatterns.some((pattern) => normalized.includes(pattern))) {
+    return "formal";
+  }
+
+  if (casualPatterns.some((pattern) => normalized.includes(pattern))) {
+    return "casual";
+  }
+
+  return null;
+}
+
 export function isDirectAgentNamingQuestion(message: string) {
   const normalized = message.normalize("NFKC").trim().toLowerCase();
 
@@ -523,6 +577,62 @@ export async function recallUserPreferredName({
           ? preferredNameRow.value
           : preferredNameRow.content,
       confidence: preferredNameRow.confidence
+    }
+  };
+}
+
+export async function recallUserAddressStyle({
+  workspaceId,
+  userId,
+  agentId
+}: {
+  workspaceId: string;
+  userId: string;
+  agentId: string;
+}): Promise<{
+  addressStyleMemory: {
+    memory_type: "relationship";
+    content: string;
+    confidence: number;
+  } | null;
+}> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("memory_items")
+    .select(
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at"
+    )
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .eq("category", "relationship")
+    .eq("key", "user_address_style")
+    .eq("scope", "user_agent")
+    .eq("target_agent_id", agentId)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error) {
+    throw new Error(
+      `Failed to load user-address-style relationship memory: ${error.message}`
+    );
+  }
+
+  const styleRow = ((data ?? []) as StoredMemory[]).find((memory) =>
+    isMemoryActive(memory)
+  );
+
+  if (!styleRow) {
+    return {
+      addressStyleMemory: null
+    };
+  }
+
+  return {
+    addressStyleMemory: {
+      memory_type: "relationship" as const,
+      content:
+        typeof styleRow.value === "string" ? styleRow.value : styleRow.content,
+      confidence: styleRow.confidence
     }
   };
 }
@@ -763,6 +873,9 @@ export async function extractAndStoreMemories({
   const userPreferredName = detectRelationshipUserPreferredNameCandidate(
     latestUserMessage
   );
+  const userAddressStyle = detectRelationshipUserAddressStyleCandidate(
+    latestUserMessage
+  );
 
   if (relationshipNickname && agentId) {
     const relationshipWrite = await upsertSingleSlotMemory({
@@ -816,6 +929,34 @@ export async function extractAndStoreMemories({
     }
 
     if (preferredNameWrite.updated) {
+      updatedTypes.push("relationship");
+    }
+  }
+
+  if (userAddressStyle && agentId) {
+    const addressStyleWrite = await upsertSingleSlotMemory({
+      workspaceId,
+      userId,
+      agentId,
+      sourceMessageId,
+      category: "relationship",
+      key: "user_address_style",
+      value: userAddressStyle,
+      scope: "user_agent",
+      targetAgentId: agentId,
+      confidence: 0.9,
+      stability: "medium",
+      metadata: {
+        source: "relationship_parser",
+        relation_kind: "user_address_style"
+      }
+    });
+
+    if (addressStyleWrite.created) {
+      createdTypes.push("relationship");
+    }
+
+    if (addressStyleWrite.updated) {
       updatedTypes.push("relationship");
     }
   }

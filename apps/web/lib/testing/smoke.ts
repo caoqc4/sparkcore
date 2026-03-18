@@ -597,6 +597,54 @@ function detectSmokeUserPreferredNameCandidate(content: string) {
   return null;
 }
 
+function detectSmokeUserAddressStyleCandidate(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  if (
+    normalized.includes("别叫我全名") ||
+    normalized.includes("不要叫我全名") ||
+    normalized.includes("do not call me by my full name") ||
+    normalized.includes("don't call me by my full name")
+  ) {
+    return "no_full_name";
+  }
+
+  if (
+    normalized.includes("像朋友一点") ||
+    normalized.includes("像朋友那样") ||
+    normalized.includes("更像朋友") ||
+    normalized.includes("like a friend") ||
+    normalized.includes("friendlier")
+  ) {
+    return "friendly";
+  }
+
+  if (
+    normalized.includes("正式一点") ||
+    normalized.includes("更正式一点") ||
+    normalized.includes("请正式一点") ||
+    normalized.includes("more formal") ||
+    normalized.includes("be more formal")
+  ) {
+    return "formal";
+  }
+
+  if (
+    normalized.includes("跟我说话轻松一点") ||
+    normalized.includes("和我说话轻松一点") ||
+    normalized.includes("别太正式") ||
+    normalized.includes("不用太正式") ||
+    normalized.includes("轻松一点") ||
+    normalized.includes("casual with me") ||
+    normalized.includes("be more casual") ||
+    normalized.includes("less formal")
+  ) {
+    return "casual";
+  }
+
+  return null;
+}
+
 function isSmokeDirectNamingQuestion(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
@@ -625,6 +673,18 @@ function isSmokeDirectUserPreferredNameQuestion(content: string) {
   );
 }
 
+function isSmokeBriefGreetingRequest(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("请简单和我打个招呼") ||
+    normalized.includes("简单和我打个招呼") ||
+    normalized.includes("简短和我打个招呼") ||
+    normalized.includes("greet me briefly") ||
+    normalized.includes("say a quick hello")
+  );
+}
+
 function isSmokeDirectPlanningPreferenceQuestion(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
@@ -642,12 +702,18 @@ function buildSmokeAssistantReply({
   modelProfileName,
   recalledMemories,
   agentName,
+  addressStyleMemory,
   nicknameMemory,
   preferredNameMemory
 }: {
   content: string;
   modelProfileName: string;
   agentName: string;
+  addressStyleMemory: {
+    memory_type: "relationship";
+    content: string;
+    confidence: number;
+  } | null;
   nicknameMemory: {
     memory_type: "relationship";
     content: string;
@@ -681,6 +747,32 @@ function buildSmokeAssistantReply({
     return replyLanguage === "zh-Hans"
       ? `你好，我是通过 ${modelProfileName} 回复的 SparkCore。`
       : `Hello from SparkCore via ${modelProfileName}.`;
+  }
+
+  if (isSmokeBriefGreetingRequest(content)) {
+    const styleValue = addressStyleMemory?.content ?? null;
+
+    if (styleValue === "formal") {
+      return replyLanguage === "zh-Hans"
+        ? "您好，很高兴继续为您提供帮助。"
+        : "Hello, I am glad to continue assisting you.";
+    }
+
+    if (styleValue === "friendly") {
+      return replyLanguage === "zh-Hans"
+        ? "嗨，朋友，很高兴又见到你。"
+        : "Hey friend, it is good to see you again.";
+    }
+
+    if (styleValue === "casual") {
+      return replyLanguage === "zh-Hans"
+        ? "嗨，很高兴继续和你聊。"
+        : "Hey, good to keep chatting with you.";
+    }
+
+    return replyLanguage === "zh-Hans"
+      ? "你好，很高兴见到你。"
+      : "Hello, it is good to see you.";
   }
 
   if (
@@ -928,6 +1020,25 @@ export async function createSmokeTurn({
     });
   }
 
+  const addressStyleMemory = activeMemories.find(
+    (memory) =>
+      memory.category === "relationship" &&
+      memory.key === "user_address_style" &&
+      memory.scope === "user_agent" &&
+      memory.target_agent_id === ensuredAgent.id
+  );
+
+  if (addressStyleMemory) {
+    recalledMemories.unshift({
+      memory_type: "relationship",
+      content:
+        typeof addressStyleMemory.value === "string"
+          ? addressStyleMemory.value
+          : addressStyleMemory.content,
+      confidence: addressStyleMemory.confidence
+    });
+  }
+
   const usedMemoryTypes = Array.from(
     new Set(recalledMemories.map((memory) => memory.memory_type))
   );
@@ -1047,6 +1158,8 @@ export async function createSmokeTurn({
 
   const smokeNickname = detectSmokeNicknameCandidate(trimmedContent);
   const smokePreferredName = detectSmokeUserPreferredNameCandidate(trimmedContent);
+  const smokeUserAddressStyle =
+    detectSmokeUserAddressStyleCandidate(trimmedContent);
 
   if (smokeNickname) {
     const { data: existingNickname } = await admin
@@ -1154,10 +1267,73 @@ export async function createSmokeTurn({
     }
   }
 
+  if (smokeUserAddressStyle) {
+    const { data: existingAddressStyle } = await admin
+      .from("memory_items")
+      .select("id")
+      .eq("workspace_id", smokeUser.workspaceId)
+      .eq("user_id", smokeUser.id)
+      .eq("category", "relationship")
+      .eq("key", "user_address_style")
+      .eq("scope", "user_agent")
+      .eq("target_agent_id", ensuredAgent.id)
+      .eq("value", smokeUserAddressStyle)
+      .maybeSingle();
+
+    if (!existingAddressStyle) {
+      const { error } = await admin.from("memory_items").insert({
+        workspace_id: smokeUser.workspaceId,
+        user_id: smokeUser.id,
+        agent_id: ensuredAgent.id,
+        source_message_id: ensuredUserMessage.id,
+        memory_type: null,
+        content: smokeUserAddressStyle,
+        confidence: 0.9,
+        importance: 0.5,
+        ...buildMemoryV2Fields({
+          category: "relationship",
+          key: "user_address_style",
+          value: smokeUserAddressStyle,
+          scope: "user_agent",
+          subjectUserId: smokeUser.id,
+          targetAgentId: ensuredAgent.id,
+          stability: "medium",
+          status: "active",
+          sourceRefs: [
+            {
+              kind: "message",
+              source_message_id: ensuredUserMessage.id
+            }
+          ]
+        }),
+        metadata: {
+          smoke_seed: true,
+          relation_kind: "user_address_style"
+        }
+      });
+
+      if (error) {
+        throw new Error(`Failed to seed address-style memory: ${error.message}`);
+      }
+
+      createdTypes.push("relationship");
+    }
+  }
+
   const assistantContent = buildSmokeAssistantReply({
     content: trimmedContent,
     modelProfileName: modelProfile.name,
     agentName: ensuredAgent.name,
+    addressStyleMemory: addressStyleMemory
+      ? {
+          memory_type: "relationship",
+          content:
+            typeof addressStyleMemory.value === "string"
+              ? addressStyleMemory.value
+              : addressStyleMemory.content,
+          confidence: addressStyleMemory.confidence
+        }
+      : null,
     nicknameMemory: nicknameMemory
       ? {
           memory_type: "relationship",

@@ -632,6 +632,115 @@ test.describe("core chat smoke", () => {
     });
   });
 
+  test("keeps user address style scoped to the same agent", async ({
+    page,
+    request
+  }) => {
+    const styleSeedThread = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(styleSeedThread.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await styleSeedThread.json()) as {
+      threadId: string;
+    };
+
+    const seedStyleTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "以后和我说话轻松一点，可以吗？"
+      }
+    });
+
+    expect(seedStyleTurn.ok()).toBeTruthy();
+
+    const sameAgentThread = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(sameAgentThread.ok()).toBeTruthy();
+    const { threadId: sameAgentThreadId } = (await sameAgentThread.json()) as {
+      threadId: string;
+    };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${sameAgentThreadId}`
+    );
+
+    const sameAgentGreetingTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: sameAgentThreadId,
+        content: "请简单和我打个招呼。"
+      }
+    });
+
+    expect(sameAgentGreetingTurn.ok()).toBeTruthy();
+    await page.reload();
+
+    await expect(page.getByText("嗨，很高兴继续和你聊。").first()).toBeVisible({
+      timeout: 45_000
+    });
+
+    const differentAgentThread = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(differentAgentThread.ok()).toBeTruthy();
+    const { threadId: differentAgentThreadId } =
+      (await differentAgentThread.json()) as { threadId: string };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${differentAgentThreadId}`
+    );
+
+    const differentAgentGreetingTurn = await request.post(
+      "/api/test/smoke-send-turn",
+      {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId: differentAgentThreadId,
+          content: "请简单和我打个招呼。"
+        }
+      }
+    );
+
+    expect(differentAgentGreetingTurn.ok()).toBeTruthy();
+    await page.reload();
+
+    await expect(page.getByText("你好，很高兴见到你。").first()).toBeVisible({
+      timeout: 45_000
+    });
+  });
+
   test("covers memory correction controls and agent defaults/model profile changes", async ({
     page,
     request

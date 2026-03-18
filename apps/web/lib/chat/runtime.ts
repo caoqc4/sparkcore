@@ -14,6 +14,7 @@ import {
   isDirectAgentNamingQuestion,
   isDirectUserPreferredNameQuestion,
   recallAgentNickname,
+  recallUserAddressStyle,
   recallUserPreferredName,
   recallRelevantMemories
 } from "@/lib/chat/memory";
@@ -221,6 +222,11 @@ function buildMemoryRecallPrompt(
   relationshipRecall: {
     directNamingQuestion: boolean;
     directPreferredNameQuestion: boolean;
+    addressStyleMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
     nicknameMemory: {
       memory_type: "relationship";
       content: string;
@@ -240,6 +246,7 @@ function buildMemoryRecallPrompt(
 
   if (
     recalledMemories.length === 0 &&
+    !relationshipRecall.addressStyleMemory &&
     !relationshipRecall.nicknameMemory &&
     !relationshipRecall.preferredNameMemory
   ) {
@@ -316,12 +323,19 @@ function buildMemoryRecallPrompt(
               "If the user asks how you should address them, say that you have not stored a preferred name yet and do not invent one."
             ]
         : [];
+  const addressStyleSections = relationshipRecall.addressStyleMemory
+    ? buildAddressStyleRecallInstructions({
+        isZh,
+        styleValue: relationshipRecall.addressStyleMemory.content
+      })
+    : [];
 
   const sections = isZh
     ? [
         "与这条回复相关的长期记忆：",
         ...relationshipSections,
         ...preferredNameSections,
+        ...addressStyleSections,
         ...recalledMemories.map(
           (memory, index) =>
             `${index + 1}. [${memory.memory_type}] ${memory.content}（置信度 ${memory.confidence.toFixed(2)}）`
@@ -333,6 +347,7 @@ function buildMemoryRecallPrompt(
         "Relevant long-term memory for this reply:",
         ...relationshipSections,
         ...preferredNameSections,
+        ...addressStyleSections,
         ...recalledMemories.map(
           (memory, index) =>
             `${index + 1}. [${memory.memory_type}] ${memory.content} (confidence ${memory.confidence.toFixed(2)})`
@@ -346,6 +361,60 @@ function buildMemoryRecallPrompt(
   }
 
   return sections.join("\n");
+}
+
+function buildAddressStyleRecallInstructions({
+  isZh,
+  styleValue
+}: {
+  isZh: boolean;
+  styleValue: string;
+}) {
+  if (styleValue === "formal") {
+    return isZh
+      ? [
+          "结构化关系记忆：当前这个 agent 应该用更正式、更礼貌的方式和用户互动。",
+          "保持正式，但不要生硬。"
+        ]
+      : [
+          "Structured relationship memory: this agent should interact with the user in a more formal, respectful way.",
+          "Keep the tone formal without sounding stiff."
+        ];
+  }
+
+  if (styleValue === "friendly") {
+    return isZh
+      ? [
+          "结构化关系记忆：当前这个 agent 应该更像朋友一样和用户互动。",
+          "保持自然、亲近，但不要夸张。"
+        ]
+      : [
+          "Structured relationship memory: this agent should interact with the user in a more friendly, companion-like way.",
+          "Keep the tone warm and natural without overdoing it."
+        ];
+  }
+
+  if (styleValue === "no_full_name") {
+    return isZh
+      ? [
+          "结构化关系记忆：当前这个 agent 不应使用用户的全名来称呼对方。",
+          "如果需要称呼用户，优先使用更短或更中性的方式。"
+        ]
+      : [
+          "Structured relationship memory: this agent should avoid addressing the user by their full name.",
+          "If you need to address the user, prefer a shorter or more neutral form."
+        ];
+  }
+
+  return isZh
+    ? [
+        "结构化关系记忆：当前这个 agent 应该用更轻松、不那么正式的方式和用户互动。",
+        "保持自然、简洁和轻松，不要突然切回非常正式的口吻。"
+      ]
+    : [
+        "Structured relationship memory: this agent should interact with the user in a more casual, less formal way.",
+        "Keep the tone natural, concise, and relaxed instead of suddenly becoming very formal."
+      ];
 }
 
 function getDirectRecallQuestionKind(
@@ -496,6 +565,11 @@ function buildAgentSystemPrompt(
   relationshipRecall: {
     directNamingQuestion: boolean;
     directPreferredNameQuestion: boolean;
+    addressStyleMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
     nicknameMemory: {
       memory_type: "relationship";
       content: string;
@@ -509,6 +583,7 @@ function buildAgentSystemPrompt(
   } = {
     directNamingQuestion: false,
     directPreferredNameQuestion: false,
+    addressStyleMemory: null,
     nicknameMemory: null,
     preferredNameMemory: null
   }
@@ -1403,6 +1478,11 @@ export async function generateAgentReply({
   let relationshipRecall: {
     directNamingQuestion: boolean;
     directPreferredNameQuestion: boolean;
+    addressStyleMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
     nicknameMemory: {
       memory_type: "relationship";
       content: string;
@@ -1416,15 +1496,12 @@ export async function generateAgentReply({
   } = {
     directNamingQuestion: false,
     directPreferredNameQuestion: false,
+    addressStyleMemory: null,
     nicknameMemory: null,
     preferredNameMemory: null
   };
 
-  if (
-    latestUserMessage &&
-    (isDirectAgentNamingQuestion(latestUserMessage.content) ||
-      isDirectUserPreferredNameQuestion(latestUserMessage.content))
-  ) {
+  if (latestUserMessage) {
     const nicknameRecall = isDirectAgentNamingQuestion(latestUserMessage.content)
       ? await recallAgentNickname({
           workspaceId: workspace.id,
@@ -1450,15 +1527,22 @@ export async function generateAgentReply({
           directPreferredNameQuestion: false,
           preferredNameMemory: null
         };
+    const addressStyleRecall = await recallUserAddressStyle({
+      workspaceId: workspace.id,
+      userId,
+      agentId: agent.id
+    });
 
     relationshipRecall = {
       ...relationshipRecall,
+      ...addressStyleRecall,
       ...nicknameRecall,
       ...preferredNameRecall
     };
   }
   const recalledMemories = memoryRecall.memories;
   const relationshipMemories = [
+    relationshipRecall.addressStyleMemory,
     relationshipRecall.nicknameMemory,
     relationshipRecall.preferredNameMemory
   ].filter(Boolean) as Array<{
