@@ -12,7 +12,9 @@ import {
 } from "@/lib/chat/memory-v2";
 import {
   isDirectAgentNamingQuestion,
+  isDirectUserPreferredNameQuestion,
   recallAgentNickname,
+  recallUserPreferredName,
   recallRelevantMemories
 } from "@/lib/chat/memory";
 import { createClient } from "@/lib/supabase/server";
@@ -178,7 +180,13 @@ function buildMemoryRecallPrompt(
   replyLanguage: RuntimeReplyLanguage,
   relationshipRecall: {
     directNamingQuestion: boolean;
+    directPreferredNameQuestion: boolean;
     nicknameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    preferredNameMemory: {
       memory_type: "relationship";
       content: string;
       confidence: number;
@@ -196,8 +204,16 @@ function buildMemoryRecallPrompt(
     normalizedUserMessage.includes("你记得") ||
     normalizedUserMessage.includes("你还记得");
 
-  if (recalledMemories.length === 0 && !relationshipRecall.nicknameMemory) {
-    if (!isDirectMemoryQuestion && !relationshipRecall.directNamingQuestion) {
+  if (
+    recalledMemories.length === 0 &&
+    !relationshipRecall.nicknameMemory &&
+    !relationshipRecall.preferredNameMemory
+  ) {
+    if (
+      !isDirectMemoryQuestion &&
+      !relationshipRecall.directNamingQuestion &&
+      !relationshipRecall.directPreferredNameQuestion
+    ) {
       return "";
     }
 
@@ -241,10 +257,37 @@ function buildMemoryRecallPrompt(
             ]
         : [];
 
+  const preferredNameSections =
+    relationshipRecall.directPreferredNameQuestion &&
+    relationshipRecall.preferredNameMemory
+      ? isZh
+        ? [
+            `结构化关系记忆：当前这个 agent 应该把用户叫作“${relationshipRecall.preferredNameMemory.content}”。`,
+            "如果用户在问你应该怎么叫他/她，优先使用这个称呼回答，不要编造别的名字。",
+            "不要把没有对话历史和没有长期记忆混为一谈。"
+          ]
+        : [
+            `Structured relationship memory: this agent should address the user as "${relationshipRecall.preferredNameMemory.content}".`,
+            "If the user asks how you should address them, answer with this stored preferred name before falling back to generic wording.",
+            "Do not confuse missing conversation history with missing long-term memory."
+          ]
+      : relationshipRecall.directPreferredNameQuestion
+        ? isZh
+          ? [
+              "结构化关系记忆：当前没有这个用户针对该 agent 的称呼偏好记忆。",
+              "如果用户问你该怎么叫他/她，直接说明你还没有记住偏好的称呼，不要编造。"
+            ]
+          : [
+              "Structured relationship memory: no preferred-name memory exists for this user and agent.",
+              "If the user asks how you should address them, say that you have not stored a preferred name yet and do not invent one."
+            ]
+        : [];
+
   const sections = isZh
     ? [
         "与这条回复相关的长期记忆：",
         ...relationshipSections,
+        ...preferredNameSections,
         ...recalledMemories.map(
           (memory, index) =>
             `${index + 1}. [${memory.memory_type}] ${memory.content}（置信度 ${memory.confidence.toFixed(2)}）`
@@ -255,6 +298,7 @@ function buildMemoryRecallPrompt(
     : [
         "Relevant long-term memory for this reply:",
         ...relationshipSections,
+        ...preferredNameSections,
         ...recalledMemories.map(
           (memory, index) =>
             `${index + 1}. [${memory.memory_type}] ${memory.content} (confidence ${memory.confidence.toFixed(2)})`
@@ -327,14 +371,22 @@ function buildAgentSystemPrompt(
   replyLanguage: RuntimeReplyLanguage = "unknown",
   relationshipRecall: {
     directNamingQuestion: boolean;
+    directPreferredNameQuestion: boolean;
     nicknameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    preferredNameMemory: {
       memory_type: "relationship";
       content: string;
       confidence: number;
     } | null;
   } = {
     directNamingQuestion: false,
-    nicknameMemory: null
+    directPreferredNameQuestion: false,
+    nicknameMemory: null,
+    preferredNameMemory: null
   }
 ) {
   const sections = [
@@ -1224,8 +1276,32 @@ export async function generateAgentReply({
         hiddenExclusionCount: 0,
         incorrectExclusionCount: 0
       };
-  const relationshipRecall =
-    latestUserMessage && isDirectAgentNamingQuestion(latestUserMessage.content)
+  let relationshipRecall: {
+    directNamingQuestion: boolean;
+    directPreferredNameQuestion: boolean;
+    nicknameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    preferredNameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+  } = {
+    directNamingQuestion: false,
+    directPreferredNameQuestion: false,
+    nicknameMemory: null,
+    preferredNameMemory: null
+  };
+
+  if (
+    latestUserMessage &&
+    (isDirectAgentNamingQuestion(latestUserMessage.content) ||
+      isDirectUserPreferredNameQuestion(latestUserMessage.content))
+  ) {
+    const nicknameRecall = isDirectAgentNamingQuestion(latestUserMessage.content)
       ? await recallAgentNickname({
           workspaceId: workspace.id,
           userId,
@@ -1236,10 +1312,40 @@ export async function generateAgentReply({
           directNamingQuestion: false,
           nicknameMemory: null
         };
+
+    const preferredNameRecall = isDirectUserPreferredNameQuestion(
+      latestUserMessage.content
+    )
+      ? await recallUserPreferredName({
+          workspaceId: workspace.id,
+          userId,
+          agentId: agent.id,
+          latestUserMessage: latestUserMessage.content
+        })
+      : {
+          directPreferredNameQuestion: false,
+          preferredNameMemory: null
+        };
+
+    relationshipRecall = {
+      ...relationshipRecall,
+      ...nicknameRecall,
+      ...preferredNameRecall
+    };
+  }
   const recalledMemories = memoryRecall.memories;
-  const allRecalledMemories = relationshipRecall.nicknameMemory
-    ? [...recalledMemories, relationshipRecall.nicknameMemory]
-    : recalledMemories;
+  const relationshipMemories = [
+    relationshipRecall.nicknameMemory,
+    relationshipRecall.preferredNameMemory
+  ].filter(Boolean) as Array<{
+    memory_type: "relationship";
+    content: string;
+    confidence: number;
+  }>;
+  const allRecalledMemories =
+    relationshipMemories.length > 0
+      ? [...recalledMemories, ...relationshipMemories]
+      : recalledMemories;
   const modelProfile = await resolveModelProfileForAgent({
     agent,
     workspaceId: workspace.id,
@@ -1290,7 +1396,7 @@ export async function generateAgentReply({
       reply_language_detected: detectReplyLanguageFromText(result.content),
       memory_hit_count: allRecalledMemories.length,
       memory_used: allRecalledMemories.length > 0,
-      memory_types_used: relationshipRecall.nicknameMemory
+      memory_types_used: relationshipMemories.length > 0
         ? Array.from(
             new Set([...memoryRecall.usedMemoryTypes, "relationship" as const])
           )

@@ -82,7 +82,8 @@ type MemoryWriteOutcome = {
 type SingleSlotMemoryKey =
   | "profession"
   | "reply_language"
-  | "agent_nickname";
+  | "agent_nickname"
+  | "user_preferred_name";
 
 type NormalizedMemoryCandidate = MemoryCandidate & {
   normalized_content: string;
@@ -329,6 +330,30 @@ function detectRelationshipAgentNicknameCandidate(message: string) {
   return null;
 }
 
+function detectRelationshipUserPreferredNameCandidate(message: string) {
+  const normalized = message.normalize("NFKC").trim();
+  const patterns = [
+    /以后你(?:可以)?叫我([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})可以吗/u,
+    /你以后(?:可以)?叫我([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})/u,
+    /你可以叫我([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})/u,
+    /你就叫我([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})/u,
+    /please call me ([a-z0-9][a-z0-9 _-]{0,30})/i,
+    /you can call me ([a-z0-9][a-z0-9 _-]{0,30})/i,
+    /address me as ([a-z0-9][a-z0-9 _-]{0,30})/i
+  ];
+
+  for (const pattern of patterns) {
+    const match = normalized.match(pattern);
+    const candidate = match?.[1]?.trim();
+
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
 export function isDirectAgentNamingQuestion(message: string) {
   const normalized = message.normalize("NFKC").trim().toLowerCase();
 
@@ -341,6 +366,20 @@ export function isDirectAgentNamingQuestion(message: string) {
     normalized.includes("what do i call you") ||
     normalized.includes("what is your name") ||
     normalized.includes("aren't you called")
+  );
+}
+
+export function isDirectUserPreferredNameQuestion(message: string) {
+  const normalized = message.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("你该怎么叫我") ||
+    normalized.includes("你以后怎么叫我") ||
+    normalized.includes("你应该叫我什么") ||
+    normalized.includes("你叫我什么") ||
+    normalized.includes("what should you call me") ||
+    normalized.includes("what do you call me") ||
+    normalized.includes("how should you address me")
   );
 }
 
@@ -410,6 +449,80 @@ export async function recallAgentNickname({
           ? nicknameRow.value
           : nicknameRow.content,
       confidence: nicknameRow.confidence
+    }
+  };
+}
+
+export async function recallUserPreferredName({
+  workspaceId,
+  userId,
+  agentId,
+  latestUserMessage
+}: {
+  workspaceId: string;
+  userId: string;
+  agentId: string;
+  latestUserMessage: string;
+}): Promise<{
+  directPreferredNameQuestion: boolean;
+  preferredNameMemory: {
+    memory_type: "relationship";
+    content: string;
+    confidence: number;
+  } | null;
+}> {
+  const directPreferredNameQuestion = isDirectUserPreferredNameQuestion(
+    latestUserMessage
+  );
+
+  if (!directPreferredNameQuestion) {
+    return {
+      directPreferredNameQuestion: false,
+      preferredNameMemory: null
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("memory_items")
+    .select(
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at"
+    )
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .eq("category", "relationship")
+    .eq("key", "user_preferred_name")
+    .eq("scope", "user_agent")
+    .eq("target_agent_id", agentId)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error) {
+    throw new Error(
+      `Failed to load preferred-name relationship memory: ${error.message}`
+    );
+  }
+
+  const preferredNameRow = ((data ?? []) as StoredMemory[]).find((memory) =>
+    isMemoryActive(memory)
+  );
+
+  if (!preferredNameRow) {
+    return {
+      directPreferredNameQuestion: true,
+      preferredNameMemory: null
+    };
+  }
+
+  return {
+    directPreferredNameQuestion: true,
+    preferredNameMemory: {
+      memory_type: "relationship" as const,
+      content:
+        typeof preferredNameRow.value === "string"
+          ? preferredNameRow.value
+          : preferredNameRow.content,
+      confidence: preferredNameRow.confidence
     }
   };
 }
@@ -647,6 +760,9 @@ export async function extractAndStoreMemories({
   const relationshipNickname = detectRelationshipAgentNicknameCandidate(
     latestUserMessage
   );
+  const userPreferredName = detectRelationshipUserPreferredNameCandidate(
+    latestUserMessage
+  );
 
   if (relationshipNickname && agentId) {
     const relationshipWrite = await upsertSingleSlotMemory({
@@ -672,6 +788,34 @@ export async function extractAndStoreMemories({
     }
 
     if (relationshipWrite.updated) {
+      updatedTypes.push("relationship");
+    }
+  }
+
+  if (userPreferredName && agentId) {
+    const preferredNameWrite = await upsertSingleSlotMemory({
+      workspaceId,
+      userId,
+      agentId,
+      sourceMessageId,
+      category: "relationship",
+      key: "user_preferred_name",
+      value: userPreferredName,
+      scope: "user_agent",
+      targetAgentId: agentId,
+      confidence: 0.94,
+      stability: "high",
+      metadata: {
+        source: "relationship_parser",
+        relation_kind: "user_preferred_name"
+      }
+    });
+
+    if (preferredNameWrite.created) {
+      createdTypes.push("relationship");
+    }
+
+    if (preferredNameWrite.updated) {
       updatedTypes.push("relationship");
     }
   }

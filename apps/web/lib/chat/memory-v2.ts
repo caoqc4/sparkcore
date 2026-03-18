@@ -14,13 +14,15 @@ export type MemoryStatus =
 export type SupportedSingleSlotKey =
   | "profile.profession"
   | "preference.reply_language"
-  | "relationship.agent_nickname";
+  | "relationship.agent_nickname"
+  | "relationship.user_preferred_name";
 
 export const LEGACY_MEMORY_KEY = "legacy_content";
 export const SUPPORTED_SINGLE_SLOT_KEYS = new Set<SupportedSingleSlotKey>([
   "profile.profession",
   "preference.reply_language",
-  "relationship.agent_nickname"
+  "relationship.agent_nickname",
+  "relationship.user_preferred_name"
 ]);
 
 type MemoryLike = {
