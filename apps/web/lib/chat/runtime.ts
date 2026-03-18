@@ -23,6 +23,23 @@ import { createClient } from "@/lib/supabase/server";
 const DEFAULT_PERSONA_SLUGS = ["companion_default", "spark-guide"];
 const DEFAULT_MODEL_PROFILE_SLUG = "spark-default";
 
+function isRelationshipStylePrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("请简单介绍一下你自己") ||
+    normalized.includes("简单介绍一下你自己") ||
+    normalized.includes("先简单介绍一下你自己") ||
+    normalized.includes("请简单和我打个招呼") ||
+    normalized.includes("简单和我打个招呼") ||
+    normalized.includes("简短和我打个招呼") ||
+    normalized.includes("introduce yourself briefly") ||
+    normalized.includes("briefly introduce yourself") ||
+    normalized.includes("greet me briefly") ||
+    normalized.includes("say a quick hello")
+  );
+}
+
 type WorkspaceRecord = {
   id: string;
   name: string;
@@ -227,6 +244,7 @@ function buildMemoryRecallPrompt(
   relationshipRecall: {
     directNamingQuestion: boolean;
     directPreferredNameQuestion: boolean;
+    relationshipStylePrompt: boolean;
     addressStyleMemory: {
       memory_type: "relationship";
       content: string;
@@ -279,17 +297,25 @@ function buildMemoryRecallPrompt(
   }
 
   const relationshipSections =
-    relationshipRecall.directNamingQuestion && relationshipRecall.nicknameMemory
+    (relationshipRecall.directNamingQuestion ||
+      relationshipRecall.relationshipStylePrompt) &&
+    relationshipRecall.nicknameMemory
       ? isZh
         ? [
             `结构化关系记忆：当前用户可以把这个 agent 叫作“${relationshipRecall.nicknameMemory.content}”。`,
-            "如果用户在问你叫什么或以后怎么叫你，优先使用这个昵称回答，而不是只返回 agent 的 canonical name。",
-            "不要说你没有先前知识、没有对话历史，或不记得。"
+            relationshipRecall.directNamingQuestion
+              ? "如果用户在问你叫什么或以后怎么叫你，优先使用这个昵称回答，而不是只返回 agent 的 canonical name。"
+              : "当你在做自我介绍、开场或延续关系感时，优先自然使用这个昵称，而不是只返回 agent 的 canonical name。",
+            "不要说你没有先前知识、没有对话历史，或不记得。",
+            "当相关时，让这个昵称自然地体现在开场、自我介绍和后续称呼里，而不只是机械地提一次。"
           ]
         : [
             `Structured relationship memory: this user can call the current agent "${relationshipRecall.nicknameMemory.content}".`,
-            "If the user asks what to call you or what your name is, answer with this nickname before the canonical agent name.",
-            "Do not say that you have no prior knowledge, no conversation history, or no memory."
+            relationshipRecall.directNamingQuestion
+              ? "If the user asks what to call you or what your name is, answer with this nickname before the canonical agent name."
+              : "When you introduce yourself or set the tone of the exchange, naturally use this nickname before falling back to the canonical agent name.",
+            "Do not say that you have no prior knowledge, no conversation history, or no memory.",
+            "When relevant, let this nickname show up naturally in openings, self-introductions, and follow-up phrasing instead of mentioning it only once."
           ]
       : relationshipRecall.directNamingQuestion
         ? isZh
@@ -304,18 +330,25 @@ function buildMemoryRecallPrompt(
         : [];
 
   const preferredNameSections =
-    relationshipRecall.directPreferredNameQuestion &&
+    (relationshipRecall.directPreferredNameQuestion ||
+      relationshipRecall.relationshipStylePrompt) &&
     relationshipRecall.preferredNameMemory
       ? isZh
         ? [
             `结构化关系记忆：当前这个 agent 应该把用户叫作“${relationshipRecall.preferredNameMemory.content}”。`,
-            "如果用户在问你应该怎么叫他/她，优先使用这个称呼回答，不要编造别的名字。",
-            "不要把没有对话历史和没有长期记忆混为一谈。"
+            relationshipRecall.directPreferredNameQuestion
+              ? "如果用户在问你应该怎么叫他/她，优先使用这个称呼回答，不要编造别的名字。"
+              : "当你在开场、称呼或收尾里需要称呼用户时，优先使用这个称呼，不要编造别的名字。",
+            "不要把没有对话历史和没有长期记忆混为一谈。",
+            "当相关时，在开场、称呼和收尾里稳定使用这个称呼，而不是只在解释时提到一次。"
           ]
         : [
             `Structured relationship memory: this agent should address the user as "${relationshipRecall.preferredNameMemory.content}".`,
-            "If the user asks how you should address them, answer with this stored preferred name before falling back to generic wording.",
-            "Do not confuse missing conversation history with missing long-term memory."
+            relationshipRecall.directPreferredNameQuestion
+              ? "If the user asks how you should address them, answer with this stored preferred name before falling back to generic wording."
+              : "When you need to address the user in openings, greetings, or closings, use this stored preferred name before falling back to generic wording.",
+            "Do not confuse missing conversation history with missing long-term memory.",
+            "When relevant, use this preferred name consistently in openings, address terms, and closings instead of mentioning it only in a factual explanation."
           ]
       : relationshipRecall.directPreferredNameQuestion
         ? isZh
@@ -379,11 +412,13 @@ function buildAddressStyleRecallInstructions({
     return isZh
       ? [
           "结构化关系记忆：当前这个 agent 应该用更正式、更礼貌的方式和用户互动。",
-          "保持正式，但不要生硬。"
+          "保持正式，但不要生硬。",
+          "让这种风格稳定体现在开场、过渡和收尾里，而不只是局部句子。"
         ]
       : [
           "Structured relationship memory: this agent should interact with the user in a more formal, respectful way.",
-          "Keep the tone formal without sounding stiff."
+          "Keep the tone formal without sounding stiff.",
+          "Let this style show up consistently in openings, transitions, and closings rather than in only one sentence."
         ];
   }
 
@@ -391,11 +426,13 @@ function buildAddressStyleRecallInstructions({
     return isZh
       ? [
           "结构化关系记忆：当前这个 agent 应该更像朋友一样和用户互动。",
-          "保持自然、亲近，但不要夸张。"
+          "保持自然、亲近，但不要夸张。",
+          "让这种关系感稳定体现在开场语、称呼和收尾里。"
         ]
       : [
           "Structured relationship memory: this agent should interact with the user in a more friendly, companion-like way.",
-          "Keep the tone warm and natural without overdoing it."
+          "Keep the tone warm and natural without overdoing it.",
+          "Let this relationship style show up in greetings, address terms, and closings."
         ];
   }
 
@@ -403,22 +440,26 @@ function buildAddressStyleRecallInstructions({
     return isZh
       ? [
           "结构化关系记忆：当前这个 agent 不应使用用户的全名来称呼对方。",
-          "如果需要称呼用户，优先使用更短或更中性的方式。"
+          "如果需要称呼用户，优先使用更短或更中性的方式。",
+          "在开场和收尾里也要遵守这个约束，不要只在解释时遵守。"
         ]
       : [
           "Structured relationship memory: this agent should avoid addressing the user by their full name.",
-          "If you need to address the user, prefer a shorter or more neutral form."
+          "If you need to address the user, prefer a shorter or more neutral form.",
+          "Apply this in openings and closings too, not only in factual explanations."
         ];
   }
 
   return isZh
     ? [
         "结构化关系记忆：当前这个 agent 应该用更轻松、不那么正式的方式和用户互动。",
-        "保持自然、简洁和轻松，不要突然切回非常正式的口吻。"
+        "保持自然、简洁和轻松，不要突然切回非常正式的口吻。",
+        "让这种语气稳定体现在开场、自我介绍和收尾里。"
       ]
     : [
         "Structured relationship memory: this agent should interact with the user in a more casual, less formal way.",
-        "Keep the tone natural, concise, and relaxed instead of suddenly becoming very formal."
+        "Keep the tone natural, concise, and relaxed instead of suddenly becoming very formal.",
+        "Carry this tone through greetings, self-introductions, and closings."
       ];
 }
 
@@ -597,6 +638,7 @@ function buildAgentSystemPrompt(
   relationshipRecall: {
     directNamingQuestion: boolean;
     directPreferredNameQuestion: boolean;
+    relationshipStylePrompt: boolean;
     addressStyleMemory: {
       memory_type: "relationship";
       content: string;
@@ -615,6 +657,7 @@ function buildAgentSystemPrompt(
   } = {
     directNamingQuestion: false,
     directPreferredNameQuestion: false,
+    relationshipStylePrompt: false,
     addressStyleMemory: null,
     nicknameMemory: null,
     preferredNameMemory: null
@@ -1565,6 +1608,7 @@ export async function generateAgentReply({
   let relationshipRecall: {
     directNamingQuestion: boolean;
     directPreferredNameQuestion: boolean;
+    relationshipStylePrompt: boolean;
     addressStyleMemory: {
       memory_type: "relationship";
       content: string;
@@ -1583,13 +1627,23 @@ export async function generateAgentReply({
   } = {
     directNamingQuestion: false,
     directPreferredNameQuestion: false,
+    relationshipStylePrompt: false,
     addressStyleMemory: null,
     nicknameMemory: null,
     preferredNameMemory: null
   };
 
   if (latestUserMessage) {
-    const nicknameRecall = isDirectAgentNamingQuestion(latestUserMessage.content)
+    const relationshipStylePrompt = isRelationshipStylePrompt(
+      latestUserMessage.content
+    );
+    const directNamingQuestion = isDirectAgentNamingQuestion(
+      latestUserMessage.content
+    );
+    const directPreferredNameQuestion = isDirectUserPreferredNameQuestion(
+      latestUserMessage.content
+    );
+    const nicknameRecall = directNamingQuestion || relationshipStylePrompt
       ? await recallAgentNickname({
           workspaceId: workspace.id,
           userId,
@@ -1601,9 +1655,7 @@ export async function generateAgentReply({
           nicknameMemory: null
         };
 
-    const preferredNameRecall = isDirectUserPreferredNameQuestion(
-      latestUserMessage.content
-    )
+    const preferredNameRecall = directPreferredNameQuestion || relationshipStylePrompt
       ? await recallUserPreferredName({
           workspaceId: workspace.id,
           userId,
@@ -1622,6 +1674,7 @@ export async function generateAgentReply({
 
     relationshipRecall = {
       ...relationshipRecall,
+      relationshipStylePrompt,
       ...addressStyleRecall,
       ...nicknameRecall,
       ...preferredNameRecall

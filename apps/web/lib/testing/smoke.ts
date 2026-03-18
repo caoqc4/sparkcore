@@ -685,6 +685,18 @@ function isSmokeBriefGreetingRequest(content: string) {
   );
 }
 
+function isSmokeSelfIntroGreetingRequest(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("请简单介绍一下你自己") ||
+    normalized.includes("简单介绍一下你自己") ||
+    normalized.includes("先简单介绍一下你自己") ||
+    normalized.includes("introduce yourself briefly") ||
+    normalized.includes("briefly introduce yourself")
+  );
+}
+
 function isSmokeDirectPlanningPreferenceQuestion(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
@@ -773,6 +785,62 @@ function buildSmokeAssistantReply({
     return replyLanguage === "zh-Hans"
       ? `你好，我是通过 ${modelProfileName} 回复的 SparkCore。`
       : `Hello from SparkCore via ${modelProfileName}.`;
+  }
+
+  if (isSmokeSelfIntroGreetingRequest(content)) {
+    const styleValue = addressStyleMemory?.content ?? null;
+    const selfName = nicknameMemory?.content ?? agentName;
+    const userName = preferredNameMemory?.content ?? null;
+
+    if (replyLanguage === "zh-Hans") {
+      const greeting =
+        styleValue === "formal"
+          ? userName
+            ? `您好，${userName}。`
+            : "您好。"
+          : styleValue === "friendly"
+            ? userName
+              ? `嗨，${userName}。`
+              : "嗨，朋友。"
+            : styleValue === "casual"
+              ? userName
+                ? `嗨，${userName}。`
+                : "嗨。"
+              : userName
+                ? `你好，${userName}。`
+                : "你好。";
+
+      const intro =
+        nicknameMemory || styleValue === "friendly"
+          ? `我是${selfName}，很高兴继续和你聊。`
+          : `我是${selfName}，很高兴继续为你提供帮助。`;
+
+      return `${greeting} ${intro}`;
+    }
+
+    const greeting =
+      styleValue === "formal"
+        ? userName
+          ? `Hello, ${userName}.`
+          : "Hello."
+        : styleValue === "friendly"
+          ? userName
+            ? `Hey, ${userName}.`
+            : "Hey, friend."
+          : styleValue === "casual"
+            ? userName
+              ? `Hey, ${userName}.`
+              : "Hey."
+            : userName
+              ? `Hello, ${userName}.`
+              : "Hello.";
+
+    const intro =
+      nicknameMemory || styleValue === "friendly"
+        ? `I am ${selfName}, and it is good to keep chatting with you.`
+        : `I am ${selfName}, and I am glad to keep helping you.`;
+
+    return `${greeting} ${intro}`;
   }
 
   if (isSmokeBriefGreetingRequest(content)) {
@@ -888,14 +956,54 @@ function buildSmokeAssistantReply({
     content.includes("请用两句话介绍你自己") ||
     content.includes("你能如何帮助我")
   ) {
-    return "我是 SparkCore，可以用中文帮助你梳理计划、整理记忆，并继续当前线程里的对话。";
+    const styleValue = addressStyleMemory?.content ?? null;
+    const selfName = nicknameMemory?.content ?? "SparkCore";
+    const userName = preferredNameMemory?.content ?? null;
+    const opening =
+      styleValue === "formal"
+        ? userName
+          ? `您好，${userName}。`
+          : "您好。"
+        : styleValue === "friendly"
+          ? userName
+            ? `嗨，${userName}。`
+            : "嗨，朋友。"
+          : styleValue === "casual"
+            ? userName
+              ? `嗨，${userName}。`
+              : "嗨。"
+            : userName
+              ? `你好，${userName}。`
+              : "你好。";
+
+    return `${opening} 我是${selfName}，可以用中文帮助你梳理计划、整理记忆，并继续当前线程里的对话。`;
   }
 
   if (
     normalized.includes("please introduce yourself in two short sentences") ||
     normalized.includes("explain how you can help me")
   ) {
-    return "I am SparkCore, and I can help you organize plans, reuse memory, and continue conversations across threads.";
+    const styleValue = addressStyleMemory?.content ?? null;
+    const selfName = nicknameMemory?.content ?? "SparkCore";
+    const userName = preferredNameMemory?.content ?? null;
+    const opening =
+      styleValue === "formal"
+        ? userName
+          ? `Hello, ${userName}.`
+          : "Hello."
+        : styleValue === "friendly"
+          ? userName
+            ? `Hey, ${userName}.`
+            : "Hey, friend."
+          : styleValue === "casual"
+            ? userName
+              ? `Hey, ${userName}.`
+              : "Hey."
+            : userName
+              ? `Hello, ${userName}.`
+              : "Hello.";
+
+    return `${opening} I am ${selfName}, and I can help you organize plans, reuse memory, and continue conversations across threads.`;
   }
 
   return replyLanguage === "zh-Hans"
@@ -1037,7 +1145,9 @@ export async function createSmokeTurn({
       content: memory.content,
       confidence: memory.confidence
     }));
-  const nicknameMemory = isSmokeDirectNamingQuestion(trimmedContent)
+  const relationshipStylePrompt = isSmokeSelfIntroGreetingRequest(trimmedContent);
+  const nicknameMemory =
+    isSmokeDirectNamingQuestion(trimmedContent) || relationshipStylePrompt
     ? activeMemories.find(
         (memory) =>
           memory.category === "relationship" &&
@@ -1057,7 +1167,8 @@ export async function createSmokeTurn({
       confidence: nicknameMemory.confidence
     });
   }
-  const preferredNameMemory = isSmokeDirectUserPreferredNameQuestion(trimmedContent)
+  const preferredNameMemory =
+    isSmokeDirectUserPreferredNameQuestion(trimmedContent) || relationshipStylePrompt
     ? activeMemories.find(
         (memory) =>
           memory.category === "relationship" &&

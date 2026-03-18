@@ -632,6 +632,110 @@ test.describe("core chat smoke", () => {
     });
   });
 
+  test("makes relationship recall visible in self-introduction style", async ({
+    page,
+    request
+  }) => {
+    const relationshipSeedThread = await request.post(
+      "/api/test/smoke-create-thread",
+      {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          agentName: "Smoke Memory Coach"
+        }
+      }
+    );
+
+    expect(relationshipSeedThread.ok()).toBeTruthy();
+    const { threadId: seedThreadId } =
+      (await relationshipSeedThread.json()) as { threadId: string };
+
+    const nicknameTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "以后我叫你小芳可以吗？"
+      }
+    });
+    expect(nicknameTurn.ok()).toBeTruthy();
+
+    const preferredNameTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "以后你叫我阿强可以吗？"
+      }
+    });
+    expect(preferredNameTurn.ok()).toBeTruthy();
+
+    const styleTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "以后和我说话轻松一点，可以吗？"
+      }
+    });
+    expect(styleTurn.ok()).toBeTruthy();
+
+    const sameAgentThread = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(sameAgentThread.ok()).toBeTruthy();
+    const { threadId: sameAgentThreadId } = (await sameAgentThread.json()) as {
+      threadId: string;
+    };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${sameAgentThreadId}`
+    );
+
+    const introTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: sameAgentThreadId,
+        content: "请简单介绍一下你自己。"
+      }
+    });
+
+    expect(introTurn.ok()).toBeTruthy();
+    await page.reload();
+
+    await expect(page.getByText("嗨，阿强。 我是小芳，很高兴继续和你聊。").first()).toBeVisible({
+      timeout: 45_000
+    });
+
+    const latestSummaryHeading = page
+      .locator("summary")
+      .filter({ hasText: "How this reply was generated" })
+      .last();
+    await latestSummaryHeading.click();
+    await expect(page.getByText("This turn used relationship memory.")).toBeVisible({
+      timeout: 45_000
+    });
+  });
+
   test("keeps user address style scoped to the same agent", async ({
     page,
     request
