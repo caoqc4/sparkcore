@@ -107,3 +107,4 @@ npm run quality:eval
 - Chinese quickstart is available at [`README.zh-CN.md`](./README.zh-CN.md)
 - Trial checklist: [`../../docs-public/v1-trial-checklist.md`](../../docs-public/v1-trial-checklist.md)
 - Stage 1 quality baseline: [`../../docs-public/stage1-quality-eval-set.md`](../../docs-public/stage1-quality-eval-set.md)
+- Real chat regression set: [`../../docs-public/real-chat-quality-regression-set.md`](../../docs-public/real-chat-quality-regression-set.md)

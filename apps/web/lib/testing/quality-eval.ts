@@ -20,7 +20,7 @@ export type QualityEvalCase = {
 };
 
 export type QualityEvalSuite = {
-  id: "stage1" | "memory-v2";
+  id: "stage1" | "memory-v2" | "real-chat";
   title: string;
   intro: string;
   cases: QualityEvalCase[];
@@ -322,6 +322,134 @@ export const memoryV2EvalSet: QualityEvalCase[] = [
   }
 ];
 
+export const realChatQualityRegressionSet: QualityEvalCase[] = [
+  {
+    id: "real-chat-same-agent-relationship-continuity",
+    title: "Same-agent nickname and preferred-name continuity survives a new thread",
+    priority: "P0",
+    category: "thread",
+    purpose:
+      "Verify that relationship memories still feel continuous when a new thread is started with the same agent, instead of only working inside one existing thread.",
+    setup: [
+      "Use an agent that supports relationship memory.",
+      "Seed both an agent nickname and a preferred user name on that same agent."
+    ],
+    steps: [
+      'Say: "以后我叫你小芳可以吗？"',
+      'Then say: "以后你叫我阿强可以吗？"',
+      "Start a fresh thread with the same agent.",
+      'Ask: "请简单介绍一下你自己。"'
+    ],
+    observe: [
+      "Whether the opening still uses the seeded nickname and preferred user name.",
+      "Whether the runtime summary still reports relationship memory usage."
+    ],
+    successCriteria: [
+      "The same agent keeps nickname and preferred-name continuity across a new thread.",
+      "The behavior does not depend on staying inside one old thread."
+    ]
+  },
+  {
+    id: "real-chat-profession-recall",
+    title: "Remembered profession stays faithful in a direct follow-up question",
+    priority: "P0",
+    category: "fidelity",
+    purpose:
+      "Verify that a recalled profession memory is reflected directly in the final answer instead of being watered down or contradicted.",
+    setup: [
+      "Use any stable conversation or memory-sensitive profile.",
+      "Start from a clean thread for the seed turn."
+    ],
+    steps: [
+      'Send: "I am a product designer."',
+      "Start a fresh thread.",
+      'Ask: "What profession do you remember that I work in? If you do not know, say you do not know."'
+    ],
+    observe: [
+      "Whether the answer directly states the profession.",
+      "Whether the runtime summary shows a relevant memory hit."
+    ],
+    successCriteria: [
+      'The answer uses "product designer" directly.',
+      'The reply does not confuse "no chat history" with "no long-term memory".'
+    ]
+  },
+  {
+    id: "real-chat-latest-language-priority",
+    title: "Replies follow the latest user message language instead of drifting",
+    priority: "P0",
+    category: "language",
+    purpose:
+      "Verify that the latest user turn has the highest language priority, even when previous turns or recalled memory use a different language.",
+    setup: [
+      "Use one agent in the same thread.",
+      "Optionally seed a memory in English before the Chinese question."
+    ],
+    steps: [
+      'Send an English message such as: "Please introduce yourself briefly."',
+      'Then send a Chinese message such as: "你记得我做什么工作吗？"',
+      "Expand the runtime summary on the later reply."
+    ],
+    observe: [
+      "Whether the second reply stays primarily in Chinese.",
+      "Whether the reply language follows the latest user turn instead of the earlier English turn."
+    ],
+    successCriteria: [
+      "The later Chinese turn receives a Chinese reply.",
+      "Earlier thread language or recalled English memory does not pull the answer back to English."
+    ]
+  },
+  {
+    id: "real-chat-relationship-style-continuity",
+    title: "Relationship style continuity remains visible across multiple turns",
+    priority: "P0",
+    category: "fidelity",
+    purpose:
+      "Verify that relationship recall is not only remembered but also expressed consistently in the answer style across multiple turns.",
+    setup: [
+      'Seed a relationship style such as: "以后和我说话轻松一点，可以吗？"',
+      "Stay in the same thread with the same agent."
+    ],
+    steps: [
+      'Ask: "请简单介绍一下你自己。"',
+      'Then ask: "接下来你会怎么帮助我？"'
+    ],
+    observe: [
+      "Whether the tone stays lightweight and consistent across both replies.",
+      "Whether the second answer preserves the same-thread style instead of snapping back to a neutral default."
+    ],
+    successCriteria: [
+      "Relationship style remains visible across multiple turns in the same thread.",
+      "Same-thread continuity wins over distant defaults."
+    ]
+  },
+  {
+    id: "real-chat-incorrect-restore-cycle",
+    title: "Incorrect and restore change later recall eligibility predictably",
+    priority: "P0",
+    category: "correction",
+    purpose:
+      "Verify that a corrected memory really stops affecting later replies and that restore brings it back in a predictable way.",
+    setup: [
+      "Use a relationship nickname or profession memory that is easy to test."
+    ],
+    steps: [
+      "Mark the memory as Incorrect.",
+      "Start a fresh thread and ask the same direct question again.",
+      "Restore the memory.",
+      "Start another fresh thread and ask the same question once more."
+    ],
+    observe: [
+      "Whether the first fresh-thread reply falls back after Incorrect.",
+      "Whether the second fresh-thread reply uses the memory again after Restore."
+    ],
+    successCriteria: [
+      "Incorrect removes the memory from later recall.",
+      "Restore returns the same memory to later recall."
+    ]
+  }
+];
+
 export const qualityEvalSuites: Record<QualityEvalSuite["id"], QualityEvalSuite> = {
   stage1: {
     id: "stage1",
@@ -336,5 +464,12 @@ export const qualityEvalSuites: Record<QualityEvalSuite["id"], QualityEvalSuite>
     intro:
       "Use this set when Memory v2 schema, scope, update, recall, or correction behavior changes and you need a repeatable baseline instead of relying on gut feel.",
     cases: memoryV2EvalSet
+  },
+  "real-chat": {
+    id: "real-chat",
+    title: "SparkCore Real Chat Quality Regression Set",
+    intro:
+      "Use this set when answer fidelity, language consistency, and relationship continuity change and you want a fixed baseline closer to real trial conversations.",
+    cases: realChatQualityRegressionSet
   }
 };

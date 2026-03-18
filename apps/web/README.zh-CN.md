@@ -109,3 +109,4 @@ npm run quality:eval
 - 当前试用文档同时提供英文版：[`README.md`](./README.md)
 - 更完整的试用检查项见：[`../../docs-public/v1-trial-checklist.zh-CN.md`](../../docs-public/v1-trial-checklist.zh-CN.md)
 - Stage 1 质量评测样例集见：[`../../docs-public/stage1-quality-eval-set.zh-CN.md`](../../docs-public/stage1-quality-eval-set.zh-CN.md)
+- 真实对话质量回归样例集见：[`../../docs-public/real-chat-quality-regression-set.zh-CN.md`](../../docs-public/real-chat-quality-regression-set.zh-CN.md)

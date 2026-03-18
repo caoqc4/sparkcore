@@ -8,3 +8,4 @@ Examples for later:
 - roadmap
 - API docs
 - quality evaluation baselines
+- real chat regression baselines
