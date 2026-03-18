@@ -7,12 +7,23 @@ export type QualityEvalCase = {
     | "language"
     | "thread"
     | "correction"
-    | "model-profile";
+    | "model-profile"
+    | "scope"
+    | "update"
+    | "recall"
+    | "fidelity";
   purpose: string;
   setup: string[];
   steps: string[];
   observe: string[];
   successCriteria: string[];
+};
+
+export type QualityEvalSuite = {
+  id: "stage1" | "memory-v2";
+  title: string;
+  intro: string;
+  cases: QualityEvalCase[];
 };
 
 export const stage1QualityEvalSet: QualityEvalCase[] = [
@@ -160,3 +171,170 @@ export const stage1QualityEvalSet: QualityEvalCase[] = [
     ]
   }
 ];
+
+export const memoryV2EvalSet: QualityEvalCase[] = [
+  {
+    id: "memory-v2-write-shape",
+    title: "Memory writes land in the expected category, key, and scope",
+    priority: "P0",
+    category: "memory",
+    purpose:
+      "Verify that new Memory v2 writes use the correct structured fields instead of falling back to ambiguous legacy-only behavior.",
+    setup: [
+      "Use a workspace with at least one visible agent and one clean thread.",
+      "Open the memory panel so newly written records can be inspected."
+    ],
+    steps: [
+      'Write a global fact such as: "I am a product designer."',
+      'Write an agent-specific relationship fact such as: "以后我叫你小芳可以吗？"',
+      "Inspect the resulting memory rows in the panel and runtime summary."
+    ],
+    observe: [
+      "Whether profession lands as profile/profession in global scope.",
+      "Whether nickname lands as relationship/agent_nickname in this-agent scope."
+    ],
+    successCriteria: [
+      "Structured fields match the intended category, key, and scope.",
+      "Relationship writes do not fall back into profile or preference memory."
+    ]
+  },
+  {
+    id: "memory-v2-scope-user-agent",
+    title: "Agent nickname stays available for the same agent and does not leak to other agents",
+    priority: "P0",
+    category: "scope",
+    purpose:
+      "Verify that user_agent scope is bound to target_agent_id and behaves predictably across new threads.",
+    setup: [
+      "Use two active agents in the same workspace.",
+      "Seed a nickname only on one of them."
+    ],
+    steps: [
+      'On agent A, say: "以后我叫你小芳可以吗？"',
+      'Open a fresh thread with agent A and ask: "你叫什么？"',
+      'Open a fresh thread with agent B and ask: "你叫什么？"'
+    ],
+    observe: [
+      "Whether agent A recalls the nickname.",
+      "Whether agent B falls back to its canonical name."
+    ],
+    successCriteria: [
+      "The same agent recalls the nickname in a new thread.",
+      "A different agent does not reuse the nickname."
+    ]
+  },
+  {
+    id: "memory-v2-single-slot-update",
+    title: "Single-slot nickname updates replace the active value without auto-merging",
+    priority: "P0",
+    category: "update",
+    purpose:
+      "Verify that single-slot update rules keep one active value per structured slot and avoid automatic content rewrites.",
+    setup: [
+      "Use one agent with a clean relationship nickname slot."
+    ],
+    steps: [
+      'First say: "以后我叫你小芳可以吗？"',
+      'Then say: "我改一下，以后叫你阿芳吧。"',
+      'Open a fresh thread with the same agent and ask: "你叫什么？"'
+    ],
+    observe: [
+      "Whether only one nickname remains active for recall.",
+      "Whether the answer uses the newer nickname instead of merging both."
+    ],
+    successCriteria: [
+      "The newer single-slot value wins.",
+      "The system does not auto-generate a merged nickname."
+    ]
+  },
+  {
+    id: "memory-v2-direct-recall-priority",
+    title: "Direct naming questions use structured nickname recall before fallback identity",
+    priority: "P0",
+    category: "recall",
+    purpose:
+      "Verify that direct name-related questions follow the structured recall priority instead of relying on fuzzy generation.",
+    setup: [
+      "Use an agent that already has an agent_nickname memory."
+    ],
+    steps: [
+      'Ask: "你叫什么？"',
+      'Ask: "我以后怎么叫你？"',
+      'Ask: "你不是叫小芳吗？"'
+    ],
+    observe: [
+      "Whether the replies consistently prefer the nickname.",
+      "Whether the runtime summary reports relationship memory usage."
+    ],
+    successCriteria: [
+      "Structured nickname recall is used first for direct naming questions.",
+      "Canonical agent name only appears when no nickname is available."
+    ]
+  },
+  {
+    id: "memory-v2-answer-fidelity",
+    title: "Structured memory hits stay faithful in the final answer",
+    priority: "P0",
+    category: "fidelity",
+    purpose:
+      "Verify that memory hits are reflected in the answer instead of being contradicted or blurred by unrelated wording.",
+    setup: [
+      "Use a model profile meant for memory-sensitive comparisons."
+    ],
+    steps: [
+      'Write a fact such as: "I am a product designer."',
+      'In a new thread, ask: "What profession do you remember that I work in? If you do not know, say you do not know."',
+      "Expand the runtime summary."
+    ],
+    observe: [
+      "Whether runtime summary shows the structured memory hit.",
+      "Whether the answer directly states the profession instead of saying there is no prior knowledge."
+    ],
+    successCriteria: [
+      'The answer does not confuse "no chat history" with "no long-term memory".',
+      "The structured memory hit is reflected in the final answer."
+    ]
+  },
+  {
+    id: "memory-v2-correction-cycle",
+    title: "Incorrect and restore change nickname recall eligibility predictably",
+    priority: "P0",
+    category: "correction",
+    purpose:
+      "Verify that correction controls work for relationship memory and that restore re-enables recall for the same agent only.",
+    setup: [
+      "Use an agent with a previously stored nickname."
+    ],
+    steps: [
+      "Mark the nickname memory as Incorrect.",
+      'Open a fresh thread with the same agent and ask: "你叫什么？"',
+      "Restore the same memory.",
+      'Open another fresh thread with the same agent and ask: "你叫什么？"'
+    ],
+    observe: [
+      "Whether the same-agent recall falls back after Incorrect.",
+      "Whether the nickname returns after Restore."
+    ],
+    successCriteria: [
+      "Incorrect removes the nickname from recall for that agent.",
+      "Restore makes the nickname recallable again for that agent."
+    ]
+  }
+];
+
+export const qualityEvalSuites: Record<QualityEvalSuite["id"], QualityEvalSuite> = {
+  stage1: {
+    id: "stage1",
+    title: "SparkCore Stage 1 Quality Eval Set",
+    intro:
+      "Use this set when prompts, model profiles, or runtime instructions change and you want to compare quality against fixed examples.",
+    cases: stage1QualityEvalSet
+  },
+  "memory-v2": {
+    id: "memory-v2",
+    title: "SparkCore Memory v2 Eval Matrix",
+    intro:
+      "Use this set when Memory v2 schema, scope, update, recall, or correction behavior changes and you need a repeatable baseline instead of relying on gut feel.",
+    cases: memoryV2EvalSet
+  }
+};

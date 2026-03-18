@@ -287,6 +287,148 @@ test.describe("core chat smoke", () => {
     });
   });
 
+  test("applies incorrect and restore predictably for relationship nickname memory", async ({
+    page,
+    request
+  }) => {
+    const nicknameSeedThread = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(nicknameSeedThread.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await nicknameSeedThread.json()) as {
+      threadId: string;
+    };
+
+    const seedNicknameTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "以后我叫你小芳可以吗？"
+      }
+    });
+
+    expect(seedNicknameTurn.ok()).toBeTruthy();
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${seedThreadId}`
+    );
+
+    const visibleMemoryCards = page.locator(
+      ".memory-list .memory-card:not(.memory-card-hidden)"
+    );
+    const nicknameMemoryCard = visibleMemoryCards
+      .filter({
+        has: page.locator(".memory-content", { hasText: /^小芳$/ })
+      })
+      .first();
+
+    await expect(nicknameMemoryCard).toBeVisible({ timeout: 45_000 });
+    await nicknameMemoryCard.getByRole("button", { name: "Incorrect" }).click();
+    await page.getByText(/Incorrect memories \(1\)/).click();
+    await expect(
+      page
+        .locator(".memory-card-hidden")
+        .filter({ hasText: "小芳" })
+        .first()
+    ).toBeVisible({ timeout: 45_000 });
+
+    const sameAgentFallbackThread = await request.post(
+      "/api/test/smoke-create-thread",
+      {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          agentName: "Smoke Memory Coach"
+        }
+      }
+    );
+
+    expect(sameAgentFallbackThread.ok()).toBeTruthy();
+    const { threadId: fallbackThreadId } =
+      (await sameAgentFallbackThread.json()) as { threadId: string };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${fallbackThreadId}`
+    );
+
+    const fallbackRecallTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: fallbackThreadId,
+        content: "你叫什么？"
+      }
+    });
+
+    expect(fallbackRecallTurn.ok()).toBeTruthy();
+    await page.reload();
+    await expect(page.getByText("我叫Smoke Memory Coach。").first()).toBeVisible({
+      timeout: 45_000
+    });
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${seedThreadId}`
+    );
+    await page.getByText(/Incorrect memories \(1\)/).click();
+    const incorrectNicknameCard = page
+      .locator(".memory-card-hidden")
+      .filter({ hasText: "小芳" })
+      .first();
+    await incorrectNicknameCard.getByRole("button", { name: "Restore" }).click();
+
+    const restoredSameAgentThread = await request.post(
+      "/api/test/smoke-create-thread",
+      {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          agentName: "Smoke Memory Coach"
+        }
+      }
+    );
+
+    expect(restoredSameAgentThread.ok()).toBeTruthy();
+    const { threadId: restoredThreadId } =
+      (await restoredSameAgentThread.json()) as { threadId: string };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${restoredThreadId}`
+    );
+
+    const restoredRecallTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: restoredThreadId,
+        content: "你叫什么？"
+      }
+    });
+
+    expect(restoredRecallTurn.ok()).toBeTruthy();
+    await page.reload();
+    await expect(page.getByText("哈哈，我叫小芳！").first()).toBeVisible({
+      timeout: 45_000
+    });
+  });
+
   test("covers memory correction controls and agent defaults/model profile changes", async ({
     page,
     request

@@ -1,14 +1,15 @@
-import { stage1QualityEvalSet } from "@/lib/testing/quality-eval";
+import { qualityEvalSuites } from "@/lib/testing/quality-eval";
 
-function renderMarkdown() {
+function renderMarkdown(suiteId: keyof typeof qualityEvalSuites) {
+  const suite = qualityEvalSuites[suiteId];
   const lines: string[] = [
-    "# SparkCore Stage 1 Quality Eval Set",
+    `# ${suite.title}`,
     "",
-    "Use this set when prompts, model profiles, or runtime instructions change and you want to compare quality against fixed examples.",
+    suite.intro,
     ""
   ];
 
-  for (const item of stage1QualityEvalSet) {
+  for (const item of suite.cases) {
     lines.push(`## ${item.id} — ${item.title}`);
     lines.push("");
     lines.push(`- Priority: ${item.priority}`);
@@ -36,13 +37,19 @@ function main() {
   const format =
     process.argv.find((arg) => arg.startsWith("--format="))?.split("=")[1] ??
     "markdown";
+  const suiteId =
+    (process.argv.find((arg) => arg.startsWith("--suite="))?.split("=")[1] as
+      | keyof typeof qualityEvalSuites
+      | undefined) ?? "stage1";
+  const resolvedSuiteId =
+    suiteId in qualityEvalSuites ? suiteId : "stage1";
 
   if (format === "json") {
-    console.log(JSON.stringify(stage1QualityEvalSet, null, 2));
+    console.log(JSON.stringify(qualityEvalSuites[resolvedSuiteId], null, 2));
     return;
   }
 
-  console.log(renderMarkdown());
+  console.log(renderMarkdown(resolvedSuiteId));
 }
 
 main();
