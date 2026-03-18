@@ -51,6 +51,18 @@ export function AgentEditSheet({
     modelProfiles.find((modelProfile) => modelProfile.id === selectedModelProfileId) ??
     null;
 
+  function buildModelProfileOptionLabel(modelProfile: AgentEditSheetProps["modelProfiles"][number]) {
+    const parts = [modelProfile.name];
+
+    if (modelProfile.tier_label) {
+      parts.push(modelProfile.tier_label);
+    }
+
+    parts.push(`${modelProfile.provider}/${modelProfile.model}`);
+
+    return parts.join(" · ");
+  }
+
   useEffect(() => {
     setDraftName(agent.name);
     setDraftPersonaSummary(agent.persona_summary);
@@ -228,8 +240,7 @@ export function AgentEditSheet({
                 >
                   {modelProfiles.map((modelProfile) => (
                     <option key={modelProfile.id} value={modelProfile.id}>
-                      {modelProfile.name}
-                      {modelProfile.tier_label ? ` · ${modelProfile.tier_label}` : ""}
+                      {buildModelProfileOptionLabel(modelProfile)}
                     </option>
                   ))}
                 </select>
