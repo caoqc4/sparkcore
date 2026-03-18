@@ -76,6 +76,41 @@ type SmokeThread = {
 
 type SmokeReplyLanguage = "zh-Hans" | "en" | "unknown";
 
+function detectSmokeExplicitLanguageOverride(content: string): SmokeReplyLanguage {
+  const normalized = content.normalize("NFKC").toLowerCase();
+
+  const englishHints = [
+    "reply in english",
+    "respond in english",
+    "answer in english",
+    "please use english",
+    "请用英文",
+    "请用英语",
+    "用英文回答",
+    "用英语回答"
+  ];
+  const chineseHints = [
+    "reply in chinese",
+    "respond in chinese",
+    "answer in chinese",
+    "please use chinese",
+    "请用中文",
+    "用中文回答",
+    "请用简体中文",
+    "用简体中文回答"
+  ];
+
+  if (englishHints.some((hint) => normalized.includes(hint))) {
+    return "en";
+  }
+
+  if (chineseHints.some((hint) => normalized.includes(hint))) {
+    return "zh-Hans";
+  }
+
+  return "unknown";
+}
+
 function getFallbackValue(envKey: "secret" | "email" | "password") {
   if (process.env.NODE_ENV !== "development") {
     return undefined;
@@ -488,11 +523,35 @@ function summarizeThreadTitle(content: string) {
 }
 
 function detectSmokeReplyLanguage(content: string): SmokeReplyLanguage {
+  const explicitOverride = detectSmokeExplicitLanguageOverride(content);
+
+  if (explicitOverride !== "unknown") {
+    return explicitOverride;
+  }
+
   const hanMatches = content.match(/[\u3400-\u9fff]/g) ?? [];
   const latinMatches = content.match(/[A-Za-z]/g) ?? [];
+  const cjkPunctuationMatches = content.match(/[，。！？；：“”‘’（）]/g) ?? [];
+  const latinWordMatches = content.match(/\b[A-Za-z]{2,}\b/g) ?? [];
 
-  if (hanMatches.length === 0 && latinMatches.length === 0) {
+  if (
+    hanMatches.length === 0 &&
+    latinMatches.length === 0 &&
+    cjkPunctuationMatches.length === 0
+  ) {
     return "unknown";
+  }
+
+  const zhWeight = hanMatches.length + cjkPunctuationMatches.length * 0.5;
+  const enWeight =
+    latinMatches.length * 0.6 + latinWordMatches.length * 1.4;
+
+  if (hanMatches.length >= 2 && zhWeight >= enWeight * 0.8) {
+    return "zh-Hans";
+  }
+
+  if (latinWordMatches.length >= 2 && enWeight > zhWeight * 1.15) {
+    return "en";
   }
 
   if (hanMatches.length > latinMatches.length) {

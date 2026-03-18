@@ -814,32 +814,13 @@ test.describe("core chat smoke", () => {
       timeout: 45_000
     });
 
-    const secondThreadResponse = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Guide"
-      }
-    });
-
-    expect(secondThreadResponse.ok()).toBeTruthy();
-    const { threadId: englishThreadId } = (await secondThreadResponse.json()) as {
-      threadId: string;
-    };
-
-    await page.goto(
-      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${englishThreadId}`
-    );
-
     const enTurnResponse = await request.post("/api/test/smoke-send-turn", {
       headers: {
         "x-smoke-secret": smokeSecret,
         "Content-Type": "application/json"
       },
       data: {
-        threadId: englishThreadId,
+        threadId,
         content:
           "Please introduce yourself in two short sentences and explain how you can help me."
       }
@@ -848,6 +829,23 @@ test.describe("core chat smoke", () => {
     expect(enTurnResponse.ok()).toBeTruthy();
     await page.reload();
     await expect(page.getByText("I am SparkCore").first()).toBeVisible({
+      timeout: 45_000
+    });
+
+    const switchBackResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "现在请用中文再介绍一次你自己。"
+      }
+    });
+
+    expect(switchBackResponse.ok()).toBeTruthy();
+    await page.reload();
+    await expect(page.getByText("我是 SparkCore").first()).toBeVisible({
       timeout: 45_000
     });
   });
