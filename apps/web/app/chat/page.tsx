@@ -55,8 +55,60 @@ function isMemoryIncorrect(metadata: Record<string, unknown> | undefined) {
   return metadata?.is_incorrect === true;
 }
 
-function getMemoryCategoryLabel(category: string) {
-  return category.replace(/_/g, " ");
+function getMemoryCategoryLabel(
+  category: string,
+  locale: "en" | "zh-CN"
+) {
+  const memoryCopy = getChatCopy(locale).memory;
+
+  switch (category) {
+    case "profile":
+      return memoryCopy.categoryProfile;
+    case "preference":
+      return memoryCopy.categoryPreference;
+    case "relationship":
+      return memoryCopy.categoryRelationship;
+    case "goal":
+      return memoryCopy.categoryGoal;
+    default:
+      return category.replace(/_/g, " ");
+  }
+}
+
+function getMemoryScopeLabel(scope: string, locale: "en" | "zh-CN") {
+  const memoryCopy = getChatCopy(locale).memory;
+
+  switch (scope) {
+    case "user_global":
+      return memoryCopy.scopeGlobal;
+    case "user_agent":
+      return memoryCopy.scopeThisAgent;
+    case "thread_local":
+      return memoryCopy.scopeThisThread;
+    default:
+      return scope.replace(/_/g, " ");
+  }
+}
+
+function getMemoryStatusLabel(status: string, locale: "en" | "zh-CN") {
+  const memoryCopy = getChatCopy(locale).memory;
+
+  switch (status) {
+    case "active":
+      return memoryCopy.statusActive;
+    case "hidden":
+      return memoryCopy.statusHidden;
+    case "incorrect":
+      return memoryCopy.statusIncorrect;
+    case "superseded":
+      return memoryCopy.statusSuperseded;
+    default:
+      return status.replace(/_/g, " ");
+  }
+}
+
+function isThreadLocalMemory(scope: string) {
+  return scope === "thread_local";
 }
 
 function getMemoryTrustHint({
@@ -255,6 +307,24 @@ export default async function ChatPage({
   const redirectPath = params.thread
     ? `/chat?thread=${encodeURIComponent(params.thread)}`
     : "/chat";
+  const visibleLongTermMemories = visibleMemories.filter(
+    (memory) => !isThreadLocalMemory(memory.scope)
+  );
+  const visibleThreadLocalMemories = visibleMemories.filter((memory) =>
+    isThreadLocalMemory(memory.scope)
+  );
+  const hiddenLongTermMemories = hiddenMemories.filter(
+    (memory) => !isThreadLocalMemory(memory.scope)
+  );
+  const hiddenThreadLocalMemories = hiddenMemories.filter((memory) =>
+    isThreadLocalMemory(memory.scope)
+  );
+  const incorrectLongTermMemories = incorrectMemories.filter(
+    (memory) => !isThreadLocalMemory(memory.scope)
+  );
+  const incorrectThreadLocalMemories = incorrectMemories.filter((memory) =>
+    isThreadLocalMemory(memory.scope)
+  );
 
   return (
     <main className="shell">
@@ -546,124 +616,270 @@ export default async function ChatPage({
                     <p className="helper-copy">{copy.memory.empty}</p>
                   </div>
                 ) : (
-                  <div className="memory-list">
-                    {visibleMemories.map((memory) => {
-                      const confidenceView = getMemoryConfidenceView(memory.confidence);
-                      const trustHint = getMemoryTrustHint({
-                        confidence: memory.confidence,
-                        metadata: memory.metadata,
-                        locale
-                      });
-                      const isRestored = hasMetadataFlag(
-                        memory.metadata,
-                        "restored_at"
-                      );
+                  <>
+                    <section className="memory-group">
+                      <div className="memory-group-header">
+                        <h4>{copy.memory.longTermTitle}</h4>
+                        <p className="helper-copy">{copy.memory.longTermHelper}</p>
+                      </div>
+                      {visibleLongTermMemories.length === 0 ? (
+                        <div className="empty-state section-empty-state memory-group-empty">
+                          <p className="helper-copy">{copy.memory.empty}</p>
+                        </div>
+                      ) : (
+                        <div className="memory-list">
+                          {visibleLongTermMemories.map((memory) => {
+                            const confidenceView = getMemoryConfidenceView(memory.confidence);
+                            const trustHint = getMemoryTrustHint({
+                              confidence: memory.confidence,
+                              metadata: memory.metadata,
+                              locale
+                            });
+                            const isRestored = hasMetadataFlag(
+                              memory.metadata,
+                              "restored_at"
+                            );
 
-                      return (
-                        <article
-                          className={`memory-card memory-card-${confidenceView.tone}`}
-                          key={memory.id}
-                        >
-                          <div className="memory-card-row">
-                            <div className="memory-badges">
-                              <span className="thread-badge">
-                                {getMemoryCategoryLabel(memory.category)}
-                              </span>
-                              {isRestored ? (
-                                <span className="thread-badge thread-badge-muted">
-                                  {copy.memory.restoredBadge}
-                                </span>
-                              ) : null}
-                            </div>
-                            <span
-                              className={`memory-confidence memory-confidence-${confidenceView.tone}`}
-                            >
-                              {copy.memory[confidenceView.labelKey]} ·{" "}
-                              {memory.confidence.toFixed(2)}
-                            </span>
-                          </div>
-                          <p className="memory-content">{memory.content}</p>
-                          <p className="memory-trust-copy">{trustHint}</p>
-                          <p className="thread-link-meta">
-                            {copy.memory.storedPrefix}
-                            {new Date(memory.created_at).toLocaleString(locale)}
-                          </p>
-                          <div className="memory-trace">
-                            <p className="memory-trace-copy">
-                              {memory.source_thread_id ? (
-                                <>
-                                  {copy.memory.traceFromPrefix}
-                                  <span className="memory-trace-emphasis">
-                                    {memory.source_thread_title ?? copy.states.noThreadsTitle}
-                                  </span>
-                                  {memory.source_timestamp
-                                    ? ` · ${new Date(memory.source_timestamp).toLocaleString(locale)}`
-                                    : ""}
-                                </>
-                              ) : (
-                                copy.memory.traceUnavailable
-                              )}
-                            </p>
-                            {memory.source_thread_id ? (
-                              <Link
-                                className="memory-trace-link"
-                                href={`/chat?thread=${memory.source_thread_id}`}
-                                prefetch={false}
+                            return (
+                              <article
+                                className={`memory-card memory-card-${confidenceView.tone}`}
+                                key={memory.id}
                               >
-                                {copy.memory.viewContext}
-                              </Link>
-                            ) : null}
-                          </div>
-                          <form action={hideMemory} className="memory-card-actions">
-                            <input name="memory_id" type="hidden" value={memory.id} />
-                            <input
-                              name="redirect_thread_id"
-                              type="hidden"
-                              value={thread?.id ?? ""}
-                            />
-                            <FormSubmitButton
-                              className="button button-secondary memory-hide-button"
-                              idleText={copy.memory.hide}
-                              pendingText={copy.memory.hiding}
-                            />
-                          </form>
-                          {!isMemoryIncorrect(memory.metadata) ? (
-                            <form
-                              action={markMemoryIncorrect}
-                              className="memory-card-actions"
-                            >
-                              <input name="memory_id" type="hidden" value={memory.id} />
-                              <input
-                                name="redirect_thread_id"
-                                type="hidden"
-                                value={thread?.id ?? ""}
-                              />
-                              <FormSubmitButton
-                                className="button button-secondary memory-hide-button"
-                                idleText={copy.memory.incorrect}
-                                pendingText={copy.common.saving}
-                              />
-                            </form>
-                          ) : null}
-                        </article>
-                      );
-                    })}
-                  </div>
+                                <div className="memory-card-row">
+                                  <div className="memory-badges">
+                                    <span className="thread-badge">
+                                      {getMemoryCategoryLabel(memory.category, locale)}
+                                    </span>
+                                    <span className="thread-badge thread-badge-muted">
+                                      {getMemoryScopeLabel(memory.scope, locale)}
+                                    </span>
+                                    <span className="thread-badge thread-badge-muted">
+                                      {getMemoryStatusLabel(memory.status, locale)}
+                                    </span>
+                                    {isRestored ? (
+                                      <span className="thread-badge thread-badge-muted">
+                                        {copy.memory.restoredBadge}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                  <span
+                                    className={`memory-confidence memory-confidence-${confidenceView.tone}`}
+                                  >
+                                    {copy.memory[confidenceView.labelKey]} ·{" "}
+                                    {memory.confidence.toFixed(2)}
+                                  </span>
+                                </div>
+                                <p className="memory-content">{memory.content}</p>
+                                <p className="memory-trust-copy">{trustHint}</p>
+                                <p className="thread-link-meta">
+                                  {copy.memory.storedPrefix}
+                                  {new Date(memory.created_at).toLocaleString(locale)}
+                                </p>
+                                <div className="memory-trace">
+                                  <p className="memory-trace-copy">
+                                    {memory.source_thread_id ? (
+                                      <>
+                                        {copy.memory.traceFromPrefix}
+                                        <span className="memory-trace-emphasis">
+                                          {memory.source_thread_title ?? copy.states.noThreadsTitle}
+                                        </span>
+                                        {memory.source_timestamp
+                                          ? ` · ${new Date(memory.source_timestamp).toLocaleString(locale)}`
+                                          : ""}
+                                      </>
+                                    ) : (
+                                      copy.memory.traceUnavailable
+                                    )}
+                                  </p>
+                                  {memory.source_thread_id ? (
+                                    <Link
+                                      className="memory-trace-link"
+                                      href={`/chat?thread=${memory.source_thread_id}`}
+                                      prefetch={false}
+                                    >
+                                      {copy.memory.viewContext}
+                                    </Link>
+                                  ) : null}
+                                </div>
+                                <form action={hideMemory} className="memory-card-actions">
+                                  <input name="memory_id" type="hidden" value={memory.id} />
+                                  <input
+                                    name="redirect_thread_id"
+                                    type="hidden"
+                                    value={thread?.id ?? ""}
+                                  />
+                                  <FormSubmitButton
+                                    className="button button-secondary memory-hide-button"
+                                    idleText={copy.memory.hide}
+                                    pendingText={copy.memory.hiding}
+                                  />
+                                </form>
+                                {!isMemoryIncorrect(memory.metadata) ? (
+                                  <form
+                                    action={markMemoryIncorrect}
+                                    className="memory-card-actions"
+                                  >
+                                    <input name="memory_id" type="hidden" value={memory.id} />
+                                    <input
+                                      name="redirect_thread_id"
+                                      type="hidden"
+                                      value={thread?.id ?? ""}
+                                    />
+                                    <FormSubmitButton
+                                      className="button button-secondary memory-hide-button"
+                                      idleText={copy.memory.incorrect}
+                                      pendingText={copy.common.saving}
+                                    />
+                                  </form>
+                                ) : null}
+                              </article>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </section>
+
+                    {visibleThreadLocalMemories.length > 0 ? (
+                      <section className="memory-group">
+                        <div className="memory-group-header">
+                          <h4>{copy.memory.threadLocalTitle}</h4>
+                          <p className="helper-copy">{copy.memory.threadLocalHelper}</p>
+                        </div>
+                        <div className="memory-list">
+                          {visibleThreadLocalMemories.map((memory) => {
+                            const confidenceView = getMemoryConfidenceView(memory.confidence);
+                            const trustHint = getMemoryTrustHint({
+                              confidence: memory.confidence,
+                              metadata: memory.metadata,
+                              locale
+                            });
+                            const isRestored = hasMetadataFlag(
+                              memory.metadata,
+                              "restored_at"
+                            );
+
+                            return (
+                              <article
+                                className={`memory-card memory-card-${confidenceView.tone}`}
+                                key={memory.id}
+                              >
+                                <div className="memory-card-row">
+                                  <div className="memory-badges">
+                                    <span className="thread-badge">
+                                      {getMemoryCategoryLabel(memory.category, locale)}
+                                    </span>
+                                    <span className="thread-badge thread-badge-muted">
+                                      {getMemoryScopeLabel(memory.scope, locale)}
+                                    </span>
+                                    <span className="thread-badge thread-badge-muted">
+                                      {getMemoryStatusLabel(memory.status, locale)}
+                                    </span>
+                                    {isRestored ? (
+                                      <span className="thread-badge thread-badge-muted">
+                                        {copy.memory.restoredBadge}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                  <span
+                                    className={`memory-confidence memory-confidence-${confidenceView.tone}`}
+                                  >
+                                    {copy.memory[confidenceView.labelKey]} ·{" "}
+                                    {memory.confidence.toFixed(2)}
+                                  </span>
+                                </div>
+                                <p className="memory-content">{memory.content}</p>
+                                <p className="memory-trust-copy">{trustHint}</p>
+                                <p className="thread-link-meta">
+                                  {copy.memory.storedPrefix}
+                                  {new Date(memory.created_at).toLocaleString(locale)}
+                                </p>
+                                <div className="memory-trace">
+                                  <p className="memory-trace-copy">
+                                    {memory.source_thread_id ? (
+                                      <>
+                                        {copy.memory.traceFromPrefix}
+                                        <span className="memory-trace-emphasis">
+                                          {memory.source_thread_title ?? copy.states.noThreadsTitle}
+                                        </span>
+                                        {memory.source_timestamp
+                                          ? ` · ${new Date(memory.source_timestamp).toLocaleString(locale)}`
+                                          : ""}
+                                      </>
+                                    ) : (
+                                      copy.memory.traceUnavailable
+                                    )}
+                                  </p>
+                                  {memory.source_thread_id ? (
+                                    <Link
+                                      className="memory-trace-link"
+                                      href={`/chat?thread=${memory.source_thread_id}`}
+                                      prefetch={false}
+                                    >
+                                      {copy.memory.viewContext}
+                                    </Link>
+                                  ) : null}
+                                </div>
+                                <form action={hideMemory} className="memory-card-actions">
+                                  <input name="memory_id" type="hidden" value={memory.id} />
+                                  <input
+                                    name="redirect_thread_id"
+                                    type="hidden"
+                                    value={thread?.id ?? ""}
+                                  />
+                                  <FormSubmitButton
+                                    className="button button-secondary memory-hide-button"
+                                    idleText={copy.memory.hide}
+                                    pendingText={copy.memory.hiding}
+                                  />
+                                </form>
+                                {!isMemoryIncorrect(memory.metadata) ? (
+                                  <form
+                                    action={markMemoryIncorrect}
+                                    className="memory-card-actions"
+                                  >
+                                    <input name="memory_id" type="hidden" value={memory.id} />
+                                    <input
+                                      name="redirect_thread_id"
+                                      type="hidden"
+                                      value={thread?.id ?? ""}
+                                    />
+                                    <FormSubmitButton
+                                      className="button button-secondary memory-hide-button"
+                                      idleText={copy.memory.incorrect}
+                                      pendingText={copy.common.saving}
+                                    />
+                                  </form>
+                                ) : null}
+                              </article>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    ) : null}
+                  </>
                 )}
 
-                {hiddenMemories.length > 0 ? (
+                {hiddenLongTermMemories.length > 0 ? (
                   <details className="memory-hidden-shell">
                     <summary className="memory-hidden-summary">
-                      {copy.memory.hiddenTitle} ({hiddenMemories.length})
+                      {copy.memory.hiddenTitle} ({hiddenLongTermMemories.length})
                     </summary>
 
                     <div className="memory-list memory-list-hidden">
-                      {hiddenMemories.map((memory) => (
+                      {hiddenLongTermMemories.map((memory) => (
                         <article className="memory-card memory-card-hidden" key={memory.id}>
                           <div className="memory-card-row">
-                            <span className="thread-badge">
-                              {getMemoryCategoryLabel(memory.category)}
-                            </span>
+                            <div className="memory-badges">
+                              <span className="thread-badge">
+                                {getMemoryCategoryLabel(memory.category, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryScopeLabel(memory.scope, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryStatusLabel(memory.status, locale)}
+                              </span>
+                            </div>
                             <span className="memory-confidence memory-confidence-low">
                               {copy.memory.hiddenStatus}
                             </span>
@@ -699,19 +915,142 @@ export default async function ChatPage({
                   </details>
                 ) : null}
 
-                {incorrectMemories.length > 0 ? (
+                {hiddenThreadLocalMemories.length > 0 ? (
                   <details className="memory-hidden-shell">
                     <summary className="memory-hidden-summary">
-                      {copy.memory.incorrectTitle} ({incorrectMemories.length})
+                      {copy.memory.hiddenTitle} ({hiddenThreadLocalMemories.length}) ·{" "}
+                      {copy.memory.threadLocalTitle}
                     </summary>
 
                     <div className="memory-list memory-list-hidden">
-                      {incorrectMemories.map((memory) => (
+                      {hiddenThreadLocalMemories.map((memory) => (
                         <article className="memory-card memory-card-hidden" key={memory.id}>
                           <div className="memory-card-row">
                             <div className="memory-badges">
                               <span className="thread-badge">
-                                {getMemoryCategoryLabel(memory.category)}
+                                {getMemoryCategoryLabel(memory.category, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryScopeLabel(memory.scope, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryStatusLabel(memory.status, locale)}
+                              </span>
+                            </div>
+                            <span className="memory-confidence memory-confidence-low">
+                              {copy.memory.hiddenStatus}
+                            </span>
+                          </div>
+                          <p className="memory-content">{memory.content}</p>
+                          <p className="memory-trust-copy">{copy.memory.hiddenHint}</p>
+                          <p className="thread-link-meta">
+                            {copy.memory.hiddenFromPrefix}
+                            {memory.source_thread_title ?? copy.states.noThreadsTitle}
+                            {memory.source_timestamp
+                              ? ` · ${new Date(memory.source_timestamp).toLocaleString(locale)}`
+                              : ""}
+                          </p>
+                          <form
+                            action={restoreMemory}
+                            className="memory-card-actions"
+                          >
+                            <input name="memory_id" type="hidden" value={memory.id} />
+                            <input
+                              name="redirect_thread_id"
+                              type="hidden"
+                              value={thread?.id ?? ""}
+                            />
+                            <FormSubmitButton
+                              className="button button-secondary memory-hide-button"
+                              idleText={copy.memory.restore}
+                              pendingText={copy.memory.restoring}
+                            />
+                          </form>
+                        </article>
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
+
+                {incorrectLongTermMemories.length > 0 ? (
+                  <details className="memory-hidden-shell">
+                    <summary className="memory-hidden-summary">
+                      {copy.memory.incorrectTitle} ({incorrectLongTermMemories.length})
+                    </summary>
+
+                    <div className="memory-list memory-list-hidden">
+                      {incorrectLongTermMemories.map((memory) => (
+                        <article className="memory-card memory-card-hidden" key={memory.id}>
+                          <div className="memory-card-row">
+                            <div className="memory-badges">
+                              <span className="thread-badge">
+                                {getMemoryCategoryLabel(memory.category, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryScopeLabel(memory.scope, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryStatusLabel(memory.status, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {copy.memory.incorrectBadge}
+                              </span>
+                            </div>
+                            <span className="memory-confidence memory-confidence-low">
+                              {copy.memory.removedFromRecall}
+                            </span>
+                          </div>
+                          <p className="memory-content">{memory.content}</p>
+                          <p className="memory-trust-copy">{copy.memory.incorrectHint}</p>
+                          <p className="thread-link-meta">
+                            {copy.memory.incorrectFromPrefix}
+                            {memory.source_thread_title ?? copy.states.noThreadsTitle}
+                            {memory.source_timestamp
+                              ? ` · ${new Date(memory.source_timestamp).toLocaleString(locale)}`
+                              : ""}
+                          </p>
+                          <form
+                            action={restoreMemory}
+                            className="memory-card-actions"
+                          >
+                            <input name="memory_id" type="hidden" value={memory.id} />
+                            <input
+                              name="redirect_thread_id"
+                              type="hidden"
+                              value={thread?.id ?? ""}
+                            />
+                            <FormSubmitButton
+                              className="button button-secondary memory-hide-button"
+                              idleText={copy.memory.restore}
+                              pendingText={copy.memory.restoring}
+                            />
+                          </form>
+                        </article>
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
+
+                {incorrectThreadLocalMemories.length > 0 ? (
+                  <details className="memory-hidden-shell">
+                    <summary className="memory-hidden-summary">
+                      {copy.memory.incorrectTitle} ({incorrectThreadLocalMemories.length}) ·{" "}
+                      {copy.memory.threadLocalTitle}
+                    </summary>
+
+                    <div className="memory-list memory-list-hidden">
+                      {incorrectThreadLocalMemories.map((memory) => (
+                        <article className="memory-card memory-card-hidden" key={memory.id}>
+                          <div className="memory-card-row">
+                            <div className="memory-badges">
+                              <span className="thread-badge">
+                                {getMemoryCategoryLabel(memory.category, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryScopeLabel(memory.scope, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryStatusLabel(memory.status, locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
                                 {copy.memory.incorrectBadge}

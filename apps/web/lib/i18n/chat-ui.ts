@@ -85,6 +85,12 @@ export function getChatCopy(locale: ChatLocale) {
           "最近的 profile / preference 记忆会保留在聊天工作台里，让你能看清系统记住了什么。",
         hint:
           "在这里查看哪些长期记忆可用、被隐藏，或被标记为错误。",
+        longTermTitle: "长期记忆",
+        longTermHelper:
+          "这些记忆会跨线程保留，并根据作用域决定是全局可用，还是只对当前 agent 生效。",
+        threadLocalTitle: "当前线程约定",
+        threadLocalHelper:
+          "这些内容只在当前线程内生效，不会自动变成跨线程的长期记忆。",
         trustNote:
           "这里的信任提示保持轻量：低置信记忆会弱化展示，被隐藏的记忆在恢复前不会参与 recall，被标错的记忆会发出更强的纠错信号。",
         policyTitle1:
@@ -103,6 +109,17 @@ export function getChatCopy(locale: ChatLocale) {
         highHint: "来自清晰、稳定的用户自述，是较强的长期记忆信号。",
         mediumHint: "有用的长期记忆信号，但展示会稍微弱一些。",
         lowHint: "这条记忆置信度较低，仍可阅读，但会被弱化展示。",
+        categoryProfile: "Profile",
+        categoryPreference: "Preference",
+        categoryRelationship: "Relationship",
+        categoryGoal: "Goal",
+        scopeGlobal: "全局",
+        scopeThisAgent: "当前 agent",
+        scopeThisThread: "当前线程",
+        statusActive: "生效中",
+        statusHidden: "已隐藏",
+        statusIncorrect: "已标错",
+        statusSuperseded: "已替代",
         storedPrefix: "记录于 ",
         traceFromPrefix: "来源于 ",
         traceUnavailable: "这条记忆目前没有可用的来源追踪。",
@@ -316,6 +333,12 @@ export function getChatCopy(locale: ChatLocale) {
         "Recent profile and preference memories stay visible inside chat so you can understand what the system has retained.",
       hint:
         "Use this panel to see which long-term memories are available, hidden, or marked incorrect.",
+      longTermTitle: "Long-term memory",
+      longTermHelper:
+        "These memories persist across threads. Their scope shows whether they are global or only apply to this agent.",
+      threadLocalTitle: "Current-thread notes",
+      threadLocalHelper:
+        "These entries only apply inside the current thread and are not treated as cross-thread long-term memory.",
       trustNote:
         "Trust cues stay lightweight here: lower-confidence memories are softened visually, hidden memories stay out of recall until restored, and incorrect memories send a stronger correction signal.",
       policyTitle1:
@@ -334,6 +357,17 @@ export function getChatCopy(locale: ChatLocale) {
       highHint: "Strong signal from a clear, stable user statement.",
       mediumHint: "Useful signal, but shown with slightly lighter emphasis.",
       lowHint: "Lower-confidence memory. It stays readable, but is visually softened.",
+      categoryProfile: "Profile",
+      categoryPreference: "Preference",
+      categoryRelationship: "Relationship",
+      categoryGoal: "Goal",
+      scopeGlobal: "Global",
+      scopeThisAgent: "This agent",
+      scopeThisThread: "This thread",
+      statusActive: "Active",
+      statusHidden: "Hidden",
+      statusIncorrect: "Incorrect",
+      statusSuperseded: "Superseded",
       storedPrefix: "Stored ",
       traceFromPrefix: "From ",
       traceUnavailable: "Source trace is unavailable for this memory.",
