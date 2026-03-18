@@ -474,6 +474,13 @@ a {
   line-height: 1.5;
 }
 
+.memory-effect-copy {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .memory-trace {
   display: flex;
   align-items: center;

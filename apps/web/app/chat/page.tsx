@@ -137,6 +137,76 @@ function getMemoryTrustHint({
   return memoryCopy.lowHint;
 }
 
+function getMemoryEffectHint({
+  scope,
+  status,
+  targetAgentId,
+  currentThreadAgentId,
+  locale
+}: {
+  scope: string;
+  status: string;
+  targetAgentId: string | null;
+  currentThreadAgentId: string | null;
+  locale: "en" | "zh-CN";
+}) {
+  const memoryCopy = getChatCopy(locale).memory;
+  const appliesToAgent = scope === "user_agent";
+  const appliesToCurrentAgent =
+    appliesToAgent &&
+    targetAgentId !== null &&
+    currentThreadAgentId !== null &&
+    targetAgentId === currentThreadAgentId;
+
+  if (status === "hidden") {
+    if (scope === "thread_local") {
+      return memoryCopy.effectHiddenThisThread;
+    }
+
+    if (appliesToAgent) {
+      return memoryCopy.effectHiddenThisAgent;
+    }
+
+    return memoryCopy.effectHiddenGlobal;
+  }
+
+  if (status === "incorrect") {
+    if (scope === "thread_local") {
+      return memoryCopy.effectIncorrectThisThread;
+    }
+
+    if (appliesToAgent) {
+      return memoryCopy.effectIncorrectThisAgent;
+    }
+
+    return memoryCopy.effectIncorrectGlobal;
+  }
+
+  if (status === "superseded") {
+    if (scope === "thread_local") {
+      return memoryCopy.effectSupersededThisThread;
+    }
+
+    if (appliesToAgent) {
+      return memoryCopy.effectSupersededThisAgent;
+    }
+
+    return memoryCopy.effectSupersededGlobal;
+  }
+
+  if (scope === "thread_local") {
+    return memoryCopy.effectActiveThisThread;
+  }
+
+  if (appliesToAgent) {
+    return appliesToCurrentAgent
+      ? memoryCopy.effectActiveThisAgentCurrent
+      : memoryCopy.effectActiveThisAgentOther;
+  }
+
+  return memoryCopy.effectActiveGlobal;
+}
+
 function formatThreadUpdatedAt(dateString: string, locale: string) {
   const timestamp = new Date(dateString).getTime();
   const now = Date.now();
@@ -282,6 +352,7 @@ export default async function ChatPage({
     visibleMemories,
     hiddenMemories,
     incorrectMemories,
+    supersededMemories,
     threads,
     thread,
     agent,
@@ -323,6 +394,12 @@ export default async function ChatPage({
     (memory) => !isThreadLocalMemory(memory.scope)
   );
   const incorrectThreadLocalMemories = incorrectMemories.filter((memory) =>
+    isThreadLocalMemory(memory.scope)
+  );
+  const supersededLongTermMemories = supersededMemories.filter(
+    (memory) => !isThreadLocalMemory(memory.scope)
+  );
+  const supersededThreadLocalMemories = supersededMemories.filter((memory) =>
     isThreadLocalMemory(memory.scope)
   );
 
@@ -635,6 +712,13 @@ export default async function ChatPage({
                               metadata: memory.metadata,
                               locale
                             });
+                            const effectHint = getMemoryEffectHint({
+                              scope: memory.scope,
+                              status: memory.status,
+                              targetAgentId: memory.target_agent_id,
+                              currentThreadAgentId: thread?.agent_id ?? null,
+                              locale
+                            });
                             const isRestored = hasMetadataFlag(
                               memory.metadata,
                               "restored_at"
@@ -671,6 +755,14 @@ export default async function ChatPage({
                                 </div>
                                 <p className="memory-content">{memory.content}</p>
                                 <p className="memory-trust-copy">{trustHint}</p>
+                                <p className="memory-effect-copy">{effectHint}</p>
+                                {memory.scope === "user_agent" &&
+                                memory.target_agent_name ? (
+                                  <p className="thread-link-meta">
+                                    {copy.memory.appliesToAgentPrefix}
+                                    {memory.target_agent_name}
+                                  </p>
+                                ) : null}
                                 <p className="thread-link-meta">
                                   {copy.memory.storedPrefix}
                                   {new Date(memory.created_at).toLocaleString(locale)}
@@ -753,6 +845,13 @@ export default async function ChatPage({
                               metadata: memory.metadata,
                               locale
                             });
+                            const effectHint = getMemoryEffectHint({
+                              scope: memory.scope,
+                              status: memory.status,
+                              targetAgentId: memory.target_agent_id,
+                              currentThreadAgentId: thread?.agent_id ?? null,
+                              locale
+                            });
                             const isRestored = hasMetadataFlag(
                               memory.metadata,
                               "restored_at"
@@ -789,6 +888,14 @@ export default async function ChatPage({
                                 </div>
                                 <p className="memory-content">{memory.content}</p>
                                 <p className="memory-trust-copy">{trustHint}</p>
+                                <p className="memory-effect-copy">{effectHint}</p>
+                                {memory.scope === "user_agent" &&
+                                memory.target_agent_name ? (
+                                  <p className="thread-link-meta">
+                                    {copy.memory.appliesToAgentPrefix}
+                                    {memory.target_agent_name}
+                                  </p>
+                                ) : null}
                                 <p className="thread-link-meta">
                                   {copy.memory.storedPrefix}
                                   {new Date(memory.created_at).toLocaleString(locale)}
@@ -886,6 +993,21 @@ export default async function ChatPage({
                           </div>
                           <p className="memory-content">{memory.content}</p>
                           <p className="memory-trust-copy">{copy.memory.hiddenHint}</p>
+                          <p className="memory-effect-copy">
+                            {getMemoryEffectHint({
+                              scope: memory.scope,
+                              status: memory.status,
+                              targetAgentId: memory.target_agent_id,
+                              currentThreadAgentId: thread?.agent_id ?? null,
+                              locale
+                            })}
+                          </p>
+                          {memory.scope === "user_agent" && memory.target_agent_name ? (
+                            <p className="thread-link-meta">
+                              {copy.memory.appliesToAgentPrefix}
+                              {memory.target_agent_name}
+                            </p>
+                          ) : null}
                           <p className="thread-link-meta">
                             {copy.memory.hiddenFromPrefix}
                             {memory.source_thread_title ?? copy.states.noThreadsTitle}
@@ -943,6 +1065,21 @@ export default async function ChatPage({
                           </div>
                           <p className="memory-content">{memory.content}</p>
                           <p className="memory-trust-copy">{copy.memory.hiddenHint}</p>
+                          <p className="memory-effect-copy">
+                            {getMemoryEffectHint({
+                              scope: memory.scope,
+                              status: memory.status,
+                              targetAgentId: memory.target_agent_id,
+                              currentThreadAgentId: thread?.agent_id ?? null,
+                              locale
+                            })}
+                          </p>
+                          {memory.scope === "user_agent" && memory.target_agent_name ? (
+                            <p className="thread-link-meta">
+                              {copy.memory.appliesToAgentPrefix}
+                              {memory.target_agent_name}
+                            </p>
+                          ) : null}
                           <p className="thread-link-meta">
                             {copy.memory.hiddenFromPrefix}
                             {memory.source_thread_title ?? copy.states.noThreadsTitle}
@@ -1002,6 +1139,21 @@ export default async function ChatPage({
                           </div>
                           <p className="memory-content">{memory.content}</p>
                           <p className="memory-trust-copy">{copy.memory.incorrectHint}</p>
+                          <p className="memory-effect-copy">
+                            {getMemoryEffectHint({
+                              scope: memory.scope,
+                              status: memory.status,
+                              targetAgentId: memory.target_agent_id,
+                              currentThreadAgentId: thread?.agent_id ?? null,
+                              locale
+                            })}
+                          </p>
+                          {memory.scope === "user_agent" && memory.target_agent_name ? (
+                            <p className="thread-link-meta">
+                              {copy.memory.appliesToAgentPrefix}
+                              {memory.target_agent_name}
+                            </p>
+                          ) : null}
                           <p className="thread-link-meta">
                             {copy.memory.incorrectFromPrefix}
                             {memory.source_thread_title ?? copy.states.noThreadsTitle}
@@ -1062,6 +1214,21 @@ export default async function ChatPage({
                           </div>
                           <p className="memory-content">{memory.content}</p>
                           <p className="memory-trust-copy">{copy.memory.incorrectHint}</p>
+                          <p className="memory-effect-copy">
+                            {getMemoryEffectHint({
+                              scope: memory.scope,
+                              status: memory.status,
+                              targetAgentId: memory.target_agent_id,
+                              currentThreadAgentId: thread?.agent_id ?? null,
+                              locale
+                            })}
+                          </p>
+                          {memory.scope === "user_agent" && memory.target_agent_name ? (
+                            <p className="thread-link-meta">
+                              {copy.memory.appliesToAgentPrefix}
+                              {memory.target_agent_name}
+                            </p>
+                          ) : null}
                           <p className="thread-link-meta">
                             {copy.memory.incorrectFromPrefix}
                             {memory.source_thread_title ?? copy.states.noThreadsTitle}
@@ -1085,6 +1252,103 @@ export default async function ChatPage({
                               pendingText={copy.memory.restoring}
                             />
                           </form>
+                        </article>
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
+
+                {supersededLongTermMemories.length > 0 ? (
+                  <details className="memory-hidden-shell">
+                    <summary className="memory-hidden-summary">
+                      {copy.memory.supersededTitle} ({supersededLongTermMemories.length})
+                    </summary>
+
+                    <div className="memory-list memory-list-hidden">
+                      {supersededLongTermMemories.map((memory) => (
+                        <article className="memory-card memory-card-hidden" key={memory.id}>
+                          <div className="memory-card-row">
+                            <div className="memory-badges">
+                              <span className="thread-badge">
+                                {getMemoryCategoryLabel(memory.category, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryScopeLabel(memory.scope, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryStatusLabel(memory.status, locale)}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="memory-content">{memory.content}</p>
+                          <p className="memory-effect-copy">
+                            {getMemoryEffectHint({
+                              scope: memory.scope,
+                              status: memory.status,
+                              targetAgentId: memory.target_agent_id,
+                              currentThreadAgentId: thread?.agent_id ?? null,
+                              locale
+                            })}
+                          </p>
+                          {memory.scope === "user_agent" && memory.target_agent_name ? (
+                            <p className="thread-link-meta">
+                              {copy.memory.appliesToAgentPrefix}
+                              {memory.target_agent_name}
+                            </p>
+                          ) : null}
+                          <p className="thread-link-meta">
+                            {copy.memory.traceFromPrefix}
+                            {memory.source_thread_title ?? copy.states.noThreadsTitle}
+                            {memory.source_timestamp
+                              ? ` · ${new Date(memory.source_timestamp).toLocaleString(locale)}`
+                              : ""}
+                          </p>
+                        </article>
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
+
+                {supersededThreadLocalMemories.length > 0 ? (
+                  <details className="memory-hidden-shell">
+                    <summary className="memory-hidden-summary">
+                      {copy.memory.supersededTitle} ({supersededThreadLocalMemories.length}) ·{" "}
+                      {copy.memory.threadLocalTitle}
+                    </summary>
+
+                    <div className="memory-list memory-list-hidden">
+                      {supersededThreadLocalMemories.map((memory) => (
+                        <article className="memory-card memory-card-hidden" key={memory.id}>
+                          <div className="memory-card-row">
+                            <div className="memory-badges">
+                              <span className="thread-badge">
+                                {getMemoryCategoryLabel(memory.category, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryScopeLabel(memory.scope, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getMemoryStatusLabel(memory.status, locale)}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="memory-content">{memory.content}</p>
+                          <p className="memory-effect-copy">
+                            {getMemoryEffectHint({
+                              scope: memory.scope,
+                              status: memory.status,
+                              targetAgentId: memory.target_agent_id,
+                              currentThreadAgentId: thread?.agent_id ?? null,
+                              locale
+                            })}
+                          </p>
+                          <p className="thread-link-meta">
+                            {copy.memory.traceFromPrefix}
+                            {memory.source_thread_title ?? copy.states.noThreadsTitle}
+                            {memory.source_timestamp
+                              ? ` · ${new Date(memory.source_timestamp).toLocaleString(locale)}`
+                              : ""}
+                          </p>
                         </article>
                       ))}
                     </div>

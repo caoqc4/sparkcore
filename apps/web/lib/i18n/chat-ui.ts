@@ -109,6 +109,32 @@ export function getChatCopy(locale: ChatLocale) {
         highHint: "来自清晰、稳定的用户自述，是较强的长期记忆信号。",
         mediumHint: "有用的长期记忆信号，但展示会稍微弱一些。",
         lowHint: "这条记忆置信度较低，仍可阅读，但会被弱化展示。",
+        effectActiveGlobal: "这条记忆现在会生效，因为它是跨线程共享的全局长期记忆。",
+        effectActiveThisThread:
+          "这条约定现在会生效，因为它只绑定在当前线程里。",
+        effectActiveThisAgentCurrent:
+          "这条记忆现在会生效，因为当前线程正在使用它绑定的 agent。",
+        effectActiveThisAgentOther:
+          "这条记忆只会在指定 agent 回复时生效，所以它不会驱动当前线程里的回复。",
+        effectHiddenGlobal:
+          "这条记忆当前不生效，因为它已被隐藏；恢复前不会参与 recall。",
+        effectHiddenThisThread:
+          "这条当前线程约定不生效，因为它已被隐藏；恢复前不会在这个线程里继续生效。",
+        effectHiddenThisAgent:
+          "这条只对指定 agent 生效的记忆当前不生效，因为它已被隐藏。",
+        effectIncorrectGlobal:
+          "这条记忆当前不生效，因为它已被标记为错误；恢复前不会参与 recall。",
+        effectIncorrectThisThread:
+          "这条当前线程约定当前不生效，因为它已被标记为错误。",
+        effectIncorrectThisAgent:
+          "这条只对指定 agent 生效的记忆当前不生效，因为它已被标记为错误。",
+        effectSupersededGlobal:
+          "这条记忆当前不生效，因为一个更新的值已经替代了它。",
+        effectSupersededThisThread:
+          "这条线程约定当前不生效，因为一个更新的值已经替代了它。",
+        effectSupersededThisAgent:
+          "这条只对指定 agent 生效的记忆当前不生效，因为一个更新的值已经替代了它。",
+        appliesToAgentPrefix: "生效对象：",
         categoryProfile: "Profile",
         categoryPreference: "Preference",
         categoryRelationship: "Relationship",
@@ -139,7 +165,8 @@ export function getChatCopy(locale: ChatLocale) {
         removedFromRecall: "已退出 recall",
         incorrectHint:
           "被标记为错误的记忆比隐藏更强，它会持续退出 recall，直到你恢复它。",
-        incorrectFromPrefix: "标记来源 "
+        incorrectFromPrefix: "标记来源 ",
+        supersededTitle: "已替代的记忆"
       },
       common: {
         workspace: "工作区",
@@ -357,6 +384,33 @@ export function getChatCopy(locale: ChatLocale) {
       highHint: "Strong signal from a clear, stable user statement.",
       mediumHint: "Useful signal, but shown with slightly lighter emphasis.",
       lowHint: "Lower-confidence memory. It stays readable, but is visually softened.",
+      effectActiveGlobal:
+        "This memory is active now because it is shared as long-term global memory across threads.",
+      effectActiveThisThread:
+        "This note is active now because it only applies inside the current thread.",
+      effectActiveThisAgentCurrent:
+        "This memory is active now because the current thread is using its bound agent.",
+      effectActiveThisAgentOther:
+        "This memory only applies when its target agent is replying, so it is not driving the current thread right now.",
+      effectHiddenGlobal:
+        "This memory is not active because it is hidden and stays out of recall until restored.",
+      effectHiddenThisThread:
+        "This current-thread note is not active because it is hidden and will stay out of effect until restored.",
+      effectHiddenThisAgent:
+        "This agent-scoped memory is not active because it is hidden.",
+      effectIncorrectGlobal:
+        "This memory is not active because it was marked incorrect and stays out of recall until restored.",
+      effectIncorrectThisThread:
+        "This current-thread note is not active because it was marked incorrect.",
+      effectIncorrectThisAgent:
+        "This agent-scoped memory is not active because it was marked incorrect.",
+      effectSupersededGlobal:
+        "This memory is not active because a newer value has replaced it.",
+      effectSupersededThisThread:
+        "This current-thread note is not active because a newer value has replaced it.",
+      effectSupersededThisAgent:
+        "This agent-scoped memory is not active because a newer value has replaced it.",
+      appliesToAgentPrefix: "Applies to: ",
       categoryProfile: "Profile",
       categoryPreference: "Preference",
       categoryRelationship: "Relationship",
@@ -387,7 +441,8 @@ export function getChatCopy(locale: ChatLocale) {
       removedFromRecall: "Removed from recall",
       incorrectHint:
         "Marked incorrect. This is stronger than hide and keeps the memory out of recall until you restore it.",
-      incorrectFromPrefix: "Flagged from "
+      incorrectFromPrefix: "Flagged from ",
+      supersededTitle: "Replaced memories"
     },
     common: {
       workspace: "Workspace",

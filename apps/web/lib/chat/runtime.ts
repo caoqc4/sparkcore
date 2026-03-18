@@ -116,6 +116,9 @@ type VisibleMemoryRecord = {
   key: string;
   value: unknown;
   scope: string;
+  target_agent_id: string | null;
+  target_thread_id: string | null;
+  target_agent_name: string | null;
   stability: string;
   status: string;
   source_refs: unknown[];
@@ -132,6 +135,7 @@ type VisibleMemoryRecord = {
 
 type HiddenMemoryRecord = VisibleMemoryRecord;
 type IncorrectMemoryRecord = VisibleMemoryRecord;
+type SupersededMemoryRecord = VisibleMemoryRecord;
 
 type RequestedThreadFallback = {
   requestedThreadId: string;
@@ -938,6 +942,8 @@ export async function getChatPageState({
       defaultAgentId: null,
       visibleMemories: [],
       hiddenMemories: [],
+      incorrectMemories: [],
+      supersededMemories: [],
       threads: [],
       thread: null,
       agent: null,
@@ -1076,12 +1082,21 @@ export async function getChatPageState({
   const filteredIncorrectMemories = validVisibleMemories
     .filter((memory) => isMemoryIncorrect(memory))
     .slice(0, 20);
+  const filteredSupersededMemories = validVisibleMemories
+    .filter(
+      (memory) =>
+        !isMemoryHidden(memory) &&
+        !isMemoryIncorrect(memory) &&
+        getMemoryStatus(memory) === "superseded"
+    )
+    .slice(0, 20);
   const sourceMessageIds = [
     ...new Set(
       [
         ...filteredVisibleMemories,
         ...filteredHiddenMemories,
-        ...filteredIncorrectMemories
+        ...filteredIncorrectMemories,
+        ...filteredSupersededMemories
       ]
         .map((memory) => memory.source_message_id)
         .filter((id): id is string => Boolean(id))
@@ -1218,6 +1233,7 @@ export async function getChatPageState({
     availableAgents.find((agent) => agent.is_default_for_workspace)?.id ??
     availableAgents[0]?.id ??
     null;
+  const agentNameById = new Map(availableAgents.map((agent) => [agent.id, agent.name]));
   const availablePersonaPacks = (personaPacksData ?? []) as AvailablePersonaPackRecord[];
   const availableModelProfiles = ((availableModelProfilesData ?? []) as Array<{
     id: string;
@@ -1249,6 +1265,11 @@ export async function getChatPageState({
       key: getMemoryKey(memory),
       value: memory.value ?? memory.content,
       scope: getMemoryScope(memory),
+      target_agent_id: memory.target_agent_id ?? null,
+      target_thread_id: memory.target_thread_id ?? null,
+      target_agent_name: memory.target_agent_id
+        ? agentNameById.get(memory.target_agent_id) ?? null
+        : null,
       stability: getMemoryStability(memory),
       status: getMemoryStatus(memory),
       source_refs: getMemorySourceRefs(memory),
@@ -1270,6 +1291,11 @@ export async function getChatPageState({
       key: getMemoryKey(memory),
       value: memory.value ?? memory.content,
       scope: getMemoryScope(memory),
+      target_agent_id: memory.target_agent_id ?? null,
+      target_thread_id: memory.target_thread_id ?? null,
+      target_agent_name: memory.target_agent_id
+        ? agentNameById.get(memory.target_agent_id) ?? null
+        : null,
       stability: getMemoryStability(memory),
       status: getMemoryStatus(memory),
       source_refs: getMemorySourceRefs(memory),
@@ -1291,6 +1317,11 @@ export async function getChatPageState({
       key: getMemoryKey(memory),
       value: memory.value ?? memory.content,
       scope: getMemoryScope(memory),
+      target_agent_id: memory.target_agent_id ?? null,
+      target_thread_id: memory.target_thread_id ?? null,
+      target_agent_name: memory.target_agent_id
+        ? agentNameById.get(memory.target_agent_id) ?? null
+        : null,
       stability: getMemoryStability(memory),
       status: getMemoryStatus(memory),
       source_refs: getMemorySourceRefs(memory),
@@ -1301,6 +1332,32 @@ export async function getChatPageState({
       source_timestamp: sourceMessage?.created_at ?? null
     };
   }) as IncorrectMemoryRecord[];
+  const supersededMemories = filteredSupersededMemories.map((memory) => {
+    const sourceMessage = memory.source_message_id
+      ? sourceMessageById.get(memory.source_message_id) ?? null
+      : null;
+
+    return {
+      ...memory,
+      category: getMemoryCategory(memory),
+      key: getMemoryKey(memory),
+      value: memory.value ?? memory.content,
+      scope: getMemoryScope(memory),
+      target_agent_id: memory.target_agent_id ?? null,
+      target_thread_id: memory.target_thread_id ?? null,
+      target_agent_name: memory.target_agent_id
+        ? agentNameById.get(memory.target_agent_id) ?? null
+        : null,
+      stability: getMemoryStability(memory),
+      status: getMemoryStatus(memory),
+      source_refs: getMemorySourceRefs(memory),
+      source_thread_id: sourceMessage?.thread_id ?? null,
+      source_thread_title: sourceMessage?.thread_id
+        ? sourceThreadTitleById.get(sourceMessage.thread_id) ?? null
+        : null,
+      source_timestamp: sourceMessage?.created_at ?? null
+    };
+  }) as SupersededMemoryRecord[];
   const threads = (rawThreads ?? []) as ThreadRecord[];
 
   if (threads.length === 0) {
@@ -1314,6 +1371,7 @@ export async function getChatPageState({
       visibleMemories,
       hiddenMemories,
       incorrectMemories,
+      supersededMemories,
       threads: [],
       thread: null,
       agent: null,
@@ -1431,6 +1489,7 @@ export async function getChatPageState({
     visibleMemories,
     hiddenMemories,
     incorrectMemories,
+    supersededMemories,
     threads: threadItems,
     thread: activeThread,
     agent: activeAgent,
