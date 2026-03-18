@@ -12,31 +12,33 @@ values
     'spark-default',
     'Spark Default',
     'replicate',
-    'replicate-llama-3-8b',
-    0.45,
-    512,
+    'replicate-gpt-4o-mini',
+    0.35,
+    768,
     jsonb_build_object(
       'seed', true,
       'default', true,
       'stage1_quality', true,
       'tier', 'stable-conversation',
       'tier_label', 'Stable conversation',
-      'usage_note', 'Balanced default for everyday conversation and baseline quality checks.'
+      'usage_note', 'Balanced default for everyday conversation, multilingual replies, and higher-quality baseline checks.',
+      'underlying_model', 'replicate/openai/gpt-4o-mini'
     )
   ),
   (
     'spark-memory-sensitive',
     'Spark Memory Sensitive',
     'replicate',
-    'replicate-llama-3-8b',
-    0.2,
-    512,
+    'replicate-claude-4-sonnet',
+    0.15,
+    768,
     jsonb_build_object(
       'seed', true,
       'stage1_quality', true,
       'tier', 'memory-sensitive',
       'tier_label', 'Memory-sensitive',
-      'usage_note', 'Use this when you want to compare memory-grounded answers and direct follow-up fidelity.'
+      'usage_note', 'Use this when you want to compare memory-grounded answers, direct follow-up fidelity, and relationship recall.',
+      'underlying_model', 'replicate/anthropic/claude-4-sonnet'
     )
   ),
   (
@@ -51,7 +53,8 @@ values
       'stage1_quality', true,
       'tier', 'low-cost-testing',
       'tier_label', 'Low-cost testing',
-      'usage_note', 'Use this for cheaper smoke checks, rough language tests, and fast prompt iteration.'
+      'usage_note', 'Use this for cheaper smoke checks, rough language tests, and fast prompt iteration.',
+      'underlying_model', 'replicate/meta/meta-llama-3-8b-instruct'
     )
   )
 on conflict (slug) do update

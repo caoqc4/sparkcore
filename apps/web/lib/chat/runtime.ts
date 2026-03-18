@@ -103,6 +103,7 @@ type AvailableModelProfileRecord = {
   metadata: Record<string, unknown>;
   tier_label: string | null;
   usage_note: string | null;
+  underlying_model: string | null;
 };
 
 type VisibleMemoryRecord = {
@@ -144,6 +145,13 @@ function summarizeAgentPrompt(prompt: string) {
   }
 
   return `${normalized.slice(0, 177).trimEnd()}...`;
+}
+
+function getUnderlyingModelFromMetadata(metadata: Record<string, unknown> | null | undefined) {
+  return typeof metadata?.underlying_model === "string" &&
+    metadata.underlying_model.trim().length > 0
+    ? metadata.underlying_model
+    : null;
 }
 
 function buildMessagePreview(content: string) {
@@ -976,7 +984,8 @@ export async function getChatPageState({
     usage_note:
       typeof modelProfile.metadata?.usage_note === "string"
         ? modelProfile.metadata.usage_note
-        : null
+        : null,
+    underlying_model: getUnderlyingModelFromMetadata(modelProfile.metadata)
   })) as AvailableModelProfileRecord[];
   const visibleMemories = filteredVisibleMemories.map((memory) => {
     const sourceMessage = memory.source_message_id
@@ -1272,7 +1281,9 @@ export async function generateAgentReply({
       model: result.model,
       model_provider: modelProfile.provider,
       model_requested: modelProfile.model,
-      underlying_model_label: `${modelProfile.provider}/${result.model ?? modelProfile.model}`,
+      underlying_model_label:
+        getUnderlyingModelFromMetadata(modelProfile.metadata) ??
+        `${modelProfile.provider}/${result.model ?? modelProfile.model}`,
       model_profile_id: modelProfile.id,
       model_profile_name: modelProfile.name,
       reply_language_target: replyLanguage,

@@ -23,6 +23,7 @@ type AgentEditSheetProps = {
     model: string;
     tier_label: string | null;
     usage_note: string | null;
+    underlying_model: string | null;
   }>;
 };
 
@@ -58,7 +59,10 @@ export function AgentEditSheet({
       parts.push(modelProfile.tier_label);
     }
 
-    parts.push(`${modelProfile.provider}/${modelProfile.model}`);
+    parts.push(
+      modelProfile.underlying_model ??
+        `${modelProfile.provider}/${modelProfile.model}`
+    );
 
     return parts.join(" · ");
   }
@@ -254,9 +258,10 @@ export function AgentEditSheet({
                         {selectedModelProfile.usage_note}
                       </span>
                     ) : null}
-                    <span className="helper-copy">
-                      {copy.sheets.underlyingModel}:{" "}
-                      {selectedModelProfile.provider}/{selectedModelProfile.model}
+                      <span className="helper-copy">
+                        {copy.sheets.underlyingModel}:{" "}
+                      {selectedModelProfile.underlying_model ??
+                        `${selectedModelProfile.provider}/${selectedModelProfile.model}`}
                     </span>
                   </>
                 ) : null}

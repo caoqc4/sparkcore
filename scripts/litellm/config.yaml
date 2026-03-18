@@ -2,6 +2,14 @@ general_settings:
   master_key: "sk-sparkcore-local-dev"
 
 model_list:
+  - model_name: replicate-gpt-4o-mini
+    litellm_params:
+      model: replicate/openai/gpt-4o-mini
+      api_key: os.environ/REPLICATE_API_KEY
+  - model_name: replicate-claude-4-sonnet
+    litellm_params:
+      model: replicate/anthropic/claude-4-sonnet
+      api_key: os.environ/REPLICATE_API_KEY
   - model_name: replicate-llama-3-8b
     litellm_params:
       model: replicate/meta/meta-llama-3-8b-instruct
