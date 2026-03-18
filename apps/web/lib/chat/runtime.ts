@@ -147,7 +147,8 @@ type DirectRecallQuestionKind =
   | "none"
   | "generic-memory"
   | "profession"
-  | "planning-style";
+  | "planning-style"
+  | "reply-style";
 
 function detectExplicitLanguageOverride(content: string): RuntimeReplyLanguage {
   const normalized = content.normalize("NFKC").toLowerCase();
@@ -425,6 +426,18 @@ function getDirectRecallQuestionKind(
   normalizedUserMessage: string
 ): DirectRecallQuestionKind {
   if (
+    normalizedUserMessage.includes("what kind of reply style do i prefer") ||
+    normalizedUserMessage.includes("what reply style do i prefer") ||
+    normalizedUserMessage.includes("what kind of tone do i prefer") ||
+    normalizedUserMessage.includes("我喜欢什么样的回复方式") ||
+    normalizedUserMessage.includes("我偏好什么样的回复方式") ||
+    normalizedUserMessage.includes("我喜欢什么语气") ||
+    normalizedUserMessage.includes("我偏好什么语气")
+  ) {
+    return "reply-style";
+  }
+
+  if (
     normalizedUserMessage.includes("what profession do you remember") ||
     normalizedUserMessage.includes("what work do you remember") ||
     normalizedUserMessage.includes("你记得我做什么") ||
@@ -439,8 +452,7 @@ function getDirectRecallQuestionKind(
     normalizedUserMessage.includes("what planning style do i prefer") ||
     normalizedUserMessage.includes("what kind of planning style do i prefer") ||
     normalizedUserMessage.includes("我喜欢什么样的规划方式") ||
-    normalizedUserMessage.includes("我偏好什么样的规划方式") ||
-    normalizedUserMessage.includes("我喜欢什么样的回复方式")
+    normalizedUserMessage.includes("我偏好什么样的规划方式")
   ) {
     return "planning-style";
   }
@@ -482,6 +494,20 @@ function buildDirectRecallInstructions(
         ]
       : [
           "The user is directly asking for a preference fact. If the recalled memory above includes a planning style or reply preference, answer with that preference directly instead of turning it into generic advice.",
+          "When relevant long-term memory is present, do not confuse missing conversation history with missing long-term memory."
+        ];
+  }
+
+  if (questionKind === "reply-style") {
+    return isZh
+      ? [
+          "用户正在直接询问自己偏好的回复方式或语气。如果上面的长期记忆已经包含相关偏好，就直接回答那个偏好，不要改写成泛泛建议。",
+          "如果上面的关系记忆说明当前 agent 应该用更正式、更轻松、像朋友一样，或不要叫用户全名，就优先把这些偏好直接说清楚。",
+          "当相关长期记忆已经命中时，不要把“我没有对话历史”和“我没有长期记忆”混为一谈。"
+        ]
+      : [
+          "The user is directly asking what reply style or tone they prefer. If the recalled memory above contains that preference, answer with it directly instead of turning it into generic advice.",
+          "If the relationship memory above indicates a more formal, more casual, more friendly, or no-full-name preference, explain that preference plainly before falling back to vaguer wording.",
           "When relevant long-term memory is present, do not confuse missing conversation history with missing long-term memory."
         ];
   }

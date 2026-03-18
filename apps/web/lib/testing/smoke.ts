@@ -697,6 +697,20 @@ function isSmokeDirectPlanningPreferenceQuestion(content: string) {
   );
 }
 
+function isSmokeDirectReplyStyleQuestion(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("what kind of reply style do i prefer") ||
+    normalized.includes("what reply style do i prefer") ||
+    normalized.includes("what kind of tone do i prefer") ||
+    normalized.includes("我喜欢什么样的回复方式") ||
+    normalized.includes("我偏好什么样的回复方式") ||
+    normalized.includes("我喜欢什么语气") ||
+    normalized.includes("我偏好什么语气")
+  );
+}
+
 function buildSmokeAssistantReply({
   content,
   modelProfileName,
@@ -802,6 +816,36 @@ function buildSmokeAssistantReply({
     return replyLanguage === "zh-Hans"
       ? "你偏好简洁的每周规划方式。"
       : "You prefer concise weekly planning.";
+  }
+
+  if (isSmokeDirectReplyStyleQuestion(content)) {
+    const styleValue = addressStyleMemory?.content ?? null;
+
+    if (!styleValue) {
+      return replyLanguage === "zh-Hans" ? "我不知道。" : "I don't know.";
+    }
+
+    if (styleValue === "formal") {
+      return replyLanguage === "zh-Hans"
+        ? "你偏好我用更正式、更礼貌的方式回复你。"
+        : "You prefer that I reply in a more formal, respectful way.";
+    }
+
+    if (styleValue === "friendly") {
+      return replyLanguage === "zh-Hans"
+        ? "你偏好我更像朋友一样和你说话。"
+        : "You prefer that I speak to you in a more friendly, companion-like way.";
+    }
+
+    if (styleValue === "no_full_name") {
+      return replyLanguage === "zh-Hans"
+        ? "你偏好我不要用你的全名来称呼你。"
+        : "You prefer that I avoid addressing you by your full name.";
+    }
+
+    return replyLanguage === "zh-Hans"
+      ? "你偏好我用更轻松、不那么正式的方式回复你。"
+      : "You prefer that I reply in a more casual, less formal way.";
   }
 
   if (isSmokeDirectNamingQuestion(content)) {
