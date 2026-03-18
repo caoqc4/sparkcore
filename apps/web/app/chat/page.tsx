@@ -282,6 +282,24 @@ export default async function ChatPage({
     cookieStore.get(CHAT_UI_LANGUAGE_COOKIE)?.value
   );
   const copy = getChatCopy(locale);
+
+  function getProfilePositioning(tierLabel: string | null) {
+    const tier = tierLabel?.toLowerCase() ?? "";
+
+    if (tier.includes("stable")) {
+      return copy.sheets.profilePositioningStable;
+    }
+
+    if (tier.includes("memory")) {
+      return copy.sheets.profilePositioningMemory;
+    }
+
+    if (tier.includes("low-cost") || tier.includes("low cost")) {
+      return copy.sheets.profilePositioningLowCost;
+    }
+
+    return copy.sheets.profilePositioningGeneric;
+  }
   let chatState;
 
   try {
@@ -613,6 +631,14 @@ export default async function ChatPage({
                               ? ` · ${availableAgent.default_model_profile_tier_label}`
                               : ""}
                           </p>
+                          {availableAgent.default_model_profile_name ? (
+                            <p className="thread-link-meta">
+                              {copy.sidebar.profileBestForPrefix}
+                              {getProfilePositioning(
+                                availableAgent.default_model_profile_tier_label
+                              )}
+                            </p>
+                          ) : null}
                           <p className="agent-impact-copy">
                             {isCurrent
                               ? copy.sidebar.currentAgentImpact

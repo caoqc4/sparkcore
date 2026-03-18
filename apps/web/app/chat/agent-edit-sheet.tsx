@@ -52,12 +52,40 @@ export function AgentEditSheet({
     modelProfiles.find((modelProfile) => modelProfile.id === selectedModelProfileId) ??
     null;
 
-  function buildModelProfileOptionLabel(modelProfile: AgentEditSheetProps["modelProfiles"][number]) {
-    const parts = [modelProfile.name];
+  function getProfilePositioning(
+    modelProfile: AgentEditSheetProps["modelProfiles"][number]
+  ) {
+    const tier = modelProfile.tier_label?.toLowerCase() ?? "";
 
-    if (modelProfile.tier_label) {
-      parts.push(modelProfile.tier_label);
+    if (tier.includes("stable")) {
+      return {
+        label: copy.sheets.profilePositioningStable,
+        helper: copy.sheets.profilePositioningStableHelper
+      };
     }
+
+    if (tier.includes("memory")) {
+      return {
+        label: copy.sheets.profilePositioningMemory,
+        helper: copy.sheets.profilePositioningMemoryHelper
+      };
+    }
+
+    if (tier.includes("low-cost") || tier.includes("low cost")) {
+      return {
+        label: copy.sheets.profilePositioningLowCost,
+        helper: copy.sheets.profilePositioningLowCostHelper
+      };
+    }
+
+    return {
+      label: copy.sheets.profilePositioningGeneric,
+      helper: copy.sheets.profilePositioningGenericHelper
+    };
+  }
+
+  function buildModelProfileOptionLabel(modelProfile: AgentEditSheetProps["modelProfiles"][number]) {
+    const parts = [modelProfile.name, getProfilePositioning(modelProfile).label];
 
     parts.push(
       modelProfile.underlying_model ??
@@ -253,13 +281,24 @@ export function AgentEditSheet({
                 </span>
                 {selectedModelProfile ? (
                   <>
+                    <div className="sheet-pack-preview">
+                      <p className="sheet-pack-name">
+                        {copy.sheets.profilePositioning}
+                      </p>
+                      <p className="thread-link-meta">
+                        {getProfilePositioning(selectedModelProfile).label}
+                      </p>
+                      <p className="helper-copy">
+                        {getProfilePositioning(selectedModelProfile).helper}
+                      </p>
+                    </div>
                     {selectedModelProfile.usage_note ? (
                       <span className="helper-copy">
                         {selectedModelProfile.usage_note}
                       </span>
                     ) : null}
-                      <span className="helper-copy">
-                        {copy.sheets.underlyingModel}:{" "}
+                    <span className="helper-copy">
+                      {copy.sheets.underlyingModel}:{" "}
                       {selectedModelProfile.underlying_model ??
                         `${selectedModelProfile.provider}/${selectedModelProfile.model}`}
                     </span>

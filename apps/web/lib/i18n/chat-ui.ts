@@ -72,6 +72,7 @@ export function getChatCopy(locale: ChatLocale) {
         customPreset: "自定义",
         systemPreset: "系统预设",
         setAsDefault: "设为默认",
+        profileBestForPrefix: "适合：",
         currentAgentImpact:
           "这个 agent 已绑定到当前线程。当相关时它可以引用长期记忆，这里做的任何修改只会影响这个线程之后的回复。",
         defaultAgentImpact:
@@ -217,6 +218,19 @@ export function getChatCopy(locale: ChatLocale) {
         personaSummary: "角色摘要",
         modelProfile: "模型配置",
         profileHelper: "切换模型配置只会影响这个 agent 之后的回复。",
+        profilePositioning: "适合场景",
+        profilePositioningStable: "日常稳定对话",
+        profilePositioningMemory: "记忆敏感型跟进",
+        profilePositioningLowCost: "低成本快速验证",
+        profilePositioningGeneric: "通用对话",
+        profilePositioningStableHelper:
+          "适合日常聊天、多语言回复，以及你想先拿到更均衡的默认表现时。",
+        profilePositioningMemoryHelper:
+          "适合直问记忆、关系型称呼，以及你希望回答更贴近已召回事实时。",
+        profilePositioningLowCostHelper:
+          "适合快速 smoke、粗对比和 prompt 迭代，不追求最稳的最终回答质量。",
+        profilePositioningGenericHelper:
+          "适合一般对话场景，作为没有特殊要求时的基础配置。",
         underlyingModel: "底层模型",
         systemPromptSummary: "系统提示摘要"
       },
@@ -347,6 +361,7 @@ export function getChatCopy(locale: ChatLocale) {
       customPreset: "Custom",
       systemPreset: "System preset",
       setAsDefault: "Set as default",
+      profileBestForPrefix: "Best for: ",
       currentAgentImpact:
         "This agent is bound to the current thread. It can reference long-term memory when relevant, and any edits here only affect future replies from this thread.",
       defaultAgentImpact:
@@ -494,6 +509,19 @@ export function getChatCopy(locale: ChatLocale) {
       personaSummary: "Persona summary",
       modelProfile: "Model profile",
       profileHelper: "Switching the model profile only affects future replies from this agent.",
+      profilePositioning: "Best for",
+      profilePositioningStable: "Everyday chat",
+      profilePositioningMemory: "Memory-heavy follow-ups",
+      profilePositioningLowCost: "Fast low-cost checks",
+      profilePositioningGeneric: "General chat",
+      profilePositioningStableHelper:
+        "Best when you want balanced everyday quality, multilingual replies, and a steadier default conversation profile.",
+      profilePositioningMemoryHelper:
+        "Best when replies need to stay closer to recalled facts, naming preferences, and relationship cues.",
+      profilePositioningLowCostHelper:
+        "Best for quick smoke checks, rough comparisons, and fast prompt iteration when cost matters more than polish.",
+      profilePositioningGenericHelper:
+        "Best for general conversation when you do not need a more specialized profile behavior.",
       underlyingModel: "Underlying model",
       systemPromptSummary: "System prompt summary"
     },
