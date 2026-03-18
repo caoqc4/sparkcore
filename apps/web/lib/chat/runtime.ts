@@ -138,6 +138,11 @@ type RequestedThreadFallback = {
 };
 
 type RuntimeReplyLanguage = "zh-Hans" | "en" | "unknown";
+type DirectRecallQuestionKind =
+  | "none"
+  | "generic-memory"
+  | "profession"
+  | "planning-style";
 
 function summarizeAgentPrompt(prompt: string) {
   const normalized = prompt.replace(/\s+/g, " ").trim();
@@ -194,15 +199,9 @@ function buildMemoryRecallPrompt(
   }
 ) {
   const normalizedUserMessage = latestUserMessage.toLowerCase();
+  const directRecallQuestionKind = getDirectRecallQuestionKind(normalizedUserMessage);
   const isZh = replyLanguage === "zh-Hans";
-  const isDirectMemoryQuestion =
-    normalizedUserMessage.includes("what do you remember") ||
-    normalizedUserMessage.includes("what profession do you remember") ||
-    normalizedUserMessage.includes("what kind of weekly planning style would fit me best") ||
-    normalizedUserMessage.includes("if you do not know, say you do not know") ||
-    normalizedUserMessage.includes("如果你不知道") ||
-    normalizedUserMessage.includes("你记得") ||
-    normalizedUserMessage.includes("你还记得");
+  const isDirectMemoryQuestion = directRecallQuestionKind !== "none";
 
   if (
     recalledMemories.length === 0 &&
@@ -308,20 +307,86 @@ function buildMemoryRecallPrompt(
       ];
 
   if (isDirectMemoryQuestion) {
-    sections.push(
-      ...(isZh
-        ? [
-            "用户正在直接追问你记得什么。如果上面的召回记忆已经覆盖答案，就直接、明确地回答那个记住的事实。",
-            "当上面已经列出相关长期记忆时，不要再说你没有先前知识、没有对话历史，或不记得。"
-          ]
-        : [
-            "The user is directly asking what you remember. If the answer is covered by the recalled memory above, answer with that remembered fact plainly.",
-            "Do not say that you have no prior knowledge, no previous conversation, or no memory when relevant long-term memory is listed above."
-          ])
-    );
+    sections.push(...buildDirectRecallInstructions(directRecallQuestionKind, isZh));
   }
 
   return sections.join("\n");
+}
+
+function getDirectRecallQuestionKind(
+  normalizedUserMessage: string
+): DirectRecallQuestionKind {
+  if (
+    normalizedUserMessage.includes("what profession do you remember") ||
+    normalizedUserMessage.includes("what work do you remember") ||
+    normalizedUserMessage.includes("你记得我做什么") ||
+    normalizedUserMessage.includes("你记得我的职业") ||
+    normalizedUserMessage.includes("你记得我从事什么")
+  ) {
+    return "profession";
+  }
+
+  if (
+    normalizedUserMessage.includes("what kind of weekly planning style would fit me best") ||
+    normalizedUserMessage.includes("what planning style do i prefer") ||
+    normalizedUserMessage.includes("what kind of planning style do i prefer") ||
+    normalizedUserMessage.includes("我喜欢什么样的规划方式") ||
+    normalizedUserMessage.includes("我偏好什么样的规划方式") ||
+    normalizedUserMessage.includes("我喜欢什么样的回复方式")
+  ) {
+    return "planning-style";
+  }
+
+  if (
+    normalizedUserMessage.includes("what do you remember") ||
+    normalizedUserMessage.includes("if you do not know, say you do not know") ||
+    normalizedUserMessage.includes("如果你不知道") ||
+    normalizedUserMessage.includes("你记得") ||
+    normalizedUserMessage.includes("你还记得")
+  ) {
+    return "generic-memory";
+  }
+
+  return "none";
+}
+
+function buildDirectRecallInstructions(
+  questionKind: DirectRecallQuestionKind,
+  isZh: boolean
+) {
+  if (questionKind === "profession") {
+    return isZh
+      ? [
+          "用户正在直接询问职业/身份类事实。如果上面的长期记忆已经包含职业信息，就直接回答那个职业事实，不要绕开。",
+          "当相关长期记忆已经命中时，不要再说你没有先前知识、没有对话历史，或不记得。"
+        ]
+      : [
+          "The user is directly asking for a profession or identity fact. If the recalled memory above includes that fact, answer with it plainly and directly.",
+          "When relevant long-term memory is present, do not say that you have no prior knowledge, no previous conversation, or no memory."
+        ];
+  }
+
+  if (questionKind === "planning-style") {
+    return isZh
+      ? [
+          "用户正在直接询问偏好类事实。如果上面的长期记忆已经包含规划方式或回复偏好，就直接回答那个偏好，不要改写成泛泛建议。",
+          "当相关长期记忆已经命中时，不要把“我没有对话历史”和“我没有长期记忆”混为一谈。"
+        ]
+      : [
+          "The user is directly asking for a preference fact. If the recalled memory above includes a planning style or reply preference, answer with that preference directly instead of turning it into generic advice.",
+          "When relevant long-term memory is present, do not confuse missing conversation history with missing long-term memory."
+        ];
+  }
+
+  return isZh
+    ? [
+        "用户正在直接追问你记得什么。如果上面的召回记忆已经覆盖答案，就直接、明确地回答那个记住的事实。",
+        "当上面已经列出相关长期记忆时，不要再说你没有先前知识、没有对话历史，或不记得。"
+      ]
+    : [
+        "The user is directly asking what you remember. If the answer is covered by the recalled memory above, answer with that remembered fact plainly.",
+        "Do not say that you have no prior knowledge, no previous conversation, or no memory when relevant long-term memory is listed above."
+      ];
 }
 
 function detectReplyLanguageFromText(content: string): RuntimeReplyLanguage {

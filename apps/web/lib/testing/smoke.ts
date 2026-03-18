@@ -566,6 +566,18 @@ function isSmokeDirectUserPreferredNameQuestion(content: string) {
   );
 }
 
+function isSmokeDirectPlanningPreferenceQuestion(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("what planning style do i prefer") ||
+    normalized.includes("what kind of planning style do i prefer") ||
+    normalized.includes("what kind of weekly planning style would fit me best") ||
+    normalized.includes("我喜欢什么样的规划方式") ||
+    normalized.includes("我偏好什么样的规划方式")
+  );
+}
+
 function buildSmokeAssistantReply({
   content,
   modelProfileName,
@@ -600,6 +612,11 @@ function buildSmokeAssistantReply({
       memory.memory_type === "profile" &&
       memory.content.toLowerCase().includes("product designer")
   );
+  const rememberedPlanningPreference = recalledMemories.find(
+    (memory) =>
+      memory.memory_type === "preference" &&
+      memory.content.toLowerCase().includes("concise weekly planning")
+  );
 
   if (normalized.includes("reply in one sentence with a quick hello")) {
     return replyLanguage === "zh-Hans"
@@ -624,6 +641,16 @@ function buildSmokeAssistantReply({
     return replyLanguage === "zh-Hans"
       ? "我记得你是一名产品设计师。"
       : "I remember that you work as a product designer.";
+  }
+
+  if (isSmokeDirectPlanningPreferenceQuestion(content)) {
+    if (!rememberedPlanningPreference) {
+      return replyLanguage === "zh-Hans" ? "我不知道。" : "I don't know.";
+    }
+
+    return replyLanguage === "zh-Hans"
+      ? "你偏好简洁的每周规划方式。"
+      : "You prefer concise weekly planning.";
   }
 
   if (isSmokeDirectNamingQuestion(content)) {
@@ -790,7 +817,8 @@ export async function createSmokeTurn({
       return (
         (trimmedContent.toLowerCase().includes("profession") &&
           normalizedContent.includes("product designer")) ||
-        (trimmedContent.toLowerCase().includes("weekly planning") &&
+        ((trimmedContent.toLowerCase().includes("weekly planning") ||
+          isSmokeDirectPlanningPreferenceQuestion(trimmedContent)) &&
           normalizedContent.includes("concise weekly planning"))
       );
     })
