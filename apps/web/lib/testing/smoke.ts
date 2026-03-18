@@ -697,6 +697,18 @@ function isSmokeDirectPlanningPreferenceQuestion(content: string) {
   );
 }
 
+function isSmokeDirectProfessionQuestion(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("what profession do you remember") ||
+    normalized.includes("what work do you remember") ||
+    normalized.includes("你记得我做什么") ||
+    normalized.includes("你记得我的职业") ||
+    normalized.includes("你记得我从事什么")
+  );
+}
+
 function isSmokeDirectReplyStyleQuestion(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
@@ -798,7 +810,7 @@ function buildSmokeAssistantReply({
       : "Thanks. I understand that you work as a product designer and prefer concise weekly planning.";
   }
 
-  if (normalized.includes("what profession do you remember")) {
+  if (isSmokeDirectProfessionQuestion(content)) {
     if (!rememberedProfession) {
       return replyLanguage === "zh-Hans" ? "我不知道。" : "I don't know.";
     }
@@ -1011,6 +1023,8 @@ export async function createSmokeTurn({
       const normalizedContent = memory.content.toLowerCase();
       return (
         (trimmedContent.toLowerCase().includes("profession") &&
+          normalizedContent.includes("product designer")) ||
+        (isSmokeDirectProfessionQuestion(trimmedContent) &&
           normalizedContent.includes("product designer")) ||
         ((trimmedContent.toLowerCase().includes("weekly planning") ||
           isSmokeDirectPlanningPreferenceQuestion(trimmedContent)) &&

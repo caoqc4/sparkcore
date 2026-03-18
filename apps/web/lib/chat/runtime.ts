@@ -571,15 +571,17 @@ function getReplyLanguageInstruction(language: RuntimeReplyLanguage) {
     case "zh-Hans":
       return [
         "Runtime language target: reply in Simplified Chinese for this turn unless the user explicitly asks to switch languages.",
+        "The latest user message has higher priority than prior thread language, recalled memory language, model labels, or internal notes.",
         "Do not drift into English just because recalled memory, model labels, or internal notes contain English text."
       ].join(" ");
     case "en":
       return [
         "Runtime language target: reply in English for this turn unless the user explicitly asks to switch languages.",
+        "The latest user message has higher priority than prior thread language, recalled memory language, model labels, or internal notes.",
         "Do not switch to another language just because recalled memory, model labels, or internal notes contain that language."
       ].join(" ");
     default:
-      return "Runtime language target: follow the latest user message language and avoid unnecessary language switching within the same reply.";
+      return "Runtime language target: follow the latest user message language, treat it as the highest-priority signal for this turn, and avoid unnecessary language switching within the same reply.";
   }
 }
 

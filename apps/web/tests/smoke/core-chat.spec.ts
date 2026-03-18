@@ -1037,4 +1037,57 @@ test.describe("core chat smoke", () => {
       timeout: 45_000
     });
   });
+
+  test("keeps Chinese as the reply language when recalled memory is in English", async ({
+    page,
+    request
+  }) => {
+    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(seedThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await seedThreadResponse.json()) as { threadId: string };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${threadId}`
+    );
+
+    const seedMemoryResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "I am a product designer and I prefer concise weekly planning."
+      }
+    });
+
+    expect(seedMemoryResponse.ok()).toBeTruthy();
+
+    const zhRecallResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "你记得我做什么工作吗？"
+      }
+    });
+
+    expect(zhRecallResponse.ok()).toBeTruthy();
+    await page.reload();
+
+    await expect(page.getByText("我记得你是一名产品设计师。").first()).toBeVisible({
+      timeout: 45_000
+    });
+  });
 });
