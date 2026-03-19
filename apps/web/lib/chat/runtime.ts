@@ -276,45 +276,56 @@ type AnswerStrategy =
   | "grounded-open-ended-summary"
   | "same-thread-continuation"
   | "default-grounded";
+type AnswerStrategyPriority =
+  | "high-deterministic"
+  | "semi-constrained"
+  | "low-deterministic";
 
 const ANSWER_STRATEGY_MATRIX: Array<{
   questionType: AnswerQuestionType;
   strategy: AnswerStrategy;
+  priority: AnswerStrategyPriority;
   description: string;
 }> = [
   {
     questionType: "direct-fact",
     strategy: "structured-recall-first",
+    priority: "high-deterministic",
     description:
       "Direct fact questions should prefer deterministic structured recall before more open-ended generation."
   },
   {
     questionType: "direct-relationship-confirmation",
     strategy: "relationship-recall-first",
+    priority: "high-deterministic",
     description:
       "Direct relationship-confirmation questions should prefer relationship recall before canonical fallback identity."
   },
   {
     questionType: "open-ended-advice",
     strategy: "grounded-open-ended-advice",
+    priority: "low-deterministic",
     description:
       "Open-ended advice should stay grounded in recalled memory without turning into a rigid fact dump."
   },
   {
     questionType: "open-ended-summary",
     strategy: "grounded-open-ended-summary",
+    priority: "low-deterministic",
     description:
       "Open-ended summary and self-introduction prompts should stay natural while keeping relevant memory and relationship cues visible."
   },
   {
     questionType: "fuzzy-follow-up",
     strategy: "same-thread-continuation",
+    priority: "semi-constrained",
     description:
       "Short fuzzy follow-ups should prioritize same-thread continuity in language and relationship style."
   },
   {
     questionType: "other",
     strategy: "default-grounded",
+    priority: "semi-constrained",
     description:
       "Other prompts should use the default grounded answer path without overfitting to direct recall."
   }
@@ -426,7 +437,8 @@ function buildMemoryRecallPrompt(
     relationshipStylePrompt: relationshipRecall.relationshipStylePrompt,
     sameThreadContinuity: relationshipRecall.sameThreadContinuity
   });
-  const answerStrategy = getAnswerStrategyForQuestionType(answerQuestionType);
+  const answerStrategyRule = getAnswerStrategyRule(answerQuestionType);
+  const answerStrategy = answerStrategyRule.strategy;
   const isZh = replyLanguage === "zh-Hans";
   const isDirectMemoryQuestion = directRecallQuestionKind !== "none";
 
@@ -563,6 +575,7 @@ function buildMemoryRecallPrompt(
     ...buildAnswerStrategyInstructions({
       answerQuestionType,
       answerStrategy,
+      answerStrategyPriority: answerStrategyRule.priority,
       directRecallQuestionKind,
       isZh,
       recalledMemories
@@ -722,13 +735,31 @@ function getAnswerQuestionType(params: {
   return "other";
 }
 
-function getAnswerStrategyForQuestionType(
-  questionType: AnswerQuestionType
-): AnswerStrategy {
+function getAnswerStrategyRule(questionType: AnswerQuestionType) {
   return (
-    ANSWER_STRATEGY_MATRIX.find((entry) => entry.questionType === questionType)
-      ?.strategy ?? "default-grounded"
+    ANSWER_STRATEGY_MATRIX.find((entry) => entry.questionType === questionType) ?? {
+      questionType: "other" as const,
+      strategy: "default-grounded" as const,
+      priority: "semi-constrained" as const,
+      description:
+        "Other prompts should use the default grounded answer path without overfitting to direct recall."
+    }
   );
+}
+
+function getAnswerStrategyPriorityLabel(
+  priority: AnswerStrategyPriority,
+  isZh: boolean
+) {
+  if (priority === "high-deterministic") {
+    return isZh ? "高确定性" : "High deterministic";
+  }
+
+  if (priority === "semi-constrained") {
+    return isZh ? "半约束" : "Semi-constrained";
+  }
+
+  return isZh ? "低确定性" : "Low deterministic";
 }
 
 function buildDirectRecallInstructions(
@@ -787,12 +818,14 @@ function buildDirectRecallInstructions(
 function buildAnswerStrategyInstructions({
   answerQuestionType,
   answerStrategy,
+  answerStrategyPriority,
   directRecallQuestionKind,
   isZh,
   recalledMemories
 }: {
   answerQuestionType: AnswerQuestionType;
   answerStrategy: AnswerStrategy;
+  answerStrategyPriority: AnswerStrategyPriority;
   directRecallQuestionKind: DirectRecallQuestionKind;
   isZh: boolean;
   recalledMemories: Array<{
@@ -805,33 +838,60 @@ function buildAnswerStrategyInstructions({
     answerStrategy === "structured-recall-first" ||
     answerStrategy === "relationship-recall-first"
   ) {
-    return buildDirectRecallInstructions(directRecallQuestionKind, isZh);
+    return [
+      ...(isZh
+        ? [
+            "这类问法属于高确定性回答场景。优先用已命中的结构化记忆直接回答，不要让更自由的生成覆盖掉它。"
+          ]
+        : [
+            "This prompt type has high deterministic priority. Prefer a direct answer grounded in recalled structured memory before freer generation."
+          ]),
+      ...buildDirectRecallInstructions(directRecallQuestionKind, isZh)
+    ];
   }
 
   if (
     answerStrategy === "grounded-open-ended-advice" ||
     answerStrategy === "grounded-open-ended-summary"
   ) {
-    return buildOpenEndedRecallInstructions({
-      isZh,
-      recalledMemories,
-      questionType: answerQuestionType
-    });
+    return [
+      ...(isZh
+        ? [
+            "这类问法属于低确定性回答场景。可以更自然地生成，但仍要保持在已召回记忆和当前关系边界内。"
+          ]
+        : [
+            "This prompt type has low deterministic priority. Keep the answer natural and more open-ended, but stay within recalled memory and relationship boundaries."
+          ]),
+      ...buildOpenEndedRecallInstructions({
+        isZh,
+        recalledMemories,
+        questionType: answerQuestionType
+      })
+    ];
   }
 
   if (answerStrategy === "same-thread-continuation") {
-    return isZh
-      ? [
-          "这是一个同线程里的短跟进。优先延续这个线程已经形成的语言、称呼和关系风格，不要突然切回默认语气。",
-          "如果上面的长期记忆与当前线程连续性相关，就自然沿用它们，而不是把回答写成新的生硬总结。"
-        ]
-      : [
-          "This is a short follow-up in the same thread. Prefer continuing the language, address terms, and relationship style already established here instead of snapping back to the default tone.",
-          "If the recalled memory supports the current thread continuity, carry it forward naturally instead of turning the reply into a fresh rigid summary."
-        ];
+    return [
+      ...(isZh
+        ? [
+            "这类问法属于半约束场景。优先延续同线程已形成的语言、称呼和关系风格，再在此基础上自然回应。"
+          ]
+        : [
+            "This prompt type is semi-constrained. Prefer continuing the language, address terms, and relationship style already established in the same thread."
+          ]),
+      ...(isZh
+        ? [
+            "这是一个同线程里的短跟进。优先延续这个线程已经形成的语言、称呼和关系风格，不要突然切回默认语气。",
+            "如果上面的长期记忆与当前线程连续性相关，就自然沿用它们，而不是把回答写成新的生硬总结。"
+          ]
+        : [
+            "This is a short follow-up in the same thread. Prefer continuing the language, address terms, and relationship style already established here instead of snapping back to the default tone.",
+            "If the recalled memory supports the current thread continuity, carry it forward naturally instead of turning the reply into a fresh rigid summary."
+          ])
+    ];
   }
 
-  return recalledMemories.length > 0
+  const defaultInstructions = recalledMemories.length > 0
     ? isZh
       ? [
           "这轮不是明确直问，也不是需要强结构化回填的场景。把已召回的长期记忆当作背景约束，自然融进回答里。",
@@ -842,6 +902,19 @@ function buildAnswerStrategyInstructions({
           "Avoid unguided drift, but do not turn the answer into a mechanical list of facts."
         ]
     : [];
+
+  return answerStrategyPriority === "semi-constrained"
+    ? [
+        ...(isZh
+          ? [
+              "这类问法属于半约束场景。保留已召回记忆的边界，但不要把回答收得像直问事实一样生硬。"
+            ]
+          : [
+              "This prompt type is semi-constrained. Keep recalled-memory boundaries in place without turning the reply into a rigid direct-fact answer."
+            ]),
+        ...defaultInstructions
+      ]
+    : defaultInstructions;
 }
 
 function buildOpenEndedRecallInstructions({
@@ -2094,6 +2167,7 @@ export async function generateAgentReply({
   };
   let answerQuestionType: AnswerQuestionType = "other";
   let answerStrategy: AnswerStrategy = "default-grounded";
+  let answerStrategyPriority: AnswerStrategyPriority = "semi-constrained";
 
   if (latestUserMessage) {
     const relationshipStylePrompt = isRelationshipAnswerShapePrompt(
@@ -2158,7 +2232,9 @@ export async function generateAgentReply({
       relationshipStylePrompt: relationshipRecall.relationshipStylePrompt,
       sameThreadContinuity: relationshipRecall.sameThreadContinuity
     });
-    answerStrategy = getAnswerStrategyForQuestionType(answerQuestionType);
+    const answerStrategyRule = getAnswerStrategyRule(answerQuestionType);
+    answerStrategy = answerStrategyRule.strategy;
+    answerStrategyPriority = answerStrategyRule.priority;
   }
   const recalledMemories = memoryRecall.memories;
   const relationshipMemories = [
@@ -2238,6 +2314,11 @@ export async function generateAgentReply({
       reply_language_detected: detectReplyLanguageFromText(result.content),
       question_type: answerQuestionType,
       answer_strategy: answerStrategy,
+      answer_strategy_priority: answerStrategyPriority,
+      answer_strategy_priority_label: getAnswerStrategyPriorityLabel(
+        answerStrategyPriority,
+        replyLanguage === "zh-Hans"
+      ),
       memory_hit_count: allRecalledMemories.length,
       memory_used: allRecalledMemories.length > 0,
       memory_types_used: relationshipMemories.length > 0

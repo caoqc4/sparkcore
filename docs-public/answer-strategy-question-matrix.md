@@ -4,6 +4,17 @@ Use this matrix when adjusting answer fidelity so direct recall and open-ended g
 
 This is intentionally lightweight. It is not a planner, router, or heavy rules engine. It is a runtime-level guide for when structured recall should dominate and when generation should stay more open while still grounded.
 
+## Priority Table
+
+| Question type | Deterministic priority | Preferred strategy | Short rule |
+| --- | --- | --- | --- |
+| Direct fact questions | High | `structured-recall-first` | Answer the recalled fact directly when the slot is available. |
+| Direct relationship-confirmation questions | High | `relationship-recall-first` | Use relationship memory before canonical fallback identity. |
+| Fuzzy follow-up questions | Semi-constrained | `same-thread-continuation` | Keep same-thread language and relationship style before distant defaults. |
+| Open-ended advice questions | Low | `grounded-open-ended-advice` | Stay grounded in memory without turning the reply into a rigid fact dump. |
+| Open-ended summary questions | Low | `grounded-open-ended-summary` | Keep the answer natural while letting relevant memory and relationship cues show up. |
+| Other prompts | Semi-constrained | `default-grounded` | Keep relevant memory boundaries without overfitting to direct recall. |
+
 ## Question Types
 
 ### 1. Direct fact questions

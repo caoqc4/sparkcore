@@ -4,6 +4,17 @@
 
 这份矩阵刻意保持轻量。它不是 planner、router，也不是重型规则引擎，只是当前 runtime 层用来指导“什么时候 structured recall 应该更强、什么时候回答可以更开放但仍受记忆约束”的基线。
 
+## 优先级表
+
+| 问法类型 | 确定性优先级 | 优先策略 | 简短规则 |
+| --- | --- | --- | --- |
+| 明确事实直问 | 高确定性 | `structured-recall-first` | 有对应槽位时，优先直接回答那个事实。 |
+| 关系确认直问 | 高确定性 | `relationship-recall-first` | 先用 relationship memory，再回退 canonical identity。 |
+| 模糊跟进 | 半约束 | `same-thread-continuation` | 先延续同线程语言和关系风格，再考虑远处默认值。 |
+| 开放式建议 | 低确定性 | `grounded-open-ended-advice` | 回答保持自然，但仍受记忆约束，不要变成 rigid fact dump。 |
+| 开放式总结 | 低确定性 | `grounded-open-ended-summary` | 回答保持总结/介绍形态，同时自然体现相关记忆与关系线索。 |
+| 其他问法 | 半约束 | `default-grounded` | 保留记忆边界，但不要硬套直问事实的回答方式。 |
+
 ## 问法类型
 
 ### 1. 明确事实直问
