@@ -632,12 +632,18 @@ export default async function ChatPage({
                               : ""}
                           </p>
                           {availableAgent.default_model_profile_name ? (
-                            <p className="thread-link-meta">
-                              {copy.sidebar.profileBestForPrefix}
-                              {getProfilePositioning(
-                                availableAgent.default_model_profile_tier_label
-                              )}
-                            </p>
+                            <>
+                              <p className="thread-link-meta">
+                                {copy.sidebar.profileBestForPrefix}
+                                {getProfilePositioning(
+                                  availableAgent.default_model_profile_tier_label
+                                )}
+                              </p>
+                              <p className="agent-impact-copy">
+                                {copy.sidebar.profileRecommendationPrefix}
+                                {copy.sidebar.profileRecommendationSummary}
+                              </p>
+                            </>
                           ) : null}
                           <p className="agent-impact-copy">
                             {isCurrent

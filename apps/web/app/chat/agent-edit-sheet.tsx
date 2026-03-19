@@ -283,6 +283,9 @@ export function AgentEditSheet({
                 <span className="helper-copy">
                   {copy.sheets.profileHelper}
                 </span>
+                <span className="helper-copy">
+                  {copy.sheets.profileRecommendationSummary}
+                </span>
                 {selectedModelProfile ? (
                   <>
                     {(() => {

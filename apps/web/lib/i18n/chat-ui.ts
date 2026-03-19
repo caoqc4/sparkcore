@@ -73,6 +73,9 @@ export function getChatCopy(locale: ChatLocale) {
         systemPreset: "系统预设",
         setAsDefault: "设为默认",
         profileBestForPrefix: "适合：",
+        profileRecommendationPrefix: "建议：",
+        profileRecommendationSummary:
+          "如果你不确定，先从默认首选开始；当名字、称呼、职业或偏好这类直问更重要时，再切到更偏记忆的配置。",
         currentAgentImpact:
           "这个 agent 已绑定到当前线程。当相关时它可以引用长期记忆，这里做的任何修改只会影响这个线程之后的回复。",
         defaultAgentImpact:
@@ -218,26 +221,28 @@ export function getChatCopy(locale: ChatLocale) {
         personaSummary: "角色摘要",
         modelProfile: "模型配置",
         profileHelper: "切换模型配置只会影响这个 agent 之后的回复。",
+        profileRecommendationSummary:
+          "如果你不确定，先选默认首选；如果这轮更看重名字、称呼、职业或偏好这类直问，就切到更偏记忆的配置。低成本配置只适合快速试跑。",
         profilePositioning: "适合场景",
         profilePositioningStable: "默认首选",
         profilePositioningMemory: "直问记忆与关系跟进",
         profilePositioningLowCost: "低成本快速试跑",
         profilePositioningGeneric: "通用对话",
         profilePositioningStableHelper:
-          "适合大多数日常聊天、多语言回复，以及你想先拿到更均衡默认表现时。",
+          "适合大多数日常聊天、多语言回复，以及你想先拿到更稳、更省心的默认表现时。",
         profilePositioningMemoryHelper:
-          "适合名字、称呼、职业和偏好这类直问，以及你希望回答更贴近已召回事实时。",
+          "适合名字、称呼、职业和偏好这类直问，以及你希望回答更贴近已召回事实、少一点自由发挥时。",
         profilePositioningLowCostHelper:
-          "适合快速 smoke、粗对比和 prompt 迭代，优先控制成本与速度。",
+          "适合快速 smoke、粗对比和 prompt 迭代，优先控制成本与速度，不适合作为最稳的默认体验。",
         profilePositioningGenericHelper:
           "适合一般对话场景，作为没有特殊要求时的基础配置。",
         profileTradeoff: "取舍",
         profileTradeoffStableHelper:
-          "通常比低成本配置更稳，也更省手工调 prompt，但成本会更高一些。",
+          "通常比低成本配置更稳，也更省手工调 prompt，但成本会更高一些；如果你只是想快速试跑，可能显得有点重。",
         profileTradeoffMemoryHelper:
-          "在日常闲聊里可能会显得更“认真”一点，也可能比默认配置稍慢。",
+          "在日常闲聊里可能会显得更“认真”一点，也可能比默认配置稍慢，但更适合直问记忆和关系跟进。",
         profileTradeoffLowCostHelper:
-          "更便宜，但语言稳定性、关系风格延续和记忆忠实度通常都会更弱。",
+          "更便宜，但语言稳定性、关系风格延续和记忆忠实度通常都会更弱；更适合验证流程，不适合看最终质感。",
         profileTradeoffGenericHelper:
           "没有特别突出的长处，也没有特别针对性的优化。",
         underlyingModel: "底层模型",
@@ -371,6 +376,9 @@ export function getChatCopy(locale: ChatLocale) {
       systemPreset: "System preset",
       setAsDefault: "Set as default",
       profileBestForPrefix: "Best for: ",
+      profileRecommendationPrefix: "Recommendation: ",
+      profileRecommendationSummary:
+        "If you are unsure, start with the default profile; switch to the memory-oriented one when names, address preferences, profession, or reply-style questions matter more.",
       currentAgentImpact:
         "This agent is bound to the current thread. It can reference long-term memory when relevant, and any edits here only affect future replies from this thread.",
       defaultAgentImpact:
@@ -518,26 +526,28 @@ export function getChatCopy(locale: ChatLocale) {
       personaSummary: "Persona summary",
       modelProfile: "Model profile",
       profileHelper: "Switching the model profile only affects future replies from this agent.",
+      profileRecommendationSummary:
+        "If you are unsure, start with the default profile. Switch to the memory-oriented profile when direct questions about names, profession, preferences, or relationship cues matter more. Use the low-cost option only for quick smoke runs.",
       profilePositioning: "Best for",
       profilePositioningStable: "Best starting point",
       profilePositioningMemory: "Direct recall and relationship follow-ups",
       profilePositioningLowCost: "Cheap smoke checks",
       profilePositioningGeneric: "General chat",
       profilePositioningStableHelper:
-        "Best when you want a balanced default for everyday chat, multilingual replies, and steadier overall quality.",
+        "Best when you want a balanced default for everyday chat, multilingual replies, and a steadier baseline without much tuning.",
       profilePositioningMemoryHelper:
-        "Best when replies need to stay closer to recalled facts, names, address preferences, and relationship cues.",
+        "Best when replies need to stay closer to recalled facts, names, address preferences, and relationship cues instead of drifting into looser phrasing.",
       profilePositioningLowCostHelper:
-        "Best for quick smoke checks, rough comparisons, and fast prompt iteration when speed and cost matter most.",
+        "Best for quick smoke checks, rough comparisons, and fast prompt iteration when speed and cost matter most, not when you need the most polished result.",
       profilePositioningGenericHelper:
         "Best for general conversation when you do not need a more specialized profile behavior.",
       profileTradeoff: "Tradeoff",
       profileTradeoffStableHelper:
-        "Usually steadier than low-cost testing and needs less prompt babysitting, but it costs more.",
+        "Usually steadier than low-cost testing and needs less prompt babysitting, but it costs more and can feel heavier for quick experiments.",
       profileTradeoffMemoryHelper:
-        "Can feel a bit firmer or slower than the default when the conversation is casual.",
+        "Can feel a bit firmer or slower than the default when the conversation is casual, but it performs better when direct recall quality matters.",
       profileTradeoffLowCostHelper:
-        "Cheaper, but expect weaker language stability, relationship continuity, and memory fidelity.",
+        "Cheaper, but expect weaker language stability, relationship continuity, and memory fidelity. Treat it as a test profile, not the polished default.",
       profileTradeoffGenericHelper:
         "Does not strongly optimize for any single conversation pattern.",
       underlyingModel: "Underlying model",
