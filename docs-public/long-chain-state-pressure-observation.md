@@ -95,6 +95,12 @@ Decision should be one of:
 - `watch only`
 - `state-pressure candidate`
 
+For the end-of-run acceptance summary, normalize the final wording to:
+
+- `rule-layer issue`
+- `state-pressure candidate`
+- `no obvious drift`
+
 ## Decision Rule
 
 - choose `rule-layer drift` when the failure is still best explained by an existing routing, recall, or continuity rule gap

@@ -109,6 +109,30 @@ npm run quality:eval -- --suite=real-chat --format=json
 - 先根据 first failing turn 和 drift dimension 定严重度，再讨论可能根因
 - 如果一轮只落在“可接受轻微漂移”，先把整轮跑完并记录清楚，再决定是否要补 follow-up issue
 
+## 固定的长链路验收结论格式
+
+当前这层门槛判断（`Pass`、`Acceptable minor drift`、`Must-open-issue`）继续保留，作为严重度层。
+
+在它之外，再补一层固定结论，让下一轮长链路验收更容易一眼看懂：
+
+- `rule-layer issue`
+- `state-pressure candidate`
+- `no obvious drift`
+
+使用规则：
+
+- `rule-layer issue`
+  - 这轮有可见漂移，但仍然最像 routing、recall、language、relationship-continuity 或 correction 规则层问题
+- `state-pressure candidate`
+  - 这轮出现了反复的长链路漂移，而且开始更像 thread-state 压力，而不是普通规则层 bug
+- `no obvious drift`
+  - 这轮在固定观察窗口内没有出现明显漂移
+
+要把这层和严重度层分开理解：
+
+- 严重度层回答：这轮有多严重
+- 结论层回答：这轮最像哪一类问题
+
 ## 长链路状态压力观察窗口
 
 这不是让我们现在就去做 `thread compaction`、`thread summary` 或 `state packet`。

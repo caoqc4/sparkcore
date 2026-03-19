@@ -109,6 +109,30 @@ Decision notes:
 - decide severity from the first failing turn and drift dimension before debating root causes
 - if a run lands in the acceptable-minor-drift bucket, finish the run, record it, and only then decide whether to open a follow-up issue
 
+## Fixed Long-Chain Acceptance Conclusion Format
+
+Keep the current threshold layer (`Pass`, `Acceptable minor drift`, `Must-open-issue`) as the severity gate.
+
+Then add one fixed end-of-run conclusion so the next long-chain acceptance pass is easier to read at a glance:
+
+- `rule-layer issue`
+- `state-pressure candidate`
+- `no obvious drift`
+
+Use them like this:
+
+- `rule-layer issue`
+  - the run shows visible drift, but it is still best explained by routing, recall, language, relationship-continuity, or correction-rule problems
+- `state-pressure candidate`
+  - the run shows repeated long-chain drift that now looks more like thread-state pressure than an ordinary rule-layer bug
+- `no obvious drift`
+  - the run shows no meaningful drift in the fixed observation window
+
+Keep this conclusion layer separate from severity:
+
+- severity answers: how bad was the run
+- conclusion answers: what kind of problem the run most likely points to
+
 ## Long-Chain State-Pressure Watch
 
 Do not treat this as permission to build thread compaction, thread summary, or a state packet yet.

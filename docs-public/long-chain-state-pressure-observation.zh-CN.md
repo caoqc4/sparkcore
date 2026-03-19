@@ -96,6 +96,12 @@ decision:
 - `watch only`
 - `state-pressure candidate`
 
+而在整轮验收的最终摘要里，统一收成下面三档结论：
+
+- `rule-layer issue`
+- `state-pressure candidate`
+- `no obvious drift`
+
 ## 判断规则
 
 - 当失败仍然最像是现有 routing / recall / continuity 规则缺口时，记成 `rule-layer drift`
