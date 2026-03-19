@@ -1746,6 +1746,58 @@ test.describe("core chat smoke", () => {
     expect(recalledMemoryContents.join(" ")).not.toContain("product designer");
   });
 
+  test("records long-chain pressure watch signals only in developer diagnostics", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后我叫你小芳可以吗？",
+      "以后和我说话轻松一点，可以吗？",
+      "请简单介绍一下你自己。",
+      "接下来你会怎么帮助我？",
+      "如果我今天状态不太好，你会怎么和我说？",
+      "最后你会怎么陪我把事情推进下去？",
+      "那你再简单鼓励我一句。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const latestAssistant = await getLatestAssistantMessageForThread(threadId);
+
+    expect(latestAssistant.metadata.answer_strategy).toBe("same-thread-continuation");
+    expect(latestAssistant.metadata.continuation_reason_code).toBe(
+      "brief-supportive-carryover"
+    );
+    expect(latestAssistant.metadata.same_thread_continuation_applicable).toBe(true);
+    expect(latestAssistant.metadata.recent_raw_turn_count).toBe(15);
+    expect(latestAssistant.metadata.approx_context_pressure).toBe("elevated");
+    expect(latestAssistant.metadata.long_chain_pressure_candidate).toBe(true);
+  });
+
   test("covers memory correction controls and agent defaults/model profile changes", async ({
     page,
     request

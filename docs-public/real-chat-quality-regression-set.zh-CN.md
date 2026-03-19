@@ -93,6 +93,23 @@ npm run quality:eval -- --suite=real-chat --format=json
 - 先根据 first failing turn 和 drift dimension 定严重度，再讨论可能根因
 - 如果一轮只落在“可接受轻微漂移”，先把整轮跑完并记录清楚，再决定是否要补 follow-up issue
 
+## 长链路状态压力观察窗口
+
+这不是让我们现在就去做 `thread compaction`、`thread summary` 或 `state packet`。
+
+只有在当前 runtime 规则已经大体稳定、但你想判断后续漂移更像“状态层承压”还是“规则层还有缺口”时，才启用这组观察。
+
+在 6 到 10+ turn 的较长链路里，如果需要解释漂移，可以额外记录这些 developer-only 信号：
+
+- `recent_raw_turn_count`
+- `approx_context_pressure`
+- `same_thread_continuation_applicable`
+- `long_chain_pressure_candidate`
+
+具体的升级门槛和记录模板，统一看这份观察指引：
+
+- `docs-public/long-chain-state-pressure-observation.zh-CN.md`
+
 ## 场景包
 
 这组回归样例现在按轻量 `scenario pack` 分组，方便把更长链路的回归执行、记录和后续扩展拆成几个稳定场景，而不是继续维护一张平铺清单。

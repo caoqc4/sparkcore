@@ -105,6 +105,7 @@ type SmokeReplyLanguageSource =
   | "latest-user-message"
   | "thread-continuity-fallback"
   | "no-latest-user-message";
+type SmokeApproxContextPressure = "low" | "medium" | "elevated" | "high";
 
 type SmokeContinuityReply = {
   content: string;
@@ -652,6 +653,49 @@ function resolveSmokeReplyLanguage({
       ? ("thread-continuity-fallback" as SmokeReplyLanguageSource)
       : ("no-latest-user-message" as SmokeReplyLanguageSource)
   };
+}
+
+function getSmokeRecentRuntimeMessages(
+  messages: Array<{
+    role: "user" | "assistant";
+    content: string;
+    status: string;
+    metadata: Record<string, unknown>;
+  }>
+) {
+  return messages.filter(
+    (message) => message.status !== "failed" && message.status !== "pending"
+  );
+}
+
+function getSmokeApproxContextPressure(
+  messages: Array<{
+    role: "user" | "assistant";
+    content: string;
+    status: string;
+    metadata: Record<string, unknown>;
+  }>,
+  latestUserMessage: string
+): SmokeApproxContextPressure {
+  const recentMessages = getSmokeRecentRuntimeMessages(messages);
+  const approximateCharacterCount =
+    recentMessages.reduce((sum, message) => sum + message.content.trim().length, 0) +
+    latestUserMessage.trim().length;
+  const recentRawTurnCount = recentMessages.length + 1;
+
+  if (recentRawTurnCount >= 16 || approximateCharacterCount >= 4_200) {
+    return "high";
+  }
+
+  if (recentRawTurnCount >= 10 || approximateCharacterCount >= 2_600) {
+    return "elevated";
+  }
+
+  if (recentRawTurnCount >= 6 || approximateCharacterCount >= 1_200) {
+    return "medium";
+  }
+
+  return "low";
 }
 
 function detectSmokeNicknameCandidate(content: string) {
@@ -1745,6 +1789,8 @@ export async function createSmokeTurn({
     }));
   const relationshipStylePrompt = isSmokeRelationshipAnswerShapePrompt(trimmedContent);
   const sameThreadContinuity = recentAssistantReply !== null;
+  const sameThreadContinuationApplicable =
+    sameThreadContinuity && isSmokeRelationshipContinuationEdgePrompt(trimmedContent);
   const answerStrategyRule = getSmokeAnswerStrategy({
     content: trimmedContent,
     sameThreadContinuity,
@@ -1752,6 +1798,27 @@ export async function createSmokeTurn({
   });
   const preferSameThreadContinuation =
     answerStrategyRule.answerStrategy === "same-thread-continuation";
+  const recentRawTurnCount = getSmokeRecentRuntimeMessages(
+    (existingMessages ?? []) as Array<{
+      role: "user" | "assistant";
+      content: string;
+      status: string;
+      metadata: Record<string, unknown>;
+    }>
+  ).length + 1;
+  const approxContextPressure = getSmokeApproxContextPressure(
+    (existingMessages ?? []) as Array<{
+      role: "user" | "assistant";
+      content: string;
+      status: string;
+      metadata: Record<string, unknown>;
+    }>,
+    trimmedContent
+  );
+  const longChainPressureCandidate =
+    sameThreadContinuationApplicable &&
+    recentRawTurnCount >= 10 &&
+    (approxContextPressure === "elevated" || approxContextPressure === "high");
   const nicknameMemory =
     isSmokeDirectNamingQuestion(trimmedContent) ||
     relationshipStylePrompt ||
@@ -2167,6 +2234,10 @@ export async function createSmokeTurn({
           answer_strategy: answerStrategyRule.answerStrategy,
           answer_strategy_reason_code: answerStrategyRule.reasonCode,
           continuation_reason_code: answerStrategyRule.continuationReasonCode,
+          recent_raw_turn_count: recentRawTurnCount,
+          approx_context_pressure: approxContextPressure,
+          same_thread_continuation_applicable: sameThreadContinuationApplicable,
+          long_chain_pressure_candidate: longChainPressureCandidate,
           same_thread_continuation_preferred: preferSameThreadContinuation,
           distant_memory_fallback_allowed: !preferSameThreadContinuation,
           reply_language_source: replyLanguageDecision.source,

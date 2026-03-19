@@ -391,6 +391,7 @@ type ReplyLanguageSource =
   | "latest-user-message"
   | "thread-continuity-fallback"
   | "no-latest-user-message";
+type ApproxContextPressure = "low" | "medium" | "elevated" | "high";
 type AnswerStrategyPriority =
   | "high-deterministic"
   | "semi-constrained"
@@ -1290,6 +1291,34 @@ function getThreadContinuitySignal(messages: MessageRecord[]): ThreadContinuityS
     establishedReplyLanguage,
     hasPriorAssistantTurn: true
   };
+}
+
+function getRecentRuntimeMessages(messages: MessageRecord[]) {
+  return messages.filter(
+    (message) => message.status !== "failed" && message.status !== "pending"
+  );
+}
+
+function getApproxContextPressure(messages: MessageRecord[]): ApproxContextPressure {
+  const recentMessages = getRecentRuntimeMessages(messages);
+  const approximateCharacterCount = recentMessages.reduce(
+    (sum, message) => sum + message.content.trim().length,
+    0
+  );
+
+  if (recentMessages.length >= 16 || approximateCharacterCount >= 4_200) {
+    return "high";
+  }
+
+  if (recentMessages.length >= 10 || approximateCharacterCount >= 2_600) {
+    return "elevated";
+  }
+
+  if (recentMessages.length >= 6 || approximateCharacterCount >= 1_200) {
+    return "medium";
+  }
+
+  return "low";
 }
 
 function resolveReplyLanguageForTurn({
@@ -2367,10 +2396,17 @@ export async function generateAgentReply({
     .find((message) => message.role === "user");
   const latestUserMessageContent = latestUserMessage?.content ?? null;
   const threadContinuity = getThreadContinuitySignal(messages);
-  const preferSameThreadContinuation =
+  const sameThreadContinuationApplicable =
     latestUserMessageContent !== null &&
     threadContinuity.hasPriorAssistantTurn &&
     isRelationshipContinuationEdgePrompt(latestUserMessageContent);
+  const preferSameThreadContinuation = sameThreadContinuationApplicable;
+  const recentRawTurnCount = getRecentRuntimeMessages(messages).length;
+  const approxContextPressure = getApproxContextPressure(messages);
+  const longChainPressureCandidate =
+    sameThreadContinuationApplicable &&
+    recentRawTurnCount >= 10 &&
+    (approxContextPressure === "elevated" || approxContextPressure === "high");
   const replyLanguageDecision = resolveReplyLanguageForTurn({
     latestUserMessage: latestUserMessageContent,
     threadContinuity
@@ -2592,6 +2628,10 @@ export async function generateAgentReply({
           replyLanguage === "zh-Hans"
         ),
         continuation_reason_code: continuationReasonCode,
+        recent_raw_turn_count: recentRawTurnCount,
+        approx_context_pressure: approxContextPressure,
+        same_thread_continuation_applicable: sameThreadContinuationApplicable,
+        long_chain_pressure_candidate: longChainPressureCandidate,
         same_thread_continuation_preferred: preferSameThreadContinuation,
         distant_memory_fallback_allowed: !preferSameThreadContinuation,
         reply_language_source: replyLanguageDecision.source,

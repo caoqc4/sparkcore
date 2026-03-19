@@ -93,6 +93,23 @@ Decision notes:
 - decide severity from the first failing turn and drift dimension before debating root causes
 - if a run lands in the acceptable-minor-drift bucket, finish the run, record it, and only then decide whether to open a follow-up issue
 
+## Long-Chain State-Pressure Watch
+
+Do not treat this as permission to build thread compaction, thread summary, or a state packet yet.
+
+Use the long-chain watch only when the current runtime rules already look mostly stable and you want to decide whether later drift is starting to look like thread-state pressure instead of another rule-layer gap.
+
+During longer 6-to-10+ turn checks, record these developer-only signals when they help explain a drift:
+
+- `recent_raw_turn_count`
+- `approx_context_pressure`
+- `same_thread_continuation_applicable`
+- `long_chain_pressure_candidate`
+
+Use the dedicated observation guide for the escalation gate and recording template:
+
+- `docs-public/long-chain-state-pressure-observation.md`
+
 ## Scenario Packs
 
 This set is grouped into lightweight scenario packs so longer regression runs are easier to assign, compare, and extend without turning into one flat list.
