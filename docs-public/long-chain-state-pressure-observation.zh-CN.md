@@ -54,6 +54,16 @@
 3. 这些反复出现的漂移，更像长链路 continuity 承压，而不是 recall contract 失败
 4. 这种模式在后续至少一轮验收里还会再出现，而不是只出现一次
 
+进入真正 Layer D 设计讨论前，再按下面这组显式触发条件收一次口：
+
+- 连续两轮 real-chat regression 都出现漂移
+- 漂移出现在同一个或相近的 scenario pack
+- 两轮里的 drift dimension 相同或相近
+- 对应漂移 turn 上 `long_chain_pressure_candidate = true`
+- 已先排除明显的规则层 bug
+
+这组触发条件只用于“进入 Layer D 设计评审”，不等于立刻开始实现。
+
 如果问题仍然更像下面这些原因：
 
 - answer strategy 选错

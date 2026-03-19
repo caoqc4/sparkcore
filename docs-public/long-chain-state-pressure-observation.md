@@ -53,6 +53,16 @@ Do not escalate to a real thread-state / compaction task unless the acceptance e
 3. the repeated drift is better explained by long-chain continuity strain than by recall-contract failure
 4. the same pattern survives at least one follow-up acceptance run instead of appearing only once
 
+Use the following explicit trigger before opening a real Layer D design task:
+
+- two consecutive real-chat regression runs show drift
+- the drift appears in the same or a closely related scenario pack
+- the drift dimension is the same or closely related across those runs
+- `long_chain_pressure_candidate = true` on the relevant drift turn
+- obvious rule-layer bugs have been ruled out first
+
+This trigger is for entering Layer D design review, not for starting implementation immediately.
+
 If the drift is still better explained by:
 
 - wrong answer strategy selection
