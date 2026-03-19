@@ -32,6 +32,22 @@ cd apps/web
 npm run quality:eval -- --suite=real-chat --format=json
 ```
 
+## Frozen Profile × Scenario-Pack Matrix For The First 8 To 12 Turn Acceptance Run
+
+Freeze the first long-chain acceptance pass to the following small matrix so the run is easier to compare across people and across later retries:
+
+- `Relationship Maintenance Pack` -> `Spark Default`
+- `Mixed-Language Pack` -> `Spark Default`
+- `Memory Confirmation Pack` -> `Spark Memory Sensitive`
+- `Correction Aftermath Pack` -> `Spark Memory Sensitive`
+
+Notes:
+
+- keep `Spark Low-Cost Testing` out of this first long-chain acceptance pass
+- use `Spark Default` where natural style, same-thread carryover, and language continuity are the main comparison target
+- use `Spark Memory Sensitive` where direct recall fidelity or correction-aftermath consistency are the main comparison target
+- if you intentionally change this matrix in a later run, record that change explicitly instead of silently mixing profile variation into the acceptance notes
+
 ## Failure Attribution Record
 
 When a real-chat case fails, record the first failing turn with a lightweight note instead of only writing that the case drifted.

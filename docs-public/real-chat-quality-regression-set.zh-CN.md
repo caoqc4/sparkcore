@@ -32,6 +32,22 @@ cd apps/web
 npm run quality:eval -- --suite=real-chat --format=json
 ```
 
+## 第一轮 8 到 12 Turn 验收固定使用的 Profile × Scenario Pack 组合
+
+第一轮长链路验收先固定成下面这个小矩阵，这样不同人执行和后续重跑时都更容易横向比较：
+
+- `关系维持包` -> `Spark Default`
+- `混合语言包` -> `Spark Default`
+- `记忆确认包` -> `Spark Memory Sensitive`
+- `纠错后续包` -> `Spark Memory Sensitive`
+
+说明：
+
+- 第一轮长链路验收先不把 `Spark Low-Cost Testing` 拉进来
+- 当主要比较目标是自然风格、same-thread carryover、语言连续性时，用 `Spark Default`
+- 当主要比较目标是直接 recall 忠实度或 correction-aftermath 一致性时，用 `Spark Memory Sensitive`
+- 如果后续某轮刻意改了这个矩阵，要显式记录，不要把 profile 变化悄悄混进验收结论里
+
 ## 失败归因记录
 
 当一条 real-chat case 失败时，不要只写“这条掉了”，而是记录第一条出问题的 turn，并附一条轻量归因。
