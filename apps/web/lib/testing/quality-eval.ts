@@ -325,7 +325,7 @@ export const memoryV2EvalSet: QualityEvalCase[] = [
 export const realChatQualityRegressionSet: QualityEvalCase[] = [
   {
     id: "real-chat-same-agent-relationship-continuity",
-    title: "Same-agent nickname and preferred-name continuity survives a new thread and follow-up turns",
+    title: "Same-agent nickname and preferred-name continuity survives a new thread and later short follow-ups",
     priority: "P0",
     category: "thread",
     purpose:
@@ -338,23 +338,27 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
       'Say: "以后我叫你小芳可以吗？"',
       'Then say: "以后你叫我阿强可以吗？"',
       "Start a fresh thread with the same agent.",
-      'Ask: "请简单介绍一下你自己。"',
-      'Then send a short follow-up such as: "那接下来呢？"'
+      'Turn 1: ask "请简单介绍一下你自己。"',
+      'Turn 2: send a short follow-up such as "那接下来呢？"',
+      'Turn 3: ask "那你接下来会怎么称呼我？"',
+      'Turn 4: send a short acknowledgment such as "好，继续。"',
+      'Turn 5: ask "最后再简单介绍一下你自己。"' 
     ],
     observe: [
       "Whether the opening still uses the seeded nickname and preferred user name.",
-      "Whether the short follow-up still preserves the same relationship cues instead of dropping back to neutral wording.",
+      "Whether later short follow-ups still preserve the same relationship cues instead of dropping back to neutral wording.",
+      "At which turn nickname or preferred-name continuity first weakens, if it weakens at all.",
       "Whether the runtime summary still reports relationship memory usage."
     ],
     successCriteria: [
       "The same agent keeps nickname and preferred-name continuity across a new thread.",
-      "Relationship cues do not disappear after the first successful turn.",
+      "Relationship cues do not disappear after the first successful turn and stay stable through the later short chain.",
       "The behavior does not depend on staying inside one old thread."
     ]
   },
   {
     id: "real-chat-profession-recall",
-    title: "Remembered profession stays faithful across a short direct-question chain",
+    title: "Remembered profession stays faithful across a longer direct-question chain",
     priority: "P0",
     category: "fidelity",
     purpose:
@@ -366,22 +370,25 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
     steps: [
       'Send: "I am a product designer."',
       "Start a fresh thread.",
-      'Ask: "What profession do you remember that I work in? If you do not know, say you do not know."',
-      'Then ask: "So what kind of work do I do?"'
+      'Turn 1: ask "What profession do you remember that I work in? If you do not know, say you do not know."',
+      'Turn 2: ask "So what kind of work do I do?"',
+      'Turn 3: ask "Say it again in one short sentence."',
+      'Turn 4: ask "What do you remember about my work?"'
     ],
     observe: [
       "Whether both replies continue to state the profession directly.",
-      "Whether the second answer still sounds grounded instead of drifting into generic help text.",
+      "Whether later answers still sound grounded instead of drifting into generic help text.",
+      "At which turn structured profession recall first weakens, if it weakens at all.",
       "Whether the runtime summary shows a relevant memory hit."
     ],
     successCriteria: [
-      'Both direct questions use "product designer" explicitly.',
+      'The later direct questions keep using "product designer" explicitly.',
       'The replies do not confuse "no chat history" with "no long-term memory".'
     ]
   },
   {
     id: "real-chat-latest-language-priority",
-    title: "Replies follow the latest user message language across multiple turns",
+    title: "Replies follow the latest user message language across a longer mixed-language chain",
     priority: "P0",
     category: "language",
     purpose:
@@ -391,25 +398,28 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
       "Optionally seed a memory in English before the Chinese question."
     ],
     steps: [
-      'Send an English message such as: "Please introduce yourself briefly."',
-      'Then send a Chinese message such as: "你记得我做什么工作吗？"',
-      'Then send a short ambiguous Chinese follow-up such as: "那接下来呢？"',
+      'Turn 1: send an English message such as "Please introduce yourself briefly."',
+      'Turn 2: send a Chinese message such as "你记得我做什么工作吗？"',
+      'Turn 3: send a short ambiguous Chinese follow-up such as "那接下来呢？"',
+      'Turn 4: send another Chinese follow-up such as "再用一句话说一遍。"',
+      'Turn 5: send "ok, now continue in Chinese."',
       "Expand the runtime summary on the later replies."
     ],
     observe: [
       "Whether the second reply stays primarily in Chinese.",
-      "Whether the later short follow-up also remains in Chinese instead of snapping back to English.",
+      "Whether the later short follow-ups also remain in Chinese instead of snapping back to English.",
+      "At which turn language drift first appears, if it appears at all.",
       "Whether the reply language follows the latest user turn instead of the earlier English turn."
     ],
     successCriteria: [
-      "The later Chinese turn receives a Chinese reply.",
-      "The short same-thread follow-up also stays in Chinese.",
+      "The later Chinese turns receive Chinese replies.",
+      "The short same-thread follow-ups also stay in Chinese.",
       "Earlier thread language or recalled English memory does not pull the answer back to English."
     ]
   },
   {
     id: "real-chat-relationship-style-continuity",
-    title: "Relationship style continuity remains visible from opening to closing turns",
+    title: "Relationship style continuity remains visible from opening to closing turns in a longer chain",
     priority: "P0",
     category: "fidelity",
     purpose:
@@ -419,13 +429,16 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
       "Stay in the same thread with the same agent."
     ],
     steps: [
-      'Ask: "请简单介绍一下你自己。"',
-      'Then ask: "接下来你会怎么帮助我？"',
-      'Then ask: "最后你会怎么陪我把事情推进下去？"'
+      'Turn 1: ask "请简单介绍一下你自己。"',
+      'Turn 2: ask "接下来你会怎么帮助我？"',
+      'Turn 3: ask "如果我今天状态不太好，你会怎么和我说？"',
+      'Turn 4: ask "最后你会怎么陪我把事情推进下去？"',
+      'Turn 5: ask "那你再简单鼓励我一句。"' 
     ],
     observe: [
       "Whether the tone stays lightweight and consistent across all replies.",
-      "Whether the middle and later answers preserve the same-thread style instead of snapping back to a neutral default."
+      "Whether the middle and later answers preserve the same-thread style instead of snapping back to a neutral default.",
+      "At which turn the relationship style first becomes noticeably flatter, if it becomes flatter."
     ],
     successCriteria: [
       "Relationship style remains visible across opening, middle, and closing-style turns in the same thread.",
@@ -444,17 +457,20 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
     ],
     steps: [
       "Mark the memory as Incorrect.",
-      "Start a fresh thread and ask the same direct question again.",
-      'Add one short follow-up such as: "那你现在还记得吗？"',
+      'Start a fresh thread and ask the same direct question again.',
+      'Turn 2: add one short follow-up such as "那你现在还记得吗？"',
+      'Turn 3: add another short follow-up such as "再确认一次？"',
       "Restore the memory.",
-      "Start another fresh thread and ask the same question once more.",
-      'Add one short follow-up such as: "那你现在还记得吗？"'
+      'Start another fresh thread and ask the same question once more.',
+      'Turn 5: add one short follow-up such as "那你现在还记得吗？"',
+      'Turn 6: add another short follow-up such as "再确认一次？"'
     ],
     observe: [
       "Whether the first fresh-thread reply falls back after Incorrect.",
-      "Whether the short follow-up after Incorrect still avoids the removed memory.",
+      "Whether the later short follow-ups after Incorrect still avoid the removed memory.",
       "Whether the second fresh-thread reply uses the memory again after Restore.",
-      "Whether the short follow-up after Restore stays consistent with the restored memory."
+      "Whether the later short follow-ups after Restore stay consistent with the restored memory.",
+      "At which turn correction behavior becomes inconsistent, if it becomes inconsistent."
     ],
     successCriteria: [
       "Incorrect removes the memory from later recall.",
@@ -483,7 +499,7 @@ export const qualityEvalSuites: Record<QualityEvalSuite["id"], QualityEvalSuite>
     id: "real-chat",
     title: "SparkCore Real Chat Quality Regression Set",
     intro:
-      "Use this set when answer fidelity, language consistency, and relationship continuity change and you want a fixed baseline closer to real trial conversations.",
+      "Use this set when answer fidelity, language consistency, and relationship continuity change and you want a fixed baseline closer to real trial conversations, with explicit checkpoints for where decay first appears.",
     cases: realChatQualityRegressionSet
   }
 };
