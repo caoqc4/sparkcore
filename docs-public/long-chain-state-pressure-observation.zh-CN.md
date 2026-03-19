@@ -102,6 +102,12 @@ decision:
 - `state-pressure candidate`
 - `no obvious drift`
 
+最小决策规则：
+
+- 只要证据仍然像普通 runtime-rule bug，就默认先记成 `rule-layer issue`
+- 单次孤立漂移不能直接升级成 `state-pressure candidate`
+- 只有当同类证据开始跨轮、并在同一个或相近 scenario pack / drift dimension 上重复出现时，才更接近 `state-pressure candidate`
+
 ## 判断规则
 
 - 当失败仍然最像是现有 routing / recall / continuity 规则缺口时，记成 `rule-layer drift`

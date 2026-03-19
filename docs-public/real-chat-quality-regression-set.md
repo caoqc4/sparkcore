@@ -133,6 +133,17 @@ Keep this conclusion layer separate from severity:
 - severity answers: how bad was the run
 - conclusion answers: what kind of problem the run most likely points to
 
+Minimum decision thresholds for the first long-chain acceptance run:
+
+- `no obvious drift`
+  - use this only when the fixed `8 to 12 turn` observation window shows no meaningful drift in the active scenario packs
+- `rule-layer issue`
+  - use this as the default conclusion whenever visible drift is still best explained by a rule-layer problem
+  - one-off drift, isolated drift, or a single-pack failure should stay here unless stronger state-pressure evidence appears
+- `state-pressure candidate`
+  - do not use this for a single isolated drift
+  - use this only when the evidence starts repeating in the same or a closely related scenario pack and drift dimension, and the relevant turn also carries `long_chain_pressure_candidate = true`
+
 ## Long-Chain State-Pressure Watch
 
 Do not treat this as permission to build thread compaction, thread summary, or a state packet yet.

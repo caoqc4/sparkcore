@@ -101,6 +101,12 @@ For the end-of-run acceptance summary, normalize the final wording to:
 - `state-pressure candidate`
 - `no obvious drift`
 
+Minimum decision rule:
+
+- keep `rule-layer issue` as the default whenever the evidence is still plausibly explained by an ordinary runtime-rule bug
+- do not upgrade a single isolated drift into `state-pressure candidate`
+- only treat the run as `state-pressure candidate` when similar evidence starts repeating across runs in the same or a closely related scenario pack and drift dimension
+
 ## Decision Rule
 
 - choose `rule-layer drift` when the failure is still best explained by an existing routing, recall, or continuity rule gap

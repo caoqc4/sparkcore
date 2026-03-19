@@ -133,6 +133,17 @@ npm run quality:eval -- --suite=real-chat --format=json
 - 严重度层回答：这轮有多严重
 - 结论层回答：这轮最像哪一类问题
 
+第一轮长链路验收的最小决策门槛：
+
+- `no obvious drift`
+  - 只有在固定 `8 到 12 turn` 观察窗口里，没有出现有意义的漂移时，才用这档
+- `rule-layer issue`
+  - 只要可见漂移仍然最像规则层问题，就默认先归到这档
+  - 单点漂移、孤立漂移、单包失败，都应先留在这档，除非后面出现更强的状态层证据
+- `state-pressure candidate`
+  - 单次孤立漂移不能直接用这档
+  - 只有当相同或相近 scenario pack、相同或相近 drift dimension 开始重复出现，而且对应 turn 同时带有 `long_chain_pressure_candidate = true` 时，才进入这档
+
 ## 长链路状态压力观察窗口
 
 这不是让我们现在就去做 `thread compaction`、`thread summary` 或 `state packet`。
