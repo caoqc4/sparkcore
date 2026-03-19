@@ -48,6 +48,17 @@ Notes:
 - use `Spark Memory Sensitive` where direct recall fidelity or correction-aftermath consistency are the main comparison target
 - if you intentionally change this matrix in a later run, record that change explicitly instead of silently mixing profile variation into the acceptance notes
 
+## Milestone Gate For The First 8 To 12 Turn Acceptance Run
+
+Treat this first `8 to 12 turn` long-chain acceptance pass as a milestone gate instead of an ordinary regression cycle.
+
+Why this run matters more than a normal pass:
+
+- if the result is mostly `rule-layer issue`, the project should keep tightening the role-layer runtime rules
+- if the result starts trending toward `state-pressure candidate`, the project should prepare for Layer D design review
+
+This run is therefore a boundary-checking pass for whether the current role-layer approach is still comfortably sufficient before any real thread-state work begins.
+
 ## Failure Attribution Record
 
 When a real-chat case fails, record the first failing turn with a lightweight note instead of only writing that the case drifted.

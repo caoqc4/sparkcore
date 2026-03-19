@@ -48,6 +48,17 @@ npm run quality:eval -- --suite=real-chat --format=json
 - 当主要比较目标是直接 recall 忠实度或 correction-aftermath 一致性时，用 `Spark Memory Sensitive`
 - 如果后续某轮刻意改了这个矩阵，要显式记录，不要把 profile 变化悄悄混进验收结论里
 
+## 第一轮 8 到 12 Turn 验收作为 Milestone Gate
+
+第一轮 `8 到 12 turn` 长链路验收要按 milestone gate 来看，而不是普通回归轮。
+
+它之所以更重要，是因为：
+
+- 如果结果多数落在 `rule-layer issue`，说明项目仍应继续收角色层 runtime 规则
+- 如果结果开始逼近 `state-pressure candidate`，说明项目应准备进入 Layer D 设计评审
+
+所以这轮的意义其实是：在真正进入 thread-state 工作之前，先判断当前角色层路线是否还处在舒适边界内。
+
 ## 失败归因记录
 
 当一条 real-chat case 失败时，不要只写“这条掉了”，而是记录第一条出问题的 turn，并附一条轻量归因。
