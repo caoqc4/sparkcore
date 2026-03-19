@@ -88,6 +88,7 @@ approx_context_pressure:
 same_thread_continuation_applicable:
 long_chain_pressure_candidate:
 decision:
+next_action:
 ```
 
 `decision` 只用下面三档之一：
@@ -101,6 +102,12 @@ decision:
 - `rule-layer issue`
 - `state-pressure candidate`
 - `no obvious drift`
+
+同时再补一个轻量动作字段：
+
+- `rule-layer issue` -> `next_action = open_small_fix_issue`
+- `state-pressure candidate` -> `next_action = prepare_layer_d_review`
+- `no obvious drift` -> `next_action = keep_role_layer`
 
 最小决策规则：
 

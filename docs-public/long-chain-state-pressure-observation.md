@@ -87,6 +87,7 @@ approx_context_pressure:
 same_thread_continuation_applicable:
 long_chain_pressure_candidate:
 decision:
+next_action:
 ```
 
 Decision should be one of:
@@ -100,6 +101,12 @@ For the end-of-run acceptance summary, normalize the final wording to:
 - `rule-layer issue`
 - `state-pressure candidate`
 - `no obvious drift`
+
+And add one lightweight action field:
+
+- `next_action = open_small_fix_issue` for `rule-layer issue`
+- `next_action = prepare_layer_d_review` for `state-pressure candidate`
+- `next_action = keep_role_layer` for `no obvious drift`
 
 Minimum decision rule:
 

@@ -165,6 +165,21 @@ Keep this conclusion layer separate from severity:
 - severity answers: how bad was the run
 - conclusion answers: what kind of problem the run most likely points to
 
+Add one lightweight derived field to the end-of-run acceptance record:
+
+- `next_action`
+
+Use the following fixed mapping:
+
+- `rule-layer issue`
+  - `next_action = open_small_fix_issue`
+- `state-pressure candidate`
+  - `next_action = prepare_layer_d_review`
+- `no obvious drift`
+  - `next_action = keep_role_layer`
+
+Keep `next_action` as an acceptance-record aid only. Do not turn it into a runtime field, user-visible UI label, or workflow automation.
+
 Minimum decision thresholds for the first long-chain acceptance run:
 
 - `no obvious drift`

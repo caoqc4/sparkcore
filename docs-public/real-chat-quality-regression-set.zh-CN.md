@@ -165,6 +165,21 @@ npm run quality:eval -- --suite=real-chat --format=json
 - 严重度层回答：这轮有多严重
 - 结论层回答：这轮最像哪一类问题
 
+在整轮验收记录最后，再补一个轻量派生字段：
+
+- `next_action`
+
+固定映射如下：
+
+- `rule-layer issue`
+  - `next_action = open_small_fix_issue`
+- `state-pressure candidate`
+  - `next_action = prepare_layer_d_review`
+- `no obvious drift`
+  - `next_action = keep_role_layer`
+
+`next_action` 只作为验收记录里的决策辅助，不进入 runtime 字段、不进用户可见 UI，也不做成流程自动化。
+
 第一轮长链路验收的最小决策门槛：
 
 - `no obvious drift`
