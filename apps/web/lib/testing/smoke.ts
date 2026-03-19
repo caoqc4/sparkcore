@@ -786,6 +786,19 @@ function isSmokeDirectReplyStyleQuestion(content: string) {
   );
 }
 
+function isSmokeOpenEndedPlanningHelpQuestion(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("how should we plan my week") ||
+    normalized.includes("how should you help me plan my week") ||
+    normalized.includes("given what you know about me") ||
+    normalized.includes("结合你记得的内容，怎么帮我规划这周") ||
+    normalized.includes("结合你对我的了解") ||
+    normalized.includes("你会怎么帮我规划这周")
+  );
+}
+
 function buildSmokeAssistantReply({
   content,
   modelProfileName,
@@ -980,6 +993,46 @@ function buildSmokeAssistantReply({
     return replyLanguage === "zh-Hans"
       ? "你偏好我用更轻松、不那么正式的方式回复你。"
       : "You prefer that I reply in a more casual, less formal way.";
+  }
+
+  if (isSmokeOpenEndedPlanningHelpQuestion(content)) {
+    const styleValue = addressStyleMemory?.content ?? null;
+
+    if (replyLanguage === "zh-Hans") {
+      const opening =
+        styleValue === "formal"
+          ? "好的，我会更正式一点地来帮你梳理。"
+          : styleValue === "friendly"
+            ? "好呀，我会更像朋友一样陪你一起梳理。"
+            : "好呀，我来帮你一起理一理。";
+
+      if (rememberedProfession && rememberedPlanningPreference) {
+        return `${opening} 结合我记得的内容，你是一名产品设计师，也偏好简洁的每周规划方式，所以我会先帮你收拢本周最重要的三件事，再把它们拆成清晰的下一步。`;
+      }
+
+      if (rememberedPlanningPreference) {
+        return `${opening} 我会按你偏好的简洁每周规划方式，先收拢重点，再拆出最清晰的下一步。`;
+      }
+
+      return `${opening} 我会先帮你抓住本周重点，再整理出一份简洁可执行的周计划。`;
+    }
+
+    const opening =
+      styleValue === "formal"
+        ? "Certainly. I will take a more formal approach here."
+        : styleValue === "friendly"
+          ? "Absolutely. I can take a more friendly, companion-like approach here."
+          : "Sure, I can help you sort it out.";
+
+    if (rememberedProfession && rememberedPlanningPreference) {
+      return `${opening} Based on what I remember, you work as a product designer and prefer concise weekly planning, so I would start with your top three priorities and turn them into clear next steps.`;
+    }
+
+    if (rememberedPlanningPreference) {
+      return `${opening} I would use your preference for concise weekly planning to narrow the week to the clearest priorities and next steps.`;
+    }
+
+    return `${opening} I would start by identifying the week's priorities and turning them into a short, actionable plan.`;
   }
 
   if (isSmokeDirectNamingQuestion(content)) {
@@ -1263,6 +1316,7 @@ export async function createSmokeTurn({
         (isSmokeDirectProfessionQuestion(trimmedContent) &&
           normalizedContent.includes("product designer")) ||
         ((trimmedContent.toLowerCase().includes("weekly planning") ||
+          isSmokeOpenEndedPlanningHelpQuestion(trimmedContent) ||
           isSmokeDirectPlanningPreferenceQuestion(trimmedContent)) &&
           normalizedContent.includes("concise weekly planning"))
       );

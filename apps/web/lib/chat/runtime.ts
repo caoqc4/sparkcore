@@ -404,6 +404,13 @@ function buildMemoryRecallPrompt(
 
   if (isDirectMemoryQuestion) {
     sections.push(...buildDirectRecallInstructions(directRecallQuestionKind, isZh));
+  } else {
+    sections.push(
+      ...buildOpenEndedRecallInstructions({
+        isZh,
+        recalledMemories
+      })
+    );
   }
 
   return sections.join("\n");
@@ -569,6 +576,34 @@ function buildDirectRecallInstructions(
     : [
         "The user is directly asking what you remember. If the answer is covered by the recalled memory above, answer with that remembered fact plainly.",
         "Do not say that you have no prior knowledge, no previous conversation, or no memory when relevant long-term memory is listed above."
+      ];
+}
+
+function buildOpenEndedRecallInstructions({
+  isZh,
+  recalledMemories
+}: {
+  isZh: boolean;
+  recalledMemories: Array<{
+    memory_type: "profile" | "preference" | "relationship";
+    content: string;
+    confidence: number;
+  }>;
+}) {
+  if (recalledMemories.length === 0) {
+    return [];
+  }
+
+  return isZh
+    ? [
+        "这不是一个需要逐槽位直接回填的直问场景。把已召回的长期记忆当作背景依据，用来组织更自然、更有帮助的回答。",
+        "如果用户是在问建议、下一步、帮助方式或更开放的问题，不要只机械复述记忆槽位本身。",
+        "优先把相关记忆自然融进建议、解释或行动方向里，而不是把回答写成生硬的事实堆砌。"
+      ]
+    : [
+        "This is not a slot-filling direct-question case. Treat the recalled long-term memory as grounding context for a more natural and helpful answer.",
+        "If the user is asking for advice, next steps, or broader help, do not respond by mechanically repeating memory slots alone.",
+        "Prefer weaving the relevant memory into guidance, explanation, or action-oriented help instead of turning the reply into a rigid fact dump."
       ];
 }
 

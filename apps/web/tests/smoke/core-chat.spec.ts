@@ -247,6 +247,100 @@ test.describe("core chat smoke", () => {
     });
   });
 
+  test("keeps open-ended planning help grounded without turning it into a rigid fact dump", async ({
+    page,
+    request
+  }) => {
+    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(seedThreadResponse.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await seedThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const seedTurnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "I am a product designer and I prefer concise weekly planning."
+      }
+    });
+
+    expect(seedTurnResponse.ok()).toBeTruthy();
+
+    const recallThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(recallThreadResponse.ok()).toBeTruthy();
+    const { threadId: recallThreadId } = (await recallThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${recallThreadId}`
+    );
+
+    const recallTurnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: recallThreadId,
+        content:
+          "Given what you know about me, how should we plan my week?"
+      }
+    });
+
+    expect(recallTurnResponse.ok()).toBeTruthy();
+    await page.reload();
+
+    const latestAssistantReply = page
+      .locator("article")
+      .filter({ hasText: "Assistant" })
+      .last();
+
+    await expect(latestAssistantReply).toContainText(
+      /concise weekly planning/i,
+      {
+        timeout: 45_000
+      }
+    );
+    await expect(latestAssistantReply).toContainText(
+      /priorities|next steps|actionable plan/i
+    );
+    await expect(latestAssistantReply).not.toContainText(
+      /i don't know|我不知道/i
+    );
+
+    const latestSummaryHeading = page
+      .locator("summary")
+      .filter({ hasText: "How this reply was generated" })
+      .last();
+    await latestSummaryHeading.click();
+    await expect(page.getByText(/1 memory hit/)).toBeVisible({
+      timeout: 45_000
+    });
+  });
+
   test("recalls agent nickname for the same agent without leaking it to other agents", async ({
     page,
     request
