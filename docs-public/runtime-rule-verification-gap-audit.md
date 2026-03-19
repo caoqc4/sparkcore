@@ -91,22 +91,28 @@ Focused regression added:
     - `incorrect_memory_exclusion_count=1`
   - after `Restore`:
     - `question_type=direct-relationship-confirmation`
-    - `answer_strategy=relationship-recall-first`
-    - `answer_strategy_reason_code=direct-relationship-question`
-    - `memory_hit_count=1`
-    - `incorrect_memory_exclusion_count=0`
+  - `answer_strategy=relationship-recall-first`
+  - `answer_strategy_reason_code=direct-relationship-question`
+  - `memory_hit_count=1`
+  - `incorrect_memory_exclusion_count=0`
+
+### 5. Model-profile comparison metadata
+
+Previous gap:
+- Model-profile comparison already existed in eval docs and broader smoke coverage.
+- We did not yet have a narrow regression whose only job was to validate profile-switch metadata on a stable prompt pair.
+
+Focused regression added:
+- run the same stable prompt once on `Spark Default`, switch the same agent to `Smoke Alt`, then run the same prompt again in a fresh thread
+- expected diagnostics:
+  - both runs keep the same routing:
+    - `question_type=other`
+    - `answer_strategy=default-grounded`
+    - `answer_strategy_reason_code=default-grounded-fallback`
+  - the profile metadata changes:
+    - `model_profile_name=Spark Default` then `Smoke Alt`
+    - `model_profile_id` changes across the two runs
 
 ## Remaining Lower-Priority Gaps
 
-### 1. Model-profile comparison as cheap smoke
-
-Current state:
-- Model-profile comparison exists in eval docs and broader smoke coverage.
-- We still do not have a narrow regression whose only job is to validate model-profile comparison metadata on a stable prompt pair.
-
-Why it is lower priority:
-- It is useful for QA discipline, but it is less urgent than runtime-rule routing and continuity regressions.
-
-## Suggested Next Conversion Order
-
-1. Add a cheap model-profile comparison smoke only if profile-switch regressions start recurring.
+- No material runtime-rule verification gaps remain from the current audit pass.

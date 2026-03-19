@@ -21,6 +21,44 @@ function getSmokeAdminClient() {
   });
 }
 
+async function getSmokeAgentByName(name: string) {
+  const admin = getSmokeAdminClient();
+  const { data, error } = await admin
+    .from("agents")
+    .select("id, name, default_model_profile_id")
+    .eq("name", name)
+    .eq("status", "active")
+    .maybeSingle();
+
+  expect(error).toBeNull();
+  expect(data).toBeTruthy();
+
+  return data as {
+    id: string;
+    name: string;
+    default_model_profile_id: string | null;
+  };
+}
+
+async function getSmokeModelProfileBySlug(slug: string) {
+  const admin = getSmokeAdminClient();
+  const { data, error } = await admin
+    .from("model_profiles")
+    .select("id, slug, name")
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  expect(error).toBeNull();
+  expect(data).toBeTruthy();
+
+  return data as {
+    id: string;
+    slug: string;
+    name: string;
+  };
+}
+
 async function getLatestAssistantMessageForThread(
   threadId: string
 ) {
@@ -2220,5 +2258,81 @@ test.describe("core chat smoke", () => {
     expect(metadata.continuation_reason_code).toBeNull();
     expect(metadata.reply_language_source).toBe("latest-user-message");
     expect(latestAssistantMessage.content).toBe("Sure, we can keep going.");
+  });
+
+  test("compares model-profile metadata on the same stable prompt pair", async ({
+    request
+  }) => {
+    const admin = getSmokeAdminClient();
+    const smokeGuideAgent = await getSmokeAgentByName("Smoke Guide");
+    const defaultProfile = await getSmokeModelProfileBySlug("spark-default");
+    const altProfile = await getSmokeModelProfileBySlug("smoke-alt");
+    const prompt = "Reply in one sentence with a quick hello.";
+
+    const runTurnWithCurrentProfile = async () => {
+      const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          agentName: "Smoke Guide"
+        }
+      });
+
+      expect(createThreadResponse.ok()).toBeTruthy();
+      const { threadId } = (await createThreadResponse.json()) as {
+        threadId: string;
+      };
+
+      const turnResponse = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content: prompt
+        }
+      });
+
+      expect(turnResponse.ok()).toBeTruthy();
+      return getLatestAssistantMessageForThread(threadId);
+    };
+
+    const defaultRun = await runTurnWithCurrentProfile();
+    const defaultMetadata = defaultRun.metadata;
+
+    expect(defaultMetadata.question_type).toBe("other");
+    expect(defaultMetadata.answer_strategy).toBe("default-grounded");
+    expect(defaultMetadata.answer_strategy_reason_code).toBe(
+      "default-grounded-fallback"
+    );
+    expect(defaultMetadata.model_profile_name).toBe("Spark Default");
+    expect(defaultMetadata.model_profile_id).toBe(defaultProfile.id);
+
+    const { error: updateError } = await admin
+      .from("agents")
+      .update({
+        default_model_profile_id: altProfile.id,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", smokeGuideAgent.id);
+
+    expect(updateError).toBeNull();
+
+    const altRun = await runTurnWithCurrentProfile();
+    const altMetadata = altRun.metadata;
+
+    expect(altMetadata.question_type).toBe("other");
+    expect(altMetadata.answer_strategy).toBe("default-grounded");
+    expect(altMetadata.answer_strategy_reason_code).toBe(
+      "default-grounded-fallback"
+    );
+    expect(altMetadata.model_profile_name).toBe("Smoke Alt");
+    expect(altMetadata.model_profile_id).toBe(altProfile.id);
+    expect(defaultMetadata.model_profile_id).not.toBe(altMetadata.model_profile_id);
+    expect(defaultRun.content).toContain("Spark Default");
+    expect(altRun.content).toContain("Smoke Alt");
   });
 });

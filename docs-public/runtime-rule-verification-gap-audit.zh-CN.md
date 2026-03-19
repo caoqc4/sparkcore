@@ -96,17 +96,23 @@
     - `memory_hit_count=1`
     - `incorrect_memory_exclusion_count=0`
 
+### 5. model-profile comparison 的 metadata
+
+之前的缺口：
+- model-profile comparison 已经存在于 eval 文档和更宽的 smoke 覆盖里。
+- 但还没有一条专门只验证 profile-switch metadata 的窄 regression。
+
+这轮新增的 focused regression：
+- 先在 `Spark Default` 下跑一次稳定 prompt，再把同一个 agent 切到 `Smoke Alt`，然后在新 thread 里跑同一条 prompt
+- 期望 diagnostics：
+  - 两次都保持相同路由：
+    - `question_type=other`
+    - `answer_strategy=default-grounded`
+    - `answer_strategy_reason_code=default-grounded-fallback`
+  - profile metadata 发生变化：
+    - `model_profile_name` 从 `Spark Default` 变成 `Smoke Alt`
+    - `model_profile_id` 在两次运行之间发生变化
+
 ## 仍然存在但优先级较低的缺口
 
-### 1. model-profile comparison 的 cheap smoke
-
-当前情况：
-- model-profile comparison 已经存在于 eval 文档和更宽的 smoke 覆盖里。
-- 但还没有一条专门只验证 model-profile comparison metadata 的窄 regression。
-
-为什么优先级较低：
-- 它对 QA 纪律有帮助，但没有 runtime-rule routing / continuity regression 那么急。
-
-## 建议的下一步转换顺序
-
-1. 只有当 profile-switch 回归再次频繁出现时，再补一条 cheap model-profile comparison smoke。
+- 当前这轮审计里，已没有明显剩余的 runtime-rule verification gap。
