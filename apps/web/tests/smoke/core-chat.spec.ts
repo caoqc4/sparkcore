@@ -1,7 +1,19 @@
 import { expect, test } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 
 const smokeSecret = process.env.PLAYWRIGHT_SMOKE_SECRET ?? "sparkcore-smoke-local";
 const hasServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+
+function getSmokeAdminClient() {
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+}
 
 test.describe("core chat smoke", () => {
   test.skip(
@@ -1239,6 +1251,126 @@ test.describe("core chat smoke", () => {
     ).toBeVisible({
       timeout: 45_000
     });
+  });
+
+  test("prefers same-thread continuation before distant memory fallback on fuzzy follow-ups", async ({
+    request
+  }) => {
+    const admin = getSmokeAdminClient();
+
+    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(seedThreadResponse.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await seedThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const seedMemoryResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "I am a product designer."
+      }
+    });
+    expect(seedMemoryResponse.ok()).toBeTruthy();
+
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后我叫你小芳可以吗？",
+      "以后和我说话轻松一点，可以吗？",
+      "请简单介绍一下你自己。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const followUpResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "那接下来呢？"
+      }
+    });
+
+    expect(followUpResponse.ok()).toBeTruthy();
+
+    const { data: latestAssistantMessage, error } = await admin
+      .from("messages")
+      .select("content, metadata")
+      .eq("thread_id", threadId)
+      .eq("role", "assistant")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    expect(error).toBeNull();
+    expect(latestAssistantMessage).toBeTruthy();
+
+    const metadata = latestAssistantMessage?.metadata as Record<string, unknown>;
+    const recalledMemories = Array.isArray(metadata?.recalled_memories)
+      ? metadata.recalled_memories
+      : [];
+    const recalledMemoryTypes = recalledMemories
+      .map((memory) =>
+        typeof memory === "object" && memory !== null
+          ? (memory as Record<string, unknown>).memory_type
+          : null
+      )
+      .filter((value): value is string => typeof value === "string");
+    const recalledMemoryContents = recalledMemories
+      .map((memory) =>
+        typeof memory === "object" && memory !== null
+          ? (memory as Record<string, unknown>).content
+          : null
+      )
+      .filter((value): value is string => typeof value === "string");
+
+    expect(latestAssistantMessage?.content).toContain("阿强");
+    expect(metadata.answer_strategy).toBe("same-thread-continuation");
+    expect(metadata.same_thread_continuation_preferred).toBe(true);
+    expect(metadata.distant_memory_fallback_allowed).toBe(false);
+    expect(recalledMemoryTypes).toEqual(
+      expect.arrayContaining(["relationship"])
+    );
+    expect(recalledMemoryTypes).not.toContain("profile");
+    expect(recalledMemoryContents.join(" ")).not.toContain("product designer");
   });
 
   test("covers memory correction controls and agent defaults/model profile changes", async ({

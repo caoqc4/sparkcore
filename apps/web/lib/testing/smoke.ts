@@ -75,6 +75,20 @@ type SmokeThread = {
 };
 
 type SmokeReplyLanguage = "zh-Hans" | "en" | "unknown";
+type SmokeAnswerQuestionType =
+  | "direct-fact"
+  | "direct-relationship-confirmation"
+  | "open-ended-advice"
+  | "open-ended-summary"
+  | "fuzzy-follow-up"
+  | "other";
+type SmokeAnswerStrategy =
+  | "structured-recall-first"
+  | "relationship-recall-first"
+  | "grounded-open-ended-advice"
+  | "grounded-open-ended-summary"
+  | "same-thread-continuation"
+  | "default-grounded";
 
 type SmokeContinuityReply = {
   content: string;
@@ -863,6 +877,89 @@ function isSmokeOpenEndedSummaryQuestion(content: string) {
   );
 }
 
+function isSmokeFuzzyFollowUpQuestion(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized === "那接下来呢？" ||
+    normalized === "那接下来呢?" ||
+    normalized === "然后呢？" ||
+    normalized === "然后呢?" ||
+    normalized === "还有呢？" ||
+    normalized === "还有呢?" ||
+    normalized === "再说一遍。" ||
+    normalized === "再说一遍" ||
+    normalized === "再确认一次？" ||
+    normalized === "再确认一次?" ||
+    normalized === "好，继续。" ||
+    normalized === "好，继续" ||
+    normalized === "ok, then what?" ||
+    normalized === "then what?" ||
+    normalized === "what next?" ||
+    normalized === "and then?" ||
+    normalized === "say it again in one short sentence." ||
+    normalized === "👍"
+  );
+}
+
+function getSmokeAnswerStrategy({
+  content,
+  sameThreadContinuity,
+  relationshipStylePrompt
+}: {
+  content: string;
+  sameThreadContinuity: boolean;
+  relationshipStylePrompt: boolean;
+}) {
+  const directNamingQuestion = isSmokeDirectNamingQuestion(content);
+  const directPreferredNameQuestion =
+    isSmokeDirectUserPreferredNameQuestion(content);
+  const directFactQuestion =
+    isSmokeDirectProfessionQuestion(content) ||
+    isSmokeDirectPlanningPreferenceQuestion(content) ||
+    isSmokeDirectReplyStyleQuestion(content);
+
+  if (directNamingQuestion || directPreferredNameQuestion) {
+    return {
+      questionType: "direct-relationship-confirmation" as SmokeAnswerQuestionType,
+      answerStrategy: "relationship-recall-first" as SmokeAnswerStrategy
+    };
+  }
+
+  if (directFactQuestion) {
+    return {
+      questionType: "direct-fact" as SmokeAnswerQuestionType,
+      answerStrategy: "structured-recall-first" as SmokeAnswerStrategy
+    };
+  }
+
+  if (isSmokeOpenEndedPlanningHelpQuestion(content)) {
+    return {
+      questionType: "open-ended-advice" as SmokeAnswerQuestionType,
+      answerStrategy: "grounded-open-ended-advice" as SmokeAnswerStrategy
+    };
+  }
+
+  if (isSmokeOpenEndedSummaryQuestion(content) || relationshipStylePrompt) {
+    return {
+      questionType: "open-ended-summary" as SmokeAnswerQuestionType,
+      answerStrategy: "grounded-open-ended-summary" as SmokeAnswerStrategy
+    };
+  }
+
+  if (sameThreadContinuity && isSmokeFuzzyFollowUpQuestion(content)) {
+    return {
+      questionType: "fuzzy-follow-up" as SmokeAnswerQuestionType,
+      answerStrategy: "same-thread-continuation" as SmokeAnswerStrategy
+    };
+  }
+
+  return {
+    questionType: "other" as SmokeAnswerQuestionType,
+    answerStrategy: "default-grounded" as SmokeAnswerStrategy
+  };
+}
+
 function buildSmokeAssistantReply({
   content,
   modelProfileName,
@@ -1542,6 +1639,13 @@ export async function createSmokeTurn({
     }));
   const relationshipStylePrompt = isSmokeRelationshipAnswerShapePrompt(trimmedContent);
   const sameThreadContinuity = recentAssistantReply !== null;
+  const answerStrategyRule = getSmokeAnswerStrategy({
+    content: trimmedContent,
+    sameThreadContinuity,
+    relationshipStylePrompt
+  });
+  const preferSameThreadContinuation =
+    answerStrategyRule.answerStrategy === "same-thread-continuation";
   const nicknameMemory =
     isSmokeDirectNamingQuestion(trimmedContent) ||
     relationshipStylePrompt ||
@@ -1945,13 +2049,17 @@ export async function createSmokeTurn({
         content: assistantContent,
         status: "completed",
         metadata: {
-      agent_id: ensuredAgent.id,
+          agent_id: ensuredAgent.id,
           agent_name: ensuredAgent.name,
           model: modelProfile.model,
           model_profile_id: modelProfile.id,
           model_profile_name: modelProfile.name,
           reply_language_target: replyLanguage,
           reply_language_detected: detectSmokeReplyLanguage(assistantContent),
+          question_type: answerStrategyRule.questionType,
+          answer_strategy: answerStrategyRule.answerStrategy,
+          same_thread_continuation_preferred: preferSameThreadContinuation,
+          distant_memory_fallback_allowed: !preferSameThreadContinuation,
           memory_hit_count: recalledMemories.length,
           memory_used: recalledMemories.length > 0,
           memory_types_used: usedMemoryTypes,
