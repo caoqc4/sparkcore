@@ -65,9 +65,27 @@ npm run quality:eval -- --suite=real-chat --format=json
   - 整轮都使用同一套 smoke secret 和 smoke credentials
   - 不要在中途切换额外 runtime experiments
 - 整轮都固定语言起始条件：
-  - 每个 scenario pack 都按样例脚本里原本写好的起始语言开始
-  - 不要在脚本外临时追加语言切换指令
+- 每个 scenario pack 都按样例脚本里原本写好的起始语言开始
+- 不要在脚本外临时追加语言切换指令
 - 这只是第一轮 gate 的基线约束，不是永久产品约束
+
+## 第一轮 8 到 12 Turn 验收固定 Scope
+
+第一轮 gate 要按一轮收口明确的基线验收来跑，而不是边跑边扩的清单。
+
+- 只跑这份文档里已经冻结的 scenario pack
+- 不要在中途临时新增 scenario pack 或额外 case
+- 不要在中途修改当前验收门槛、结论分类或 `next_action` 映射
+- 不要在中途改动已经冻结的 profile 矩阵或执行环境基线
+- 如果跑到一半发现新的 runtime bug，不要边修边继续把剩余结果算进同一轮 gate
+
+如果中途必须做有意义的 runtime 修复、prompt 修复或验收规则调整：
+
+- 先停止当前这轮
+- 把这轮记录为 incomplete 或 superseded
+- 再在更新后的基线上重新开始一轮新 run，不要把修复前后的结果混成同一条 gate 记录
+
+这条 scope freeze 的目的，是保护基线可比性，不是阻止后续补修复。
 
 ## 第一轮 8 到 12 Turn 验收作为 Milestone Gate
 

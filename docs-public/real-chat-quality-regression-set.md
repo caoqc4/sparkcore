@@ -66,8 +66,26 @@ Freeze this first gate run to one small environment baseline so later reruns can
   - do not toggle extra runtime experiments mid-run
 - keep the starting language conditions fixed:
   - start each scenario pack in the language already authored in the pack
-  - do not add ad-hoc language-switch instructions outside the scripted scenario
+- do not add ad-hoc language-switch instructions outside the scripted scenario
 - treat this as a gate baseline, not a permanent product constraint
+
+## Frozen Scope For The First 8 To 12 Turn Acceptance Run
+
+Treat this first gate run as a narrow baseline pass, not as an expanding checklist.
+
+- run only the already frozen scenario packs in this document
+- do not add new scenario packs or ad-hoc extra cases mid-run
+- do not change the current acceptance thresholds, conclusion categories, or `next_action` mapping mid-run
+- do not change the frozen profile matrix or execution-environment baseline mid-run
+- do not patch a newly found runtime bug and continue counting the rest as part of the same gate run
+
+If a meaningful runtime fix, prompt fix, or acceptance-rule change becomes necessary during the run:
+
+- stop the current run
+- record the interrupted run as incomplete or superseded
+- restart as a new run on the updated baseline instead of mixing before-fix and after-fix results into one gate record
+
+This scope freeze is there to protect baseline comparability, not to prevent follow-up fixes after the run is recorded.
 
 ## Milestone Gate For The First 8 To 12 Turn Acceptance Run
 
