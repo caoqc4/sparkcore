@@ -1235,7 +1235,7 @@ test.describe("core chat smoke", () => {
       timeout: 45_000
     });
     await expect(
-      page.getByText("阿强，我们就先推进到这里吧。").first()
+      page.getByText("阿强，别急，我在呢。").first()
     ).toBeVisible({
       timeout: 45_000
     });

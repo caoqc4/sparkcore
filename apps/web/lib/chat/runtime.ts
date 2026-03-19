@@ -54,15 +54,32 @@ function isRelationshipExplanatoryPrompt(content: string) {
   );
 }
 
+function isRelationshipSupportivePrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("鼓励我一句") ||
+    normalized.includes("安慰我一下") ||
+    normalized.includes("陪陪我") ||
+    normalized.includes("支持我一下") ||
+    normalized.includes("给我一点鼓励") ||
+    normalized.includes("如果我有点慌") ||
+    normalized.includes("如果我有点没底") ||
+    normalized.includes("give me a little encouragement") ||
+    normalized.includes("encourage me a bit") ||
+    normalized.includes("comfort me a little") ||
+    normalized.includes("if i feel a bit overwhelmed") ||
+    normalized.includes("if i am feeling unsure")
+  );
+}
+
 function isRelationshipClosingPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return (
     normalized.includes("最后你会怎么陪我把事情推进下去") ||
-    normalized.includes("那你再简单鼓励我一句") ||
     normalized.includes("最后你会怎么收尾") ||
     normalized.includes("how would you help me close this out") ||
-    normalized.includes("give me a short encouragement") ||
     normalized.includes("how would you wrap this up")
   );
 }
@@ -70,6 +87,7 @@ function isRelationshipClosingPrompt(content: string) {
 function isRelationshipAnswerShapePrompt(content: string) {
   return (
     isRelationshipStylePrompt(content) ||
+    isRelationshipSupportivePrompt(content) ||
     isRelationshipExplanatoryPrompt(content) ||
     isRelationshipClosingPrompt(content)
   );

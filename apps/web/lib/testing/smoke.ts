@@ -762,15 +762,32 @@ function isSmokeRelationshipExplanatoryPrompt(content: string) {
   );
 }
 
+function isSmokeRelationshipSupportivePrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("鼓励我一句") ||
+    normalized.includes("安慰我一下") ||
+    normalized.includes("陪陪我") ||
+    normalized.includes("支持我一下") ||
+    normalized.includes("给我一点鼓励") ||
+    normalized.includes("如果我有点慌") ||
+    normalized.includes("如果我有点没底") ||
+    normalized.includes("give me a little encouragement") ||
+    normalized.includes("encourage me a bit") ||
+    normalized.includes("comfort me a little") ||
+    normalized.includes("if i feel a bit overwhelmed") ||
+    normalized.includes("if i am feeling unsure")
+  );
+}
+
 function isSmokeRelationshipClosingPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return (
     normalized.includes("最后你会怎么陪我把事情推进下去") ||
-    normalized.includes("那你再简单鼓励我一句") ||
     normalized.includes("最后你会怎么收尾") ||
     normalized.includes("how would you help me close this out") ||
-    normalized.includes("give me a short encouragement") ||
     normalized.includes("how would you wrap this up")
   );
 }
@@ -778,6 +795,7 @@ function isSmokeRelationshipClosingPrompt(content: string) {
 function isSmokeRelationshipAnswerShapePrompt(content: string) {
   return (
     isSmokeSelfIntroGreetingRequest(content) ||
+    isSmokeRelationshipSupportivePrompt(content) ||
     isSmokeRelationshipExplanatoryPrompt(content) ||
     isSmokeRelationshipClosingPrompt(content)
   );
@@ -1197,6 +1215,46 @@ function buildSmokeAssistantReply({
     return userName
       ? `${userName}, if you were having a rough day, I would explain things clearly and keep moving with you step by step. I am ${selfName}, and I would keep the tone steady and supportive.`
       : `If you were having a rough day, I would explain things clearly and keep moving with you step by step. I am ${selfName}, and I would keep the tone steady and supportive.`;
+  }
+
+  if (isSmokeRelationshipSupportivePrompt(content)) {
+    const styleValue = addressStyleMemory?.content ?? null;
+    const selfName = nicknameMemory?.content ?? agentName;
+    const userName = preferredNameMemory?.content ?? null;
+
+    if (replyLanguage === "zh-Hans") {
+      if (styleValue === "formal") {
+        return userName
+          ? `${userName}，你不用一个人扛着。我会继续正式、稳妥地陪你把眼前的事情拆清楚。我是${selfName}，会一直在这儿支持你。`
+          : `你不用一个人扛着。我会继续正式、稳妥地陪你把眼前的事情拆清楚。我是${selfName}，会一直在这儿支持你。`;
+      }
+
+      if (styleValue === "friendly" || styleValue === "casual") {
+        return userName
+          ? `${userName}，别急，我在呢。我会继续用轻松一点、更像朋友的方式陪你把这段先走过去。我是${selfName}，会一直站你这边。`
+          : `别急，我在呢。我会继续用轻松一点、更像朋友的方式陪你把这段先走过去。我是${selfName}，会一直站你这边。`;
+      }
+
+      return userName
+        ? `${userName}，先别慌。我会继续自然、稳定地陪你把这件事一点点理顺。我是${selfName}，会继续在这儿支持你。`
+        : `先别慌。我会继续自然、稳定地陪你把这件事一点点理顺。我是${selfName}，会继续在这儿支持你。`;
+    }
+
+    if (styleValue === "formal") {
+      return userName
+        ? `${userName}, you do not have to carry this alone. I will keep helping in a formal, steady, reliable way. I am ${selfName}, and I will stay here with you.`
+        : `You do not have to carry this alone. I will keep helping in a formal, steady, reliable way. I am ${selfName}, and I will stay here with you.`;
+    }
+
+    if (styleValue === "friendly" || styleValue === "casual") {
+      return userName
+        ? `${userName}, take a breath. I am here, and I will keep helping in a lighter, more friend-like way while we get through this together. I am ${selfName}.`
+        : `Take a breath. I am here, and I will keep helping in a lighter, more friend-like way while we get through this together. I am ${selfName}.`;
+    }
+
+    return userName
+      ? `${userName}, try not to panic. I will keep helping in a steady, natural way while we sort this out together. I am ${selfName}, and I am still here with you.`
+      : `Try not to panic. I will keep helping in a steady, natural way while we sort this out together. I am ${selfName}, and I am still here with you.`;
   }
 
   if (isSmokeRelationshipClosingPrompt(content)) {
