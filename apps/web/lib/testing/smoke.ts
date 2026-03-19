@@ -795,6 +795,19 @@ function isSmokeRelationshipSupportivePrompt(content: string) {
   );
 }
 
+function isSmokeShortRelationshipSupportivePrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("鼓励我一句") ||
+    normalized.includes("安慰我一下") ||
+    normalized.includes("给我一点鼓励") ||
+    normalized.includes("give me a little encouragement") ||
+    normalized.includes("encourage me a bit") ||
+    normalized.includes("comfort me a little")
+  );
+}
+
 function isSmokeRelationshipClosingPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
@@ -803,6 +816,22 @@ function isSmokeRelationshipClosingPrompt(content: string) {
     normalized.includes("最后你会怎么收尾") ||
     normalized.includes("how would you help me close this out") ||
     normalized.includes("how would you wrap this up")
+  );
+}
+
+function isSmokeShortRelationshipSummaryFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("再简单介绍一下你自己") ||
+    normalized.includes("再简单说一下你自己") ||
+    normalized.includes("最后再简单介绍一下你自己") ||
+    normalized.includes("最后简单总结一下") ||
+    normalized.includes("用两句话总结一下") ||
+    normalized.includes("简单说说你会怎么陪我") ||
+    normalized.includes("briefly say who you are again") ||
+    normalized.includes("give me a short recap") ||
+    normalized.includes("wrap this up in one short paragraph")
   );
 }
 
@@ -893,12 +922,26 @@ function isSmokeFuzzyFollowUpQuestion(content: string) {
     normalized === "再确认一次?" ||
     normalized === "好，继续。" ||
     normalized === "好，继续" ||
+    normalized === "继续说说。" ||
+    normalized === "继续说说" ||
+    normalized === "继续讲讲。" ||
+    normalized === "继续讲讲" ||
+    normalized === "继续吧。" ||
+    normalized === "继续吧" ||
     normalized === "ok, then what?" ||
     normalized === "then what?" ||
     normalized === "what next?" ||
     normalized === "and then?" ||
     normalized === "say it again in one short sentence." ||
     normalized === "👍"
+  );
+}
+
+function isSmokeRelationshipContinuationEdgePrompt(content: string) {
+  return (
+    isSmokeFuzzyFollowUpQuestion(content) ||
+    isSmokeShortRelationshipSupportivePrompt(content) ||
+    isSmokeShortRelationshipSummaryFollowUpPrompt(content)
   );
 }
 
@@ -930,6 +973,13 @@ function getSmokeAnswerStrategy({
     return {
       questionType: "direct-fact" as SmokeAnswerQuestionType,
       answerStrategy: "structured-recall-first" as SmokeAnswerStrategy
+    };
+  }
+
+  if (sameThreadContinuity && isSmokeRelationshipContinuationEdgePrompt(content)) {
+    return {
+      questionType: "fuzzy-follow-up" as SmokeAnswerQuestionType,
+      answerStrategy: "same-thread-continuation" as SmokeAnswerStrategy
     };
   }
 

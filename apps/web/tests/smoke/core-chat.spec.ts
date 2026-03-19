@@ -1323,6 +1323,10 @@ test.describe("core chat smoke", () => {
       }
     });
     expect(shortFollowUpTurn.ok()).toBeTruthy();
+    const shortFollowUpAssistant = await getLatestAssistantMessageForThread(threadId);
+    expect(shortFollowUpAssistant.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
 
     const secondIntroTurn = await request.post("/api/test/smoke-send-turn", {
       headers: {
@@ -1335,6 +1339,11 @@ test.describe("core chat smoke", () => {
       }
     });
     expect(secondIntroTurn.ok()).toBeTruthy();
+    const secondIntroAssistant = await getLatestAssistantMessageForThread(threadId);
+    expect(secondIntroAssistant.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(secondIntroAssistant.content).toContain("阿强");
 
     const explanatoryTurn = await request.post("/api/test/smoke-send-turn", {
       headers: {
@@ -1359,6 +1368,11 @@ test.describe("core chat smoke", () => {
       }
     });
     expect(closingTurn.ok()).toBeTruthy();
+    const closingAssistant = await getLatestAssistantMessageForThread(threadId);
+    expect(closingAssistant.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(closingAssistant.content).toContain("阿强");
 
     await page.reload();
 

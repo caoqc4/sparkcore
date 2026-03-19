@@ -73,6 +73,19 @@ function isRelationshipSupportivePrompt(content: string) {
   );
 }
 
+function isShortRelationshipSupportivePrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("鼓励我一句") ||
+    normalized.includes("安慰我一下") ||
+    normalized.includes("给我一点鼓励") ||
+    normalized.includes("give me a little encouragement") ||
+    normalized.includes("encourage me a bit") ||
+    normalized.includes("comfort me a little")
+  );
+}
+
 function isRelationshipClosingPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
@@ -81,6 +94,22 @@ function isRelationshipClosingPrompt(content: string) {
     normalized.includes("最后你会怎么收尾") ||
     normalized.includes("how would you help me close this out") ||
     normalized.includes("how would you wrap this up")
+  );
+}
+
+function isShortRelationshipSummaryFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("再简单介绍一下你自己") ||
+    normalized.includes("再简单说一下你自己") ||
+    normalized.includes("最后再简单介绍一下你自己") ||
+    normalized.includes("最后简单总结一下") ||
+    normalized.includes("用两句话总结一下") ||
+    normalized.includes("简单说说你会怎么陪我") ||
+    normalized.includes("briefly say who you are again") ||
+    normalized.includes("give me a short recap") ||
+    normalized.includes("wrap this up in one short paragraph")
   );
 }
 
@@ -161,11 +190,25 @@ function isFuzzyFollowUpQuestion(content: string) {
     normalized === "再确认一次?" ||
     normalized === "好，继续。" ||
     normalized === "好，继续" ||
+    normalized === "继续说说。" ||
+    normalized === "继续说说" ||
+    normalized === "继续讲讲。" ||
+    normalized === "继续讲讲" ||
+    normalized === "继续吧。" ||
+    normalized === "继续吧" ||
     normalized === "ok, then what?" ||
     normalized === "then what?" ||
     normalized === "what next?" ||
     normalized === "and then?" ||
     normalized === "say it again in one short sentence."
+  );
+}
+
+function isRelationshipContinuationEdgePrompt(content: string) {
+  return (
+    isFuzzyFollowUpQuestion(content) ||
+    isShortRelationshipSupportivePrompt(content) ||
+    isShortRelationshipSummaryFollowUpPrompt(content)
   );
 }
 
@@ -759,6 +802,10 @@ function getAnswerQuestionType(params: {
     return "direct-fact";
   }
 
+  if (sameThreadContinuity && isRelationshipContinuationEdgePrompt(latestUserMessage)) {
+    return "fuzzy-follow-up";
+  }
+
   if (isOpenEndedAdviceQuestion(latestUserMessage)) {
     return "open-ended-advice";
   }
@@ -941,11 +988,13 @@ function buildAnswerStrategyInstructions({
       ...(isZh
         ? [
             "这是一个同线程里的短跟进。优先延续这个线程已经形成的语言、称呼和关系风格，不要突然切回默认语气。",
-            "如果上面的长期记忆与当前线程连续性相关，就自然沿用它们，而不是把回答写成新的生硬总结。"
+            "如果上面的长期记忆与当前线程连续性相关，就自然沿用它们，而不是把回答写成新的生硬总结。",
+            "即使用户这轮是在要一句鼓励、一个简短总结，或只是要你继续说下去，也把它当作同线程关系延续，而不是新的中性任务。"
           ]
         : [
             "This is a short follow-up in the same thread. Prefer continuing the language, address terms, and relationship style already established here instead of snapping back to the default tone.",
-            "If the recalled memory supports the current thread continuity, carry it forward naturally instead of turning the reply into a fresh rigid summary."
+            "If the recalled memory supports the current thread continuity, carry it forward naturally instead of turning the reply into a fresh rigid summary.",
+            "Even when the user only asks for a brief encouragement line, a short recap, or a simple continuation, treat it as same-thread relationship carryover instead of a fresh neutral task."
           ])
     ];
   }
