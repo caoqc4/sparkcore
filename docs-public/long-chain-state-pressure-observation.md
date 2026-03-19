@@ -17,8 +17,10 @@ Do not use this guide as permission to implement:
 Use this guide only when all of the following are true:
 
 - the current run has no confirmed `P0` product drift from ordinary rule regressions
-- the chain is long enough that continuity pressure could plausibly show up, usually around 6 to 10+ turns
+- the chain is long enough that continuity pressure could plausibly show up, using an `8 to 12 turn` observation window by default
 - the observed weakening looks more like context carryover strain than a broken recall contract
+
+This `8 to 12 turn` range is an acceptance observation window, not a hard product limit.
 
 Useful developer-only clues:
 

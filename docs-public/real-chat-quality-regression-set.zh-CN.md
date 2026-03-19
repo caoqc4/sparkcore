@@ -99,7 +99,7 @@ npm run quality:eval -- --suite=real-chat --format=json
 
 只有在当前 runtime 规则已经大体稳定、但你想判断后续漂移更像“状态层承压”还是“规则层还有缺口”时，才启用这组观察。
 
-在 6 到 10+ turn 的较长链路里，如果需要解释漂移，可以额外记录这些 developer-only 信号：
+在默认 `8 到 12 turn` 的验收观察窗口里，如果需要解释漂移，可以额外记录这些 developer-only 信号：
 
 - `recent_raw_turn_count`
 - `approx_context_pressure`
@@ -109,6 +109,8 @@ npm run quality:eval -- --suite=real-chat --format=json
 具体的升级门槛和记录模板，统一看这份观察指引：
 
 - `docs-public/long-chain-state-pressure-observation.zh-CN.md`
+
+这里固定窗口只是为了验收结果更可横向比较，不代表更短或更长 thread 不值得关注。
 
 ## 场景包
 

@@ -99,7 +99,7 @@ Do not treat this as permission to build thread compaction, thread summary, or a
 
 Use the long-chain watch only when the current runtime rules already look mostly stable and you want to decide whether later drift is starting to look like thread-state pressure instead of another rule-layer gap.
 
-During longer 6-to-10+ turn checks, record these developer-only signals when they help explain a drift:
+During the default `8 to 12 turn` acceptance observation window, record these developer-only signals when they help explain a drift:
 
 - `recent_raw_turn_count`
 - `approx_context_pressure`
@@ -109,6 +109,8 @@ During longer 6-to-10+ turn checks, record these developer-only signals when the
 Use the dedicated observation guide for the escalation gate and recording template:
 
 - `docs-public/long-chain-state-pressure-observation.md`
+
+This window is for acceptance consistency, not a claim that shorter or longer threads cannot matter.
 
 ## Scenario Packs
 
