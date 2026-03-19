@@ -383,6 +383,7 @@ test.describe("core chat smoke", () => {
 
     expect(metadata.question_type).toBe("open-ended-advice");
     expect(metadata.answer_strategy).toBe("grounded-open-ended-advice");
+    expect(metadata.answer_strategy_reason_code).toBe("open-ended-advice-prompt");
     expect(metadata.memory_used).toBe(true);
     expect(recalledMemoryTypes).toEqual(
       expect.arrayContaining(["preference"])
@@ -493,6 +494,7 @@ test.describe("core chat smoke", () => {
 
     expect(metadata.question_type).toBe("open-ended-summary");
     expect(metadata.answer_strategy).toBe("grounded-open-ended-summary");
+    expect(metadata.answer_strategy_reason_code).toBe("open-ended-summary-prompt");
     expect(metadata.memory_used).toBe(true);
     expect(recalledMemoryTypes).toEqual(
       expect.arrayContaining(["profile", "relationship"])
@@ -1327,6 +1329,9 @@ test.describe("core chat smoke", () => {
     expect(shortFollowUpAssistant.metadata.answer_strategy).toBe(
       "same-thread-continuation"
     );
+    expect(shortFollowUpAssistant.metadata.continuation_reason_code).toBe(
+      "short-fuzzy-follow-up"
+    );
 
     const secondIntroTurn = await request.post("/api/test/smoke-send-turn", {
       headers: {
@@ -1342,6 +1347,9 @@ test.describe("core chat smoke", () => {
     const secondIntroAssistant = await getLatestAssistantMessageForThread(threadId);
     expect(secondIntroAssistant.metadata.answer_strategy).toBe(
       "same-thread-continuation"
+    );
+    expect(secondIntroAssistant.metadata.continuation_reason_code).toBe(
+      "brief-summary-carryover"
     );
     expect(secondIntroAssistant.content).toContain("阿强");
 
@@ -1371,6 +1379,9 @@ test.describe("core chat smoke", () => {
     const closingAssistant = await getLatestAssistantMessageForThread(threadId);
     expect(closingAssistant.metadata.answer_strategy).toBe(
       "same-thread-continuation"
+    );
+    expect(closingAssistant.metadata.continuation_reason_code).toBe(
+      "brief-supportive-carryover"
     );
     expect(closingAssistant.content).toContain("阿强");
 
@@ -1509,6 +1520,10 @@ test.describe("core chat smoke", () => {
 
     expect(latestAssistantMessage?.content).toContain("阿强");
     expect(metadata.answer_strategy).toBe("same-thread-continuation");
+    expect(metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(metadata.continuation_reason_code).toBe("short-fuzzy-follow-up");
     expect(metadata.same_thread_continuation_preferred).toBe(true);
     expect(metadata.distant_memory_fallback_allowed).toBe(false);
     expect(recalledMemoryTypes).toEqual(
@@ -1795,6 +1810,8 @@ test.describe("core chat smoke", () => {
 
     expect(metadata.reply_language_detected).toBe("zh-Hans");
     expect(metadata.answer_strategy).toBe("structured-recall-first");
+    expect(metadata.answer_strategy_reason_code).toBe("direct-memory-question");
+    expect(metadata.reply_language_source).toBe("latest-user-message");
   });
 
   test("keeps Chinese on short mixed-language follow-ups after an English memory seed", async ({
@@ -1838,9 +1855,14 @@ test.describe("core chat smoke", () => {
     const metadata = latestAssistantMessage.metadata;
 
     expect(metadata.answer_strategy).toBe("same-thread-continuation");
+    expect(metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(metadata.continuation_reason_code).toBe("short-fuzzy-follow-up");
     expect(metadata.same_thread_continuation_preferred).toBe(true);
     expect(metadata.distant_memory_fallback_allowed).toBe(false);
     expect(metadata.reply_language_detected).toBe("zh-Hans");
+    expect(metadata.reply_language_source).toBe("latest-user-message");
     expect(latestAssistantMessage.content).toMatch(/[一-龥]/u);
     expect(latestAssistantMessage.content).not.toMatch(/\bproduct designer\b/i);
   });

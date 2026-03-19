@@ -212,6 +212,24 @@ function isRelationshipContinuationEdgePrompt(content: string) {
   );
 }
 
+function getContinuationReasonCode(
+  content: string
+): ContinuationReasonCode | null {
+  if (isShortRelationshipSupportivePrompt(content)) {
+    return "brief-supportive-carryover";
+  }
+
+  if (isShortRelationshipSummaryFollowUpPrompt(content)) {
+    return "brief-summary-carryover";
+  }
+
+  if (isFuzzyFollowUpQuestion(content)) {
+    return "short-fuzzy-follow-up";
+  }
+
+  return null;
+}
+
 type WorkspaceRecord = {
   id: string;
   name: string;
@@ -357,6 +375,22 @@ type AnswerStrategy =
   | "grounded-open-ended-summary"
   | "same-thread-continuation"
   | "default-grounded";
+type AnswerStrategyReasonCode =
+  | "direct-relationship-question"
+  | "direct-memory-question"
+  | "open-ended-advice-prompt"
+  | "open-ended-summary-prompt"
+  | "relationship-answer-shape-prompt"
+  | "same-thread-edge-carryover"
+  | "default-grounded-fallback";
+type ContinuationReasonCode =
+  | "short-fuzzy-follow-up"
+  | "brief-supportive-carryover"
+  | "brief-summary-carryover";
+type ReplyLanguageSource =
+  | "latest-user-message"
+  | "thread-continuity-fallback"
+  | "no-latest-user-message";
 type AnswerStrategyPriority =
   | "high-deterministic"
   | "semi-constrained"
@@ -510,7 +544,7 @@ function buildMemoryRecallPrompt(
 ) {
   const normalizedUserMessage = latestUserMessage.toLowerCase();
   const directRecallQuestionKind = getDirectRecallQuestionKind(normalizedUserMessage);
-  const answerQuestionType = getAnswerQuestionType({
+  const answerQuestionRouting = getAnswerQuestionRouting({
     latestUserMessage,
     directRecallQuestionKind,
     directNamingQuestion: relationshipRecall.directNamingQuestion,
@@ -518,6 +552,7 @@ function buildMemoryRecallPrompt(
     relationshipStylePrompt: relationshipRecall.relationshipStylePrompt,
     sameThreadContinuity: relationshipRecall.sameThreadContinuity
   });
+  const answerQuestionType = answerQuestionRouting.questionType;
   const answerStrategyRule = getAnswerStrategyRule(answerQuestionType);
   const answerStrategy = answerStrategyRule.strategy;
   const isZh = replyLanguage === "zh-Hans";
@@ -777,14 +812,18 @@ function getDirectRecallQuestionKind(
   return "none";
 }
 
-function getAnswerQuestionType(params: {
+function getAnswerQuestionRouting(params: {
   latestUserMessage: string;
   directRecallQuestionKind: DirectRecallQuestionKind;
   directNamingQuestion: boolean;
   directPreferredNameQuestion: boolean;
   relationshipStylePrompt: boolean;
   sameThreadContinuity: boolean;
-}): AnswerQuestionType {
+}): {
+  questionType: AnswerQuestionType;
+  reasonCode: AnswerStrategyReasonCode;
+  continuationReasonCode: ContinuationReasonCode | null;
+} {
   const {
     latestUserMessage,
     directRecallQuestionKind,
@@ -795,30 +834,58 @@ function getAnswerQuestionType(params: {
   } = params;
 
   if (directNamingQuestion || directPreferredNameQuestion) {
-    return "direct-relationship-confirmation";
+    return {
+      questionType: "direct-relationship-confirmation",
+      reasonCode: "direct-relationship-question",
+      continuationReasonCode: null
+    };
   }
 
   if (directRecallQuestionKind !== "none") {
-    return "direct-fact";
+    return {
+      questionType: "direct-fact",
+      reasonCode: "direct-memory-question",
+      continuationReasonCode: null
+    };
   }
 
   if (sameThreadContinuity && isRelationshipContinuationEdgePrompt(latestUserMessage)) {
-    return "fuzzy-follow-up";
+    return {
+      questionType: "fuzzy-follow-up",
+      reasonCode: "same-thread-edge-carryover",
+      continuationReasonCode: getContinuationReasonCode(latestUserMessage)
+    };
   }
 
   if (isOpenEndedAdviceQuestion(latestUserMessage)) {
-    return "open-ended-advice";
+    return {
+      questionType: "open-ended-advice",
+      reasonCode: "open-ended-advice-prompt",
+      continuationReasonCode: null
+    };
   }
 
-  if (isOpenEndedSummaryQuestion(latestUserMessage) || relationshipStylePrompt) {
-    return "open-ended-summary";
+  if (isOpenEndedSummaryQuestion(latestUserMessage)) {
+    return {
+      questionType: "open-ended-summary",
+      reasonCode: "open-ended-summary-prompt",
+      continuationReasonCode: null
+    };
   }
 
-  if (sameThreadContinuity && isFuzzyFollowUpQuestion(latestUserMessage)) {
-    return "fuzzy-follow-up";
+  if (relationshipStylePrompt) {
+    return {
+      questionType: "open-ended-summary",
+      reasonCode: "relationship-answer-shape-prompt",
+      continuationReasonCode: null
+    };
   }
 
-  return "other";
+  return {
+    questionType: "other",
+    reasonCode: "default-grounded-fallback",
+    continuationReasonCode: null
+  };
 }
 
 function getAnswerStrategyRule(questionType: AnswerQuestionType) {
@@ -1233,16 +1300,25 @@ function resolveReplyLanguageForTurn({
   threadContinuity: ThreadContinuitySignal;
 }) {
   if (!latestUserMessage) {
-    return threadContinuity.establishedReplyLanguage;
+    return {
+      replyLanguage: threadContinuity.establishedReplyLanguage,
+      source: "no-latest-user-message" as ReplyLanguageSource
+    };
   }
 
   const latestUserLanguage = detectReplyLanguageFromText(latestUserMessage);
 
   if (latestUserLanguage !== "unknown") {
-    return latestUserLanguage;
+    return {
+      replyLanguage: latestUserLanguage,
+      source: "latest-user-message" as ReplyLanguageSource
+    };
   }
 
-  return threadContinuity.establishedReplyLanguage;
+  return {
+    replyLanguage: threadContinuity.establishedReplyLanguage,
+    source: "thread-continuity-fallback" as ReplyLanguageSource
+  };
 }
 
 function buildThreadContinuityPrompt({
@@ -2294,11 +2370,12 @@ export async function generateAgentReply({
   const preferSameThreadContinuation =
     latestUserMessageContent !== null &&
     threadContinuity.hasPriorAssistantTurn &&
-    isFuzzyFollowUpQuestion(latestUserMessageContent);
-  const replyLanguage = resolveReplyLanguageForTurn({
+    isRelationshipContinuationEdgePrompt(latestUserMessageContent);
+  const replyLanguageDecision = resolveReplyLanguageForTurn({
     latestUserMessage: latestUserMessageContent,
     threadContinuity
   });
+  const replyLanguage = replyLanguageDecision.replyLanguage;
   const memoryRecall = latestUserMessageContent !== null
     ? await recallRelevantMemories({
         workspaceId: workspace.id,
@@ -2344,6 +2421,9 @@ export async function generateAgentReply({
   let answerQuestionType: AnswerQuestionType = "other";
   let answerStrategy: AnswerStrategy = "default-grounded";
   let answerStrategyPriority: AnswerStrategyPriority = "semi-constrained";
+  let answerStrategyReasonCode: AnswerStrategyReasonCode =
+    "default-grounded-fallback";
+  let continuationReasonCode: ContinuationReasonCode | null = null;
 
   if (latestUserMessage) {
     const relationshipStylePrompt = isRelationshipAnswerShapePrompt(
@@ -2398,7 +2478,7 @@ export async function generateAgentReply({
       ...preferredNameRecall
     };
 
-    answerQuestionType = getAnswerQuestionType({
+    const answerQuestionRouting = getAnswerQuestionRouting({
       latestUserMessage: latestUserMessage.content,
       directRecallQuestionKind: getDirectRecallQuestionKind(
         latestUserMessage.content.normalize("NFKC").trim().toLowerCase()
@@ -2408,6 +2488,9 @@ export async function generateAgentReply({
       relationshipStylePrompt: relationshipRecall.relationshipStylePrompt,
       sameThreadContinuity: relationshipRecall.sameThreadContinuity
     });
+    answerQuestionType = answerQuestionRouting.questionType;
+    answerStrategyReasonCode = answerQuestionRouting.reasonCode;
+    continuationReasonCode = answerQuestionRouting.continuationReasonCode;
     const answerStrategyRule = getAnswerStrategyRule(answerQuestionType);
     answerStrategy = answerStrategyRule.strategy;
     answerStrategyPriority = answerStrategyRule.priority;
@@ -2502,13 +2585,16 @@ export async function generateAgentReply({
         reply_language_detected: detectReplyLanguageFromText(result.content),
         question_type: answerQuestionType,
         answer_strategy: answerStrategy,
+        answer_strategy_reason_code: answerStrategyReasonCode,
         answer_strategy_priority: answerStrategyPriority,
         answer_strategy_priority_label: getAnswerStrategyPriorityLabel(
           answerStrategyPriority,
           replyLanguage === "zh-Hans"
         ),
+        continuation_reason_code: continuationReasonCode,
         same_thread_continuation_preferred: preferSameThreadContinuation,
         distant_memory_fallback_allowed: !preferSameThreadContinuation,
+        reply_language_source: replyLanguageDecision.source,
         recalled_memories: allRecalledMemories.map((memory) => ({
           memory_type: memory.memory_type,
           content: memory.content,

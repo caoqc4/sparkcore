@@ -89,6 +89,22 @@ type SmokeAnswerStrategy =
   | "grounded-open-ended-summary"
   | "same-thread-continuation"
   | "default-grounded";
+type SmokeAnswerStrategyReasonCode =
+  | "direct-relationship-question"
+  | "direct-memory-question"
+  | "open-ended-advice-prompt"
+  | "open-ended-summary-prompt"
+  | "relationship-answer-shape-prompt"
+  | "same-thread-edge-carryover"
+  | "default-grounded-fallback";
+type SmokeContinuationReasonCode =
+  | "short-fuzzy-follow-up"
+  | "brief-supportive-carryover"
+  | "brief-summary-carryover";
+type SmokeReplyLanguageSource =
+  | "latest-user-message"
+  | "thread-continuity-fallback"
+  | "no-latest-user-message";
 
 type SmokeContinuityReply = {
   content: string;
@@ -624,10 +640,18 @@ function resolveSmokeReplyLanguage({
   const latestUserLanguage = detectSmokeReplyLanguage(content);
 
   if (latestUserLanguage !== "unknown") {
-    return latestUserLanguage;
+    return {
+      replyLanguage: latestUserLanguage,
+      source: "latest-user-message" as SmokeReplyLanguageSource
+    };
   }
 
-  return recentAssistantReply?.replyLanguage ?? "unknown";
+  return {
+    replyLanguage: recentAssistantReply?.replyLanguage ?? "unknown",
+    source: recentAssistantReply?.replyLanguage
+      ? ("thread-continuity-fallback" as SmokeReplyLanguageSource)
+      : ("no-latest-user-message" as SmokeReplyLanguageSource)
+  };
 }
 
 function detectSmokeNicknameCandidate(content: string) {
@@ -945,6 +969,24 @@ function isSmokeRelationshipContinuationEdgePrompt(content: string) {
   );
 }
 
+function getSmokeContinuationReasonCode(
+  content: string
+): SmokeContinuationReasonCode | null {
+  if (isSmokeShortRelationshipSupportivePrompt(content)) {
+    return "brief-supportive-carryover";
+  }
+
+  if (isSmokeShortRelationshipSummaryFollowUpPrompt(content)) {
+    return "brief-summary-carryover";
+  }
+
+  if (isSmokeFuzzyFollowUpQuestion(content)) {
+    return "short-fuzzy-follow-up";
+  }
+
+  return null;
+}
+
 function getSmokeAnswerStrategy({
   content,
   sameThreadContinuity,
@@ -965,48 +1007,62 @@ function getSmokeAnswerStrategy({
   if (directNamingQuestion || directPreferredNameQuestion) {
     return {
       questionType: "direct-relationship-confirmation" as SmokeAnswerQuestionType,
-      answerStrategy: "relationship-recall-first" as SmokeAnswerStrategy
+      answerStrategy: "relationship-recall-first" as SmokeAnswerStrategy,
+      reasonCode: "direct-relationship-question" as SmokeAnswerStrategyReasonCode,
+      continuationReasonCode: null as SmokeContinuationReasonCode | null
     };
   }
 
   if (directFactQuestion) {
     return {
       questionType: "direct-fact" as SmokeAnswerQuestionType,
-      answerStrategy: "structured-recall-first" as SmokeAnswerStrategy
+      answerStrategy: "structured-recall-first" as SmokeAnswerStrategy,
+      reasonCode: "direct-memory-question" as SmokeAnswerStrategyReasonCode,
+      continuationReasonCode: null as SmokeContinuationReasonCode | null
     };
   }
 
   if (sameThreadContinuity && isSmokeRelationshipContinuationEdgePrompt(content)) {
     return {
       questionType: "fuzzy-follow-up" as SmokeAnswerQuestionType,
-      answerStrategy: "same-thread-continuation" as SmokeAnswerStrategy
+      answerStrategy: "same-thread-continuation" as SmokeAnswerStrategy,
+      reasonCode: "same-thread-edge-carryover" as SmokeAnswerStrategyReasonCode,
+      continuationReasonCode: getSmokeContinuationReasonCode(content)
     };
   }
 
   if (isSmokeOpenEndedPlanningHelpQuestion(content)) {
     return {
       questionType: "open-ended-advice" as SmokeAnswerQuestionType,
-      answerStrategy: "grounded-open-ended-advice" as SmokeAnswerStrategy
+      answerStrategy: "grounded-open-ended-advice" as SmokeAnswerStrategy,
+      reasonCode: "open-ended-advice-prompt" as SmokeAnswerStrategyReasonCode,
+      continuationReasonCode: null as SmokeContinuationReasonCode | null
     };
   }
 
-  if (isSmokeOpenEndedSummaryQuestion(content) || relationshipStylePrompt) {
+  if (isSmokeOpenEndedSummaryQuestion(content)) {
     return {
       questionType: "open-ended-summary" as SmokeAnswerQuestionType,
-      answerStrategy: "grounded-open-ended-summary" as SmokeAnswerStrategy
+      answerStrategy: "grounded-open-ended-summary" as SmokeAnswerStrategy,
+      reasonCode: "open-ended-summary-prompt" as SmokeAnswerStrategyReasonCode,
+      continuationReasonCode: null as SmokeContinuationReasonCode | null
     };
   }
 
-  if (sameThreadContinuity && isSmokeFuzzyFollowUpQuestion(content)) {
+  if (relationshipStylePrompt) {
     return {
-      questionType: "fuzzy-follow-up" as SmokeAnswerQuestionType,
-      answerStrategy: "same-thread-continuation" as SmokeAnswerStrategy
+      questionType: "open-ended-summary" as SmokeAnswerQuestionType,
+      answerStrategy: "grounded-open-ended-summary" as SmokeAnswerStrategy,
+      reasonCode: "relationship-answer-shape-prompt" as SmokeAnswerStrategyReasonCode,
+      continuationReasonCode: null as SmokeContinuationReasonCode | null
     };
   }
 
   return {
     questionType: "other" as SmokeAnswerQuestionType,
-    answerStrategy: "default-grounded" as SmokeAnswerStrategy
+    answerStrategy: "default-grounded" as SmokeAnswerStrategy,
+    reasonCode: "default-grounded-fallback" as SmokeAnswerStrategyReasonCode,
+    continuationReasonCode: null as SmokeContinuationReasonCode | null
   };
 }
 
@@ -1885,10 +1941,11 @@ export async function createSmokeTurn({
   const smokePreferredName = detectSmokeUserPreferredNameCandidate(trimmedContent);
   const smokeUserAddressStyle =
     detectSmokeUserAddressStyleCandidate(trimmedContent);
-  const replyLanguage = resolveSmokeReplyLanguage({
+  const replyLanguageDecision = resolveSmokeReplyLanguage({
     content: trimmedContent,
     recentAssistantReply
   });
+  const replyLanguage = replyLanguageDecision.replyLanguage;
 
   if (smokeNickname) {
     const { data: existingNickname } = await admin
@@ -2108,8 +2165,11 @@ export async function createSmokeTurn({
           reply_language_detected: detectSmokeReplyLanguage(assistantContent),
           question_type: answerStrategyRule.questionType,
           answer_strategy: answerStrategyRule.answerStrategy,
+          answer_strategy_reason_code: answerStrategyRule.reasonCode,
+          continuation_reason_code: answerStrategyRule.continuationReasonCode,
           same_thread_continuation_preferred: preferSameThreadContinuation,
           distant_memory_fallback_allowed: !preferSameThreadContinuation,
+          reply_language_source: replyLanguageDecision.source,
           memory_hit_count: recalledMemories.length,
           memory_used: recalledMemories.length > 0,
           memory_types_used: usedMemoryTypes,
