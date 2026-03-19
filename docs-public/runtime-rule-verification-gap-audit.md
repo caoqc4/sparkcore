@@ -74,19 +74,31 @@ Focused regression added:
   - `answer_strategy_reason_code=default-grounded-fallback`
   - `same_thread_continuation_preferred=false`
 
+### 4. Correction aftermath metadata
+
+Previous gap:
+- We already had correction behavior coverage.
+- We did not yet have a metadata-focused regression that explained later-turn correction behavior with the same precision now used for answer-shape routing.
+
+Focused regression added:
+- mark a relationship nickname memory as `Incorrect`, verify the next fresh-thread direct naming turn falls back with correction metadata, then `Restore` and verify the following fresh-thread naming turn recalls the nickname again
+- expected diagnostics:
+  - after `Incorrect`:
+    - `question_type=direct-relationship-confirmation`
+    - `answer_strategy=relationship-recall-first`
+    - `answer_strategy_reason_code=direct-relationship-question`
+    - `memory_hit_count=0`
+    - `incorrect_memory_exclusion_count=1`
+  - after `Restore`:
+    - `question_type=direct-relationship-confirmation`
+    - `answer_strategy=relationship-recall-first`
+    - `answer_strategy_reason_code=direct-relationship-question`
+    - `memory_hit_count=1`
+    - `incorrect_memory_exclusion_count=0`
+
 ## Remaining Lower-Priority Gaps
 
-### 1. Correction aftermath diagnostics
-
-Current state:
-- We have correction behavior coverage.
-- We do not yet have a metadata-focused regression that explains later-turn correction behavior with the same precision now used for answer-shape routing.
-
-Why it is lower priority:
-- Behavior coverage already exists.
-- The missing piece is mainly debugging precision, not product blindness.
-
-### 2. Model-profile comparison as cheap smoke
+### 1. Model-profile comparison as cheap smoke
 
 Current state:
 - Model-profile comparison exists in eval docs and broader smoke coverage.
@@ -97,5 +109,4 @@ Why it is lower priority:
 
 ## Suggested Next Conversion Order
 
-1. Add a metadata-focused correction-aftermath regression if debugging those turns becomes costly again.
-2. Add a cheap model-profile comparison smoke only if profile-switch regressions start recurring.
+1. Add a cheap model-profile comparison smoke only if profile-switch regressions start recurring.

@@ -74,19 +74,31 @@
   - `answer_strategy_reason_code=default-grounded-fallback`
   - `same_thread_continuation_preferred=false`
 
-## 仍然存在但优先级较低的缺口
+### 4. correction aftermath 的 metadata
 
-### 1. correction aftermath 的 diagnostics 精度
-
-当前情况：
+之前的缺口：
 - 我们已经覆盖了 correction 行为本身。
 - 但还没有像 answer-shape routing 这样精细的 metadata-focused regression 去解释后续 turn 的 correction 行为。
 
-为什么优先级较低：
-- 行为覆盖已经存在。
-- 当前缺的是调试精度，不是产品完全失明。
+这轮新增的 focused regression：
+- 把一条 relationship nickname memory 标成 `Incorrect`，验证下一条 fresh-thread 直问名字会带着 correction metadata 回退；再 `Restore`，验证后面一条 fresh-thread 直问名字会重新召回昵称
+- 期望 diagnostics：
+  - `Incorrect` 后：
+    - `question_type=direct-relationship-confirmation`
+    - `answer_strategy=relationship-recall-first`
+    - `answer_strategy_reason_code=direct-relationship-question`
+    - `memory_hit_count=0`
+    - `incorrect_memory_exclusion_count=1`
+  - `Restore` 后：
+    - `question_type=direct-relationship-confirmation`
+    - `answer_strategy=relationship-recall-first`
+    - `answer_strategy_reason_code=direct-relationship-question`
+    - `memory_hit_count=1`
+    - `incorrect_memory_exclusion_count=0`
 
-### 2. model-profile comparison 的 cheap smoke
+## 仍然存在但优先级较低的缺口
+
+### 1. model-profile comparison 的 cheap smoke
 
 当前情况：
 - model-profile comparison 已经存在于 eval 文档和更宽的 smoke 覆盖里。
@@ -97,5 +109,4 @@
 
 ## 建议的下一步转换顺序
 
-1. 如果 correction 后续 turn 又开始难排，再补一条 metadata-focused correction-aftermath regression。
-2. 只有当 profile-switch 回归再次频繁出现时，再补一条 cheap model-profile comparison smoke。
+1. 只有当 profile-switch 回归再次频繁出现时，再补一条 cheap model-profile comparison smoke。

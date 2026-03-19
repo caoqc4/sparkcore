@@ -760,6 +760,181 @@ test.describe("core chat smoke", () => {
     });
   });
 
+  test("keeps correction-aftermath metadata stable for relationship nickname recall", async ({
+    page,
+    request
+  }) => {
+    const nicknameSeedThread = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(nicknameSeedThread.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await nicknameSeedThread.json()) as {
+      threadId: string;
+    };
+
+    const seedNicknameTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "以后我叫你小芳可以吗？"
+      }
+    });
+
+    expect(seedNicknameTurn.ok()).toBeTruthy();
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${seedThreadId}`
+    );
+
+    const visibleMemoryCards = page.locator(
+      ".memory-list .memory-card:not(.memory-card-hidden)"
+    );
+    const nicknameMemoryCard = visibleMemoryCards
+      .filter({
+        has: page.locator(".memory-content", { hasText: /^小芳$/ })
+      })
+      .first();
+
+    await expect(nicknameMemoryCard).toBeVisible({ timeout: 45_000 });
+    await nicknameMemoryCard.getByRole("button", { name: "Incorrect" }).click();
+    await page.getByText(/Incorrect memories \(1\)/).click();
+    await expect(
+      page
+        .locator(".memory-card-hidden")
+        .filter({ hasText: "小芳" })
+        .first()
+    ).toBeVisible({ timeout: 45_000 });
+
+    const fallbackThread = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(fallbackThread.ok()).toBeTruthy();
+    const { threadId: fallbackThreadId } = (await fallbackThread.json()) as {
+      threadId: string;
+    };
+
+    const fallbackRecallTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: fallbackThreadId,
+        content: "你叫什么？"
+      }
+    });
+
+    expect(fallbackRecallTurn.ok()).toBeTruthy();
+
+    const fallbackAssistantMessage = await getLatestAssistantMessageForThread(
+      fallbackThreadId
+    );
+    const fallbackMetadata = fallbackAssistantMessage.metadata;
+    const fallbackRecalledMemories = Array.isArray(
+      fallbackMetadata.recalled_memories
+    )
+      ? fallbackMetadata.recalled_memories
+      : [];
+
+    expect(fallbackMetadata.question_type).toBe(
+      "direct-relationship-confirmation"
+    );
+    expect(fallbackMetadata.answer_strategy).toBe("relationship-recall-first");
+    expect(fallbackMetadata.answer_strategy_reason_code).toBe(
+      "direct-relationship-question"
+    );
+    expect(fallbackMetadata.memory_hit_count).toBe(0);
+    expect(fallbackMetadata.memory_used).toBe(false);
+    expect(fallbackMetadata.incorrect_memory_exclusion_count).toBe(1);
+    expect(fallbackRecalledMemories).toHaveLength(0);
+    expect(fallbackAssistantMessage.content).toBe("我叫Smoke Memory Coach。");
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${seedThreadId}`
+    );
+    await page.getByText(/Incorrect memories \(1\)/).click();
+    const incorrectNicknameCard = page
+      .locator(".memory-card-hidden")
+      .filter({ hasText: "小芳" })
+      .first();
+    await incorrectNicknameCard.getByRole("button", { name: "Restore" }).click();
+
+    const restoredThread = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(restoredThread.ok()).toBeTruthy();
+    const { threadId: restoredThreadId } = (await restoredThread.json()) as {
+      threadId: string;
+    };
+
+    const restoredRecallTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: restoredThreadId,
+        content: "你叫什么？"
+      }
+    });
+
+    expect(restoredRecallTurn.ok()).toBeTruthy();
+
+    const restoredAssistantMessage = await getLatestAssistantMessageForThread(
+      restoredThreadId
+    );
+    const restoredMetadata = restoredAssistantMessage.metadata;
+    const restoredRecalledMemories = Array.isArray(
+      restoredMetadata.recalled_memories
+    )
+      ? restoredMetadata.recalled_memories
+      : [];
+
+    expect(restoredMetadata.question_type).toBe(
+      "direct-relationship-confirmation"
+    );
+    expect(restoredMetadata.answer_strategy).toBe("relationship-recall-first");
+    expect(restoredMetadata.answer_strategy_reason_code).toBe(
+      "direct-relationship-question"
+    );
+    expect(restoredMetadata.memory_hit_count).toBe(1);
+    expect(restoredMetadata.memory_used).toBe(true);
+    expect(restoredMetadata.incorrect_memory_exclusion_count).toBe(0);
+    expect(restoredRecalledMemories).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          memory_type: "relationship",
+          content: "小芳"
+        })
+      ])
+    );
+    expect(restoredAssistantMessage.content).toBe("哈哈，我叫小芳！");
+  });
+
   test("recalls the user's preferred name for the same agent without leaking it to other agents", async ({
     page,
     request
