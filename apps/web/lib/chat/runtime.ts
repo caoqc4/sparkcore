@@ -1130,6 +1130,18 @@ function isRuntimeReplyLanguage(value: unknown): value is RuntimeReplyLanguage {
   return value === "zh-Hans" || value === "en" || value === "unknown";
 }
 
+function getDeveloperDiagnosticsMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const diagnostics = metadata?.developer_diagnostics;
+
+  return diagnostics &&
+    typeof diagnostics === "object" &&
+    !Array.isArray(diagnostics)
+    ? (diagnostics as Record<string, unknown>)
+    : null;
+}
+
 function getMostRecentCompletedAssistantMessage(messages: MessageRecord[]) {
   return [...messages]
     .reverse()
@@ -1148,8 +1160,12 @@ function getThreadContinuitySignal(messages: MessageRecord[]): ThreadContinuityS
     };
   }
 
-  const metadataLanguage = previousAssistantMessage.metadata
-    ?.reply_language_detected;
+  const diagnosticsMetadata = getDeveloperDiagnosticsMetadata(
+    previousAssistantMessage.metadata
+  );
+  const metadataLanguage =
+    diagnosticsMetadata?.reply_language_detected ??
+    previousAssistantMessage.metadata?.reply_language_detected;
   const establishedReplyLanguage = isRuntimeReplyLanguage(metadataLanguage)
     ? metadataLanguage
     : detectReplyLanguageFromText(previousAssistantMessage.content);
@@ -2408,44 +2424,48 @@ export async function generateAgentReply({
       model: result.model,
       model_provider: modelProfile.provider,
       model_requested: modelProfile.model,
-      underlying_model_label:
-        getUnderlyingModelFromMetadata(modelProfile.metadata) ??
-        `${modelProfile.provider}/${result.model ?? modelProfile.model}`,
       model_profile_id: modelProfile.id,
-      model_profile_name: modelProfile.name,
-      model_profile_tier_label:
-        typeof modelProfile.metadata?.tier_label === "string"
-          ? modelProfile.metadata.tier_label
-          : null,
-      model_profile_usage_note:
-        typeof modelProfile.metadata?.usage_note === "string"
-          ? modelProfile.metadata.usage_note
-          : null,
-      reply_language_target: replyLanguage,
-      reply_language_detected: detectReplyLanguageFromText(result.content),
-      question_type: answerQuestionType,
-      answer_strategy: answerStrategy,
-      answer_strategy_priority: answerStrategyPriority,
-      answer_strategy_priority_label: getAnswerStrategyPriorityLabel(
-        answerStrategyPriority,
-        replyLanguage === "zh-Hans"
-      ),
-      same_thread_continuation_preferred: preferSameThreadContinuation,
-      distant_memory_fallback_allowed: !preferSameThreadContinuation,
-      memory_hit_count: allRecalledMemories.length,
-      memory_used: allRecalledMemories.length > 0,
-      memory_types_used: relationshipMemories.length > 0
-        ? Array.from(
-            new Set([...memoryRecall.usedMemoryTypes, "relationship" as const])
-          )
-        : memoryRecall.usedMemoryTypes,
-      hidden_memory_exclusion_count: memoryRecall.hiddenExclusionCount,
-      incorrect_memory_exclusion_count: memoryRecall.incorrectExclusionCount,
-      recalled_memories: allRecalledMemories.map((memory) => ({
-        memory_type: memory.memory_type,
-        content: memory.content,
-        confidence: memory.confidence
-      }))
+      user_explanation: {
+        underlying_model_label:
+          getUnderlyingModelFromMetadata(modelProfile.metadata) ??
+          `${modelProfile.provider}/${result.model ?? modelProfile.model}`,
+        model_profile_name: modelProfile.name,
+        model_profile_tier_label:
+          typeof modelProfile.metadata?.tier_label === "string"
+            ? modelProfile.metadata.tier_label
+            : null,
+        model_profile_usage_note:
+          typeof modelProfile.metadata?.usage_note === "string"
+            ? modelProfile.metadata.usage_note
+            : null,
+        memory_hit_count: allRecalledMemories.length,
+        memory_used: allRecalledMemories.length > 0,
+        memory_types_used: relationshipMemories.length > 0
+          ? Array.from(
+              new Set([...memoryRecall.usedMemoryTypes, "relationship" as const])
+            )
+          : memoryRecall.usedMemoryTypes,
+        hidden_memory_exclusion_count: memoryRecall.hiddenExclusionCount,
+        incorrect_memory_exclusion_count: memoryRecall.incorrectExclusionCount
+      },
+      developer_diagnostics: {
+        reply_language_target: replyLanguage,
+        reply_language_detected: detectReplyLanguageFromText(result.content),
+        question_type: answerQuestionType,
+        answer_strategy: answerStrategy,
+        answer_strategy_priority: answerStrategyPriority,
+        answer_strategy_priority_label: getAnswerStrategyPriorityLabel(
+          answerStrategyPriority,
+          replyLanguage === "zh-Hans"
+        ),
+        same_thread_continuation_preferred: preferSameThreadContinuation,
+        distant_memory_fallback_allowed: !preferSameThreadContinuation,
+        recalled_memories: allRecalledMemories.map((memory) => ({
+          memory_type: memory.memory_type,
+          content: memory.content,
+          confidence: memory.confidence
+        }))
+      }
     }
   };
 

@@ -46,6 +46,84 @@ type RuntimeSummary = {
   outcomeHints: string[];
 };
 
+function getMetadataObject(
+  value: unknown
+): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function getExplanationMetadata(message: ChatMessage) {
+  return getMetadataObject(message.metadata?.user_explanation);
+}
+
+function getMetadataString(
+  preferred: Record<string, unknown> | null,
+  fallback: Record<string, unknown>,
+  key: string
+) {
+  const preferredValue = preferred?.[key];
+
+  if (typeof preferredValue === "string" && preferredValue.trim().length > 0) {
+    return preferredValue;
+  }
+
+  const fallbackValue = fallback[key];
+
+  return typeof fallbackValue === "string" && fallbackValue.trim().length > 0
+    ? fallbackValue
+    : null;
+}
+
+function getMetadataNumber(
+  preferred: Record<string, unknown> | null,
+  fallback: Record<string, unknown>,
+  key: string
+) {
+  const preferredValue = preferred?.[key];
+
+  if (typeof preferredValue === "number") {
+    return preferredValue;
+  }
+
+  const fallbackValue = fallback[key];
+
+  return typeof fallbackValue === "number" ? fallbackValue : null;
+}
+
+function getMetadataBoolean(
+  preferred: Record<string, unknown> | null,
+  fallback: Record<string, unknown>,
+  key: string
+) {
+  const preferredValue = preferred?.[key];
+
+  if (typeof preferredValue === "boolean") {
+    return preferredValue;
+  }
+
+  const fallbackValue = fallback[key];
+
+  return typeof fallbackValue === "boolean" ? fallbackValue : null;
+}
+
+function getMetadataStringArray(
+  preferred: Record<string, unknown> | null,
+  fallback: Record<string, unknown>,
+  key: string
+) {
+  const value = Array.isArray(preferred?.[key])
+    ? preferred?.[key]
+    : Array.isArray(fallback[key])
+      ? fallback[key]
+      : [];
+
+  return value.filter(
+    (item): item is string => typeof item === "string" && item.length > 0
+  );
+}
+
 function formatMemoryTypeLabel(type: string, locale: ChatLocale) {
   const isZh = locale === "zh-CN";
   const labels: Record<string, string> = {
@@ -154,42 +232,69 @@ function getRuntimeSummary(
   }
 
   const isZh = locale === "zh-CN";
+  const explanationMetadata = getExplanationMetadata(message);
+  const fallbackMetadata = message.metadata;
 
-  const modelProfileName =
-    typeof message.metadata?.model_profile_name === "string" &&
-    message.metadata.model_profile_name.trim().length > 0
-      ? message.metadata.model_profile_name
-      : null;
-  const modelProfileTierLabel =
-    typeof message.metadata?.model_profile_tier_label === "string" &&
-    message.metadata.model_profile_tier_label.trim().length > 0
-      ? message.metadata.model_profile_tier_label
-      : null;
-  const modelProfileUsageNote =
-    typeof message.metadata?.model_profile_usage_note === "string" &&
-    message.metadata.model_profile_usage_note.trim().length > 0
-      ? message.metadata.model_profile_usage_note
-      : null;
+  const modelProfileName = getMetadataString(
+    explanationMetadata,
+    fallbackMetadata,
+    "model_profile_name"
+  );
+  const modelProfileTierLabel = getMetadataString(
+    explanationMetadata,
+    fallbackMetadata,
+    "model_profile_tier_label"
+  );
+  const modelProfileUsageNote = getMetadataString(
+    explanationMetadata,
+    fallbackMetadata,
+    "model_profile_usage_note"
+  );
   const underlyingModelLabel =
-    typeof message.metadata?.underlying_model_label === "string" &&
-    message.metadata.underlying_model_label.trim().length > 0
-      ? message.metadata.underlying_model_label
-      : typeof message.metadata?.model === "string" &&
-          message.metadata.model.trim().length > 0
-        ? message.metadata.model
-        : null;
+    getMetadataString(explanationMetadata, fallbackMetadata, "underlying_model_label") ??
+    (typeof fallbackMetadata?.model === "string" && fallbackMetadata.model.trim().length > 0
+      ? fallbackMetadata.model
+      : null);
   const memoryHitCount =
-    typeof message.metadata?.memory_hit_count === "number"
-      ? message.metadata.memory_hit_count
-      : Array.isArray(message.metadata?.recalled_memories)
-        ? message.metadata.recalled_memories.length
-        : null;
+    getMetadataNumber(explanationMetadata, fallbackMetadata, "memory_hit_count") ??
+    (Array.isArray(fallbackMetadata?.recalled_memories)
+      ? fallbackMetadata.recalled_memories.length
+      : null);
   const memoryUsed =
-    typeof message.metadata?.memory_used === "boolean"
-      ? message.metadata.memory_used
-      : typeof memoryHitCount === "number"
-        ? memoryHitCount > 0
-        : null;
+    getMetadataBoolean(explanationMetadata, fallbackMetadata, "memory_used") ??
+    (typeof memoryHitCount === "number"
+      ? memoryHitCount > 0
+      : null);
+  const memoryTypesUsed = getMetadataStringArray(
+    explanationMetadata,
+    fallbackMetadata,
+    "memory_types_used"
+  );
+  const memoryWriteTypes = getMetadataStringArray(
+    explanationMetadata,
+    fallbackMetadata,
+    "memory_write_types"
+  );
+  const hiddenExclusionCount =
+    getMetadataNumber(
+      explanationMetadata,
+      fallbackMetadata,
+      "hidden_memory_exclusion_count"
+    ) ?? 0;
+  const incorrectExclusionCount =
+    getMetadataNumber(
+      explanationMetadata,
+      fallbackMetadata,
+      "incorrect_memory_exclusion_count"
+    ) ?? 0;
+  const newMemoryCount =
+    getMetadataNumber(explanationMetadata, fallbackMetadata, "new_memory_count") ?? 0;
+  const updatedMemoryCount =
+    getMetadataNumber(
+      explanationMetadata,
+      fallbackMetadata,
+      "updated_memory_count"
+    ) ?? 0;
 
   const memoryLabel =
     memoryUsed === null
@@ -205,33 +310,7 @@ function getRuntimeSummary(
         : isZh
           ? "否"
           : "No";
-  const memoryTypesUsed = Array.isArray(message.metadata?.memory_types_used)
-    ? message.metadata.memory_types_used.filter(
-        (type): type is string => typeof type === "string" && type.length > 0
-      )
-    : [];
-  const memoryWriteTypes = Array.isArray(message.metadata?.memory_write_types)
-    ? message.metadata.memory_write_types.filter(
-        (type): type is string => typeof type === "string" && type.length > 0
-      )
-    : [];
-  const hiddenExclusionCount =
-    typeof message.metadata?.hidden_memory_exclusion_count === "number"
-      ? message.metadata.hidden_memory_exclusion_count
-      : 0;
-  const incorrectExclusionCount =
-    typeof message.metadata?.incorrect_memory_exclusion_count === "number"
-      ? message.metadata.incorrect_memory_exclusion_count
-      : 0;
   const outcomeHints: string[] = [];
-  const newMemoryCount =
-    typeof message.metadata?.new_memory_count === "number"
-      ? message.metadata.new_memory_count
-      : 0;
-  const updatedMemoryCount =
-    typeof message.metadata?.updated_memory_count === "number"
-      ? message.metadata.updated_memory_count
-      : 0;
   const memoryActivityLabel =
     newMemoryCount > 0
       ? isZh

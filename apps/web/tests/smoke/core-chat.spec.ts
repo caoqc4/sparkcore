@@ -1,10 +1,13 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 const smokeSecret = process.env.PLAYWRIGHT_SMOKE_SECRET ?? "sparkcore-smoke-local";
 const hasServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+const runtimeSummaryTogglePattern = /How this reply was generated|Why this turn/;
+const relationshipMemoryReasonPattern =
+  /This turn used relationship memory\.|Used relationship memory this turn\./;
 
 function getSmokeAdminClient() {
   return createClient(supabaseUrl, supabaseServiceRoleKey, {
@@ -13,6 +16,10 @@ function getSmokeAdminClient() {
       persistSession: false
     }
   });
+}
+
+function getLatestRuntimeSummaryHeading(page: Page) {
+  return page.locator("summary").filter({ hasText: runtimeSummaryTogglePattern }).last();
 }
 
 test.describe("core chat smoke", () => {
@@ -82,10 +89,7 @@ test.describe("core chat smoke", () => {
     expect(sendTurnResponse.ok()).toBeTruthy();
     await page.reload();
 
-    const latestSummaryHeading = page
-      .locator("summary")
-      .filter({ hasText: "How this reply was generated" })
-      .last();
+    const latestSummaryHeading = getLatestRuntimeSummaryHeading(page);
     await expect(
       latestSummaryHeading
     ).toBeVisible({ timeout: 90_000 });
@@ -169,10 +173,7 @@ test.describe("core chat smoke", () => {
       page.getByText("I remember that you work as a product designer.").first()
     ).toBeVisible({ timeout: 45_000 });
 
-    const latestSummaryHeading = page
-      .locator("summary")
-      .filter({ hasText: "How this reply was generated" })
-      .last();
+    const latestSummaryHeading = getLatestRuntimeSummaryHeading(page);
     await latestSummaryHeading.click();
     await expect(page.getByText(/1 memory hit/)).toBeVisible({
       timeout: 45_000
@@ -249,10 +250,7 @@ test.describe("core chat smoke", () => {
       timeout: 45_000
     });
 
-    const latestSummaryHeading = page
-      .locator("summary")
-      .filter({ hasText: "How this reply was generated" })
-      .last();
+    const latestSummaryHeading = getLatestRuntimeSummaryHeading(page);
     await latestSummaryHeading.click();
     await expect(page.getByText(/1 memory hit/)).toBeVisible({
       timeout: 45_000
@@ -343,10 +341,7 @@ test.describe("core chat smoke", () => {
       /i don't know|我不知道/i
     );
 
-    const latestSummaryHeading = page
-      .locator("summary")
-      .filter({ hasText: "How this reply was generated" })
-      .last();
+    const latestSummaryHeading = getLatestRuntimeSummaryHeading(page);
     await latestSummaryHeading.click();
     await expect(page.getByText(/1 memory hit/)).toBeVisible({
       timeout: 45_000
@@ -504,12 +499,9 @@ test.describe("core chat smoke", () => {
       timeout: 45_000
     });
 
-    const latestSummaryHeading = page
-      .locator("summary")
-      .filter({ hasText: "How this reply was generated" })
-      .last();
+    const latestSummaryHeading = getLatestRuntimeSummaryHeading(page);
     await latestSummaryHeading.click();
-    await expect(page.getByText("This turn used relationship memory.")).toBeVisible({
+    await expect(page.getByText(relationshipMemoryReasonPattern)).toBeVisible({
       timeout: 45_000
     });
 
@@ -771,12 +763,9 @@ test.describe("core chat smoke", () => {
       timeout: 45_000
     });
 
-    const latestSummaryHeading = page
-      .locator("summary")
-      .filter({ hasText: "How this reply was generated" })
-      .last();
+    const latestSummaryHeading = getLatestRuntimeSummaryHeading(page);
     await latestSummaryHeading.click();
-    await expect(page.getByText("This turn used relationship memory.")).toBeVisible({
+    await expect(page.getByText(relationshipMemoryReasonPattern)).toBeVisible({
       timeout: 45_000
     });
 
@@ -914,12 +903,9 @@ test.describe("core chat smoke", () => {
       timeout: 45_000
     });
 
-    const latestSummaryHeading = page
-      .locator("summary")
-      .filter({ hasText: "How this reply was generated" })
-      .last();
+    const latestSummaryHeading = getLatestRuntimeSummaryHeading(page);
     await latestSummaryHeading.click();
-    await expect(page.getByText("This turn used relationship memory.")).toBeVisible({
+    await expect(page.getByText(relationshipMemoryReasonPattern)).toBeVisible({
       timeout: 45_000
     });
   });
@@ -1102,12 +1088,9 @@ test.describe("core chat smoke", () => {
       page.getByText("你偏好我用更轻松、不那么正式的方式回复你。").first()
     ).toBeVisible({ timeout: 45_000 });
 
-    const latestSummaryHeading = page
-      .locator("summary")
-      .filter({ hasText: "How this reply was generated" })
-      .last();
+    const latestSummaryHeading = getLatestRuntimeSummaryHeading(page);
     await latestSummaryHeading.click();
-    await expect(page.getByText("This turn used relationship memory.")).toBeVisible({
+    await expect(page.getByText(relationshipMemoryReasonPattern)).toBeVisible({
       timeout: 45_000
     });
   });
