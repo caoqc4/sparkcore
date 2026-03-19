@@ -325,11 +325,11 @@ export const memoryV2EvalSet: QualityEvalCase[] = [
 export const realChatQualityRegressionSet: QualityEvalCase[] = [
   {
     id: "real-chat-same-agent-relationship-continuity",
-    title: "Same-agent nickname and preferred-name continuity survives a new thread",
+    title: "Same-agent nickname and preferred-name continuity survives a new thread and follow-up turns",
     priority: "P0",
     category: "thread",
     purpose:
-      "Verify that relationship memories still feel continuous when a new thread is started with the same agent, instead of only working inside one existing thread.",
+      "Verify that relationship memories still feel continuous when a new thread is started with the same agent, and that they keep showing up after short follow-up turns instead of appearing only once.",
     setup: [
       "Use an agent that supports relationship memory.",
       "Seed both an agent nickname and a preferred user name on that same agent."
@@ -338,24 +338,27 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
       'Say: "以后我叫你小芳可以吗？"',
       'Then say: "以后你叫我阿强可以吗？"',
       "Start a fresh thread with the same agent.",
-      'Ask: "请简单介绍一下你自己。"'
+      'Ask: "请简单介绍一下你自己。"',
+      'Then send a short follow-up such as: "那接下来呢？"'
     ],
     observe: [
       "Whether the opening still uses the seeded nickname and preferred user name.",
+      "Whether the short follow-up still preserves the same relationship cues instead of dropping back to neutral wording.",
       "Whether the runtime summary still reports relationship memory usage."
     ],
     successCriteria: [
       "The same agent keeps nickname and preferred-name continuity across a new thread.",
+      "Relationship cues do not disappear after the first successful turn.",
       "The behavior does not depend on staying inside one old thread."
     ]
   },
   {
     id: "real-chat-profession-recall",
-    title: "Remembered profession stays faithful in a direct follow-up question",
+    title: "Remembered profession stays faithful across a short direct-question chain",
     priority: "P0",
     category: "fidelity",
     purpose:
-      "Verify that a recalled profession memory is reflected directly in the final answer instead of being watered down or contradicted.",
+      "Verify that a recalled profession memory is reflected directly across more than one direct question instead of being watered down, contradicted, or forgotten after one correct answer.",
     setup: [
       "Use any stable conversation or memory-sensitive profile.",
       "Start from a clean thread for the seed turn."
@@ -363,24 +366,26 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
     steps: [
       'Send: "I am a product designer."',
       "Start a fresh thread.",
-      'Ask: "What profession do you remember that I work in? If you do not know, say you do not know."'
+      'Ask: "What profession do you remember that I work in? If you do not know, say you do not know."',
+      'Then ask: "So what kind of work do I do?"'
     ],
     observe: [
-      "Whether the answer directly states the profession.",
+      "Whether both replies continue to state the profession directly.",
+      "Whether the second answer still sounds grounded instead of drifting into generic help text.",
       "Whether the runtime summary shows a relevant memory hit."
     ],
     successCriteria: [
-      'The answer uses "product designer" directly.',
-      'The reply does not confuse "no chat history" with "no long-term memory".'
+      'Both direct questions use "product designer" explicitly.',
+      'The replies do not confuse "no chat history" with "no long-term memory".'
     ]
   },
   {
     id: "real-chat-latest-language-priority",
-    title: "Replies follow the latest user message language instead of drifting",
+    title: "Replies follow the latest user message language across multiple turns",
     priority: "P0",
     category: "language",
     purpose:
-      "Verify that the latest user turn has the highest language priority, even when previous turns or recalled memory use a different language.",
+      "Verify that the latest user turn has the highest language priority across a short sequence, even when earlier turns or recalled memory use another language.",
     setup: [
       "Use one agent in the same thread.",
       "Optionally seed a memory in English before the Chinese question."
@@ -388,64 +393,73 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
     steps: [
       'Send an English message such as: "Please introduce yourself briefly."',
       'Then send a Chinese message such as: "你记得我做什么工作吗？"',
-      "Expand the runtime summary on the later reply."
+      'Then send a short ambiguous Chinese follow-up such as: "那接下来呢？"',
+      "Expand the runtime summary on the later replies."
     ],
     observe: [
       "Whether the second reply stays primarily in Chinese.",
+      "Whether the later short follow-up also remains in Chinese instead of snapping back to English.",
       "Whether the reply language follows the latest user turn instead of the earlier English turn."
     ],
     successCriteria: [
       "The later Chinese turn receives a Chinese reply.",
+      "The short same-thread follow-up also stays in Chinese.",
       "Earlier thread language or recalled English memory does not pull the answer back to English."
     ]
   },
   {
     id: "real-chat-relationship-style-continuity",
-    title: "Relationship style continuity remains visible across multiple turns",
+    title: "Relationship style continuity remains visible from opening to closing turns",
     priority: "P0",
     category: "fidelity",
     purpose:
-      "Verify that relationship recall is not only remembered but also expressed consistently in the answer style across multiple turns.",
+      "Verify that relationship recall is not only remembered but also expressed consistently from the opening turn through mid-thread and closing-style follow-ups.",
     setup: [
       'Seed a relationship style such as: "以后和我说话轻松一点，可以吗？"',
       "Stay in the same thread with the same agent."
     ],
     steps: [
       'Ask: "请简单介绍一下你自己。"',
-      'Then ask: "接下来你会怎么帮助我？"'
+      'Then ask: "接下来你会怎么帮助我？"',
+      'Then ask: "最后你会怎么陪我把事情推进下去？"'
     ],
     observe: [
-      "Whether the tone stays lightweight and consistent across both replies.",
-      "Whether the second answer preserves the same-thread style instead of snapping back to a neutral default."
+      "Whether the tone stays lightweight and consistent across all replies.",
+      "Whether the middle and later answers preserve the same-thread style instead of snapping back to a neutral default."
     ],
     successCriteria: [
-      "Relationship style remains visible across multiple turns in the same thread.",
+      "Relationship style remains visible across opening, middle, and closing-style turns in the same thread.",
       "Same-thread continuity wins over distant defaults."
     ]
   },
   {
     id: "real-chat-incorrect-restore-cycle",
-    title: "Incorrect and restore change later recall eligibility predictably",
+    title: "Incorrect and restore change later recall eligibility predictably after several turns",
     priority: "P0",
     category: "correction",
     purpose:
-      "Verify that a corrected memory really stops affecting later replies and that restore brings it back in a predictable way.",
+      "Verify that a corrected memory really stops affecting later replies after the conversation continues for a few turns, and that restore brings it back in a predictable way.",
     setup: [
       "Use a relationship nickname or profession memory that is easy to test."
     ],
     steps: [
       "Mark the memory as Incorrect.",
       "Start a fresh thread and ask the same direct question again.",
+      'Add one short follow-up such as: "那你现在还记得吗？"',
       "Restore the memory.",
-      "Start another fresh thread and ask the same question once more."
+      "Start another fresh thread and ask the same question once more.",
+      'Add one short follow-up such as: "那你现在还记得吗？"'
     ],
     observe: [
       "Whether the first fresh-thread reply falls back after Incorrect.",
-      "Whether the second fresh-thread reply uses the memory again after Restore."
+      "Whether the short follow-up after Incorrect still avoids the removed memory.",
+      "Whether the second fresh-thread reply uses the memory again after Restore.",
+      "Whether the short follow-up after Restore stays consistent with the restored memory."
     ],
     successCriteria: [
       "Incorrect removes the memory from later recall.",
-      "Restore returns the same memory to later recall."
+      "Restore returns the same memory to later recall.",
+      "The correction result stays stable across more than one reply."
     ]
   }
 ];
