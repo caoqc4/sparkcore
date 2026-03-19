@@ -748,6 +748,41 @@ function isSmokeSelfIntroGreetingRequest(content: string) {
   );
 }
 
+function isSmokeRelationshipExplanatoryPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("如果我今天状态不太好") ||
+    normalized.includes("你会怎么和我说") ||
+    normalized.includes("你会怎么解释") ||
+    normalized.includes("你会怎么安慰我") ||
+    normalized.includes("how would you explain that") ||
+    normalized.includes("how would you say that to me") ||
+    normalized.includes("if i was having a rough day")
+  );
+}
+
+function isSmokeRelationshipClosingPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("最后你会怎么陪我把事情推进下去") ||
+    normalized.includes("那你再简单鼓励我一句") ||
+    normalized.includes("最后你会怎么收尾") ||
+    normalized.includes("how would you help me close this out") ||
+    normalized.includes("give me a short encouragement") ||
+    normalized.includes("how would you wrap this up")
+  );
+}
+
+function isSmokeRelationshipAnswerShapePrompt(content: string) {
+  return (
+    isSmokeSelfIntroGreetingRequest(content) ||
+    isSmokeRelationshipExplanatoryPrompt(content) ||
+    isSmokeRelationshipClosingPrompt(content)
+  );
+}
+
 function isSmokeDirectPlanningPreferenceQuestion(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
@@ -1124,6 +1159,85 @@ function buildSmokeAssistantReply({
     return `${opening} 我是${selfName}，可以用中文帮助你梳理计划、整理记忆，并继续当前线程里的对话。`;
   }
 
+  if (isSmokeRelationshipExplanatoryPrompt(content)) {
+    const styleValue = addressStyleMemory?.content ?? null;
+    const selfName = nicknameMemory?.content ?? agentName;
+    const userName = preferredNameMemory?.content ?? null;
+
+    if (replyLanguage === "zh-Hans") {
+      if (styleValue === "formal") {
+        return userName
+          ? `${userName}，如果你今天状态不太好，我会先稳稳地陪你把事情讲清楚，再一步一步和你往前走。我是${selfName}，会继续用更正式、可靠的方式支持你。`
+          : `如果你今天状态不太好，我会先稳稳地陪你把事情讲清楚，再一步一步和你往前走。我是${selfName}，会继续用更正式、可靠的方式支持你。`;
+      }
+
+      if (styleValue === "friendly" || styleValue === "casual") {
+        return userName
+          ? `阿强，如果你今天状态不太好，我会先轻松一点陪你把事情捋顺，再和你一起往前推。我是${selfName}，会继续用更像朋友的方式陪着你。`
+          : `如果你今天状态不太好，我会先轻松一点陪你把事情捋顺，再和你一起往前推。我是${selfName}，会继续用更像朋友的方式陪着你。`;
+      }
+
+      return userName
+        ? `${userName}，如果你今天状态不太好，我会先把重点讲清楚，再陪你一起往前推进。我是${selfName}，会继续保持自然、稳定的支持方式。`
+        : `如果你今天状态不太好，我会先把重点讲清楚，再陪你一起往前推进。我是${selfName}，会继续保持自然、稳定的支持方式。`;
+    }
+
+    if (styleValue === "formal") {
+      return userName
+        ? `${userName}, if you were having a rough day, I would slow things down, explain them clearly, and stay steady with you. I am ${selfName}, and I would keep helping in a more formal, reliable way.`
+        : `If you were having a rough day, I would slow things down, explain them clearly, and stay steady with you. I am ${selfName}, and I would keep helping in a more formal, reliable way.`;
+    }
+
+    if (styleValue === "friendly" || styleValue === "casual") {
+      return userName
+        ? `${userName}, if you were having a rough day, I would keep things warm and easy, help you sort them out, and stay with you through the next step. I am ${selfName}, and I would keep showing up in that friendlier tone.`
+        : `If you were having a rough day, I would keep things warm and easy, help you sort them out, and stay with you through the next step. I am ${selfName}, and I would keep showing up in that friendlier tone.`;
+    }
+
+    return userName
+      ? `${userName}, if you were having a rough day, I would explain things clearly and keep moving with you step by step. I am ${selfName}, and I would keep the tone steady and supportive.`
+      : `If you were having a rough day, I would explain things clearly and keep moving with you step by step. I am ${selfName}, and I would keep the tone steady and supportive.`;
+  }
+
+  if (isSmokeRelationshipClosingPrompt(content)) {
+    const styleValue = addressStyleMemory?.content ?? null;
+    const userName = preferredNameMemory?.content ?? null;
+
+    if (replyLanguage === "zh-Hans") {
+      if (styleValue === "formal") {
+        return userName
+          ? `${userName}，我们就先稳稳推进到这里。接下来我会继续正式、清楚地陪你把事情往前落。`
+          : `我们就先稳稳推进到这里。接下来我会继续正式、清楚地陪你把事情往前落。`;
+      }
+
+      if (styleValue === "friendly" || styleValue === "casual") {
+        return userName
+          ? `阿强，我们就先推进到这里吧。我会继续轻松一点陪你把事情往前带，你不用一个人扛着。`
+          : `我们就先推进到这里吧。我会继续轻松一点陪你把事情往前带，你不用一个人扛着。`;
+      }
+
+      return userName
+        ? `${userName}，我们先收在这里。接下来我会继续自然、稳定地陪你把事情推进下去。`
+        : `我们先收在这里。接下来我会继续自然、稳定地陪你把事情推进下去。`;
+    }
+
+    if (styleValue === "formal") {
+      return userName
+        ? `${userName}, we can pause here for now. I will keep helping you move this forward in a clear, formal, steady way.`
+        : `We can pause here for now. I will keep helping you move this forward in a clear, formal, steady way.`;
+    }
+
+    if (styleValue === "friendly" || styleValue === "casual") {
+      return userName
+        ? `${userName}, let's wrap this part here for now. I will keep helping you move it forward in a lighter, friendlier way.`
+        : `Let's wrap this part here for now. I will keep helping you move it forward in a lighter, friendlier way.`;
+    }
+
+    return userName
+      ? `${userName}, we can wrap here for now. I will keep helping you move this forward in a steady, natural way.`
+      : `We can wrap here for now. I will keep helping you move this forward in a steady, natural way.`;
+  }
+
   if (
     normalized.includes("please introduce yourself in two short sentences") ||
     normalized.includes("explain how you can help me")
@@ -1368,7 +1482,7 @@ export async function createSmokeTurn({
       content: memory.content,
       confidence: memory.confidence
     }));
-  const relationshipStylePrompt = isSmokeSelfIntroGreetingRequest(trimmedContent);
+  const relationshipStylePrompt = isSmokeRelationshipAnswerShapePrompt(trimmedContent);
   const sameThreadContinuity = recentAssistantReply !== null;
   const nicknameMemory =
     isSmokeDirectNamingQuestion(trimmedContent) ||

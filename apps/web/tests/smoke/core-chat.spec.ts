@@ -1193,6 +1193,30 @@ test.describe("core chat smoke", () => {
     });
     expect(secondIntroTurn.ok()).toBeTruthy();
 
+    const explanatoryTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "如果我今天状态不太好，你会怎么和我说？"
+      }
+    });
+    expect(explanatoryTurn.ok()).toBeTruthy();
+
+    const closingTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "那你再简单鼓励我一句。"
+      }
+    });
+    expect(closingTurn.ok()).toBeTruthy();
+
     await page.reload();
 
     await expect(page.getByText("好呀，阿强，我们继续。").first()).toBeVisible({
@@ -1200,6 +1224,18 @@ test.describe("core chat smoke", () => {
     });
     await expect(
       page.getByText("嗨，阿强。 我是小芳，很高兴继续和你聊。").first()
+    ).toBeVisible({
+      timeout: 45_000
+    });
+    await expect(
+      page
+        .getByText("阿强，如果你今天状态不太好，我会先轻松一点陪你把事情捋顺，再和你一起往前推。")
+        .first()
+    ).toBeVisible({
+      timeout: 45_000
+    });
+    await expect(
+      page.getByText("阿强，我们就先推进到这里吧。").first()
     ).toBeVisible({
       timeout: 45_000
     });

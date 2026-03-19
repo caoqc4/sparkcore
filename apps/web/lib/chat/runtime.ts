@@ -40,6 +40,41 @@ function isRelationshipStylePrompt(content: string) {
   );
 }
 
+function isRelationshipExplanatoryPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("如果我今天状态不太好") ||
+    normalized.includes("你会怎么和我说") ||
+    normalized.includes("你会怎么解释") ||
+    normalized.includes("你会怎么安慰我") ||
+    normalized.includes("how would you explain that") ||
+    normalized.includes("how would you say that to me") ||
+    normalized.includes("if i was having a rough day")
+  );
+}
+
+function isRelationshipClosingPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("最后你会怎么陪我把事情推进下去") ||
+    normalized.includes("那你再简单鼓励我一句") ||
+    normalized.includes("最后你会怎么收尾") ||
+    normalized.includes("how would you help me close this out") ||
+    normalized.includes("give me a short encouragement") ||
+    normalized.includes("how would you wrap this up")
+  );
+}
+
+function isRelationshipAnswerShapePrompt(content: string) {
+  return (
+    isRelationshipStylePrompt(content) ||
+    isRelationshipExplanatoryPrompt(content) ||
+    isRelationshipClosingPrompt(content)
+  );
+}
+
 function isOpenEndedAdviceQuestion(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
@@ -2061,7 +2096,7 @@ export async function generateAgentReply({
   let answerStrategy: AnswerStrategy = "default-grounded";
 
   if (latestUserMessage) {
-    const relationshipStylePrompt = isRelationshipStylePrompt(
+    const relationshipStylePrompt = isRelationshipAnswerShapePrompt(
       latestUserMessage.content
     );
     const sameThreadContinuity = threadContinuity.hasPriorAssistantTurn;
