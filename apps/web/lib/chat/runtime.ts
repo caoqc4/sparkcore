@@ -108,7 +108,18 @@ function isOpenEndedAdviceQuestion(content: string) {
     normalized.includes("你会怎么帮助我") ||
     normalized.includes("接下来你会怎么帮助我") ||
     normalized.includes("接下来我该怎么做") ||
-    normalized.includes("下一步我该怎么做")
+    normalized.includes("下一步我该怎么做") ||
+    normalized.includes("我现在该先做什么") ||
+    normalized.includes("那我该从哪开始") ||
+    normalized.includes("你会怎么陪我推进") ||
+    normalized.includes("那你会怎么帮我继续") ||
+    normalized.includes("下一步先做什么") ||
+    normalized.includes("where should i start") ||
+    normalized.includes("what should i tackle first") ||
+    normalized.includes("what should i do first") ||
+    normalized.includes("how should we move this forward") ||
+    normalized.includes("how would you help me continue") ||
+    normalized.includes("what would be a good next step")
   );
 }
 
@@ -119,8 +130,17 @@ function isOpenEndedSummaryQuestion(content: string) {
     isRelationshipStylePrompt(content) ||
     normalized.includes("summarize what you know about me") ||
     normalized.includes("briefly summarize what you remember") ||
+    normalized.includes("give me a short recap") ||
+    normalized.includes("briefly say who you are again") ||
+    normalized.includes("sum up what you know about me") ||
+    normalized.includes("wrap this up in one short paragraph") ||
     normalized.includes("简单总结一下你记得的内容") ||
     normalized.includes("简单总结一下你对我的了解") ||
+    normalized.includes("再简单介绍一下你自己") ||
+    normalized.includes("再简单说一下你自己") ||
+    normalized.includes("用两句话总结一下") ||
+    normalized.includes("最后简单总结一下") ||
+    normalized.includes("简单说说你会怎么陪我") ||
     normalized.includes("最后再简单介绍一下你自己")
   );
 }
@@ -596,7 +616,8 @@ function buildMemoryRecallPrompt(
       answerStrategyPriority: answerStrategyRule.priority,
       directRecallQuestionKind,
       isZh,
-      recalledMemories
+      recalledMemories,
+      relationshipRecall
     })
   );
 
@@ -839,7 +860,8 @@ function buildAnswerStrategyInstructions({
   answerStrategyPriority,
   directRecallQuestionKind,
   isZh,
-  recalledMemories
+  recalledMemories,
+  relationshipRecall
 }: {
   answerQuestionType: AnswerQuestionType;
   answerStrategy: AnswerStrategy;
@@ -851,6 +873,24 @@ function buildAnswerStrategyInstructions({
     content: string;
     confidence: number;
   }>;
+  relationshipRecall: {
+    sameThreadContinuity: boolean;
+    addressStyleMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    nicknameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    preferredNameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+  };
 }) {
   if (
     answerStrategy === "structured-recall-first" ||
@@ -883,7 +923,8 @@ function buildAnswerStrategyInstructions({
       ...buildOpenEndedRecallInstructions({
         isZh,
         recalledMemories,
-        questionType: answerQuestionType
+        questionType: answerQuestionType,
+        relationshipRecall
       })
     ];
   }
@@ -938,7 +979,8 @@ function buildAnswerStrategyInstructions({
 function buildOpenEndedRecallInstructions({
   isZh,
   recalledMemories,
-  questionType
+  questionType,
+  relationshipRecall
 }: {
   isZh: boolean;
   questionType: AnswerQuestionType;
@@ -947,20 +989,55 @@ function buildOpenEndedRecallInstructions({
     content: string;
     confidence: number;
   }>;
+  relationshipRecall: {
+    sameThreadContinuity: boolean;
+    addressStyleMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    nicknameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    preferredNameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+  };
 }) {
   if (recalledMemories.length === 0) {
     return [];
   }
 
+  const hasRelationshipContinuity = Boolean(
+    relationshipRecall.sameThreadContinuity ||
+      relationshipRecall.addressStyleMemory ||
+      relationshipRecall.nicknameMemory ||
+      relationshipRecall.preferredNameMemory
+  );
+
   if (questionType === "open-ended-summary") {
     return isZh
       ? [
           "这是一个开放式总结/自我介绍场景。把已召回的长期记忆当作背景约束，让相关事实和关系线索自然地体现在总结里。",
-          "不要把回答写成逐槽位复述，也不要忽略已经命中的关系或偏好线索。"
+          "不要把回答写成逐槽位复述，也不要忽略已经命中的关系或偏好线索。",
+          ...(hasRelationshipContinuity
+            ? [
+                "如果这个线程已经形成了更轻松、更亲近或特定称呼方式，让这种 relationship 风格继续出现在总结里，不要为了“总结”而突然变平。"
+              ]
+            : [])
         ]
       : [
           "This is an open-ended summary or self-introduction case. Treat recalled long-term memory as grounding so relevant facts and relationship cues naturally appear in the summary.",
-          "Do not turn the reply into slot-by-slot repetition, but do not ignore recalled relationship or preference cues either."
+          "Do not turn the reply into slot-by-slot repetition, but do not ignore recalled relationship or preference cues either.",
+          ...(hasRelationshipContinuity
+            ? [
+                "If this thread has already established a more casual, warm, or specific address style, keep that relationship style visible in the summary instead of flattening back to a neutral recap voice."
+              ]
+            : [])
         ];
   }
 
@@ -968,12 +1045,22 @@ function buildOpenEndedRecallInstructions({
     ? [
         "这不是一个需要逐槽位直接回填的直问场景。把已召回的长期记忆当作背景依据，用来组织更自然、更有帮助的回答。",
         "如果用户是在问建议、下一步、帮助方式或更开放的问题，不要只机械复述记忆槽位本身。",
-        "优先把相关记忆自然融进建议、解释或行动方向里，而不是把回答写成生硬的事实堆砌。"
+        "优先把相关记忆自然融进建议、解释或行动方向里，而不是把回答写成生硬的事实堆砌。",
+        ...(hasRelationshipContinuity
+          ? [
+              "如果这个线程已经形成了特定称呼或更稳定的 relationship 风格，在建议型回答里也继续保持，不要一到建议段落就切回中性默认语气。"
+            ]
+          : [])
       ]
     : [
         "This is not a slot-filling direct-question case. Treat the recalled long-term memory as grounding context for a more natural and helpful answer.",
         "If the user is asking for advice, next steps, or broader help, do not respond by mechanically repeating memory slots alone.",
-        "Prefer weaving the relevant memory into guidance, explanation, or action-oriented help instead of turning the reply into a rigid fact dump."
+        "Prefer weaving the relevant memory into guidance, explanation, or action-oriented help instead of turning the reply into a rigid fact dump.",
+        ...(hasRelationshipContinuity
+          ? [
+              "If this thread has already established a specific address style or relationship tone, keep it steady in advice turns too instead of snapping back to a neutral default helper voice."
+            ]
+          : [])
       ];
 }
 
@@ -2137,16 +2224,22 @@ export async function generateAgentReply({
   const latestUserMessage = [...messages]
     .reverse()
     .find((message) => message.role === "user");
+  const latestUserMessageContent = latestUserMessage?.content ?? null;
   const threadContinuity = getThreadContinuitySignal(messages);
+  const preferSameThreadContinuation =
+    latestUserMessageContent !== null &&
+    threadContinuity.hasPriorAssistantTurn &&
+    isFuzzyFollowUpQuestion(latestUserMessageContent);
   const replyLanguage = resolveReplyLanguageForTurn({
-    latestUserMessage: latestUserMessage?.content ?? null,
+    latestUserMessage: latestUserMessageContent,
     threadContinuity
   });
-  const memoryRecall = latestUserMessage
+  const memoryRecall = latestUserMessageContent !== null
     ? await recallRelevantMemories({
         workspaceId: workspace.id,
         userId,
-        latestUserMessage: latestUserMessage.content
+        latestUserMessage: latestUserMessageContent,
+        allowDistantFallback: !preferSameThreadContinuation
       })
     : {
         memories: [],
@@ -2283,7 +2376,7 @@ export async function generateAgentReply({
       role: "system" as const,
       content: buildAgentSystemPrompt(
         agent,
-        latestUserMessage?.content ?? "",
+        latestUserMessageContent ?? "",
         allRecalledMemories,
         replyLanguage,
         relationshipRecall,
@@ -2337,6 +2430,8 @@ export async function generateAgentReply({
         answerStrategyPriority,
         replyLanguage === "zh-Hans"
       ),
+      same_thread_continuation_preferred: preferSameThreadContinuation,
+      distant_memory_fallback_allowed: !preferSameThreadContinuation,
       memory_hit_count: allRecalledMemories.length,
       memory_used: allRecalledMemories.length > 0,
       memory_types_used: relationshipMemories.length > 0

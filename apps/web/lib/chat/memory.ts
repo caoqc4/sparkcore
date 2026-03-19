@@ -1203,11 +1203,13 @@ export async function extractAndStoreMemories({
 export async function recallRelevantMemories({
   workspaceId,
   userId,
-  latestUserMessage
+  latestUserMessage,
+  allowDistantFallback = true
 }: {
   workspaceId: string;
   userId: string;
   latestUserMessage: string;
+  allowDistantFallback?: boolean;
 }): Promise<RecallOutcome> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -1260,7 +1262,8 @@ export async function recallRelevantMemories({
           content: memory.content,
           confidence: memory.confidence
         }))
-      : activeMemories
+      : allowDistantFallback
+        ? activeMemories
           .slice()
           .sort((left, right) => {
             if (right.confidence !== left.confidence) {
@@ -1277,7 +1280,8 @@ export async function recallRelevantMemories({
               memory.memory_type === "preference" ? "preference" : "profile",
             content: memory.content,
             confidence: memory.confidence
-          }));
+          }))
+        : [];
 
   const countRelevantExclusions = (memories: StoredMemory[]) =>
     memories.filter(

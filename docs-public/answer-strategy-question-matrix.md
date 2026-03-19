@@ -10,7 +10,7 @@ This is intentionally lightweight. It is not a planner, router, or heavy rules e
 | --- | --- | --- | --- |
 | Direct fact questions | High | `structured-recall-first` | Answer the recalled fact directly when the slot is available. |
 | Direct relationship-confirmation questions | High | `relationship-recall-first` | Use relationship memory before canonical fallback identity. |
-| Fuzzy follow-up questions | Semi-constrained | `same-thread-continuation` | Keep same-thread language and relationship style before distant defaults. |
+| Fuzzy follow-up questions | Semi-constrained | `same-thread-continuation` | Keep same-thread language and relationship style before distant memory fallback. |
 | Open-ended advice questions | Low | `grounded-open-ended-advice` | Stay grounded in memory without turning the reply into a rigid fact dump. |
 | Open-ended summary questions | Low | `grounded-open-ended-summary` | Keep the answer natural while letting relevant memory and relationship cues show up. |
 | Other prompts | Semi-constrained | `default-grounded` | Keep relevant memory boundaries without overfitting to direct recall. |
@@ -103,7 +103,7 @@ Guidance:
 
 - Prioritize the language, relationship style, and continuity already established in the current thread.
 - Avoid resetting to a neutral default tone.
-- Let same-thread continuity beat distant defaults when the follow-up is short and ambiguous.
+- Let same-thread continuity beat distant memory fallback when the follow-up is short and ambiguous.
 
 ## Default Rule
 

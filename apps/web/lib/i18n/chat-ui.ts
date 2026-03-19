@@ -275,7 +275,7 @@ export function getChatCopy(locale: ChatLocale) {
         noWorkspaceDefault:
           "当前还没有设置工作区默认 agent。这个线程仍然保留自己的绑定 agent。",
         runtimeHint:
-          "想知道这轮为什么这样回答，查看 assistant 回复下方的轻量摘要。",
+          "想看这轮主要依据，就展开 assistant 下方摘要。",
         statusActive: "进行中",
         messagesSuffix: "条消息",
         firstTurnLead:
@@ -287,12 +287,12 @@ export function getChatCopy(locale: ChatLocale) {
           "先问我几个问题，再一起决定最适合我的规划方式。",
           "把我当前的目标整理成一份简单的周计划。"
         ],
-        howGenerated: "这条回复是如何生成的",
+        howGenerated: "这轮依据",
         agentUsed: "使用的 agent",
-        modelProfileUsed: "使用的模型配置",
-        underlyingModelUsed: "实际调用的模型",
-        memoryContext: "记忆上下文",
-        memoryActivity: "记忆活动",
+        modelProfileUsed: "模型配置",
+        underlyingModelUsed: "底层模型",
+        memoryContext: "记忆",
+        memoryActivity: "写入",
         summaryNote:
           "这个摘要只解释当前回合，不会改写旧回复。",
         messageLabel: "消息",
@@ -589,7 +589,7 @@ export function getChatCopy(locale: ChatLocale) {
       noWorkspaceDefault:
         "No workspace default agent is set. This thread still keeps its own bound agent.",
       runtimeHint:
-        "Use the lightweight summary under assistant replies when you want the main reason behind that turn.",
+        "Open the summary under the assistant reply when you want the main reason for that turn.",
       statusActive: "active",
       messagesSuffix: "messages",
       firstTurnLead:
@@ -601,12 +601,12 @@ export function getChatCopy(locale: ChatLocale) {
         "Ask me a few questions so we can decide the best planning style for me.",
         "Let's turn my current goals into a simple weekly plan."
       ],
-      howGenerated: "How this reply was generated",
+      howGenerated: "Why this turn",
       agentUsed: "Agent used",
-      modelProfileUsed: "Model profile used",
+      modelProfileUsed: "Model profile",
       underlyingModelUsed: "Underlying model",
-      memoryContext: "Memory context",
-      memoryActivity: "Memory activity",
+      memoryContext: "Memory",
+      memoryActivity: "Writes",
       summaryNote:
         "This summary only explains the current turn. It does not rewrite older replies.",
       messageLabel: "Message",

@@ -67,20 +67,20 @@ function getProfileReasonLabel(
 
   if (normalizedTier.includes("stable")) {
     return locale === "zh-CN"
-      ? "这轮沿用了更均衡的日常对话配置，所以回答会更偏稳定、自然。"
-      : "This turn used the balanced everyday-chat profile, so the answer stays more stable and natural.";
+      ? "用了默认日常配置，回答会更稳。"
+      : "Used the balanced everyday profile for a steadier reply.";
   }
 
   if (normalizedTier.includes("memory")) {
     return locale === "zh-CN"
-      ? "这轮沿用了偏记忆敏感的配置，所以会更努力把已召回的事实直接体现在回答里。"
-      : "This turn used the memory-sensitive profile, so it leans harder on recalled facts in the final answer.";
+      ? "用了偏记忆配置，会更贴近已召回事实。"
+      : "Used the memory-sensitive profile, so it leans harder on recalled facts.";
   }
 
   if (normalizedTier.includes("low-cost")) {
     return locale === "zh-CN"
-      ? "这轮沿用了低成本测试配置，所以回答会更偏轻量、适合快速对比。"
-      : "This turn used the low-cost testing profile, so the answer is lighter and tuned for faster comparisons.";
+      ? "用了低成本配置，更适合快速试跑。"
+      : "Used the low-cost profile for quicker, lighter testing.";
   }
 
   if (usageNote && usageNote.trim().length > 0) {
@@ -88,8 +88,8 @@ function getProfileReasonLabel(
   }
 
   return locale === "zh-CN"
-    ? "这轮沿用了当前模型配置来平衡回答质量与成本。"
-    : "This turn used the selected model profile to balance quality and cost.";
+    ? "这轮用了当前模型配置。"
+    : "This turn used the current model profile.";
 }
 
 function getMemoryReasonLabel(params: {
@@ -114,32 +114,32 @@ function getMemoryReasonLabel(params: {
 
   if (memoryTypesUsed.length > 0) {
     return isZh
-      ? `这轮用了 ${typeList} 记忆，因为它和你刚刚的问题最相关。`
-      : `This turn used ${typeList} memory because it was the most relevant stored context for your latest question.`;
+      ? `这轮用了 ${typeList} 记忆。`
+      : `Used ${typeList} memory this turn.`;
   }
 
   if (memoryUsed === false && (hiddenExclusionCount > 0 || incorrectExclusionCount > 0)) {
     if (hiddenExclusionCount > 0 && incorrectExclusionCount > 0) {
       return isZh
-        ? "这轮没有使用长期记忆，因为相关记忆里有一部分已隐藏，另一部分已被标记为错误。"
-        : "This turn did not use long-term memory because some relevant memory was hidden and some was marked incorrect.";
+        ? "这轮没用长期记忆：有的已隐藏，有的已标错。"
+        : "No long-term memory used: some relevant memory was hidden and some was marked incorrect.";
     }
 
     if (hiddenExclusionCount > 0) {
       return isZh
-        ? "这轮没有使用长期记忆，因为相关记忆目前处于隐藏状态。"
-        : "This turn did not use long-term memory because the relevant memory is currently hidden.";
+        ? "这轮没用长期记忆：相关记忆已隐藏。"
+        : "No long-term memory used: the relevant memory is hidden.";
     }
 
     return isZh
-      ? "这轮没有使用长期记忆，因为相关记忆目前被标记为错误。"
-      : "This turn did not use long-term memory because the relevant memory is currently marked incorrect.";
+      ? "这轮没用长期记忆：相关记忆已标错。"
+      : "No long-term memory used: the relevant memory is marked incorrect.";
   }
 
   if (memoryUsed === false) {
     return isZh
-      ? "这轮没有用到长期记忆，因为当前问题不需要它。"
-      : "This turn did not use long-term memory because the current question did not need it.";
+      ? "这轮没用到长期记忆。"
+      : "No long-term memory was needed.";
   }
 
   return null;
@@ -329,25 +329,25 @@ function getRuntimeSummaryHeadline(
 
   if (hasMemoryReason && hasProfileReason) {
     return copy.locale === "zh-CN"
-      ? "这轮主要受记忆和当前配置共同影响。"
-      : "This turn was shaped mainly by memory plus the current profile.";
+      ? "这轮主要看记忆和当前配置。"
+      : "Mainly shaped by memory and the current profile.";
   }
 
   if (hasMemoryReason) {
     return copy.locale === "zh-CN"
-      ? "这轮主要受已命中的记忆影响。"
-      : "This turn was shaped mainly by recalled memory.";
+      ? "这轮主要看记忆。"
+      : "Mainly shaped by memory.";
   }
 
   if (hasProfileReason) {
     return copy.locale === "zh-CN"
-      ? "这轮主要受当前模型配置影响。"
-      : "This turn was shaped mainly by the current profile.";
+      ? "这轮主要看当前配置。"
+      : "Mainly shaped by the current profile.";
   }
 
   return copy.locale === "zh-CN"
-    ? "这条摘要解释了这轮回答的主要原因。"
-    : "This summary explains the main reason behind the turn.";
+    ? "这条摘要只解释这轮。"
+    : "This summary only explains this turn.";
 }
 
 export function ChatThreadView({
