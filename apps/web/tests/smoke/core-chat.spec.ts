@@ -21,6 +21,28 @@ function getSmokeAdminClient() {
   });
 }
 
+async function getLatestAssistantMessageForThread(
+  threadId: string
+) {
+  const admin = getSmokeAdminClient();
+  const { data, error } = await admin
+    .from("messages")
+    .select("content, metadata")
+    .eq("thread_id", threadId)
+    .eq("role", "assistant")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  expect(error).toBeNull();
+  expect(data).toBeTruthy();
+
+  return data as {
+    content: string;
+    metadata: Record<string, unknown>;
+  };
+}
+
 function getLatestRuntimeSummaryHeading(page: Page) {
   return page.locator("summary").filter({ hasText: runtimeSummaryTogglePattern }).last();
 }
@@ -344,6 +366,28 @@ test.describe("core chat smoke", () => {
       /i don't know|我不知道/i
     );
 
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      recallThreadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+    const recalledMemories = Array.isArray(metadata.recalled_memories)
+      ? metadata.recalled_memories
+      : [];
+    const recalledMemoryTypes = recalledMemories
+      .map((memory) =>
+        typeof memory === "object" && memory !== null
+          ? (memory as Record<string, unknown>).memory_type
+          : null
+      )
+      .filter((value): value is string => typeof value === "string");
+
+    expect(metadata.question_type).toBe("open-ended-advice");
+    expect(metadata.answer_strategy).toBe("grounded-open-ended-advice");
+    expect(metadata.memory_used).toBe(true);
+    expect(recalledMemoryTypes).toEqual(
+      expect.arrayContaining(["preference"])
+    );
+
     const latestSummaryHeading = getLatestRuntimeSummaryHeading(page);
     await latestSummaryHeading.click();
     await expect(page.getByText(/1 memory hit/)).toBeVisible({
@@ -431,6 +475,28 @@ test.describe("core chat smoke", () => {
     await expect(latestAssistantReply).toContainText("产品设计师");
     await expect(latestAssistantReply).toContainText("小芳");
     await expect(latestAssistantReply).not.toContainText(/我不知道|I don't know/i);
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      summaryThreadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+    const recalledMemories = Array.isArray(metadata.recalled_memories)
+      ? metadata.recalled_memories
+      : [];
+    const recalledMemoryTypes = recalledMemories
+      .map((memory) =>
+        typeof memory === "object" && memory !== null
+          ? (memory as Record<string, unknown>).memory_type
+          : null
+      )
+      .filter((value): value is string => typeof value === "string");
+
+    expect(metadata.question_type).toBe("open-ended-summary");
+    expect(metadata.answer_strategy).toBe("grounded-open-ended-summary");
+    expect(metadata.memory_used).toBe(true);
+    expect(recalledMemoryTypes).toEqual(
+      expect.arrayContaining(["profile", "relationship"])
+    );
   });
 
   test("recalls agent nickname for the same agent without leaking it to other agents", async ({
@@ -1707,5 +1773,61 @@ test.describe("core chat smoke", () => {
     await expect(page.getByText("我记得你是一名产品设计师。").first()).toBeVisible({
       timeout: 45_000
     });
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.reply_language_detected).toBe("zh-Hans");
+    expect(metadata.answer_strategy).toBe("structured-recall-first");
+  });
+
+  test("keeps Chinese on short mixed-language follow-ups after an English memory seed", async ({
+    request
+  }) => {
+    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(seedThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await seedThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "I am a product designer and I prefer concise weekly planning.",
+      "你记得我做什么工作吗？",
+      "那接下来呢？"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.answer_strategy).toBe("same-thread-continuation");
+    expect(metadata.same_thread_continuation_preferred).toBe(true);
+    expect(metadata.distant_memory_fallback_allowed).toBe(false);
+    expect(metadata.reply_language_detected).toBe("zh-Hans");
+    expect(latestAssistantMessage.content).toMatch(/[一-龥]/u);
+    expect(latestAssistantMessage.content).not.toMatch(/\bproduct designer\b/i);
   });
 });
