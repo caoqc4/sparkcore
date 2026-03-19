@@ -1990,4 +1990,60 @@ test.describe("core chat smoke", () => {
     expect(metadata.same_thread_continuation_preferred).toBe(false);
     expect(metadata.continuation_reason_code).toBeNull();
   });
+
+  test("uses the default-grounded fallback branch for uncategorized grounded prompts", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    const seedTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "I am a product designer and I prefer concise weekly planning."
+      }
+    });
+    expect(seedTurn.ok()).toBeTruthy();
+
+    const fallbackTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "What should you keep in mind when replying to me later?"
+      }
+    });
+    expect(fallbackTurn.ok()).toBeTruthy();
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.question_type).toBe("other");
+    expect(metadata.answer_strategy).toBe("default-grounded");
+    expect(metadata.answer_strategy_reason_code).toBe(
+      "default-grounded-fallback"
+    );
+    expect(metadata.same_thread_continuation_preferred).toBe(false);
+    expect(metadata.continuation_reason_code).toBeNull();
+    expect(metadata.reply_language_source).toBe("latest-user-message");
+    expect(latestAssistantMessage.content).toBe("Sure, we can keep going.");
+  });
 });

@@ -60,19 +60,23 @@
   - `answer_strategy_reason_code=relationship-answer-shape-prompt`
   - `same_thread_continuation_preferred=false`
 
-## 仍然存在但优先级较低的缺口
+### 3. `default-grounded` fallback 分支
 
-### 1. `default-grounded` fallback 分支
-
-当前情况：
+之前的缺口：
 - 这个分支已经存在于 runtime diagnostics 中。
 - 但我们还没有一条专门把它稳定隔离出来的 focused smoke。
 
-为什么优先级较低：
-- 这个分支天然比较宽。
-- 如果测试写得不好，很容易变成模糊、低信号的 case。
+这轮新增的 focused regression：
+- 在一条已 seed memory 的 thread 里发送不属于其他分类的 grounded prompt
+- 期望 diagnostics：
+  - `question_type=other`
+  - `answer_strategy=default-grounded`
+  - `answer_strategy_reason_code=default-grounded-fallback`
+  - `same_thread_continuation_preferred=false`
 
-### 2. correction aftermath 的 diagnostics 精度
+## 仍然存在但优先级较低的缺口
+
+### 1. correction aftermath 的 diagnostics 精度
 
 当前情况：
 - 我们已经覆盖了 correction 行为本身。
@@ -82,7 +86,7 @@
 - 行为覆盖已经存在。
 - 当前缺的是调试精度，不是产品完全失明。
 
-### 3. model-profile comparison 的 cheap smoke
+### 2. model-profile comparison 的 cheap smoke
 
 当前情况：
 - model-profile comparison 已经存在于 eval 文档和更宽的 smoke 覆盖里。
@@ -93,6 +97,5 @@
 
 ## 建议的下一步转换顺序
 
-1. 只有在能保持足够确定性的前提下，再补一条窄的 `default-grounded` fallback smoke。
-2. 如果 correction 后续 turn 又开始难排，再补一条 metadata-focused correction-aftermath regression。
-3. 只有当 profile-switch 回归再次频繁出现时，再补一条 cheap model-profile comparison smoke。
+1. 如果 correction 后续 turn 又开始难排，再补一条 metadata-focused correction-aftermath regression。
+2. 只有当 profile-switch 回归再次频繁出现时，再补一条 cheap model-profile comparison smoke。

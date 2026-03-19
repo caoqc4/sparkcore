@@ -60,19 +60,23 @@ Focused regression added:
   - `answer_strategy_reason_code=relationship-answer-shape-prompt`
   - `same_thread_continuation_preferred=false`
 
+### 3. `default-grounded` fallback branch
+
+Previous gap:
+- This branch existed in runtime diagnostics.
+- We did not yet have a small focused smoke that isolated it on purpose.
+
+Focused regression added:
+- uncategorized grounded prompt after a seeded memory turn
+- expected diagnostics:
+  - `question_type=other`
+  - `answer_strategy=default-grounded`
+  - `answer_strategy_reason_code=default-grounded-fallback`
+  - `same_thread_continuation_preferred=false`
+
 ## Remaining Lower-Priority Gaps
 
-### 1. `default-grounded` fallback branch
-
-Current state:
-- This branch exists in runtime diagnostics.
-- We still do not have a small focused smoke that isolates it on purpose.
-
-Why it is lower priority:
-- The branch is broad by nature.
-- A bad test here is easy to make vague and low-signal.
-
-### 2. Correction aftermath diagnostics
+### 1. Correction aftermath diagnostics
 
 Current state:
 - We have correction behavior coverage.
@@ -82,7 +86,7 @@ Why it is lower priority:
 - Behavior coverage already exists.
 - The missing piece is mainly debugging precision, not product blindness.
 
-### 3. Model-profile comparison as cheap smoke
+### 2. Model-profile comparison as cheap smoke
 
 Current state:
 - Model-profile comparison exists in eval docs and broader smoke coverage.
@@ -93,6 +97,5 @@ Why it is lower priority:
 
 ## Suggested Next Conversion Order
 
-1. Add a narrow `default-grounded` fallback smoke only if we can keep it deterministic.
-2. Add a metadata-focused correction-aftermath regression if debugging those turns becomes costly again.
-3. Add a cheap model-profile comparison smoke only if profile-switch regressions start recurring.
+1. Add a metadata-focused correction-aftermath regression if debugging those turns becomes costly again.
+2. Add a cheap model-profile comparison smoke only if profile-switch regressions start recurring.
