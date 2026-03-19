@@ -1622,6 +1622,109 @@ test.describe("core chat smoke", () => {
     });
   });
 
+  test("keeps direct preferred-name follow-ups on relationship recall instead of default grounded fallback", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await createThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后我叫你小芳可以吗？"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId: seedThreadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const sameAgentThreadResponse = await request.post(
+      "/api/test/smoke-create-thread",
+      {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          agentName: "Smoke Memory Coach"
+        }
+      }
+    );
+
+    expect(sameAgentThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await sameAgentThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    for (const content of ["请简单介绍一下你自己。", "那接下来呢？"]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const preferredNameFollowUpResponse = await request.post(
+      "/api/test/smoke-send-turn",
+      {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content: "那你接下来会怎么称呼我？"
+        }
+      }
+    );
+
+    expect(preferredNameFollowUpResponse.ok()).toBeTruthy();
+
+    const latestAssistant = await getLatestAssistantMessageForThread(threadId);
+
+    expect(latestAssistant.content).toContain("阿强");
+    expect(latestAssistant.metadata.question_type).toBe(
+      "direct-relationship-confirmation"
+    );
+    expect(latestAssistant.metadata.answer_strategy).toBe(
+      "relationship-recall-first"
+    );
+    expect(latestAssistant.metadata.answer_strategy_reason_code).toBe(
+      "direct-relationship-question"
+    );
+    expect(latestAssistant.metadata.continuation_reason_code).toBeNull();
+    expect(latestAssistant.metadata.answer_strategy).not.toBe(
+      "default-grounded"
+    );
+  });
+
   test("prefers same-thread continuation before distant memory fallback on fuzzy follow-ups", async ({
     request
   }) => {

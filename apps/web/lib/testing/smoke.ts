@@ -798,6 +798,10 @@ function isSmokeDirectUserPreferredNameQuestion(content: string) {
   return (
     normalized.includes("你该怎么叫我") ||
     normalized.includes("你以后怎么叫我") ||
+    normalized.includes("你接下来会怎么叫我") ||
+    normalized.includes("你会怎么叫我") ||
+    normalized.includes("你接下来会怎么称呼我") ||
+    normalized.includes("你会怎么称呼我") ||
     normalized.includes("你应该叫我什么") ||
     normalized.includes("你叫我什么") ||
     normalized.includes("what should you call me") ||
