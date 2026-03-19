@@ -775,6 +775,11 @@ function buildThreadContinuityPrompt({
         ? "如果这个线程里已经形成了昵称、对用户的称呼或更正式/更轻松的互动方式，让这些关系约定继续自然体现在开场、过渡和收尾里。"
         : "If this thread has already established a nickname, a preferred way to address the user, or a more formal or casual relationship tone, let those choices continue naturally in openings, transitions, and closings."
     );
+    sections.push(
+      isZh
+        ? "即使用户后面只是发很短的跟进、确认或继续提问，也优先延续这个线程已经形成的称呼和关系风格，不要只在第一次命中后就掉回 canonical name 或默认语气。"
+        : "Even when later user turns are short follow-ups, confirmations, or brief continuations, keep the established nickname, address terms, and relationship tone instead of dropping back to the canonical name or default style after the first mention."
+    );
   }
 
   if (threadContinuity.establishedReplyLanguage !== "unknown") {

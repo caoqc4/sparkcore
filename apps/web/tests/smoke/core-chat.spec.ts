@@ -1051,6 +1051,18 @@ test.describe("core chat smoke", () => {
     });
     expect(preferredNameTurn.ok()).toBeTruthy();
 
+    const nicknameTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "以后我叫你小芳可以吗？"
+      }
+    });
+    expect(nicknameTurn.ok()).toBeTruthy();
+
     const styleTurn = await request.post("/api/test/smoke-send-turn", {
       headers: {
         "x-smoke-secret": smokeSecret,
@@ -1087,9 +1099,26 @@ test.describe("core chat smoke", () => {
     });
     expect(shortFollowUpTurn.ok()).toBeTruthy();
 
+    const secondIntroTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "再简单介绍一下你自己。"
+      }
+    });
+    expect(secondIntroTurn.ok()).toBeTruthy();
+
     await page.reload();
 
     await expect(page.getByText("好呀，阿强，我们继续。").first()).toBeVisible({
+      timeout: 45_000
+    });
+    await expect(
+      page.getByText("嗨，阿强。 我是小芳，很高兴继续和你聊。").first()
+    ).toBeVisible({
       timeout: 45_000
     });
   });
