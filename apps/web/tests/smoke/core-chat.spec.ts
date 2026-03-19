@@ -341,6 +341,88 @@ test.describe("core chat smoke", () => {
     });
   });
 
+  test("keeps open-ended summary questions grounded without turning them into a rigid fact dump", async ({
+    page,
+    request
+  }) => {
+    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(seedThreadResponse.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await seedThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    for (const content of [
+      "I am a product designer.",
+      "以后我叫你小芳可以吗？",
+      "以后你叫我阿强可以吗？"
+    ]) {
+      const seedTurnResponse = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId: seedThreadId,
+          content
+        }
+      });
+
+      expect(seedTurnResponse.ok()).toBeTruthy();
+    }
+
+    const summaryThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(summaryThreadResponse.ok()).toBeTruthy();
+    const { threadId: summaryThreadId } = (await summaryThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${summaryThreadId}`
+    );
+
+    const summaryTurnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: summaryThreadId,
+        content: "简单总结一下你对我的了解。"
+      }
+    });
+
+    expect(summaryTurnResponse.ok()).toBeTruthy();
+    await page.reload();
+
+    const latestAssistantReply = page
+      .locator("article")
+      .filter({ hasText: "Assistant" })
+      .last();
+
+    await expect(latestAssistantReply).toContainText("阿强", { timeout: 45_000 });
+    await expect(latestAssistantReply).toContainText("产品设计师");
+    await expect(latestAssistantReply).toContainText("小芳");
+    await expect(latestAssistantReply).not.toContainText(/我不知道|I don't know/i);
+  });
+
   test("recalls agent nickname for the same agent without leaking it to other agents", async ({
     page,
     request

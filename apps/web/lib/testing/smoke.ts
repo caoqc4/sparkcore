@@ -799,6 +799,17 @@ function isSmokeOpenEndedPlanningHelpQuestion(content: string) {
   );
 }
 
+function isSmokeOpenEndedSummaryQuestion(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("summarize what you know about me") ||
+    normalized.includes("briefly summarize what you remember") ||
+    normalized.includes("简单总结一下你记得的内容") ||
+    normalized.includes("简单总结一下你对我的了解")
+  );
+}
+
 function buildSmokeAssistantReply({
   content,
   modelProfileName,
@@ -1033,6 +1044,33 @@ function buildSmokeAssistantReply({
     }
 
     return `${opening} I would start by identifying the week's priorities and turning them into a short, actionable plan.`;
+  }
+
+  if (isSmokeOpenEndedSummaryQuestion(content)) {
+    const selfName = nicknameMemory?.content ?? agentName;
+    const userName = preferredNameMemory?.content ?? null;
+
+    if (replyLanguage === "zh-Hans") {
+      if (rememberedProfession && userName) {
+        return `我记得你叫${userName}，是一名产品设计师。现在由${selfName}继续陪你把事情往前推进。`;
+      }
+
+      if (rememberedProfession) {
+        return `我记得你是一名产品设计师，现在由${selfName}继续陪你把事情往前推进。`;
+      }
+
+      return `现在由${selfName}继续陪你往前推进，我会结合已经记得的内容来帮助你。`;
+    }
+
+    if (rememberedProfession && userName) {
+      return `I remember that you go by ${userName} and work as a product designer. ${selfName} can keep helping you move things forward from here.`;
+    }
+
+    if (rememberedProfession) {
+      return `I remember that you work as a product designer. ${selfName} can keep helping you move things forward from here.`;
+    }
+
+    return `${selfName} can keep helping you move things forward from here with the context already remembered.`;
   }
 
   if (isSmokeDirectNamingQuestion(content)) {
@@ -1313,10 +1351,13 @@ export async function createSmokeTurn({
       return (
         (trimmedContent.toLowerCase().includes("profession") &&
           normalizedContent.includes("product designer")) ||
+        (isSmokeOpenEndedSummaryQuestion(trimmedContent) &&
+          normalizedContent.includes("product designer")) ||
         (isSmokeDirectProfessionQuestion(trimmedContent) &&
           normalizedContent.includes("product designer")) ||
         ((trimmedContent.toLowerCase().includes("weekly planning") ||
           isSmokeOpenEndedPlanningHelpQuestion(trimmedContent) ||
+          isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
           isSmokeDirectPlanningPreferenceQuestion(trimmedContent)) &&
           normalizedContent.includes("concise weekly planning"))
       );
@@ -1332,6 +1373,7 @@ export async function createSmokeTurn({
   const nicknameMemory =
     isSmokeDirectNamingQuestion(trimmedContent) ||
     relationshipStylePrompt ||
+    isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
     sameThreadContinuity
     ? activeMemories.find(
         (memory) =>
@@ -1355,6 +1397,7 @@ export async function createSmokeTurn({
   const preferredNameMemory =
     isSmokeDirectUserPreferredNameQuestion(trimmedContent) ||
     relationshipStylePrompt ||
+    isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
     sameThreadContinuity
     ? activeMemories.find(
         (memory) =>

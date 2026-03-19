@@ -40,6 +40,62 @@ function isRelationshipStylePrompt(content: string) {
   );
 }
 
+function isOpenEndedAdviceQuestion(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("how should we plan my week") ||
+    normalized.includes("how should you help me plan my week") ||
+    normalized.includes("given what you know about me") ||
+    normalized.includes("what should i do next") ||
+    normalized.includes("what would you suggest next") ||
+    normalized.includes("结合你记得的内容，怎么帮我规划这周") ||
+    normalized.includes("结合你对我的了解") ||
+    normalized.includes("你会怎么帮我规划这周") ||
+    normalized.includes("你会怎么帮助我") ||
+    normalized.includes("接下来你会怎么帮助我") ||
+    normalized.includes("接下来我该怎么做") ||
+    normalized.includes("下一步我该怎么做")
+  );
+}
+
+function isOpenEndedSummaryQuestion(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    isRelationshipStylePrompt(content) ||
+    normalized.includes("summarize what you know about me") ||
+    normalized.includes("briefly summarize what you remember") ||
+    normalized.includes("简单总结一下你记得的内容") ||
+    normalized.includes("简单总结一下你对我的了解") ||
+    normalized.includes("最后再简单介绍一下你自己")
+  );
+}
+
+function isFuzzyFollowUpQuestion(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized === "那接下来呢？" ||
+    normalized === "那接下来呢?" ||
+    normalized === "然后呢？" ||
+    normalized === "然后呢?" ||
+    normalized === "还有呢？" ||
+    normalized === "还有呢?" ||
+    normalized === "再说一遍。" ||
+    normalized === "再说一遍" ||
+    normalized === "再确认一次？" ||
+    normalized === "再确认一次?" ||
+    normalized === "好，继续。" ||
+    normalized === "好，继续" ||
+    normalized === "ok, then what?" ||
+    normalized === "then what?" ||
+    normalized === "what next?" ||
+    normalized === "and then?" ||
+    normalized === "say it again in one short sentence."
+  );
+}
+
 type WorkspaceRecord = {
   id: string;
   name: string;
@@ -171,6 +227,63 @@ type DirectRecallQuestionKind =
   | "profession"
   | "planning-style"
   | "reply-style";
+type AnswerQuestionType =
+  | "direct-fact"
+  | "direct-relationship-confirmation"
+  | "open-ended-advice"
+  | "open-ended-summary"
+  | "fuzzy-follow-up"
+  | "other";
+type AnswerStrategy =
+  | "structured-recall-first"
+  | "relationship-recall-first"
+  | "grounded-open-ended-advice"
+  | "grounded-open-ended-summary"
+  | "same-thread-continuation"
+  | "default-grounded";
+
+const ANSWER_STRATEGY_MATRIX: Array<{
+  questionType: AnswerQuestionType;
+  strategy: AnswerStrategy;
+  description: string;
+}> = [
+  {
+    questionType: "direct-fact",
+    strategy: "structured-recall-first",
+    description:
+      "Direct fact questions should prefer deterministic structured recall before more open-ended generation."
+  },
+  {
+    questionType: "direct-relationship-confirmation",
+    strategy: "relationship-recall-first",
+    description:
+      "Direct relationship-confirmation questions should prefer relationship recall before canonical fallback identity."
+  },
+  {
+    questionType: "open-ended-advice",
+    strategy: "grounded-open-ended-advice",
+    description:
+      "Open-ended advice should stay grounded in recalled memory without turning into a rigid fact dump."
+  },
+  {
+    questionType: "open-ended-summary",
+    strategy: "grounded-open-ended-summary",
+    description:
+      "Open-ended summary and self-introduction prompts should stay natural while keeping relevant memory and relationship cues visible."
+  },
+  {
+    questionType: "fuzzy-follow-up",
+    strategy: "same-thread-continuation",
+    description:
+      "Short fuzzy follow-ups should prioritize same-thread continuity in language and relationship style."
+  },
+  {
+    questionType: "other",
+    strategy: "default-grounded",
+    description:
+      "Other prompts should use the default grounded answer path without overfitting to direct recall."
+  }
+];
 
 function detectExplicitLanguageOverride(content: string): RuntimeReplyLanguage {
   const normalized = content.normalize("NFKC").toLowerCase();
@@ -270,6 +383,15 @@ function buildMemoryRecallPrompt(
 ) {
   const normalizedUserMessage = latestUserMessage.toLowerCase();
   const directRecallQuestionKind = getDirectRecallQuestionKind(normalizedUserMessage);
+  const answerQuestionType = getAnswerQuestionType({
+    latestUserMessage,
+    directRecallQuestionKind,
+    directNamingQuestion: relationshipRecall.directNamingQuestion,
+    directPreferredNameQuestion: relationshipRecall.directPreferredNameQuestion,
+    relationshipStylePrompt: relationshipRecall.relationshipStylePrompt,
+    sameThreadContinuity: relationshipRecall.sameThreadContinuity
+  });
+  const answerStrategy = getAnswerStrategyForQuestionType(answerQuestionType);
   const isZh = replyLanguage === "zh-Hans";
   const isDirectMemoryQuestion = directRecallQuestionKind !== "none";
 
@@ -402,16 +524,15 @@ function buildMemoryRecallPrompt(
         "Even if a recalled memory snippet was originally stored in another language, keep the full reply in the current target language."
       ];
 
-  if (isDirectMemoryQuestion) {
-    sections.push(...buildDirectRecallInstructions(directRecallQuestionKind, isZh));
-  } else {
-    sections.push(
-      ...buildOpenEndedRecallInstructions({
-        isZh,
-        recalledMemories
-      })
-    );
-  }
+  sections.push(
+    ...buildAnswerStrategyInstructions({
+      answerQuestionType,
+      answerStrategy,
+      directRecallQuestionKind,
+      isZh,
+      recalledMemories
+    })
+  );
 
   return sections.join("\n");
 }
@@ -526,6 +647,55 @@ function getDirectRecallQuestionKind(
   return "none";
 }
 
+function getAnswerQuestionType(params: {
+  latestUserMessage: string;
+  directRecallQuestionKind: DirectRecallQuestionKind;
+  directNamingQuestion: boolean;
+  directPreferredNameQuestion: boolean;
+  relationshipStylePrompt: boolean;
+  sameThreadContinuity: boolean;
+}): AnswerQuestionType {
+  const {
+    latestUserMessage,
+    directRecallQuestionKind,
+    directNamingQuestion,
+    directPreferredNameQuestion,
+    relationshipStylePrompt,
+    sameThreadContinuity
+  } = params;
+
+  if (directNamingQuestion || directPreferredNameQuestion) {
+    return "direct-relationship-confirmation";
+  }
+
+  if (directRecallQuestionKind !== "none") {
+    return "direct-fact";
+  }
+
+  if (isOpenEndedAdviceQuestion(latestUserMessage)) {
+    return "open-ended-advice";
+  }
+
+  if (isOpenEndedSummaryQuestion(latestUserMessage) || relationshipStylePrompt) {
+    return "open-ended-summary";
+  }
+
+  if (sameThreadContinuity && isFuzzyFollowUpQuestion(latestUserMessage)) {
+    return "fuzzy-follow-up";
+  }
+
+  return "other";
+}
+
+function getAnswerStrategyForQuestionType(
+  questionType: AnswerQuestionType
+): AnswerStrategy {
+  return (
+    ANSWER_STRATEGY_MATRIX.find((entry) => entry.questionType === questionType)
+      ?.strategy ?? "default-grounded"
+  );
+}
+
 function buildDirectRecallInstructions(
   questionKind: DirectRecallQuestionKind,
   isZh: boolean
@@ -579,11 +749,73 @@ function buildDirectRecallInstructions(
       ];
 }
 
-function buildOpenEndedRecallInstructions({
+function buildAnswerStrategyInstructions({
+  answerQuestionType,
+  answerStrategy,
+  directRecallQuestionKind,
   isZh,
   recalledMemories
 }: {
+  answerQuestionType: AnswerQuestionType;
+  answerStrategy: AnswerStrategy;
+  directRecallQuestionKind: DirectRecallQuestionKind;
   isZh: boolean;
+  recalledMemories: Array<{
+    memory_type: "profile" | "preference" | "relationship";
+    content: string;
+    confidence: number;
+  }>;
+}) {
+  if (
+    answerStrategy === "structured-recall-first" ||
+    answerStrategy === "relationship-recall-first"
+  ) {
+    return buildDirectRecallInstructions(directRecallQuestionKind, isZh);
+  }
+
+  if (
+    answerStrategy === "grounded-open-ended-advice" ||
+    answerStrategy === "grounded-open-ended-summary"
+  ) {
+    return buildOpenEndedRecallInstructions({
+      isZh,
+      recalledMemories,
+      questionType: answerQuestionType
+    });
+  }
+
+  if (answerStrategy === "same-thread-continuation") {
+    return isZh
+      ? [
+          "这是一个同线程里的短跟进。优先延续这个线程已经形成的语言、称呼和关系风格，不要突然切回默认语气。",
+          "如果上面的长期记忆与当前线程连续性相关，就自然沿用它们，而不是把回答写成新的生硬总结。"
+        ]
+      : [
+          "This is a short follow-up in the same thread. Prefer continuing the language, address terms, and relationship style already established here instead of snapping back to the default tone.",
+          "If the recalled memory supports the current thread continuity, carry it forward naturally instead of turning the reply into a fresh rigid summary."
+        ];
+  }
+
+  return recalledMemories.length > 0
+    ? isZh
+      ? [
+          "这轮不是明确直问，也不是需要强结构化回填的场景。把已召回的长期记忆当作背景约束，自然融进回答里。",
+          "避免无根据地自由发挥，但也不要把回答写成机械的事实列表。"
+        ]
+      : [
+          "This turn is not a strict direct-question case. Use recalled long-term memory as background grounding and weave it in naturally.",
+          "Avoid unguided drift, but do not turn the answer into a mechanical list of facts."
+        ]
+    : [];
+}
+
+function buildOpenEndedRecallInstructions({
+  isZh,
+  recalledMemories,
+  questionType
+}: {
+  isZh: boolean;
+  questionType: AnswerQuestionType;
   recalledMemories: Array<{
     memory_type: "profile" | "preference" | "relationship";
     content: string;
@@ -592,6 +824,18 @@ function buildOpenEndedRecallInstructions({
 }) {
   if (recalledMemories.length === 0) {
     return [];
+  }
+
+  if (questionType === "open-ended-summary") {
+    return isZh
+      ? [
+          "这是一个开放式总结/自我介绍场景。把已召回的长期记忆当作背景约束，让相关事实和关系线索自然地体现在总结里。",
+          "不要把回答写成逐槽位复述，也不要忽略已经命中的关系或偏好线索。"
+        ]
+      : [
+          "This is an open-ended summary or self-introduction case. Treat recalled long-term memory as grounding so relevant facts and relationship cues naturally appear in the summary.",
+          "Do not turn the reply into slot-by-slot repetition, but do not ignore recalled relationship or preference cues either."
+        ];
   }
 
   return isZh
@@ -1813,6 +2057,8 @@ export async function generateAgentReply({
     nicknameMemory: null,
     preferredNameMemory: null
   };
+  let answerQuestionType: AnswerQuestionType = "other";
+  let answerStrategy: AnswerStrategy = "default-grounded";
 
   if (latestUserMessage) {
     const relationshipStylePrompt = isRelationshipStylePrompt(
@@ -1866,6 +2112,18 @@ export async function generateAgentReply({
       ...nicknameRecall,
       ...preferredNameRecall
     };
+
+    answerQuestionType = getAnswerQuestionType({
+      latestUserMessage: latestUserMessage.content,
+      directRecallQuestionKind: getDirectRecallQuestionKind(
+        latestUserMessage.content.normalize("NFKC").trim().toLowerCase()
+      ),
+      directNamingQuestion: relationshipRecall.directNamingQuestion,
+      directPreferredNameQuestion: relationshipRecall.directPreferredNameQuestion,
+      relationshipStylePrompt: relationshipRecall.relationshipStylePrompt,
+      sameThreadContinuity: relationshipRecall.sameThreadContinuity
+    });
+    answerStrategy = getAnswerStrategyForQuestionType(answerQuestionType);
   }
   const recalledMemories = memoryRecall.memories;
   const relationshipMemories = [
@@ -1943,6 +2201,8 @@ export async function generateAgentReply({
           : null,
       reply_language_target: replyLanguage,
       reply_language_detected: detectReplyLanguageFromText(result.content),
+      question_type: answerQuestionType,
+      answer_strategy: answerStrategy,
       memory_hit_count: allRecalledMemories.length,
       memory_used: allRecalledMemories.length > 0,
       memory_types_used: relationshipMemories.length > 0
