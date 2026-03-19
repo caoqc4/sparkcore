@@ -16,6 +16,7 @@ export type QualityEvalCase = {
   setup: string[];
   steps: string[];
   observe: string[];
+  failureConditions?: string[];
   successCriteria: string[];
 };
 
@@ -350,6 +351,11 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
       "At which turn nickname or preferred-name continuity first weakens, if it weakens at all.",
       "Whether the runtime summary still reports relationship memory usage."
     ],
+    failureConditions: [
+      "Count it as failed at the first turn where the nickname disappears once even though the same agent and relationship memory should still be active.",
+      "Count it as failed at the first turn where the preferred user name disappears once even though the same agent and relationship memory should still be active.",
+      "Count it as failed if relationship memory should still apply but the runtime summary no longer shows relationship memory usage."
+    ],
     successCriteria: [
       "The same agent keeps nickname and preferred-name continuity across a new thread.",
       "Relationship cues do not disappear after the first successful turn and stay stable through the later short chain.",
@@ -381,6 +387,11 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
       "At which turn structured profession recall first weakens, if it weakens at all.",
       "Whether the runtime summary shows a relevant memory hit."
     ],
+    failureConditions: [
+      'Count it as failed at the first turn where a reply no longer says "product designer" or an equivalent explicit profession even though the relevant memory should still be available.',
+      'Count it as failed if the runtime summary still shows a relevant memory hit but the answer does not reflect the remembered profession.',
+      'Count it as failed if the answer falls back to "I do not know" or generic help text while the profession memory should still be recallable.'
+    ],
     successCriteria: [
       'The later direct questions keep using "product designer" explicitly.',
       'The replies do not confuse "no chat history" with "no long-term memory".'
@@ -411,6 +422,11 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
       "At which turn language drift first appears, if it appears at all.",
       "Whether the reply language follows the latest user turn instead of the earlier English turn."
     ],
+    failureConditions: [
+      "Count it as failed at the first turn where a Chinese user message receives a primarily English reply without an explicit language-switch instruction.",
+      "Count it as failed if a short same-thread Chinese follow-up snaps back to English because of earlier English turns or recalled English memory.",
+      "Count it as failed if the reply language follows distant thread history more strongly than the current user's latest message."
+    ],
     successCriteria: [
       "The later Chinese turns receive Chinese replies.",
       "The short same-thread follow-ups also stay in Chinese.",
@@ -439,6 +455,11 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
       "Whether the tone stays lightweight and consistent across all replies.",
       "Whether the middle and later answers preserve the same-thread style instead of snapping back to a neutral default.",
       "At which turn the relationship style first becomes noticeably flatter, if it becomes flatter."
+    ],
+    failureConditions: [
+      "Count it as failed at the first turn where the relationship tone clearly drops back to the default neutral style instead of keeping the seeded relationship style.",
+      "Count it as failed if opening, explanatory, or closing turns stop reflecting the same-thread relationship style while the relationship memory is still active.",
+      "Count it as failed if the answer still sounds correct in content but no longer performs the expected relationship cues."
     ],
     successCriteria: [
       "Relationship style remains visible across opening, middle, and closing-style turns in the same thread.",
@@ -471,6 +492,11 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
       "Whether the second fresh-thread reply uses the memory again after Restore.",
       "Whether the later short follow-ups after Restore stay consistent with the restored memory.",
       "At which turn correction behavior becomes inconsistent, if it becomes inconsistent."
+    ],
+    failureConditions: [
+      "Count it as failed if Incorrect is applied but any later turn still uses the removed memory as if it were active.",
+      "Count it as failed if Restore is applied but any later turn still behaves as if the memory were unavailable.",
+      "Count it as failed at the first turn where correction behavior flips back and forth across short follow-ups instead of staying stable."
     ],
     successCriteria: [
       "Incorrect removes the memory from later recall.",

@@ -25,6 +25,11 @@ function renderMarkdown(suiteId: keyof typeof qualityEvalSuites) {
     lines.push("### What to Observe");
     lines.push(...item.observe.map((entry) => `- ${entry}`));
     lines.push("");
+    if (item.failureConditions?.length) {
+      lines.push("### Failure Conditions");
+      lines.push(...item.failureConditions.map((entry) => `- ${entry}`));
+      lines.push("");
+    }
     lines.push("### Success Criteria");
     lines.push(...item.successCriteria.map((entry) => `- ${entry}`));
     lines.push("");

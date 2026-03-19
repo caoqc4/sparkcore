@@ -56,6 +56,12 @@ Success criteria:
 - runtime summary still reports relationship memory usage
 - you can identify the first decay turn if nickname or preferred-name continuity starts weakening
 
+Failure conditions:
+
+- count it as failed at the first turn where the nickname disappears once even though the same agent and relationship memory should still be active
+- count it as failed at the first turn where the preferred user name disappears once even though the same agent and relationship memory should still be active
+- count it as failed if relationship memory should still apply but the runtime summary no longer shows relationship memory usage
+
 ### 2. Remembered profession stays faithful across a longer direct-question chain
 
 - Priority: `P0`
@@ -76,6 +82,12 @@ Success criteria:
 - the later direct replies explicitly say `product designer`
 - the replies do not confuse “no chat history” with “no long-term memory”
 - you can identify the first turn where structured profession recall weakens, if it weakens
+
+Failure conditions:
+
+- count it as failed at the first turn where a reply no longer says `product designer` or an equivalent explicit profession even though the relevant memory should still be available
+- count it as failed if the runtime summary still shows a relevant memory hit but the answer does not reflect the remembered profession
+- count it as failed if the answer falls back to “I do not know” or generic help text while the profession memory should still be recallable
 
 ### 3. Replies follow the latest user message language across a longer mixed-language chain
 
@@ -99,6 +111,12 @@ Success criteria:
 - earlier English turns or recalled English memory do not pull the answer back to English
 - you can identify the first turn where language drift appears, if it appears
 
+Failure conditions:
+
+- count it as failed at the first turn where a Chinese user message receives a primarily English reply without an explicit language-switch instruction
+- count it as failed if a short same-thread Chinese follow-up snaps back to English because of earlier English turns or recalled English memory
+- count it as failed if the reply language follows distant thread history more strongly than the current user's latest message
+
 ### 4. Relationship style continuity remains visible from opening to closing turns in a longer chain
 
 - Priority: `P0`
@@ -119,6 +137,12 @@ Success criteria:
 - the tone remains lightweight and consistent across all replies
 - same-thread continuity wins over distant defaults
 - you can identify the first turn where the relationship style noticeably flattens, if it flattens
+
+Failure conditions:
+
+- count it as failed at the first turn where the relationship tone clearly drops back to the default neutral style instead of keeping the seeded relationship style
+- count it as failed if opening, explanatory, or closing turns stop reflecting the same-thread relationship style while the relationship memory is still active
+- count it as failed if the answer still sounds correct in content but no longer performs the expected relationship cues
 
 ### 5. Incorrect and restore change later recall eligibility predictably after several turns
 
@@ -143,3 +167,9 @@ Success criteria:
 - `Restore` returns the same memory to later recall
 - the correction result stays stable across more than one reply
 - you can identify the first turn where correction behavior becomes inconsistent, if it becomes inconsistent
+
+Failure conditions:
+
+- count it as failed if `Incorrect` is applied but any later turn still uses the removed memory as if it were active
+- count it as failed if `Restore` is applied but any later turn still behaves as if the memory were unavailable
+- count it as failed at the first turn where correction behavior flips back and forth across short follow-ups instead of staying stable

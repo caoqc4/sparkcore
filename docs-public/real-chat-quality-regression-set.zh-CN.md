@@ -56,6 +56,12 @@ npm run quality:eval -- --suite=real-chat --format=json
 - runtime summary 仍显示 relationship memory 命中
 - 如果昵称或称呼连续性开始减弱，能明确记下是第几轮开始掉
 
+失败条件：
+
+- 只要在同一个 agent 且 relationship memory 仍应生效的前提下，昵称有一轮丢失，就算从这一轮开始掉了
+- 只要在同一个 agent 且 relationship memory 仍应生效的前提下，用户称呼偏好有一轮丢失，就算从这一轮开始掉了
+- 如果 relationship memory 按理应继续生效，但 runtime summary 不再显示 relationship memory 命中，也算掉
+
 ### 2. 用户职业在更长一串直接追问里仍然忠实体现
 
 - 优先级：`P0`
@@ -76,6 +82,12 @@ npm run quality:eval -- --suite=real-chat --format=json
 - 后面的直接追问都明确说出 `product designer`
 - 不再把“没有对话历史”和“没有长期记忆”混为一谈
 - 如果 structured recall 开始减弱，能明确记下是第几轮开始掉
+
+失败条件：
+
+- 只要后续某一轮不再明确说出 `product designer` 或等价职业表达，就算从这一轮开始掉了
+- 如果 runtime summary 仍显示相关 memory 命中，但回答没有体现职业记忆，也算掉
+- 如果 profession memory 仍应可用，但回答退回成 “不知道” 或泛泛帮助语气，也算掉
 
 ### 3. 回复在更长多轮里优先跟随当前用户最后一条消息语言，而不是漂移
 
@@ -99,6 +111,12 @@ npm run quality:eval -- --suite=real-chat --format=json
 - 前面的英文上下文或英文记忆不会把这条回复重新拉回英文
 - 如果语言开始漂移，能明确记下是第几轮开始漂
 
+失败条件：
+
+- 只要某一轮中文输入在没有明确切语言指令的前提下收到主要英文回复，就算从这一轮开始漂了
+- 如果同线程短中文跟进被更早的英文上下文或英文记忆拉回英文，也算掉
+- 如果回复语言更听远处历史而不是当前用户最后一条消息，也算掉
+
 ### 4. relationship 风格在更长链路里从开场到收尾型问题都保持可感知连续
 
 - 优先级：`P0`
@@ -119,6 +137,12 @@ npm run quality:eval -- --suite=real-chat --format=json
 - 多轮回复都保持较轻松、一致的语气
 - 同线程连续性优先于远处默认值
 - 如果 relationship 风格开始变平，能明确记下是第几轮开始掉
+
+失败条件：
+
+- 只要某一轮明显掉回默认中性语气，而不是继续保持已形成的 relationship 风格，就算从这一轮开始掉了
+- 如果开场、解释型或收尾型回答不再体现同线程 relationship 风格，而 relationship memory 仍应继续生效，也算掉
+- 如果回答内容本身还算正确，但 relationship 表现层已经明显消失，也算掉
 
 ### 5. incorrect / restore 会在多轮后续对话里稳定改变 recall 资格
 
@@ -143,3 +167,9 @@ npm run quality:eval -- --suite=real-chat --format=json
 - `Restore` 后，它会重新参与后续 recall
 - 这个纠错结果在连续多轮里保持稳定
 - 如果纠错行为开始不一致，能明确记下是第几轮开始出现问题
+
+失败条件：
+
+- 如果已经标成 `Incorrect`，但后续任一轮仍像 active 一样继续使用这条 memory，就算掉
+- 如果已经 `Restore`，但后续任一轮仍像没恢复一样不使用这条 memory，也算掉
+- 如果短跟进里纠错效果开始来回摇摆、不再稳定，也算从那一轮开始掉了
