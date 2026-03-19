@@ -9,6 +9,8 @@ const runtimeSummaryTogglePattern =
   /How this reply was generated|Why this turn|Main reason|这轮依据|这轮主要依据/;
 const relationshipMemoryReasonPattern =
   /This turn used relationship memory\.|Used relationship memory this turn\./;
+const developerDiagnosticsLeakPattern =
+  /answer strategy|same-thread continuation|reply language detected|developer diagnostics/i;
 
 function getSmokeAdminClient() {
   return createClient(supabaseUrl, supabaseServiceRoleKey, {
@@ -1172,6 +1174,7 @@ test.describe("core chat smoke", () => {
       )
     ).toBeVisible({ timeout: 45_000 });
     await expect(latestSummary.locator(".runtime-summary-reason")).toHaveCount(1);
+    await expect(latestSummary).not.toContainText(developerDiagnosticsLeakPattern);
   });
 
   test("keeps same-thread relationship style and language continuity on short follow-ups", async ({

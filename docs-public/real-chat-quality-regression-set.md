@@ -13,6 +13,7 @@ This is intentionally lightweight. It is not a heavy evaluation platform. It is 
    - the model profile used
    - the final answer
    - the runtime summary outcome
+   - whether the runtime summary still feels like a short user explanation instead of a developer diagnostics panel
    - the first turn where style, language, or structured recall starts to weaken, if it weakens at all
 4. Compare against the same baseline before deciding whether quality improved.
 
@@ -103,9 +104,34 @@ Failure conditions:
 - count it as failed if opening, explanatory, or closing turns stop reflecting the same-thread relationship style while the relationship memory is still active
 - count it as failed if the answer still sounds correct in content but no longer performs the expected relationship cues
 
+### 3. Default explanation UI stays short even when runtime diagnostics become richer
+
+- Scenario pack: `Relationship Maintenance Pack`
+- Priority: `P1`
+- Category: `explanation`
+- Purpose: verify that the explanation surface shown to normal users stays focused on one main reason and brief outcomes instead of turning into an engineering diagnostics panel as runtime metadata grows
+
+Steps:
+
+1. Open the runtime summary under the latest assistant reply.
+2. Check the summary headline and the first explanation sentence.
+3. Scan the visible summary body for developer-only wording such as `answer strategy`, `same-thread continuation`, or raw language-detection labels.
+
+Success criteria:
+
+- the toggle and headline still read like a short user-facing explanation
+- the expanded summary keeps one main reason in the first layer instead of stacking multiple primary explanations
+- developer-only diagnostics stay absent from the default visible summary surface
+
+Failure conditions:
+
+- count it as failed if the default explanation grows into multiple top-level reason paragraphs instead of one main reason
+- count it as failed if developer-only labels such as `answer strategy`, `same-thread continuation`, or raw language-detection fields appear in the default visible summary
+- count it as failed if the explanation copy becomes noticeably longer or more technical than a short user-facing note
+
 ## Memory Confirmation Pack
 
-### 3. Remembered profession stays faithful across a longer direct-question chain
+### 4. Remembered profession stays faithful across a longer direct-question chain
 
 - Scenario pack: `Memory Confirmation Pack`
 
@@ -136,7 +162,7 @@ Failure conditions:
 
 ## Mixed-Language Pack
 
-### 4. Replies follow the latest user message language across a longer mixed-language chain
+### 5. Replies follow the latest user message language across a longer mixed-language chain
 
 - Scenario pack: `Mixed-Language Pack`
 
@@ -168,7 +194,7 @@ Failure conditions:
 
 ## Correction Aftermath Pack
 
-### 5. Incorrect and restore change later recall eligibility predictably after several turns
+### 6. Incorrect and restore change later recall eligibility predictably after several turns
 
 - Scenario pack: `Correction Aftermath Pack`
 

@@ -13,6 +13,7 @@
    - 当前 model profile
    - 最终回答
    - runtime summary 结果
+   - runtime summary 默认看起来是否仍像简短用户解释，而不是开发排障面板
    - 如果开始变差，是第几轮开始出现风格衰减、语言漂移或 structured recall 减弱
 4. 与同一基线对比，再判断这次改动到底是变好还是变差。
 
@@ -103,9 +104,34 @@ npm run quality:eval -- --suite=real-chat --format=json
 - 如果开场、解释型或收尾型回答不再体现同线程 relationship 风格，而 relationship memory 仍应继续生效，也算掉
 - 如果回答内容本身还算正确，但 relationship 表现层已经明显消失，也算掉
 
+### 3. 默认 explanation UI 在 diagnostics 变多后仍保持简短
+
+- 场景包：`关系维持包`
+- 优先级：`P1`
+- 类别：`explanation`
+- 目标：确认普通用户看到的 explanation surface 仍聚焦于一条主要依据和简短结果提示，而不是随着 runtime metadata 增长慢慢变成工程诊断面板
+
+步骤：
+
+1. 展开最新 assistant 回复下方的 runtime summary。
+2. 检查 summary headline 和第一条解释语句。
+3. 扫描默认可见的 summary 内容，确认没有出现 `answer strategy`、`same-thread continuation`、原始语言检测标签之类仅面向开发排障的表述。
+
+成功标准：
+
+- toggle 和 headline 仍然像面向用户的简短说明
+- 展开后的第一层只保留一条主要依据，而不是堆多条主解释
+- 默认可见的 summary surface 不出现开发排障字段
+
+失败条件：
+
+- 只要默认 explanation 长回成多条顶层 reason 段落，而不是一条主要依据，就算掉
+- 只要默认可见 summary 出现 `answer strategy`、`same-thread continuation` 或原始语言检测字段，也算掉
+- 只要 explanation 文案明显变长、变技术化，不再像简短用户说明，也算掉
+
 ## 记忆确认包
 
-### 3. 用户职业在更长一串直接追问里仍然忠实体现
+### 4. 用户职业在更长一串直接追问里仍然忠实体现
 
 - 场景包：`记忆确认包`
 
@@ -136,7 +162,7 @@ npm run quality:eval -- --suite=real-chat --format=json
 
 ## 混合语言包
 
-### 4. 回复在更长多轮里优先跟随当前用户最后一条消息语言，而不是漂移
+### 5. 回复在更长多轮里优先跟随当前用户最后一条消息语言，而不是漂移
 
 - 场景包：`混合语言包`
 
@@ -168,7 +194,7 @@ npm run quality:eval -- --suite=real-chat --format=json
 
 ## 纠错后续包
 
-### 5. incorrect / restore 会在多轮后续对话里稳定改变 recall 资格
+### 6. incorrect / restore 会在多轮后续对话里稳定改变 recall 资格
 
 - 场景包：`纠错后续包`
 

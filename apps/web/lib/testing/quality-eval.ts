@@ -12,6 +12,7 @@ export type QualityEvalCase = {
     | "language"
     | "thread"
     | "correction"
+    | "explanation"
     | "model-profile"
     | "scope"
     | "update"
@@ -400,6 +401,38 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
     successCriteria: [
       "Relationship style remains visible across opening, middle, and closing-style turns in the same thread.",
       "Same-thread continuity wins over distant defaults."
+    ]
+  },
+  {
+    id: "real-chat-explanation-layer-guardrail",
+    title: "Default explanation UI stays short even when runtime diagnostics become richer",
+    priority: "P1",
+    scenarioPack: "relationship-maintenance",
+    category: "explanation",
+    purpose:
+      "Verify that the explanation surface shown to normal users stays focused on one main reason and brief outcomes instead of turning into an engineering diagnostics panel as runtime metadata grows.",
+    setup: [
+      "Use any active agent and create at least one assistant reply that produces a runtime summary.",
+      "Prefer a reply that uses memory so the summary has something meaningful to show."
+    ],
+    steps: [
+      "Open the runtime summary under the latest assistant reply.",
+      "Check the summary headline and the first explanation sentence.",
+      "Scan the visible summary body for developer-only diagnostic wording such as answer strategy, same-thread continuation, or raw language-detection labels."
+    ],
+    observe: [
+      "Whether the toggle and headline still read like a short user-facing explanation instead of a debugging panel.",
+      "Whether the expanded summary keeps one main reason in the first layer instead of stacking multiple primary explanations.",
+      "Whether developer-only diagnostics remain absent from the default visible summary surface."
+    ],
+    failureConditions: [
+      "Count it as failed if the default explanation grows into multiple top-level reason paragraphs instead of one main reason.",
+      "Count it as failed if developer-only labels such as answer strategy, same-thread continuation, or raw language-detection fields appear in the default visible summary.",
+      "Count it as failed if the explanation copy becomes noticeably longer or more technical than a short user-facing note."
+    ],
+    successCriteria: [
+      "The default explanation still reads like one short main reason plus lightweight outcome hints.",
+      "Developer diagnostics stay separate from the user explanation layer by default."
     ]
   },
   {
