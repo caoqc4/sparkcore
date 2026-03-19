@@ -39,12 +39,20 @@ export type QualityEvalFailureAttribution = {
   notes: string[];
 };
 
+export type QualityEvalAcceptanceThresholds = {
+  pass: string[];
+  acceptableMinorDrift: string[];
+  mustOpenIssue: string[];
+  notes: string[];
+};
+
 export type QualityEvalSuite = {
   id: "stage1" | "memory-v2" | "real-chat";
   title: string;
   intro: string;
   cases: QualityEvalCase[];
   failureAttribution?: QualityEvalFailureAttribution;
+  acceptanceThresholds?: QualityEvalAcceptanceThresholds;
 };
 
 export const stage1QualityEvalSet: QualityEvalCase[] = [
@@ -584,6 +592,29 @@ export const qualityEvalSuites: Record<QualityEvalSuite["id"], QualityEvalSuite>
     intro:
       "Use this set when answer fidelity, language consistency, and relationship continuity change and you want a fixed baseline closer to real trial conversations, with explicit checkpoints for where decay first appears.",
     cases: realChatQualityRegressionSet,
+    acceptanceThresholds: {
+      pass: [
+        "All P0 cases pass without a recorded failing turn.",
+        "No case needs a drift-dimension note because no material drift appears.",
+        "The default explanation layer still stays lightweight and user-facing."
+      ],
+      acceptableMinorDrift: [
+        "A single P1-only case shows a minor drift, but the run still has no P0 failure.",
+        "The drift is isolated to one turn, remains recoverable within the same case, and does not break the case's main contract.",
+        "The run still records the first failing turn, drift dimension, and one main developer reason so the drift can be watched later."
+      ],
+      mustOpenIssue: [
+        "Any P0 case records a failing turn.",
+        "Any drift clearly breaks the main contract of fidelity, language, relationship continuity, or correction consistency for that case.",
+        "The same drift dimension appears across more than one case or scenario pack in the same run.",
+        "A minor drift repeats across runs instead of remaining isolated."
+      ],
+      notes: [
+        "Do not turn minor wording preference differences into failures unless they clearly break a case's main contract.",
+        "Use the first failing turn and drift dimension to decide severity before discussing possible root causes.",
+        "If a run lands in the acceptable-minor-drift bucket, finish the run, record it, and only then decide whether to open a follow-up issue."
+      ]
+    },
     failureAttribution: {
       requiredFields: [
         "scenario_pack",

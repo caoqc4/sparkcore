@@ -64,6 +64,35 @@ npm run quality:eval -- --suite=real-chat --format=json
 - 漂移维度尽量只选最小、最能解释问题的那一个
 - developer reason 保持轻量，只抓最能解释失败 turn 的那一条 clue，不要整段贴完整 metadata
 
+## 验收通过标准
+
+下一轮验收先按这套轻量门槛判断：
+
+通过：
+
+- 所有 `P0` case 都没有记录 failing turn
+- 没有任何 case 需要补 drift-dimension note，因为没有出现实质性漂移
+- 默认 explanation layer 仍保持轻量、面向普通用户
+
+可接受轻微漂移：
+
+- 只有一条 `P1` case 出现轻微漂移，且本轮没有任何 `P0` 失败
+- 漂移只出现在单一 turn，并且在同一 case 内可恢复，没有破坏这条 case 的主合同
+- 本轮仍然记录了 first failing turn、drift dimension 和一条 main developer reason，方便后续继续观察
+
+必须开 issue：
+
+- 任意一条 `P0` case 记录了 failing turn
+- 某条漂移已经明确打破该 case 的主合同：`fidelity`、`language`、`relationship-continuity` 或 `correction-consistency`
+- 同一种 drift dimension 在同一轮里跨多个 case 或多个 scenario pack 重复出现
+- 之前只算轻微漂移的问题，在后续 run 里重复出现，不再是孤立现象
+
+判断备注：
+
+- 不要把纯措辞偏好差异直接当成失败，除非它已经明显破坏 case 主合同
+- 先根据 first failing turn 和 drift dimension 定严重度，再讨论可能根因
+- 如果一轮只落在“可接受轻微漂移”，先把整轮跑完并记录清楚，再决定是否要补 follow-up issue
+
 ## 场景包
 
 这组回归样例现在按轻量 `scenario pack` 分组，方便把更长链路的回归执行、记录和后续扩展拆成几个稳定场景，而不是继续维护一张平铺清单。

@@ -43,6 +43,29 @@ function renderMarkdown(suiteId: keyof typeof qualityEvalSuites) {
     lines.push("");
   }
 
+  if (suite.acceptanceThresholds) {
+    lines.push("## Acceptance Thresholds");
+    lines.push("");
+    lines.push("Pass:");
+    lines.push(...suite.acceptanceThresholds.pass.map((entry) => `- ${entry}`));
+    lines.push("");
+    lines.push("Acceptable minor drift:");
+    lines.push(
+      ...suite.acceptanceThresholds.acceptableMinorDrift.map(
+        (entry) => `- ${entry}`
+      )
+    );
+    lines.push("");
+    lines.push("Must-open-issue:");
+    lines.push(
+      ...suite.acceptanceThresholds.mustOpenIssue.map((entry) => `- ${entry}`)
+    );
+    lines.push("");
+    lines.push("Decision notes:");
+    lines.push(...suite.acceptanceThresholds.notes.map((entry) => `- ${entry}`));
+    lines.push("");
+  }
+
   let activeScenarioPack: keyof typeof REAL_CHAT_SCENARIO_PACK_LABELS | null = null;
 
   for (const item of suite.cases) {

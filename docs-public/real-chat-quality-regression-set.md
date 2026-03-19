@@ -64,6 +64,35 @@ Recording notes:
 - use the smallest single drift dimension that best explains the failure
 - keep the developer reason lightweight: capture the one clue that best explains the failing turn instead of dumping the whole metadata object
 
+## Acceptance Thresholds
+
+Use the following lightweight thresholds for the next acceptance pass:
+
+Pass:
+
+- all `P0` cases pass without a recorded failing turn
+- no case needs a drift-dimension note because no material drift appears
+- the default explanation layer still stays lightweight and user-facing
+
+Acceptable minor drift:
+
+- one `P1`-only case shows a minor drift, but the run still has no `P0` failure
+- the drift is isolated to one turn, recovers within the same case, and does not break the case's main contract
+- the run still records the first failing turn, drift dimension, and one main developer reason so the drift can be watched later
+
+Must-open-issue:
+
+- any `P0` case records a failing turn
+- any drift clearly breaks the main contract of `fidelity`, `language`, `relationship-continuity`, or `correction-consistency` for that case
+- the same drift dimension appears across more than one case or scenario pack in the same run
+- a previously minor drift repeats across runs instead of remaining isolated
+
+Decision notes:
+
+- do not turn minor wording preference differences into failures unless they clearly break a case's main contract
+- decide severity from the first failing turn and drift dimension before debating root causes
+- if a run lands in the acceptable-minor-drift bucket, finish the run, record it, and only then decide whether to open a follow-up issue
+
 ## Scenario Packs
 
 This set is grouped into lightweight scenario packs so longer regression runs are easier to assign, compare, and extend without turning into one flat list.
