@@ -75,7 +75,7 @@ export function getChatCopy(locale: ChatLocale) {
         profileBestForPrefix: "适合：",
         profileRecommendationPrefix: "建议：",
         profileRecommendationSummary:
-          "如果你不确定，先从默认首选开始；当名字、称呼、职业或偏好这类直问更重要时，再切到更偏记忆的配置。",
+          "不确定时先从默认首选开始；名字、称呼、职业或偏好这类直问更重要时，再切到偏记忆的配置。",
         currentAgentImpact:
           "这个 agent 已绑定到当前线程。当相关时它可以引用长期记忆，这里做的任何修改只会影响这个线程之后的回复。",
         defaultAgentImpact:
@@ -86,15 +86,15 @@ export function getChatCopy(locale: ChatLocale) {
       memory: {
         title: "记忆",
         helper:
-          "最近的 profile / preference 记忆会保留在聊天工作台里，让你能看清系统记住了什么。",
+          "在这里看系统记住了什么，以及它现在会不会生效。",
         hint:
-          "在这里查看哪些长期记忆可用、被隐藏，或被标记为错误。",
+          "查看哪些长期记忆可用、已隐藏或已标错。",
         longTermTitle: "长期记忆",
         longTermHelper:
-          "这些记忆会跨线程保留，并根据作用域决定是全局可用，还是只对当前 agent 生效。",
+          "这些记忆会跨线程保留，并按作用域决定是全局生效还是只对当前 agent 生效。",
         threadLocalTitle: "当前线程约定",
         threadLocalHelper:
-          "这些内容只在当前线程内生效，不会自动变成跨线程的长期记忆。",
+          "这些内容只在当前线程内生效，不会自动变成长期记忆。",
         trustNote:
           "这里的信任提示保持轻量：低置信记忆会弱化展示，被隐藏的记忆在恢复前不会参与 recall，被标错的记忆会发出更强的纠错信号。",
         policyTitle1:
@@ -275,7 +275,7 @@ export function getChatCopy(locale: ChatLocale) {
         noWorkspaceDefault:
           "当前还没有设置工作区默认 agent。这个线程仍然保留自己的绑定 agent。",
         runtimeHint:
-          "想知道这一轮用了哪个 agent、模型配置和记忆上下文，可以查看 assistant 回复下方的轻量摘要。",
+          "想知道这轮为什么这样回答，查看 assistant 回复下方的轻量摘要。",
         statusActive: "进行中",
         messagesSuffix: "条消息",
         firstTurnLead:
@@ -294,7 +294,7 @@ export function getChatCopy(locale: ChatLocale) {
         memoryContext: "记忆上下文",
         memoryActivity: "记忆活动",
         summaryNote:
-          "这个摘要只属于当前 assistant 回合。它展示了当前线程 agent 如何处理这条回复，不会重写线程里的旧回合。",
+          "这个摘要只解释当前回合，不会改写旧回复。",
         messageLabel: "消息",
         placeholderFirstTurn: "用一个目标、问题或规划场景开始这条线程……",
         placeholderOngoing: "在当前线程里发送一条消息……",
@@ -398,15 +398,15 @@ export function getChatCopy(locale: ChatLocale) {
     memory: {
       title: "Memory",
       helper:
-        "Recent profile and preference memories stay visible inside chat so you can understand what the system has retained.",
+        "See what the system remembers here, and whether it is active right now.",
       hint:
-        "Use this panel to see which long-term memories are available, hidden, or marked incorrect.",
+        "See which long-term memories are active, hidden, or marked incorrect.",
       longTermTitle: "Long-term memory",
       longTermHelper:
-        "These memories persist across threads. Their scope shows whether they are global or only apply to this agent.",
+        "These memories persist across threads, either globally or only for this agent.",
       threadLocalTitle: "Current-thread notes",
       threadLocalHelper:
-        "These entries only apply inside the current thread and are not treated as cross-thread long-term memory.",
+        "These entries only apply inside the current thread and do not become long-term memory automatically.",
       trustNote:
         "Trust cues stay lightweight here: lower-confidence memories are softened visually, hidden memories stay out of recall until restored, and incorrect memories send a stronger correction signal.",
       policyTitle1:
@@ -536,7 +536,7 @@ export function getChatCopy(locale: ChatLocale) {
       modelProfile: "Model profile",
       profileHelper: "Switching the model profile only affects future replies from this agent.",
       profileRecommendationSummary:
-        "If you are unsure, start with the default profile. Switch to the memory-oriented profile when direct questions about names, profession, preferences, or relationship cues matter more. Use the low-cost option only for quick smoke runs.",
+        "If you are unsure, start with the default profile. Switch to the memory-oriented one when direct questions about names, profession, preferences, or relationship cues matter more.",
       profilePositioning: "Best for",
       profileRecommendation: "Switch to this when",
       profilePositioningStable: "Best starting point",
@@ -589,7 +589,7 @@ export function getChatCopy(locale: ChatLocale) {
       noWorkspaceDefault:
         "No workspace default agent is set. This thread still keeps its own bound agent.",
       runtimeHint:
-        "Look for the lightweight summary under assistant replies when you want to understand which agent, model profile, and memory context were used for that turn.",
+        "Use the lightweight summary under assistant replies when you want the main reason behind that turn.",
       statusActive: "active",
       messagesSuffix: "messages",
       firstTurnLead:
@@ -608,7 +608,7 @@ export function getChatCopy(locale: ChatLocale) {
       memoryContext: "Memory context",
       memoryActivity: "Memory activity",
       summaryNote:
-        "This summary belongs only to this assistant turn. It shows how the current thread agent handled this reply and does not rewrite older turns in the thread.",
+        "This summary only explains the current turn. It does not rewrite older replies.",
       messageLabel: "Message",
       placeholderFirstTurn:
         "Start the thread with a goal, question, or planning problem...",

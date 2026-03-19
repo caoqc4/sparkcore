@@ -265,27 +265,7 @@ function getRuntimeSummary(
                     .join(" + ")
                 : "memory"
             }`
-        : isZh
-          ? "本轮没有新增记忆"
-          : "No new memory saved";
-
-  if (memoryTypesUsed.length > 0) {
-    outcomeHints.push(
-      isZh
-        ? `本轮使用了 ${memoryTypesUsed
-            .map((type) => formatMemoryTypeLabel(type, locale))
-            .join(" + ")} 记忆。`
-        : `This turn used ${memoryTypesUsed
-            .map((type) => formatMemoryTypeLabel(type, locale))
-            .join(" + ")} memory.`
-    );
-  } else if (memoryUsed === false) {
-    outcomeHints.push(
-      isZh
-        ? "这条回复没有使用长期记忆。"
-        : "No long-term memory was used for this reply."
-    );
-  }
+        : null;
 
   if (hiddenExclusionCount > 0) {
     outcomeHints.push(
@@ -349,25 +329,25 @@ function getRuntimeSummaryHeadline(
 
   if (hasMemoryReason && hasProfileReason) {
     return copy.locale === "zh-CN"
-      ? "这轮的回答主要受已命中的记忆和当前模型配置共同影响。"
-      : "This turn was shaped mainly by the recalled memory and the current model profile.";
+      ? "这轮主要受记忆和当前配置共同影响。"
+      : "This turn was shaped mainly by memory plus the current profile.";
   }
 
   if (hasMemoryReason) {
     return copy.locale === "zh-CN"
-      ? "这轮的回答主要受已命中的记忆影响。"
-      : "This turn was shaped mainly by the recalled memory.";
+      ? "这轮主要受已命中的记忆影响。"
+      : "This turn was shaped mainly by recalled memory.";
   }
 
   if (hasProfileReason) {
     return copy.locale === "zh-CN"
-      ? "这轮的回答主要受当前模型配置影响。"
-      : "This turn was shaped mainly by the current model profile.";
+      ? "这轮主要受当前模型配置影响。"
+      : "This turn was shaped mainly by the current profile.";
   }
 
   return copy.locale === "zh-CN"
-    ? "这条摘要解释了这轮回答背后的主要原因。"
-    : "This summary explains the main reasons behind the turn.";
+    ? "这条摘要解释了这轮回答的主要原因。"
+    : "This summary explains the main reason behind the turn.";
 }
 
 export function ChatThreadView({
@@ -815,9 +795,6 @@ export function ChatThreadView({
                             </>
                           ) : null}
                         </dl>
-                        <p className="runtime-summary-note">
-                          {copy.thread.summaryNote}
-                        </p>
                       </details>
                     ) : null}
                   </>
