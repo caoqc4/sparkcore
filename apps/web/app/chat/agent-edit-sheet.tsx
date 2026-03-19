@@ -60,27 +60,31 @@ export function AgentEditSheet({
     if (tier.includes("stable")) {
       return {
         label: copy.sheets.profilePositioningStable,
-        helper: copy.sheets.profilePositioningStableHelper
+        helper: copy.sheets.profilePositioningStableHelper,
+        tradeoff: copy.sheets.profileTradeoffStableHelper
       };
     }
 
     if (tier.includes("memory")) {
       return {
         label: copy.sheets.profilePositioningMemory,
-        helper: copy.sheets.profilePositioningMemoryHelper
+        helper: copy.sheets.profilePositioningMemoryHelper,
+        tradeoff: copy.sheets.profileTradeoffMemoryHelper
       };
     }
 
     if (tier.includes("low-cost") || tier.includes("low cost")) {
       return {
         label: copy.sheets.profilePositioningLowCost,
-        helper: copy.sheets.profilePositioningLowCostHelper
+        helper: copy.sheets.profilePositioningLowCostHelper,
+        tradeoff: copy.sheets.profileTradeoffLowCostHelper
       };
     }
 
     return {
       label: copy.sheets.profilePositioningGeneric,
-      helper: copy.sheets.profilePositioningGenericHelper
+      helper: copy.sheets.profilePositioningGenericHelper,
+      tradeoff: copy.sheets.profileTradeoffGenericHelper
     };
   }
 
@@ -281,17 +285,29 @@ export function AgentEditSheet({
                 </span>
                 {selectedModelProfile ? (
                   <>
+                    {(() => {
+                      const positioning = getProfilePositioning(selectedModelProfile);
+
+                      return (
                     <div className="sheet-pack-preview">
                       <p className="sheet-pack-name">
                         {copy.sheets.profilePositioning}
                       </p>
                       <p className="thread-link-meta">
-                        {getProfilePositioning(selectedModelProfile).label}
+                            {positioning.label}
                       </p>
                       <p className="helper-copy">
-                        {getProfilePositioning(selectedModelProfile).helper}
+                            {positioning.helper}
                       </p>
+                          <p className="sheet-pack-name">
+                            {copy.sheets.profileTradeoff}
+                          </p>
+                          <p className="helper-copy">
+                            {positioning.tradeoff}
+                          </p>
                     </div>
+                      );
+                    })()}
                     {selectedModelProfile.usage_note ? (
                       <span className="helper-copy">
                         {selectedModelProfile.usage_note}
