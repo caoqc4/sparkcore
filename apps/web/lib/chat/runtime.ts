@@ -44,10 +44,15 @@ function isRelationshipExplanatoryPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return (
+    normalized.includes("接下来你会怎么帮助我") ||
+    normalized.includes("你会怎么帮助我") ||
+    normalized.includes("那你会怎么帮我继续") ||
     normalized.includes("如果我今天状态不太好") ||
     normalized.includes("你会怎么和我说") ||
     normalized.includes("你会怎么解释") ||
     normalized.includes("你会怎么安慰我") ||
+    normalized.includes("how would you help me continue") ||
+    normalized.includes("how would you help me next") ||
     normalized.includes("how would you explain that") ||
     normalized.includes("how would you say that to me") ||
     normalized.includes("if i was having a rough day")
@@ -858,6 +863,14 @@ function getAnswerQuestionRouting(params: {
     };
   }
 
+  if (relationshipStylePrompt) {
+    return {
+      questionType: "open-ended-summary",
+      reasonCode: "relationship-answer-shape-prompt",
+      continuationReasonCode: null
+    };
+  }
+
   if (isOpenEndedAdviceQuestion(latestUserMessage)) {
     return {
       questionType: "open-ended-advice",
@@ -870,14 +883,6 @@ function getAnswerQuestionRouting(params: {
     return {
       questionType: "open-ended-summary",
       reasonCode: "open-ended-summary-prompt",
-      continuationReasonCode: null
-    };
-  }
-
-  if (relationshipStylePrompt) {
-    return {
-      questionType: "open-ended-summary",
-      reasonCode: "relationship-answer-shape-prompt",
       continuationReasonCode: null
     };
   }

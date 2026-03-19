@@ -2359,6 +2359,56 @@ test.describe("core chat smoke", () => {
     expect(metadata.continuation_reason_code).toBeNull();
   });
 
+  test("keeps seeded relationship style on explanatory follow-ups in the same thread", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后和我说话轻松一点，可以吗？",
+      "请简单介绍一下你自己。",
+      "接下来你会怎么帮助我？"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.question_type).toBe("open-ended-summary");
+    expect(metadata.answer_strategy).toBe("grounded-open-ended-summary");
+    expect(metadata.answer_strategy_reason_code).toBe(
+      "relationship-answer-shape-prompt"
+    );
+    expect(metadata.continuation_reason_code).toBeNull();
+    expect(metadata.recent_raw_turn_count).toBe(5);
+    expect(metadata.approx_context_pressure).toBe("low");
+  });
+
   test("uses the default-grounded fallback branch for uncategorized grounded prompts", async ({
     request
   }) => {
