@@ -48,6 +48,27 @@ npm run quality:eval -- --suite=real-chat --format=json
 - 当主要比较目标是直接 recall 忠实度或 correction-aftermath 一致性时，用 `Spark Memory Sensitive`
 - 如果后续某轮刻意改了这个矩阵，要显式记录，不要把 profile 变化悄悄混进验收结论里
 
+## 第一轮 8 到 12 Turn 验收固定执行环境
+
+第一轮 gate 还要固定成一套小而明确的环境基线，这样后续重跑时更容易区分到底是产品漂移，还是执行环境漂移。
+
+- 整轮都固定同一套 provider 和 LiteLLM alias 映射
+- 显式记录当前 profile 基线：
+  - `Spark Default` -> `replicate` / `replicate-gpt-4o-mini`
+  - `Spark Memory Sensitive` -> `replicate` / `replicate-claude-4-sonnet`
+- 整轮都固定同一套运行环境：
+  - 使用同一个 repo revision 和同一个 app build
+  - 使用同一个 `LITELLM_BASE_URL` 和 `LITELLM_API_KEY`
+  - 不要在跑到一半时改 profile seeds、provider routing 或 model-profile 映射
+- 整轮都固定实验开关和 smoke-mode 开关：
+  - 如果这轮使用本地 smoke mode，就固定 `PLAYWRIGHT_SMOKE_MODE=1`
+  - 整轮都使用同一套 smoke secret 和 smoke credentials
+  - 不要在中途切换额外 runtime experiments
+- 整轮都固定语言起始条件：
+  - 每个 scenario pack 都按样例脚本里原本写好的起始语言开始
+  - 不要在脚本外临时追加语言切换指令
+- 这只是第一轮 gate 的基线约束，不是永久产品约束
+
 ## 第一轮 8 到 12 Turn 验收作为 Milestone Gate
 
 第一轮 `8 到 12 turn` 长链路验收要按 milestone gate 来看，而不是普通回归轮。

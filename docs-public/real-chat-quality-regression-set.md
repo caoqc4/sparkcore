@@ -48,6 +48,27 @@ Notes:
 - use `Spark Memory Sensitive` where direct recall fidelity or correction-aftermath consistency are the main comparison target
 - if you intentionally change this matrix in a later run, record that change explicitly instead of silently mixing profile variation into the acceptance notes
 
+## Frozen Execution Environment For The First 8 To 12 Turn Acceptance Run
+
+Freeze this first gate run to one small environment baseline so later reruns can distinguish product drift from environment drift more cleanly.
+
+- keep the active provider and LiteLLM alias mapping fixed for the whole run
+- record the current profile baseline explicitly:
+  - `Spark Default` -> `replicate` / `replicate-gpt-4o-mini`
+  - `Spark Memory Sensitive` -> `replicate` / `replicate-claude-4-sonnet`
+- keep the runtime environment fixed for the whole run:
+  - use the same repo revision and the same app build
+  - use the same `LITELLM_BASE_URL` and `LITELLM_API_KEY`
+  - do not change profile seeds, provider routing, or model-profile mappings mid-run
+- keep experimental and smoke-mode switches fixed for the whole run:
+  - if the run uses local smoke mode, keep `PLAYWRIGHT_SMOKE_MODE=1`
+  - keep the same smoke secret and smoke credentials for the whole run
+  - do not toggle extra runtime experiments mid-run
+- keep the starting language conditions fixed:
+  - start each scenario pack in the language already authored in the pack
+  - do not add ad-hoc language-switch instructions outside the scripted scenario
+- treat this as a gate baseline, not a permanent product constraint
+
 ## Milestone Gate For The First 8 To 12 Turn Acceptance Run
 
 Treat this first `8 to 12 turn` long-chain acceptance pass as a milestone gate instead of an ordinary regression cycle.
