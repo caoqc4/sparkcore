@@ -1,5 +1,12 @@
 import { qualityEvalSuites } from "@/lib/testing/quality-eval";
 
+const REAL_CHAT_SCENARIO_PACK_LABELS = {
+  "memory-confirmation": "Memory Confirmation Pack",
+  "relationship-maintenance": "Relationship Maintenance Pack",
+  "mixed-language": "Mixed-Language Pack",
+  "correction-aftermath": "Correction Aftermath Pack"
+} as const;
+
 function renderMarkdown(suiteId: keyof typeof qualityEvalSuites) {
   const suite = qualityEvalSuites[suiteId];
   const lines: string[] = [
@@ -9,9 +16,30 @@ function renderMarkdown(suiteId: keyof typeof qualityEvalSuites) {
     ""
   ];
 
+  let activeScenarioPack: keyof typeof REAL_CHAT_SCENARIO_PACK_LABELS | null = null;
+
   for (const item of suite.cases) {
-    lines.push(`## ${item.id} — ${item.title}`);
+    if (suiteId === "real-chat" && item.scenarioPack) {
+      if (activeScenarioPack !== item.scenarioPack) {
+        activeScenarioPack = item.scenarioPack;
+        lines.push(`## ${REAL_CHAT_SCENARIO_PACK_LABELS[item.scenarioPack]}`);
+        lines.push("");
+      }
+    }
+
+    lines.push(
+      `${suiteId === "real-chat" ? "###" : "##"} ${item.id} — ${item.title}`
+    );
     lines.push("");
+    if (item.scenarioPack) {
+      lines.push(
+        `- Scenario pack: ${
+          suiteId === "real-chat"
+            ? REAL_CHAT_SCENARIO_PACK_LABELS[item.scenarioPack]
+            : item.scenarioPack
+        }`
+      );
+    }
     lines.push(`- Priority: ${item.priority}`);
     lines.push(`- Category: ${item.category}`);
     lines.push(`- Purpose: ${item.purpose}`);

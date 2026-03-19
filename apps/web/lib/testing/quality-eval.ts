@@ -2,6 +2,11 @@ export type QualityEvalCase = {
   id: string;
   title: string;
   priority: "P0" | "P1";
+  scenarioPack?:
+    | "memory-confirmation"
+    | "relationship-maintenance"
+    | "mixed-language"
+    | "correction-aftermath";
   category:
     | "memory"
     | "language"
@@ -328,6 +333,7 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
     id: "real-chat-same-agent-relationship-continuity",
     title: "Same-agent nickname and preferred-name continuity survives a new thread and later short follow-ups",
     priority: "P0",
+    scenarioPack: "relationship-maintenance",
     category: "thread",
     purpose:
       "Verify that relationship memories still feel continuous when a new thread is started with the same agent, and that they keep showing up after short follow-up turns instead of appearing only once.",
@@ -363,9 +369,44 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
     ]
   },
   {
+    id: "real-chat-relationship-style-continuity",
+    title: "Relationship style continuity remains visible from opening to closing turns in a longer chain",
+    priority: "P0",
+    scenarioPack: "relationship-maintenance",
+    category: "fidelity",
+    purpose:
+      "Verify that relationship recall is not only remembered but also expressed consistently from the opening turn through mid-thread and closing-style follow-ups.",
+    setup: [
+      'Seed a relationship style such as: "以后和我说话轻松一点，可以吗？"',
+      "Stay in the same thread with the same agent."
+    ],
+    steps: [
+      'Turn 1: ask "请简单介绍一下你自己。"',
+      'Turn 2: ask "接下来你会怎么帮助我？"',
+      'Turn 3: ask "如果我今天状态不太好，你会怎么和我说？"',
+      'Turn 4: ask "最后你会怎么陪我把事情推进下去？"',
+      'Turn 5: ask "那你再简单鼓励我一句。"' 
+    ],
+    observe: [
+      "Whether the tone stays lightweight and consistent across all replies.",
+      "Whether the middle and later answers preserve the same-thread style instead of snapping back to a neutral default.",
+      "At which turn the relationship style first becomes noticeably flatter, if it becomes flatter."
+    ],
+    failureConditions: [
+      "Count it as failed at the first turn where the relationship tone clearly drops back to the default neutral style instead of keeping the seeded relationship style.",
+      "Count it as failed if opening, explanatory, or closing turns stop reflecting the same-thread relationship style while the relationship memory is still active.",
+      "Count it as failed if the answer still sounds correct in content but no longer performs the expected relationship cues."
+    ],
+    successCriteria: [
+      "Relationship style remains visible across opening, middle, and closing-style turns in the same thread.",
+      "Same-thread continuity wins over distant defaults."
+    ]
+  },
+  {
     id: "real-chat-profession-recall",
     title: "Remembered profession stays faithful across a longer direct-question chain",
     priority: "P0",
+    scenarioPack: "memory-confirmation",
     category: "fidelity",
     purpose:
       "Verify that a recalled profession memory is reflected directly across more than one direct question instead of being watered down, contradicted, or forgotten after one correct answer.",
@@ -401,6 +442,7 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
     id: "real-chat-latest-language-priority",
     title: "Replies follow the latest user message language across a longer mixed-language chain",
     priority: "P0",
+    scenarioPack: "mixed-language",
     category: "language",
     purpose:
       "Verify that the latest user turn has the highest language priority across a short sequence, even when earlier turns or recalled memory use another language.",
@@ -434,42 +476,10 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
     ]
   },
   {
-    id: "real-chat-relationship-style-continuity",
-    title: "Relationship style continuity remains visible from opening to closing turns in a longer chain",
-    priority: "P0",
-    category: "fidelity",
-    purpose:
-      "Verify that relationship recall is not only remembered but also expressed consistently from the opening turn through mid-thread and closing-style follow-ups.",
-    setup: [
-      'Seed a relationship style such as: "以后和我说话轻松一点，可以吗？"',
-      "Stay in the same thread with the same agent."
-    ],
-    steps: [
-      'Turn 1: ask "请简单介绍一下你自己。"',
-      'Turn 2: ask "接下来你会怎么帮助我？"',
-      'Turn 3: ask "如果我今天状态不太好，你会怎么和我说？"',
-      'Turn 4: ask "最后你会怎么陪我把事情推进下去？"',
-      'Turn 5: ask "那你再简单鼓励我一句。"' 
-    ],
-    observe: [
-      "Whether the tone stays lightweight and consistent across all replies.",
-      "Whether the middle and later answers preserve the same-thread style instead of snapping back to a neutral default.",
-      "At which turn the relationship style first becomes noticeably flatter, if it becomes flatter."
-    ],
-    failureConditions: [
-      "Count it as failed at the first turn where the relationship tone clearly drops back to the default neutral style instead of keeping the seeded relationship style.",
-      "Count it as failed if opening, explanatory, or closing turns stop reflecting the same-thread relationship style while the relationship memory is still active.",
-      "Count it as failed if the answer still sounds correct in content but no longer performs the expected relationship cues."
-    ],
-    successCriteria: [
-      "Relationship style remains visible across opening, middle, and closing-style turns in the same thread.",
-      "Same-thread continuity wins over distant defaults."
-    ]
-  },
-  {
     id: "real-chat-incorrect-restore-cycle",
     title: "Incorrect and restore change later recall eligibility predictably after several turns",
     priority: "P0",
+    scenarioPack: "correction-aftermath",
     category: "correction",
     purpose:
       "Verify that a corrected memory really stops affecting later replies after the conversation continues for a few turns, and that restore brings it back in a predictable way.",

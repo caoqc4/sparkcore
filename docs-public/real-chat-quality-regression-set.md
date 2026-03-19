@@ -30,9 +30,22 @@ cd apps/web
 npm run quality:eval -- --suite=real-chat --format=json
 ```
 
+## Scenario Packs
+
+This set is grouped into lightweight scenario packs so longer regression runs are easier to assign, compare, and extend without turning into one flat list.
+
+- `Relationship Maintenance Pack`: checks same-agent continuity, nickname/preferred-name carryover, and relationship-style stability over longer same-thread or new-thread chains.
+- `Memory Confirmation Pack`: checks whether remembered facts still answer direct confirmation questions after several turns instead of fading into vague wording.
+- `Mixed-Language Pack`: checks whether short ambiguous follow-ups keep obeying the latest user-language signal instead of drifting back to earlier context.
+- `Correction Aftermath Pack`: checks whether `Incorrect` and `Restore` keep affecting later turns consistently instead of only changing row status in the panel.
+
 ## Real Chat Cases
 
+## Relationship Maintenance Pack
+
 ### 1. Same-agent nickname and preferred-name continuity survives a new thread and later short follow-ups
+
+- Scenario pack: `Relationship Maintenance Pack`
 
 - Priority: `P0`
 - Category: `thread`
@@ -62,7 +75,39 @@ Failure conditions:
 - count it as failed at the first turn where the preferred user name disappears once even though the same agent and relationship memory should still be active
 - count it as failed if relationship memory should still apply but the runtime summary no longer shows relationship memory usage
 
-### 2. Remembered profession stays faithful across a longer direct-question chain
+### 2. Relationship style continuity remains visible from opening to closing turns in a longer chain
+
+- Scenario pack: `Relationship Maintenance Pack`
+- Priority: `P0`
+- Category: `fidelity`
+- Purpose: verify that relationship style is not only remembered but also performed from the opening turn through mid-thread and closing-style follow-ups
+
+Steps:
+
+1. Seed: `以后和我说话轻松一点，可以吗？`
+2. Turn 1: ask `请简单介绍一下你自己。`
+3. Turn 2: ask `接下来你会怎么帮助我？`
+4. Turn 3: ask `如果我今天状态不太好，你会怎么和我说？`
+5. Turn 4: ask `最后你会怎么陪我把事情推进下去？`
+6. Turn 5: ask `那你再简单鼓励我一句。`
+
+Success criteria:
+
+- the tone remains lightweight and consistent across all replies
+- same-thread continuity wins over distant defaults
+- you can identify the first turn where the relationship style noticeably flattens, if it flattens
+
+Failure conditions:
+
+- count it as failed at the first turn where the relationship tone clearly drops back to the default neutral style instead of keeping the seeded relationship style
+- count it as failed if opening, explanatory, or closing turns stop reflecting the same-thread relationship style while the relationship memory is still active
+- count it as failed if the answer still sounds correct in content but no longer performs the expected relationship cues
+
+## Memory Confirmation Pack
+
+### 3. Remembered profession stays faithful across a longer direct-question chain
+
+- Scenario pack: `Memory Confirmation Pack`
 
 - Priority: `P0`
 - Category: `fidelity`
@@ -89,7 +134,11 @@ Failure conditions:
 - count it as failed if the runtime summary still shows a relevant memory hit but the answer does not reflect the remembered profession
 - count it as failed if the answer falls back to “I do not know” or generic help text while the profession memory should still be recallable
 
-### 3. Replies follow the latest user message language across a longer mixed-language chain
+## Mixed-Language Pack
+
+### 4. Replies follow the latest user message language across a longer mixed-language chain
+
+- Scenario pack: `Mixed-Language Pack`
 
 - Priority: `P0`
 - Category: `language`
@@ -117,34 +166,11 @@ Failure conditions:
 - count it as failed if a short same-thread Chinese follow-up snaps back to English because of earlier English turns or recalled English memory
 - count it as failed if the reply language follows distant thread history more strongly than the current user's latest message
 
-### 4. Relationship style continuity remains visible from opening to closing turns in a longer chain
-
-- Priority: `P0`
-- Category: `fidelity`
-- Purpose: verify that relationship style is not only remembered but also performed from the opening turn through mid-thread and closing-style follow-ups
-
-Steps:
-
-1. Seed: `以后和我说话轻松一点，可以吗？`
-2. Turn 1: ask `请简单介绍一下你自己。`
-3. Turn 2: ask `接下来你会怎么帮助我？`
-4. Turn 3: ask `如果我今天状态不太好，你会怎么和我说？`
-5. Turn 4: ask `最后你会怎么陪我把事情推进下去？`
-6. Turn 5: ask `那你再简单鼓励我一句。`
-
-Success criteria:
-
-- the tone remains lightweight and consistent across all replies
-- same-thread continuity wins over distant defaults
-- you can identify the first turn where the relationship style noticeably flattens, if it flattens
-
-Failure conditions:
-
-- count it as failed at the first turn where the relationship tone clearly drops back to the default neutral style instead of keeping the seeded relationship style
-- count it as failed if opening, explanatory, or closing turns stop reflecting the same-thread relationship style while the relationship memory is still active
-- count it as failed if the answer still sounds correct in content but no longer performs the expected relationship cues
+## Correction Aftermath Pack
 
 ### 5. Incorrect and restore change later recall eligibility predictably after several turns
+
+- Scenario pack: `Correction Aftermath Pack`
 
 - Priority: `P0`
 - Category: `correction`
