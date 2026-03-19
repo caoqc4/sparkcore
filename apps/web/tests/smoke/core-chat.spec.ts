@@ -1866,4 +1866,128 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).toMatch(/[一-龥]/u);
     expect(latestAssistantMessage.content).not.toMatch(/\bproduct designer\b/i);
   });
+
+  test("uses thread continuity as the language source for ambiguous short follow-ups", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    const introTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content:
+          "Please introduce yourself in two short sentences and explain how you can help me."
+      }
+    });
+    expect(introTurn.ok()).toBeTruthy();
+
+    const followUpTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "👍"
+      }
+    });
+    expect(followUpTurn.ok()).toBeTruthy();
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.answer_strategy).toBe("same-thread-continuation");
+    expect(metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(metadata.continuation_reason_code).toBe("short-fuzzy-follow-up");
+    expect(metadata.reply_language_source).toBe("thread-continuity-fallback");
+    expect(metadata.reply_language_detected).toBe("en");
+  });
+
+  test("uses relationship-answer-shape diagnostics for explanatory turns before same-thread carryover exists", async ({
+    request
+  }) => {
+    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(seedThreadResponse.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await seedThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const seedStyleTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "以后和我说话轻松一点，可以吗？"
+      }
+    });
+    expect(seedStyleTurn.ok()).toBeTruthy();
+
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    const explanatoryTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "如果我今天状态不太好，你会怎么和我说？"
+      }
+    });
+    expect(explanatoryTurn.ok()).toBeTruthy();
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.question_type).toBe("open-ended-summary");
+    expect(metadata.answer_strategy).toBe("grounded-open-ended-summary");
+    expect(metadata.answer_strategy_reason_code).toBe(
+      "relationship-answer-shape-prompt"
+    );
+    expect(metadata.same_thread_continuation_preferred).toBe(false);
+    expect(metadata.continuation_reason_code).toBeNull();
+  });
 });
