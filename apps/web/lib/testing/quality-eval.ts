@@ -26,11 +26,25 @@ export type QualityEvalCase = {
   successCriteria: string[];
 };
 
+export type FailureAttributionDimension =
+  | "fidelity"
+  | "language"
+  | "relationship-continuity"
+  | "correction-consistency";
+
+export type QualityEvalFailureAttribution = {
+  requiredFields: string[];
+  driftDimensions: FailureAttributionDimension[];
+  developerReasonHints: string[];
+  notes: string[];
+};
+
 export type QualityEvalSuite = {
   id: "stage1" | "memory-v2" | "real-chat";
   title: string;
   intro: string;
   cases: QualityEvalCase[];
+  failureAttribution?: QualityEvalFailureAttribution;
 };
 
 export const stage1QualityEvalSet: QualityEvalCase[] = [
@@ -569,6 +583,32 @@ export const qualityEvalSuites: Record<QualityEvalSuite["id"], QualityEvalSuite>
     title: "SparkCore Real Chat Quality Regression Set",
     intro:
       "Use this set when answer fidelity, language consistency, and relationship continuity change and you want a fixed baseline closer to real trial conversations, with explicit checkpoints for where decay first appears.",
-    cases: realChatQualityRegressionSet
+    cases: realChatQualityRegressionSet,
+    failureAttribution: {
+      requiredFields: [
+        "scenario_pack",
+        "case_id",
+        "failed_turn",
+        "drift_dimension",
+        "main_developer_reason"
+      ],
+      driftDimensions: [
+        "fidelity",
+        "language",
+        "relationship-continuity",
+        "correction-consistency"
+      ],
+      developerReasonHints: [
+        "answer_strategy_reason_code",
+        "continuation_reason_code",
+        "reply_language_source",
+        "memory_used / recalled_memories"
+      ],
+      notes: [
+        "When the run fails, record the first turn where drift becomes visible instead of only marking the whole case as failed.",
+        "Use the smallest single drift dimension that best explains the failure, even if more than one symptom appears later.",
+        "The main developer reason should stay lightweight: capture the one diagnostics clue that best explains the failing turn instead of pasting the whole metadata object."
+      ]
+    }
   }
 };

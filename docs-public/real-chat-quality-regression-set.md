@@ -15,6 +15,7 @@ This is intentionally lightweight. It is not a heavy evaluation platform. It is 
    - the runtime summary outcome
    - whether the runtime summary still feels like a short user explanation instead of a developer diagnostics panel
    - the first turn where style, language, or structured recall starts to weaken, if it weakens at all
+   - when a case fails, the scenario pack, failed turn, drift dimension, and one main developer-diagnostics reason
 4. Compare against the same baseline before deciding whether quality improved.
 
 To print the latest version of the regression set from source:
@@ -30,6 +31,38 @@ For machine-readable output:
 cd apps/web
 npm run quality:eval -- --suite=real-chat --format=json
 ```
+
+## Failure Attribution Record
+
+When a real-chat case fails, record the first failing turn with a lightweight note instead of only writing that the case drifted.
+
+Required fields:
+
+- `scenario_pack`
+- `case_id`
+- `failed_turn`
+- `drift_dimension`
+- `main_developer_reason`
+
+Supported drift dimensions:
+
+- `fidelity`
+- `language`
+- `relationship-continuity`
+- `correction-consistency`
+
+Suggested developer reason clues:
+
+- `answer_strategy_reason_code`
+- `continuation_reason_code`
+- `reply_language_source`
+- `memory_used / recalled_memories`
+
+Recording notes:
+
+- record the first turn where drift becomes visible, not only the final broken turn
+- use the smallest single drift dimension that best explains the failure
+- keep the developer reason lightweight: capture the one clue that best explains the failing turn instead of dumping the whole metadata object
 
 ## Scenario Packs
 

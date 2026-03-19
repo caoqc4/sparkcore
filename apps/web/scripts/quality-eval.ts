@@ -16,6 +16,33 @@ function renderMarkdown(suiteId: keyof typeof qualityEvalSuites) {
     ""
   ];
 
+  if (suite.failureAttribution) {
+    lines.push("## Failure Attribution Record");
+    lines.push("");
+    lines.push(
+      "When a case fails, record the first failing turn with a lightweight attribution note:"
+    );
+    lines.push(
+      ...suite.failureAttribution.requiredFields.map((entry) => `- ${entry}`)
+    );
+    lines.push("");
+    lines.push("Supported drift dimensions:");
+    lines.push(
+      ...suite.failureAttribution.driftDimensions.map((entry) => `- ${entry}`)
+    );
+    lines.push("");
+    lines.push("Suggested developer reason clues:");
+    lines.push(
+      ...suite.failureAttribution.developerReasonHints.map(
+        (entry) => `- ${entry}`
+      )
+    );
+    lines.push("");
+    lines.push("Recording notes:");
+    lines.push(...suite.failureAttribution.notes.map((entry) => `- ${entry}`));
+    lines.push("");
+  }
+
   let activeScenarioPack: keyof typeof REAL_CHAT_SCENARIO_PACK_LABELS | null = null;
 
   for (const item of suite.cases) {

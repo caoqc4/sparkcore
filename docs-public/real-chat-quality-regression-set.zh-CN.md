@@ -15,6 +15,7 @@
    - runtime summary 结果
    - runtime summary 默认看起来是否仍像简短用户解释，而不是开发排障面板
    - 如果开始变差，是第几轮开始出现风格衰减、语言漂移或 structured recall 减弱
+   - 如果 case 失败，再额外记录 scenario pack、失败 turn、漂移维度，以及一条主要 developer-diagnostics reason
 4. 与同一基线对比，再判断这次改动到底是变好还是变差。
 
 打印最新回归样例：
@@ -30,6 +31,38 @@ npm run quality:eval -- --suite=real-chat
 cd apps/web
 npm run quality:eval -- --suite=real-chat --format=json
 ```
+
+## 失败归因记录
+
+当一条 real-chat case 失败时，不要只写“这条掉了”，而是记录第一条出问题的 turn，并附一条轻量归因。
+
+必填字段：
+
+- `scenario_pack`
+- `case_id`
+- `failed_turn`
+- `drift_dimension`
+- `main_developer_reason`
+
+支持的漂移维度：
+
+- `fidelity`
+- `language`
+- `relationship-continuity`
+- `correction-consistency`
+
+可优先参考的 developer reason clue：
+
+- `answer_strategy_reason_code`
+- `continuation_reason_code`
+- `reply_language_source`
+- `memory_used / recalled_memories`
+
+记录原则：
+
+- 记录第一次出现漂移的 turn，不要只记最后已经完全坏掉的那一轮
+- 漂移维度尽量只选最小、最能解释问题的那一个
+- developer reason 保持轻量，只抓最能解释失败 turn 的那一条 clue，不要整段贴完整 metadata
 
 ## 场景包
 
