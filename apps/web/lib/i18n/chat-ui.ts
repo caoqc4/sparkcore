@@ -224,18 +224,27 @@ export function getChatCopy(locale: ChatLocale) {
         profileRecommendationSummary:
           "如果你不确定，先选默认首选；如果这轮更看重名字、称呼、职业或偏好这类直问，就切到更偏记忆的配置。低成本配置只适合快速试跑。",
         profilePositioning: "适合场景",
+        profileRecommendation: "更适合在这些时候切换",
         profilePositioningStable: "默认首选",
         profilePositioningMemory: "直问记忆与关系跟进",
         profilePositioningLowCost: "低成本快速试跑",
         profilePositioningGeneric: "通用对话",
         profilePositioningStableHelper:
           "适合大多数日常聊天、多语言回复，以及你想先拿到更稳、更省心的默认表现时。",
+        profileRecommendationStableHelper:
+          "当你还不确定该选哪个，或这轮更看重整体稳定感、多语言自然度和较少手工干预时，先从它开始。",
         profilePositioningMemoryHelper:
           "适合名字、称呼、职业和偏好这类直问，以及你希望回答更贴近已召回事实、少一点自由发挥时。",
+        profileRecommendationMemoryHelper:
+          "当这轮更像在确认你叫什么、我该怎么叫你、你做什么工作、你偏好什么回复方式时，再切到它。",
         profilePositioningLowCostHelper:
           "适合快速 smoke、粗对比和 prompt 迭代，优先控制成本与速度，不适合作为最稳的默认体验。",
+        profileRecommendationLowCostHelper:
+          "当你只是想快速看流程有没有走通，或做粗粒度试跑，而不是判断最终回答质感时，再用它。",
         profilePositioningGenericHelper:
           "适合一般对话场景，作为没有特殊要求时的基础配置。",
+        profileRecommendationGenericHelper:
+          "只有在你没有更明确的使用目标时，才把它当作兜底的通用对话配置。",
         profileTradeoff: "取舍",
         profileTradeoffStableHelper:
           "通常比低成本配置更稳，也更省手工调 prompt，但成本会更高一些；如果你只是想快速试跑，可能显得有点重。",
@@ -529,18 +538,27 @@ export function getChatCopy(locale: ChatLocale) {
       profileRecommendationSummary:
         "If you are unsure, start with the default profile. Switch to the memory-oriented profile when direct questions about names, profession, preferences, or relationship cues matter more. Use the low-cost option only for quick smoke runs.",
       profilePositioning: "Best for",
+      profileRecommendation: "Switch to this when",
       profilePositioningStable: "Best starting point",
       profilePositioningMemory: "Direct recall and relationship follow-ups",
       profilePositioningLowCost: "Cheap smoke checks",
       profilePositioningGeneric: "General chat",
       profilePositioningStableHelper:
         "Best when you want a balanced default for everyday chat, multilingual replies, and a steadier baseline without much tuning.",
+      profileRecommendationStableHelper:
+        "Start here when you are not sure which profile to pick yet, or when overall stability and natural multilingual replies matter more than aggressive memory grounding.",
       profilePositioningMemoryHelper:
         "Best when replies need to stay closer to recalled facts, names, address preferences, and relationship cues instead of drifting into looser phrasing.",
+      profileRecommendationMemoryHelper:
+        "Switch to this when the conversation is mainly about what you are called, what the user is called, what work they do, or what reply style they prefer.",
       profilePositioningLowCostHelper:
         "Best for quick smoke checks, rough comparisons, and fast prompt iteration when speed and cost matter most, not when you need the most polished result.",
+      profileRecommendationLowCostHelper:
+        "Use this only when you want to verify that a flow works or compare prompts quickly, not when you are judging final answer quality.",
       profilePositioningGenericHelper:
         "Best for general conversation when you do not need a more specialized profile behavior.",
+      profileRecommendationGenericHelper:
+        "Use this as a fallback only when you do not have a clearer recommendation from the other profiles.",
       profileTradeoff: "Tradeoff",
       profileTradeoffStableHelper:
         "Usually steadier than low-cost testing and needs less prompt babysitting, but it costs more and can feel heavier for quick experiments.",

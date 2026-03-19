@@ -61,6 +61,7 @@ export function AgentEditSheet({
       return {
         label: copy.sheets.profilePositioningStable,
         helper: copy.sheets.profilePositioningStableHelper,
+        recommendation: copy.sheets.profileRecommendationStableHelper,
         tradeoff: copy.sheets.profileTradeoffStableHelper
       };
     }
@@ -69,6 +70,7 @@ export function AgentEditSheet({
       return {
         label: copy.sheets.profilePositioningMemory,
         helper: copy.sheets.profilePositioningMemoryHelper,
+        recommendation: copy.sheets.profileRecommendationMemoryHelper,
         tradeoff: copy.sheets.profileTradeoffMemoryHelper
       };
     }
@@ -77,6 +79,7 @@ export function AgentEditSheet({
       return {
         label: copy.sheets.profilePositioningLowCost,
         helper: copy.sheets.profilePositioningLowCostHelper,
+        recommendation: copy.sheets.profileRecommendationLowCostHelper,
         tradeoff: copy.sheets.profileTradeoffLowCostHelper
       };
     }
@@ -84,6 +87,7 @@ export function AgentEditSheet({
     return {
       label: copy.sheets.profilePositioningGeneric,
       helper: copy.sheets.profilePositioningGenericHelper,
+      recommendation: copy.sheets.profileRecommendationGenericHelper,
       tradeoff: copy.sheets.profileTradeoffGenericHelper
     };
   }
@@ -302,6 +306,12 @@ export function AgentEditSheet({
                       <p className="helper-copy">
                             {positioning.helper}
                       </p>
+                          <p className="sheet-pack-name">
+                            {copy.sheets.profileRecommendation}
+                          </p>
+                          <p className="helper-copy">
+                            {positioning.recommendation}
+                          </p>
                           <p className="sheet-pack-name">
                             {copy.sheets.profileTradeoff}
                           </p>

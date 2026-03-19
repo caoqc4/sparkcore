@@ -287,18 +287,30 @@ export default async function ChatPage({
     const tier = tierLabel?.toLowerCase() ?? "";
 
     if (tier.includes("stable")) {
-      return copy.sheets.profilePositioningStable;
+      return {
+        bestFor: copy.sheets.profilePositioningStable,
+        recommendation: copy.sheets.profileRecommendationStableHelper
+      };
     }
 
     if (tier.includes("memory")) {
-      return copy.sheets.profilePositioningMemory;
+      return {
+        bestFor: copy.sheets.profilePositioningMemory,
+        recommendation: copy.sheets.profileRecommendationMemoryHelper
+      };
     }
 
     if (tier.includes("low-cost") || tier.includes("low cost")) {
-      return copy.sheets.profilePositioningLowCost;
+      return {
+        bestFor: copy.sheets.profilePositioningLowCost,
+        recommendation: copy.sheets.profileRecommendationLowCostHelper
+      };
     }
 
-    return copy.sheets.profilePositioningGeneric;
+    return {
+      bestFor: copy.sheets.profilePositioningGeneric,
+      recommendation: copy.sheets.profileRecommendationGenericHelper
+    };
   }
   let chatState;
 
@@ -637,11 +649,13 @@ export default async function ChatPage({
                                 {copy.sidebar.profileBestForPrefix}
                                 {getProfilePositioning(
                                   availableAgent.default_model_profile_tier_label
-                                )}
+                                ).bestFor}
                               </p>
                               <p className="agent-impact-copy">
                                 {copy.sidebar.profileRecommendationPrefix}
-                                {copy.sidebar.profileRecommendationSummary}
+                                {getProfilePositioning(
+                                  availableAgent.default_model_profile_tier_label
+                                ).recommendation}
                               </p>
                             </>
                           ) : null}
