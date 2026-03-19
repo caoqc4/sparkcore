@@ -41,8 +41,7 @@ type RuntimeSummary = {
   underlyingModelLabel: string | null;
   memoryLabel: string | null;
   memoryActivityLabel: string | null;
-  memoryReasonLabel: string | null;
-  profileReasonLabel: string | null;
+  primaryReasonLabel: string | null;
   outcomeHints: string[];
 };
 
@@ -372,14 +371,14 @@ function getRuntimeSummary(
   const profileReasonLabel = modelProfileName
     ? getProfileReasonLabel(modelProfileTierLabel, modelProfileUsageNote, locale)
     : null;
+  const primaryReasonLabel = memoryReasonLabel ?? profileReasonLabel;
 
   if (
     !modelProfileName &&
     !underlyingModelLabel &&
     !memoryLabel &&
     !memoryActivityLabel &&
-    !memoryReasonLabel &&
-    !profileReasonLabel &&
+    !primaryReasonLabel &&
     outcomeHints.length === 0
   ) {
     return null;
@@ -392,8 +391,7 @@ function getRuntimeSummary(
     underlyingModelLabel,
     memoryLabel,
     memoryActivityLabel,
-    memoryReasonLabel,
-    profileReasonLabel,
+    primaryReasonLabel,
     outcomeHints
   };
 }
@@ -403,22 +401,23 @@ function getRuntimeSummaryHeadline(
   locale: ChatLocale
 ) {
   const copy = getChatCopy(locale);
-  const hasMemoryReason = Boolean(summary.memoryReasonLabel);
-  const hasProfileReason = Boolean(summary.profileReasonLabel);
+  const hasPrimaryReason = Boolean(summary.primaryReasonLabel);
+  const hasMemoryLabel = Boolean(summary.memoryLabel);
+  const hasProfileLabel = Boolean(summary.modelProfileName);
 
-  if (hasMemoryReason && hasProfileReason) {
+  if (hasMemoryLabel && hasProfileLabel) {
     return copy.locale === "zh-CN"
       ? "这轮主要看记忆和当前配置。"
       : "Mainly shaped by memory and the current profile.";
   }
 
-  if (hasMemoryReason) {
+  if (hasMemoryLabel) {
     return copy.locale === "zh-CN"
       ? "这轮主要看记忆。"
       : "Mainly shaped by memory.";
   }
 
-  if (hasProfileReason) {
+  if (hasProfileLabel || hasPrimaryReason) {
     return copy.locale === "zh-CN"
       ? "这轮主要看当前配置。"
       : "Mainly shaped by the current profile.";
@@ -826,14 +825,9 @@ export function ChatThreadView({
                         <p className="runtime-summary-headline">
                           {getRuntimeSummaryHeadline(runtimeSummary, locale)}
                         </p>
-                        {runtimeSummary.memoryReasonLabel ? (
+                        {runtimeSummary.primaryReasonLabel ? (
                           <p className="runtime-summary-reason">
-                            {runtimeSummary.memoryReasonLabel}
-                          </p>
-                        ) : null}
-                        {runtimeSummary.profileReasonLabel ? (
-                          <p className="runtime-summary-reason">
-                            {runtimeSummary.profileReasonLabel}
+                            {runtimeSummary.primaryReasonLabel}
                           </p>
                         ) : null}
                         {runtimeSummary.outcomeHints.length > 0 ? (

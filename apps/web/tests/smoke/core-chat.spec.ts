@@ -5,7 +5,8 @@ const smokeSecret = process.env.PLAYWRIGHT_SMOKE_SECRET ?? "sparkcore-smoke-loca
 const hasServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-const runtimeSummaryTogglePattern = /How this reply was generated|Why this turn/;
+const runtimeSummaryTogglePattern =
+  /How this reply was generated|Why this turn|Main reason|这轮依据|这轮主要依据/;
 const relationshipMemoryReasonPattern =
   /This turn used relationship memory\.|Used relationship memory this turn\./;
 
@@ -1093,6 +1094,84 @@ test.describe("core chat smoke", () => {
     await expect(page.getByText(relationshipMemoryReasonPattern)).toBeVisible({
       timeout: 45_000
     });
+  });
+
+  test("keeps the default explanation UI focused on one main reason", async ({
+    page,
+    request
+  }) => {
+    const styleSeedThread = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(styleSeedThread.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await styleSeedThread.json()) as {
+      threadId: string;
+    };
+
+    const seedStyleTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "以后和我说话轻松一点，可以吗？"
+      }
+    });
+
+    expect(seedStyleTurn.ok()).toBeTruthy();
+
+    const sameAgentThread = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(sameAgentThread.ok()).toBeTruthy();
+    const { threadId } = (await sameAgentThread.json()) as {
+      threadId: string;
+    };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${threadId}`
+    );
+
+    const directStyleTurn = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "我喜欢什么样的回复方式？如果你不知道，就直接说不知道。"
+      }
+    });
+
+    expect(directStyleTurn.ok()).toBeTruthy();
+    await page.reload();
+
+    const latestSummaryHeading = getLatestRuntimeSummaryHeading(page);
+    await expect(latestSummaryHeading).toHaveText(/Main reason|Why this turn/);
+    await latestSummaryHeading.click();
+
+    const latestSummary = page.locator(".runtime-summary").last();
+    await expect(
+      latestSummary.getByText(
+        /Mainly shaped by memory\.|Mainly shaped by the current profile\.|Mainly shaped by memory and the current profile\./
+      )
+    ).toBeVisible({ timeout: 45_000 });
+    await expect(latestSummary.locator(".runtime-summary-reason")).toHaveCount(1);
   });
 
   test("keeps same-thread relationship style and language continuity on short follow-ups", async ({

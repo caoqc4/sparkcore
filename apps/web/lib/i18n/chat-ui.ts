@@ -275,7 +275,7 @@ export function getChatCopy(locale: ChatLocale) {
         noWorkspaceDefault:
           "当前还没有设置工作区默认 agent。这个线程仍然保留自己的绑定 agent。",
         runtimeHint:
-          "想看这轮主要依据，就展开 assistant 下方摘要。",
+          "想看这轮的主要依据，就展开 assistant 下方这条简要说明。",
         statusActive: "进行中",
         messagesSuffix: "条消息",
         firstTurnLead:
@@ -287,7 +287,7 @@ export function getChatCopy(locale: ChatLocale) {
           "先问我几个问题，再一起决定最适合我的规划方式。",
           "把我当前的目标整理成一份简单的周计划。"
         ],
-        howGenerated: "这轮依据",
+        howGenerated: "这轮主要依据",
         agentUsed: "使用的 agent",
         modelProfileUsed: "模型配置",
         underlyingModelUsed: "底层模型",
@@ -589,7 +589,7 @@ export function getChatCopy(locale: ChatLocale) {
       noWorkspaceDefault:
         "No workspace default agent is set. This thread still keeps its own bound agent.",
       runtimeHint:
-        "Open the summary under the assistant reply when you want the main reason for that turn.",
+        "Open the short note under the assistant reply when you want the main reason for that turn.",
       statusActive: "active",
       messagesSuffix: "messages",
       firstTurnLead:
@@ -601,7 +601,7 @@ export function getChatCopy(locale: ChatLocale) {
         "Ask me a few questions so we can decide the best planning style for me.",
         "Let's turn my current goals into a simple weekly plan."
       ],
-      howGenerated: "Why this turn",
+      howGenerated: "Main reason",
       agentUsed: "Agent used",
       modelProfileUsed: "Model profile",
       underlyingModelUsed: "Underlying model",
