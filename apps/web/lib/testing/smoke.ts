@@ -1001,7 +1001,8 @@ function isSmokeOpenEndedPlanningHelpQuestion(content: string) {
     normalized.includes("结合你记得的内容，怎么帮我规划这周") ||
     normalized.includes("结合你对我的了解") ||
     normalized.includes("你会怎么帮我规划这周") ||
-    normalized.includes("给我一个小建议")
+    normalized.includes("给我一个小建议") ||
+    normalized.includes("带我往下走吧")
   );
 }
 

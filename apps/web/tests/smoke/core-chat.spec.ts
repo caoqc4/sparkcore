@@ -2995,6 +2995,52 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).toContain("阿强");
   });
 
+  test("keeps natural carry-forward planning phrasing on the grounded advice path", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后和我说话轻松一点，可以吗？",
+      "那你带我往下走吧。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.question_type).toBe("open-ended-advice");
+    expect(metadata.answer_strategy).toBe("grounded-open-ended-advice");
+    expect(metadata.answer_strategy_reason_code).toBe("open-ended-advice-prompt");
+    expect(latestAssistantMessage.content).toContain("好呀");
+  });
+
   test("uses the default-grounded fallback branch for uncategorized grounded prompts", async ({
     request
   }) => {
