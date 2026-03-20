@@ -190,6 +190,20 @@ npm run smoke:baseline-confirmation
 - 必须先做 same-baseline rerun
 - 只有 same-baseline rerun 通过，才把前一次事件归为 `environment noise`
 
+## 哪些低风险改动默认不用跑 baseline confirmation rerun
+
+下面这几类低风险改动，默认可以不跑 baseline confirmation pack：
+
+- 纯文档改动
+- 纯命名调整、注释修订、非行为性文本清理
+- 明确不触及 role-layer runtime、pack 定义、gate 规则、smoke 选择器的改动
+
+这条豁免要保持很窄。
+
+如果拿不准这次改动是否会影响当前已通过 frozen baseline：
+
+- 仍然优先跑 `npm run smoke:baseline-confirmation`
+
 ## Maintainer Checklist：baseline confirmation rerun record
 
 改动后可按下面的短清单执行：

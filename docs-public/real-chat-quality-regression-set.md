@@ -190,6 +190,20 @@ Keep the current environment-noise rule in place:
 - a same-baseline rerun is required
 - only a passing same-baseline rerun lets the earlier event be classified as `environment noise`
 
+## Which Low-Risk Changes Normally Do Not Need A Baseline Confirmation Rerun
+
+The following low-risk changes can normally skip the baseline confirmation pack:
+
+- docs-only edits
+- naming changes, comment edits, or other non-behavioral text cleanups
+- changes that clearly do not touch role-layer runtime behavior, pack definitions, gate rules, or smoke selectors
+
+Keep this exemption narrow.
+
+If it is not clear whether the change could affect the currently passed frozen baseline:
+
+- still prefer running `npm run smoke:baseline-confirmation`
+
 ## Maintainer Checklist: baseline confirmation rerun record
 
 Use the following short checklist after a relevant change:
