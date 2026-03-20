@@ -133,6 +133,7 @@ function isShortRelationshipSummaryFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return (
+    normalized.includes("简单收一下") ||
     normalized.includes("再简单介绍一下你自己") ||
     normalized.includes("再简单说一下你自己") ||
     normalized.includes("最后再简单介绍一下你自己") ||
