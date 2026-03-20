@@ -2045,6 +2045,74 @@ test.describe("core chat smoke", () => {
     });
   });
 
+  test("clarifies current-thread versus default-agent edits in the lightweight agent sheet", async ({
+    page,
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${threadId}`
+    );
+    await expect(page.getByLabel("Message")).toBeVisible();
+
+    const memoryCoachCard = page
+      .locator(".agent-card")
+      .filter({ hasText: "Smoke Memory Coach" })
+      .first();
+    await memoryCoachCard.getByRole("button", { name: "Set as default" }).click();
+    await expect(
+      memoryCoachCard.getByRole("button", { name: "Workspace default" })
+    ).toBeVisible();
+
+    const smokeGuideCard = page
+      .locator(".agent-card")
+      .filter({ hasText: "Smoke Guide" })
+      .first();
+    await smokeGuideCard.getByRole("button", { name: "Edit" }).click();
+
+    const currentAgentDialog = page.getByRole("dialog", {
+      name: "Lightweight agent details"
+    });
+    await expect(
+      currentAgentDialog.getByText(
+        "This agent is replying in the current thread."
+      )
+    ).toBeVisible();
+    await expect(
+      currentAgentDialog.getByText(
+        "This thread is already bound to this agent"
+      )
+    ).toBeVisible();
+    await currentAgentDialog
+      .getByRole("button", { name: "Close" })
+      .evaluate((node: HTMLButtonElement) => node.click());
+
+    await memoryCoachCard.getByRole("button", { name: "Edit" }).click();
+    const defaultAgentDialog = page.getByRole("dialog", {
+      name: "Lightweight agent details"
+    });
+    await expect(
+      defaultAgentDialog.getByText("This agent is the workspace default.")
+    ).toBeVisible();
+    await expect(
+      defaultAgentDialog.getByText(
+        "Switching the model profile here only changes how future new threads start with this default agent."
+      )
+    ).toBeVisible();
+  });
+
   test("keeps reply language aligned with the latest user message", async ({
     page,
     request

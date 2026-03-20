@@ -211,6 +211,12 @@ export function getChatCopy(locale: ChatLocale) {
           "这里的修改只会更新这个 agent 对象，并影响之后使用它的回复。它不会重写旧线程内容或过往 runtime 摘要。",
         editAgentHelper3:
           "在当前线程里，这个 agent 在相关时仍然可以参考长期记忆。在这里切换 agent 或模型，只会影响之后的回复。",
+        editAgentHelperCurrentThread:
+          "这个 agent 正在当前线程里回复。你在这里做的轻编辑会影响这个线程后续的回复，但不会重写前面的内容。",
+        editAgentHelperWorkspaceDefault:
+          "这个 agent 是工作区默认 agent。你在这里做的轻编辑会影响以后新线程默认带上的它，不会替换当前线程里已经在回复的 agent。",
+        editAgentHelperOtherAgent:
+          "这个 agent 现在没有在当前线程里回复。你在这里做的轻编辑只会影响以后使用它的线程或回复。",
         avatarCue: "头像提示",
         avatarCueHelper:
           "用一个简短的 emoji 或符号，给这个 agent 一个轻量的角色识别感。",
@@ -221,6 +227,12 @@ export function getChatCopy(locale: ChatLocale) {
         personaSummary: "角色摘要",
         modelProfile: "模型配置",
         profileHelper: "切换模型配置只会影响这个 agent 之后的回复。",
+        profileHelperCurrentThread:
+          "当前线程已经绑定到这个 agent，所以切换模型配置会影响这个线程之后的回复，但不会改写更早的消息。",
+        profileHelperWorkspaceDefault:
+          "切换这里的模型配置只会影响以后新线程默认带上的这个 agent，不会替换当前线程里正在回复的 agent。",
+        profileHelperOtherAgent:
+          "切换这里的模型配置只会影响以后使用这个 agent 的回复，不会改变当前线程眼前这位正在回复的 agent。",
         profileRecommendationSummary:
           "如果你不确定，先选默认首选；如果这轮更看重名字、称呼、职业或偏好这类直问，就切到更偏记忆的配置。低成本配置只适合快速试跑。",
         profilePositioning: "适合场景",
@@ -524,6 +536,12 @@ export function getChatCopy(locale: ChatLocale) {
         "Changes here update the agent object for future replies that use this agent. They do not rewrite older thread content or past runtime summaries.",
       editAgentHelper3:
         "In the current thread, this agent can reference long-term memory when it is relevant. Switching the agent or model here only affects future replies.",
+      editAgentHelperCurrentThread:
+        "This agent is replying in the current thread. Lightweight edits here affect later replies in this thread, but they do not rewrite earlier turns.",
+      editAgentHelperWorkspaceDefault:
+        "This agent is the workspace default. Lightweight edits here change how future new threads start with it, but they do not replace the agent already replying in the current thread.",
+      editAgentHelperOtherAgent:
+        "This agent is not replying in the current thread right now. Lightweight edits here only affect future threads or replies that use it.",
       avatarCue: "Avatar cue",
       avatarCueHelper:
         "Use a short emoji or symbol to give this agent a lightweight identity inside chat.",
@@ -535,6 +553,12 @@ export function getChatCopy(locale: ChatLocale) {
       personaSummary: "Persona summary",
       modelProfile: "Model profile",
       profileHelper: "Switching the model profile only affects future replies from this agent.",
+      profileHelperCurrentThread:
+        "This thread is already bound to this agent, so switching the model profile here affects later replies in this thread without rewriting earlier messages.",
+      profileHelperWorkspaceDefault:
+        "Switching the model profile here only changes how future new threads start with this default agent. It does not replace the agent already replying in the current thread.",
+      profileHelperOtherAgent:
+        "Switching the model profile here only affects future replies that use this agent. It does not change the agent currently replying in this thread.",
       profileRecommendationSummary:
         "If you are unsure, start with the default profile. Switch to the memory-oriented one when direct questions about names, profession, preferences, or relationship cues matter more.",
       profilePositioning: "Best for",

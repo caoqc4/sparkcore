@@ -702,6 +702,10 @@ export default async function ChatPage({
                                 default_model_profile_id:
                                   availableAgent.default_model_profile_id
                               }}
+                              isCurrentThreadAgent={isCurrent}
+                              isWorkspaceDefaultAgent={
+                                availableAgent.is_default_for_workspace
+                              }
                               locale={locale}
                               modelProfiles={availableModelProfiles}
                             />

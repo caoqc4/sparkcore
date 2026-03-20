@@ -15,6 +15,8 @@ type AgentEditSheetProps = {
     system_prompt_summary: string;
     default_model_profile_id: string | null;
   };
+  isCurrentThreadAgent: boolean;
+  isWorkspaceDefaultAgent: boolean;
   locale: ChatLocale;
   modelProfiles: Array<{
     id: string;
@@ -29,6 +31,8 @@ type AgentEditSheetProps = {
 
 export function AgentEditSheet({
   agent,
+  isCurrentThreadAgent,
+  isWorkspaceDefaultAgent,
   locale,
   modelProfiles
 }: AgentEditSheetProps) {
@@ -51,6 +55,16 @@ export function AgentEditSheet({
   const selectedModelProfile =
     modelProfiles.find((modelProfile) => modelProfile.id === selectedModelProfileId) ??
     null;
+  const relationshipEntryHelper = isCurrentThreadAgent
+    ? copy.sheets.editAgentHelperCurrentThread
+    : isWorkspaceDefaultAgent
+      ? copy.sheets.editAgentHelperWorkspaceDefault
+      : copy.sheets.editAgentHelperOtherAgent;
+  const profileHelper = isCurrentThreadAgent
+    ? copy.sheets.profileHelperCurrentThread
+    : isWorkspaceDefaultAgent
+      ? copy.sheets.profileHelperWorkspaceDefault
+      : copy.sheets.profileHelperOtherAgent;
 
   function getProfilePositioning(
     modelProfile: AgentEditSheetProps["modelProfiles"][number]
@@ -199,7 +213,7 @@ export function AgentEditSheet({
               {copy.sheets.editAgentHelper2}
             </p>
             <p className="helper-copy">
-              {copy.sheets.editAgentHelper3}
+              {relationshipEntryHelper}
             </p>
 
             {feedback ? <div className="notice notice-error">{feedback}</div> : null}
@@ -285,7 +299,7 @@ export function AgentEditSheet({
                   ))}
                 </select>
                 <span className="helper-copy">
-                  {copy.sheets.profileHelper}
+                  {profileHelper}
                 </span>
                 <span className="helper-copy">
                   {copy.sheets.profileRecommendationSummary}
