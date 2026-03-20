@@ -3232,7 +3232,7 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).not.toContain("偏好");
   });
 
-  test("keeps companion-style explanation phrasing on the grounded advice path", async ({
+  test("keeps natural companion-style explanation variants on the grounded advice path", async ({
     request
   }) => {
     const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
@@ -3251,7 +3251,7 @@ test.describe("core chat smoke", () => {
     for (const content of [
       "以后你叫我阿强可以吗？",
       "以后和我说话轻松一点，可以吗？",
-      "那你就简单陪我理一下。"
+      "你就陪我顺一下就行。"
     ]) {
       const response = await request.post("/api/test/smoke-send-turn", {
         headers: {

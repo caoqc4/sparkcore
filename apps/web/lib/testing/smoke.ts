@@ -1019,7 +1019,8 @@ function isSmokeOpenEndedPlanningHelpQuestion(content: string) {
     normalized.includes("给我一个小建议") ||
     normalized.includes("带我往下走吧") ||
     normalized.includes("陪我理一步") ||
-    normalized.includes("陪我理一下")
+    normalized.includes("陪我理一下") ||
+    normalized.includes("陪我顺一下")
   );
 }
 
