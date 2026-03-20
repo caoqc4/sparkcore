@@ -190,6 +190,21 @@ npm run smoke:baseline-confirmation
 - 必须先做 same-baseline rerun
 - 只有 same-baseline rerun 通过，才把前一次事件归为 `environment noise`
 
+## Maintainer Checklist：baseline confirmation rerun record
+
+改动后可按下面的短清单执行：
+
+1. 先判断这次改动是否影响当前已通过 frozen baseline
+   - 如果是 role-layer routing、answer-shape、language-priority、continuity 相关修口，先跑 baseline confirmation pack
+2. 再判断这次改动是否已经触及 scoped pass claim 本身
+   - 如果 baseline 定义、scenario-pack 集合、profile-by-pack matrix、thresholds 或 gate rule 变了，改为重开 formal gate
+3. 如果复验失败，先判断是否像环境噪音
+   - 如果像 infra 异常，先做 same-baseline rerun
+   - 只有 rerun 通过，才记为 `environment noise`
+   - 如果 rerun 仍失败，再按 `product drift` 处理
+
+这份 checklist 只服务于当前 long-chain / role-layer 维护路径，不替代 formal gate 规则本身。
+
 ## 失败归因记录
 
 当一条 real-chat case 失败时，不要只写“这条掉了”，而是记录第一条出问题的 turn，并附一条轻量归因。

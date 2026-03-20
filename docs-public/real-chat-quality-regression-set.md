@@ -190,6 +190,21 @@ Keep the current environment-noise rule in place:
 - a same-baseline rerun is required
 - only a passing same-baseline rerun lets the earlier event be classified as `environment noise`
 
+## Maintainer Checklist: baseline confirmation rerun record
+
+Use the following short checklist after a relevant change:
+
+1. First ask whether the change affects the currently passed frozen baseline
+   - if it is a role-layer routing, answer-shape, language-priority, or continuity-related change, run the baseline confirmation pack first
+2. Then ask whether the change touches the scoped pass claim itself
+   - if the baseline definition, scenario-pack set, profile-by-pack matrix, thresholds, or gate rules changed, reopen the formal gate instead
+3. If the rerun fails, check whether it looks like environment noise before calling it product drift
+   - if it looks like infra noise, do a same-baseline rerun first
+   - only a passing rerun allows the earlier event to be recorded as `environment noise`
+   - if the rerun still fails, treat it as `product drift`
+
+This checklist is only for the current long-chain / role-layer maintenance path and does not replace the formal gate rules themselves.
+
 ## Failure Attribution Record
 
 When a real-chat case fails, record the first failing turn with a lightweight note instead of only writing that the case drifted.
