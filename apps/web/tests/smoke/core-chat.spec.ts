@@ -2407,6 +2407,8 @@ test.describe("core chat smoke", () => {
     expect(metadata.continuation_reason_code).toBeNull();
     expect(metadata.recent_raw_turn_count).toBe(5);
     expect(metadata.approx_context_pressure).toBe("low");
+    expect(latestAssistantMessage.content).toContain("接下来");
+    expect(latestAssistantMessage.content).not.toContain("如果你今天状态不太好");
   });
 
   test("keeps short continuation after direct preferred-name confirmation on the same agent", async ({

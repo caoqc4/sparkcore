@@ -41,18 +41,33 @@ function isRelationshipStylePrompt(content: string) {
 }
 
 function isRelationshipExplanatoryPrompt(content: string) {
+  return (
+    isRelationshipHelpNextPrompt(content) ||
+    isRelationshipRoughDayPrompt(content)
+  );
+}
+
+function isRelationshipHelpNextPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return (
     normalized.includes("接下来你会怎么帮助我") ||
     normalized.includes("你会怎么帮助我") ||
     normalized.includes("那你会怎么帮我继续") ||
+    normalized.includes("你会怎么帮我往前推进") ||
+    normalized.includes("how would you help me continue") ||
+    normalized.includes("how would you help me next")
+  );
+}
+
+function isRelationshipRoughDayPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
     normalized.includes("如果我今天状态不太好") ||
     normalized.includes("你会怎么和我说") ||
     normalized.includes("你会怎么解释") ||
     normalized.includes("你会怎么安慰我") ||
-    normalized.includes("how would you help me continue") ||
-    normalized.includes("how would you help me next") ||
     normalized.includes("how would you explain that") ||
     normalized.includes("how would you say that to me") ||
     normalized.includes("if i was having a rough day")
@@ -703,6 +718,7 @@ function buildMemoryRecallPrompt(
 
   sections.push(
     ...buildAnswerStrategyInstructions({
+      latestUserMessage,
       answerQuestionType,
       answerStrategy,
       answerStrategyPriority: answerStrategyRule.priority,
@@ -988,6 +1004,7 @@ function buildDirectRecallInstructions(
 }
 
 function buildAnswerStrategyInstructions({
+  latestUserMessage,
   answerQuestionType,
   answerStrategy,
   answerStrategyPriority,
@@ -996,6 +1013,7 @@ function buildAnswerStrategyInstructions({
   recalledMemories,
   relationshipRecall
 }: {
+  latestUserMessage: string;
   answerQuestionType: AnswerQuestionType;
   answerStrategy: AnswerStrategy;
   answerStrategyPriority: AnswerStrategyPriority;
@@ -1054,6 +1072,7 @@ function buildAnswerStrategyInstructions({
             "This prompt type has low deterministic priority. Keep the answer natural and more open-ended, but stay within recalled memory and relationship boundaries."
           ]),
       ...buildOpenEndedRecallInstructions({
+        latestUserMessage,
         isZh,
         recalledMemories,
         questionType: answerQuestionType,
@@ -1112,11 +1131,13 @@ function buildAnswerStrategyInstructions({
 }
 
 function buildOpenEndedRecallInstructions({
+  latestUserMessage,
   isZh,
   recalledMemories,
   questionType,
   relationshipRecall
 }: {
+  latestUserMessage: string;
   isZh: boolean;
   questionType: AnswerQuestionType;
   recalledMemories: Array<{
@@ -1153,12 +1174,24 @@ function buildOpenEndedRecallInstructions({
       relationshipRecall.nicknameMemory ||
       relationshipRecall.preferredNameMemory
   );
+  const helpNextPrompt = isRelationshipHelpNextPrompt(latestUserMessage);
+  const roughDayPrompt = isRelationshipRoughDayPrompt(latestUserMessage);
 
   if (questionType === "open-ended-summary") {
     return isZh
       ? [
           "这是一个开放式总结/自我介绍场景。把已召回的长期记忆当作背景约束，让相关事实和关系线索自然地体现在总结里。",
           "不要把回答写成逐槽位复述，也不要忽略已经命中的关系或偏好线索。",
+          ...(helpNextPrompt
+            ? [
+                "当前这一轮是在问你接下来会怎么帮助用户。直接回答你会如何继续帮助、推进或陪着往前走，不要提前跳到“如果状态不好时怎么安慰”那类下一轮场景。"
+              ]
+            : []),
+          ...(roughDayPrompt
+            ? [
+                "当前这一轮是在问状态不太好时你会怎么说。优先回答你会如何安慰、解释和稳住节奏，不要把它改写成泛泛的下一步帮助说明。"
+              ]
+            : []),
           ...(hasRelationshipContinuity
             ? [
                 "如果这个线程已经形成了更轻松、更亲近或特定称呼方式，让这种 relationship 风格继续出现在总结里，不要为了“总结”而突然变平。"
@@ -1168,6 +1201,16 @@ function buildOpenEndedRecallInstructions({
       : [
           "This is an open-ended summary or self-introduction case. Treat recalled long-term memory as grounding so relevant facts and relationship cues naturally appear in the summary.",
           "Do not turn the reply into slot-by-slot repetition, but do not ignore recalled relationship or preference cues either.",
+          ...(helpNextPrompt
+            ? [
+                "This turn is asking how you would help next. Answer the current help-next prompt directly instead of jumping ahead to a later rough-day or comfort scenario."
+              ]
+            : []),
+          ...(roughDayPrompt
+            ? [
+                "This turn is asking how you would respond when the user is having a rough day. Answer that current supportive scenario directly instead of drifting into generic next-step help."
+              ]
+            : []),
           ...(hasRelationshipContinuity
             ? [
                 "If this thread has already established a more casual, warm, or specific address style, keep that relationship style visible in the summary instead of flattening back to a neutral recap voice."

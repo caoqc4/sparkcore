@@ -835,18 +835,33 @@ function isSmokeSelfIntroGreetingRequest(content: string) {
 }
 
 function isSmokeRelationshipExplanatoryPrompt(content: string) {
+  return (
+    isSmokeRelationshipHelpNextPrompt(content) ||
+    isSmokeRelationshipRoughDayPrompt(content)
+  );
+}
+
+function isSmokeRelationshipHelpNextPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return (
     normalized.includes("接下来你会怎么帮助我") ||
     normalized.includes("你会怎么帮助我") ||
     normalized.includes("那你会怎么帮我继续") ||
+    normalized.includes("你会怎么帮我往前推进") ||
+    normalized.includes("how would you help me continue") ||
+    normalized.includes("how would you help me next")
+  );
+}
+
+function isSmokeRelationshipRoughDayPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
     normalized.includes("如果我今天状态不太好") ||
     normalized.includes("你会怎么和我说") ||
     normalized.includes("你会怎么解释") ||
     normalized.includes("你会怎么安慰我") ||
-    normalized.includes("how would you help me continue") ||
-    normalized.includes("how would you help me next") ||
     normalized.includes("how would you explain that") ||
     normalized.includes("how would you say that to me") ||
     normalized.includes("if i was having a rough day")
@@ -1445,8 +1460,27 @@ function buildSmokeAssistantReply({
     const styleValue = addressStyleMemory?.content ?? null;
     const selfName = nicknameMemory?.content ?? agentName;
     const userName = preferredNameMemory?.content ?? null;
+    const helpNextPrompt = isSmokeRelationshipHelpNextPrompt(content);
 
     if (replyLanguage === "zh-Hans") {
+      if (helpNextPrompt) {
+        if (styleValue === "formal") {
+          return userName
+            ? `${userName}，接下来我会先把重点讲清楚，再和你一起排出稳妥的下一步。我是${selfName}，会继续用更正式、可靠的方式帮助你往前推进。`
+            : `接下来我会先把重点讲清楚，再和你一起排出稳妥的下一步。我是${selfName}，会继续用更正式、可靠的方式帮助你往前推进。`;
+        }
+
+        if (styleValue === "friendly" || styleValue === "casual") {
+          return userName
+            ? `${userName}，接下来我会先陪你把眼前重点理顺，再一起定下最顺手的下一步。我是${selfName}，会继续用更像朋友的方式陪你往前推。`
+            : `接下来我会先陪你把眼前重点理顺，再一起定下最顺手的下一步。我是${selfName}，会继续用更像朋友的方式陪你往前推。`;
+        }
+
+        return userName
+          ? `${userName}，接下来我会先把重点梳理清楚，再陪你一步步推进后面的事。我是${selfName}，会继续保持自然、稳定的帮助方式。`
+          : `接下来我会先把重点梳理清楚，再陪你一步步推进后面的事。我是${selfName}，会继续保持自然、稳定的帮助方式。`;
+      }
+
       if (styleValue === "formal") {
         return userName
           ? `${userName}，如果你今天状态不太好，我会先稳稳地陪你把事情讲清楚，再一步一步和你往前走。我是${selfName}，会继续用更正式、可靠的方式支持你。`
@@ -1462,6 +1496,24 @@ function buildSmokeAssistantReply({
       return userName
         ? `${userName}，如果你今天状态不太好，我会先把重点讲清楚，再陪你一起往前推进。我是${selfName}，会继续保持自然、稳定的支持方式。`
         : `如果你今天状态不太好，我会先把重点讲清楚，再陪你一起往前推进。我是${selfName}，会继续保持自然、稳定的支持方式。`;
+    }
+
+    if (helpNextPrompt) {
+      if (styleValue === "formal") {
+        return userName
+          ? `${userName}, next I would clarify the key points, lay out a steady next step, and keep helping in a more formal, reliable way. I am ${selfName}.`
+          : `Next I would clarify the key points, lay out a steady next step, and keep helping in a more formal, reliable way. I am ${selfName}.`;
+      }
+
+      if (styleValue === "friendly" || styleValue === "casual") {
+        return userName
+          ? `${userName}, next I would help you sort the important bits out, pick the easiest next step, and keep moving with you in that friendlier tone. I am ${selfName}.`
+          : `Next I would help you sort the important bits out, pick the easiest next step, and keep moving with you in that friendlier tone. I am ${selfName}.`;
+      }
+
+      return userName
+        ? `${userName}, next I would clarify the priorities and keep moving with you one step at a time. I am ${selfName}, and I would keep the tone steady and supportive.`
+        : `Next I would clarify the priorities and keep moving with you one step at a time. I am ${selfName}, and I would keep the tone steady and supportive.`;
     }
 
     if (styleValue === "formal") {
