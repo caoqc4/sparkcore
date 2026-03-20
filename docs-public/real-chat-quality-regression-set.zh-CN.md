@@ -115,6 +115,46 @@ npm run quality:eval -- --suite=real-chat --format=json
 
 所以这轮的意义其实是：在真正进入 thread-state 工作之前，先判断当前角色层路线是否还处在舒适边界内。
 
+## Baseline Confirmation Pack
+
+在第一轮 formal long-chain gate 已通过之后，后续轻量复验默认优先引用一组更小的 baseline confirmation pack，而不是每次都临时重新挑 smoke。
+
+这个 pack 当前固定服务于：
+
+- 当前 frozen baseline
+- 当前 scenario-pack 集合
+- 当前 profile-by-pack matrix
+
+它的作用是：
+
+- 作为 post-change 的轻量确认包
+- 帮助后续复验更机械、更低判断成本
+- 不替代正式的 formal long-chain gate
+
+当前 baseline confirmation pack 包含 4 条 smoke：
+
+- `Relationship Maintenance Pack`
+  - `keeps short continuation after direct preferred-name confirmation on the same agent`
+- `Mixed-Language Pack`
+  - `keeps explicit Chinese continuation requests in Chinese after the thread already switched`
+- `Memory Confirmation Pack`
+  - `keeps profession recall follow-ups on the direct-recall path`
+- `Correction Aftermath Pack`
+  - `keeps correction-aftermath metadata stable for relationship nickname recall`
+
+当前 canonical command：
+
+```bash
+cd apps/web
+npx playwright test tests/smoke/core-chat.spec.ts -g "keeps short continuation after direct preferred-name confirmation on the same agent|keeps explicit Chinese continuation requests in Chinese after the thread already switched|keeps profession recall follow-ups on the direct-recall path|keeps correction-aftermath metadata stable for relationship nickname recall" --reporter=line
+```
+
+边界说明：
+
+- 这个 pack 不自动随着新 scenario pack 或新 profile matrix 变化而扩展
+- 如果 formal gate 的 frozen baseline 发生变化，应显式更新它，而不是默认沿用旧集合
+- 后续 rerun 可以直接写“运行 baseline confirmation pack”，不必每次重新展开同一组 smoke 名称
+
 ## 失败归因记录
 
 当一条 real-chat case 失败时，不要只写“这条掉了”，而是记录第一条出问题的 turn，并附一条轻量归因。

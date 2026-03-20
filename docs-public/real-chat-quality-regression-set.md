@@ -115,6 +115,46 @@ Why this run matters more than a normal pass:
 
 This run is therefore a boundary-checking pass for whether the current role-layer approach is still comfortably sufficient before any real thread-state work begins.
 
+## Baseline Confirmation Pack
+
+After the first formal long-chain gate passes, later lightweight reruns should default to a smaller baseline confirmation pack instead of reselecting ad-hoc smokes each time.
+
+This pack is currently scoped to:
+
+- the current frozen baseline
+- the current scenario-pack set
+- the current profile-by-pack matrix
+
+Its role is to:
+
+- serve as a lightweight post-change confirmation set
+- make later reruns more mechanical and less judgment-heavy
+- avoid replacing the formal long-chain gate itself
+
+The current baseline confirmation pack includes these 4 smokes:
+
+- `Relationship Maintenance Pack`
+  - `keeps short continuation after direct preferred-name confirmation on the same agent`
+- `Mixed-Language Pack`
+  - `keeps explicit Chinese continuation requests in Chinese after the thread already switched`
+- `Memory Confirmation Pack`
+  - `keeps profession recall follow-ups on the direct-recall path`
+- `Correction Aftermath Pack`
+  - `keeps correction-aftermath metadata stable for relationship nickname recall`
+
+Current canonical command:
+
+```bash
+cd apps/web
+npx playwright test tests/smoke/core-chat.spec.ts -g "keeps short continuation after direct preferred-name confirmation on the same agent|keeps explicit Chinese continuation requests in Chinese after the thread already switched|keeps profession recall follow-ups on the direct-recall path|keeps correction-aftermath metadata stable for relationship nickname recall" --reporter=line
+```
+
+Boundary notes:
+
+- this pack does not automatically expand when new scenario packs or a new profile matrix are introduced
+- if the frozen baseline for the formal gate changes, update this pack explicitly instead of assuming the old set still applies
+- later reruns can simply reference the baseline confirmation pack instead of restating the same smoke set ad hoc
+
 ## Failure Attribution Record
 
 When a real-chat case fails, record the first failing turn with a lightweight note instead of only writing that the case drifted.
