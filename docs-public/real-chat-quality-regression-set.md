@@ -155,6 +155,41 @@ Boundary notes:
 - if the frozen baseline for the formal gate changes, update this pack explicitly instead of assuming the old set still applies
 - later reruns can simply reference the baseline confirmation pack instead of restating the same smoke set ad hoc
 
+## When To Run The Formal Gate Versus The Baseline Confirmation Pack
+
+Keep both, but use them for different purposes:
+
+- `formal gate` = phase / boundary judgment
+- `baseline confirmation pack` = lightweight regression checking on the current frozen baseline
+
+Prefer running the baseline confirmation pack for:
+
+- role-layer routing changes
+- answer-shape or language-priority fixes
+- continuity-related runtime fixes
+- other maintenance changes that may affect the currently passed frozen baseline
+
+In those cases, do not automatically reopen the formal gate.
+
+Reopen the formal gate when:
+
+- the frozen baseline definition changes
+- the scenario-pack set changes
+- the profile-by-pack matrix changes
+- thresholds, conclusion taxonomy, or gate rules change
+- a broader shift could invalidate the current scoped pass claim itself
+
+When in doubt:
+
+- run the baseline confirmation pack first
+- reopen the formal gate only when the scoped pass claim may no longer hold
+
+Keep the current environment-noise rule in place:
+
+- a one-off infra failure should not be treated as product drift by default
+- a same-baseline rerun is required
+- only a passing same-baseline rerun lets the earlier event be classified as `environment noise`
+
 ## Failure Attribution Record
 
 When a real-chat case fails, record the first failing turn with a lightweight note instead of only writing that the case drifted.

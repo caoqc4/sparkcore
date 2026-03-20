@@ -155,6 +155,41 @@ npm run smoke:baseline-confirmation
 - 如果 formal gate 的 frozen baseline 发生变化，应显式更新它，而不是默认沿用旧集合
 - 后续 rerun 可以直接写“运行 baseline confirmation pack”，不必每次重新展开同一组 smoke 名称
 
+## 什么时候跑 formal gate，什么时候跑 baseline confirmation pack
+
+这两者都保留，但用途不同：
+
+- `formal gate` = 阶段 / 边界判断
+- `baseline confirmation pack` = 当前 frozen baseline 上的轻量回归复验
+
+优先跑 baseline confirmation pack 的情况：
+
+- role-layer routing 改动
+- answer-shape 或 language-priority 修口
+- continuity 相关 runtime 修口
+- 其他可能影响当前已通过 frozen baseline 的小型维护改动
+
+这些情况下，默认先跑轻量 pack，不要自动重开 formal gate。
+
+需要重新打开 formal gate 的情况：
+
+- frozen baseline 定义变化
+- scenario-pack 集合变化
+- profile-by-pack matrix 变化
+- thresholds / conclusion taxonomy / gate rule 变化
+- 其他可能让“当前 scoped pass 仍然成立”这件事本身失效的改动
+
+如果拿不准：
+
+- 优先先跑 baseline confirmation pack
+- 只有当 scoped pass claim 本身可能不再成立时，才重开 formal gate
+
+环境噪音处理继续沿用当前规则：
+
+- 单次 infra 异常默认不直接记为 product drift
+- 必须先做 same-baseline rerun
+- 只有 same-baseline rerun 通过，才把前一次事件归为 `environment noise`
+
 ## 失败归因记录
 
 当一条 real-chat case 失败时，不要只写“这条掉了”，而是记录第一条出问题的 turn，并附一条轻量归因。
