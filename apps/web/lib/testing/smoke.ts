@@ -129,6 +129,8 @@ function detectSmokeExplicitLanguageOverride(content: string): SmokeReplyLanguag
     "reply in chinese",
     "respond in chinese",
     "answer in chinese",
+    "continue in chinese",
+    "keep replying in chinese",
     "please use chinese",
     "请用中文",
     "用中文回答",

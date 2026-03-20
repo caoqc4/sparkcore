@@ -2235,6 +2235,54 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).not.toMatch(/\bproduct designer\b/i);
   });
 
+  test("keeps explicit Chinese continuation requests in Chinese after the thread already switched", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "I am a product designer and I prefer concise weekly planning.",
+      "Please introduce yourself briefly.",
+      "你记得我做什么工作吗？",
+      "那接下来呢？",
+      "再用一句话说一遍。",
+      "ok, now continue in Chinese."
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.reply_language_source).toBe("latest-user-message");
+    expect(metadata.reply_language_detected).toBe("zh-Hans");
+    expect(latestAssistantMessage.content).toMatch(/[一-龥]/u);
+  });
+
   test("uses thread continuity as the language source for ambiguous short follow-ups", async ({
     request
   }) => {
