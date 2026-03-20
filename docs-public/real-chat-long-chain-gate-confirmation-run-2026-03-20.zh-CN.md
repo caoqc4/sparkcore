@@ -34,7 +34,7 @@
 
 ```bash
 cd apps/web
-npx playwright test tests/smoke/core-chat.spec.ts -g "keeps short continuation after direct preferred-name confirmation on the same agent|keeps explicit Chinese continuation requests in Chinese after the thread already switched|keeps profession recall follow-ups on the direct-recall path|keeps correction-aftermath metadata stable for relationship nickname recall" --reporter=line
+npm run smoke:baseline-confirmation
 ```
 
 结果：
