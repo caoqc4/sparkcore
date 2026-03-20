@@ -2847,7 +2847,7 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).toContain("阿强");
   });
 
-  test("keeps natural light supportive rephrasing on the same-thread carryover path", async ({
+  test("keeps natural light supportive variants on the same-thread carryover path", async ({
     request
   }) => {
     const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
@@ -2867,7 +2867,7 @@ test.describe("core chat smoke", () => {
       "以后你叫我阿强可以吗？",
       "以后和我说话轻松一点，可以吗？",
       "如果我今天状态不太好，你会怎么和我说？",
-      "那你再安慰我一句吧。"
+      "那你再支持我一下吧。"
     ]) {
       const response = await request.post("/api/test/smoke-send-turn", {
         headers: {
