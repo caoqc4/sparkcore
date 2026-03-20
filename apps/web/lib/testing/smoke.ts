@@ -767,6 +767,8 @@ function detectSmokeUserAddressStyleCandidate(content: string) {
   if (
     normalized.includes("跟我说话轻松一点") ||
     normalized.includes("和我说话轻松一点") ||
+    normalized.includes("轻松点和我说") ||
+    normalized.includes("轻松点和我讲") ||
     normalized.includes("别太正式") ||
     normalized.includes("不用太正式") ||
     normalized.includes("轻松一点") ||
@@ -784,8 +786,10 @@ function isSmokeLightStyleSofteningPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return (
-    normalized.includes("别太正式") &&
-    (normalized.includes("轻一点和我说") || normalized.includes("轻一点和我讲"))
+    (normalized.includes("别太正式") &&
+      (normalized.includes("轻一点和我说") || normalized.includes("轻一点和我讲"))) ||
+    normalized.includes("轻松点和我说就好") ||
+    normalized.includes("轻松点和我讲就好")
   );
 }
 

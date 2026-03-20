@@ -3189,7 +3189,7 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).toContain("好呀");
   });
 
-  test("keeps light style-softening prompts on the same relationship line", async ({
+  test("keeps natural light reassurance variants on the same relationship line", async ({
     request
   }) => {
     const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
@@ -3207,7 +3207,7 @@ test.describe("core chat smoke", () => {
 
     for (const content of [
       "以后你叫我阿强可以吗？",
-      "你别太正式，轻一点和我说。"
+      "你就轻松点和我说就好。"
     ]) {
       const response = await request.post("/api/test/smoke-send-turn", {
         headers: {
