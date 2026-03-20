@@ -2533,6 +2533,83 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).not.toContain("如果你今天状态不太好");
   });
 
+  test("keeps seeded relationship continuity on natural self-intro and help-next phrasing", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后和我说话轻松一点，可以吗？",
+      "你先介绍下你自己吧。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const introMessage = await getLatestAssistantMessageForThread(threadId);
+
+    expect(introMessage.metadata.question_type).toBe("open-ended-summary");
+    expect(introMessage.metadata.answer_strategy).toBe(
+      "grounded-open-ended-summary"
+    );
+    expect(introMessage.metadata.answer_strategy_reason_code).toBe(
+      "relationship-answer-shape-prompt"
+    );
+    expect(introMessage.content).toContain("阿强");
+
+    const explanatoryResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "接下来你会怎么帮我继续？"
+      }
+    });
+
+    expect(explanatoryResponse.ok()).toBeTruthy();
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+
+    expect(latestAssistantMessage.metadata.question_type).toBe(
+      "open-ended-summary"
+    );
+    expect(latestAssistantMessage.metadata.answer_strategy).toBe(
+      "grounded-open-ended-summary"
+    );
+    expect(latestAssistantMessage.metadata.answer_strategy_reason_code).toBe(
+      "relationship-answer-shape-prompt"
+    );
+    expect(latestAssistantMessage.content).toContain("阿强");
+    expect(latestAssistantMessage.content).toContain("继续");
+    expect(latestAssistantMessage.content).not.toContain("如果你今天状态不太好");
+  });
+
   test("keeps short continuation after direct preferred-name confirmation on the same agent", async ({
     request
   }) => {

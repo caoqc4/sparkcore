@@ -831,8 +831,14 @@ function isSmokeSelfIntroGreetingRequest(content: string) {
     normalized.includes("请简单介绍一下你自己") ||
     normalized.includes("简单介绍一下你自己") ||
     normalized.includes("先简单介绍一下你自己") ||
+    normalized.includes("你先介绍一下你自己吧") ||
+    normalized.includes("你先介绍下你自己吧") ||
+    normalized.includes("先和我介绍一下你自己") ||
+    normalized.includes("简单说说你自己") ||
     normalized.includes("introduce yourself briefly") ||
-    normalized.includes("briefly introduce yourself")
+    normalized.includes("briefly introduce yourself") ||
+    normalized.includes("introduce yourself first") ||
+    normalized.includes("tell me who you are first")
   );
 }
 
@@ -848,11 +854,15 @@ function isSmokeRelationshipHelpNextPrompt(content: string) {
 
   return (
     normalized.includes("接下来你会怎么帮助我") ||
+    normalized.includes("接下来你会怎么帮我继续") ||
+    normalized.includes("接下来你会怎么陪我继续") ||
     normalized.includes("你会怎么帮助我") ||
     normalized.includes("那你会怎么帮我继续") ||
     normalized.includes("你会怎么帮我往前推进") ||
+    normalized.includes("你会怎么陪我往前走") ||
     normalized.includes("how would you help me continue") ||
-    normalized.includes("how would you help me next")
+    normalized.includes("how would you help me next") ||
+    normalized.includes("what will you do next to help me")
   );
 }
 

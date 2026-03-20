@@ -30,11 +30,17 @@ function isRelationshipStylePrompt(content: string) {
     normalized.includes("请简单介绍一下你自己") ||
     normalized.includes("简单介绍一下你自己") ||
     normalized.includes("先简单介绍一下你自己") ||
+    normalized.includes("你先介绍一下你自己吧") ||
+    normalized.includes("你先介绍下你自己吧") ||
+    normalized.includes("先和我介绍一下你自己") ||
+    normalized.includes("简单说说你自己") ||
     normalized.includes("请简单和我打个招呼") ||
     normalized.includes("简单和我打个招呼") ||
     normalized.includes("简短和我打个招呼") ||
     normalized.includes("introduce yourself briefly") ||
     normalized.includes("briefly introduce yourself") ||
+    normalized.includes("introduce yourself first") ||
+    normalized.includes("tell me who you are first") ||
     normalized.includes("greet me briefly") ||
     normalized.includes("say a quick hello")
   );
@@ -52,11 +58,15 @@ function isRelationshipHelpNextPrompt(content: string) {
 
   return (
     normalized.includes("接下来你会怎么帮助我") ||
+    normalized.includes("接下来你会怎么帮我继续") ||
+    normalized.includes("接下来你会怎么陪我继续") ||
     normalized.includes("你会怎么帮助我") ||
     normalized.includes("那你会怎么帮我继续") ||
     normalized.includes("你会怎么帮我往前推进") ||
+    normalized.includes("你会怎么陪我往前走") ||
     normalized.includes("how would you help me continue") ||
-    normalized.includes("how would you help me next")
+    normalized.includes("how would you help me next") ||
+    normalized.includes("what will you do next to help me")
   );
 }
 
@@ -1180,12 +1190,18 @@ function buildOpenEndedRecallInstructions({
   );
   const helpNextPrompt = isRelationshipHelpNextPrompt(latestUserMessage);
   const roughDayPrompt = isRelationshipRoughDayPrompt(latestUserMessage);
+  const selfIntroPrompt = isRelationshipStylePrompt(latestUserMessage);
 
   if (questionType === "open-ended-summary") {
     return isZh
       ? [
           "这是一个开放式总结/自我介绍场景。把已召回的长期记忆当作背景约束，让相关事实和关系线索自然地体现在总结里。",
           "不要把回答写成逐槽位复述，也不要忽略已经命中的关系或偏好线索。",
+          ...(selfIntroPrompt
+            ? [
+                "如果这一轮是在让你先介绍自己，把回答写成同一个持续角色的自然开场，而不是像重新开始一段陌生对话。"
+              ]
+            : []),
           ...(helpNextPrompt
             ? [
                 "当前这一轮是在问你接下来会怎么帮助用户。直接回答你会如何继续帮助、推进或陪着往前走，不要提前跳到“如果状态不好时怎么安慰”那类下一轮场景。"
@@ -1205,6 +1221,11 @@ function buildOpenEndedRecallInstructions({
       : [
           "This is an open-ended summary or self-introduction case. Treat recalled long-term memory as grounding so relevant facts and relationship cues naturally appear in the summary.",
           "Do not turn the reply into slot-by-slot repetition, but do not ignore recalled relationship or preference cues either.",
+          ...(selfIntroPrompt
+            ? [
+                "If this turn is asking you to introduce yourself first, write it like the same continuing role opening the exchange naturally instead of sounding like a fresh stranger reset."
+              ]
+            : []),
           ...(helpNextPrompt
             ? [
                 "This turn is asking how you would help next. Answer the current help-next prompt directly instead of jumping ahead to a later rough-day or comfort scenario."
