@@ -87,6 +87,23 @@ npm run quality:eval -- --suite=real-chat --format=json
 
 这条 scope freeze 的目的，是保护基线可比性，不是阻止后续补修复。
 
+## 环境噪音处理约定
+
+如果一轮 gate 里出现失败，但失败看起来更像环境或基础设施噪音，而不是产品行为本身，先不要直接把它记成产品漂移。
+
+可先视为环境噪音候选的典型例子：
+
+- 临时网络抖动
+- Supabase connect timeout
+- smoke harness 在真正执行到产品行为前就失败
+
+处理约定：
+
+- 只有当失败已经提供了明确的产品行为证据时，才把它写进正式 gate 漂移记录
+- 如果怀疑是环境噪音，必须先在同一个 frozen baseline、同一个 scenario-pack / profile matrix、同一个 execution environment 下重跑一次
+- 只有当 same-baseline rerun 通过时，才可以把前一次事件记为环境噪音而不是产品问题
+- 如果 same-baseline rerun 仍然失败，或者同一种失败模式在重跑中复现，就不能再按环境噪音处理
+
 ## 第一轮 8 到 12 Turn 验收作为 Milestone Gate
 
 第一轮 `8 到 12 turn` 长链路验收要按 milestone gate 来看，而不是普通回归轮。

@@ -87,6 +87,23 @@ If a meaningful runtime fix, prompt fix, or acceptance-rule change becomes neces
 
 This scope freeze is there to protect baseline comparability, not to prevent follow-up fixes after the run is recorded.
 
+## Environment-Noise Handling Rule
+
+If a gate run fails in a way that looks more like environment or infrastructure noise than product behavior, do not immediately record it as product drift.
+
+Typical environment-noise candidates include:
+
+- transient network instability
+- a Supabase connect timeout
+- a smoke-harness failure before product behavior is actually exercised
+
+Handling rule:
+
+- only record a failure as gate drift when it provides direct evidence about product behavior
+- if environment noise is suspected, rerun the same case on the same frozen baseline, the same scenario-pack/profile matrix, and the same execution environment
+- only classify the earlier event as environment noise when that same-baseline rerun passes
+- if the same-baseline rerun fails again, or the same failure mode reproduces, do not dismiss it as environment noise
+
 ## Milestone Gate For The First 8 To 12 Turn Acceptance Run
 
 Treat this first `8 to 12 turn` long-chain acceptance pass as a milestone gate instead of an ordinary regression cycle.
