@@ -1018,6 +1018,10 @@ function isSmokeFuzzyFollowUpQuestion(content: string) {
   const isShortKeepGoingPrompt = /^好[,，]?继续[。.!！?？]*$/u.test(
     normalizedWithoutSpaces
   );
+  const isNaturalKeepTalkingPrompt =
+    /^(那|那你|你|嗯|嗯，|嗯,)?继续(说说|讲讲|吧)[。.!！?？]*$/u.test(
+      normalizedWithoutSpaces
+    );
 
   return (
     normalized === "那接下来呢？" ||
@@ -1031,6 +1035,7 @@ function isSmokeFuzzyFollowUpQuestion(content: string) {
     normalized === "再确认一次？" ||
     normalized === "再确认一次?" ||
     isShortKeepGoingPrompt ||
+    isNaturalKeepTalkingPrompt ||
     normalized === "继续说说。" ||
     normalized === "继续说说" ||
     normalized === "继续讲讲。" ||
