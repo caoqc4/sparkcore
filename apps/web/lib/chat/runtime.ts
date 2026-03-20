@@ -170,6 +170,7 @@ function isOpenEndedAdviceQuestion(content: string) {
     normalized.includes("接下来你会怎么帮助我") ||
     normalized.includes("接下来我该怎么做") ||
     normalized.includes("下一步我该怎么做") ||
+    normalized.includes("给我一个小建议") ||
     normalized.includes("我现在该先做什么") ||
     normalized.includes("那我该从哪开始") ||
     normalized.includes("你会怎么陪我推进") ||
