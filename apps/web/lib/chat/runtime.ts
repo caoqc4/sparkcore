@@ -812,6 +812,8 @@ function getDirectRecallQuestionKind(
   if (
     normalizedUserMessage.includes("what profession do you remember") ||
     normalizedUserMessage.includes("what work do you remember") ||
+    normalizedUserMessage.includes("what kind of work do i do") ||
+    normalizedUserMessage.includes("what do you remember about my work") ||
     normalizedUserMessage.includes("你记得我做什么") ||
     normalizedUserMessage.includes("你记得我的职业") ||
     normalizedUserMessage.includes("你记得我从事什么")

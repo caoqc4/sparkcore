@@ -2290,6 +2290,80 @@ test.describe("core chat smoke", () => {
     expect(metadata.reply_language_detected).toBe("en");
   });
 
+  test("keeps profession recall follow-ups on the direct-recall path", async ({
+    request
+  }) => {
+    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(seedThreadResponse.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await seedThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const seedTurnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "I am a product designer."
+      }
+    });
+
+    expect(seedTurnResponse.ok()).toBeTruthy();
+
+    const recallThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(recallThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await recallThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "What profession do you remember that I work in? If you do not know, say you do not know.",
+      "So what kind of work do I do?",
+      "What do you remember about my work?"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.question_type).toBe("direct-fact");
+    expect(metadata.answer_strategy).toBe("structured-recall-first");
+    expect(metadata.answer_strategy_reason_code).toBe("direct-memory-question");
+    expect(latestAssistantMessage.content).toContain("product designer");
+  });
+
   test("uses relationship-answer-shape diagnostics for explanatory turns before same-thread carryover exists", async ({
     request
   }) => {

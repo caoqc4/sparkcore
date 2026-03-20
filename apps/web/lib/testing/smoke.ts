@@ -954,6 +954,8 @@ function isSmokeDirectProfessionQuestion(content: string) {
   return (
     normalized.includes("what profession do you remember") ||
     normalized.includes("what work do you remember") ||
+    normalized.includes("what kind of work do i do") ||
+    normalized.includes("what do you remember about my work") ||
     normalized.includes("你记得我做什么") ||
     normalized.includes("你记得我的职业") ||
     normalized.includes("你记得我从事什么")
