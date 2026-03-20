@@ -137,6 +137,7 @@ function isShortRelationshipSummaryFollowUpPrompt(content: string) {
     normalized.includes("简单收一下") ||
     normalized.includes("收个尾") ||
     normalized.includes("收住就行") ||
+    normalized.includes("把这段先收一下") ||
     normalized.includes("再简单介绍一下你自己") ||
     normalized.includes("再简单说一下你自己") ||
     normalized.includes("最后再简单介绍一下你自己") ||
