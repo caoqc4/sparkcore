@@ -89,6 +89,7 @@ function isRelationshipSupportivePrompt(content: string) {
 
   return (
     normalized.includes("鼓励我一句") ||
+    normalized.includes("安慰我一句") ||
     normalized.includes("安慰我一下") ||
     normalized.includes("陪陪我") ||
     normalized.includes("支持我一下") ||
@@ -108,6 +109,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
 
   return (
     normalized.includes("鼓励我一句") ||
+    normalized.includes("安慰我一句") ||
     normalized.includes("安慰我一下") ||
     normalized.includes("给我一点鼓励") ||
     normalized.includes("give me a little encouragement") ||
