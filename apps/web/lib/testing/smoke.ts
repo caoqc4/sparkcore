@@ -780,6 +780,15 @@ function detectSmokeUserAddressStyleCandidate(content: string) {
   return null;
 }
 
+function isSmokeLightStyleSofteningPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("别太正式") &&
+    (normalized.includes("轻一点和我说") || normalized.includes("轻一点和我讲"))
+  );
+}
+
 function isSmokeDirectNamingQuestion(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
@@ -1666,7 +1675,8 @@ function buildSmokeAssistantReply({
 
   return replyLanguage === "zh-Hans"
     ? (() => {
-        const styleValue = addressStyleMemory?.content ?? null;
+        const styleValue =
+          addressStyleMemory?.content ?? detectSmokeUserAddressStyleCandidate(content);
         const userName = preferredNameMemory?.content ?? null;
 
         if (styleValue === "formal") {
@@ -1683,8 +1693,12 @@ function buildSmokeAssistantReply({
 
         if (styleValue === "casual") {
           return userName
-            ? `好呀，${userName}，我们继续。`
-            : "好呀，我们继续。";
+            ? isSmokeLightStyleSofteningPrompt(content)
+              ? `好呀，${userName}，我就轻一点和你说，我们继续。`
+              : `好呀，${userName}，我们继续。`
+            : isSmokeLightStyleSofteningPrompt(content)
+              ? "好呀，我就轻一点和你说，我们继续。"
+              : "好呀，我们继续。";
         }
 
         if (recentAssistantReply?.replyLanguage === "zh-Hans") {
@@ -1694,7 +1708,8 @@ function buildSmokeAssistantReply({
         return "好的，我已经记下来了，接下来可以继续帮你。";
       })()
     : (() => {
-        const styleValue = addressStyleMemory?.content ?? null;
+        const styleValue =
+          addressStyleMemory?.content ?? detectSmokeUserAddressStyleCandidate(content);
         const userName = preferredNameMemory?.content ?? null;
 
         if (styleValue === "formal") {
@@ -1711,8 +1726,12 @@ function buildSmokeAssistantReply({
 
         if (styleValue === "casual") {
           return userName
-            ? `Sure, ${userName}. We can keep going.`
-            : "Sure, we can keep going.";
+            ? isSmokeLightStyleSofteningPrompt(content)
+              ? `Sure, ${userName}. I can keep it lighter while we continue.`
+              : `Sure, ${userName}. We can keep going.`
+            : isSmokeLightStyleSofteningPrompt(content)
+              ? "Sure, I can keep it lighter while we continue."
+              : "Sure, we can keep going.";
         }
 
         if (recentAssistantReply?.replyLanguage === "en") {

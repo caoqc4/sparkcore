@@ -3087,6 +3087,49 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).toContain("好呀");
   });
 
+  test("keeps light style-softening prompts on the same relationship line", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "你别太正式，轻一点和我说。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+
+    expect(latestAssistantMessage.content).toContain("阿强");
+    expect(latestAssistantMessage.content).toContain("轻一点和你说");
+    expect(latestAssistantMessage.content).not.toContain("偏好");
+  });
+
   test("uses the default-grounded fallback branch for uncategorized grounded prompts", async ({
     request
   }) => {

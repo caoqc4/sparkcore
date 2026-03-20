@@ -146,6 +146,15 @@ function isShortRelationshipSummaryFollowUpPrompt(content: string) {
   );
 }
 
+function isLightStyleSofteningPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("别太正式") &&
+    (normalized.includes("轻一点和我说") || normalized.includes("轻一点和我讲"))
+  );
+}
+
 function isRelationshipAnswerShapePrompt(content: string) {
   return (
     isRelationshipStylePrompt(content) ||
@@ -1068,6 +1077,8 @@ function buildAnswerStrategyInstructions({
     } | null;
   };
 }) {
+  const styleSofteningPrompt = isLightStyleSofteningPrompt(latestUserMessage);
+
   if (
     answerStrategy === "structured-recall-first" ||
     answerStrategy === "relationship-recall-first"
@@ -1096,6 +1107,15 @@ function buildAnswerStrategyInstructions({
         : [
             "This prompt type has low deterministic priority. Keep the answer natural and more open-ended, but stay within recalled memory and relationship boundaries."
           ]),
+      ...(styleSofteningPrompt
+        ? isZh
+          ? [
+              "当前用户是在让你把语气放轻一点。像同一个持续角色那样自然接住这个请求，并立刻用更轻松的方式继续说，不要把回复写成偏好说明。"
+            ]
+          : [
+              "The user is asking you to soften the tone. Acknowledge it like the same ongoing role and immediately continue in a lighter way instead of turning the reply into a preference explanation."
+            ]
+        : []),
       ...buildOpenEndedRecallInstructions({
         latestUserMessage,
         isZh,
@@ -1125,7 +1145,16 @@ function buildAnswerStrategyInstructions({
             "This is a short follow-up in the same thread. Prefer continuing the language, address terms, and relationship style already established here instead of snapping back to the default tone.",
             "If the recalled memory supports the current thread continuity, carry it forward naturally instead of turning the reply into a fresh rigid summary.",
             "Even when the user only asks for a brief encouragement line, a short recap, or a simple continuation, treat it as same-thread relationship carryover instead of a fresh neutral task."
-          ])
+          ]),
+      ...(styleSofteningPrompt
+        ? isZh
+          ? [
+              "当前用户是在让你把语气放轻一点。像同一个持续角色那样顺着这个请求自然放松口吻，不要把回复写成偏好设置说明。"
+            ]
+          : [
+              "The user is asking you to soften the tone. Relax the voice naturally like the same ongoing role instead of replying with a preference-setting explanation."
+            ]
+        : [])
     ];
   }
 
@@ -1150,6 +1179,15 @@ function buildAnswerStrategyInstructions({
           : [
               "This prompt type is semi-constrained. Keep recalled-memory boundaries in place without turning the reply into a rigid direct-fact answer."
             ]),
+        ...(styleSofteningPrompt
+          ? isZh
+            ? [
+                "当前用户是在让你把语气放轻一点。像同一个持续角色那样自然放轻语气并继续，不要把回复写成对偏好的生硬复述。"
+              ]
+            : [
+                "The user is asking you to soften the tone. Continue in a lighter way like the same ongoing role instead of mechanically restating the preference."
+              ]
+          : []),
         ...defaultInstructions
       ]
     : defaultInstructions;
