@@ -985,6 +985,10 @@ function isSmokeOpenEndedSummaryQuestion(content: string) {
 
 function isSmokeFuzzyFollowUpQuestion(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalizedWithoutSpaces = normalized.replace(/\s+/g, "");
+  const isShortKeepGoingPrompt = /^好[,，]?继续[。.!！?？]*$/u.test(
+    normalizedWithoutSpaces
+  );
 
   return (
     normalized === "那接下来呢？" ||
@@ -997,8 +1001,7 @@ function isSmokeFuzzyFollowUpQuestion(content: string) {
     normalized === "再说一遍" ||
     normalized === "再确认一次？" ||
     normalized === "再确认一次?" ||
-    normalized === "好，继续。" ||
-    normalized === "好，继续" ||
+    isShortKeepGoingPrompt ||
     normalized === "继续说说。" ||
     normalized === "继续说说" ||
     normalized === "继续讲讲。" ||
@@ -1043,11 +1046,13 @@ function getSmokeContinuationReasonCode(
 function getSmokeAnswerStrategy({
   content,
   sameThreadContinuity,
-  relationshipStylePrompt
+  relationshipStylePrompt,
+  relationshipCarryoverAvailable
 }: {
   content: string;
   sameThreadContinuity: boolean;
   relationshipStylePrompt: boolean;
+  relationshipCarryoverAvailable: boolean;
 }) {
   const directNamingQuestion = isSmokeDirectNamingQuestion(content);
   const directPreferredNameQuestion =
@@ -1075,7 +1080,10 @@ function getSmokeAnswerStrategy({
     };
   }
 
-  if (sameThreadContinuity && isSmokeRelationshipContinuationEdgePrompt(content)) {
+  if (
+    isSmokeRelationshipContinuationEdgePrompt(content) &&
+    (sameThreadContinuity || relationshipCarryoverAvailable)
+  ) {
     return {
       questionType: "fuzzy-follow-up" as SmokeAnswerQuestionType,
       answerStrategy: "same-thread-continuation" as SmokeAnswerStrategy,
@@ -1800,10 +1808,17 @@ export async function createSmokeTurn({
   const sameThreadContinuity = recentAssistantReply !== null;
   const sameThreadContinuationApplicable =
     sameThreadContinuity && isSmokeRelationshipContinuationEdgePrompt(trimmedContent);
+  const relationshipCarryoverAvailable = activeMemories.some(
+    (memory) =>
+      memory.category === "relationship" &&
+      memory.scope === "user_agent" &&
+      memory.target_agent_id === ensuredAgent.id
+  );
   const answerStrategyRule = getSmokeAnswerStrategy({
     content: trimmedContent,
     sameThreadContinuity,
-    relationshipStylePrompt
+    relationshipStylePrompt,
+    relationshipCarryoverAvailable
   });
   const preferSameThreadContinuation =
     answerStrategyRule.answerStrategy === "same-thread-continuation";

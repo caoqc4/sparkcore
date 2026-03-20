@@ -2409,6 +2409,86 @@ test.describe("core chat smoke", () => {
     expect(metadata.approx_context_pressure).toBe("low");
   });
 
+  test("keeps short continuation after direct preferred-name confirmation on the same agent", async ({
+    request
+  }) => {
+    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(seedThreadResponse.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await seedThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    for (const content of ["以后我叫你小芳可以吗？", "以后你叫我阿强可以吗？"]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId: seedThreadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "请简单介绍一下你自己。",
+      "那接下来呢？",
+      "那你接下来会怎么称呼我？",
+      "好，继续。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.question_type).toBe("fuzzy-follow-up");
+    expect(metadata.answer_strategy).toBe("same-thread-continuation");
+    expect(metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(metadata.continuation_reason_code).toBe("short-fuzzy-follow-up");
+    expect(latestAssistantMessage.content).toContain("阿强");
+  });
+
   test("uses the default-grounded fallback branch for uncategorized grounded prompts", async ({
     request
   }) => {

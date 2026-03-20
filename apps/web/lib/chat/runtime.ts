@@ -181,6 +181,10 @@ function isOpenEndedSummaryQuestion(content: string) {
 
 function isFuzzyFollowUpQuestion(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalizedWithoutSpaces = normalized.replace(/\s+/g, "");
+  const isShortKeepGoingPrompt = /^好[,，]?继续[。.!！?？]*$/u.test(
+    normalizedWithoutSpaces
+  );
 
   return (
     normalized === "那接下来呢？" ||
@@ -193,8 +197,7 @@ function isFuzzyFollowUpQuestion(content: string) {
     normalized === "再说一遍" ||
     normalized === "再确认一次？" ||
     normalized === "再确认一次?" ||
-    normalized === "好，继续。" ||
-    normalized === "好，继续" ||
+    isShortKeepGoingPrompt ||
     normalized === "继续说说。" ||
     normalized === "继续说说" ||
     normalized === "继续讲讲。" ||
@@ -556,7 +559,12 @@ function buildMemoryRecallPrompt(
     directNamingQuestion: relationshipRecall.directNamingQuestion,
     directPreferredNameQuestion: relationshipRecall.directPreferredNameQuestion,
     relationshipStylePrompt: relationshipRecall.relationshipStylePrompt,
-    sameThreadContinuity: relationshipRecall.sameThreadContinuity
+    sameThreadContinuity: relationshipRecall.sameThreadContinuity,
+    relationshipCarryoverAvailable: Boolean(
+      relationshipRecall.addressStyleMemory ||
+        relationshipRecall.nicknameMemory ||
+        relationshipRecall.preferredNameMemory
+    )
   });
   const answerQuestionType = answerQuestionRouting.questionType;
   const answerStrategyRule = getAnswerStrategyRule(answerQuestionType);
@@ -825,6 +833,7 @@ function getAnswerQuestionRouting(params: {
   directPreferredNameQuestion: boolean;
   relationshipStylePrompt: boolean;
   sameThreadContinuity: boolean;
+  relationshipCarryoverAvailable: boolean;
 }): {
   questionType: AnswerQuestionType;
   reasonCode: AnswerStrategyReasonCode;
@@ -836,7 +845,8 @@ function getAnswerQuestionRouting(params: {
     directNamingQuestion,
     directPreferredNameQuestion,
     relationshipStylePrompt,
-    sameThreadContinuity
+    sameThreadContinuity,
+    relationshipCarryoverAvailable
   } = params;
 
   if (directNamingQuestion || directPreferredNameQuestion) {
@@ -855,7 +865,10 @@ function getAnswerQuestionRouting(params: {
     };
   }
 
-  if (sameThreadContinuity && isRelationshipContinuationEdgePrompt(latestUserMessage)) {
+  if (
+    isRelationshipContinuationEdgePrompt(latestUserMessage) &&
+    (sameThreadContinuity || relationshipCarryoverAvailable)
+  ) {
     return {
       questionType: "fuzzy-follow-up",
       reasonCode: "same-thread-edge-carryover",
@@ -2527,7 +2540,12 @@ export async function generateAgentReply({
       directNamingQuestion: relationshipRecall.directNamingQuestion,
       directPreferredNameQuestion: relationshipRecall.directPreferredNameQuestion,
       relationshipStylePrompt: relationshipRecall.relationshipStylePrompt,
-      sameThreadContinuity: relationshipRecall.sameThreadContinuity
+      sameThreadContinuity: relationshipRecall.sameThreadContinuity,
+      relationshipCarryoverAvailable: Boolean(
+        relationshipRecall.addressStyleMemory ||
+          relationshipRecall.nicknameMemory ||
+          relationshipRecall.preferredNameMemory
+      )
     });
     answerQuestionType = answerQuestionRouting.questionType;
     answerStrategyReasonCode = answerQuestionRouting.reasonCode;
