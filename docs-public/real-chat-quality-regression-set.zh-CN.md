@@ -259,6 +259,28 @@ Baseline confirmation rerun record
 - anomaly_classification: none
 ```
 
+可直接复制的 comment snippet：
+
+```md
+Baseline confirmation rerun record
+
+- command: `cd apps/web && npm run smoke:baseline-confirmation`
+- result: `<paste result here>`
+- baseline_ref: `<paste baseline ref here>`
+- anomaly_classification: `<optional>`
+```
+
+贴入示例：
+
+```md
+Baseline confirmation rerun record
+
+- command: `cd apps/web && npm run smoke:baseline-confirmation`
+- result: `4 passed (4.3m)`
+- baseline_ref: `f29b6a6`
+- anomaly_classification: `none`
+```
+
 记录原则：
 
 - 保持轻量，不补 formal gate 才需要的 conclusion taxonomy

@@ -259,6 +259,28 @@ Baseline confirmation rerun record
 - anomaly_classification: none
 ```
 
+Copy-ready comment snippet:
+
+```md
+Baseline confirmation rerun record
+
+- command: `cd apps/web && npm run smoke:baseline-confirmation`
+- result: `<paste result here>`
+- baseline_ref: `<paste baseline ref here>`
+- anomaly_classification: `<optional>`
+```
+
+Paste example:
+
+```md
+Baseline confirmation rerun record
+
+- command: `cd apps/web && npm run smoke:baseline-confirmation`
+- result: `4 passed (4.3m)`
+- baseline_ref: `f29b6a6`
+- anomaly_classification: `none`
+```
+
 Recording rule:
 
 - keep it lightweight instead of repeating the formal gate conclusion taxonomy
