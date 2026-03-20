@@ -205,6 +205,32 @@ Use the following short checklist after a relevant change:
 
 This checklist is only for the current long-chain / role-layer maintenance path and does not replace the formal gate rules themselves.
 
+## Minimal Template: baseline confirmation rerun record
+
+Use one very small result template for a baseline confirmation rerun record instead of copying the full formal-gate format.
+
+Minimum fields:
+
+- `command`
+- `result`
+- `baseline_ref`
+
+Optional field:
+
+- `anomaly_classification`
+
+Only fill `anomaly_classification` when an anomaly actually appears. Suggested values:
+
+- `product_drift`
+- `environment_noise`
+- `none`
+
+Recording rule:
+
+- keep it lightweight instead of repeating the formal gate conclusion taxonomy
+- only record the minimum execution outcome needed for this baseline confirmation rerun
+- if no anomaly appears, `anomaly_classification` may be omitted or written as `none`
+
 ## Failure Attribution Record
 
 When a real-chat case fails, record the first failing turn with a lightweight note instead of only writing that the case drifted.

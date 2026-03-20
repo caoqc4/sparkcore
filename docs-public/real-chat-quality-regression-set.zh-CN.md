@@ -205,6 +205,32 @@ npm run smoke:baseline-confirmation
 
 这份 checklist 只服务于当前 long-chain / role-layer 维护路径，不替代 formal gate 规则本身。
 
+## Minimal Template：baseline confirmation rerun record
+
+baseline confirmation rerun record 只使用一份很小的结果模板，不复制 formal gate 的完整记录格式。
+
+最小字段：
+
+- `command`
+- `result`
+- `baseline_ref`
+
+可选字段：
+
+- `anomaly_classification`
+
+只有在确实出现异常时，才填写 `anomaly_classification`。当前建议值：
+
+- `product_drift`
+- `environment_noise`
+- `none`
+
+记录原则：
+
+- 保持轻量，不补 formal gate 才需要的 conclusion taxonomy
+- 只记录这次 baseline confirmation rerun 最小必要的执行结果
+- 如果没有异常，`anomaly_classification` 可以省略，或显式记成 `none`
+
 ## 失败归因记录
 
 当一条 real-chat case 失败时，不要只写“这条掉了”，而是记录第一条出问题的 turn，并附一条轻量归因。
