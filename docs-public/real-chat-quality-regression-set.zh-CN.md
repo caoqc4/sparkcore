@@ -249,6 +249,16 @@ baseline confirmation rerun record 只使用一份很小的结果模板，不复
 - `environment_noise`
 - `none`
 
+推荐摘要写法：
+
+```text
+Baseline confirmation rerun record
+- command: cd apps/web && npm run smoke:baseline-confirmation
+- result: 4 passed (4.3m)
+- baseline_ref: <commit-or-baseline-ref>
+- anomaly_classification: none
+```
+
 记录原则：
 
 - 保持轻量，不补 formal gate 才需要的 conclusion taxonomy

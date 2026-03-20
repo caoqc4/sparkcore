@@ -249,6 +249,16 @@ Only fill `anomaly_classification` when an anomaly actually appears. Suggested v
 - `environment_noise`
 - `none`
 
+Suggested summary form:
+
+```text
+Baseline confirmation rerun record
+- command: cd apps/web && npm run smoke:baseline-confirmation
+- result: 4 passed (4.3m)
+- baseline_ref: <commit-or-baseline-ref>
+- anomaly_classification: none
+```
+
 Recording rule:
 
 - keep it lightweight instead of repeating the formal gate conclusion taxonomy
