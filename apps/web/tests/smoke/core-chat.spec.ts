@@ -2113,6 +2113,45 @@ test.describe("core chat smoke", () => {
     ).toBeVisible();
   });
 
+  test("keeps chat and memory helper copy lightweight on the current surfaces", async ({
+    page,
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${threadId}`
+    );
+    await expect(page.getByLabel("Message")).toBeVisible();
+
+    await expect(
+      page.getByText(
+        "Open the short note under the reply when you want the main reason for that turn."
+      )
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        "See what the system remembers here and whether it is active now."
+      )
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        "Hidden or incorrect memory stays out of recall until restored. Lower-confidence memory can still appear, but with lighter emphasis."
+      )
+    ).toBeVisible();
+  });
+
   test("keeps reply language aligned with the latest user message", async ({
     page,
     request

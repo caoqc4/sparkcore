@@ -86,9 +86,9 @@ export function getChatCopy(locale: ChatLocale) {
       memory: {
         title: "记忆",
         helper:
-          "在这里看系统记住了什么，以及它现在会不会生效。",
+          "在这里看系统记住了什么，以及它现在是否生效。",
         hint:
-          "查看哪些长期记忆可用、已隐藏或已标错。",
+          "看哪些记忆当前可用、已隐藏或已标错。",
         longTermTitle: "长期记忆",
         longTermHelper:
           "这些记忆会跨线程保留，并按作用域决定是全局生效还是只对当前 agent 生效。",
@@ -96,13 +96,13 @@ export function getChatCopy(locale: ChatLocale) {
         threadLocalHelper:
           "这些内容只在当前线程内生效，不会自动变成长期记忆。",
         trustNote:
-          "这里的信任提示保持轻量：低置信记忆会弱化展示，被隐藏的记忆在恢复前不会参与 recall，被标错的记忆会发出更强的纠错信号。",
+          "低置信会弱化展示；隐藏和标错的记忆在恢复前都不会参与 recall。",
         policyTitle1:
-          "SparkCore 更倾向记住清晰、稳定的 profile 信息和 preference。",
+          "更可能记住清晰、稳定的 profile 和 preference。",
         policyTitle2:
-          "一次性情绪、临时计划或模糊猜测不太会被长期保存。",
+          "一次性情绪、临时计划和模糊猜测通常不会长期保存。",
         policyHint:
-          "隐藏的记忆在恢复前不会参与 recall。低置信记忆仍可能出现，但会以更弱的视觉权重展示。",
+          "隐藏/标错前不参与 recall；低置信仍可能出现，但会更弱化。",
         empty:
           "当前还没有长期记忆。一旦提取出清晰的 profile 或 preference，它就会显示在这里。",
         restoredBadge: "已恢复",
@@ -287,7 +287,7 @@ export function getChatCopy(locale: ChatLocale) {
         noWorkspaceDefault:
           "当前还没有设置工作区默认 agent。这个线程仍然保留自己的绑定 agent。",
         runtimeHint:
-          "想看这轮的主要依据，就展开 assistant 下方这条简要说明。",
+          "想看这轮主要依据，就展开回复下方这条简要说明。",
         statusActive: "进行中",
         messagesSuffix: "条消息",
         firstTurnLead:
@@ -306,7 +306,7 @@ export function getChatCopy(locale: ChatLocale) {
         memoryContext: "记忆",
         memoryActivity: "写入",
         summaryNote:
-          "这个摘要只解释当前回合，不会改写旧回复。",
+          "这里只解释当前回合，不会改写旧回复。",
         messageLabel: "消息",
         placeholderFirstTurn: "用一个目标、问题或规划场景开始这条线程……",
         placeholderOngoing: "在当前线程里发送一条消息……",
@@ -410,9 +410,9 @@ export function getChatCopy(locale: ChatLocale) {
     memory: {
       title: "Memory",
       helper:
-        "See what the system remembers here, and whether it is active right now.",
+        "See what the system remembers here and whether it is active now.",
       hint:
-        "See which long-term memories are active, hidden, or marked incorrect.",
+        "See which memories are active, hidden, or marked incorrect.",
       longTermTitle: "Long-term memory",
       longTermHelper:
         "These memories persist across threads, either globally or only for this agent.",
@@ -420,13 +420,13 @@ export function getChatCopy(locale: ChatLocale) {
       threadLocalHelper:
         "These entries only apply inside the current thread and do not become long-term memory automatically.",
       trustNote:
-        "Trust cues stay lightweight here: lower-confidence memories are softened visually, hidden memories stay out of recall until restored, and incorrect memories send a stronger correction signal.",
+        "Trust cues stay light: lower-confidence memories are softened, and hidden or incorrect memories stay out of recall until restored.",
       policyTitle1:
         "SparkCore is more likely to remember clear, stable profile facts and preferences.",
       policyTitle2:
-        "It is less likely to keep one-off moods, temporary plans, or vague guesses as long-term memory.",
+        "One-off moods, temporary plans, and vague guesses usually do not stay as long-term memory.",
       policyHint:
-        "Hidden memory stays out of recall until restored. Lower-confidence memory can still appear, but it is shown with lighter emphasis.",
+        "Hidden or incorrect memory stays out of recall until restored. Lower-confidence memory can still appear, but with lighter emphasis.",
       empty:
         "No long-term memory has been written yet. Once a clear profile or preference is extracted, it will appear here.",
       restoredBadge: "Restored",
@@ -613,7 +613,7 @@ export function getChatCopy(locale: ChatLocale) {
       noWorkspaceDefault:
         "No workspace default agent is set. This thread still keeps its own bound agent.",
       runtimeHint:
-        "Open the short note under the assistant reply when you want the main reason for that turn.",
+        "Open the short note under the reply when you want the main reason for that turn.",
       statusActive: "active",
       messagesSuffix: "messages",
       firstTurnLead:
@@ -632,7 +632,7 @@ export function getChatCopy(locale: ChatLocale) {
       memoryContext: "Memory",
       memoryActivity: "Writes",
       summaryNote:
-        "This summary only explains the current turn. It does not rewrite older replies.",
+        "This only explains the current turn. It does not rewrite older replies.",
       messageLabel: "Message",
       placeholderFirstTurn:
         "Start the thread with a goal, question, or planning problem...",
