@@ -205,6 +205,30 @@ Use the following short checklist after a relevant change:
 
 This checklist is only for the current long-chain / role-layer maintenance path and does not replace the formal gate rules themselves.
 
+## Default Recording Place And Heading Format
+
+Use the following default rule for a baseline confirmation rerun record:
+
+- record it in the related change issue comment by default
+- only fall back to a lightweight running log when the rerun does not map cleanly to one change issue
+
+Use this fixed heading:
+
+- `Baseline confirmation rerun record`
+
+Use this fixed field order:
+
+- `command`
+- `result`
+- `baseline_ref`
+- `anomaly_classification` (optional)
+
+Keep the terminology consistent:
+
+- `formal gate`
+- `baseline confirmation pack`
+- `baseline confirmation rerun record`
+
 ## Minimal Template: baseline confirmation rerun record
 
 Use one very small result template for a baseline confirmation rerun record instead of copying the full formal-gate format.

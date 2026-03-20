@@ -205,6 +205,30 @@ npm run smoke:baseline-confirmation
 
 这份 checklist 只服务于当前 long-chain / role-layer 维护路径，不替代 formal gate 规则本身。
 
+## 默认记录位置与标题格式
+
+baseline confirmation rerun record 默认按下面的规则落地：
+
+- 默认记到对应改动 issue 的 comment
+- 只有当这次 rerun 不对应单一改动 issue 时，才回退到一份轻量 running log
+
+默认标题格式固定为：
+
+- `Baseline confirmation rerun record`
+
+默认字段顺序固定为：
+
+- `command`
+- `result`
+- `baseline_ref`
+- `anomaly_classification`（optional）
+
+术语统一使用：
+
+- `formal gate`
+- `baseline confirmation pack`
+- `baseline confirmation rerun record`
+
 ## Minimal Template：baseline confirmation rerun record
 
 baseline confirmation rerun record 只使用一份很小的结果模板，不复制 formal gate 的完整记录格式。
