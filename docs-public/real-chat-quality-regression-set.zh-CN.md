@@ -163,6 +163,8 @@ npm run quality:eval -- --suite=real-chat --format=json
 
 当前这层门槛判断（`Pass`、`Acceptable minor drift`、`Must-open-issue`）继续保留，作为严重度层。
 
+如果某一轮正式 gate 被记为 `Pass`，默认只表示它在当轮冻结下来的 baseline、scenario-pack 集合、以及 profile-by-pack matrix 上通过；这个结论不自动外推到后续 baseline 变化、pack 扩展或 profile 映射调整后的结果。
+
 在它之外，再补一层固定结论，让下一轮长链路验收更容易一眼看懂：
 
 - `rule-layer issue`

@@ -163,6 +163,8 @@ Decision notes:
 
 Keep the current threshold layer (`Pass`, `Acceptable minor drift`, `Must-open-issue`) as the severity gate.
 
+If a formal gate run is recorded as `Pass`, treat that as scoped to the frozen baseline, scenario-pack set, and profile-by-pack matrix used for that run. Do not read it as automatically extending to later baseline changes, pack expansion, or profile remapping.
+
 Then add one fixed end-of-run conclusion so the next long-chain acceptance pass is easier to read at a glance:
 
 - `rule-layer issue`

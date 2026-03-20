@@ -29,7 +29,7 @@ Why this continued run can stop here:
 - `#134` fixed the explicit Chinese continuation drift from `#133`
 - on the same frozen baseline, the remaining `Correction Aftermath Pack` focused regression passed
 - this run did not confirm any new `P0` breach
-- that lets the first formal `8 to 12 turn` long-chain gate be recorded as currently green on the frozen baseline
+- that lets the first formal `8 to 12 turn` long-chain gate be recorded as currently green on the current frozen baseline, current scenario-pack set, and current profile matrix
 
 ## Commands Used
 
@@ -63,6 +63,7 @@ Verification summary:
 ## Overall Interpretation
 
 - this continued gate run did not expose a new earliest breach
-- combined with the previous continued runs and narrow fixes, the first formal long-chain gate is now provisionally passing on the current frozen baseline
+- combined with the previous continued runs and narrow fixes, the first formal long-chain gate is now provisionally passing on the current frozen baseline, current scenario-pack set, and current profile matrix
+- this conclusion should not be read as automatically extending to future baseline changes, pack expansion, or profile-by-pack remapping
 - there is still not enough evidence to treat the recent failures as `state-pressure candidate`
 - so far, the surfaced failures all looked like rule-layer gaps, and they have now been tightened one by one

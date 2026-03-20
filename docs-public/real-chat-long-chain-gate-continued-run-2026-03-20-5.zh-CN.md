@@ -29,7 +29,7 @@
 - `#134` 已经修掉了 `#133` 里 explicit Chinese continuation request 被拉回英文的掉点
 - 在同一 frozen baseline 上，剩余的 `纠错后续包` focused regression 通过
 - 这轮没有确认到新的 `P0` breach
-- 因此第一轮 formal `8~12 turn` long-chain gate 可以先记成“在当前 frozen baseline 上已跑通”
+- 因此第一轮 formal `8~12 turn` long-chain gate 可以先记成“在当前 frozen baseline、当前 scenario-pack 集合、当前 profile matrix 上已跑通”
 
 ## Commands Used
 
@@ -63,6 +63,7 @@ npx playwright test tests/smoke/core-chat.spec.ts -g "keeps correction-aftermath
 ## Overall Interpretation
 
 - 这一轮 continued gate 没有再暴露新的 earliest breach
-- 结合前几次 continued run 的逐条修口，这说明当前 frozen baseline 下的第一轮 formal long-chain gate 已经暂时跑通
+- 结合前几次 continued run 的逐条修口，这说明当前 frozen baseline、当前 scenario-pack 集合、当前 profile matrix 下的第一轮 formal long-chain gate 已经暂时跑通
+- 这个结论不自动外推到未来 baseline 变化、scenario pack 扩展或 profile-by-pack 映射调整之后的结果
 - 目前仍然没有足够证据把问题归到 `state-pressure candidate`
 - 到目前为止，掉出来的问题都更像 rule-layer gaps，而且都已经被逐条收掉
