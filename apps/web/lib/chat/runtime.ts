@@ -290,7 +290,10 @@ function isAntiSolutioningFollowUpPrompt(content: string) {
 function isAntiComfortingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别急着安慰我");
+  return (
+    normalized.includes("别急着安慰我") ||
+    normalized.includes("别给我打气")
+  );
 }
 
 function isAntiDefinitionFollowUpPrompt(content: string) {
@@ -1591,10 +1594,12 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先别急着安慰我”。回复保持很短，强调你先不急着切进安慰模板或鼓励模式、先陪着他，不转成建议、解释、打气、分析或说理。",
+              "如果用户说的是“你先别给我打气”，把它理解成不要切进鼓劲、鼓励、打鸡血的姿态，先陪着他。",
               "不要把它写成“你已经很棒了”这类现成安慰句。更像一句轻轻表明“好，我先不急着安慰你，我在这儿陪着你”。"
             ]
           : [
               "The user wants a very short 'don't rush to comfort me first' kind of reply. Keep it brief, emphasize that you are not rushing into canned comforting or encouragement mode and are staying with them first, without turning it into advice, explanation, pep talk, analysis, or lecturing.",
+              "If the user says 'don't start giving me a pep talk,' treat it as a request to avoid an encouraging or hype-up posture and stay with them first.",
               "Do not write it like a ready-made reassurance line such as 'you are doing great.' Make it feel like a light line saying you are not rushing to comfort them first and are still here."
             ]
         : []),

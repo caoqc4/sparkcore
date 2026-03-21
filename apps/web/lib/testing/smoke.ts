@@ -1099,7 +1099,10 @@ function isSmokeAntiSolutioningFollowUpPrompt(content: string) {
 function isSmokeAntiComfortingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别急着安慰我");
+  return (
+    normalized.includes("别急着安慰我") ||
+    normalized.includes("别给我打气")
+  );
 }
 
 function isSmokeAntiDefinitionFollowUpPrompt(content: string) {
@@ -2164,6 +2167,18 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeAntiComfortingFollowUpPrompt(content)) {
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("别给我打气")
+          ) {
+            return userName
+              ? `${userName}，好，我先不给你打气，就在这儿陪着你。`
+              : "好，我先不给你打气，就在这儿陪着你。";
+          }
+
           return userName
             ? `${userName}，好，我先不急着安慰你，就在这儿陪着你。`
             : "好，我先不急着安慰你，就在这儿陪着你。";
