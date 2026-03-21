@@ -938,6 +938,7 @@ function isSmokeShortRelationshipSupportivePrompt(content: string) {
     isSmokeAntiOverreadingFollowUpPrompt(content) ||
     isSmokeAntiAnalysisFollowUpPrompt(content) ||
     isSmokeAntiProbingFollowUpPrompt(content) ||
+    isSmokeAntiRushingFollowUpPrompt(content) ||
     isSmokeAntiDefinitionFollowUpPrompt(content) ||
     isSmokeAntiCategorizingFollowUpPrompt(content) ||
     isSmokeSameSideFollowUpPrompt(content) ||
@@ -1073,6 +1074,12 @@ function isSmokeAntiProbingFollowUpPrompt(content: string) {
     normalized.includes("别追着问我") ||
     normalized.includes("别盘问我")
   );
+}
+
+function isSmokeAntiRushingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别催我");
 }
 
 function isSmokeAntiDefinitionFollowUpPrompt(content: string) {
@@ -2098,6 +2105,12 @@ function buildSmokeAssistantReply({
           return userName
             ? `${userName}，好，我先不问你为什么，就在这儿陪着你。`
             : "好，我先不问你为什么，就在这儿陪着你。";
+        }
+
+        if (isSmokeAntiRushingFollowUpPrompt(content)) {
+          return userName
+            ? `${userName}，好，我先不催你，就在这儿陪着你。`
+            : "好，我先不催你，就在这儿陪着你。";
         }
 
         if (isSmokeAntiDefinitionFollowUpPrompt(content)) {
