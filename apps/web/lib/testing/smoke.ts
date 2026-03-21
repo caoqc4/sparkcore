@@ -1004,7 +1004,10 @@ function isSmokeAntiLecturingFollowUpPrompt(content: string) {
 function isSmokeAntiCorrectionFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别急着纠正我");
+  return (
+    normalized.includes("别急着纠正我") ||
+    normalized.includes("别老纠正我")
+  );
 }
 
 function isSmokeAntiConclusionFollowUpPrompt(content: string) {
@@ -1949,6 +1952,18 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeAntiCorrectionFollowUpPrompt(content)) {
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("别老纠正我")
+          ) {
+            return userName
+              ? `${userName}，好，我先不老纠正你，就在这儿陪着你。`
+              : "好，我先不老纠正你，就在这儿陪着你。";
+          }
+
           return userName
             ? `${userName}，好，我先不急着纠正你，就在这儿陪着你。`
             : "好，我先不急着纠正你，就在这儿陪着你。";
