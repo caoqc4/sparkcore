@@ -186,7 +186,10 @@ function isNonJudgingFollowUpPrompt(content: string) {
 function isAntiLecturingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别教育我");
+  return (
+    normalized.includes("别教育我") ||
+    normalized.includes("别给我上课")
+  );
 }
 
 function isAntiCorrectionFollowUpPrompt(content: string) {
@@ -1398,10 +1401,12 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先别教育我”。回复保持很短，强调你先不说教、先陪着他，不转成建议、解释、辩论、讲道理或道德判断。",
+              "如果用户说的是“你先别给我上课”，把它理解成不要拿说教、上课、训导的姿态来回应，先陪着他。",
               "不要把它写成反向说教、安慰模板、分析回复或“你应该怎么做”。更像一句轻轻表明“好，我先不教育你，我在这儿陪着你”。"
             ]
           : [
               "The user wants a very short 'don't lecture me first' kind of reply. Keep it brief, emphasize that you are not lecturing them and are staying with them first, without turning it into advice, explanation, debate, reasoning, or moral judgment.",
+              "If the user says 'don't give me a lecture first,' treat it as a request to avoid a lecturing or instructive posture and stay with them first.",
               "Do not write it like reverse lecturing, a comfort template, analysis, or 'what you should do.' Make it feel like a light line saying you are not lecturing them first and are still here."
             ]
         : []),
