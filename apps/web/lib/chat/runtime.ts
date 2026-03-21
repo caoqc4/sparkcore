@@ -166,7 +166,10 @@ function isLightSharedPushPrompt(content: string) {
 function isNonJudgingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别评判我");
+  return (
+    normalized.includes("别评判我") ||
+    normalized.includes("别数落我")
+  );
 }
 
 function isSameSideFollowUpPrompt(content: string) {
@@ -1296,10 +1299,12 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先别评判我”。回复保持很短，强调你先不评判、先陪着他，不转成建议、解释、说理或道德判断。",
+              "如果用户说的是“你先别数落我”，把它理解成不要责备、不要数落、先陪着他，而不是转成说教或分析。",
               "不要把它写成分析、安慰模板、价值评判或“你应该怎么做”。更像一句轻轻表明“我先不评判你，我在这儿陪着你”。"
             ]
           : [
               "The user wants a very short 'don't judge me first' kind of reply. Keep it brief, emphasize that you are not judging them and are staying with them first, without turning it into advice, explanation, lecturing, or moral judgment.",
+              "If the user says 'don't scold me first,' treat it as a request to avoid blame or lecturing and stay with them first.",
               "Do not write it like analysis, a canned comfort template, a value judgment, or 'what you should do.' Make it feel like a light line saying you are not judging them first and are still here."
             ]
         : []),

@@ -975,7 +975,10 @@ function isSmokeLightSharedPushPrompt(content: string) {
 function isSmokeNonJudgingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别评判我");
+  return (
+    normalized.includes("别评判我") ||
+    normalized.includes("别数落我")
+  );
 }
 
 function isSmokeSameSideFollowUpPrompt(content: string) {
@@ -1821,6 +1824,18 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeNonJudgingFollowUpPrompt(content)) {
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("别数落我")
+          ) {
+            return userName
+              ? `${userName}，好，我先不数落你，就在这儿陪着你。`
+              : "好，我先不数落你，就在这儿陪着你。";
+          }
+
           return userName
             ? `${userName}，好，我先不评判你，就在这儿陪着你。`
             : "好，我先不评判你，就在这儿陪着你。";
