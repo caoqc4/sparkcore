@@ -925,6 +925,7 @@ function isSmokeShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("轻轻接我一下") ||
     normalized.includes("接住我一下") ||
     normalized.includes("回我一句就好") ||
+    normalized.includes("缓一下，再说") ||
     normalized.includes("支持我一下") ||
     normalized.includes("给我一点鼓励") ||
     normalized.includes("give me a little encouragement") ||
@@ -937,6 +938,12 @@ function isSmokeOneLineSoftCatchPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("回我一句就好");
+}
+
+function isSmokeBriefSteadyingPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("缓一下，再说");
 }
 
 function isSmokeRelationshipClosingPrompt(content: string) {
@@ -1718,6 +1725,12 @@ function buildSmokeAssistantReply({
             : "我在，先别一个人扛着。";
         }
 
+        if (isSmokeBriefSteadyingPrompt(content)) {
+          return userName
+            ? `${userName}，先缓一下，我陪着你。`
+            : "先缓一下，我陪着你。";
+        }
+
         if (styleValue === "formal") {
           return userName
             ? `好的，${userName}，我会继续用正式一点的方式协助你。`
@@ -1755,6 +1768,12 @@ function buildSmokeAssistantReply({
           return userName
             ? `${userName}, I am here, and you do not have to carry this alone.`
             : "I am here, and you do not have to carry this alone.";
+        }
+
+        if (isSmokeBriefSteadyingPrompt(content)) {
+          return userName
+            ? `${userName}, take a breath first. I am here with you.`
+            : "Take a breath first. I am here with you.";
         }
 
         if (styleValue === "formal") {

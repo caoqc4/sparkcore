@@ -116,6 +116,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("轻轻接我一下") ||
     normalized.includes("接住我一下") ||
     normalized.includes("回我一句就好") ||
+    normalized.includes("缓一下，再说") ||
     normalized.includes("支持我一下") ||
     normalized.includes("给我一点鼓励") ||
     normalized.includes("give me a little encouragement") ||
@@ -128,6 +129,12 @@ function isOneLineSoftCatchPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("回我一句就好");
+}
+
+function isBriefSteadyingPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("缓一下，再说");
 }
 
 function isRelationshipClosingPrompt(content: string) {
@@ -1181,6 +1188,15 @@ function buildAnswerStrategyInstructions({
             ]
           : [
               "The user only wants one gentle catch line here. Reply with a single line that catches the feeling without expanding into advice, explanation, or summary, and do not fall back to an empty continuation like 'we can keep going.'"
+            ]
+        : []),
+      ...(isBriefSteadyingPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是想让你先帮他稳一下，再继续往后说。先用很短的一两句把人接稳，不要立刻转入分析、建议、解释或总结。"
+            ]
+          : [
+              "The user wants you to help them settle first before saying more. Use a very short steadying reply first and do not jump straight into analysis, advice, explanation, or summary."
             ]
         : [])
     ];
