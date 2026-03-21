@@ -1139,7 +1139,10 @@ function isSmokeAntiNormalizingFollowUpPrompt(content: string) {
 function isSmokeAntiComparingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别拿别人跟我比");
+  return (
+    normalized.includes("别拿别人跟我比") ||
+    normalized.includes("别老拿别人跟我比")
+  );
 }
 
 function isSmokeAntiDefinitionFollowUpPrompt(content: string) {
@@ -2276,6 +2279,18 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeAntiComparingFollowUpPrompt(content)) {
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("别老拿别人跟我比")
+          ) {
+            return userName
+              ? `${userName}，好，我先不老拿别人跟你比，就在这儿陪着你。`
+              : "好，我先不老拿别人跟你比，就在这儿陪着你。";
+          }
+
           return userName
             ? `${userName}，好，我先不拿别人跟你比，就在这儿陪着你。`
             : "好，我先不拿别人跟你比，就在这儿陪着你。";
