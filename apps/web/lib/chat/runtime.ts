@@ -136,6 +136,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isAntiMinimizingFollowUpPrompt(content) ||
     isAntiNormalizingFollowUpPrompt(content) ||
     isAntiComparingFollowUpPrompt(content) ||
+    isAntiRedirectionFollowUpPrompt(content) ||
     isAntiDefinitionFollowUpPrompt(content) ||
     isAntiCategorizingFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
@@ -334,6 +335,12 @@ function isAntiComparingFollowUpPrompt(content: string) {
     normalized.includes("别拿别人跟我比") ||
     normalized.includes("别老拿别人跟我比")
   );
+}
+
+function isAntiRedirectionFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别转移话题");
 }
 
 function isAntiDefinitionFollowUpPrompt(content: string) {
@@ -1699,6 +1706,19 @@ function buildAnswerStrategyInstructions({
               "If the user says 'don't keep comparing me to other people,' treat it as a request to stop repeatedly measuring them against others and stay with them first.",
               "Treat it as a request not to respond by measuring them against other people or using someone else as the yardstick, and stay on the existing relationship line first.",
               "Do not write it like 'other people do this too' or 'look at what so-and-so does.' Make it feel like a light line saying you are not comparing them to others and are still here."
+            ]
+        : []),
+      ...(isAntiRedirectionFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别转移话题”。回复保持很短，强调你先不把话题岔开、不把他从当前感受上带走，先陪着他，不转成安慰、建议、分析、解释或说理。",
+              "把它理解成用户要你继续留在他此刻正在说的这件事上，而不是绕开、跳开或换话题。",
+              "不要把它写成换方向、换重点或“我们聊点别的”这类转向句子。更像一句轻轻表明“好，我先不转移话题，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't redirect the topic first' kind of reply. Keep it brief, emphasize that you are not steering the conversation away from what they are trying to stay with and are staying with them first, without turning it into comfort, advice, analysis, explanation, or lecturing.",
+              "Treat it as a request to stay with the thing they are actually trying to talk about instead of pivoting, dodging, or changing the topic.",
+              "Do not write it like a redirect, a new angle, or 'let's talk about something else.' Make it feel like a light line saying you are not redirecting the topic and are still here."
             ]
         : []),
       ...(isAntiDefinitionFollowUpPrompt(latestUserMessage)
