@@ -119,6 +119,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("缓一下，再说") ||
     isGentleCarryForwardAfterSteadyingPrompt(content) ||
     isLightSharedPushPrompt(content) ||
+    isSameSideFollowUpPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isStayWithMeFollowUpPrompt(content) ||
     isGentleResumeRhythmPrompt(content) ||
@@ -159,6 +160,12 @@ function isLightSharedPushPrompt(content: string) {
     normalized.includes("一起把这一点弄过去") ||
     normalized.includes("陪我把眼前这一下弄过去")
   );
+}
+
+function isSameSideFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("站我这边");
 }
 
 function isFriendLikeSoftFollowUpPrompt(content: string) {
@@ -1270,6 +1277,17 @@ function buildAnswerStrategyInstructions({
           : [
               "The user is asking to get through this small piece together first. Keep the reply very short like the same person staying on their side and moving through this bit with them, without turning it into formal advice, a step list, analysis, explanation, or summary.",
               "Do not use directive phrasing like 'first do this' or 'you should.' Make it feel like a light shared push forward together."
+            ]
+        : []),
+      ...(isSameSideFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先站我这边”。回复保持很短，强调你在他这边陪着他，不转成辩论、讲道理、建议、解释或无条件替他判断所有事情。",
+              "不要把它写成价值站队宣言或展开争论。更像一句轻轻表明“我先在你这边陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'be on my side first' kind of reply. Keep it brief, emphasize that you are here with them on their side, and do not turn it into debate, advice, explanation, or blanket endorsement of every claim.",
+              "Do not write it like a values manifesto or an argument. Make it feel like a light line saying you are with them first."
             ]
         : []),
       ...(isFriendLikeSoftFollowUpPrompt(latestUserMessage)
