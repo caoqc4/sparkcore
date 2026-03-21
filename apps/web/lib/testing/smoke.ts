@@ -1028,7 +1028,10 @@ function isSmokeAntiLabelingFollowUpPrompt(content: string) {
 function isSmokeAntiTaggingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别给我贴标签");
+  return (
+    normalized.includes("别给我贴标签") ||
+    normalized.includes("别急着给我贴标签")
+  );
 }
 
 function isSmokeAntiMischaracterizationFollowUpPrompt(content: string) {
@@ -2000,6 +2003,18 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeAntiTaggingFollowUpPrompt(content)) {
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("别急着给我贴标签")
+          ) {
+            return userName
+              ? `${userName}，好，我先不急着给你贴标签，就在这儿陪着你。`
+              : "好，我先不急着给你贴标签，就在这儿陪着你。";
+          }
+
           return userName
             ? `${userName}，好，我先不急着给你贴标签，就在这儿陪着你。`
             : "好，我先不急着给你贴标签，就在这儿陪着你。";
