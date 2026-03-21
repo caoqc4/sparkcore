@@ -113,12 +113,19 @@ function isShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("安慰我一句") ||
     normalized.includes("安慰我一下") ||
     normalized.includes("轻轻接我一下") ||
+    normalized.includes("回我一句就好") ||
     normalized.includes("支持我一下") ||
     normalized.includes("给我一点鼓励") ||
     normalized.includes("give me a little encouragement") ||
     normalized.includes("encourage me a bit") ||
     normalized.includes("comfort me a little")
   );
+}
+
+function isOneLineSoftCatchPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("回我一句就好");
 }
 
 function isRelationshipClosingPrompt(content: string) {
@@ -1163,6 +1170,15 @@ function buildAnswerStrategyInstructions({
             ]
           : [
               "The user is asking you to soften the tone. Relax the voice naturally like the same ongoing role instead of replying with a preference-setting explanation."
+            ]
+        : []),
+      ...(isOneLineSoftCatchPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户只想让你轻轻接一句。请只用一句话接住情绪，不要展开成分析、建议、解释或总结。"
+            ]
+          : [
+              "The user only wants one gentle catch line here. Reply with a single line that catches the feeling without expanding into advice, explanation, or summary."
             ]
         : [])
     ];

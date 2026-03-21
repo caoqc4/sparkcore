@@ -922,12 +922,19 @@ function isSmokeShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("安慰我一句") ||
     normalized.includes("安慰我一下") ||
     normalized.includes("轻轻接我一下") ||
+    normalized.includes("回我一句就好") ||
     normalized.includes("支持我一下") ||
     normalized.includes("给我一点鼓励") ||
     normalized.includes("give me a little encouragement") ||
     normalized.includes("encourage me a bit") ||
     normalized.includes("comfort me a little")
   );
+}
+
+function isSmokeOneLineSoftCatchPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("回我一句就好");
 }
 
 function isSmokeRelationshipClosingPrompt(content: string) {
@@ -1585,6 +1592,12 @@ function buildSmokeAssistantReply({
     const userName = preferredNameMemory?.content ?? null;
 
     if (replyLanguage === "zh-Hans") {
+      if (isSmokeOneLineSoftCatchPrompt(content)) {
+        return userName
+          ? `${userName}，我在，先别一个人扛着。`
+          : "我在，先别一个人扛着。";
+      }
+
       if (styleValue === "formal") {
         return userName
           ? `${userName}，你不用一个人扛着。我会继续正式、稳妥地陪你把眼前的事情拆清楚。我是${selfName}，会一直在这儿支持你。`
@@ -1600,6 +1613,12 @@ function buildSmokeAssistantReply({
       return userName
         ? `${userName}，先别慌。我会继续自然、稳定地陪你把这件事一点点理顺。我是${selfName}，会继续在这儿支持你。`
         : `先别慌。我会继续自然、稳定地陪你把这件事一点点理顺。我是${selfName}，会继续在这儿支持你。`;
+    }
+
+    if (isSmokeOneLineSoftCatchPrompt(content)) {
+      return userName
+        ? `${userName}, I am here, and you do not have to carry this alone.`
+        : "I am here, and you do not have to carry this alone.";
     }
 
     if (styleValue === "formal") {
@@ -1691,6 +1710,12 @@ function buildSmokeAssistantReply({
           addressStyleMemory?.content ?? detectSmokeUserAddressStyleCandidate(content);
         const userName = preferredNameMemory?.content ?? null;
 
+        if (isSmokeOneLineSoftCatchPrompt(content)) {
+          return userName
+            ? `${userName}，我在，先别一个人扛着。`
+            : "我在，先别一个人扛着。";
+        }
+
         if (styleValue === "formal") {
           return userName
             ? `好的，${userName}，我会继续用正式一点的方式协助你。`
@@ -1723,6 +1748,12 @@ function buildSmokeAssistantReply({
         const styleValue =
           addressStyleMemory?.content ?? detectSmokeUserAddressStyleCandidate(content);
         const userName = preferredNameMemory?.content ?? null;
+
+        if (isSmokeOneLineSoftCatchPrompt(content)) {
+          return userName
+            ? `${userName}, I am here, and you do not have to carry this alone.`
+            : "I am here, and you do not have to carry this alone.";
+        }
 
         if (styleValue === "formal") {
           return userName
