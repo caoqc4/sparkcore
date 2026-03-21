@@ -2898,6 +2898,57 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).toContain("阿强");
   });
 
+  test("keeps brief emotional catch prompts on the same-thread carryover path", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后和我说话轻松一点，可以吗？",
+      "我今天脑子有点乱，也有点累。",
+      "你先轻轻接我一下。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.answer_strategy).toBe("same-thread-continuation");
+    expect(metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(metadata.continuation_reason_code).toBe(
+      "brief-supportive-carryover"
+    );
+    expect(latestAssistantMessage.content).toContain("阿强");
+  });
+
   test("keeps natural light advice phrasing on the grounded advice path", async ({
     request
   }) => {
