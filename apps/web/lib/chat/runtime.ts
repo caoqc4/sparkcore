@@ -123,6 +123,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isAntiLecturingFollowUpPrompt(content) ||
     isAntiCorrectionFollowUpPrompt(content) ||
     isAntiConclusionFollowUpPrompt(content) ||
+    isAntiLabelingFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isStayWithMeFollowUpPrompt(content) ||
@@ -191,6 +192,12 @@ function isAntiConclusionFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("别给我下结论");
+}
+
+function isAntiLabelingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别给我定性");
 }
 
 function isSameSideFollowUpPrompt(content: string) {
@@ -1360,6 +1367,17 @@ function buildAnswerStrategyInstructions({
           : [
               "The user wants a very short 'don't jump to conclusions about me first' kind of reply. Keep it brief, emphasize that you are not rushing to conclude about them and are staying with them first, without turning it into analysis, explanation, debate, advice, reasoning, or moral judgment.",
               "Do not write it like a summarizing analysis, rebuttal, canned comfort template, or a statement of what kind of person they are. Make it feel like a light line saying you are not rushing to conclude about them first and are still here."
+            ]
+        : []),
+      ...(isAntiLabelingFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别给我定性”。回复保持很短，强调你先不急着给他定性、先陪着他，不转成分析、解释、辩论、建议、讲道理或道德判断。",
+              "不要把它写成分析归类、反驳、安慰模板或“你就是怎样的人”。更像一句轻轻表明“好，我先不急着给你定性，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't label me first' kind of reply. Keep it brief, emphasize that you are not rushing to label them and are staying with them first, without turning it into analysis, explanation, debate, advice, reasoning, or moral judgment.",
+              "Do not write it like categorizing analysis, rebuttal, a canned comfort template, or a statement of what kind of person they are. Make it feel like a light line saying you are not rushing to label them first and are still here."
             ]
         : []),
       ...(isSameSideFollowUpPrompt(latestUserMessage)
