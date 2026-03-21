@@ -3156,9 +3156,12 @@ test.describe("core chat smoke", () => {
       "brief-supportive-carryover"
     );
     expect(latestAssistantMessage.content).toBe("阿强，先缓一下，我陪你往下顺一点。");
+    expect(latestAssistantMessage.content).not.toContain("\n");
     expect(latestAssistantMessage.content).not.toContain("建议");
     expect(latestAssistantMessage.content).not.toContain("分析");
     expect(latestAssistantMessage.content).not.toContain("解释");
+    expect(latestAssistantMessage.content).not.toContain("第一步");
+    expect(latestAssistantMessage.content).not.toContain("先做");
   });
 
   test("keeps natural light advice phrasing on the grounded advice path", async ({

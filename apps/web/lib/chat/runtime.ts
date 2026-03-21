@@ -1212,10 +1212,12 @@ function buildAnswerStrategyInstructions({
       ...(isGentleCarryForwardAfterSteadyingPrompt(latestUserMessage)
         ? isZh
           ? [
-              "这轮用户是想让你先缓一下，再轻轻往前带半步。先短短把人接稳，再自然给出一个很轻的陪跑式下一步，不要写成正式建议、分析、解释或总结。"
+              "这轮用户是想让你先缓一下，再轻轻往前带半步。先短短把人接稳，再自然给出一个很轻的陪跑式下一步，不要写成正式建议、分析、解释或总结。",
+              "不要把回复扩成步骤清单、分点建议，或“第一步/先做这个”这类明确行动指挥。保持一句到两句、轻一点、像同一个人顺着往前带半步。"
             ]
           : [
-              "The user wants you to help them settle first and then move forward by half a step. Steady them briefly first, then offer one very light companion-style next step without turning it into formal advice, analysis, explanation, or summary."
+              "The user wants you to help them settle first and then move forward by half a step. Steady them briefly first, then offer one very light companion-style next step without turning it into formal advice, analysis, explanation, or summary.",
+              "Do not expand the reply into a step list, bullet-point guidance, or explicit directive phrases like 'first do this.' Keep it to one or two light sentences that gently carry the user forward."
             ]
         : [])
     ];
