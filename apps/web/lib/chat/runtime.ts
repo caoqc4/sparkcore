@@ -1177,10 +1177,10 @@ function buildAnswerStrategyInstructions({
       ...(isOneLineSoftCatchPrompt(latestUserMessage)
         ? isZh
           ? [
-              "这轮用户只想让你轻轻接一句。请只用一句话接住情绪，不要展开成分析、建议、解释或总结。"
+              "这轮用户只想让你轻轻接一句。请只用一句话接住情绪，不要展开成分析、建议、解释或总结，也不要退回成“我们继续”这类空泛续接句。"
             ]
           : [
-              "The user only wants one gentle catch line here. Reply with a single line that catches the feeling without expanding into advice, explanation, or summary."
+              "The user only wants one gentle catch line here. Reply with a single line that catches the feeling without expanding into advice, explanation, or summary, and do not fall back to an empty continuation like 'we can keep going.'"
             ]
         : [])
     ];

@@ -3050,6 +3050,7 @@ test.describe("core chat smoke", () => {
     );
     expect(latestAssistantMessage.content).toContain("阿强");
     expect(latestAssistantMessage.content).not.toContain("\n");
+    expect(latestAssistantMessage.content).not.toContain("我们继续");
     expect(latestAssistantMessage.content).toBe("阿强，我在，先别一个人扛着。");
   });
 
