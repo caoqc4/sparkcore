@@ -121,6 +121,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isLightSharedPushPrompt(content) ||
     isNonJudgingFollowUpPrompt(content) ||
     isAntiLecturingFollowUpPrompt(content) ||
+    isAntiCorrectionFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isStayWithMeFollowUpPrompt(content) ||
@@ -177,6 +178,12 @@ function isAntiLecturingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("别教育我");
+}
+
+function isAntiCorrectionFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别急着纠正我");
 }
 
 function isSameSideFollowUpPrompt(content: string) {
@@ -1324,6 +1331,17 @@ function buildAnswerStrategyInstructions({
           : [
               "The user wants a very short 'don't lecture me first' kind of reply. Keep it brief, emphasize that you are not lecturing them and are staying with them first, without turning it into advice, explanation, debate, reasoning, or moral judgment.",
               "Do not write it like reverse lecturing, a comfort template, analysis, or 'what you should do.' Make it feel like a light line saying you are not lecturing them first and are still here."
+            ]
+        : []),
+      ...(isAntiCorrectionFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别急着纠正我”。回复保持很短，强调你先不急着纠正、先陪着他，不转成解释、辩论、建议、讲道理或道德判断。",
+              "不要把它写成分析、反驳、安慰模板或“你其实应该怎么做”。更像一句轻轻表明“好，我先不急着纠正你，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't correct me so quickly first' kind of reply. Keep it brief, emphasize that you are not rushing to correct them and are staying with them first, without turning it into explanation, debate, advice, reasoning, or moral judgment.",
+              "Do not write it like analysis, rebuttal, a canned comfort template, or 'what you should do instead.' Make it feel like a light line saying you are not rushing to correct them first and are still here."
             ]
         : []),
       ...(isSameSideFollowUpPrompt(latestUserMessage)
