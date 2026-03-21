@@ -974,7 +974,10 @@ function isSmokeLightSharedPushPrompt(content: string) {
 function isSmokeSameSideFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("站我这边");
+  return (
+    normalized.includes("站我这边") ||
+    (normalized.includes("别跟我讲道理") && normalized.includes("站我这边"))
+  );
 }
 
 function isSmokeFriendLikeSoftFollowUpPrompt(content: string) {
@@ -1808,6 +1811,18 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeSameSideFollowUpPrompt(content)) {
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("别跟我讲道理")
+          ) {
+            return userName
+              ? `${userName}，好，我先站你这边陪着你，不跟你讲道理。`
+              : "好，我先站你这边陪着你，不跟你讲道理。";
+          }
+
           return userName
             ? `${userName}，好，我先站你这边陪着你。`
             : "好，我先站你这边陪着你。";

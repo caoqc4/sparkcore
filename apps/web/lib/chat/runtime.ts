@@ -165,7 +165,10 @@ function isLightSharedPushPrompt(content: string) {
 function isSameSideFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("站我这边");
+  return (
+    normalized.includes("站我这边") ||
+    (normalized.includes("别跟我讲道理") && normalized.includes("站我这边"))
+  );
 }
 
 function isFriendLikeSoftFollowUpPrompt(content: string) {
@@ -1283,11 +1286,13 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先站我这边”。回复保持很短，强调你在他这边陪着他，不转成辩论、讲道理、建议、解释或无条件替他判断所有事情。",
-              "不要把它写成价值站队宣言或展开争论。更像一句轻轻表明“我先在你这边陪着你”。"
+              "如果用户明确说了“先别跟我讲道理”，就不要把回复写成说教、分析或反驳。更像一句轻轻表明“我先在你这边陪着你”。",
+              "不要把它写成价值站队宣言或展开争论，也不要无条件认同所有判断。"
             ]
           : [
               "The user wants a very short 'be on my side first' kind of reply. Keep it brief, emphasize that you are here with them on their side, and do not turn it into debate, advice, explanation, or blanket endorsement of every claim.",
-              "Do not write it like a values manifesto or an argument. Make it feel like a light line saying you are with them first."
+              "If the user explicitly says not to lecture them first, avoid sounding preachy, analytical, or argumentative. Make it feel like a light line saying you are with them first.",
+              "Do not write it like a values manifesto or an argument."
             ]
         : []),
       ...(isFriendLikeSoftFollowUpPrompt(latestUserMessage)
