@@ -1022,7 +1022,10 @@ function isSmokeAntiConclusionFollowUpPrompt(content: string) {
 function isSmokeAntiLabelingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别给我定性");
+  return (
+    normalized.includes("别给我定性") ||
+    normalized.includes("别急着给我定性")
+  );
 }
 
 function isSmokeAntiTaggingFollowUpPrompt(content: string) {

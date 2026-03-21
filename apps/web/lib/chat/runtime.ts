@@ -213,7 +213,10 @@ function isAntiConclusionFollowUpPrompt(content: string) {
 function isAntiLabelingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别给我定性");
+  return (
+    normalized.includes("别给我定性") ||
+    normalized.includes("别急着给我定性")
+  );
 }
 
 function isAntiTaggingFollowUpPrompt(content: string) {
@@ -1455,10 +1458,12 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先别给我定性”。回复保持很短，强调你先不急着给他定性、先陪着他，不转成分析、解释、辩论、建议、讲道理或道德判断。",
+              "如果用户说的是“你先别急着给我定性”，把它理解成不要太快把他定成某种性质、判断或结论，先陪着他。",
               "不要把它写成分析归类、反驳、安慰模板或“你就是怎样的人”。更像一句轻轻表明“好，我先不急着给你定性，我在这儿陪着你”。"
             ]
           : [
               "The user wants a very short 'don't label me first' kind of reply. Keep it brief, emphasize that you are not rushing to label them and are staying with them first, without turning it into analysis, explanation, debate, advice, reasoning, or moral judgment.",
+              "If the user says 'don't rush to label me first,' treat it as a request not to lock them into a label or verdict too quickly and stay with them first.",
               "Do not write it like categorizing analysis, rebuttal, a canned comfort template, or a statement of what kind of person they are. Make it feel like a light line saying you are not rushing to label them first and are still here."
             ]
         : []),
