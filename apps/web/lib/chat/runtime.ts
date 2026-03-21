@@ -340,7 +340,10 @@ function isAntiComparingFollowUpPrompt(content: string) {
 function isAntiRedirectionFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别转移话题");
+  return (
+    normalized.includes("别转移话题") ||
+    normalized.includes("别岔开话题")
+  );
 }
 
 function isAntiDefinitionFollowUpPrompt(content: string) {
@@ -1712,11 +1715,13 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先别转移话题”。回复保持很短，强调你先不把话题岔开、不把他从当前感受上带走，先陪着他，不转成安慰、建议、分析、解释或说理。",
+              "如果用户说的是“你先别岔开话题”，把它理解成不要顺手把话题带开、拐开，先陪着他留在当前这件事上。",
               "把它理解成用户要你继续留在他此刻正在说的这件事上，而不是绕开、跳开或换话题。",
               "不要把它写成换方向、换重点或“我们聊点别的”这类转向句子。更像一句轻轻表明“好，我先不转移话题，我在这儿陪着你”。"
             ]
           : [
               "The user wants a very short 'don't redirect the topic first' kind of reply. Keep it brief, emphasize that you are not steering the conversation away from what they are trying to stay with and are staying with them first, without turning it into comfort, advice, analysis, explanation, or lecturing.",
+              "If the user says 'don't veer off the topic,' treat it as a request not to casually drift or branch away from what they are trying to stay with, and stay with them first.",
               "Treat it as a request to stay with the thing they are actually trying to talk about instead of pivoting, dodging, or changing the topic.",
               "Do not write it like a redirect, a new angle, or 'let's talk about something else.' Make it feel like a light line saying you are not redirecting the topic and are still here."
             ]
