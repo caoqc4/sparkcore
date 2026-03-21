@@ -1031,7 +1031,10 @@ function isSmokeAntiTaggingFollowUpPrompt(content: string) {
 function isSmokeAntiMischaracterizationFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别把我说成那样");
+  return (
+    normalized.includes("别把我说成那样") ||
+    normalized.includes("别把我想成那样")
+  );
 }
 
 function isSmokeAntiOverreadingFollowUpPrompt(content: string) {
@@ -1988,6 +1991,18 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeAntiMischaracterizationFollowUpPrompt(content)) {
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("别把我想成那样")
+          ) {
+            return userName
+              ? `${userName}，好，我先不急着把你想成那样，就在这儿陪着你。`
+              : "好，我先不急着把你想成那样，就在这儿陪着你。";
+          }
+
           return userName
             ? `${userName}，好，我先不急着把你说成那样，就在这儿陪着你。`
             : "好，我先不急着把你说成那样，就在这儿陪着你。";
