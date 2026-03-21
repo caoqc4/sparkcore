@@ -118,6 +118,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("回我一句就好") ||
     normalized.includes("缓一下，再说") ||
     isGentleCarryForwardAfterSteadyingPrompt(content) ||
+    isLightSharedPushPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isStayWithMeFollowUpPrompt(content) ||
     isGentleResumeRhythmPrompt(content) ||
@@ -149,6 +150,12 @@ function isGentleCarryForwardAfterSteadyingPrompt(content: string) {
     normalized.includes("缓一下") &&
     normalized.includes("再陪我往下走一点")
   );
+}
+
+function isLightSharedPushPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("一起把这一点弄过去");
 }
 
 function isFriendLikeSoftFollowUpPrompt(content: string) {
@@ -1246,6 +1253,17 @@ function buildAnswerStrategyInstructions({
           : [
               "The user wants you to help them settle first and then move forward by half a step. Steady them briefly first, then offer one very light companion-style next step without turning it into formal advice, analysis, explanation, or summary.",
               "Do not expand the reply into a step list, bullet-point guidance, or explicit directive phrases like 'first do this.' Keep it to one or two light sentences that gently carry the user forward."
+            ]
+        : []),
+      ...(isLightSharedPushPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在说“那我们先一起把这一点弄过去”。回复保持很短，像同一个人和他站在一起先过眼前这一小点，不要转成正式建议、步骤清单、分析、解释或总结。",
+              "不要写成“第一步/先做这个/你应该”这类行动指挥。更像一句轻轻同站一边、一起往前过一点的陪跑式回应。"
+            ]
+          : [
+              "The user is asking to get through this small piece together first. Keep the reply very short like the same person staying on their side and moving through this bit with them, without turning it into formal advice, a step list, analysis, explanation, or summary.",
+              "Do not use directive phrasing like 'first do this' or 'you should.' Make it feel like a light shared push forward together."
             ]
         : []),
       ...(isFriendLikeSoftFollowUpPrompt(latestUserMessage)
