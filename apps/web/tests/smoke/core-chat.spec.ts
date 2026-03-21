@@ -3221,6 +3221,64 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).not.toContain("解释");
   });
 
+  test("keeps stay-with-me follow-up prompts on the same-thread carryover path", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后和我说话轻松一点，可以吗？",
+      "我现在有点乱，也有点累。",
+      "你继续陪着我说就行。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.answer_strategy).toBe("same-thread-continuation");
+    expect(metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(metadata.continuation_reason_code).toBe(
+      "brief-supportive-carryover"
+    );
+    expect(latestAssistantMessage.content).toBe(
+      "阿强，我继续陪着你说，就在这儿。"
+    );
+    expect(latestAssistantMessage.content).not.toContain("\n");
+    expect(latestAssistantMessage.content).not.toContain("建议");
+    expect(latestAssistantMessage.content).not.toContain("总结");
+    expect(latestAssistantMessage.content).not.toContain("解释");
+    expect(latestAssistantMessage.content).not.toContain("我是");
+  });
+
   test("keeps gentle resume-the-rhythm prompts on the same-thread carryover path", async ({
     request
   }) => {

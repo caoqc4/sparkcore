@@ -119,6 +119,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("缓一下，再说") ||
     isGentleCarryForwardAfterSteadyingPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
+    isStayWithMeFollowUpPrompt(content) ||
     isGentleResumeRhythmPrompt(content) ||
     isPresenceConfirmingFollowUpPrompt(content) ||
     normalized.includes("支持我一下") ||
@@ -154,6 +155,12 @@ function isFriendLikeSoftFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("继续陪我说一句");
+}
+
+function isStayWithMeFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("继续陪着我说就行");
 }
 
 function isGentleResumeRhythmPrompt(content: string) {
@@ -1248,6 +1255,15 @@ function buildAnswerStrategyInstructions({
             ]
           : [
               "The user wants one more brief friend-like follow-up. Keep the reply very short like the same person staying with them, without turning it into advice, summary, explanation, or an empty continuation like 'we can keep talking.'"
+            ]
+        : []),
+      ...(isStayWithMeFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是想让你继续陪着他说。回复保持很短，强调你还在这条关系线上陪着他，不要转成建议、总结、解释，也不要写成新的能力说明。"
+            ]
+          : [
+              "The user wants you to keep staying with them in the conversation. Keep the reply very short, emphasize that you are still here with them on the same relationship line, and do not turn it into advice, summary, explanation, or a fresh capability statement."
             ]
         : []),
       ...(isGentleResumeRhythmPrompt(latestUserMessage)
