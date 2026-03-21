@@ -120,6 +120,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isGentleCarryForwardAfterSteadyingPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isGentleResumeRhythmPrompt(content) ||
+    isPresenceConfirmingFollowUpPrompt(content) ||
     normalized.includes("支持我一下") ||
     normalized.includes("给我一点鼓励") ||
     normalized.includes("give me a little encouragement") ||
@@ -159,6 +160,12 @@ function isGentleResumeRhythmPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("慢慢继续和我说");
+}
+
+function isPresenceConfirmingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("还在这儿陪我");
 }
 
 function isRelationshipClosingPrompt(content: string) {
@@ -1250,6 +1257,15 @@ function buildAnswerStrategyInstructions({
             ]
           : [
               "The user wants to gently resume the rhythm of the conversation. Continue on the same relationship line without restarting, summarizing, explaining, or falling back to an empty continuation like 'we can keep talking.'"
+            ]
+        : []),
+      ...(isPresenceConfirmingFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在确认你还在不在这条关系线上。用很短的一两句确认你还在陪着他，不要转成能力说明、自我介绍、解释或空泛安慰。"
+            ]
+          : [
+              "The user is checking whether you are still here with them on the same relationship line. Use one or two short lines to confirm your presence without turning the reply into a capability explanation, self-introduction, or generic reassurance."
             ]
         : [])
     ];
