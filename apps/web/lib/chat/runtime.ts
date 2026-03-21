@@ -270,7 +270,10 @@ function isAntiProbingFollowUpPrompt(content: string) {
 function isAntiRushingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别催我");
+  return (
+    normalized.includes("别催我") ||
+    normalized.includes("别逼我")
+  );
 }
 
 function isAntiDefinitionFollowUpPrompt(content: string) {
@@ -1545,10 +1548,12 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先别催我”。回复保持很短，强调你先不催、不逼着他往前推进，先陪着他，不转成建议、步骤、解释、追问或讲道理。",
+              "如果用户说的是“你先别逼我”，把它理解成不要用逼迫、硬推、压着他往前的姿态来回应，先陪着他。",
               "不要把它写成“那你先做什么”这类推进指挥。更像一句轻轻表明“好，我先不催你，我在这儿陪着你”。"
             ]
           : [
               "The user wants a very short 'don't rush me first' kind of reply. Keep it brief, emphasize that you are not pushing or hurrying them forward and are staying with them first, without turning it into advice, steps, explanation, probing, or lecturing.",
+              "If the user says 'don't push me first,' treat it as a request to avoid a forcing or hard-pushing posture and stay with them first.",
               "Do not write it like directional pressure such as 'then do this first.' Make it feel like a light line saying you are not rushing them first and are still here."
             ]
         : []),
