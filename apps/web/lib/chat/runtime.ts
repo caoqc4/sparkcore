@@ -120,6 +120,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isGentleCarryForwardAfterSteadyingPrompt(content) ||
     isLightSharedPushPrompt(content) ||
     isNonJudgingFollowUpPrompt(content) ||
+    isAntiLecturingFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isStayWithMeFollowUpPrompt(content) ||
@@ -170,6 +171,12 @@ function isNonJudgingFollowUpPrompt(content: string) {
     normalized.includes("别评判我") ||
     normalized.includes("别数落我")
   );
+}
+
+function isAntiLecturingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别教育我");
 }
 
 function isSameSideFollowUpPrompt(content: string) {
@@ -1306,6 +1313,17 @@ function buildAnswerStrategyInstructions({
               "The user wants a very short 'don't judge me first' kind of reply. Keep it brief, emphasize that you are not judging them and are staying with them first, without turning it into advice, explanation, lecturing, or moral judgment.",
               "If the user says 'don't scold me first,' treat it as a request to avoid blame or lecturing and stay with them first.",
               "Do not write it like analysis, a canned comfort template, a value judgment, or 'what you should do.' Make it feel like a light line saying you are not judging them first and are still here."
+            ]
+        : []),
+      ...(isAntiLecturingFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别教育我”。回复保持很短，强调你先不说教、先陪着他，不转成建议、解释、辩论、讲道理或道德判断。",
+              "不要把它写成反向说教、安慰模板、分析回复或“你应该怎么做”。更像一句轻轻表明“好，我先不教育你，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't lecture me first' kind of reply. Keep it brief, emphasize that you are not lecturing them and are staying with them first, without turning it into advice, explanation, debate, reasoning, or moral judgment.",
+              "Do not write it like reverse lecturing, a comfort template, analysis, or 'what you should do.' Make it feel like a light line saying you are not lecturing them first and are still here."
             ]
         : []),
       ...(isSameSideFollowUpPrompt(latestUserMessage)
