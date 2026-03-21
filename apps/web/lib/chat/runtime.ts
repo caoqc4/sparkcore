@@ -118,6 +118,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("回我一句就好") ||
     normalized.includes("缓一下，再说") ||
     isGentleCarryForwardAfterSteadyingPrompt(content) ||
+    isFriendLikeSoftFollowUpPrompt(content) ||
     normalized.includes("支持我一下") ||
     normalized.includes("给我一点鼓励") ||
     normalized.includes("give me a little encouragement") ||
@@ -145,6 +146,12 @@ function isGentleCarryForwardAfterSteadyingPrompt(content: string) {
     normalized.includes("缓一下") &&
     normalized.includes("再陪我往下走一点")
   );
+}
+
+function isFriendLikeSoftFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("继续陪我说一句");
 }
 
 function isRelationshipClosingPrompt(content: string) {
@@ -1218,6 +1225,15 @@ function buildAnswerStrategyInstructions({
           : [
               "The user wants you to help them settle first and then move forward by half a step. Steady them briefly first, then offer one very light companion-style next step without turning it into formal advice, analysis, explanation, or summary.",
               "Do not expand the reply into a step list, bullet-point guidance, or explicit directive phrases like 'first do this.' Keep it to one or two light sentences that gently carry the user forward."
+            ]
+        : []),
+      ...(isFriendLikeSoftFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是想让你再像朋友一样陪一句。回复保持很短，像同一个人继续陪着说，不要转成建议、总结、解释，也不要退回成空泛的“我们继续聊”。"
+            ]
+          : [
+              "The user wants one more brief friend-like follow-up. Keep the reply very short like the same person staying with them, without turning it into advice, summary, explanation, or an empty continuation like 'we can keep talking.'"
             ]
         : [])
     ];
