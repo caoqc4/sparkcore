@@ -155,7 +155,10 @@ function isGentleCarryForwardAfterSteadyingPrompt(content: string) {
 function isLightSharedPushPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("一起把这一点弄过去");
+  return (
+    normalized.includes("一起把这一点弄过去") ||
+    normalized.includes("陪我把眼前这一下弄过去")
+  );
 }
 
 function isFriendLikeSoftFollowUpPrompt(content: string) {

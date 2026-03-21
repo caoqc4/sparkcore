@@ -964,7 +964,10 @@ function isSmokeGentleCarryForwardAfterSteadyingPrompt(content: string) {
 function isSmokeLightSharedPushPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("一起把这一点弄过去");
+  return (
+    normalized.includes("一起把这一点弄过去") ||
+    normalized.includes("陪我把眼前这一下弄过去")
+  );
 }
 
 function isSmokeFriendLikeSoftFollowUpPrompt(content: string) {
@@ -1783,6 +1786,12 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeLightSharedPushPrompt(content)) {
+          if (content.normalize("NFKC").trim().toLowerCase().includes("陪我把眼前这一下弄过去")) {
+            return userName
+              ? `${userName}，好，我先陪你把眼前这一下弄过去。`
+              : "好，我先陪你把眼前这一下弄过去。";
+          }
+
           return userName
             ? `${userName}，好，我们先一起把这一点弄过去。`
             : "好，我们先一起把这一点弄过去。";
