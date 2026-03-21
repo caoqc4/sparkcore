@@ -901,6 +901,7 @@ function isSmokeRelationshipSupportivePrompt(content: string) {
     normalized.includes("安慰我一句") ||
     normalized.includes("安慰我一下") ||
     normalized.includes("轻轻接我一下") ||
+    normalized.includes("接住我一下") ||
     normalized.includes("陪陪我") ||
     normalized.includes("支持我一下") ||
     normalized.includes("给我一点鼓励") ||
@@ -922,6 +923,7 @@ function isSmokeShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("安慰我一句") ||
     normalized.includes("安慰我一下") ||
     normalized.includes("轻轻接我一下") ||
+    normalized.includes("接住我一下") ||
     normalized.includes("回我一句就好") ||
     normalized.includes("支持我一下") ||
     normalized.includes("给我一点鼓励") ||
