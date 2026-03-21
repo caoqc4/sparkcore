@@ -135,6 +135,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isAntiAdviceFollowUpPrompt(content) ||
     isAntiMinimizingFollowUpPrompt(content) ||
     isAntiNormalizingFollowUpPrompt(content) ||
+    isAntiComparingFollowUpPrompt(content) ||
     isAntiDefinitionFollowUpPrompt(content) ||
     isAntiCategorizingFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
@@ -324,6 +325,12 @@ function isAntiNormalizingFollowUpPrompt(content: string) {
     normalized.includes("别跟我说大家都这样") ||
     normalized.includes("别跟我说谁都会这样")
   );
+}
+
+function isAntiComparingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别拿别人跟我比");
 }
 
 function isAntiDefinitionFollowUpPrompt(content: string) {
@@ -1674,6 +1681,19 @@ function buildAnswerStrategyInstructions({
               "If the user says 'don't tell me anyone would feel this way,' treat it as a request not to flatten their state into a generic anyone-goes-through-this line, and stay with them first.",
               "Treat it as a request not to flatten what they are feeling into 'everyone goes through this' and stay on the existing relationship line first.",
               "Do not write it like 'a lot of people feel this way' or 'this is common.' Make it feel like a light line saying you are not normalizing it away and are still here."
+            ]
+        : []),
+      ...(isAntiComparingFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别拿别人跟我比”。回复保持很短，强调你先不把他和别人比较，先陪着他，不转成安慰、建议、分析、解释或说理。",
+              "把它理解成用户不要被拿去跟别人对照、不要被用别人当标尺来回应，先在原有关系线上接住他。",
+              "不要把它写成“别人也能做到”“你看看谁谁谁”这类比较句子。更像一句轻轻表明“好，我先不拿别人跟你比，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't compare me to other people first' kind of reply. Keep it brief, emphasize that you are not comparing them against other people and are staying with them first, without turning it into comfort, advice, analysis, explanation, or lecturing.",
+              "Treat it as a request not to respond by measuring them against other people or using someone else as the yardstick, and stay on the existing relationship line first.",
+              "Do not write it like 'other people do this too' or 'look at what so-and-so does.' Make it feel like a light line saying you are not comparing them to others and are still here."
             ]
         : []),
       ...(isAntiDefinitionFollowUpPrompt(latestUserMessage)
