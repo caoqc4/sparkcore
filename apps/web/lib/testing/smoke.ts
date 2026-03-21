@@ -1004,7 +1004,10 @@ function isSmokeGentleResumeRhythmPrompt(content: string) {
 function isSmokePresenceConfirmingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("还在这儿陪我");
+  return (
+    normalized.includes("还在这儿陪我") ||
+    normalized.includes("先别走开")
+  );
 }
 
 function isSmokeRelationshipClosingPrompt(content: string) {
@@ -1853,6 +1856,18 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokePresenceConfirmingFollowUpPrompt(content)) {
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("先别走开")
+          ) {
+            return userName
+              ? `${userName}，好，我先不走开，就在这儿陪着你。`
+              : "好，我先不走开，就在这儿陪着你。";
+          }
+
           return userName
             ? `${userName}，我还在这儿陪着你。`
             : "我还在这儿陪着你。";

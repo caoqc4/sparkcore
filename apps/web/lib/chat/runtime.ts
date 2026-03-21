@@ -195,7 +195,10 @@ function isGentleResumeRhythmPrompt(content: string) {
 function isPresenceConfirmingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("还在这儿陪我");
+  return (
+    normalized.includes("还在这儿陪我") ||
+    normalized.includes("先别走开")
+  );
 }
 
 function isRelationshipClosingPrompt(content: string) {
@@ -1325,10 +1328,12 @@ function buildAnswerStrategyInstructions({
       ...(isPresenceConfirmingFollowUpPrompt(latestUserMessage)
         ? isZh
           ? [
-              "这轮用户是在确认你还在不在这条关系线上。用很短的一两句确认你还在陪着他，不要转成能力说明、自我介绍、解释或空泛安慰。"
+              "这轮用户是在确认你还在不在这条关系线上。用很短的一两句确认你还在陪着他，不要转成能力说明、自我介绍、解释或空泛安慰。",
+              "如果用户说的是“你先别走开”，把它理解成关系上的陪着在这儿，不要理解成字面导航、产品操作或离开页面。"
             ]
           : [
-              "The user is checking whether you are still here with them on the same relationship line. Use one or two short lines to confirm your presence without turning the reply into a capability explanation, self-introduction, or generic reassurance."
+              "The user is checking whether you are still here with them on the same relationship line. Use one or two short lines to confirm your presence without turning the reply into a capability explanation, self-introduction, or generic reassurance.",
+              "If the user says 'don't go away yet,' treat it as relationship presence rather than literal navigation or product-operation guidance."
             ]
         : [])
     ];
