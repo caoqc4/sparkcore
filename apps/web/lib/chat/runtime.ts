@@ -127,6 +127,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isAntiTaggingFollowUpPrompt(content) ||
     isAntiMischaracterizationFollowUpPrompt(content) ||
     isAntiOverreadingFollowUpPrompt(content) ||
+    isAntiAnalysisFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isStayWithMeFollowUpPrompt(content) ||
@@ -219,6 +220,12 @@ function isAntiOverreadingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("别替我解读");
+}
+
+function isAntiAnalysisFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别急着分析我");
 }
 
 function isSameSideFollowUpPrompt(content: string) {
@@ -1432,6 +1439,17 @@ function buildAnswerStrategyInstructions({
           : [
               "The user wants a very short 'don't interpret me for me first' kind of reply. Keep it brief, emphasize that you are not rushing to interpret them for them and are staying with them first, without turning it into analysis, explanation, debate, advice, reasoning, or moral judgment.",
               "Do not write it like motive analysis, a canned comfort template, or a statement of what they are really thinking. Make it feel like a light line saying you are not rushing to interpret them first and are still here."
+            ]
+        : []),
+      ...(isAntiAnalysisFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别急着分析我”。回复保持很短，强调你先不急着分析他、先陪着他，不转成分析、解释、辩论、建议、讲道理或道德判断。",
+              "不要把它写成心理分析、安慰模板或“你其实为什么会这样”。更像一句轻轻表明“好，我先不急着分析你，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't analyze me first' kind of reply. Keep it brief, emphasize that you are not rushing to analyze them and are staying with them first, without turning it into analysis, explanation, debate, advice, reasoning, or moral judgment.",
+              "Do not write it like psychological analysis, a canned comfort template, or an explanation of why they are really like this. Make it feel like a light line saying you are not rushing to analyze them first and are still here."
             ]
         : []),
       ...(isSameSideFollowUpPrompt(latestUserMessage)
