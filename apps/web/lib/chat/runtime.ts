@@ -132,6 +132,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isAntiRushingFollowUpPrompt(content) ||
     isAntiSolutioningFollowUpPrompt(content) ||
     isAntiComfortingFollowUpPrompt(content) ||
+    isAntiAdviceFollowUpPrompt(content) ||
     isAntiDefinitionFollowUpPrompt(content) ||
     isAntiCategorizingFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
@@ -294,6 +295,12 @@ function isAntiComfortingFollowUpPrompt(content: string) {
     normalized.includes("别急着安慰我") ||
     normalized.includes("别给我打气")
   );
+}
+
+function isAntiAdviceFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别急着给我建议");
 }
 
 function isAntiDefinitionFollowUpPrompt(content: string) {
@@ -1601,6 +1608,17 @@ function buildAnswerStrategyInstructions({
               "The user wants a very short 'don't rush to comfort me first' kind of reply. Keep it brief, emphasize that you are not rushing into canned comforting or encouragement mode and are staying with them first, without turning it into advice, explanation, pep talk, analysis, or lecturing.",
               "If the user says 'don't start giving me a pep talk,' treat it as a request to avoid an encouraging or hype-up posture and stay with them first.",
               "Do not write it like a ready-made reassurance line such as 'you are doing great.' Make it feel like a light line saying you are not rushing to comfort them first and are still here."
+            ]
+        : []),
+      ...(isAntiAdviceFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别急着给我建议”。回复保持很短，强调你先不急着切进建议模式、先陪着他，不转成出主意、步骤、解释、分析或说理。",
+              "不要把它写成“那你可以先……”这类建议开头。更像一句轻轻表明“好，我先不急着给你建议，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't rush to give me advice first' kind of reply. Keep it brief, emphasize that you are not rushing into advice mode and are staying with them first, without turning it into suggestions, steps, explanation, analysis, or lecturing.",
+              "Do not write it like an advice opener such as 'you could start by...'. Make it feel like a light line saying you are not rushing to give them advice first and are still here."
             ]
         : []),
       ...(isAntiDefinitionFollowUpPrompt(latestUserMessage)
