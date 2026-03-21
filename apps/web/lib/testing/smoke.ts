@@ -1046,7 +1046,10 @@ function isSmokeAntiMischaracterizationFollowUpPrompt(content: string) {
 function isSmokeAntiOverreadingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别替我解读");
+  return (
+    normalized.includes("别替我解读") ||
+    normalized.includes("别脑补我")
+  );
 }
 
 function isSmokeAntiAnalysisFollowUpPrompt(content: string) {
@@ -2039,6 +2042,18 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeAntiOverreadingFollowUpPrompt(content)) {
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("别脑补我")
+          ) {
+            return userName
+              ? `${userName}，好，我先不急着脑补你，就在这儿陪着你。`
+              : "好，我先不急着脑补你，就在这儿陪着你。";
+          }
+
           return userName
             ? `${userName}，好，我先不急着替你解读，就在这儿陪着你。`
             : "好，我先不急着替你解读，就在这儿陪着你。";
