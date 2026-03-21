@@ -6,7 +6,8 @@ export type QualityEvalCase = {
     | "memory-confirmation"
     | "relationship-maintenance"
     | "mixed-language"
-    | "correction-aftermath";
+    | "correction-aftermath"
+    | "long-chain-continuity";
   category:
     | "memory"
     | "language"
@@ -22,7 +23,10 @@ export type QualityEvalCase = {
   setup: string[];
   steps: string[];
   observe: string[];
+  executionNotes?: string[];
+  failureModePriority?: string[];
   failureConditions?: string[];
+  verdictOptions?: string[];
   successCriteria: string[];
 };
 
@@ -352,6 +356,118 @@ export const memoryV2EvalSet: QualityEvalCase[] = [
 ];
 
 export const realChatQualityRegressionSet: QualityEvalCase[] = [
+  {
+    id: "real-chat-long-chain-anti-analysis-carry-forward",
+    title:
+      "Long-chain continuity holds from anti-analysis to brief catch to gentle carry-forward",
+    priority: "P0",
+    scenarioPack: "long-chain-continuity",
+    category: "fidelity",
+    purpose:
+      "Verify chain interaction quality instead of single-phrase coverage by checking whether three already-covered micro-lines still feel like one continuing role when composed into one short sequence.",
+    setup: [
+      "Use one active agent in the same thread.",
+      "Do not replace the scripted turns with new natural variants in the first-round run.",
+      "Treat this as a composition test, not a phrase-expansion test."
+    ],
+    steps: [
+      'Turn 1: send "我现在有点乱，你先别急着分析我。"',
+      'Turn 2: send "你先接我一句就好。"',
+      'Turn 3: send "你再陪我往下走一点。"'
+    ],
+    observe: [
+      "Whether Turn 1 avoids slipping into immediate analysis.",
+      "Whether Turn 2 lands as a brief emotional catch instead of a generic continuation or canned comfort.",
+      "Whether Turn 3 carries the user forward by half a step without expanding into formal advice.",
+      "Whether the same relationship tone still feels continuous across all three turns instead of flattening into a neutral assistant voice."
+    ],
+    executionNotes: [
+      "First-round long-chain runs should prioritize composition effects over new phrasing exploration.",
+      "Keep the chain at three turns so the first failing interaction stays easy to attribute.",
+      "If the case fails, decide first whether it is a chain interaction drift or a local phrase gap."
+    ],
+    failureModePriority: [
+      "Re-enters analysis too early.",
+      "Expands into advice before the gentle carry-forward step should allow it.",
+      "Falls back to generic continuation on the brief-catch turn.",
+      "Loses the same-role feeling and drifts into a neutral assistant voice."
+    ],
+    failureConditions: [
+      "Count it as failed if Turn 1 starts analyzing the user state instead of staying in the anti-analysis lane.",
+      "Count it as failed if Turn 2 behaves like generic continuation, canned comfort, or default filler instead of a brief catch.",
+      "Count it as failed if Turn 3 expands into formal advice, steps, or explanation instead of a light carry-forward.",
+      "Count it as failed if the chain does not break on one isolated phrase but still shows a visible role-style drift by the end of Turn 3."
+    ],
+    verdictOptions: [
+      "holds as one continuing role",
+      "soft drift toward analysis",
+      "soft drift toward advice",
+      "soft drift toward generic continuation",
+      "needs targeted phrase fix",
+      "needs chain-level guardrail"
+    ],
+    successCriteria: [
+      "The three-turn chain still feels like one continuing role.",
+      "Brief catch stays brief, and carry-forward stays light.",
+      "The run can be judged as a composition verdict instead of another single-phrase coverage check."
+    ]
+  },
+  {
+    id: "real-chat-long-chain-anti-comforting-resume",
+    title:
+      "Long-chain continuity holds from anti-comforting to presence confirmation to gentle resume",
+    priority: "P0",
+    scenarioPack: "long-chain-continuity",
+    category: "fidelity",
+    purpose:
+      "Verify that relationship continuity survives a short chain where the user first rejects comforting language, then asks for presence confirmation, and finally asks the agent to resume gently in the same tone.",
+    setup: [
+      "Use one active agent in the same thread.",
+      "Keep the scripted turns fixed for the first round so failures are attributable to chain interaction rather than new wording coverage.",
+      "Treat the case as a role-continuity chain, not a new comfort-taxonomy exploration."
+    ],
+    steps: [
+      'Turn 1: send "你先别急着安慰我。"',
+      'Turn 2: send "你还在这儿陪我，对吧。"',
+      'Turn 3: send "好，那你慢慢继续和我说。"'
+    ],
+    observe: [
+      "Whether Turn 1 avoids sliding back into canned comforting language.",
+      "Whether Turn 2 confirms presence without turning into capability or identity explanation.",
+      "Whether Turn 3 resumes the rhythm gently instead of reopening the conversation or turning into advice.",
+      "Whether the later turns still feel like the same role that handled Turn 1."
+    ],
+    executionNotes: [
+      "First-round long-chain runs should measure composition drift first, not phrase expansion.",
+      "Keep the run at three turns so the presence-to-resume transition stays easy to judge.",
+      "If drift appears, check whether the problem is chain distortion before opening another phrasing issue."
+    ],
+    failureModePriority: [
+      "Rejects comforting on Turn 1 but still slips back into comforting templates later.",
+      "Turns presence confirmation into empty companionship filler.",
+      "Turns resume-the-rhythm into advice-like forward pushing.",
+      "The later turns no longer sound like the same continuing role."
+    ],
+    failureConditions: [
+      "Count it as failed if Turn 1 still comforts the user in a canned way.",
+      "Count it as failed if Turn 2 answers presence confirmation with generic capability or identity copy.",
+      "Count it as failed if Turn 3 resumes with advice, summary, or a fresh neutral opening instead of a gentle same-thread continuation.",
+      "Count it as failed if the chain only looks acceptable turn by turn but clearly loses relationship continuity by the final turn."
+    ],
+    verdictOptions: [
+      "holds as one continuing role",
+      "soft drift toward canned comfort",
+      "soft drift toward generic continuation",
+      "soft drift toward advice",
+      "needs targeted phrase fix",
+      "needs chain-level guardrail"
+    ],
+    successCriteria: [
+      "The chain stays in one relationship line from anti-comforting through resume.",
+      "Presence confirmation remains specific without becoming empty or technical.",
+      "The case can be reviewed with one scenario verdict instead of three isolated phrase judgments."
+    ]
+  },
   {
     id: "real-chat-same-agent-relationship-continuity",
     title: "Same-agent nickname and preferred-name continuity survives a new thread and later short follow-ups",

@@ -4,7 +4,8 @@ const REAL_CHAT_SCENARIO_PACK_LABELS = {
   "memory-confirmation": "Memory Confirmation Pack",
   "relationship-maintenance": "Relationship Maintenance Pack",
   "mixed-language": "Mixed-Language Pack",
-  "correction-aftermath": "Correction Aftermath Pack"
+  "correction-aftermath": "Correction Aftermath Pack",
+  "long-chain-continuity": "Long-Chain Continuity Pack"
 } as const;
 
 function renderMarkdown(suiteId: keyof typeof qualityEvalSuites) {
@@ -103,9 +104,24 @@ function renderMarkdown(suiteId: keyof typeof qualityEvalSuites) {
     lines.push("### What to Observe");
     lines.push(...item.observe.map((entry) => `- ${entry}`));
     lines.push("");
+    if (item.executionNotes?.length) {
+      lines.push("### Execution Notes");
+      lines.push(...item.executionNotes.map((entry) => `- ${entry}`));
+      lines.push("");
+    }
+    if (item.failureModePriority?.length) {
+      lines.push("### Failure Mode Priority");
+      lines.push(...item.failureModePriority.map((entry) => `- ${entry}`));
+      lines.push("");
+    }
     if (item.failureConditions?.length) {
       lines.push("### Failure Conditions");
       lines.push(...item.failureConditions.map((entry) => `- ${entry}`));
+      lines.push("");
+    }
+    if (item.verdictOptions?.length) {
+      lines.push("### Scenario Verdict Options");
+      lines.push(...item.verdictOptions.map((entry) => `- ${entry}`));
       lines.push("");
     }
     lines.push("### Success Criteria");

@@ -31,6 +31,8 @@
 2. 每条链路只验证一个主风险，不要一条里塞太多目标
 3. 每条链路要有清晰的“掉味信号”
 4. 如果失败，优先长最小 guardrail，而不是立刻扩 phrase 包
+5. 第一轮优先识别“组合后是否失真”，而不是继续扩大单句覆盖面
+6. 第一轮长链路不要混入新的 phrasing 探索，先固定已收好的切口
 
 ## 建议优先顺序
 
@@ -62,6 +64,22 @@
 - 第 2 轮变成模板安慰
 - 第 3 轮变成“第一步你应该……”式建议
 
+### 失败模式优先级
+
+1. 重新开始分析
+2. 过早给建议
+3. generic continuation
+4. 口吻从“接住”滑回中性助手
+
+### 场景级 verdict 候选
+
+- `holds as one continuing role`
+- `soft drift toward analysis`
+- `soft drift toward advice`
+- `soft drift toward generic continuation`
+- `needs targeted phrase fix`
+- `needs chain-level guardrail`
+
 ### 为什么优先
 
 这是当前已收微线之间最自然的串联，也是最能验证“从被动承接到轻推半步”的连续体感的一条链。
@@ -87,6 +105,22 @@
 - 第 1 轮还是忍不住安慰
 - 第 2 轮开始解释“我会一直支持你”
 - 第 3 轮突然切成总结或新一段正式说明
+
+### 失败模式优先级
+
+1. 先说不安慰，后面又滑回安慰模板
+2. presence 做成空泛陪伴
+3. `resume` 做成建议味推进
+4. 后两轮不再像同一个人
+
+### 场景级 verdict 候选
+
+- `holds as one continuing role`
+- `soft drift toward canned comfort`
+- `soft drift toward generic continuation`
+- `soft drift toward advice`
+- `needs targeted phrase fix`
+- `needs chain-level guardrail`
 
 ### 为什么优先
 
@@ -184,15 +218,17 @@
 - 这两条最能代表当前阶段已打下的微线
 - 风险清晰
 - 一旦失败，也最容易长出最小 guardrail
+- 而且都可以完全使用已经收好的 phrasing，不会把“组合失真”和“新 phrasing 漏洞”混在一起
 
 ### 失败后的处理顺序
 
 如果长链路失败，建议按这个顺序处理：
 
 1. 先判断是哪个节点掉味
-2. 再判断是现有 slice 串联不稳，还是缺少 guardrail
-3. 优先补最小 guardrail
-4. 只有在 guardrail 不足以解释失败时，才考虑再开新的单句切口
+2. 再判断是 `链路失真` 还是 `局部 phrase 漏洞`
+3. 如果是链路失真，优先看 answer-shape precedence / continuity-preserving instruction / chain-level guardrail
+4. 如果是局部 phrase 漏洞，再考虑回去补最小 phrasing issue
+5. 不要一失败就自动退回 phrase-by-phrase 的旧路径
 
 ## 下一阶段的产出形式建议
 
