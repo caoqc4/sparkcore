@@ -1069,7 +1069,8 @@ function isSmokeAntiProbingFollowUpPrompt(content: string) {
 
   return (
     normalized.includes("别问我为什么") ||
-    normalized.includes("别追着问我")
+    normalized.includes("别追着问我") ||
+    normalized.includes("别盘问我")
   );
 }
 
@@ -2069,6 +2070,18 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeAntiProbingFollowUpPrompt(content)) {
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("别盘问我")
+          ) {
+            return userName
+              ? `${userName}，好，我先不盘问你，就在这儿陪着你。`
+              : "好，我先不盘问你，就在这儿陪着你。";
+          }
+
           return userName
             ? `${userName}，好，我先不问你为什么，就在这儿陪着你。`
             : "好，我先不问你为什么，就在这儿陪着你。";

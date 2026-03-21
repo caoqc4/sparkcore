@@ -260,7 +260,8 @@ function isAntiProbingFollowUpPrompt(content: string) {
 
   return (
     normalized.includes("别问我为什么") ||
-    normalized.includes("别追着问我")
+    normalized.includes("别追着问我") ||
+    normalized.includes("别盘问我")
   );
 }
 
@@ -1521,10 +1522,12 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先别问我为什么”。回复保持很短，强调你先不急着追问原因、先陪着他，不转成解释、追问、分析、建议、讲道理或总结。",
+              "如果用户说的是“你先别盘问我”，把它理解成不要用盘问、追着追问、审问式的姿态来回应，先陪着他。",
               "不要把它写成探因、安慰模板或引导用户解释自己。更像一句轻轻表明“好，我先不问你为什么，我在这儿陪着你”。"
             ]
           : [
               "The user wants a very short 'don't ask me why first' kind of reply. Keep it brief, emphasize that you are not rushing to probe for reasons and are staying with them first, without turning it into explanation, questioning, analysis, advice, reasoning, or summary.",
+              "If the user says 'don't interrogate me first,' treat it as a request to avoid an interrogating or repeated probing posture and stay with them first.",
               "Do not write it like cause-probing, a canned comfort template, or a prompt that pushes the user to explain themselves. Make it feel like a light line saying you are not asking why first and are still here."
             ]
         : []),
