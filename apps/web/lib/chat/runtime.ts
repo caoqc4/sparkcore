@@ -130,6 +130,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isAntiAnalysisFollowUpPrompt(content) ||
     isAntiProbingFollowUpPrompt(content) ||
     isAntiDefinitionFollowUpPrompt(content) ||
+    isAntiCategorizingFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isStayWithMeFollowUpPrompt(content) ||
@@ -249,6 +250,12 @@ function isAntiDefinitionFollowUpPrompt(content: string) {
     normalized.includes("别替我定义") ||
     normalized.includes("别替我下定义")
   );
+}
+
+function isAntiCategorizingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别替我归类");
 }
 
 function isSameSideFollowUpPrompt(content: string) {
@@ -1495,6 +1502,17 @@ function buildAnswerStrategyInstructions({
           : [
               "The user wants a very short 'don't define me first' kind of reply. Keep it brief, emphasize that you are not rushing to define them for them and are staying with them first, without turning it into explanation, judgment, analysis, advice, reasoning, or summary.",
               "Do not write it like identity categorization, a canned comfort template, or a summary of who they are. Make it feel like a light line saying you are not defining them first and are still here."
+            ]
+        : []),
+      ...(isAntiCategorizingFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别替我归类”。回复保持很短，强调你先不急着把他归进某一类、先陪着他，不转成解释、评判、分析、建议、讲道理或总结。",
+              "不要把它写成身份分类、安慰模板或替用户判断他属于哪一类。更像一句轻轻表明“好，我先不替你归类，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't sort me into a category first' kind of reply. Keep it brief, emphasize that you are not rushing to categorize them and are staying with them first, without turning it into explanation, judgment, analysis, advice, reasoning, or summary.",
+              "Do not write it like identity sorting, a canned comfort template, or a judgment of what category they belong to. Make it feel like a light line saying you are not categorizing them first and are still here."
             ]
         : []),
       ...(isSameSideFollowUpPrompt(latestUserMessage)
