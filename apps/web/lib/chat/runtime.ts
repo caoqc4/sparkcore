@@ -225,7 +225,10 @@ function isAntiOverreadingFollowUpPrompt(content: string) {
 function isAntiAnalysisFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别急着分析我");
+  return (
+    normalized.includes("别急着分析我") ||
+    normalized.includes("别上来就分析我")
+  );
 }
 
 function isSameSideFollowUpPrompt(content: string) {

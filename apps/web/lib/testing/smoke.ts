@@ -1034,7 +1034,10 @@ function isSmokeAntiOverreadingFollowUpPrompt(content: string) {
 function isSmokeAntiAnalysisFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别急着分析我");
+  return (
+    normalized.includes("别急着分析我") ||
+    normalized.includes("别上来就分析我")
+  );
 }
 
 function isSmokeSameSideFollowUpPrompt(content: string) {
