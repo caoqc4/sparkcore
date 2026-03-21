@@ -1119,7 +1119,10 @@ function isSmokeAntiAdviceFollowUpPrompt(content: string) {
 function isSmokeAntiMinimizingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别跟我说这没什么");
+  return (
+    normalized.includes("别跟我说这没什么") ||
+    normalized.includes("别跟我说没什么大不了")
+  );
 }
 
 function isSmokeAntiDefinitionFollowUpPrompt(content: string) {
@@ -2220,6 +2223,18 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeAntiMinimizingFollowUpPrompt(content)) {
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("别跟我说没什么大不了")
+          ) {
+            return userName
+              ? `${userName}，好，我先不跟你说没什么大不了，就在这儿陪着你。`
+              : "好，我先不跟你说没什么大不了，就在这儿陪着你。";
+          }
+
           return userName
             ? `${userName}，好，我先不跟你说这没什么，就在这儿陪着你。`
             : "好，我先不跟你说这没什么，就在这儿陪着你。";

@@ -310,7 +310,10 @@ function isAntiAdviceFollowUpPrompt(content: string) {
 function isAntiMinimizingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别跟我说这没什么");
+  return (
+    normalized.includes("别跟我说这没什么") ||
+    normalized.includes("别跟我说没什么大不了")
+  );
 }
 
 function isAntiDefinitionFollowUpPrompt(content: string) {
@@ -1637,11 +1640,13 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先别跟我说这没什么”。回复保持很短，强调你先不缩小他的感受、不把这事说轻，先陪着他，不转成安慰、建议、分析、解释或说理。",
+              "如果用户说的是“你先别跟我说没什么大不了”，把它理解成不要轻描淡写、不要把他的状态说成不值得认真对待，先陪着他。",
               "把它理解成用户不要被轻描淡写、不要被告知这事不值一提，先在原有关系线上接住他。",
               "不要把它写成“其实没事”“你别想太多”这类淡化状态的句子。更像一句轻轻表明“好，我先不跟你说这没什么，我在这儿陪着你”。"
             ]
           : [
               "The user wants a very short 'don't tell me this is nothing first' kind of reply. Keep it brief, emphasize that you are not minimizing what they are feeling and are staying with them first, without turning it into comfort, advice, analysis, explanation, or lecturing.",
+              "If the user says 'don't tell me it's no big deal,' treat it as a request not to brush their state off or downplay it, and stay with them first.",
               "Treat it as a request not to downplay their state or wave it away as no big deal, and stay on the existing relationship line first.",
               "Do not write it like 'it's nothing' or 'don't overthink it.' Make it feel like a light line saying you are not brushing it off and are still here."
             ]
