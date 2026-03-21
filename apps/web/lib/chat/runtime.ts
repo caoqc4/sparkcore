@@ -204,7 +204,10 @@ function isAntiCorrectionFollowUpPrompt(content: string) {
 function isAntiConclusionFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别给我下结论");
+  return (
+    normalized.includes("别给我下结论") ||
+    normalized.includes("别这么快下结论")
+  );
 }
 
 function isAntiLabelingFollowUpPrompt(content: string) {
@@ -1433,10 +1436,12 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先别给我下结论”。回复保持很短，强调你先不急着下结论、先陪着他，不转成分析、解释、辩论、建议、讲道理或道德判断。",
+              "如果用户说的是“你先别这么快下结论”，把它理解成不要太快收束判断、定夺或盖棺论定，先陪着他。",
               "不要把它写成分析总结、反驳、安慰模板或“你其实是什么样的人”。更像一句轻轻表明“好，我先不急着给你下结论，我在这儿陪着你”。"
             ]
           : [
               "The user wants a very short 'don't jump to conclusions about me first' kind of reply. Keep it brief, emphasize that you are not rushing to conclude about them and are staying with them first, without turning it into analysis, explanation, debate, advice, reasoning, or moral judgment.",
+              "If the user says 'don't conclude so quickly first,' treat it as a request not to lock in a judgment too fast and stay with them first.",
               "Do not write it like a summarizing analysis, rebuttal, canned comfort template, or a statement of what kind of person they are. Make it feel like a light line saying you are not rushing to conclude about them first and are still here."
             ]
         : []),
