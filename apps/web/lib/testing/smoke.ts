@@ -1054,7 +1054,10 @@ function isSmokeAntiProbingFollowUpPrompt(content: string) {
 function isSmokeAntiDefinitionFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别替我定义");
+  return (
+    normalized.includes("别替我定义") ||
+    normalized.includes("别替我下定义")
+  );
 }
 
 function isSmokeSameSideFollowUpPrompt(content: string) {
