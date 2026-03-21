@@ -119,6 +119,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("缓一下，再说") ||
     isGentleCarryForwardAfterSteadyingPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
+    isGentleResumeRhythmPrompt(content) ||
     normalized.includes("支持我一下") ||
     normalized.includes("给我一点鼓励") ||
     normalized.includes("give me a little encouragement") ||
@@ -152,6 +153,12 @@ function isFriendLikeSoftFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("继续陪我说一句");
+}
+
+function isGentleResumeRhythmPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("慢慢继续和我说");
 }
 
 function isRelationshipClosingPrompt(content: string) {
@@ -1234,6 +1241,15 @@ function buildAnswerStrategyInstructions({
             ]
           : [
               "The user wants one more brief friend-like follow-up. Keep the reply very short like the same person staying with them, without turning it into advice, summary, explanation, or an empty continuation like 'we can keep talking.'"
+            ]
+        : []),
+      ...(isGentleResumeRhythmPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是想慢一点恢复说话节奏。像同一个人顺着刚才的关系线继续说，不要重新开场，不要转成总结、解释或建议，也不要退回成空泛的“我们继续聊”。"
+            ]
+          : [
+              "The user wants to gently resume the rhythm of the conversation. Continue on the same relationship line without restarting, summarizing, explaining, or falling back to an empty continuation like 'we can keep talking.'"
             ]
         : [])
     ];

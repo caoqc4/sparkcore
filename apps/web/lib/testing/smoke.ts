@@ -928,6 +928,7 @@ function isSmokeShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("缓一下，再说") ||
     isSmokeGentleCarryForwardAfterSteadyingPrompt(content) ||
     isSmokeFriendLikeSoftFollowUpPrompt(content) ||
+    isSmokeGentleResumeRhythmPrompt(content) ||
     normalized.includes("支持我一下") ||
     normalized.includes("给我一点鼓励") ||
     normalized.includes("give me a little encouragement") ||
@@ -961,6 +962,12 @@ function isSmokeFriendLikeSoftFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("继续陪我说一句");
+}
+
+function isSmokeGentleResumeRhythmPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("慢慢继续和我说");
 }
 
 function isSmokeRelationshipClosingPrompt(content: string) {
@@ -1758,6 +1765,12 @@ function buildSmokeAssistantReply({
           return userName
             ? `${userName}，我继续陪着你说，我们慢慢来。`
             : "我继续陪着你说，我们慢慢来。";
+        }
+
+        if (isSmokeGentleResumeRhythmPrompt(content)) {
+          return userName
+            ? `${userName}，好，我们就慢慢接着说。`
+            : "好，我们就慢慢接着说。";
         }
 
         if (styleValue === "formal") {
