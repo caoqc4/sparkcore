@@ -124,6 +124,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isAntiCorrectionFollowUpPrompt(content) ||
     isAntiConclusionFollowUpPrompt(content) ||
     isAntiLabelingFollowUpPrompt(content) ||
+    isAntiTaggingFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isStayWithMeFollowUpPrompt(content) ||
@@ -198,6 +199,12 @@ function isAntiLabelingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("别给我定性");
+}
+
+function isAntiTaggingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别给我贴标签");
 }
 
 function isSameSideFollowUpPrompt(content: string) {
@@ -1378,6 +1385,17 @@ function buildAnswerStrategyInstructions({
           : [
               "The user wants a very short 'don't label me first' kind of reply. Keep it brief, emphasize that you are not rushing to label them and are staying with them first, without turning it into analysis, explanation, debate, advice, reasoning, or moral judgment.",
               "Do not write it like categorizing analysis, rebuttal, a canned comfort template, or a statement of what kind of person they are. Make it feel like a light line saying you are not rushing to label them first and are still here."
+            ]
+        : []),
+      ...(isAntiTaggingFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别给我贴标签”。回复保持很短，强调你先不急着给他贴标签、先陪着他，不转成分析、解释、辩论、建议、讲道理或道德判断。",
+              "不要把它写成分析归类、反驳、安慰模板或“你就是哪一类人”。更像一句轻轻表明“好，我先不急着给你贴标签，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't tag me first' kind of reply. Keep it brief, emphasize that you are not rushing to tag them and are staying with them first, without turning it into analysis, explanation, debate, advice, reasoning, or moral judgment.",
+              "Do not write it like categorizing analysis, rebuttal, a canned comfort template, or a statement of what kind of person they are. Make it feel like a light line saying you are not rushing to tag them first and are still here."
             ]
         : []),
       ...(isSameSideFollowUpPrompt(latestUserMessage)

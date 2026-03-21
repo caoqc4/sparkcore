@@ -933,6 +933,7 @@ function isSmokeShortRelationshipSupportivePrompt(content: string) {
     isSmokeAntiCorrectionFollowUpPrompt(content) ||
     isSmokeAntiConclusionFollowUpPrompt(content) ||
     isSmokeAntiLabelingFollowUpPrompt(content) ||
+    isSmokeAntiTaggingFollowUpPrompt(content) ||
     isSmokeSameSideFollowUpPrompt(content) ||
     isSmokeFriendLikeSoftFollowUpPrompt(content) ||
     isSmokeStayWithMeFollowUpPrompt(content) ||
@@ -1007,6 +1008,12 @@ function isSmokeAntiLabelingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("别给我定性");
+}
+
+function isSmokeAntiTaggingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别给我贴标签");
 }
 
 function isSmokeSameSideFollowUpPrompt(content: string) {
@@ -1891,6 +1898,12 @@ function buildSmokeAssistantReply({
           return userName
             ? `${userName}，好，我先不急着给你定性，就在这儿陪着你。`
             : "好，我先不急着给你定性，就在这儿陪着你。";
+        }
+
+        if (isSmokeAntiTaggingFollowUpPrompt(content)) {
+          return userName
+            ? `${userName}，好，我先不急着给你贴标签，就在这儿陪着你。`
+            : "好，我先不急着给你贴标签，就在这儿陪着你。";
         }
 
         if (isSmokeSameSideFollowUpPrompt(content)) {
