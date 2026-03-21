@@ -119,6 +119,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     normalized.includes("缓一下，再说") ||
     isGentleCarryForwardAfterSteadyingPrompt(content) ||
     isLightSharedPushPrompt(content) ||
+    isNonJudgingFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isStayWithMeFollowUpPrompt(content) ||
@@ -160,6 +161,12 @@ function isLightSharedPushPrompt(content: string) {
     normalized.includes("一起把这一点弄过去") ||
     normalized.includes("陪我把眼前这一下弄过去")
   );
+}
+
+function isNonJudgingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别评判我");
 }
 
 function isSameSideFollowUpPrompt(content: string) {
@@ -1283,6 +1290,17 @@ function buildAnswerStrategyInstructions({
           : [
               "The user is asking to get through this small piece together first. Keep the reply very short like the same person staying on their side and moving through this bit with them, without turning it into formal advice, a step list, analysis, explanation, or summary.",
               "Do not use directive phrasing like 'first do this' or 'you should.' Make it feel like a light shared push forward together."
+            ]
+        : []),
+      ...(isNonJudgingFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别评判我”。回复保持很短，强调你先不评判、先陪着他，不转成建议、解释、说理或道德判断。",
+              "不要把它写成分析、安慰模板、价值评判或“你应该怎么做”。更像一句轻轻表明“我先不评判你，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't judge me first' kind of reply. Keep it brief, emphasize that you are not judging them and are staying with them first, without turning it into advice, explanation, lecturing, or moral judgment.",
+              "Do not write it like analysis, a canned comfort template, a value judgment, or 'what you should do.' Make it feel like a light line saying you are not judging them first and are still here."
             ]
         : []),
       ...(isSameSideFollowUpPrompt(latestUserMessage)
