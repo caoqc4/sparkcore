@@ -320,7 +320,10 @@ function isAntiMinimizingFollowUpPrompt(content: string) {
 function isAntiNormalizingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别跟我说大家都这样");
+  return (
+    normalized.includes("别跟我说大家都这样") ||
+    normalized.includes("别跟我说谁都会这样")
+  );
 }
 
 function isAntiDefinitionFollowUpPrompt(content: string) {
@@ -1662,11 +1665,13 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先别跟我说大家都这样”。回复保持很短，强调你先不把他的状态泛化成人人都一样，先陪着他，不转成安慰、建议、分析、解释或说理。",
+              "如果用户说的是“你先别跟我说谁都会这样”，把它理解成不要把他的状态扁平化成任何人都会经历的事，先陪着他。",
               "把它理解成用户不要被正常化、不要被一句“别人也这样”带过去，先在原有关系线上接住他。",
               "不要把它写成“很多人都这样”“这很常见”这类正常化句子。更像一句轻轻表明“好，我先不跟你说大家都这样，我在这儿陪着你”。"
             ]
           : [
               "The user wants a very short 'don't tell me everyone feels this way first' kind of reply. Keep it brief, emphasize that you are not normalizing their state away and are staying with them first, without turning it into comfort, advice, analysis, explanation, or lecturing.",
+              "If the user says 'don't tell me anyone would feel this way,' treat it as a request not to flatten their state into a generic anyone-goes-through-this line, and stay with them first.",
               "Treat it as a request not to flatten what they are feeling into 'everyone goes through this' and stay on the existing relationship line first.",
               "Do not write it like 'a lot of people feel this way' or 'this is common.' Make it feel like a light line saying you are not normalizing it away and are still here."
             ]
