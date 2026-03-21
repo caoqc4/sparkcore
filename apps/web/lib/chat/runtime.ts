@@ -133,6 +133,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isAntiSolutioningFollowUpPrompt(content) ||
     isAntiComfortingFollowUpPrompt(content) ||
     isAntiAdviceFollowUpPrompt(content) ||
+    isAntiMinimizingFollowUpPrompt(content) ||
     isAntiDefinitionFollowUpPrompt(content) ||
     isAntiCategorizingFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
@@ -304,6 +305,12 @@ function isAntiAdviceFollowUpPrompt(content: string) {
     normalized.includes("别急着给我建议") ||
     normalized.includes("别上来就给我建议")
   );
+}
+
+function isAntiMinimizingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别跟我说这没什么");
 }
 
 function isAntiDefinitionFollowUpPrompt(content: string) {
@@ -1624,6 +1631,19 @@ function buildAnswerStrategyInstructions({
               "The user wants a very short 'don't rush to give me advice first' kind of reply. Keep it brief, emphasize that you are not rushing into advice mode and are staying with them first, without turning it into suggestions, steps, explanation, analysis, or lecturing.",
               "If the user says 'don't jump straight into giving me advice,' treat it as a request not to open in suggestion mode and stay with them first.",
               "Do not write it like an advice opener such as 'you could start by...'. Make it feel like a light line saying you are not rushing to give them advice first and are still here."
+            ]
+        : []),
+      ...(isAntiMinimizingFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别跟我说这没什么”。回复保持很短，强调你先不缩小他的感受、不把这事说轻，先陪着他，不转成安慰、建议、分析、解释或说理。",
+              "把它理解成用户不要被轻描淡写、不要被告知这事不值一提，先在原有关系线上接住他。",
+              "不要把它写成“其实没事”“你别想太多”这类淡化状态的句子。更像一句轻轻表明“好，我先不跟你说这没什么，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't tell me this is nothing first' kind of reply. Keep it brief, emphasize that you are not minimizing what they are feeling and are staying with them first, without turning it into comfort, advice, analysis, explanation, or lecturing.",
+              "Treat it as a request not to downplay their state or wave it away as no big deal, and stay on the existing relationship line first.",
+              "Do not write it like 'it's nothing' or 'don't overthink it.' Make it feel like a light line saying you are not brushing it off and are still here."
             ]
         : []),
       ...(isAntiDefinitionFollowUpPrompt(latestUserMessage)
