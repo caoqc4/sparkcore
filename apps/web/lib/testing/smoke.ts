@@ -985,7 +985,10 @@ function isSmokeStayWithMeFollowUpPrompt(content: string) {
 function isSmokeGentleResumeRhythmPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("慢慢继续和我说");
+  return (
+    normalized.includes("慢慢继续和我说") ||
+    normalized.includes("顺着刚才那样继续说")
+  );
 }
 
 function isSmokePresenceConfirmingFollowUpPrompt(content: string) {
@@ -1810,6 +1813,12 @@ function buildSmokeAssistantReply({
         }
 
         if (isSmokeGentleResumeRhythmPrompt(content)) {
+          if (content.normalize("NFKC").trim().toLowerCase().includes("顺着刚才那样继续说")) {
+            return userName
+              ? `${userName}，好，我就顺着刚才那样接着说。`
+              : "好，我就顺着刚才那样接着说。";
+          }
+
           return userName
             ? `${userName}，好，我们就慢慢接着说。`
             : "好，我们就慢慢接着说。";

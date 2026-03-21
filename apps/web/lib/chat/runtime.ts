@@ -176,7 +176,10 @@ function isStayWithMeFollowUpPrompt(content: string) {
 function isGentleResumeRhythmPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("慢慢继续和我说");
+  return (
+    normalized.includes("慢慢继续和我说") ||
+    normalized.includes("顺着刚才那样继续说")
+  );
 }
 
 function isPresenceConfirmingFollowUpPrompt(content: string) {
