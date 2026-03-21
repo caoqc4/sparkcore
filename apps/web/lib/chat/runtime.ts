@@ -280,7 +280,10 @@ function isAntiRushingFollowUpPrompt(content: string) {
 function isAntiSolutioningFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("别急着帮我解决");
+  return (
+    normalized.includes("别急着帮我解决") ||
+    normalized.includes("别上来就帮我解决")
+  );
 }
 
 function isAntiDefinitionFollowUpPrompt(content: string) {
@@ -1568,10 +1571,12 @@ function buildAnswerStrategyInstructions({
         ? isZh
           ? [
               "这轮用户是在要一句很短的“你先别急着帮我解决”。回复保持很短，强调你先不急着进入解决问题模式、先陪着他，不转成建议、步骤、解释、分析或说理。",
+              "如果用户说的是“你先别上来就帮我解决”，把它理解成不要一上来就切进 fix-it / 修问题模式，先陪着他。",
               "不要把它写成“那我们先怎么解决”这类修问题指挥。更像一句轻轻表明“好，我先不急着帮你解决，我在这儿陪着你”。"
             ]
           : [
               "The user wants a very short 'don't rush to solve this for me first' kind of reply. Keep it brief, emphasize that you are not rushing into problem-solving mode and are staying with them first, without turning it into advice, steps, explanation, analysis, or lecturing.",
+              "If the user says 'don't jump straight into solving this for me,' treat it as a request not to open in fix-it mode and stay with them first.",
               "Do not write it like 'then here's how we solve it.' Make it feel like a light line saying you are not rushing to solve it for them first and are still here."
             ]
         : []),
