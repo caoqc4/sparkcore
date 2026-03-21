@@ -997,7 +997,8 @@ function isSmokeAntiLecturingFollowUpPrompt(content: string) {
 
   return (
     normalized.includes("别教育我") ||
-    normalized.includes("别给我上课")
+    normalized.includes("别给我上课") ||
+    normalized.includes("别跟我说教")
   );
 }
 
@@ -1960,6 +1961,18 @@ function buildSmokeAssistantReply({
             return userName
               ? `${userName}，好，我先不给你上课，就在这儿陪着你。`
               : "好，我先不给你上课，就在这儿陪着你。";
+          }
+
+          if (
+            content
+              .normalize("NFKC")
+              .trim()
+              .toLowerCase()
+              .includes("别跟我说教")
+          ) {
+            return userName
+              ? `${userName}，好，我先不跟你说教，就在这儿陪着你。`
+              : "好，我先不跟你说教，就在这儿陪着你。";
           }
 
           return userName
