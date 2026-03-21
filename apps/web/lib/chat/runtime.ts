@@ -131,6 +131,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isAntiProbingFollowUpPrompt(content) ||
     isAntiRushingFollowUpPrompt(content) ||
     isAntiSolutioningFollowUpPrompt(content) ||
+    isAntiComfortingFollowUpPrompt(content) ||
     isAntiDefinitionFollowUpPrompt(content) ||
     isAntiCategorizingFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
@@ -284,6 +285,12 @@ function isAntiSolutioningFollowUpPrompt(content: string) {
     normalized.includes("别急着帮我解决") ||
     normalized.includes("别上来就帮我解决")
   );
+}
+
+function isAntiComfortingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别急着安慰我");
 }
 
 function isAntiDefinitionFollowUpPrompt(content: string) {
@@ -1578,6 +1585,17 @@ function buildAnswerStrategyInstructions({
               "The user wants a very short 'don't rush to solve this for me first' kind of reply. Keep it brief, emphasize that you are not rushing into problem-solving mode and are staying with them first, without turning it into advice, steps, explanation, analysis, or lecturing.",
               "If the user says 'don't jump straight into solving this for me,' treat it as a request not to open in fix-it mode and stay with them first.",
               "Do not write it like 'then here's how we solve it.' Make it feel like a light line saying you are not rushing to solve it for them first and are still here."
+            ]
+        : []),
+      ...(isAntiComfortingFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别急着安慰我”。回复保持很短，强调你先不急着切进安慰模板或鼓励模式、先陪着他，不转成建议、解释、打气、分析或说理。",
+              "不要把它写成“你已经很棒了”这类现成安慰句。更像一句轻轻表明“好，我先不急着安慰你，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't rush to comfort me first' kind of reply. Keep it brief, emphasize that you are not rushing into canned comforting or encouragement mode and are staying with them first, without turning it into advice, explanation, pep talk, analysis, or lecturing.",
+              "Do not write it like a ready-made reassurance line such as 'you are doing great.' Make it feel like a light line saying you are not rushing to comfort them first and are still here."
             ]
         : []),
       ...(isAntiDefinitionFollowUpPrompt(latestUserMessage)
