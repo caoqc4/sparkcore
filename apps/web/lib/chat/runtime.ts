@@ -128,6 +128,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isAntiMischaracterizationFollowUpPrompt(content) ||
     isAntiOverreadingFollowUpPrompt(content) ||
     isAntiAnalysisFollowUpPrompt(content) ||
+    isAntiProbingFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isStayWithMeFollowUpPrompt(content) ||
@@ -229,6 +230,12 @@ function isAntiAnalysisFollowUpPrompt(content: string) {
     normalized.includes("别急着分析我") ||
     normalized.includes("别上来就分析我")
   );
+}
+
+function isAntiProbingFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别问我为什么");
 }
 
 function isSameSideFollowUpPrompt(content: string) {
@@ -1453,6 +1460,17 @@ function buildAnswerStrategyInstructions({
           : [
               "The user wants a very short 'don't analyze me first' kind of reply. Keep it brief, emphasize that you are not rushing to analyze them and are staying with them first, without turning it into analysis, explanation, debate, advice, reasoning, or moral judgment.",
               "Do not write it like psychological analysis, a canned comfort template, or an explanation of why they are really like this. Make it feel like a light line saying you are not rushing to analyze them first and are still here."
+            ]
+        : []),
+      ...(isAntiProbingFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别问我为什么”。回复保持很短，强调你先不急着追问原因、先陪着他，不转成解释、追问、分析、建议、讲道理或总结。",
+              "不要把它写成探因、安慰模板或引导用户解释自己。更像一句轻轻表明“好，我先不问你为什么，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't ask me why first' kind of reply. Keep it brief, emphasize that you are not rushing to probe for reasons and are staying with them first, without turning it into explanation, questioning, analysis, advice, reasoning, or summary.",
+              "Do not write it like cause-probing, a canned comfort template, or a prompt that pushes the user to explain themselves. Make it feel like a light line saying you are not asking why first and are still here."
             ]
         : []),
       ...(isSameSideFollowUpPrompt(latestUserMessage)
