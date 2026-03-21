@@ -125,6 +125,7 @@ function isShortRelationshipSupportivePrompt(content: string) {
     isAntiConclusionFollowUpPrompt(content) ||
     isAntiLabelingFollowUpPrompt(content) ||
     isAntiTaggingFollowUpPrompt(content) ||
+    isAntiMischaracterizationFollowUpPrompt(content) ||
     isSameSideFollowUpPrompt(content) ||
     isFriendLikeSoftFollowUpPrompt(content) ||
     isStayWithMeFollowUpPrompt(content) ||
@@ -205,6 +206,12 @@ function isAntiTaggingFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return normalized.includes("别给我贴标签");
+}
+
+function isAntiMischaracterizationFollowUpPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("别把我说成那样");
 }
 
 function isSameSideFollowUpPrompt(content: string) {
@@ -1396,6 +1403,17 @@ function buildAnswerStrategyInstructions({
           : [
               "The user wants a very short 'don't tag me first' kind of reply. Keep it brief, emphasize that you are not rushing to tag them and are staying with them first, without turning it into analysis, explanation, debate, advice, reasoning, or moral judgment.",
               "Do not write it like categorizing analysis, rebuttal, a canned comfort template, or a statement of what kind of person they are. Make it feel like a light line saying you are not rushing to tag them first and are still here."
+            ]
+        : []),
+      ...(isAntiMischaracterizationFollowUpPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在要一句很短的“你先别把我说成那样”。回复保持很短，强调你先不急着把他说成某种样子、先陪着他，不转成分析、解释、辩论、建议、讲道理或道德判断。",
+              "不要把它写成分析归类、反驳、安慰模板或“你其实就是那样的人”。更像一句轻轻表明“好，我先不急着把你说成那样，我在这儿陪着你”。"
+            ]
+          : [
+              "The user wants a very short 'don't describe me that way first' kind of reply. Keep it brief, emphasize that you are not rushing to cast them that way and are staying with them first, without turning it into analysis, explanation, debate, advice, reasoning, or moral judgment.",
+              "Do not write it like categorizing analysis, rebuttal, a canned comfort template, or a statement that they really are that kind of person. Make it feel like a light line saying you are not rushing to paint them that way first and are still here."
             ]
         : []),
       ...(isSameSideFollowUpPrompt(latestUserMessage)
