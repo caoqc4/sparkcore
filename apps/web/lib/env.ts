@@ -23,3 +23,30 @@ export function getLiteLLMEnv() {
 
   return { baseUrl, apiKey };
 }
+
+export function getSupabaseAdminEnv() {
+  const { url } = getSupabaseEnv();
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!serviceRoleKey) {
+    throw new Error(
+      "Missing Supabase service role key. Set SUPABASE_SERVICE_ROLE_KEY."
+    );
+  }
+
+  return { url, serviceRoleKey };
+}
+
+export function getTelegramBotEnv() {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET ?? null;
+
+  if (!botToken) {
+    throw new Error("Missing Telegram bot token. Set TELEGRAM_BOT_TOKEN.");
+  }
+
+  return {
+    botToken,
+    webhookSecret
+  };
+}

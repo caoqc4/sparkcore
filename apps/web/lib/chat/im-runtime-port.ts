@@ -7,7 +7,7 @@ import { executeMemoryWriteRequests, storeRelationshipMemories } from "@/lib/cha
 import { loadRoleProfile } from "@/lib/chat/role-loader";
 import { generateAgentReply } from "@/lib/chat/runtime";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type AssistantErrorType = "timeout" | "provider_error" | "generation_failed";
 
@@ -85,14 +85,15 @@ async function updateAssistantPreviewMetadata(args: {
     .eq("user_id", args.userId);
 }
 
-export async function runImRuntimeTurn(
-  input: AdapterRuntimeInput
-): Promise<AdapterRuntimeOutput> {
+async function runImRuntimeTurnWithSupabase(args: {
+  supabase: any;
+  input: AdapterRuntimeInput;
+}): Promise<AdapterRuntimeOutput> {
+  const { supabase, input } = args;
+
   if (!input.thread_id || input.thread_id.trim().length === 0) {
     throw new Error("IM runtime input requires a resolved thread_id.");
   }
-
-  const supabase = await createClient();
   const { data: thread } = await supabase
     .from("threads")
     .select("id, title, status, agent_id, workspace_id, created_at, updated_at")
@@ -377,6 +378,16 @@ export async function runImRuntimeTurn(
 
     throw error;
   }
+}
+
+export async function runImRuntimeTurn(
+  input: AdapterRuntimeInput
+): Promise<AdapterRuntimeOutput> {
+  const supabase = createAdminClient();
+  return runImRuntimeTurnWithSupabase({
+    supabase,
+    input
+  });
 }
 
 export function createWebImRuntimePort(): AdapterRuntimePort {

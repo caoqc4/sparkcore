@@ -24,7 +24,7 @@
 
 ## 2. 一句话总结
 
-**SparkCore 当前已经从“重定位后的规划阶段”进入“最小底座开始落代码”的阶段，memory、runtime、session、role、im-adapter 五条主线都已出现第一版工程落点，但仍处于收口和沉淀阶段，尚未进入真实平台的 IM 最小接入验证。**
+**SparkCore 当前已经从“重定位后的规划阶段”进入“最小底座开始落代码”的阶段，memory、runtime、session、role、im-adapter 五条主线都已出现第一版工程落点，并已进入单通道 Telegram PoC 骨架阶段，但仍处于收口和沉淀阶段。**
 
 ---
 
@@ -177,11 +177,16 @@
 - `handleInboundChannelMessage(...)` 已能表达最小 `incoming -> runtime -> outgoing` 骨架
 - Web 侧 runtime 已有第一版 adapter port 适配器
 - `binding_not_found` 已有最小统一出站处理
+- Telegram 单通道 PoC 骨架已形成：
+  - `apps/web/lib/integrations/telegram.ts`
+  - `apps/web/app/api/integrations/telegram/webhook/route.ts`
+  - `apps/web/lib/supabase/admin.ts`
 
 这意味着：
 
 - 接入层已经开始有独立代码落点
-- 但真实平台 SDK、binding 持久化、scheduler 接线仍未开始
+- 已开始进入最快验证闭环的单通道接入阶段
+- 但真实 Telegram token / webhook 配置、scheduler 接线、富媒体支持仍未开始
 
 ---
 
@@ -264,113 +269,81 @@
 
 ---
 
-### 5.4 IM adapter 已有骨架，但尚未进入真实通道验证
+### 5.4 IM adapter 已有骨架，并已进入 Telegram 单通道 PoC 骨架阶段
 
 当前 `im_adapter_contract_v1.0.md` 已经有对应代码骨架，但当前仍缺：
 
-- 具体平台接入
-- binding 的真实持久化 repository / 查询层
-- 出站发送层
+- Telegram webhook 的真实环境变量配置与线上回调验证
 - `follow_up_requests` 到 scheduler / adapter 的真实闭环
-- 与现有 runtime 的正式适配入口
 - `relationship memory` 的显式 contract 收口
+- 更稳定的平台级重试 / 幂等执行
+- 真实绑定创建与 onboarding 流程
 
 ---
 
-## 6. 当前工作树状态提醒
-
-当前和本轮主线直接相关的代码状态包括：
-
-已修改：
-
-- `apps/web/app/chat/actions.ts`
-- `apps/web/lib/chat/memory.ts`
-- `apps/web/lib/chat/runtime.ts`
-- `docs/architecture/memory_layer_design_v1.0.md`
-- `docs/architecture/role_layer_design_v1.0.md`
-- `docs/architecture/runtime_contract_v1.0.md`
-- `docs/architecture/session_layer_design_v1.0.md`
-
-未跟踪：
-
-- `apps/web/lib/chat/runtime.ts`
-- `apps/web/lib/chat/memory-recall.ts`
-- `apps/web/lib/chat/memory-shared.ts`
-- `apps/web/lib/chat/memory-write.ts`
-- `apps/web/lib/chat/role-core.ts`
-- `apps/web/lib/chat/role-loader.ts`
-- `apps/web/lib/chat/runtime-contract.ts`
-- `apps/web/lib/chat/session-context.ts`
-- `docs/engineering/current_phase_progress_summary_v1.0.md`
-- `packages/core/memory/`
-
-这说明：
-
-- 当前阶段成果已经落到代码和文档里
-- 但这批新结构尚未正式纳入版本控制
-
----
-
-## 7. 下一阶段建议顺序
+## 6. 下一阶段建议顺序
 
 当前最推荐的推进顺序如下：
 
-### Step 1：先收住当前阶段成果
+### Step 1：先收住 Telegram PoC 骨架
 
 目标：
 
-- 把当前这轮 memory / runtime / session 的代码与文档视作一个阶段成果
-- 不继续无边界扩张新模块
+- 把当前这轮 Telegram webhook / binding lookup / runtime port 接线视作一个阶段成果
+- 不继续无边界扩张平台专属功能
 
 建议动作：
 
-- 检查命名、文件组织、最小注释
-- 必要时补一份更简短的开发者入口说明
+- 检查 Telegram env、route、send path 的最小命名与说明
+- 补最小 webhook 配置说明
+- 维持只支持文本消息
 
 ---
 
-### Step 2：决定 role 是否继续往 repository / service 推进
+### Step 2：做真实 Telegram 回调验证
 
 原因：
 
-- `role-memory-session` 三者当前都已有第一版代码落点
-- role 是否继续深化，取决于下一阶段更偏底座沉淀还是更偏接入验证
+- 当前代码已经有 webhook 路由、binding lookup、runtime port、出站发送
+- 剩下最关键的是验证真实 Bot Token + Webhook 能否打通
 
 建议动作：
 
-- 如果继续沉淀底座：
-  - 再抽一层 role repository / service
-  - 收紧 role 与 model profile / metadata 的边界
-- 如果优先推进接入验证：
-  - 当前 role 落点已经足够支撑最小 IM adapter 骨架，不必继续深拆
+- 配置 `TELEGRAM_BOT_TOKEN`
+- 可选配置 `TELEGRAM_WEBHOOK_SECRET`
+- 配置 Telegram webhook 指向当前 route
+- 用一个真实 binding 做一次最小消息闭环
 
 ---
 
-### Step 3：再决定是否进入最小 IM adapter 骨架
+### Step 3：再决定是继续平台化还是回到底座深化
 
 原因：
 
-- 当前 runtime 输出对象已经开始成形
-- 当前 memory / session 消费面已比之前稳很多
+- 当前最小平台接入一旦跑通，下一阶段路线会更清楚
+- 那时再判断是否继续 Telegram 能力，还是回到 role / session / scheduler 深化，会更稳
 
 建议动作：
 
-- 先建立 adapter 侧最小目录与类型
-- 只选一个通道验证最小闭环
-- 仍然不要并行做多个平台
+- 如果继续平台化：
+  - 只补 Telegram 单通道必需能力
+  - 不并行开第二个平台
+- 如果回到底座深化：
+  - 先补 `relationship memory` 的显式 contract
+  - 再收 `follow_up_requests` 的执行器边界
 
 ---
 
-## 8. 当前结论
+## 7. 当前结论
 
-当前这一阶段最重要的成果，不是“已经接了 IM”或者“已经把 packages 全搬完”，而是：
+当前这一阶段最重要的成果，不是“已经接了多个 IM 平台”或者“已经把 packages 全搬完”，而是：
 
-**SparkCore 已经从“规划重定位”走到了“memory、runtime、session 三个核心边界开始在代码里成形”的阶段。**
+**SparkCore 已经从“规划重定位”走到了“memory、runtime、session、role、adapter 五个核心边界开始在代码里成形，并且 Telegram 单通道 PoC 骨架已经立起来”的阶段。**
 
 这意味着下一阶段已经不需要再大面积补总纲，而更适合围绕：
 
-- 收住当前成果
-- 补齐 role 落点
-- 再进入最小 adapter 骨架
+- 收住 Telegram PoC 骨架
+- 跑一次真实 Telegram 回调闭环
+- 再决定是继续平台能力，还是回到底座深化
 
 按这个顺序继续推进，返工会最少。

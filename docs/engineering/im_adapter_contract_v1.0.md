@@ -258,6 +258,59 @@ binding 负责建立：
 
 ---
 
+## 14. 当前代码落点
+
+当前接入层已经有第一版真实代码骨架：
+
+- `packages/integrations/im-adapter/contract.ts`
+- `packages/integrations/im-adapter/bridge.ts`
+- `packages/integrations/im-adapter/binding.ts`
+- `packages/integrations/im-adapter/repository.ts`
+- `packages/integrations/im-adapter/supabase-repository.ts`
+- `apps/web/lib/chat/im-runtime-port.ts`
+- `apps/web/lib/chat/im-binding-lookup.ts`
+
+当前已经落地的事实包括：
+
+- `BindingLookup` 与 `BindingRepository` 已分离
+- `SupabaseBindingRepository` 已可映射 `channel_bindings`
+- Web 侧已存在 `createWebBindingLookup()`
+- Web 侧已存在 `webImRuntimePort`
+- `binding_not_found` 已有统一最小出站分支
+
+---
+
+## 15. Telegram PoC 当前状态
+
+当前已新增第一版 Telegram 单通道 PoC 骨架：
+
+- `apps/web/lib/integrations/telegram.ts`
+- `apps/web/app/api/integrations/telegram/webhook/route.ts`
+- `apps/web/lib/supabase/admin.ts`
+
+当前 Telegram PoC 已落实的范围是：
+
+- 文本 webhook 入站标准化
+- webhook secret 最小校验
+- 真实 binding lookup
+- `handleInboundChannelMessage(...)`
+- 标准 `OutboundChannelMessage -> Telegram sendMessage` 出站发送
+
+当前仍未做的事情包括：
+
+- Telegram 平台级重试策略
+- 附件 / 图片 / 富媒体
+- 命令体系
+- scheduler 的真实主动发送回流
+- onboarding / 绑定产品流程
+
+当前判断：
+
+- 这条 Telegram 骨架已足够支撑“最快验证闭环”的单通道 PoC
+- 但仍属于最小接入层，不应在这里继续堆平台专属业务逻辑
+
+---
+
 ## 14. 当前推荐最小接入验证范围
 
 当前只建议选择 **一个接入通道** 做最小闭环验证。
