@@ -3710,8 +3710,10 @@ export async function runPreparedRuntimeTurn({
     ],
     debug_metadata: {
       model_profile_id: modelProfile.id,
-      answer_strategy: answerStrategy,
-      answer_strategy_reason_code: answerStrategyReasonCode,
+      answer_strategy: {
+        selected: answerStrategy,
+        reason_code: answerStrategyReasonCode
+      },
       reply_language: replyLanguage,
       recalled_memory_count: allRecalledMemories.length,
       memory_write_request_count: memoryWriteRequests.length,
