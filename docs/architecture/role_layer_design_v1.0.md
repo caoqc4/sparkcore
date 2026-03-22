@@ -292,6 +292,7 @@ role layer 不应：
 - `default_model_profile_id`
 - `apps/web/lib/chat/role-core.ts`
 - `apps/web/lib/chat/role-loader.ts`
+- `apps/web/lib/chat/runtime-prepared-turn.ts`
 - `apps/web/lib/chat/runtime.ts`
 
 当前已经具备：
@@ -304,6 +305,7 @@ role layer 不应：
 - `RoleProfile` 的第一版代码 contract
 - `buildRoleCorePacket(...)` 的独立组装入口
 - `loadRoleProfile(...)` 的第一版最小加载入口
+- `prepareRuntimeRole(...)` 的第一版装配入口
 - runtime 显式消费 `role_core_packet`
 
 当前仍缺：
@@ -325,10 +327,13 @@ role layer 不应：
   当前承载 role profile 的最小读取面，负责：
   - `ROLE_PROFILE_SELECT`
   - `loadRoleProfile(...)`
+- `apps/web/lib/chat/runtime-prepared-turn.ts`
+  当前开始承载 role 装配进入 runtime preparation 模块的入口，负责：
+  - `prepareRuntimeRole(...)`
 - `apps/web/lib/chat/runtime.ts`
   当前仍负责：
   - 从 `agents` 表读取 `RoleProfile` 现实字段
-  - 调用 `buildRoleCorePacket(...)`
+  - 调用 `prepareRuntimeRole(...)`
   - 将 `role_core_packet` 注入 runtime prompt 组装
 
 ### 11.2 当前对齐结论
@@ -338,6 +343,7 @@ role layer 不应：
 - `RoleProfile` 不再只作为 runtime 内部匿名类型存在
 - `role_core_packet` 不再只在 `runtime.ts` 内局部定义
 - role 与 relationship memory 的边界已经体现在 `getRoleCoreRelationshipStance(...)` 中
+- role 装配也已经开始从 `runtime.ts` 内联逻辑，往 preparation 模块收口
 
 但当前仍处于第一阶段：
 
