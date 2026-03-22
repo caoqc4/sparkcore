@@ -8,7 +8,8 @@ import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import { buildRuntimeTurnInputFromAdapterInput } from "@/lib/chat/runtime-input";
-import { loadRoleProfile } from "@/lib/chat/role-loader";
+import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
+import { resolveRoleProfile } from "@/lib/chat/role-service";
 import { runAgentTurn } from "@/lib/chat/runtime";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -128,16 +129,17 @@ async function runImRuntimeTurnWithSupabase(args: {
     throw new Error("The workspace for the IM runtime turn could not be loaded.");
   }
 
-  const agent = await loadRoleProfile({
-    supabase,
+  const roleResolution = await resolveRoleProfile({
+    repository: new SupabaseRoleRepository(supabase),
     workspaceId: workspace.id,
     userId: input.user_id,
-    agentId: input.agent_id
+    requestedAgentId: input.agent_id
   });
 
-  if (!agent) {
+  if (roleResolution.status !== "resolved") {
     throw new Error("The bound agent for the IM runtime turn could not be loaded.");
   }
+  const agent = roleResolution.role;
 
   const runtimeTurnInput = buildRuntimeTurnInputFromAdapterInput({
     input,

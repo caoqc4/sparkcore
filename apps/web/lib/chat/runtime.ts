@@ -24,10 +24,9 @@ import {
   type RoleCorePacket,
   type RuntimeReplyLanguage
 } from "@/lib/chat/role-core";
-import {
-  loadRoleProfile
-} from "@/lib/chat/role-loader";
 import { ROLE_PROFILE_SELECT } from "@/lib/chat/role-repository";
+import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
+import { resolveRoleProfile } from "@/lib/chat/role-service";
 import {
   prepareRuntimeMemory,
   prepareRuntimeRole,
@@ -2462,14 +2461,14 @@ export async function resolveAgentForWorkspace({
   supabase?: any;
 }) {
   const supabase = providedSupabase ?? (await createClient());
-  const existingAgent = await loadRoleProfile({
-    supabase,
+  const roleResolution = await resolveRoleProfile({
+    repository: new SupabaseRoleRepository(supabase),
     workspaceId,
     userId
   });
 
-  if (existingAgent) {
-    return existingAgent;
+  if (roleResolution.status === "resolved") {
+    return roleResolution.role;
   }
 
   const personaPack = await getDefaultPersonaPack(supabase);
@@ -2544,15 +2543,15 @@ export async function getChatState() {
   let agent: AgentRecord | null = null;
 
   if (thread?.agent_id) {
-    const boundAgent = await loadRoleProfile({
-      supabase,
+    const roleResolution = await resolveRoleProfile({
+      repository: new SupabaseRoleRepository(supabase),
       workspaceId: workspace.id,
       userId: user.id,
-      agentId: thread.agent_id
+      requestedAgentId: thread.agent_id
     });
 
-    if (boundAgent) {
-      agent = boundAgent;
+    if (roleResolution.status === "resolved") {
+      agent = roleResolution.role;
     }
   }
 
