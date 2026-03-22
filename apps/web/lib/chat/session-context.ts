@@ -1,3 +1,5 @@
+import type { ThreadStateRecord } from "@/lib/chat/thread-state";
+
 export type SessionReplyLanguage = "zh-Hans" | "en" | "unknown";
 
 export type SessionMessageRecord = {
@@ -33,6 +35,7 @@ export type SessionContext = {
   continuity_signals: SessionContinuitySignal;
   recent_raw_turn_count: number;
   approx_context_pressure: ApproxContextPressure;
+  thread_state?: ThreadStateRecord | null;
 };
 
 function getMostRecentCompletedAssistantMessage(messages: SessionMessageRecord[]) {
@@ -114,6 +117,7 @@ export function buildSessionContext({
   threadId,
   agentId,
   messages,
+  threadState,
   detectReplyLanguageFromText,
   isReplyLanguage,
   getDeveloperDiagnosticsMetadata
@@ -121,6 +125,7 @@ export function buildSessionContext({
   threadId: string;
   agentId: string;
   messages: SessionMessageRecord[];
+  threadState?: ThreadStateRecord | null;
   detectReplyLanguageFromText: (content: string) => SessionReplyLanguage;
   isReplyLanguage: (value: unknown) => value is SessionReplyLanguage;
   getDeveloperDiagnosticsMetadata: (
@@ -152,6 +157,7 @@ export function buildSessionContext({
     current_language_hint: continuitySignals.establishedReplyLanguage,
     continuity_signals: continuitySignals,
     recent_raw_turn_count: recentRuntimeMessages.length,
-    approx_context_pressure: getApproxContextPressure(recentRuntimeMessages)
+    approx_context_pressure: getApproxContextPressure(recentRuntimeMessages),
+    thread_state: threadState ?? null
   };
 }
