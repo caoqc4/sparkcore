@@ -200,7 +200,8 @@
 - `ThreadStateRepository.saveThreadState(...)` 第一版代码壳已开始
 - `InMemoryThreadStateRepository.saveThreadState(...)` 与 `SupabaseThreadStateRepository.saveThreadState(...)` 已存在
 - `thread-state-writeback.ts` 第一版 trigger helper 已开始
-- 但 `thread_state` 仍未真正接入 runtime 主流程触发写回，也仍未进入 compaction
+- `runPreparedRuntimeTurn(...)` 已开始以 soft-fail side effect 触发最小 thread state 写回
+- 但 `thread_state` 仍未扩入 trigger result metadata、retry 与 compaction
 
 ---
 

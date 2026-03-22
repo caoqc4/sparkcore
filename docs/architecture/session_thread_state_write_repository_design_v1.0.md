@@ -46,7 +46,7 @@
 - `InMemoryThreadStateRepository.saveThreadState(...)` 已存在
 - `SupabaseThreadStateRepository.saveThreadState(...)` 已存在
 - `thread-state-writeback.ts` 第一版 trigger helper 已存在
-- 但 runtime 触发位置仍未开始
+- `runPreparedRuntimeTurn(...)` 已开始以 soft-fail side effect 触发最小 thread state 写回
 
 ---
 

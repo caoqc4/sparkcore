@@ -31,7 +31,7 @@
 
 ## 2. 一句话结论
 
-**当前 thread state 写回如果继续推进，最稳的下一步不是把 `saveThreadState(...)` 直接塞进 `runPreparedRuntimeTurn(...)` 主体，而是先定义一个单独的 writeback trigger seam，让 runtime execution 只在回合结束后调用它。**
+**当前 thread state 写回已经通过独立 trigger seam 以 soft-fail side effect 方式接入 `runPreparedRuntimeTurn(...)`；后续如果继续推进，最稳的下一步不是把更多状态逻辑揉回 execution 主体，而是先决定 trigger result 是否要继续显式化。**
 
 一句话说：
 
@@ -43,7 +43,7 @@
 - `thread-state-writeback.ts` 第一版代码壳已存在
 - `maybeWriteThreadStateAfterTurn(...)` 已存在
 - `buildThreadStateAfterTurn(...)` 已存在
-- 但 trigger 仍未接入 `runPreparedRuntimeTurn(...)`
+- trigger 已开始以 soft-fail side effect 方式接入 `runPreparedRuntimeTurn(...)`
 
 ---
 
@@ -150,7 +150,7 @@ return result
 
 ### 当前推荐
 
-**先选方案 B。**
+**当前已经按方案 B 落下第一版代码壳，并已受控接入主流程。**
 
 因为当前 runtime 主线已经好不容易收成：
 
@@ -302,13 +302,13 @@ runPreparedRuntimeTurn(prepared)
 
 ### Step 3
 
-再决定：
-
-- 是否把 trigger result 写进 `debug_metadata`
+再把 trigger 以 soft-fail side effect 接进 `runPreparedRuntimeTurn(...)`
 
 ### Step 4
 
-最后才真正把 trigger 接进 `runPreparedRuntimeTurn(...)`
+再决定：
+
+- 是否把 trigger result 写进 `debug_metadata`
 
 ---
 
