@@ -7120,6 +7120,84 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).toContain("好呀");
   });
 
+  test("keeps companion-style explanation and short summary grounded after anti-redirection openings", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后和我说话轻松一点，可以吗？",
+      "你先别岔开话题。",
+      "那你就简单陪我理一下。",
+      "最后你帮我收一句就行。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const messages = await getAssistantMessagesForThread(threadId);
+    const antiRedirectionReply = messages.at(-3);
+    const explanationReply = messages.at(-2);
+    const summaryReply = messages.at(-1);
+
+    expect(antiRedirectionReply).toBeDefined();
+    expect(explanationReply).toBeDefined();
+    expect(summaryReply).toBeDefined();
+
+    expect(antiRedirectionReply?.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+
+    expect(explanationReply?.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(explanationReply?.metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(explanationReply?.metadata.continuation_reason_code).toBe(
+      "brief-supportive-carryover"
+    );
+    expect(explanationReply?.content).toContain("阿强");
+    expect(explanationReply?.content).not.toContain("周计划");
+    expect(explanationReply?.content).not.toContain("下一步");
+    expect(explanationReply?.content).not.toContain("第一步");
+
+    expect(summaryReply?.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(summaryReply?.metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(summaryReply?.metadata.continuation_reason_code).toBe(
+      "brief-summary-carryover"
+    );
+    expect(summaryReply?.content).toContain("阿强");
+    expect(summaryReply?.content).not.toContain("我们继续");
+    expect(summaryReply?.content).not.toContain("周计划");
+  });
+
   test("uses the default-grounded fallback branch for uncategorized grounded prompts", async ({
     request
   }) => {

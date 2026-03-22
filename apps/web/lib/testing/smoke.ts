@@ -1345,6 +1345,8 @@ function isSmokeShortRelationshipSummaryFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return (
+    normalized.includes("收一句就行") ||
+    normalized.includes("帮我收一句") ||
     normalized.includes("简单收一下") ||
     normalized.includes("收个尾") ||
     normalized.includes("收住就行") ||
@@ -1359,6 +1361,16 @@ function isSmokeShortRelationshipSummaryFollowUpPrompt(content: string) {
     normalized.includes("briefly say who you are again") ||
     normalized.includes("give me a short recap") ||
     normalized.includes("wrap this up in one short paragraph")
+  );
+}
+
+function isSmokeCompanionStyleExplanationCarryoverPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("简单陪我理一下") ||
+    normalized.includes("陪我理一下就行") ||
+    normalized.includes("先陪我理一下")
   );
 }
 
@@ -1484,6 +1496,7 @@ function isSmokeRelationshipContinuationEdgePrompt(content: string) {
     isSmokeFuzzyFollowUpQuestion(content) ||
     isSmokeShortRelationshipSupportivePrompt(content) ||
     isSmokeShortRelationshipSummaryFollowUpPrompt(content) ||
+    isSmokeCompanionStyleExplanationCarryoverPrompt(content) ||
     isSmokeOneLineSoftCatchPrompt(content) ||
     isSmokeBriefSteadyingPrompt(content) ||
     isSmokeGentleCarryForwardAfterSteadyingPrompt(content) ||
@@ -1496,6 +1509,7 @@ function getSmokeContinuationReasonCode(
 ): SmokeContinuationReasonCode | null {
   if (
     isSmokeShortRelationshipSupportivePrompt(content) ||
+    isSmokeCompanionStyleExplanationCarryoverPrompt(content) ||
     isSmokeBriefSteadyingPrompt(content) ||
     isSmokeGentleCarryForwardAfterSteadyingPrompt(content) ||
     isSmokeGuidedNextStepAfterSteadyingPrompt(content)
@@ -2469,6 +2483,12 @@ function buildSmokeAssistantReply({
             : "好，我先不转移话题，就在这儿陪着你。";
         }
 
+        if (isSmokeCompanionStyleExplanationCarryoverPrompt(content)) {
+          return userName
+            ? `${userName}，好，我先顺着你刚刚那点陪你理一下，不岔开。`
+            : "好，我先顺着你刚刚那点陪你理一下，不岔开。";
+        }
+
         if (isSmokeAntiDefinitionFollowUpPrompt(content)) {
           return userName
             ? `${userName}，好，我先不替你定义，就在这儿陪着你。`
@@ -2539,6 +2559,12 @@ function buildSmokeAssistantReply({
           return userName
             ? `${userName}，我还在这儿陪着你。`
             : "我还在这儿陪着你。";
+        }
+
+        if (isSmokeShortRelationshipSummaryFollowUpPrompt(content)) {
+          return userName
+            ? `${userName}，我先替你收一句：我们就顺着刚刚那点，慢慢来。`
+            : "我先替你收一句：我们就顺着刚刚那点，慢慢来。";
         }
 
         if (styleValue === "formal") {

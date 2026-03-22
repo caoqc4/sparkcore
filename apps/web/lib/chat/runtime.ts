@@ -421,6 +421,8 @@ function isShortRelationshipSummaryFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
   return (
+    normalized.includes("收一句就行") ||
+    normalized.includes("帮我收一句") ||
     normalized.includes("简单收一下") ||
     normalized.includes("收个尾") ||
     normalized.includes("收住就行") ||
@@ -553,11 +555,22 @@ function isFuzzyFollowUpQuestion(content: string) {
   );
 }
 
+function isCompanionStyleExplanationCarryoverPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return (
+    normalized.includes("简单陪我理一下") ||
+    normalized.includes("陪我理一下就行") ||
+    normalized.includes("先陪我理一下")
+  );
+}
+
 function isRelationshipContinuationEdgePrompt(content: string) {
   return (
     isFuzzyFollowUpQuestion(content) ||
     isShortRelationshipSupportivePrompt(content) ||
     isShortRelationshipSummaryFollowUpPrompt(content) ||
+    isCompanionStyleExplanationCarryoverPrompt(content) ||
     isOneLineSoftCatchPrompt(content) ||
     isBriefSteadyingPrompt(content) ||
     isGentleCarryForwardAfterSteadyingPrompt(content) ||
@@ -570,6 +583,7 @@ function getContinuationReasonCode(
 ): ContinuationReasonCode | null {
   if (
     isShortRelationshipSupportivePrompt(content) ||
+    isCompanionStyleExplanationCarryoverPrompt(content) ||
     isBriefSteadyingPrompt(content) ||
     isGentleCarryForwardAfterSteadyingPrompt(content) ||
     isGuidedNextStepAfterSteadyingPrompt(content)
@@ -1587,6 +1601,17 @@ function buildAnswerStrategyInstructions({
           : [
               "After anti-advice and steadying, the user is asking you to work through just one small next step with them. Stay on the same relationship line, give only one very light companion-style next step, and do not fall back to generic continuation or expand into formal advice, step lists, analysis, explanation, or task mode.",
               "Keep it to one or two sentences so it still sounds like the same person helping them sort one small next step instead of switching into detached task mode."
+            ]
+        : []),
+      ...(isCompanionStyleExplanationCarryoverPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在 anti-redirection 之后，让你简单陪他理一下。保持同一条关系线，顺着他刚刚那一点轻轻理顺，不要滑进 detached advice、规划口吻、解释模板或中性说明文。",
+              "回复控制在一到两句，更像同一个人陪着理清眼前这一点，而不是切成“我会先帮你抓重点/整理计划”这类任务式展开。"
+            ]
+          : [
+              "After an anti-redirection opening, the user is asking you to simply sort this point through with them. Stay on the same relationship line, gently help them work through that exact point, and do not drift into detached advice, planning language, explanation templates, or neutral explanatory prose.",
+              "Keep it to one or two sentences so it still sounds like the same person helping them sort this one point instead of switching into task-like expansion."
             ]
         : []),
       ...(isLightSharedPushPrompt(latestUserMessage)
