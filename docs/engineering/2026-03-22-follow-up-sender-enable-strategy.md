@@ -39,6 +39,7 @@
 - `TelegramProactiveSender` 已作为样本实现壳存在
 - `follow-up-sender-policy.ts` 已形成统一 sender 选择 / 降级 helper
 - `runDefaultFollowUpWorker(...)` 的默认 sender 初始化已开始复用该 helper
+- `follow-up-send-harness.ts` 也已开始复用该 helper 做 sender 实例化
 - internal route 已完成两类受控验证：
   - `stub sender` 真实验证
   - Telegram proactive send 真实验证
