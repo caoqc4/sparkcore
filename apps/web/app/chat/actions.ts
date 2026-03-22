@@ -10,7 +10,8 @@ import {
   isSupportedSingleSlotPath,
   normalizeSingleSlotValue
 } from "@/lib/chat/memory-v2";
-import { generateAgentReply, getDefaultModelProfile } from "@/lib/chat/runtime";
+import { buildRuntimeTurnInput } from "@/lib/chat/runtime-input";
+import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
   executeMemoryWriteRequests
 } from "@/lib/chat/memory-write";
@@ -1118,8 +1119,24 @@ export async function sendMessage(
   }
 
   try {
-    const runtimeTurnResult = await generateAgentReply({
+    const runtimeTurnInput = buildRuntimeTurnInput({
       userId: user.id,
+      agentId: thread.agent_id,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      content: trimmedContent,
+      source: "web",
+      messageId: insertedMessage.id,
+      metadata: {
+        trigger: "chat_send"
+      },
+      context: {
+        source_platform: "web"
+      }
+    });
+
+    const runtimeTurnResult = await runAgentTurn({
+      input: runtimeTurnInput,
       workspace: workspace as { id: string; name: string; kind: string },
       thread: {
         id: thread.id,
@@ -1532,8 +1549,27 @@ export async function retryAssistantReply(
     .eq("user_id", user.id);
 
   try {
-    const runtimeTurnResult = await generateAgentReply({
+    const runtimeTurnInput = buildRuntimeTurnInput({
       userId: user.id,
+      agentId: thread.agent_id,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      content: latestUserMessage.content,
+      source: "web",
+      timestamp: latestUserMessage.created_at,
+      messageId: latestUserMessage.id,
+      metadata: {
+        ...(latestUserMessage.metadata ?? {}),
+        trigger: "retry_assistant_reply"
+      },
+      context: {
+        source_platform: "web",
+        trigger_kind: "retry"
+      }
+    });
+
+    const runtimeTurnResult = await runAgentTurn({
+      input: runtimeTurnInput,
       workspace: workspace as { id: string; name: string; kind: string },
       thread: {
         id: thread.id,
