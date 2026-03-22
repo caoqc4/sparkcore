@@ -35,6 +35,27 @@
 - 角色会不会在第 2 轮、第 3 轮突然掉回默认助手
 - advice / explanation / summary 会不会在不该出现的时候冒出来
 
+## 当前阶段状态
+
+到 2026-03-22 当天收口时，这份文档里规划的 5 条主场景已经全部完成了：
+
+- 初次 run
+- failure theme 归因
+- very small chain-level guardrail
+- rerun 验证
+
+当前阶段总结见：
+
+- [relationship-continuity-long-chain-stage-summary-2026-03-22.zh-CN.md](/Users/caoq/git/sparkcore/docs-public/relationship-continuity-long-chain-stage-summary-2026-03-22.zh-CN.md)
+
+也就是说，这份场景文档现在更像：
+
+- 长链路方法与场景母表
+
+而不是：
+
+- 仍待继续线性执行的未完成清单
+
 ## 长链路测试原则
 
 1. 每条链路控制在 3 到 5 轮
