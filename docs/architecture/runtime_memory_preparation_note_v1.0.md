@@ -8,7 +8,7 @@
 
 这不是 memory layer 总设计，也不是 memory write / follow-up 的延伸说明，而是一个面向当前 runtime 主线的边界说明。
 
-> 状态：边界说明
+> 状态：边界说明已落第一版代码壳
 > 对应阶段：Phase 1 / runtime preparation 收口
 > 相关文档：
 > - `docs/architecture/runtime_prepared_turn_design_v1.0.md`
@@ -193,7 +193,27 @@ type PreparedRuntimeTurn = {
 
 ---
 
-## 8. 结论
+## 8. 当前代码映射
+
+当前第一版代码落点已经存在：
+
+- [runtime-prepared-turn.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime-prepared-turn.ts)
+  - 已新增 `prepareRuntimeMemory(...)`
+- [runtime.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime.ts)
+  - 已开始通过 `prepareRuntimeMemory(...)` 获取 `RuntimeMemoryContext`
+- [memory-recall.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-recall.ts)
+  - 继续保留 recall 的真实查询实现
+
+这意味着当前已经形成：
+
+- preparation 模块负责 recall context 的装配入口
+- memory layer 继续负责 recall 的真实实现
+
+这正好对应当前阶段“先收装配边界，不扩大副作用面”的目标。
+
+---
+
+## 9. 结论
 
 当前最稳的判断是：
 
