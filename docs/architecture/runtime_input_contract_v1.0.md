@@ -455,7 +455,139 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
 
 ---
 
-## 16. 当前结论
+## 16. 当前代码映射
+
+当前这份 input contract 与现有实现最直接对应的是：
+
+- `apps/web/lib/chat/im-runtime-port.ts`
+- `apps/web/lib/chat/runtime.ts`
+
+### 16.1 `im-runtime-port.ts` 当前对应的输入职责
+
+`im-runtime-port.ts` 当前已经在做几件非常接近 `RuntimeTurnInput` 的事情：
+
+- 解析并确认：
+  - `user_id`
+  - `agent_id`
+  - `thread_id`
+- 组织 inbound message：
+  - `input.message`
+  - `input.source`
+  - `input.timestamp`
+  - `input.metadata`
+- 为 runtime 运行准备 thread / workspace / agent 上下文
+
+也就是说，当前它虽然还没有显式构造一个名为 `RuntimeTurnInput` 的对象，但它实际上已经在承担：
+
+**adapter input -> runtime turn input 候选结构**
+
+这也是后续最适合先抽纯的一层。
+
+### 16.2 `runtime.ts` 当前对应的输入职责
+
+`runtime.ts` 里的 `generateAgentReply(...)` 当前吃进去的并不是一个统一输入对象，而是：
+
+- `userId`
+- `workspace`
+- `thread`
+- `agent`
+- `messages`
+- `assistantMessageId`
+- `supabase`
+
+这说明它现在仍然更像：
+
+**Web 邻近层里的“已装配运行时调用”**
+
+而不是一个真正的：
+
+**single-agent runtime 统一入口**
+
+这也是当前 input/output 不对称的根源之一：
+
+- output 已较统一
+- input 仍是装配后对象直接塞进 runtime
+
+### 16.3 当前最适合拆出来的两层
+
+当前更稳的拆法不是一步把 `generateAgentReply(...)` 改成最终形态，而是先拆成两层：
+
+#### 层 1：外部输入组装层
+
+例如未来可形成为：
+
+- `buildRuntimeTurnInput(...)`
+
+这层最适合从：
+
+- `im-runtime-port.ts`
+- web chat action / route
+- scheduler 回流入口
+
+里逐步抽出。
+
+#### 层 2：runtime 装配执行层
+
+例如未来可形成为：
+
+- `runAgentTurn(input: RuntimeTurnInput)`
+
+这层负责：
+
+- 加载 role
+- 加载 session
+- 加载 memory
+- 产出 `RuntimeTurnResult`
+
+当前 `generateAgentReply(...)` 更接近这层的雏形，但还混着过多装配后对象。
+
+---
+
+## 17. 当前建议的抽取顺序
+
+当前最推荐的顺序不是直接重写 runtime，而是：
+
+### Step 1：先显式形成 `RuntimeTurnInput`
+
+先在 adapter / web 邻近层把现有输入显式收成：
+
+- `actor`
+- `message`
+- `context`
+
+哪怕暂时只是一个中间对象，也值得先做。
+
+### Step 2：让 `im-runtime-port.ts` 成为第一条标准输入构造路径
+
+原因是：
+
+- 它的输入来源清楚
+- 已有 adapter contract
+- 已有 thread / binding / identity 解析
+- 最容易看清 `actor / message / context` 的边界
+
+### Step 3：再给 `generateAgentReply(...)` 外面包一层真正的 `runAgentTurn(input)`
+
+这一步不必一开始就移除现有参数结构，而是可以先做一层 wrapper：
+
+- 外层吃 `RuntimeTurnInput`
+- 内层暂时仍调用现有 `generateAgentReply(...)`
+
+这样风险会小很多。
+
+### Step 4：最后再把 role / session / memory 的装配逻辑从 Web 邻近层往 runtime 入口集中
+
+也就是最后才进一步决定：
+
+- role 在哪里加载
+- session 在哪里组装
+- memory recall 在哪里触发
+
+而不是在第一刀里同时重写。
+
+---
+
+## 18. 当前结论
 
 当前 SparkCore 最需要补的，不是再继续扩 `follow_up`，而是把 runtime 的输入面收成一个真正稳定的统一入口。
 
