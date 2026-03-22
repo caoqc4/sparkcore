@@ -203,8 +203,32 @@
 * style / profile
 * relationship style continuity
 
-但还未完全固化成显式 `role_core_packet`。
-后续可以逐步显式化。
+当前已经完成最小 `role_core_packet` contract 定形：
+
+* identity
+* persona_summary
+* style_guidance
+* relationship_stance
+* language_behavior
+
+这意味着 Layer A 已经不再只是隐式 runtime 资产，而是有了最小显式结构。
+
+但当前阶段只做到：
+
+* packet contract 定形
+* 注入边界稳定
+* 与 agent profile / relationship memory / runtime instruction 的优先级关系可解释
+
+当前仍然**不**做：
+
+* 更重的 packet lifecycle system
+* packet 自动合成系统
+* packet UI 暴露
+* 更细的应用层表层体验打磨
+
+一句话说：
+
+**Layer A 当前已完成“定形”，但还没有也不应该在这一阶段长成更重系统。**
 
 ---
 
@@ -1080,16 +1104,20 @@ Structured recall 优先于开放式生成。
 如果用本文档的五层结构来判断当前项目进度，可以更明确地归纳为：
 
 ### Layer A：角色核（Role Core）
-- 基础版已具备
-- 已有 agent identity / persona summary / style / profile / relationship continuity
-- 但还未显式固化成独立 `role_core_packet`
-- 当前仍以“轻配置 + runtime 规则”方式存在
+- 基础版已具备，并已完成最小 `role_core_packet` contract 定形
+- 已有 identity / persona summary / style guidance / relationship stance / language behavior
+- 当前已从“纯隐式 runtime 规则”推进到“最小显式 packet”
+- 但当前阶段仍只做 contract，不做更重 packet system
 
 ### Layer B：结构化长期记忆（Structured Long-Term Memory）
 - 当前最成熟、最核心的主干
 - Memory v2 contract 已基本成型
 - category / scope / status / relationship / single-slot / structured recall / correction / eval matrix 已具备
+- single-slot restore / superseded semantics 已补强
+- `user_agent` recall scope consistency 已补强
+- 当前阶段最关键的“状态机 + 作用域”第一批 contract 已落下
 - 当前项目最主要的“记得住”能力来自这一层
+- 当前继续往下最容易滑向 `thread_local` 新使用面设计，因此这一小批适合先阶段性收口
 
 ### Layer C：知识层（Knowledge Layer）
 - 仅做兼容预留
@@ -1098,12 +1126,13 @@ Structured recall 优先于开放式生成。
 
 ### Layer D：线程状态层（Thread State / Thread Compaction）
 - 当前未进入实现期
-- 仅存在“弱替代物”和观察框架
+- 仅存在“弱替代物”和 observation 框架
 - 包括：
   - same-thread continuation
   - fuzzy follow-up 优先当前线程
   - long-chain watch signals
   - scenario packs / failure condition / attribution record
+  - 已统一的 observation record 模板
 - 当前阶段的重点不是实现 Layer D，而是判断是否真的到了需要进入 Layer D 设计期的时候
 
 ### Layer E：最近几轮原文（Recent Raw Turns）
@@ -1128,6 +1157,9 @@ Structured recall 优先于开放式生成。
 * correction contract
 * eval matrix
 * fidelity / language / continuity / runtime strategy 收敛
+* Layer A 最小 `role_core_packet` contract
+* Layer B 第一批关键状态机与作用域 contract
+* Layer D observation record 统一模板
 
 ### 多轮质量验证体系
 
@@ -1142,7 +1174,7 @@ Structured recall 优先于开放式生成。
 
 这说明：
 
-## Layer B 已成型，Layer A 也有基础。
+## Layer B 已成型，Layer A 已完成最小 contract 定形，Layer D 也已有稳定 observation 记录语言。
 
 ---
 
@@ -1173,6 +1205,8 @@ Structured recall 优先于开放式生成。
   - `same_thread_continuation_applicable`
   - `long_chain_pressure_candidate`
 - 固定的长链路验收窗口：
+ - observation record template
+ - verdict / first failing turn / drift dimension 的统一记录语言
   - `8~12 turn`
 - 冻结的 `profile × scenario pack` 组合
 - 固定的 failure attribution 记录格式：
