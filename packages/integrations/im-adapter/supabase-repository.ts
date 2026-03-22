@@ -1,8 +1,10 @@
 import type {
+  BindingLookup,
   BindingLookupInput,
   BindingRepository,
   ChannelBinding
 } from "./contract";
+import { createBindingLookupFromRepository } from "./repository";
 
 export const DEFAULT_BINDING_TABLE = "channel_bindings";
 
@@ -71,4 +73,13 @@ export class SupabaseBindingRepository implements BindingRepository {
 
     return mapBindingRowToChannelBinding(data as BindingRow);
   }
+}
+
+export function createSupabaseBindingLookup(
+  supabase: any,
+  tableName: string = DEFAULT_BINDING_TABLE
+): BindingLookup {
+  return createBindingLookupFromRepository(
+    new SupabaseBindingRepository(supabase, tableName)
+  );
 }

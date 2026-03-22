@@ -293,6 +293,7 @@ Success criteria：
 - `packages/integrations/im-adapter/supabase-repository.ts`
 - `packages/integrations/im-adapter/bridge.ts`
 - `packages/integrations/im-adapter/example.ts`
+- `apps/web/lib/chat/im-binding-lookup.ts`
 - `apps/web/lib/chat/im-runtime-port.ts`
 - `supabase/migrations/20260322173000_create_channel_bindings.sql`
 
@@ -306,10 +307,12 @@ Success criteria：
 - `BindingRepository` 的第一版预留壳
 - `InMemoryBindingRepository` 的最小 repository stub
 - `SupabaseBindingRepository` 的数据库映射壳
+- `createSupabaseBindingLookup(...)` 的真实查询 helper
 - `channel_bindings` 的第一版数据库 migration 草案
 - `AdapterRuntimePort` 这一层 runtime 接口
 - `handleInboundChannelMessage(...)` 的最小 bridge
 - Web 侧 `AdapterRuntimePort` 第一版适配器
+- Web 侧 `createWebBindingLookup()` 入口
 
 当前仍缺：
 
@@ -341,6 +344,7 @@ Success criteria：
   - `BindingRow`
   - `mapBindingRowToChannelBinding(...)`
   - `SupabaseBindingRepository`
+  - `createSupabaseBindingLookup(...)`
 - `supabase/migrations/20260322173000_create_channel_bindings.sql`
   负责当前最小数据库草案：
   - `channel_bindings` 表
@@ -356,6 +360,10 @@ Success criteria：
   - 最小 `handleInboundChannelMessage(...)`
 - `packages/integrations/im-adapter/example.ts`
   负责最小闭环样例，验证骨架不是空壳
+- `apps/web/lib/chat/im-binding-lookup.ts`
+  负责当前 Web 环境下的真实 binding lookup 工厂：
+  - `createClient()`
+  - `createWebBindingLookup()`
 - `apps/web/lib/chat/im-runtime-port.ts`
   负责当前 `apps/web` runtime 到 `AdapterRuntimePort` 的第一版适配，复用现有：
   - user message 持久化

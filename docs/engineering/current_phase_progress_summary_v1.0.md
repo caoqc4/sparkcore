@@ -171,6 +171,7 @@
 - `BindingRepository` 已形成最小预留壳
 - `InMemoryBindingRepository` 已形成最小 repository stub
 - `SupabaseBindingRepository` 已形成数据库映射壳
+- Web 侧真实 binding lookup 工厂已形成
 - `channel_bindings` 已有第一版 migration 草案
 - `AdapterRuntimePort` 已形成 runtime 边界接口
 - `handleInboundChannelMessage(...)` 已能表达最小 `incoming -> runtime -> outgoing` 骨架
