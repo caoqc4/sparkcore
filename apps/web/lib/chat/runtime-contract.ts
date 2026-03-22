@@ -112,6 +112,29 @@ export type ClaimDuePendingFollowUpsResult = {
   records: PendingFollowUpRecord[];
 };
 
+export type MarkFollowUpExecutedInput = {
+  id: string;
+  executed_at: string;
+  execution_metadata?: Record<string, unknown>;
+};
+
+export type MarkFollowUpExecutedResult = {
+  updated: boolean;
+  record: PendingFollowUpRecord | null;
+};
+
+export type MarkFollowUpFailedInput = {
+  id: string;
+  failed_at: string;
+  failure_reason: string;
+  failure_metadata?: Record<string, unknown>;
+};
+
+export type MarkFollowUpFailedResult = {
+  updated: boolean;
+  record: PendingFollowUpRecord | null;
+};
+
 export type FollowUpRepository = {
   enqueuePendingFollowUps: (
     input: EnqueuePendingFollowUpsInput
@@ -119,6 +142,12 @@ export type FollowUpRepository = {
   claimDuePendingFollowUps: (
     input: ClaimDuePendingFollowUpsInput
   ) => Promise<ClaimDuePendingFollowUpsResult>;
+  markFollowUpExecuted: (
+    input: MarkFollowUpExecutedInput
+  ) => Promise<MarkFollowUpExecutedResult>;
+  markFollowUpFailed: (
+    input: MarkFollowUpFailedInput
+  ) => Promise<MarkFollowUpFailedResult>;
 };
 
 export type RuntimeEvent = {

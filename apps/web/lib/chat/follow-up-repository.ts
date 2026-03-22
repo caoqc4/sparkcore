@@ -4,6 +4,10 @@ import type {
   EnqueuePendingFollowUpsInput,
   EnqueuePendingFollowUpsResult,
   FollowUpRepository,
+  MarkFollowUpExecutedInput,
+  MarkFollowUpExecutedResult,
+  MarkFollowUpFailedInput,
+  MarkFollowUpFailedResult,
   PendingFollowUpRecord,
   RuntimeFollowUpExecutionResult
 } from "@/lib/chat/runtime-contract";
@@ -126,6 +130,57 @@ export class InMemoryFollowUpRepository implements FollowUpRepository {
     return {
       claimed_count: claimableRecords.length,
       records: this.records.filter((record) => claimedIds.has(record.id))
+    };
+  }
+
+  async markFollowUpExecuted(
+    input: MarkFollowUpExecutedInput
+  ): Promise<MarkFollowUpExecutedResult> {
+    const record = this.records.find((item) => item.id === input.id) ?? null;
+    if (!record) {
+      return {
+        updated: false,
+        record: null
+      };
+    }
+
+    record.status = "executed";
+    record.updated_at = input.executed_at;
+    record.request_payload = {
+      ...record.request_payload,
+      execution_metadata: input.execution_metadata ?? {},
+      executed_at: input.executed_at
+    };
+
+    return {
+      updated: true,
+      record: { ...record }
+    };
+  }
+
+  async markFollowUpFailed(
+    input: MarkFollowUpFailedInput
+  ): Promise<MarkFollowUpFailedResult> {
+    const record = this.records.find((item) => item.id === input.id) ?? null;
+    if (!record) {
+      return {
+        updated: false,
+        record: null
+      };
+    }
+
+    record.status = "failed";
+    record.updated_at = input.failed_at;
+    record.request_payload = {
+      ...record.request_payload,
+      failed_at: input.failed_at,
+      failure_reason: input.failure_reason,
+      failure_metadata: input.failure_metadata ?? {}
+    };
+
+    return {
+      updated: true,
+      record: { ...record }
     };
   }
 

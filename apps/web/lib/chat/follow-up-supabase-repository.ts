@@ -4,6 +4,10 @@ import type {
   EnqueuePendingFollowUpsInput,
   EnqueuePendingFollowUpsResult,
   FollowUpRepository,
+  MarkFollowUpExecutedInput,
+  MarkFollowUpExecutedResult,
+  MarkFollowUpFailedInput,
+  MarkFollowUpFailedResult,
   PendingFollowUpRecord
 } from "@/lib/chat/runtime-contract";
 import { buildPendingFollowUpRecord } from "@/lib/chat/follow-up-repository";
@@ -180,6 +184,74 @@ export class SupabaseFollowUpRepository implements FollowUpRepository {
     return {
       claimed_count: records.length,
       records
+    };
+  }
+
+  async markFollowUpExecuted(
+    input: MarkFollowUpExecutedInput
+  ): Promise<MarkFollowUpExecutedResult> {
+    const { data, error } = await this.supabase
+      .from(this.tableName)
+      .update({
+        status: "executed",
+        updated_at: input.executed_at
+      })
+      .eq("id", input.id)
+      .select(
+        "id, kind, status, trigger_at, workspace_id, user_id, agent_id, thread_id, request_payload, request_reason, source_message_id, source_request_index, created_at, updated_at"
+      )
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(
+        `Failed to mark follow-up executed in ${this.tableName}: ${error.message}`
+      );
+    }
+
+    if (!data) {
+      return {
+        updated: false,
+        record: null
+      };
+    }
+
+    return {
+      updated: true,
+      record: mapPendingFollowUpRowToRecord(data as PendingFollowUpRow)
+    };
+  }
+
+  async markFollowUpFailed(
+    input: MarkFollowUpFailedInput
+  ): Promise<MarkFollowUpFailedResult> {
+    const { data, error } = await this.supabase
+      .from(this.tableName)
+      .update({
+        status: "failed",
+        updated_at: input.failed_at
+      })
+      .eq("id", input.id)
+      .select(
+        "id, kind, status, trigger_at, workspace_id, user_id, agent_id, thread_id, request_payload, request_reason, source_message_id, source_request_index, created_at, updated_at"
+      )
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(
+        `Failed to mark follow-up failed in ${this.tableName}: ${error.message}`
+      );
+    }
+
+    if (!data) {
+      return {
+        updated: false,
+        record: null
+      };
+    }
+
+    return {
+      updated: true,
+      record: mapPendingFollowUpRowToRecord(data as PendingFollowUpRow)
     };
   }
 }
