@@ -970,7 +970,7 @@ function isSmokeOneLineSoftCatchPrompt(content: string) {
 function isSmokeBriefSteadyingPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("缓一下，再说");
+  return normalized.includes("缓一下") && normalized.includes("再说");
 }
 
 function isSmokeGentleCarryForwardAfterSteadyingPrompt(content: string) {
@@ -980,6 +980,12 @@ function isSmokeGentleCarryForwardAfterSteadyingPrompt(content: string) {
     normalized.includes("缓一下") &&
     normalized.includes("再陪我往下走一点")
   );
+}
+
+function isSmokeGuidedNextStepAfterSteadyingPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("陪我理一步");
 }
 
 function isSmokeLightSharedPushPrompt(content: string) {
@@ -1364,14 +1370,20 @@ function isSmokeRelationshipContinuationEdgePrompt(content: string) {
     isSmokeShortRelationshipSummaryFollowUpPrompt(content) ||
     isSmokeOneLineSoftCatchPrompt(content) ||
     isSmokeBriefSteadyingPrompt(content) ||
-    isSmokeGentleCarryForwardAfterSteadyingPrompt(content)
+    isSmokeGentleCarryForwardAfterSteadyingPrompt(content) ||
+    isSmokeGuidedNextStepAfterSteadyingPrompt(content)
   );
 }
 
 function getSmokeContinuationReasonCode(
   content: string
 ): SmokeContinuationReasonCode | null {
-  if (isSmokeShortRelationshipSupportivePrompt(content)) {
+  if (
+    isSmokeShortRelationshipSupportivePrompt(content) ||
+    isSmokeBriefSteadyingPrompt(content) ||
+    isSmokeGentleCarryForwardAfterSteadyingPrompt(content) ||
+    isSmokeGuidedNextStepAfterSteadyingPrompt(content)
+  ) {
     return "brief-supportive-carryover";
   }
 
@@ -1472,6 +1484,7 @@ function getSmokeAnswerStrategy({
 
 function buildSmokeAssistantReply({
   content,
+  answerStrategy,
   modelProfileName,
   replyLanguage,
   recentAssistantReply,
@@ -1482,6 +1495,7 @@ function buildSmokeAssistantReply({
   preferredNameMemory
 }: {
   content: string;
+  answerStrategy: SmokeAnswerStrategy;
   modelProfileName: string;
   replyLanguage: SmokeReplyLanguage;
   recentAssistantReply: SmokeContinuityReply | null;
@@ -1666,7 +1680,10 @@ function buildSmokeAssistantReply({
       : "You prefer that I reply in a more casual, less formal way.";
   }
 
-  if (isSmokeOpenEndedPlanningHelpQuestion(content)) {
+  if (
+    answerStrategy === "grounded-open-ended-advice" &&
+    isSmokeOpenEndedPlanningHelpQuestion(content)
+  ) {
     const styleValue = addressStyleMemory?.content ?? null;
 
     if (replyLanguage === "zh-Hans") {
@@ -1706,7 +1723,10 @@ function buildSmokeAssistantReply({
     return `${opening} I would start by identifying the week's priorities and turning them into a short, actionable plan.`;
   }
 
-  if (isSmokeOpenEndedSummaryQuestion(content)) {
+  if (
+    answerStrategy === "grounded-open-ended-summary" &&
+    isSmokeOpenEndedSummaryQuestion(content)
+  ) {
     const selfName = nicknameMemory?.content ?? agentName;
     const userName = preferredNameMemory?.content ?? null;
 
@@ -1995,6 +2015,12 @@ function buildSmokeAssistantReply({
           return userName
             ? `${userName}，先缓一下，我陪着你。`
             : "先缓一下，我陪着你。";
+        }
+
+        if (isSmokeGuidedNextStepAfterSteadyingPrompt(content)) {
+          return userName
+            ? `${userName}，我们先只理眼前这一小步，我陪你慢慢顺。`
+            : "我们先只理眼前这一小步，我陪你慢慢顺。";
         }
 
         if (isSmokeGentleCarryForwardAfterSteadyingPrompt(content)) {
@@ -3027,6 +3053,7 @@ export async function createSmokeTurn({
 
   const assistantContent = buildSmokeAssistantReply({
     content: trimmedContent,
+    answerStrategy: answerStrategyRule.answerStrategy,
     modelProfileName: modelProfile.name,
     replyLanguage,
     recentAssistantReply,

@@ -161,7 +161,7 @@ function isOneLineSoftCatchPrompt(content: string) {
 function isBriefSteadyingPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
-  return normalized.includes("缓一下，再说");
+  return normalized.includes("缓一下") && normalized.includes("再说");
 }
 
 function isGentleCarryForwardAfterSteadyingPrompt(content: string) {
@@ -171,6 +171,12 @@ function isGentleCarryForwardAfterSteadyingPrompt(content: string) {
     normalized.includes("缓一下") &&
     normalized.includes("再陪我往下走一点")
   );
+}
+
+function isGuidedNextStepAfterSteadyingPrompt(content: string) {
+  const normalized = content.normalize("NFKC").trim().toLowerCase();
+
+  return normalized.includes("陪我理一步");
 }
 
 function isLightSharedPushPrompt(content: string) {
@@ -553,14 +559,20 @@ function isRelationshipContinuationEdgePrompt(content: string) {
     isShortRelationshipSummaryFollowUpPrompt(content) ||
     isOneLineSoftCatchPrompt(content) ||
     isBriefSteadyingPrompt(content) ||
-    isGentleCarryForwardAfterSteadyingPrompt(content)
+    isGentleCarryForwardAfterSteadyingPrompt(content) ||
+    isGuidedNextStepAfterSteadyingPrompt(content)
   );
 }
 
 function getContinuationReasonCode(
   content: string
 ): ContinuationReasonCode | null {
-  if (isShortRelationshipSupportivePrompt(content)) {
+  if (
+    isShortRelationshipSupportivePrompt(content) ||
+    isBriefSteadyingPrompt(content) ||
+    isGentleCarryForwardAfterSteadyingPrompt(content) ||
+    isGuidedNextStepAfterSteadyingPrompt(content)
+  ) {
     return "brief-supportive-carryover";
   }
 
@@ -1474,6 +1486,17 @@ function buildAnswerStrategyInstructions({
           : [
               "The user wants you to help them settle first and then move forward by half a step. Steady them briefly first, then offer one very light companion-style next step without turning it into formal advice, analysis, explanation, or summary.",
               "Do not expand the reply into a step list, bullet-point guidance, or explicit directive phrases like 'first do this.' Keep it to one or two light sentences that gently carry the user forward."
+            ]
+        : []),
+      ...(isGuidedNextStepAfterSteadyingPrompt(latestUserMessage)
+        ? isZh
+          ? [
+              "这轮用户是在 anti-advice 和 steadying 之后，要你再陪他理一步。保持同一条关系线，只给一个很小、很轻的陪跑式下一步，不要掉回 generic continuation，也不要膨胀成正式建议、步骤清单、分析、解释或任务模式。",
+              "回复控制在一到两句，更像同一个人顺着陪他理清眼前的一小步，而不是切成 detached task mode。"
+            ]
+          : [
+              "After anti-advice and steadying, the user is asking you to work through just one small next step with them. Stay on the same relationship line, give only one very light companion-style next step, and do not fall back to generic continuation or expand into formal advice, step lists, analysis, explanation, or task mode.",
+              "Keep it to one or two sentences so it still sounds like the same person helping them sort one small next step instead of switching into detached task mode."
             ]
         : []),
       ...(isLightSharedPushPrompt(latestUserMessage)

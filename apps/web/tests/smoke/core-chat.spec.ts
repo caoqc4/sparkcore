@@ -6537,6 +6537,84 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).toContain("好呀");
   });
 
+  test("keeps brief steadying and guided next-step from collapsing after anti-advice openings", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后和我说话轻松一点，可以吗？",
+      "你先别急着给我建议。",
+      "你先帮我缓一下，再说。",
+      "好，你再陪我理一步。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const messages = await getAssistantMessagesForThread(threadId);
+    const antiAdviceReply = messages.at(-3);
+    const steadyingReply = messages.at(-2);
+    const guidedReply = messages.at(-1);
+
+    expect(antiAdviceReply).toBeDefined();
+    expect(steadyingReply).toBeDefined();
+    expect(guidedReply).toBeDefined();
+
+    expect(antiAdviceReply?.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(antiAdviceReply?.content).toContain("先不急着给你建议");
+
+    expect(steadyingReply?.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(steadyingReply?.metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(steadyingReply?.metadata.continuation_reason_code).toBe(
+      "brief-supportive-carryover"
+    );
+    expect(steadyingReply?.content).toBe("阿强，先缓一下，我陪着你。");
+    expect(steadyingReply?.content).not.toContain("我们继续");
+
+    expect(guidedReply?.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(guidedReply?.metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(guidedReply?.metadata.continuation_reason_code).toBe(
+      "brief-supportive-carryover"
+    );
+    expect(guidedReply?.content).toBe("阿强，我们先只理眼前这一小步，我陪你慢慢顺。");
+    expect(guidedReply?.content).not.toContain("我们继续");
+    expect(guidedReply?.content).not.toContain("周计划");
+    expect(guidedReply?.content).not.toContain("第一步");
+  });
+
   test("keeps natural light reassurance variants on the same relationship line", async ({
     request
   }) => {
