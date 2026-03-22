@@ -77,4 +77,30 @@ export class SupabaseThreadStateRepository implements ThreadStateRepository {
       thread_state: mapThreadStateRowToRecord(data as ThreadStateRow)
     };
   }
+
+  async saveThreadState(record: ThreadStateRecord): Promise<void> {
+    const payload = {
+      thread_id: record.thread_id,
+      agent_id: record.agent_id,
+      state_version: record.state_version,
+      lifecycle_status: record.lifecycle_status,
+      focus_mode: record.focus_mode ?? null,
+      current_language_hint: record.current_language_hint ?? null,
+      recent_turn_window_size: record.recent_turn_window_size ?? null,
+      continuity_status: record.continuity_status ?? null,
+      last_user_message_id: record.last_user_message_id ?? null,
+      last_assistant_message_id: record.last_assistant_message_id ?? null,
+      updated_at: record.updated_at
+    };
+
+    const { error } = await this.supabase
+      .from(this.tableName)
+      .upsert(payload, { onConflict: "thread_id,agent_id" });
+
+    if (error) {
+      throw new Error(
+        `Failed to save thread state to ${this.tableName}: ${error.message}`
+      );
+    }
+  }
 }
