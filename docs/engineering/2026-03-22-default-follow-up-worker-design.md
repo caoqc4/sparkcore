@@ -327,10 +327,13 @@ type DefaultFollowUpWorkerResult = {
 - `createAdminFollowUpBindingResolver(...)`
 - `runDefaultFollowUpWorker(...)`
 - `DefaultFollowUpWorkerResult`
+- 手动调试 route：
+  - `app/api/test/followup-run/route.ts`
 
 这意味着：
 
 - default worker 已不再只有设计稿
 - 已有单次 `claim -> resolve binding -> map -> send -> mark` 的最小代码壳
+- 已有一个受 `x-smoke-secret` 保护的手动调试入口
 - 当前默认仍走 `StubProactiveSender`
 - 仍未接默认 cron / loop / retry / requeue
