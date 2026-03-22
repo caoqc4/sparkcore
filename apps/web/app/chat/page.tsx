@@ -568,7 +568,7 @@ export default async function ChatPage({
               </nav>
             )}
 
-            <details className="sidebar-section" open>
+            <details className="sidebar-section" id="agent-rail" open>
               <summary className="sidebar-section-summary">
                 <div className="agent-panel-header">
                   <h3>{copy.sidebar.agentsTitle}</h3>
@@ -718,7 +718,11 @@ export default async function ChatPage({
               </div>
             </details>
 
-            <details className="sidebar-section sidebar-section-memory" open>
+            <details
+              className="sidebar-section sidebar-section-memory"
+              id="memory-rail"
+              open
+            >
               <summary className="sidebar-section-summary">
                 <div className="agent-panel-header">
                   <h3>{copy.memory.title}</h3>

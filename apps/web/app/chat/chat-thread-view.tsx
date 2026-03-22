@@ -728,6 +728,24 @@ export function ChatThreadView({
                   </article>
                 </div>
               </section>
+
+              <section className="thread-repair-strip">
+                <div className="thread-repair-header">
+                  <h3>{copy.thread.repairTitle}</h3>
+                  <p className="helper-copy">{copy.thread.repairDescription}</p>
+                </div>
+
+                <div className="thread-repair-actions">
+                  <a className="button button-secondary" href="#agent-rail">
+                    {copy.thread.repairRoleAction}
+                  </a>
+                  <a className="button button-secondary" href="#memory-rail">
+                    {copy.thread.repairMemoryAction}
+                  </a>
+                </div>
+
+                <p className="section-hint">{copy.thread.repairHint}</p>
+              </section>
             </>
           )}
         </div>

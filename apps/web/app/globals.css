@@ -861,6 +861,34 @@ a {
   text-transform: uppercase;
 }
 
+.thread-repair-strip {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px dashed rgba(15, 118, 110, 0.24);
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.thread-repair-header {
+  display: grid;
+  gap: 6px;
+}
+
+.thread-repair-header h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.thread-repair-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .thread-title-row {
   display: flex;
   align-items: center;
