@@ -125,6 +125,12 @@
   - `answer_strategy_selected`
   - `assistant_reply_completed`
   - `thread_state_writeback_completed`
+- `RuntimeEvent` 现在也已开始从裸 `payload` 收成更明确的 typed union
+- `runtime_events` payload 命名也已开始进入第一轮规范化，例如：
+  - `memory_recalled.count`
+  - `answer_strategy_selected.strategy`
+  - `answer_strategy_selected.reason_code`
+  - `assistant_reply_completed.recalled_count`
 - `debug_metadata` 的命名收口方向也已开始明确：
   - 顶层只保留少量稳定 summary key
   - 局部子域信息优先逐步收成嵌套对象

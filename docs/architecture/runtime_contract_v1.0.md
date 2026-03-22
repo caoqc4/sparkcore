@@ -221,9 +221,12 @@ runtime 在处理一轮时，至少要消费：
   - `answer_strategy_selected`
   - `assistant_reply_completed`
   - `thread_state_writeback_completed`
-- 当前 event payload 先只暴露：
-  - `status`
-  - `repository`
+- `RuntimeEvent` 现在也已开始从裸 `payload` 收成更明确的 typed union
+- 当前 event payload 命名也已开始做第一轮规范化，例如：
+  - `memory_recalled.count`
+  - `answer_strategy_selected.strategy`
+  - `answer_strategy_selected.reason_code`
+  - `assistant_reply_completed.recalled_count`
 - 当前边界判断也已开始明确：
   - `runtime_events` 负责“本轮发生了什么标准过程”
   - `debug_metadata` 负责“这轮为什么这样、有哪些最小调试摘要”

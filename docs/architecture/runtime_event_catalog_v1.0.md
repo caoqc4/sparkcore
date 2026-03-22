@@ -93,8 +93,10 @@
 
 当前适合的最小 payload：
 
-- hit count
-- recall scope summary
+- `count`
+- `memory_types`
+- `hidden_exclusion_count`
+- `incorrect_exclusion_count`
 
 ### 4.2 `memory_write_planned`
 
@@ -104,8 +106,8 @@
 
 当前适合的最小 payload：
 
-- request count
-- kinds / memory types
+- `count`
+- `memory_types`
 
 ### 4.3 `follow_up_planned`
 
@@ -127,8 +129,10 @@
 当前适合的最小 payload：
 
 - `question_type`
-- `answer_strategy`
-- `answer_strategy_reason_code`
+- `strategy`
+- `reason_code`
+- `priority`
+- `continuation_reason_code`
 - `reply_language`
 
 ### 4.5 `assistant_reply_completed`
@@ -141,7 +145,7 @@
 
 - `thread_id`
 - `agent_id`
-- `memory_hit_count`
+- `recalled_count`
 - `message_type`
 - `language`
 
@@ -249,8 +253,8 @@
 当前更合理的下一步不是继续长新事件，而是：
 
 1. 先接受当前最小 catalog 已成立
-2. 再决定是否要继续收：
-   - event payload 命名规则
+2. 再继续观察 typed payload 是否已经够稳定
+3. 最后才决定是否要继续收：
    - event versioning
    - event source tagging
 
