@@ -208,6 +208,8 @@
 - `loadRoleProfile(...)` 已形成最小读取面
 - `RoleRepository` 第一版代码壳已开始：
   - `apps/web/lib/chat/role-repository.ts`
+- `RoleResolver` 第一版代码壳已开始：
+  - `apps/web/lib/chat/role-service.ts`
 - runtime 已开始显式消费 role layer，而不是只维护本地匿名类型
 - `role repository / service` 的最小边界设计已开始：
   - `docs/architecture/role_repository_service_design_v1.0.md`
@@ -220,7 +222,8 @@
   - `resolver / service`
   - `runtime preparation`
 - `repository` 第一版代码壳已开始
-- 但 `resolver / service` 代码壳、metadata 收口、默认模型配置边界仍未进一步抽层
+- `resolver / service` 第一版代码壳也已开始
+- 但 runtime / IM 主调用面、metadata 收口、默认模型配置边界仍未进一步抽层
 
 ---
 

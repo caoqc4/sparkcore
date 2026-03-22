@@ -106,7 +106,8 @@
 
 - `RoleRepository` 第一版代码壳已存在
 - `role-loader.ts` 已开始复用 repository 的纯读取能力
-- `RoleResolver` / `RoleService` 仍是下一步
+- `RoleResolver` / `RoleService` 第一版代码壳已存在
+- runtime / adapter 主路径仍未直接迁到 resolver
 
 ---
 
