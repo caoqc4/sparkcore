@@ -6,6 +6,7 @@ Current scope:
 - inbound channel message contract
 - outbound channel message contract
 - binding and identity shapes
+- binding repository seam and future persistence mapping shell
 - runtime port interface for adapter-to-runtime handoff
 - pure bridge helpers for `incoming -> runtime -> outgoing`
 
@@ -18,6 +19,8 @@ Not allowed in this package at this stage:
 
 Recommended file roles:
 - `contract.ts`: channel, binding, runtime port, and bridge result types
+- `repository.ts`: repository seam and in-memory repository stub
+- `supabase-repository.ts`: future persistence mapping shell for a real binding table
 - `bridge.ts`: pure mapping helpers and minimal adapter flow
 - `index.ts`: minimal export surface
 - `example.ts`: minimal end-to-end skeleton usage

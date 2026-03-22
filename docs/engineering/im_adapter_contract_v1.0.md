@@ -290,6 +290,7 @@ Success criteria：
 - `packages/integrations/im-adapter/contract.ts`
 - `packages/integrations/im-adapter/binding.ts`
 - `packages/integrations/im-adapter/repository.ts`
+- `packages/integrations/im-adapter/supabase-repository.ts`
 - `packages/integrations/im-adapter/bridge.ts`
 - `packages/integrations/im-adapter/example.ts`
 - `apps/web/lib/chat/im-runtime-port.ts`
@@ -303,6 +304,7 @@ Success criteria：
 - `InMemoryBindingLookup` 的最小 stub 实现
 - `BindingRepository` 的第一版预留壳
 - `InMemoryBindingRepository` 的最小 repository stub
+- `SupabaseBindingRepository` 的数据库映射壳
 - `AdapterRuntimePort` 这一层 runtime 接口
 - `handleInboundChannelMessage(...)` 的最小 bridge
 - Web 侧 `AdapterRuntimePort` 第一版适配器
@@ -331,6 +333,12 @@ Success criteria：
   - `BindingRepository`
   - `InMemoryBindingRepository`
   - `createBindingLookupFromRepository(...)`
+- `packages/integrations/im-adapter/supabase-repository.ts`
+  负责真实持久化实现的第一版映射壳：
+  - `DEFAULT_BINDING_TABLE`
+  - `BindingRow`
+  - `mapBindingRowToChannelBinding(...)`
+  - `SupabaseBindingRepository`
 - `packages/integrations/im-adapter/bridge.ts`
   负责纯 bridge 逻辑：
   - inbound dedupe key

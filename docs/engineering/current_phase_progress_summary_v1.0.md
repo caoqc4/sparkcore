@@ -170,6 +170,7 @@
 - `InMemoryBindingLookup` 已形成最小 stub
 - `BindingRepository` 已形成最小预留壳
 - `InMemoryBindingRepository` 已形成最小 repository stub
+- `SupabaseBindingRepository` 已形成数据库映射壳
 - `AdapterRuntimePort` 已形成 runtime 边界接口
 - `handleInboundChannelMessage(...)` 已能表达最小 `incoming -> runtime -> outgoing` 骨架
 - Web 侧 runtime 已有第一版 adapter port 适配器
