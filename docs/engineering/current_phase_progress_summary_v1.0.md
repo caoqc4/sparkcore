@@ -197,7 +197,9 @@
 - `thread_states` migration 草案已完成并已落远端库
 - `SupabaseThreadStateRepository` 真实读取已验证通过
 - 默认 `loadThreadState(...)` 已优先走 Supabase，初始化失败时回退 in-memory
-- 但 `thread_state` 仍未进入写回与 compaction
+- `ThreadStateRepository.saveThreadState(...)` 第一版代码壳已开始
+- `InMemoryThreadStateRepository.saveThreadState(...)` 与 `SupabaseThreadStateRepository.saveThreadState(...)` 已存在
+- 但 `thread_state` 仍未进入 runtime 触发写回与 compaction
 
 ---
 

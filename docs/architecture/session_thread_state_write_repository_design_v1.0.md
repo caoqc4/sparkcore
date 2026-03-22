@@ -40,6 +40,13 @@
 
 收进同一层 repository contract。
 
+当前状态前移到：
+
+- `ThreadStateRepository.saveThreadState(...)` 第一版代码壳已存在
+- `InMemoryThreadStateRepository.saveThreadState(...)` 已存在
+- `SupabaseThreadStateRepository.saveThreadState(...)` 已存在
+- 但 runtime 触发位置仍未开始
+
 ---
 
 ## 3. 当前为什么值得补这层
@@ -202,6 +209,11 @@ type ThreadStateRepository = {
 
 因为这些一旦进来，第一版 repository 就会变重很多。
 
+当前这层也已经有了明确代码落点：
+
+- [thread-state-repository.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-repository.ts)
+- [thread-state-supabase-repository.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-supabase-repository.ts)
+
 ---
 
 ## 7. 当前第一版 `saveThreadState(...)` 应承接什么语义
@@ -273,20 +285,15 @@ runtime 逻辑
 再落：
 
 - `InMemoryThreadStateRepository.saveThreadState(...)`
-
-### Step 3
-
-再落：
-
 - `SupabaseThreadStateRepository.saveThreadState(...)`
 
-### Step 4
+### Step 3
 
 再决定：
 
 - runtime 哪一层触发写回
 
-### Step 5
+### Step 4
 
 最后才讨论：
 

@@ -39,6 +39,9 @@
 - `InMemoryThreadStateRepository` 已存在
 - `loadThreadState(...)` 已开始复用默认 repository
 - `SupabaseThreadStateRepository` 第一版代码壳已存在
+- `ThreadStateRepository.saveThreadState(...)` 第一版代码壳已存在
+- `InMemoryThreadStateRepository.saveThreadState(...)` 已存在
+- `SupabaseThreadStateRepository.saveThreadState(...)` 已存在
 - `thread_states` migration 草案已存在并已落远端库
 - `SupabaseThreadStateRepository` 真实读取已验证通过
 - 默认 `loadThreadState(...)` 已优先走 Supabase
@@ -137,6 +140,7 @@ type ThreadStateRepository = {
 
 - `ThreadStateRepository`
 - `InMemoryThreadStateRepository`
+- `saveThreadState(...)`
 
 ---
 
@@ -226,7 +230,7 @@ prepareRuntimeSession(...)
 - [thread-state-repository.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-repository.ts)
   当前承接最小读取后端
 - [thread-state-supabase-repository.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-supabase-repository.ts)
-  当前已承接真实后端读取壳
+  当前已承接真实后端读取壳与最小写接口壳
 - [thread-state-admin-repository.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-admin-repository.ts)
   当前承接默认 admin repository 工厂
 
@@ -258,6 +262,12 @@ prepareRuntimeSession(...)
 再做一次受控真实读取验证，并把默认 loader 优先切到 Supabase
 
 ### Step 5
+
+再补：
+
+- `saveThreadState(...)` 最小写接口代码壳
+
+### Step 6
 
 最后才讨论：
 
