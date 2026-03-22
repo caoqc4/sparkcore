@@ -1361,7 +1361,10 @@ function isSmokeRelationshipContinuationEdgePrompt(content: string) {
   return (
     isSmokeFuzzyFollowUpQuestion(content) ||
     isSmokeShortRelationshipSupportivePrompt(content) ||
-    isSmokeShortRelationshipSummaryFollowUpPrompt(content)
+    isSmokeShortRelationshipSummaryFollowUpPrompt(content) ||
+    isSmokeOneLineSoftCatchPrompt(content) ||
+    isSmokeBriefSteadyingPrompt(content) ||
+    isSmokeGentleCarryForwardAfterSteadyingPrompt(content)
   );
 }
 

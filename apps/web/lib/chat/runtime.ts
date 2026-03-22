@@ -550,7 +550,10 @@ function isRelationshipContinuationEdgePrompt(content: string) {
   return (
     isFuzzyFollowUpQuestion(content) ||
     isShortRelationshipSupportivePrompt(content) ||
-    isShortRelationshipSummaryFollowUpPrompt(content)
+    isShortRelationshipSummaryFollowUpPrompt(content) ||
+    isOneLineSoftCatchPrompt(content) ||
+    isBriefSteadyingPrompt(content) ||
+    isGentleCarryForwardAfterSteadyingPrompt(content)
   );
 }
 

@@ -81,6 +81,24 @@ async function getLatestAssistantMessageForThread(
   };
 }
 
+async function getAssistantMessagesForThread(threadId: string) {
+  const admin = getSmokeAdminClient();
+  const { data, error } = await admin
+    .from("messages")
+    .select("content, metadata")
+    .eq("thread_id", threadId)
+    .eq("role", "assistant")
+    .order("created_at", { ascending: true });
+
+  expect(error).toBeNull();
+  expect(data).toBeTruthy();
+
+  return data as Array<{
+    content: string;
+    metadata: Record<string, unknown>;
+  }>;
+}
+
 function getLatestRuntimeSummaryHeading(page: Page) {
   return page.locator("summary").filter({ hasText: runtimeSummaryTogglePattern }).last();
 }
@@ -3162,6 +3180,81 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).not.toContain("解释");
     expect(latestAssistantMessage.content).not.toContain("第一步");
     expect(latestAssistantMessage.content).not.toContain("先做");
+  });
+
+  test("keeps brief catch and carry-forward from collapsing after anti-analysis openings", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后和我说话轻松一点，可以吗？",
+      "我现在有点乱，你先别急着分析我。",
+      "你就回我一句就好。",
+      "你先帮我缓一下，再陪我往下走一点。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const messages = await getAssistantMessagesForThread(threadId);
+    const antiAnalysisReply = messages.at(-3);
+    const briefCatchReply = messages.at(-2);
+    const carryForwardReply = messages.at(-1);
+
+    expect(antiAnalysisReply).toBeDefined();
+    expect(briefCatchReply).toBeDefined();
+    expect(carryForwardReply).toBeDefined();
+
+    expect(antiAnalysisReply?.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(antiAnalysisReply?.content).toContain("先不急着分析你");
+    expect(briefCatchReply?.metadata.answer_strategy).toBe("same-thread-continuation");
+    expect(briefCatchReply?.metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(briefCatchReply?.metadata.continuation_reason_code).toBe(
+      "brief-supportive-carryover"
+    );
+    expect(briefCatchReply?.content).toBe("阿强，我在，先别一个人扛着。");
+    expect(briefCatchReply?.content).not.toContain("我们继续");
+
+    expect(carryForwardReply?.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(carryForwardReply?.metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(carryForwardReply?.metadata.continuation_reason_code).toBe(
+      "brief-supportive-carryover"
+    );
+    expect(carryForwardReply?.content).toBe("阿强，先缓一下，我陪你往下顺一点。");
+    expect(carryForwardReply?.content).not.toContain("我们继续");
+    expect(carryForwardReply?.content).not.toContain("分析");
+    expect(carryForwardReply?.content).not.toContain("建议");
   });
 
   test("keeps friend-like soft follow-up prompts on the same-thread carryover path", async ({
