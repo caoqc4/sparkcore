@@ -316,3 +316,21 @@ type DefaultFollowUpWorkerResult = {
 - 已有默认 worker 边界
 
 这六层之上，而不是把 worker、sender、retry、cron 一次揉在一起。
+
+---
+
+## 15. 当前实现进展
+
+当前已经补上的最小代码壳包括：
+
+- `FollowUpBindingResolver`
+- `createAdminFollowUpBindingResolver(...)`
+- `runDefaultFollowUpWorker(...)`
+- `DefaultFollowUpWorkerResult`
+
+这意味着：
+
+- default worker 已不再只有设计稿
+- 已有单次 `claim -> resolve binding -> map -> send -> mark` 的最小代码壳
+- 当前默认仍走 `StubProactiveSender`
+- 仍未接默认 cron / loop / retry / requeue
