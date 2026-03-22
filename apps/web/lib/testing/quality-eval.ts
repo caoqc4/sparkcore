@@ -50,6 +50,18 @@ export type QualityEvalAcceptanceThresholds = {
   notes: string[];
 };
 
+export type QualityEvalObservationRecordTemplate = {
+  requiredFields: Array<{
+    key: string;
+    description: string;
+  }>;
+  optionalFields?: Array<{
+    key: string;
+    description: string;
+  }>;
+  notes: string[];
+};
+
 export type QualityEvalSuite = {
   id: "stage1" | "memory-v2" | "real-chat";
   title: string;
@@ -57,6 +69,7 @@ export type QualityEvalSuite = {
   cases: QualityEvalCase[];
   failureAttribution?: QualityEvalFailureAttribution;
   acceptanceThresholds?: QualityEvalAcceptanceThresholds;
+  observationRecordTemplate?: QualityEvalObservationRecordTemplate;
 };
 
 export const stage1QualityEvalSet: QualityEvalCase[] = [
@@ -867,6 +880,72 @@ export const qualityEvalSuites: Record<QualityEvalSuite["id"], QualityEvalSuite>
         "When the run fails, record the first turn where drift becomes visible instead of only marking the whole case as failed.",
         "Use the smallest single drift dimension that best explains the failure, even if more than one symptom appears later.",
         "The main developer reason should stay lightweight: capture the one diagnostics clue that best explains the failing turn instead of pasting the whole metadata object."
+      ]
+    },
+    observationRecordTemplate: {
+      requiredFields: [
+        {
+          key: "scenario_pack",
+          description: "Which long-chain scenario pack this case belongs to."
+        },
+        {
+          key: "case_id",
+          description: "The fixed case identifier from the eval suite."
+        },
+        {
+          key: "scenario_verdict",
+          description:
+            "One scenario-level verdict such as `holds as one continuing role` or the main drift label."
+        },
+        {
+          key: "first_failing_turn",
+          description:
+            "The earliest turn where visible drift begins. Use `none` when the case holds."
+        },
+        {
+          key: "drift_dimension",
+          description:
+            "The narrowest drift dimension that best explains the failure, or `none` when the case holds."
+        },
+        {
+          key: "attribution_note",
+          description:
+            "One short note explaining why this looks like chain distortion or a local answer-shape gap."
+        }
+      ],
+      optionalFields: [
+        {
+          key: "main_developer_reason",
+          description:
+            "One concise diagnostics clue such as `continuation_reason_code` or `answer_strategy_reason_code`."
+        },
+        {
+          key: "answer_strategy_reason_code",
+          description: "Useful when the drift is tied to answer-shape precedence."
+        },
+        {
+          key: "continuation_reason_code",
+          description: "Useful when the drift appears on same-thread continuation turns."
+        },
+        {
+          key: "reply_language_source",
+          description: "Useful when language priority may have contributed to the drift."
+        },
+        {
+          key: "memory_used_or_recalled_memories",
+          description:
+            "Useful when memory participation helps explain whether the failure was local or chain-level."
+        },
+        {
+          key: "approx_context_pressure / long_chain_pressure_candidate",
+          description:
+            "Record together only when they clarify whether the failure looks like pressure or an earlier rule-layer drift."
+        }
+      ],
+      notes: [
+        "Keep the template lightweight: it is for record clarity, not for adding new automatic reasoning.",
+        "Prefer one stable scenario verdict and one first failing turn over scattered turn-by-turn notes.",
+        "When a case holds, still record `scenario_verdict`, and use `first_failing_turn: none` plus `drift_dimension: none`."
       ]
     }
   }

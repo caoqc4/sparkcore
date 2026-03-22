@@ -67,6 +67,32 @@ function renderMarkdown(suiteId: keyof typeof qualityEvalSuites) {
     lines.push("");
   }
 
+  if (suite.observationRecordTemplate) {
+    lines.push("## Observation Record Template");
+    lines.push("");
+    lines.push("Required fields:");
+    lines.push(
+      ...suite.observationRecordTemplate.requiredFields.map(
+        (entry) => `- \`${entry.key}\`: ${entry.description}`
+      )
+    );
+    lines.push("");
+    if (suite.observationRecordTemplate.optionalFields?.length) {
+      lines.push("Optional fields:");
+      lines.push(
+        ...suite.observationRecordTemplate.optionalFields.map(
+          (entry) => `- \`${entry.key}\`: ${entry.description}`
+        )
+      );
+      lines.push("");
+    }
+    lines.push("Template notes:");
+    lines.push(
+      ...suite.observationRecordTemplate.notes.map((entry) => `- ${entry}`)
+    );
+    lines.push("");
+  }
+
   let activeScenarioPack: keyof typeof REAL_CHAT_SCENARIO_PACK_LABELS | null = null;
 
   for (const item of suite.cases) {

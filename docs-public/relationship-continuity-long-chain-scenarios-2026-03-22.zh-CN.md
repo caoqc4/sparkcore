@@ -49,6 +49,38 @@
 
 - [relationship-continuity-test-layering-2026-03-22.zh-CN.md](/Users/caoq/git/sparkcore/docs-public/relationship-continuity-test-layering-2026-03-22.zh-CN.md)
 
+## Observation Record Template
+
+第一轮及后续 rerun 的长链路记录，统一优先使用下面这组字段。
+
+### 必填字段
+
+- `scenario_pack`
+- `case_id`
+- `scenario_verdict`
+- `first_failing_turn`
+- `drift_dimension`
+- `attribution_note`
+
+### 可选字段
+
+- `main_developer_reason`
+- `answer_strategy_reason_code`
+- `continuation_reason_code`
+- `reply_language_source`
+- `memory_used_or_recalled_memories`
+- `approx_context_pressure / long_chain_pressure_candidate`
+
+### 记录约束
+
+- 这套模板用于让 observation 更结构化，不用于引入新的自动判断复杂度
+- 优先记录一个稳定的 `scenario_verdict`，不要把记录重新拆回碎片化的逐句感受
+- 如果场景通过，仍然建议记录：
+  - `scenario_verdict: holds as one continuing role`
+  - `first_failing_turn: none`
+  - `drift_dimension: none`
+- 如果场景失败，先写最早失真轮次，再写最小 drift 维度，最后补一条轻量 `attribution_note`
+
 ## 建议优先顺序
 
 1. `anti-analysis -> brief catch -> gentle carry-forward`
