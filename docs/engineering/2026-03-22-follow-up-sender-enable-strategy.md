@@ -37,6 +37,7 @@
 - `app/api/internal/followup/run/route.ts` 已存在
 - `StubProactiveSender` 已可跑通整条链
 - `TelegramProactiveSender` 已作为样本实现壳存在
+- `follow-up-sender-policy.ts` 已形成统一 sender 选择 / 降级 helper
 - internal route 已完成两类受控验证：
   - `stub sender` 真实验证
   - Telegram proactive send 真实验证
@@ -224,6 +225,12 @@
 - 用户请求了什么
 - 系统实际用了什么
 
+当前代码里，这层判断已经由：
+
+- `apps/web/lib/chat/follow-up-sender-policy.ts`
+
+统一承接，而不是继续散在各个 route 内部。
+
 ---
 
 ## 9. 当前阶段推荐的策略矩阵
@@ -306,7 +313,7 @@
 
 ### Step 2
 
-如果要继续推进，实现一个最小 sender policy helper，统一做：
+如果要继续推进，继续把现有 sender policy helper 扩到更多入口，统一做：
 
 - 请求 sender 解析
 - env 开关判断

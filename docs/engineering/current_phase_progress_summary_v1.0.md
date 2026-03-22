@@ -106,6 +106,7 @@
 - `accepted follow_up` 已默认进入真实 `pending_follow_ups` 持久化路径
 - `follow_up` 已具备最小 claim / result marking repository seam
 - `follow_up` 已具备平台无关 proactive sender contract、mapper 与 sender shell
+- `follow_up` 已具备统一 sender policy helper，用于收口 sender 选择 / 降级逻辑
 - `follow_up` 已能通过一次性 harness 跑通 `claim -> map -> send -> mark`
 - `follow_up` 已具备默认 `claim -> resolve binding -> map -> send -> mark` worker shell
 - `follow_up` 已具备受 `x-smoke-secret` 保护的手动调试 route：
@@ -115,6 +116,7 @@
 - `follow_up` 的 internal route 已完成两类受控真实验证：
   - 默认 `stub sender` 路径已验证 `pending -> claimed -> resolve binding -> send(stub) -> mark executed`
   - 显式开启 `FOLLOW_UP_ENABLE_TELEGRAM_SEND=true` 且指定 `sender=telegram` 后，已完成一次真实 Telegram proactive send 验证
+- `api/test` 与 `api/internal` 两条 route 已开始共用统一 sender policy helper，而不是各自维护 sender 选择逻辑
 
 这意味着：
 
@@ -324,6 +326,7 @@
 - `app/api/test/followup-run/route.ts` 已可作为最小手动调试入口
 - `app/api/internal/followup/run/route.ts` 已可作为最小受控自动触发入口壳
 - `app/api/internal/followup/run/route.ts` 已完成一次 `stub` 路径真实验证与一次 Telegram proactive send 受控真实验证
+- `follow-up-sender-policy.ts` 已形成统一 sender 选择 / 降级层
 
 当前已经明确暴露出的关键依赖是：
 
