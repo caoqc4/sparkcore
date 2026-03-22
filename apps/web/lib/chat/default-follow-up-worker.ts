@@ -5,7 +5,7 @@ import {
 } from "@/lib/chat/follow-up-binding";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import { buildProactiveSendRequestFromClaimedFollowUp } from "@/lib/chat/follow-up-proactive-send";
-import { StubProactiveSender } from "@/lib/chat/follow-up-proactive-sender";
+import { createFollowUpSender } from "@/lib/chat/follow-up-sender-policy";
 import { markFollowUpFromSendResult } from "@/lib/chat/follow-up-result-marking";
 import type {
   FollowUpRepository,
@@ -114,7 +114,7 @@ export async function runDefaultFollowUpWorker({
   now = new Date().toISOString(),
   limit = 10,
   claimedBy = "default-follow-up-worker",
-  sender = new StubProactiveSender(),
+  sender = createFollowUpSender("stub"),
   repository = createAdminFollowUpRepository(),
   resolveBinding = createAdminFollowUpBindingResolver()
 }: {
