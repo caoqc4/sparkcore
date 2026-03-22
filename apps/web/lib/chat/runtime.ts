@@ -25,9 +25,9 @@ import {
   type RuntimeReplyLanguage
 } from "@/lib/chat/role-core";
 import {
-  loadRoleProfile,
-  ROLE_PROFILE_SELECT
+  loadRoleProfile
 } from "@/lib/chat/role-loader";
+import { ROLE_PROFILE_SELECT } from "@/lib/chat/role-repository";
 import {
   prepareRuntimeMemory,
   prepareRuntimeRole,

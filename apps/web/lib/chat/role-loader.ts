@@ -1,11 +1,5 @@
 import type { AgentRecord, RoleProfile } from "@/lib/chat/role-core";
-
-export const ROLE_PROFILE_SELECT =
-  "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata";
-
-function asRoleProfile(record: unknown): RoleProfile | null {
-  return record ? (record as RoleProfile) : null;
-}
+import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
 
 export async function loadRoleProfile({
   supabase,
@@ -18,19 +12,18 @@ export async function loadRoleProfile({
   userId: string;
   agentId?: string | null;
 }): Promise<AgentRecord | null> {
-  let query = supabase
-    .from("agents")
-    .select(ROLE_PROFILE_SELECT)
-    .eq("workspace_id", workspaceId)
-    .eq("owner_user_id", userId)
-    .eq("status", "active");
+  const repository = new SupabaseRoleRepository(supabase);
 
   if (agentId) {
-    const { data } = await query.eq("id", agentId).maybeSingle();
-    return asRoleProfile(data);
+    return repository.getRoleProfileById({
+      workspaceId,
+      userId,
+      agentId
+    });
   }
 
-  const { data } = await query.order("updated_at", { ascending: false }).limit(1).maybeSingle();
-
-  return asRoleProfile(data);
+  return repository.getLatestActiveRoleProfile({
+    workspaceId,
+    userId
+  });
 }
