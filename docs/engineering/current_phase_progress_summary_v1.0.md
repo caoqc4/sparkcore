@@ -118,6 +118,13 @@
 - `runtime` 输出治理也已开始进入文档收口阶段，当前已开始明确：
   - `runtime_events` 负责“本轮发生了什么标准过程”
   - `debug_metadata` 负责“这轮为什么这样、有哪些最小调试摘要”
+- `runtime event catalog` 也已开始收成最小目录，当前已明确包括：
+  - `memory_recalled`
+  - `memory_write_planned`
+  - `follow_up_planned`
+  - `answer_strategy_selected`
+  - `assistant_reply_completed`
+  - `thread_state_writeback_completed`
 - `actions.ts` 已开始消费统一 runtime 输出对象
 - `relationship memory` 已通过 `memory_write_requests` subtype 显式产出
 - `follow_up_requests` 已有第一版 executor stub 与显式执行结果对象

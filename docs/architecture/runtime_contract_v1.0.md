@@ -213,6 +213,13 @@ runtime 在处理一轮时，至少要消费：
 当前实现补充：
 
 - `runtime_events` 已开始承接最小 `thread_state_writeback_completed` 事件
+- 当前最小 event catalog 也已开始明确收口为：
+  - `memory_recalled`
+  - `memory_write_planned`
+  - `follow_up_planned`
+  - `answer_strategy_selected`
+  - `assistant_reply_completed`
+  - `thread_state_writeback_completed`
 - 当前 event payload 先只暴露：
   - `status`
   - `repository`
