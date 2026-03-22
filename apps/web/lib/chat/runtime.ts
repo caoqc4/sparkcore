@@ -33,7 +33,7 @@ import {
   loadRoleProfile,
   ROLE_PROFILE_SELECT
 } from "@/lib/chat/role-loader";
-import { buildPreparedRuntimeTurn } from "@/lib/chat/runtime-prepared-turn";
+import { prepareRuntimeTurn } from "@/lib/chat/runtime-prepared-turn";
 import {
   buildRuntimeTurnInput,
   type RuntimeTurnInput,
@@ -3386,7 +3386,7 @@ export async function generateAgentReply({
     preferSameThreadContinuation,
     relationshipRecall
   });
-  const preparedRuntimeTurn = buildPreparedRuntimeTurn({
+  const preparedRuntimeTurn = await prepareRuntimeTurn({
     input,
     agent,
     roleCorePacket,

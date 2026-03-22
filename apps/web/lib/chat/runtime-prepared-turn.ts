@@ -77,3 +77,18 @@ export function buildPreparedRuntimeTurn(args: {
     }
   };
 }
+
+export async function prepareRuntimeTurn(args: {
+  input: RuntimeTurnInput;
+  agent: AgentRecord;
+  roleCorePacket: RoleCorePacket;
+  session: SessionContext;
+  runtimeMemoryContext: RuntimeMemoryContext;
+  workspace: PreparedRuntimeWorkspace;
+  thread: PreparedRuntimeThread;
+  messages: PreparedRuntimeMessage[];
+  assistantMessageId?: string;
+  supabase?: unknown;
+}): Promise<PreparedRuntimeTurn> {
+  return buildPreparedRuntimeTurn(args);
+}
