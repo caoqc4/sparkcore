@@ -72,7 +72,8 @@
 - recall / write / shared 已在 `apps/web/lib/chat` 内部分层
 - `memory.ts` 已退成兼容入口
 - `profile / preference` 已形成 planner -> executor 最小闭环
-- relationship memory 仍保留独立路径，没有被过早混进通用 planner
+- `relationship memory` 已收进 `memory_write_requests` 的显式 subtype
+- relationship 写入已不再走额外旁路，而是回到统一 write pipeline
 
 这意味着：
 
@@ -100,11 +101,13 @@
 - `follow_up_requests` 已有最小 planner output
 - `runtime_events` 已有第一版标准事件类型
 - `actions.ts` 已开始消费统一 runtime 输出对象
+- `relationship memory` 已通过 `memory_write_requests` subtype 显式产出
+- `follow_up_requests` 已有第一版 executor stub 与显式执行结果对象
 
 这意味着：
 
 - runtime 的对外 contract 已从文档概念变成代码事实
-- 但事件 schema、follow-up executor、scheduler 接线仍未完成
+- 但事件 schema、真实 follow-up 调度、scheduler 接线仍未完成
 
 ---
 
@@ -188,12 +191,17 @@
   - 真实 Telegram 身份已完成 binding 查询验证
   - `binding lookup -> runtime -> outbound reply` 已跑通
   - 验证结束后测试 binding 与 webhook 已完成清理
+- Telegram PoC 已补齐重跑脚本与 runbook：
+  - webhook set / delete script
+  - binding upsert / delete script
+  - `telegram_poc_runbook_v1.0.md`
+  - `litellm_dev_runbook_v1.0.md`
 
 这意味着：
 
 - 接入层已经开始有独立代码落点
 - 已经证明“最快验证闭环”的单通道接入路径是成立的
-- 但 Telegram 当前仍停留在 PoC 层，不是稳定常驻接入入口
+- Telegram 当前已进入“可重复重跑的 PoC 入口”阶段，但仍不是稳定常驻接入入口
 - scheduler 接线、富媒体支持、真实绑定流程仍未开始
 
 ---
@@ -271,7 +279,7 @@
 虽然统一输出对象已经有了，但当前仍缺：
 
 - `runtime_events` 的完整字典与 payload schema
-- `follow_up_requests` 的真实执行器
+- `follow_up_requests` 的真实调度执行器
 - `RuntimeInput` 的正式代码 contract
 - `runAgentTurn(input)` 这种更明确的统一运行入口
 
@@ -281,12 +289,17 @@
 
 当前 `im_adapter_contract_v1.0.md` 已经有对应代码骨架，但当前仍缺：
 
-- Telegram webhook 的稳定运行入口
+- Telegram webhook 的稳定常驻运行入口
 - binding 的正式创建流程
 - `follow_up_requests` 到 scheduler / adapter 的真实闭环
-- `relationship memory` 的显式 contract 收口
 - 更稳定的平台级重试 / 幂等执行
-- LiteLLM 的稳定开发运行方式
+
+当前近期已经完成的关键补强包括：
+
+- LiteLLM 开发运行说明已补齐
+- Telegram PoC 重跑脚本已补齐
+- `relationship memory` 已完成显式 contract 收口
+- `follow_up executor stub` 已落地，可返回显式执行结果
 
 当前已经明确暴露出的关键依赖是：
 
@@ -300,52 +313,58 @@
 
 当前最推荐的推进顺序如下：
 
-### Step 1：先收住 Telegram PoC 的运行入口与回放说明
+### Step 1：先同步阶段总结与当前代码现实
 
 目标：
 
-- 把当前这轮 Telegram webhook / binding lookup / runtime port / LiteLLM 运行方式视作一个阶段成果
-- 让下次重跑 Telegram PoC 不再依赖临时记忆
+- 让总结文档准确反映当前真实状态
+- 明确 Telegram、relationship memory、follow-up executor 三条线都已前进一步
 
 建议动作：
 
-- 维持只支持文本消息
-- 依赖 `telegram_poc_runbook_v1.0.md`
-- 依赖 `litellm_dev_runbook_v1.0.md`
+- 持续把阶段总结作为当前进度入口
+- 避免后续再靠 commit 历史反推当前状态
 
 ---
 
-### Step 2：决定 Telegram 是否进入“可重复重跑”阶段
+### Step 2：决定是继续接入层稳定化，还是进入最小 follow-up 持久化设计
 
 原因：
 
-- 当前已经完成过一次真实 Telegram 闭环
-- 下一步重点不再是“证明能不能通”，而是“能不能更稳定、可重复地重跑”
+- Telegram 已经从“一次性验证”进入“可重复重跑的 PoC 入口”
+- `follow_up` 也已经从 planner 输出进入 executor stub 阶段
+- 下一步重点不再是证明方向，而是选择先稳哪一条执行链
 
 建议动作：
 
 - 如果继续平台化：
-  - 增加更稳定的重跑脚本或命令入口
-  - 明确 binding 创建 / 清理脚本
-  - 保持单通道，不扩附件与复杂命令
+  - 保持单通道
+  - 继续补 Telegram 稳定运行入口
+  - 不扩附件与复杂命令
+- 如果继续 follow-up：
+  - 先写最小 pending queue / 持久化设计稿
+  - 暂不直接落真实 scheduler
 
 ---
 
-### Step 3：再决定是继续平台化还是回到底座深化
+### Step 3：再决定是继续平台化、follow-up 调度，还是回到底座深化
 
 原因：
 
-- 当前最小平台接入一旦跑通，下一阶段路线会更清楚
-- 那时再判断是否继续 Telegram 能力，还是回到 role / session / scheduler 深化，会更稳
+- 当前最小平台接入已跑通且可重跑
+- relationship memory 与 follow-up contract 也已各自收口一轮
+- 这时再决定继续哪条线，返工会更少
 
 建议动作：
 
 - 如果继续平台化：
   - 只补 Telegram 单通道必需能力
   - 不并行开第二个平台
+- 如果继续调度：
+  - 先补 follow-up 的最小 pending queue 设计
+  - 再决定是否接真实持久化与扫描执行
 - 如果回到底座深化：
-  - 先补 `relationship memory` 的显式 contract
-  - 再收 `follow_up_requests` 的执行器边界
+  - 回到 `role / session / runtime input` 这几块仍未底座化的边界
 
 ---
 
@@ -353,12 +372,12 @@
 
 当前这一阶段最重要的成果，不是“已经接了多个 IM 平台”或者“已经把 packages 全搬完”，而是：
 
-**SparkCore 已经从“规划重定位”走到了“memory、runtime、session、role、adapter 五个核心边界开始在代码里成形，并且 Telegram 单通道 PoC 已完成真实闭环验证”的阶段。**
+**SparkCore 已经从“规划重定位”走到了“memory、runtime、session、role、adapter 五个核心边界开始在代码里成形，并且 Telegram PoC、relationship memory contract、follow-up executor stub 都已有真实工程落点”的阶段。**
 
 这意味着下一阶段已经不需要再大面积补总纲，而更适合围绕：
 
-- 收住 Telegram PoC 的运行与回放入口
-- 收稳 LiteLLM 开发运行方式
-- 再决定是继续平台能力，还是回到底座深化
+- 继续稳定 Telegram 单通道接入
+- 或进入 follow-up 的最小持久化设计
+- 或回到底座进一步抽纯 runtime / role / session 边界
 
 按这个顺序继续推进，返工会最少。
