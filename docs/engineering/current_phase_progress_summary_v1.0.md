@@ -111,6 +111,7 @@
 - `prepareRuntimeSession(...)` 已有第一版 session 装配函数壳，并已开始被主流程使用
 - `prepareRuntimeRole(...)` 已有第一版 role 装配函数壳，并已开始被主流程使用
 - `prepareRuntimeMemory(...)` 已有第一版 memory recall 装配函数壳，并已开始被主流程使用
+- `runPreparedRuntimeTurn(...)` 已有第一版执行薄壳，并已开始被主流程使用
 - `memory_write_requests` 已有最小 planner output
 - `follow_up_requests` 已有最小 planner output
 - `runtime_events` 已有第一版标准事件类型

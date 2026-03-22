@@ -265,6 +265,11 @@ type PreparedRuntimeTurn = {
 - 让 `generateAgentReply(...)` 逐步退成底层执行函数
 - 让 `runAgentTurn(input)` 变成真正稳定的统一入口
 
+这一步当前也已经开始第一版：
+
+- `runPreparedRuntimeTurn(prepared)` 已存在
+- `runtime.ts` 已开始通过它承接“装配后执行”这一层
+
 ---
 
 ## 10. 当前代码映射
@@ -291,6 +296,7 @@ type PreparedRuntimeTurn = {
 - `prepareRuntimeSession(...)` 已经在 `runtime-prepared-turn.ts` 中有第一版 session 装配函数
 - `prepareRuntimeRole(...)` 已经在 `runtime-prepared-turn.ts` 中有第一版 role 装配函数
 - `prepareRuntimeMemory(...)` 已经在 `runtime-prepared-turn.ts` 中有第一版 memory recall 装配函数
+- `runPreparedRuntimeTurn(...)` 已经在 `runtime.ts` 中有第一版执行薄壳
 - `runtime.ts` 已开始把：
   - `input`
   - `role_core`
@@ -335,6 +341,7 @@ type PreparedRuntimeTurn = {
 - `prepareRuntimeSession(...)` 已独立存在
 - `prepareRuntimeRole(...)` 已独立存在
 - `prepareRuntimeMemory(...)` 已独立存在
+- `runPreparedRuntimeTurn(...)` 已独立存在
 - 主流程已开始通过它获取 `PreparedRuntimeTurn`
 
 ### Step 4：最后再考虑把 `generateAgentReply(...)` 的参数面收瘦
@@ -345,7 +352,7 @@ type PreparedRuntimeTurn = {
 
 ## 12. 当前结论
 
-当前 SparkCore 最值得补的，不是继续增加 runtime 顶层字段，而是把已经出现的 `PreparedRuntimeTurn + prepareRuntimeTurn(...)` 第一版代码壳继续往更稳定的装配入口推进。
+当前 SparkCore 最值得补的，不是继续增加 runtime 顶层字段，而是把已经出现的 `PreparedRuntimeTurn + prepareRuntimeTurn(...) + runPreparedRuntimeTurn(...)` 第一版代码壳继续往更稳定的装配/执行边界推进。
 
 因此当前更合理的方向是：
 
