@@ -11,6 +11,7 @@ import {
   isMemoryActive,
   isMemoryHidden,
   isMemoryIncorrect,
+  isMemoryScopeValid,
   LEGACY_MEMORY_KEY
 } from "@/lib/chat/memory-v2";
 
@@ -138,6 +139,34 @@ type SmokeContinuityReply = {
   content: string;
   replyLanguage: SmokeReplyLanguage;
 };
+
+function isSmokeMemoryApplicableToThread({
+  memory,
+  agentId,
+  threadId
+}: {
+  memory: {
+    scope?: string | null;
+    target_agent_id?: string | null;
+    target_thread_id?: string | null;
+  };
+  agentId: string;
+  threadId: string;
+}) {
+  if (!isMemoryScopeValid(memory)) {
+    return false;
+  }
+
+  if (memory.scope === "user_agent") {
+    return memory.target_agent_id === agentId;
+  }
+
+  if (memory.scope === "thread_local") {
+    return memory.target_thread_id === threadId;
+  }
+
+  return true;
+}
 
 function detectSmokeExplicitLanguageOverride(content: string): SmokeReplyLanguage {
   const normalized = content.normalize("NFKC").toLowerCase();
@@ -2659,21 +2688,10 @@ export async function createSmokeTurn({
     );
   }
 
-  const hiddenMemoryCountResponse = await admin
-    .from("memory_items")
-    .select("id, metadata", { count: "exact" })
-    .eq("workspace_id", smokeUser.workspaceId)
-    .eq("user_id", smokeUser.id);
-  const incorrectMemoryCountResponse = await admin
-    .from("memory_items")
-    .select("id, metadata", { count: "exact" })
-    .eq("workspace_id", smokeUser.workspaceId)
-    .eq("user_id", smokeUser.id);
-
   const { data: existingMemories, error: memoriesError } = await admin
     .from("memory_items")
     .select(
-      "id, memory_type, content, confidence, category, key, value, scope, status, target_agent_id, metadata"
+      "id, memory_type, content, confidence, category, key, value, scope, status, target_agent_id, target_thread_id, metadata"
     )
     .eq("workspace_id", smokeUser.workspaceId)
     .eq("user_id", smokeUser.id)
@@ -2703,14 +2721,23 @@ export async function createSmokeTurn({
     }>
   );
 
-  const activeMemories =
-    existingMemories?.filter((memory) => isMemoryActive(memory)) ?? [];
-  const hiddenExclusionCount =
-    hiddenMemoryCountResponse.data?.filter((memory) => isMemoryHidden(memory)).length ??
-    0;
-  const incorrectExclusionCount =
-    incorrectMemoryCountResponse.data?.filter((memory) => isMemoryIncorrect(memory))
-      .length ?? 0;
+  const validExistingMemories =
+    existingMemories?.filter((memory) =>
+      isSmokeMemoryApplicableToThread({
+        memory,
+        agentId: ensuredAgent.id,
+        threadId: thread.id
+      })
+    ) ?? [];
+  const activeMemories = validExistingMemories.filter((memory) =>
+    isMemoryActive(memory)
+  );
+  const hiddenExclusionCount = validExistingMemories.filter((memory) =>
+    isMemoryHidden(memory)
+  ).length;
+  const incorrectExclusionCount = validExistingMemories.filter((memory) =>
+    isMemoryIncorrect(memory)
+  ).length;
 
   const recalledMemories: Array<{
     memory_type: "profile" | "preference" | "relationship";

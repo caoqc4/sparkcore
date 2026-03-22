@@ -3318,6 +3318,8 @@ export async function generateAgentReply({
     ? await recallRelevantMemories({
         workspaceId: workspace.id,
         userId,
+        agentId: agent.id,
+        threadId: thread.id,
         latestUserMessage: latestUserMessageContent,
         allowDistantFallback: !preferSameThreadContinuation
       })

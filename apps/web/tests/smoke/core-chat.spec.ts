@@ -2706,6 +2706,111 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).toContain("product designer");
   });
 
+  test("ignores out-of-scope user-agent memories during profession recall", async ({
+    request
+  }) => {
+    const admin = getSmokeAdminClient();
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    const { data: threadRow, error: threadError } = await admin
+      .from("threads")
+      .select("workspace_id, owner_user_id, agent_id")
+      .eq("id", threadId)
+      .maybeSingle();
+
+    expect(threadError).toBeNull();
+    expect(threadRow).toBeTruthy();
+
+    const seedTurnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "Just noting that we are starting a new thread."
+      }
+    });
+
+    expect(seedTurnResponse.ok()).toBeTruthy();
+
+    const { data: seedUserMessage, error: seedUserMessageError } = await admin
+      .from("messages")
+      .select("id")
+      .eq("thread_id", threadId)
+      .eq("role", "user")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    expect(seedUserMessageError).toBeNull();
+    expect(seedUserMessage).toBeTruthy();
+
+    const otherAgent = await getSmokeAgentByName("Smoke Memory Coach");
+
+    const { error: insertError } = await admin.from("memory_items").insert({
+      workspace_id: threadRow?.workspace_id,
+      user_id: threadRow?.owner_user_id,
+      agent_id: otherAgent.id,
+      source_message_id: seedUserMessage?.id,
+      memory_type: "profile",
+      content: "product designer",
+      confidence: 0.95,
+      category: "profile",
+      key: "profession",
+      value: "product designer",
+      scope: "user_agent",
+      subject_user_id: threadRow?.owner_user_id,
+      target_agent_id: otherAgent.id,
+      target_thread_id: null,
+      stability: "high",
+      status: "active",
+      source_refs: [],
+      metadata: {
+        smoke_seed: true,
+        out_of_scope_seed: true
+      }
+    });
+
+    expect(insertError).toBeNull();
+
+    const recallResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "What profession do you remember that I work in? If you do not know, say you do not know."
+      }
+    });
+
+    expect(recallResponse.ok()).toBeTruthy();
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+
+    expect(metadata.question_type).toBe("direct-fact");
+    expect(metadata.answer_strategy).toBe("structured-recall-first");
+    expect(metadata.answer_strategy_reason_code).toBe("direct-memory-question");
+    expect(latestAssistantMessage.content.toLowerCase()).not.toContain(
+      "product designer"
+    );
+  });
+
   test("uses relationship-answer-shape diagnostics for explanatory turns before same-thread carryover exists", async ({
     request
   }) => {

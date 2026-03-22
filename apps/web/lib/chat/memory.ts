@@ -8,6 +8,7 @@ import {
   isMemoryActive,
   isMemoryHidden,
   isMemoryIncorrect,
+  isMemoryScopeValid,
   LEGACY_MEMORY_KEY,
   normalizeSingleSlotValue,
   type MemoryCategory,
@@ -71,6 +72,30 @@ type RecallOutcome = {
   hiddenExclusionCount: number;
   incorrectExclusionCount: number;
 };
+
+function isMemoryApplicableToRecall({
+  memory,
+  agentId,
+  threadId
+}: {
+  memory: StoredMemory;
+  agentId?: string | null;
+  threadId?: string | null;
+}) {
+  if (!isMemoryScopeValid(memory)) {
+    return false;
+  }
+
+  if (memory.scope === "user_agent") {
+    return typeof agentId === "string" && memory.target_agent_id === agentId;
+  }
+
+  if (memory.scope === "thread_local") {
+    return typeof threadId === "string" && memory.target_thread_id === threadId;
+  }
+
+  return true;
+}
 
 type MemoryWriteOutcome = {
   createdCount: number;
@@ -1207,11 +1232,15 @@ export async function extractAndStoreMemories({
 export async function recallRelevantMemories({
   workspaceId,
   userId,
+  agentId,
+  threadId,
   latestUserMessage,
   allowDistantFallback = true
 }: {
   workspaceId: string;
   userId: string;
+  agentId?: string | null;
+  threadId?: string | null;
   latestUserMessage: string;
   allowDistantFallback?: boolean;
 }): Promise<RecallOutcome> {
@@ -1232,10 +1261,16 @@ export async function recallRelevantMemories({
     throw new Error(`Failed to load memory items: ${error.message}`);
   }
 
-  const allMemories = (data ?? []) as StoredMemory[];
-  const activeMemories = allMemories.filter((memory) => isMemoryActive(memory));
-  const hiddenCandidates = allMemories.filter((memory) => isMemoryHidden(memory));
-  const incorrectCandidates = allMemories.filter((memory) =>
+  const validMemories = ((data ?? []) as StoredMemory[]).filter((memory) =>
+    isMemoryApplicableToRecall({
+      memory,
+      agentId,
+      threadId
+    })
+  );
+  const activeMemories = validMemories.filter((memory) => isMemoryActive(memory));
+  const hiddenCandidates = validMemories.filter((memory) => isMemoryHidden(memory));
+  const incorrectCandidates = validMemories.filter((memory) =>
     isMemoryIncorrect(memory)
   );
 
