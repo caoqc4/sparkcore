@@ -56,6 +56,27 @@ export type ChannelBinding = {
   metadata?: Record<string, unknown>;
 };
 
+export type BindingLookupInput = {
+  platform: string;
+  channel_id: string;
+  peer_id: string;
+  platform_user_id: string;
+};
+
+export type BindingLookupResult =
+  | {
+      status: "found";
+      binding: ChannelBinding;
+    }
+  | {
+      status: "not_found";
+      reason?: string;
+    };
+
+export type BindingLookup = {
+  lookup: (input: BindingLookupInput) => Promise<BindingLookupResult>;
+};
+
 export type AdapterRuntimeInput = {
   user_id: string;
   agent_id: string;
@@ -113,6 +134,12 @@ export type AdapterInboundHandlingResult =
   | {
       status: "skipped_duplicate";
       dedupe_key: string;
+    }
+  | {
+      status: "binding_not_found";
+      dedupe_key: string;
+      lookup_input: BindingLookupInput;
+      reason?: string;
     }
   | {
       status: "processed";

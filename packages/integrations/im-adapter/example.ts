@@ -3,6 +3,7 @@ import {
   buildRuntimeInputFromInbound,
   handleInboundChannelMessage
 } from "./bridge";
+import { InMemoryBindingLookup } from "./binding";
 import type {
   AdapterRuntimePort,
   ChannelBinding,
@@ -35,6 +36,8 @@ export const exampleBinding: ChannelBinding = {
   thread_id: "thread_123",
   status: "active"
 };
+
+export const exampleBindingLookup = new InMemoryBindingLookup([exampleBinding]);
 
 export const exampleRuntimePort: AdapterRuntimePort = {
   async runTurn(input) {
@@ -93,7 +96,7 @@ export const exampleInboundDedupeKey = buildInboundDedupeKey(exampleInboundMessa
 export async function buildExampleAdapterFlow() {
   return handleInboundChannelMessage({
     inbound: exampleInboundMessage,
-    binding: exampleBinding,
+    bindingLookup: exampleBindingLookup,
     runtimePort: exampleRuntimePort,
     seenDedupeKeys: new Set<string>()
   });

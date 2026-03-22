@@ -288,6 +288,7 @@ Success criteria：
 当前代码里，IM adapter 的第一版骨架已开始落到：
 
 - `packages/integrations/im-adapter/contract.ts`
+- `packages/integrations/im-adapter/binding.ts`
 - `packages/integrations/im-adapter/bridge.ts`
 - `packages/integrations/im-adapter/example.ts`
 - `apps/web/lib/chat/im-runtime-port.ts`
@@ -297,6 +298,8 @@ Success criteria：
 - `InboundChannelMessage` 的第一版代码 contract
 - `OutboundChannelMessage` 的第一版代码 contract
 - binding 最小结构
+- `BindingLookup` 的第一版查询接口
+- `InMemoryBindingLookup` 的最小 stub 实现
 - `AdapterRuntimePort` 这一层 runtime 接口
 - `handleInboundChannelMessage(...)` 的最小 bridge
 - Web 侧 `AdapterRuntimePort` 第一版适配器
@@ -304,7 +307,7 @@ Success criteria：
 当前仍缺：
 
 - 真实平台 SDK 接入
-- binding 的持久化查询与写入
+- binding 的真实持久化查询与写入
 - 出站发送器
 - `follow_up_requests` 与 scheduler 的真实接线
 - 与当前 `apps/web` runtime 的正式适配器
@@ -314,9 +317,16 @@ Success criteria：
 
 - `packages/integrations/im-adapter/contract.ts`
   负责接入层标准类型、binding、runtime port 和 bridge result
+- `packages/integrations/im-adapter/binding.ts`
+  负责 binding 查询层的最小 contract 与 stub：
+  - `BindingLookup`
+  - `BindingLookupInput`
+  - `BindingLookupResult`
+  - `InMemoryBindingLookup`
 - `packages/integrations/im-adapter/bridge.ts`
   负责纯 bridge 逻辑：
   - inbound dedupe key
+  - binding lookup
   - `InboundChannelMessage -> AdapterRuntimeInput`
   - `AdapterRuntimeOutput -> OutboundChannelMessage`
   - 最小 `handleInboundChannelMessage(...)`

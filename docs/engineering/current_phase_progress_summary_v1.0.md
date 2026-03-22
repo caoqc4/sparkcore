@@ -166,6 +166,8 @@
 - `InboundChannelMessage` 已有第一版代码 contract
 - `OutboundChannelMessage` 已有第一版代码 contract
 - binding 最小结构已落代码
+- `BindingLookup` 已形成最小查询接口
+- `InMemoryBindingLookup` 已形成最小 stub
 - `AdapterRuntimePort` 已形成 runtime 边界接口
 - `handleInboundChannelMessage(...)` 已能表达最小 `incoming -> runtime -> outgoing` 骨架
 - Web 侧 runtime 已有第一版 adapter port 适配器
@@ -261,7 +263,7 @@
 当前 `im_adapter_contract_v1.0.md` 已经有对应代码骨架，但当前仍缺：
 
 - 具体平台接入
-- binding 的真实查询层
+- binding 的真实持久化查询层
 - 出站发送层
 - `follow_up_requests` 到 scheduler / adapter 的真实闭环
 - 与现有 runtime 的正式适配入口

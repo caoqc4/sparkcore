@@ -3,10 +3,12 @@ import type {
   AdapterRuntimeInput,
   AdapterRuntimeOutput,
   AdapterRuntimePort,
+  BindingLookup,
   ChannelBinding,
   InboundChannelMessage,
   OutboundChannelMessage
 } from "./contract";
+import { buildBindingLookupInput } from "./binding";
 
 export function buildInboundDedupeKey(message: InboundChannelMessage) {
   if (message.event_id.trim().length > 0) {
@@ -90,7 +92,7 @@ export function buildProactiveOutboundMessages(args: {
 
 export async function handleInboundChannelMessage(args: {
   inbound: InboundChannelMessage;
-  binding: ChannelBinding;
+  bindingLookup: BindingLookup;
   runtimePort: AdapterRuntimePort;
   seenDedupeKeys?: Set<string>;
 }): Promise<AdapterInboundHandlingResult> {
@@ -103,9 +105,26 @@ export async function handleInboundChannelMessage(args: {
     };
   }
 
+  const lookupInput = buildBindingLookupInput({
+    platform: args.inbound.platform,
+    channel_id: args.inbound.channel_id,
+    peer_id: args.inbound.peer_id,
+    platform_user_id: args.inbound.platform_user_id
+  });
+  const lookupResult = await args.bindingLookup.lookup(lookupInput);
+
+  if (lookupResult.status === "not_found") {
+    return {
+      status: "binding_not_found",
+      dedupe_key: dedupeKey,
+      lookup_input: lookupInput,
+      reason: lookupResult.reason
+    };
+  }
+
   const runtimeInput = buildRuntimeInputFromInbound({
     inbound: args.inbound,
-    binding: args.binding
+    binding: lookupResult.binding
   });
   const runtimeOutput = await args.runtimePort.runTurn(runtimeInput);
   const outboundMessages = [
@@ -114,7 +133,7 @@ export async function handleInboundChannelMessage(args: {
       runtimeOutput
     }),
     ...buildProactiveOutboundMessages({
-      binding: args.binding,
+      binding: lookupResult.binding,
       runtimeOutput
     })
   ];
