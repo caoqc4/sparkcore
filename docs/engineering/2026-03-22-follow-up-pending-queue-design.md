@@ -345,8 +345,10 @@ type FollowUpRepository = {
 - `FollowUpRepository` 接口
 - `buildPendingFollowUpRecord(...)`
 - `InMemoryFollowUpRepository`
+- `SupabaseFollowUpRepository` 映射壳
 
 这意味着：
 
 - pending queue 已不再只有文档概念
-- 但当前仍未接入真实持久化，也未进入真实 enqueue 流程
+- 当前已经具备真实持久化入口的代码壳
+- 但默认路径仍未切到真实数据库 enqueue，也未进入 claim / dequeue / 真执行流程
