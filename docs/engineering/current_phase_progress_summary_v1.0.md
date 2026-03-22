@@ -108,11 +108,13 @@
 - `follow_up` 已具备平台无关 proactive sender contract、mapper 与 sender shell
 - `follow_up` 已能通过一次性 harness 跑通 `claim -> map -> send -> mark`
 - `follow_up` 已具备默认 `claim -> resolve binding -> map -> send -> mark` worker shell
+- `follow_up` 已具备受 `x-smoke-secret` 保护的手动调试 route：
+  - `app/api/test/followup-run/route.ts`
 
 这意味着：
 
 - runtime 的对外 contract 已从文档概念变成代码事实
-- 但事件 schema、默认 worker 的 route/cron 接线、scheduler 常驻执行仍未完成
+- 但事件 schema、默认 worker 的 cron 接线、scheduler 常驻执行仍未完成
 
 ---
 
@@ -314,6 +316,7 @@
 - proactive sender contract / mapper / stub / Telegram sample sender shell 已形成
 - `claim -> map -> send -> mark` 已可通过一次性 harness 跑通（当前默认走 stub sender）
 - `runDefaultFollowUpWorker(...)` 已落成最小代码壳，默认仍走 `StubProactiveSender`
+- `app/api/test/followup-run/route.ts` 已可作为最小手动调试入口
 
 当前已经明确暴露出的关键依赖是：
 
@@ -346,7 +349,7 @@
 原因：
 
 - Telegram 已经从“一次性验证”进入“可重复重跑的 PoC 入口”
-- `follow_up` 已经从 planner 输出推进到默认 worker shell 已落代码的阶段
+- `follow_up` 已经从 planner 输出推进到默认 worker shell 与手动调试入口都已落代码的阶段
 - 下一步重点不再是证明方向，而是选择先稳哪一条执行链
 
 建议动作：
@@ -356,7 +359,7 @@
   - 继续补 Telegram 稳定运行入口
   - 不扩附件与复杂命令
 - 如果继续 follow-up：
-  - 先补默认 worker 的 route / cron / 手动入口接线
+  - 先补默认 worker 的 cron / admin 入口分化
   - 暂不直接落 loop / retry / requeue
 
 ---
@@ -375,7 +378,7 @@
   - 只补 Telegram 单通道必需能力
   - 不并行开第二个平台
 - 如果继续调度：
-  - 先补默认 worker 的最小接线路径
+  - 先补默认 worker 的 cron 风格接线
   - 再决定是否接真实扫描执行、主动发送与 retry
 - 如果回到底座深化：
   - 回到 `role / session / runtime input` 这几块仍未底座化的边界
@@ -386,12 +389,12 @@
 
 当前这一阶段最重要的成果，不是“已经接了多个 IM 平台”或者“已经把 packages 全搬完”，而是：
 
-**SparkCore 已经从“规划重定位”走到了“memory、runtime、session、role、adapter 五个核心边界开始在代码里成形，并且 Telegram PoC、relationship memory contract、follow-up pending / claim / proactive send / default worker 都已有真实工程落点”的阶段。**
+**SparkCore 已经从“规划重定位”走到了“memory、runtime、session、role、adapter 五个核心边界开始在代码里成形，并且 Telegram PoC、relationship memory contract、follow-up pending / claim / proactive send / default worker / manual route 都已有真实工程落点”的阶段。**
 
 这意味着下一阶段已经不需要再大面积补总纲，而更适合围绕：
 
 - 继续稳定 Telegram 单通道接入
-- 或进入 follow-up 的默认 worker 接线
+- 或进入 follow-up 的默认 worker cron/admin 分化
 - 或回到底座进一步抽纯 runtime / role / session 边界
 
 按这个顺序继续推进，返工会最少。
