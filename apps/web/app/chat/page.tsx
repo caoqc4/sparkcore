@@ -451,6 +451,14 @@ export default async function ChatPage({
         count
       })
     ),
+    previewEntries: [...visibleThreadLocalMemories, ...visibleLongTermMemories]
+      .slice(0, 3)
+      .map((memory) => ({
+        id: memory.id,
+        content: memory.content,
+        categoryLabel: getMemoryCategoryLabel(memory.category, locale),
+        scopeLabel: getMemoryScopeLabel(memory.scope, locale)
+      })),
     threadLocalCount: visibleThreadLocalMemories.length,
     hiddenCount: hiddenMemories.length,
     incorrectCount: incorrectMemories.length

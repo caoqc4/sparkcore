@@ -942,6 +942,44 @@ a {
   text-transform: uppercase;
 }
 
+.thread-memory-preview-list {
+  display: grid;
+  gap: 10px;
+}
+
+.thread-memory-preview-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(216, 222, 233, 0.9);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.thread-memory-preview-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.thread-memory-preview-content {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.thread-memory-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.thread-memory-preview-actions .button {
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 0.92rem;
+}
+
 .thread-title-row {
   display: flex;
   align-items: center;

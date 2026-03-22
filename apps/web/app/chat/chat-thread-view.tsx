@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AgentEditSheet } from "@/app/chat/agent-edit-sheet";
 import {
+  hideMemory,
+  markMemoryIncorrect,
   renameThread,
   retryAssistantReply,
   sendMessage,
@@ -55,6 +57,12 @@ type ChatThreadViewProps = {
       key: string;
       label: string;
       count: number;
+    }>;
+    previewEntries: Array<{
+      id: string;
+      content: string;
+      categoryLabel: string;
+      scopeLabel: string;
     }>;
     threadLocalCount: number;
     hiddenCount: number;
@@ -850,6 +858,46 @@ export function ChatThreadView({
                     {memoryVisibility.incorrectCount}
                     {copy.thread.memoryVisibilityHiddenHintSuffix}
                   </p>
+                ) : null}
+
+                {memoryVisibility.previewEntries.length > 0 ? (
+                  <div className="thread-memory-preview-list">
+                    {memoryVisibility.previewEntries.map((memory) => (
+                      <article className="thread-memory-preview-card" key={memory.id}>
+                        <div className="thread-memory-preview-badges">
+                          <span className="thread-badge">{memory.categoryLabel}</span>
+                          <span className="thread-badge thread-badge-muted">
+                            {memory.scopeLabel}
+                          </span>
+                        </div>
+                        <p className="thread-memory-preview-content">{memory.content}</p>
+                        <div className="thread-memory-preview-actions">
+                          <form action={hideMemory}>
+                            <input name="memory_id" type="hidden" value={memory.id} />
+                            <input
+                              name="redirect_thread_id"
+                              type="hidden"
+                              value={thread.id}
+                            />
+                            <button className="button button-secondary" type="submit">
+                              {copy.memory.hide}
+                            </button>
+                          </form>
+                          <form action={markMemoryIncorrect}>
+                            <input name="memory_id" type="hidden" value={memory.id} />
+                            <input
+                              name="redirect_thread_id"
+                              type="hidden"
+                              value={thread.id}
+                            />
+                            <button className="button button-secondary" type="submit">
+                              {copy.memory.incorrect}
+                            </button>
+                          </form>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
                 ) : null}
 
                 <div className="thread-repair-actions">
