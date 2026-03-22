@@ -345,3 +345,24 @@ Telegram 当前不应该承担：
 - 已有 sender contract
 
 这四层之上，而不是把平台发送、调度和状态回写一次揉在一起。
+
+---
+
+## 16. 当前实现进展
+
+当前已经补上的最小代码壳包括：
+
+- 平台无关的：
+  - `ProactiveSendTarget`
+  - `ProactiveSendMessage`
+  - `ProactiveSendRequest`
+  - `ProactiveSendResult`
+  - `ProactiveSender`
+- `buildProactiveSendTargetFromBinding(...)`
+- `buildProactiveSendRequestFromClaimedFollowUp(...)`
+
+这意味着：
+
+- proactive sender 已不再只有文档概念
+- 已有 `claimed record + binding -> sender request` 的最小 mapper seam
+- 当前仍未接真实 sender，也未接 Telegram 主动发送实现

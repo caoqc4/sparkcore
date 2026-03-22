@@ -41,6 +41,47 @@ export type OutboundChannelMessage = {
   metadata?: Record<string, unknown>;
 };
 
+export type ProactiveSendTarget = {
+  platform: string;
+  channel_id: string;
+  peer_id: string;
+  platform_user_id?: string;
+  binding_id?: string;
+};
+
+export type ProactiveSendMessage = {
+  message_type: ChannelMessageType;
+  content: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type ProactiveSendRequest = {
+  follow_up_id: string;
+  kind: string;
+  target: ProactiveSendTarget;
+  message: ProactiveSendMessage;
+  claim_token?: string;
+  trace_id?: string;
+};
+
+export type ProactiveSendResultStatus =
+  | "sent"
+  | "failed"
+  | "unsupported"
+  | "invalid";
+
+export type ProactiveSendResult = {
+  follow_up_id: string;
+  status: ProactiveSendResultStatus;
+  platform_message_id?: string;
+  failure_reason?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type ProactiveSender = {
+  send: (request: ProactiveSendRequest) => Promise<ProactiveSendResult>;
+};
+
 export type ChannelBinding = {
   platform: string;
   channel_id: string;
