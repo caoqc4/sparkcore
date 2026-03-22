@@ -18,6 +18,12 @@ export type ResolvedFollowUpSender = {
   telegramSendEnabled: boolean;
 };
 
+export function createFollowUpSender(senderKind: FollowUpSenderKind): ProactiveSender {
+  return senderKind === "telegram"
+    ? new TelegramProactiveSender()
+    : new StubProactiveSender();
+}
+
 export function resolveFollowUpSender({
   routeKind,
   requestedSender,
@@ -28,7 +34,7 @@ export function resolveFollowUpSender({
 
   if (routeKind === "internal" && desiredSender === "telegram" && enableTelegramSend) {
     return {
-      sender: new TelegramProactiveSender(),
+      sender: createFollowUpSender("telegram"),
       senderKind: "telegram",
       requestedSender: desiredSender,
       telegramSendEnabled: true
@@ -36,7 +42,7 @@ export function resolveFollowUpSender({
   }
 
   return {
-    sender: new StubProactiveSender(),
+    sender: createFollowUpSender("stub"),
     senderKind: "stub",
     requestedSender: desiredSender,
     telegramSendEnabled: enableTelegramSend

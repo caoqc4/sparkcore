@@ -1,9 +1,11 @@
 import { claimDuePendingFollowUps } from "@/lib/chat/follow-up-claim";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import { buildProactiveSendRequestFromClaimedFollowUp } from "@/lib/chat/follow-up-proactive-send";
+import {
+  createFollowUpSender,
+  type FollowUpSenderKind
+} from "@/lib/chat/follow-up-sender-policy";
 import { markFollowUpFromSendResult } from "@/lib/chat/follow-up-result-marking";
-import { StubProactiveSender } from "@/lib/chat/follow-up-proactive-sender";
-import { TelegramProactiveSender } from "@/lib/integrations/telegram-proactive-sender";
 import type { ChannelBinding } from "@/lib/integrations/im-adapter";
 import { createAdminSupabaseClient, getArgValue } from "./telegram-utils";
 
@@ -146,7 +148,7 @@ async function cleanupFollowUpRow(id: string) {
 async function main() {
   const threadId = getArgValue("--thread-id");
   const platform = getArgValue("--platform") ?? "telegram";
-  const senderKind = getArgValue("--sender") ?? "stub";
+  const senderKind = (getArgValue("--sender") ?? "stub") as FollowUpSenderKind;
 
   if (!threadId) {
     throw new Error("Missing required --thread-id.");
@@ -182,10 +184,7 @@ async function main() {
       throw new Error("Claimed follow-up could not be mapped into a proactive send request.");
     }
 
-    const sender =
-      senderKind === "telegram"
-        ? new TelegramProactiveSender()
-        : new StubProactiveSender();
+    const sender = createFollowUpSender(senderKind);
 
     const sendResult = await sender.send(sendRequest);
     const markResult = await markFollowUpFromSendResult({
