@@ -45,6 +45,7 @@ export type BuildAssistantMessageMetadataInput = {
   memory_types_used: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
+  follow_up_request_count: number;
 };
 
 export function buildAssistantMessageMetadata(
@@ -92,6 +93,9 @@ export function buildAssistantMessageMetadata(
       types_used: input.memory_types_used,
       hidden_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_exclusion_count: input.incorrect_memory_exclusion_count
+    },
+    follow_up: {
+      request_count: input.follow_up_request_count
     },
     user_explanation: {
       underlying_model_label: input.underlying_model_label,

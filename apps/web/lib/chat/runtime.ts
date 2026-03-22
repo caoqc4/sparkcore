@@ -3599,7 +3599,8 @@ export async function runPreparedRuntimeTurn({
           )
         : memoryRecall.usedMemoryTypes,
       hidden_memory_exclusion_count: memoryRecall.hiddenExclusionCount,
-      incorrect_memory_exclusion_count: memoryRecall.incorrectExclusionCount
+      incorrect_memory_exclusion_count: memoryRecall.incorrectExclusionCount,
+      follow_up_request_count: followUpRequests.length
     })
   };
 
