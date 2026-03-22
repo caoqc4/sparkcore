@@ -750,6 +750,30 @@ type ReplyLanguageSource =
   | "thread-continuity-fallback"
   | "no-latest-user-message";
 type ApproxContextPressure = "low" | "medium" | "elevated" | "high";
+type RoleCoreRelationshipStance =
+  | "default-agent-profile"
+  | "formal"
+  | "friendly"
+  | "casual"
+  | "no_full_name";
+type RoleCorePacket = {
+  packet_version: "v1";
+  identity: {
+    agent_id: string;
+    agent_name: string;
+  };
+  persona_summary: string | null;
+  style_guidance: string | null;
+  relationship_stance: {
+    effective: RoleCoreRelationshipStance;
+    source: "agent_profile_default" | "relationship_memory";
+  };
+  language_behavior: {
+    reply_language_target: RuntimeReplyLanguage;
+    reply_language_source: ReplyLanguageSource;
+    same_thread_continuation_preferred: boolean;
+  };
+};
 type AnswerStrategyPriority =
   | "high-deterministic"
   | "semi-constrained"
@@ -840,6 +864,71 @@ function detectExplicitLanguageOverride(content: string): RuntimeReplyLanguage {
   }
 
   return "unknown";
+}
+
+function getRoleCoreRelationshipStance(
+  relationshipRecall: {
+    addressStyleMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+  }
+): RoleCorePacket["relationship_stance"] {
+  const styleValue = relationshipRecall.addressStyleMemory?.content ?? null;
+
+  if (
+    styleValue === "formal" ||
+    styleValue === "friendly" ||
+    styleValue === "casual" ||
+    styleValue === "no_full_name"
+  ) {
+    return {
+      effective: styleValue,
+      source: "relationship_memory"
+    };
+  }
+
+  return {
+    effective: "default-agent-profile",
+    source: "agent_profile_default"
+  };
+}
+
+function buildRoleCorePacket({
+  agent,
+  replyLanguage,
+  replyLanguageSource,
+  preferSameThreadContinuation,
+  relationshipRecall
+}: {
+  agent: AgentRecord;
+  replyLanguage: RuntimeReplyLanguage;
+  replyLanguageSource: ReplyLanguageSource;
+  preferSameThreadContinuation: boolean;
+  relationshipRecall: {
+    addressStyleMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+  };
+}): RoleCorePacket {
+  return {
+    packet_version: "v1",
+    identity: {
+      agent_id: agent.id,
+      agent_name: agent.name
+    },
+    persona_summary: agent.persona_summary || null,
+    style_guidance: agent.style_prompt || null,
+    relationship_stance: getRoleCoreRelationshipStance(relationshipRecall),
+    language_behavior: {
+      reply_language_target: replyLanguage,
+      reply_language_source: replyLanguageSource,
+      same_thread_continuation_preferred: preferSameThreadContinuation
+    }
+  };
 }
 
 function summarizeAgentPrompt(prompt: string) {
@@ -2233,7 +2322,8 @@ function buildThreadContinuityPrompt({
 }
 
 function buildAgentSystemPrompt(
-  agent: AgentRecord,
+  roleCorePacket: RoleCorePacket,
+  agentSystemPrompt: string,
   latestUserMessage: string,
   recalledMemories: Array<{
     memory_type: "profile" | "preference" | "relationship";
@@ -2273,12 +2363,18 @@ function buildAgentSystemPrompt(
   threadContinuityPrompt = ""
 ) {
   const sections = [
-    `You are ${agent.name}.`,
-    agent.persona_summary ? `Persona summary: ${agent.persona_summary}` : "",
-    agent.style_prompt ? `Style guidance: ${agent.style_prompt}` : "",
-    getReplyLanguageInstruction(replyLanguage),
+    `You are ${roleCorePacket.identity.agent_name}.`,
+    roleCorePacket.persona_summary
+      ? `Persona summary: ${roleCorePacket.persona_summary}`
+      : "",
+    roleCorePacket.style_guidance
+      ? `Style guidance: ${roleCorePacket.style_guidance}`
+      : "",
+    getReplyLanguageInstruction(
+      roleCorePacket.language_behavior.reply_language_target
+    ),
     threadContinuityPrompt,
-    agent.system_prompt,
+    agentSystemPrompt,
     buildMemoryRecallPrompt(
       latestUserMessage,
       recalledMemories,
@@ -3366,11 +3462,19 @@ export async function generateAgentReply({
     replyLanguage,
     relationshipRecall
   });
+  const roleCorePacket = buildRoleCorePacket({
+    agent,
+    replyLanguage,
+    replyLanguageSource: replyLanguageDecision.source,
+    preferSameThreadContinuation,
+    relationshipRecall
+  });
   const promptMessages = [
     {
       role: "system" as const,
       content: buildAgentSystemPrompt(
-        agent,
+        roleCorePacket,
+        agent.system_prompt,
         latestUserMessageContent ?? "",
         allRecalledMemories,
         replyLanguage,
@@ -3428,6 +3532,7 @@ export async function generateAgentReply({
         incorrect_memory_exclusion_count: memoryRecall.incorrectExclusionCount
       },
       developer_diagnostics: {
+        role_core_packet: roleCorePacket,
         reply_language_target: replyLanguage,
         reply_language_detected: detectReplyLanguageFromText(result.content),
         question_type: answerQuestionType,

@@ -106,6 +106,30 @@ type SmokeReplyLanguageSource =
   | "thread-continuity-fallback"
   | "no-latest-user-message";
 type SmokeApproxContextPressure = "low" | "medium" | "elevated" | "high";
+type SmokeRoleCoreRelationshipStance =
+  | "default-agent-profile"
+  | "formal"
+  | "friendly"
+  | "casual"
+  | "no_full_name";
+type SmokeRoleCorePacket = {
+  packet_version: "v1";
+  identity: {
+    agent_id: string;
+    agent_name: string;
+  };
+  persona_summary: string | null;
+  style_guidance: string | null;
+  relationship_stance: {
+    effective: SmokeRoleCoreRelationshipStance;
+    source: "agent_profile_default" | "relationship_memory";
+  };
+  language_behavior: {
+    reply_language_target: SmokeReplyLanguage;
+    reply_language_source: SmokeReplyLanguageSource;
+    same_thread_continuation_preferred: boolean;
+  };
+};
 
 type SmokeContinuityReply = {
   content: string;
@@ -147,6 +171,65 @@ function detectSmokeExplicitLanguageOverride(content: string): SmokeReplyLanguag
   }
 
   return "unknown";
+}
+
+function getSmokeRoleCoreRelationshipStance(
+  styleValue: string | null
+): SmokeRoleCorePacket["relationship_stance"] {
+  if (
+    styleValue === "formal" ||
+    styleValue === "friendly" ||
+    styleValue === "casual" ||
+    styleValue === "no_full_name"
+  ) {
+    return {
+      effective: styleValue,
+      source: "relationship_memory" as const
+    };
+  }
+
+  return {
+    effective: "default-agent-profile" as const,
+    source: "agent_profile_default" as const
+  };
+}
+
+function buildSmokeRoleCorePacket({
+  agentId,
+  agentName,
+  personaSummary,
+  styleGuidance,
+  relationshipStyleValue,
+  replyLanguage,
+  replyLanguageSource,
+  preferSameThreadContinuation
+}: {
+  agentId: string;
+  agentName: string;
+  personaSummary: string | null;
+  styleGuidance: string | null;
+  relationshipStyleValue: string | null;
+  replyLanguage: SmokeReplyLanguage;
+  replyLanguageSource: SmokeReplyLanguageSource;
+  preferSameThreadContinuation: boolean;
+}): SmokeRoleCorePacket {
+  return {
+    packet_version: "v1",
+    identity: {
+      agent_id: agentId,
+      agent_name: agentName
+    },
+    persona_summary: personaSummary,
+    style_guidance: styleGuidance,
+    relationship_stance: getSmokeRoleCoreRelationshipStance(
+      relationshipStyleValue
+    ),
+    language_behavior: {
+      reply_language_target: replyLanguage,
+      reply_language_source: replyLanguageSource,
+      same_thread_continuation_preferred: preferSameThreadContinuation
+    }
+  };
 }
 
 function getFallbackValue(envKey: "secret" | "email" | "password") {
@@ -2544,7 +2627,7 @@ export async function createSmokeTurn({
 
   const { data: agent, error: agentError } = await admin
     .from("agents")
-    .select("id, name, default_model_profile_id")
+    .select("id, name, persona_summary, style_prompt, default_model_profile_id")
     .eq("id", thread.agent_id)
     .eq("workspace_id", smokeUser.workspaceId)
     .eq("owner_user_id", smokeUser.id)
@@ -2892,6 +2975,11 @@ export async function createSmokeTurn({
     recentAssistantReply
   });
   const replyLanguage = replyLanguageDecision.replyLanguage;
+  const effectiveAddressStyleValue = addressStyleMemory
+    ? typeof addressStyleMemory.value === "string"
+      ? addressStyleMemory.value
+      : addressStyleMemory.content
+    : null;
 
   if (smokeNickname) {
     const { data: existingNickname } = await admin
@@ -3091,6 +3179,16 @@ export async function createSmokeTurn({
       : null,
     recalledMemories
   });
+  const roleCorePacket = buildSmokeRoleCorePacket({
+    agentId: ensuredAgent.id,
+    agentName: ensuredAgent.name,
+    personaSummary: ensuredAgent.persona_summary ?? null,
+    styleGuidance: ensuredAgent.style_prompt ?? null,
+    relationshipStyleValue: effectiveAddressStyleValue,
+    replyLanguage,
+    replyLanguageSource: replyLanguageDecision.source,
+    preferSameThreadContinuation
+  });
 
   const { data: insertedAssistantMessage, error: insertedAssistantMessageError } =
     await admin
@@ -3105,6 +3203,7 @@ export async function createSmokeTurn({
         metadata: {
           agent_id: ensuredAgent.id,
           agent_name: ensuredAgent.name,
+          role_core_packet: roleCorePacket,
           model: modelProfile.model,
           model_profile_id: modelProfile.id,
           model_profile_name: modelProfile.name,

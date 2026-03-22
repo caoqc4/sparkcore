@@ -2865,6 +2865,82 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).toContain("阿强");
   });
 
+  test("records minimal role core packet contract on assistant replies", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后和我说话轻松一点，可以吗？",
+      "请简单介绍一下你自己。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const roleCorePacket = latestAssistantMessage.metadata.role_core_packet as
+      | {
+          packet_version: string;
+          identity: {
+            agent_id: string;
+            agent_name: string;
+          };
+          persona_summary: string | null;
+          style_guidance: string | null;
+          relationship_stance: {
+            effective: string;
+            source: string;
+          };
+          language_behavior: {
+            reply_language_target: string;
+            reply_language_source: string;
+            same_thread_continuation_preferred: boolean;
+          };
+        }
+      | undefined;
+
+    expect(roleCorePacket).toBeDefined();
+    expect(roleCorePacket?.packet_version).toBe("v1");
+    expect(roleCorePacket?.identity.agent_name).toBe("Smoke Memory Coach");
+    expect(roleCorePacket?.identity.agent_id).toBeTruthy();
+    expect(roleCorePacket?.persona_summary).toBeTruthy();
+    expect(roleCorePacket?.style_guidance).toBeTruthy();
+    expect(roleCorePacket?.relationship_stance.effective).toBe("casual");
+    expect(roleCorePacket?.relationship_stance.source).toBe("relationship_memory");
+    expect(roleCorePacket?.language_behavior.reply_language_target).toBe("zh-Hans");
+    expect(roleCorePacket?.language_behavior.reply_language_source).toBe(
+      "latest-user-message"
+    );
+    expect(roleCorePacket?.language_behavior.same_thread_continuation_preferred).toBe(
+      false
+    );
+  });
+
   test("keeps natural light supportive variants on the same-thread carryover path", async ({
     request
   }) => {
