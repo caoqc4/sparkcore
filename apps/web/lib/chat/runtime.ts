@@ -13,7 +13,10 @@ import {
 import {
   loadRuntimeMemoryContext
 } from "@/lib/chat/memory";
-import { planMemoryWriteRequests } from "@/lib/chat/memory-write";
+import {
+  planMemoryWriteRequests,
+  planRelationshipMemoryWriteRequests
+} from "@/lib/chat/memory-write";
 import {
   buildSessionContext,
   type ApproxContextPressure,
@@ -3382,14 +3385,23 @@ export async function generateAgentReply({
 
   const memoryWriteRequests =
     latestUserMessageContent !== null && sessionContext.current_message_id !== undefined
-      ? await planMemoryWriteRequests({
-          latestUserMessage: latestUserMessageContent,
-          recentContext: sessionContext.recent_raw_turns.slice(-3).map((message) => ({
-            role: message.role,
-            content: message.content
+      ? [
+          ...(await planMemoryWriteRequests({
+            latestUserMessage: latestUserMessageContent,
+            recentContext: sessionContext.recent_raw_turns
+              .slice(-3)
+              .map((message) => ({
+                role: message.role,
+                content: message.content
+              })),
+            sourceTurnId: sessionContext.current_message_id
           })),
-          sourceTurnId: sessionContext.current_message_id
-        })
+          ...planRelationshipMemoryWriteRequests({
+            latestUserMessage: latestUserMessageContent,
+            sourceTurnId: sessionContext.current_message_id,
+            agentId: agent.id
+          })
+        ]
       : [];
   const followUpRequests = buildFollowUpRequests({
     latestUserMessage: latestUserMessageContent,

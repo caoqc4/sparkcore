@@ -1163,6 +1163,7 @@ thread state 回答的是：
 当前主要承载：
 
 - `planMemoryWriteRequests(...)`
+- `planRelationshipMemoryWriteRequests(...)`
 - `executeMemoryWriteRequests(...)`
 - `storeRelationshipMemories(...)`
 - `upsertSingleSlotMemory(...)`
@@ -1170,7 +1171,8 @@ thread state 回答的是：
 当前判断：
 
 - `profile / preference` 已形成 planner -> executor 的最小闭环
-- relationship memory 仍单独保留，不强行混入通用 planner
+- `relationship memory` 已开始收进 `memory_write_requests` 的显式 subtype
+- executor 仍共用同一条 write pipeline，不额外扩顶层 request
 - 这是当前阶段非常合理的过渡结构
 
 ---

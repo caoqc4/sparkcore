@@ -12,8 +12,7 @@ import {
 } from "@/lib/chat/memory-v2";
 import { generateAgentReply, getDefaultModelProfile } from "@/lib/chat/runtime";
 import {
-  executeMemoryWriteRequests,
-  storeRelationshipMemories
+  executeMemoryWriteRequests
 } from "@/lib/chat/memory-write";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 import {
@@ -1163,7 +1162,12 @@ export async function sendMessage(
               runtimeTurnResult.memory_write_requests.length,
             runtime_memory_write_requests_preview:
               runtimeTurnResult.memory_write_requests.map((request) => ({
+                kind: request.kind,
                 memory_type: request.memory_type,
+                relationship_key:
+                  request.kind === "relationship_memory"
+                    ? request.relationship_key
+                    : null,
                 confidence: request.confidence,
                 source_turn_id: request.source_turn_id,
                 dedupe_key: request.dedupe_key
@@ -1210,42 +1214,12 @@ export async function sendMessage(
     }
 
     try {
-      const [plannedMemoryOutcome, relationshipMemoryOutcome] = await Promise.all([
-        executeMemoryWriteRequests({
-          workspaceId: workspace.id,
-          userId: user.id,
-          agentId: thread.agent_id,
-          requests: runtimeTurnResult.memory_write_requests
-        }),
-        storeRelationshipMemories({
-          workspaceId: workspace.id,
-          userId: user.id,
-          agentId: thread.agent_id,
-          sourceMessageId: insertedMessage.id,
-          latestUserMessage: trimmedContent
-        })
-      ]);
-
-      const memoryWriteOutcome = {
-        createdCount:
-          plannedMemoryOutcome.createdCount +
-          relationshipMemoryOutcome.createdCount,
-        createdTypes: Array.from(
-          new Set([
-            ...plannedMemoryOutcome.createdTypes,
-            ...relationshipMemoryOutcome.createdTypes
-          ])
-        ),
-        updatedCount:
-          plannedMemoryOutcome.updatedCount +
-          relationshipMemoryOutcome.updatedCount,
-        updatedTypes: Array.from(
-          new Set([
-            ...plannedMemoryOutcome.updatedTypes,
-            ...relationshipMemoryOutcome.updatedTypes
-          ])
-        )
-      };
+      const memoryWriteOutcome = await executeMemoryWriteRequests({
+        workspaceId: workspace.id,
+        userId: user.id,
+        agentId: thread.agent_id,
+        requests: runtimeTurnResult.memory_write_requests
+      });
 
       if (
         memoryWriteOutcome.createdCount > 0 ||
@@ -1537,7 +1511,12 @@ export async function retryAssistantReply(
               runtimeTurnResult.memory_write_requests.length,
             runtime_memory_write_requests_preview:
               runtimeTurnResult.memory_write_requests.map((request) => ({
+                kind: request.kind,
                 memory_type: request.memory_type,
+                relationship_key:
+                  request.kind === "relationship_memory"
+                    ? request.relationship_key
+                    : null,
                 confidence: request.confidence,
                 source_turn_id: request.source_turn_id,
                 dedupe_key: request.dedupe_key

@@ -6,7 +6,8 @@ export type RuntimeAssistantMessage = {
   metadata?: Record<string, unknown>;
 };
 
-export type RuntimeMemoryWriteRequest = {
+export type RuntimeGenericMemoryWriteRequest = {
+  kind: "generic_memory";
   memory_type: "profile" | "preference";
   candidate_content: string;
   reason: string;
@@ -15,6 +16,28 @@ export type RuntimeMemoryWriteRequest = {
   dedupe_key?: string;
   write_mode?: "upsert" | "append";
 };
+
+export type RuntimeRelationshipMemoryWriteRequest = {
+  kind: "relationship_memory";
+  memory_type: "relationship";
+  relationship_key:
+    | "agent_nickname"
+    | "user_preferred_name"
+    | "user_address_style";
+  relationship_scope: "user_agent";
+  candidate_content: string;
+  reason: string;
+  confidence: number;
+  source_turn_id: string;
+  target_agent_id: string;
+  target_thread_id?: string | null;
+  dedupe_key?: string;
+  write_mode?: "upsert";
+};
+
+export type RuntimeMemoryWriteRequest =
+  | RuntimeGenericMemoryWriteRequest
+  | RuntimeRelationshipMemoryWriteRequest;
 
 export type RuntimeFollowUpRequest = {
   kind: "gentle_check_in";

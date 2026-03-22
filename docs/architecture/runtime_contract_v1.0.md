@@ -124,6 +124,16 @@ runtime 在处理一轮时，至少要消费：
 
 > 这一轮结束后，哪些长期记忆候选需要写入或更新
 
+当前实现补充：
+
+- runtime 顶层暂不新增 `relationship_write_requests`
+- `relationship memory` 先收口为 `memory_write_requests` 内的显式 subtype
+- 当前 request 至少分为：
+  - `kind = "generic_memory"`
+  - `kind = "relationship_memory"`
+
+这样可以先把 relationship 的旁路写入收回统一 pipeline，而不扩张新的顶层协议面。
+
 ---
 
 ## 7.3 `follow_up_requests`

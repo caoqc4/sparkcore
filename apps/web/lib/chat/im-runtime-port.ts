@@ -3,7 +3,7 @@ import {
   type AdapterRuntimeOutput,
   type AdapterRuntimePort
 } from "@/lib/integrations/im-adapter";
-import { executeMemoryWriteRequests, storeRelationshipMemories } from "@/lib/chat/memory-write";
+import { executeMemoryWriteRequests } from "@/lib/chat/memory-write";
 import { loadRoleProfile } from "@/lib/chat/role-loader";
 import { generateAgentReply } from "@/lib/chat/runtime";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
@@ -252,7 +252,12 @@ async function runImRuntimeTurnWithSupabase(args: {
             runtimeTurnResult.memory_write_requests.length,
           runtime_memory_write_requests_preview:
             runtimeTurnResult.memory_write_requests.map((request) => ({
+              kind: request.kind,
               memory_type: request.memory_type,
+              relationship_key:
+                request.kind === "relationship_memory"
+                  ? request.relationship_key
+                  : null,
               confidence: request.confidence,
               source_turn_id: request.source_turn_id,
               dedupe_key: request.dedupe_key
@@ -282,49 +287,12 @@ async function runImRuntimeTurnWithSupabase(args: {
     }
 
     try {
-      const [plannedMemoryOutcome, relationshipMemoryOutcome] = await Promise.all([
-        executeMemoryWriteRequests({
-          workspaceId: workspace.id,
-          userId: input.user_id,
-          agentId: thread.agent_id,
-          requests: runtimeTurnResult.memory_write_requests
-        }),
-        input.message_type === "text"
-          ? storeRelationshipMemories({
-              workspaceId: workspace.id,
-              userId: input.user_id,
-              agentId: thread.agent_id,
-              sourceMessageId: insertedMessage.id,
-              latestUserMessage: trimmedContent
-            })
-          : Promise.resolve({
-              createdCount: 0,
-              createdTypes: [] as string[],
-              updatedCount: 0,
-              updatedTypes: [] as string[]
-            })
-      ]);
-
-      const memoryWriteOutcome = {
-        createdCount:
-          plannedMemoryOutcome.createdCount +
-          relationshipMemoryOutcome.createdCount,
-        createdTypes: Array.from(
-          new Set([
-            ...plannedMemoryOutcome.createdTypes,
-            ...relationshipMemoryOutcome.createdTypes
-          ])
-        ),
-        updatedCount:
-          plannedMemoryOutcome.updatedCount +
-          relationshipMemoryOutcome.updatedCount,
-        updatedTypes: Array.from(
-          new Set([
-            ...plannedMemoryOutcome.updatedTypes,
-            ...relationshipMemoryOutcome.updatedTypes
-          ])
-        )
-      };
+      const memoryWriteOutcome = await executeMemoryWriteRequests({
+        workspaceId: workspace.id,
+        userId: input.user_id,
+        agentId: thread.agent_id,
+        requests: runtimeTurnResult.memory_write_requests
+      });
 
       if (
         memoryWriteOutcome.createdCount > 0 ||

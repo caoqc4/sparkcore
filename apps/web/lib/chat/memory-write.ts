@@ -143,6 +143,7 @@ export async function planMemoryWriteRequests({
     .slice(0, 2);
 
   return candidates.map((candidate) => ({
+    kind: "generic_memory" as const,
     memory_type: candidate.memory_type,
     candidate_content: candidate.content,
     reason: candidate.reason,
@@ -236,6 +237,81 @@ function detectRelationshipUserAddressStyleCandidate(message: string) {
   }
 
   return null;
+}
+
+export function planRelationshipMemoryWriteRequests({
+  latestUserMessage,
+  sourceTurnId,
+  agentId
+}: {
+  latestUserMessage: string;
+  sourceTurnId: string;
+  agentId: string | null;
+}): RuntimeMemoryWriteRequest[] {
+  if (!agentId) {
+    return [];
+  }
+
+  const requests: RuntimeMemoryWriteRequest[] = [];
+  const relationshipNickname =
+    detectRelationshipAgentNicknameCandidate(latestUserMessage);
+  const userPreferredName =
+    detectRelationshipUserPreferredNameCandidate(latestUserMessage);
+  const userAddressStyle =
+    detectRelationshipUserAddressStyleCandidate(latestUserMessage);
+
+  if (relationshipNickname) {
+    requests.push({
+      kind: "relationship_memory",
+      memory_type: "relationship",
+      relationship_key: "agent_nickname",
+      relationship_scope: "user_agent",
+      candidate_content: relationshipNickname,
+      reason: "The user explicitly proposed a stable nickname for this agent.",
+      confidence: 0.96,
+      source_turn_id: sourceTurnId,
+      target_agent_id: agentId,
+      target_thread_id: null,
+      dedupe_key: `relationship.agent_nickname:${normalizeMemoryContent(relationshipNickname)}`,
+      write_mode: "upsert"
+    });
+  }
+
+  if (userPreferredName) {
+    requests.push({
+      kind: "relationship_memory",
+      memory_type: "relationship",
+      relationship_key: "user_preferred_name",
+      relationship_scope: "user_agent",
+      candidate_content: userPreferredName,
+      reason: "The user explicitly stated how this agent should address them.",
+      confidence: 0.94,
+      source_turn_id: sourceTurnId,
+      target_agent_id: agentId,
+      target_thread_id: null,
+      dedupe_key: `relationship.user_preferred_name:${normalizeMemoryContent(userPreferredName)}`,
+      write_mode: "upsert"
+    });
+  }
+
+  if (userAddressStyle) {
+    requests.push({
+      kind: "relationship_memory",
+      memory_type: "relationship",
+      relationship_key: "user_address_style",
+      relationship_scope: "user_agent",
+      candidate_content: userAddressStyle,
+      reason: "The user explicitly stated a preferred relationship or address style.",
+      confidence: 0.9,
+      source_turn_id: sourceTurnId,
+      target_agent_id: agentId,
+      target_thread_id: null,
+      dedupe_key: `relationship.user_address_style:${normalizeMemoryContent(userAddressStyle)}`,
+      write_mode: "upsert"
+    });
+  }
+
+  return requests;
 }
 
 export async function upsertSingleSlotMemory({
@@ -441,8 +517,63 @@ export async function executeMemoryWriteRequests({
     };
   }
 
+  const relationshipRequests = requests.filter(
+    (request): request is Extract<RuntimeMemoryWriteRequest, { kind: "relationship_memory" }> =>
+      request.kind === "relationship_memory"
+  );
+  const genericRequests = requests.filter(
+    (request): request is Extract<RuntimeMemoryWriteRequest, { kind: "generic_memory" }> =>
+      request.kind === "generic_memory"
+  );
+
+  const relationshipCreatedTypes: MemoryUsageType[] = [];
+  const relationshipUpdatedTypes: MemoryUsageType[] = [];
+
+  for (const request of relationshipRequests) {
+    const relationshipWrite = await upsertSingleSlotMemory({
+      workspaceId,
+      userId,
+      agentId,
+      sourceMessageId: request.source_turn_id,
+      category: "relationship",
+      key: request.relationship_key,
+      value: request.candidate_content,
+      scope: request.relationship_scope,
+      targetAgentId: request.target_agent_id,
+      targetThreadId: request.target_thread_id ?? null,
+      confidence: request.confidence,
+      stability:
+        request.relationship_key === "user_address_style" ? "medium" : "high",
+      metadata: {
+        source: "runtime_planner",
+        relation_kind: request.relationship_key,
+        dedupe_key: request.dedupe_key ?? null,
+        write_mode: request.write_mode ?? "upsert",
+        planner_kind: request.kind,
+        planner_reason: request.reason
+      }
+    });
+
+    if (relationshipWrite.created) {
+      relationshipCreatedTypes.push("relationship");
+    }
+
+    if (relationshipWrite.updated) {
+      relationshipUpdatedTypes.push("relationship");
+    }
+  }
+
+  if (genericRequests.length === 0) {
+    return {
+      createdCount: relationshipCreatedTypes.length,
+      createdTypes: Array.from(new Set<MemoryUsageType>(relationshipCreatedTypes)),
+      updatedCount: relationshipUpdatedTypes.length,
+      updatedTypes: Array.from(new Set<MemoryUsageType>(relationshipUpdatedTypes))
+    };
+  }
+
   const normalizedCandidates = coalesceCandidates(
-    requests.map((request) => ({
+    genericRequests.map((request) => ({
       memory_type: request.memory_type,
       content: request.candidate_content,
       should_store: true,
@@ -478,7 +609,7 @@ export async function executeMemoryWriteRequests({
   const rowsToUpdate: MemoryUpsertRow[] = [];
 
   for (const candidate of normalizedCandidates) {
-    const matchingRequest = requests.find(
+    const matchingRequest = genericRequests.find(
       (request) =>
         request.memory_type === candidate.memory_type &&
         normalizeMemoryContent(request.candidate_content) ===
@@ -593,20 +724,24 @@ export async function executeMemoryWriteRequests({
   }
 
   return {
-    createdCount: rowsToInsert.length,
+    createdCount: relationshipCreatedTypes.length + rowsToInsert.length,
     createdTypes: Array.from(
       new Set<MemoryUsageType>(
-        rowsToInsert
-          .map((row) => row.memory_type)
-          .filter(
-            (type): type is MemoryType =>
-              type === "profile" || type === "preference"
-          )
+        relationshipCreatedTypes.concat(
+          rowsToInsert
+            .map((row) => row.memory_type)
+            .filter(
+              (type): type is MemoryType =>
+                type === "profile" || type === "preference"
+            )
+        )
       )
     ),
-    updatedCount: rowsToUpdate.length,
+    updatedCount: relationshipUpdatedTypes.length + rowsToUpdate.length,
     updatedTypes: Array.from(
-      new Set<MemoryUsageType>(rowsToUpdate.map((row) => row.memory_type))
+      new Set<MemoryUsageType>(
+        relationshipUpdatedTypes.concat(rowsToUpdate.map((row) => row.memory_type))
+      )
     )
   };
 }
@@ -624,75 +759,18 @@ export async function storeRelationshipMemories({
   sourceMessageId: string;
   latestUserMessage: string;
 }): Promise<MemoryWriteOutcome> {
-  const createdTypes: MemoryUsageType[] = [];
-  const updatedTypes: MemoryUsageType[] = [];
-  const relationshipNickname = detectRelationshipAgentNicknameCandidate(latestUserMessage);
-  const userPreferredName = detectRelationshipUserPreferredNameCandidate(latestUserMessage);
-  const userAddressStyle = detectRelationshipUserAddressStyleCandidate(latestUserMessage);
+  const requests = planRelationshipMemoryWriteRequests({
+    latestUserMessage,
+    sourceTurnId: sourceMessageId,
+    agentId
+  });
 
-  if (relationshipNickname && agentId) {
-    const relationshipWrite = await upsertSingleSlotMemory({
-      workspaceId,
-      userId,
-      agentId,
-      sourceMessageId,
-      category: "relationship",
-      key: "agent_nickname",
-      value: relationshipNickname,
-      scope: "user_agent",
-      targetAgentId: agentId,
-      confidence: 0.96,
-      stability: "high",
-      metadata: { source: "relationship_parser", relation_kind: "agent_nickname" }
-    });
-    if (relationshipWrite.created) createdTypes.push("relationship");
-    if (relationshipWrite.updated) updatedTypes.push("relationship");
-  }
-
-  if (userPreferredName && agentId) {
-    const preferredNameWrite = await upsertSingleSlotMemory({
-      workspaceId,
-      userId,
-      agentId,
-      sourceMessageId,
-      category: "relationship",
-      key: "user_preferred_name",
-      value: userPreferredName,
-      scope: "user_agent",
-      targetAgentId: agentId,
-      confidence: 0.94,
-      stability: "high",
-      metadata: { source: "relationship_parser", relation_kind: "user_preferred_name" }
-    });
-    if (preferredNameWrite.created) createdTypes.push("relationship");
-    if (preferredNameWrite.updated) updatedTypes.push("relationship");
-  }
-
-  if (userAddressStyle && agentId) {
-    const addressStyleWrite = await upsertSingleSlotMemory({
-      workspaceId,
-      userId,
-      agentId,
-      sourceMessageId,
-      category: "relationship",
-      key: "user_address_style",
-      value: userAddressStyle,
-      scope: "user_agent",
-      targetAgentId: agentId,
-      confidence: 0.9,
-      stability: "medium",
-      metadata: { source: "relationship_parser", relation_kind: "user_address_style" }
-    });
-    if (addressStyleWrite.created) createdTypes.push("relationship");
-    if (addressStyleWrite.updated) updatedTypes.push("relationship");
-  }
-
-  return {
-    createdCount: createdTypes.length,
-    createdTypes,
-    updatedCount: updatedTypes.length,
-    updatedTypes
-  };
+  return executeMemoryWriteRequests({
+    workspaceId,
+    userId,
+    agentId,
+    requests
+  });
 }
 
 export async function extractAndStoreMemories({
@@ -715,39 +793,23 @@ export async function extractAndStoreMemories({
     recentContext,
     sourceTurnId: sourceMessageId
   });
-
-  const [relationshipOutcome, plannedOutcome] = await Promise.all([
-    storeRelationshipMemories({
-      workspaceId,
-      userId,
-      agentId,
-      sourceMessageId,
-      latestUserMessage
-    }),
-    executeMemoryWriteRequests({
-      workspaceId,
-      userId,
-      agentId,
-      requests: plannedRequests
-    })
-  ]);
+  const relationshipRequests = planRelationshipMemoryWriteRequests({
+    latestUserMessage,
+    sourceTurnId: sourceMessageId,
+    agentId
+  });
+  const combinedRequests = [...plannedRequests, ...relationshipRequests];
+  const plannedOutcome = await executeMemoryWriteRequests({
+    workspaceId,
+    userId,
+    agentId,
+    requests: combinedRequests
+  });
 
   return {
-    createdCount:
-      relationshipOutcome.createdCount + plannedOutcome.createdCount,
-    createdTypes: Array.from(
-      new Set<MemoryUsageType>([
-        ...relationshipOutcome.createdTypes,
-        ...plannedOutcome.createdTypes
-      ])
-    ),
-    updatedCount:
-      relationshipOutcome.updatedCount + plannedOutcome.updatedCount,
-    updatedTypes: Array.from(
-      new Set<MemoryUsageType>([
-        ...relationshipOutcome.updatedTypes,
-        ...plannedOutcome.updatedTypes
-      ])
-    )
+    createdCount: plannedOutcome.createdCount,
+    createdTypes: plannedOutcome.createdTypes,
+    updatedCount: plannedOutcome.updatedCount,
+    updatedTypes: plannedOutcome.updatedTypes
   };
 }
