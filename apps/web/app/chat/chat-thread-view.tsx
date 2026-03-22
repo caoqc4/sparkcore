@@ -695,6 +695,39 @@ export function ChatThreadView({
                   {copy.thread.runtimeHint}
                 </p>
               </div>
+
+              <section className="thread-continuity-strip">
+                <div className="thread-continuity-header">
+                  <h3>{copy.thread.continuityTitle}</h3>
+                  <p className="helper-copy">{copy.thread.continuityDescription}</p>
+                </div>
+
+                <div className="thread-continuity-grid">
+                  <article className="thread-continuity-card">
+                    <p className="thread-continuity-label">
+                      {copy.thread.continuityRoleLabel}
+                    </p>
+                    <h4>{threadAgentSummary}</h4>
+                    <p className="helper-copy">{defaultAgentCopy}</p>
+                  </article>
+
+                  <article className="thread-continuity-card">
+                    <p className="thread-continuity-label">
+                      {copy.thread.continuityThreadLabel}
+                    </p>
+                    <h4>{threadTitle}</h4>
+                    <p className="helper-copy">{copy.thread.currentThreadViewFirst}</p>
+                  </article>
+
+                  <article className="thread-continuity-card">
+                    <p className="thread-continuity-label">
+                      {copy.thread.continuityMemoryLabel}
+                    </p>
+                    <h4>{copy.thread.memoryContext}</h4>
+                    <p className="helper-copy">{copy.thread.memoryHint}</p>
+                  </article>
+                </div>
+              </section>
             </>
           )}
         </div>

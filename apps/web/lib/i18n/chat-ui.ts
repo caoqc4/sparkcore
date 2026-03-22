@@ -297,6 +297,12 @@ export function getChatCopy(locale: ChatLocale) {
           "。它只影响未来新线程，不会改变当前线程已经绑定的 agent。",
         noWorkspaceDefault:
           "当前还没有设置工作区默认 agent。这个线程仍然保留自己的绑定 agent。",
+        continuityTitle: "这条会话会继续沿着当前角色往前走",
+        continuityDescription:
+          "先把角色、线程和记忆关系说清楚，让这条会话看起来像同一个人持续在陪你。",
+        continuityRoleLabel: "角色连续性",
+        continuityThreadLabel: "线程连续性",
+        continuityMemoryLabel: "记忆连续性",
         runtimeHint:
           "想看这轮主要依据，就展开回复下方这条简要说明。",
         statusActive: "进行中",
@@ -634,6 +640,12 @@ export function getChatCopy(locale: ChatLocale) {
         ". It only affects future new threads, not the agent already bound to this thread.",
       noWorkspaceDefault:
         "No workspace default agent is set. This thread still keeps its own bound agent.",
+      continuityTitle: "This session keeps moving with the same role",
+      continuityDescription:
+        "Make the role, thread, and memory relationship visible so the session reads like one continuing companion instead of a fresh assistant each turn.",
+      continuityRoleLabel: "Role continuity",
+      continuityThreadLabel: "Thread continuity",
+      continuityMemoryLabel: "Memory continuity",
       runtimeHint:
         "Open the short note under the reply when you want the main reason for that turn.",
       statusActive: "active",
