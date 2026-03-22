@@ -104,11 +104,14 @@
 - `relationship memory` 已通过 `memory_write_requests` subtype 显式产出
 - `follow_up_requests` 已有第一版 executor stub 与显式执行结果对象
 - `accepted follow_up` 已默认进入真实 `pending_follow_ups` 持久化路径
+- `follow_up` 已具备最小 claim / result marking repository seam
+- `follow_up` 已具备平台无关 proactive sender contract、mapper 与 sender shell
+- `follow_up` 已能通过一次性 harness 跑通 `claim -> map -> send -> mark`
 
 这意味着：
 
 - runtime 的对外 contract 已从文档概念变成代码事实
-- 但事件 schema、真实 follow-up 调度、scheduler 接线仍未完成
+- 但事件 schema、默认 claim/send worker、scheduler 接线仍未完成
 
 ---
 
@@ -305,6 +308,10 @@
 - `pending_follow_ups` 已在远端库落表
 - `accepted -> enqueue -> pending` 已完成真实持久化验证
 - 默认 enqueue 路径已切到 `SupabaseFollowUpRepository`
+- `pending -> claimed` 已有 repository seam 与真实 claim harness
+- `claimed -> executed / failed` 已有 repository seam
+- proactive sender contract / mapper / stub / Telegram sample sender shell 已形成
+- `claim -> map -> send -> mark` 已可通过一次性 harness 跑通（当前默认走 stub sender）
 
 当前已经明确暴露出的关键依赖是：
 
@@ -332,12 +339,12 @@
 
 ---
 
-### Step 2：决定是继续接入层稳定化，还是进入 follow-up 的下一阶段调度设计
+### Step 2：决定是继续接入层稳定化，还是进入 follow-up 的下一阶段 worker 设计
 
 原因：
 
 - Telegram 已经从“一次性验证”进入“可重复重跑的 PoC 入口”
-- `follow_up` 已经从 planner 输出推进到真实 pending 持久化阶段
+- `follow_up` 已经从 planner 输出推进到一次性 `claim -> send -> mark` 可验证阶段
 - 下一步重点不再是证明方向，而是选择先稳哪一条执行链
 
 建议动作：
@@ -347,8 +354,8 @@
   - 继续补 Telegram 稳定运行入口
   - 不扩附件与复杂命令
 - 如果继续 follow-up：
-  - 先补 claim / dequeue 的最小设计
-  - 暂不直接落真实主动发送
+  - 先补默认 claim/send worker 的最小设计
+  - 暂不直接落 loop / retry / requeue
 
 ---
 
@@ -366,8 +373,8 @@
   - 只补 Telegram 单通道必需能力
   - 不并行开第二个平台
 - 如果继续调度：
-  - 先补 follow-up 的 claim / dequeue 最小设计
-  - 再决定是否接真实扫描执行与主动发送
+  - 先补默认 claim/send worker 最小设计
+  - 再决定是否接真实扫描执行、主动发送与 retry
 - 如果回到底座深化：
   - 回到 `role / session / runtime input` 这几块仍未底座化的边界
 
@@ -377,12 +384,12 @@
 
 当前这一阶段最重要的成果，不是“已经接了多个 IM 平台”或者“已经把 packages 全搬完”，而是：
 
-**SparkCore 已经从“规划重定位”走到了“memory、runtime、session、role、adapter 五个核心边界开始在代码里成形，并且 Telegram PoC、relationship memory contract、follow-up pending queue 都已有真实工程落点”的阶段。**
+**SparkCore 已经从“规划重定位”走到了“memory、runtime、session、role、adapter 五个核心边界开始在代码里成形，并且 Telegram PoC、relationship memory contract、follow-up pending / claim / proactive send 都已有真实工程落点”的阶段。**
 
 这意味着下一阶段已经不需要再大面积补总纲，而更适合围绕：
 
 - 继续稳定 Telegram 单通道接入
-- 或进入 follow-up 的 claim / dequeue 设计
+- 或进入 follow-up 的默认 worker 设计
 - 或回到底座进一步抽纯 runtime / role / session 边界
 
 按这个顺序继续推进，返工会最少。
