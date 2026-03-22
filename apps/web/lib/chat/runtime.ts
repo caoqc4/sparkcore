@@ -11,9 +11,6 @@ import {
   isMemoryScopeValid
 } from "@/lib/chat/memory-v2";
 import {
-  loadRuntimeMemoryContext
-} from "@/lib/chat/memory";
-import {
   planMemoryWriteRequests,
   planRelationshipMemoryWriteRequests
 } from "@/lib/chat/memory-write";
@@ -32,6 +29,7 @@ import {
   ROLE_PROFILE_SELECT
 } from "@/lib/chat/role-loader";
 import {
+  prepareRuntimeMemory,
   prepareRuntimeRole,
   prepareRuntimeSession,
   prepareRuntimeTurn
@@ -3283,7 +3281,7 @@ export async function generateAgentReply({
       }
     });
   const sameThreadContinuity = threadContinuity.hasPriorAssistantTurn;
-  const runtimeMemoryContext = await loadRuntimeMemoryContext({
+  const runtimeMemoryContext = await prepareRuntimeMemory({
     workspaceId: workspace.id,
     userId,
     agentId: agent.id,

@@ -1,4 +1,7 @@
-import type { RuntimeMemoryContext } from "@/lib/chat/memory-recall";
+import {
+  loadRuntimeMemoryContext,
+  type RuntimeMemoryContext
+} from "@/lib/chat/memory-recall";
 import {
   buildRoleCorePacket,
   type AgentRecord,
@@ -127,6 +130,30 @@ export function prepareRuntimeRole(args: {
     replyLanguageSource: args.replyLanguageSource,
     preferSameThreadContinuation: args.preferSameThreadContinuation,
     relationshipRecall: args.relationshipRecall
+  });
+}
+
+export async function prepareRuntimeMemory(args: {
+  workspaceId: string;
+  userId: string;
+  agentId: string;
+  threadId: string;
+  latestUserMessage: string | null;
+  preferSameThreadContinuation: boolean;
+  sameThreadContinuity: boolean;
+  relationshipStylePrompt: boolean;
+  supabase?: any;
+}): Promise<RuntimeMemoryContext> {
+  return loadRuntimeMemoryContext({
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    agentId: args.agentId,
+    threadId: args.threadId,
+    latestUserMessage: args.latestUserMessage,
+    preferSameThreadContinuation: args.preferSameThreadContinuation,
+    sameThreadContinuity: args.sameThreadContinuity,
+    relationshipStylePrompt: args.relationshipStylePrompt,
+    supabase: args.supabase
   });
 }
 
