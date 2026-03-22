@@ -16,6 +16,7 @@
 > 相关文档：
 > - `docs/architecture/single_agent_runtime_design_v1.0.md`
 > - `docs/architecture/runtime_input_contract_v1.0.md`
+> - `docs/architecture/runtime_event_catalog_v1.0.md`
 > - `docs/architecture/role_layer_design_v1.0.md`
 > - `docs/architecture/memory_layer_design_v1.0.md`
 > - `docs/architecture/session_layer_design_v1.0.md`

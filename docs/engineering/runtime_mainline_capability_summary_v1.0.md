@@ -240,13 +240,18 @@
 1. 先接受当前新边界已经成立  
    `RuntimeTurnInput -> prepareRuntimeTurn(...) -> PreparedRuntimeTurn -> runPreparedRuntimeTurn(...)`
 
-2. 再决定是否继续缩薄 `generateAgentReply(...)`
+2. 先治理 runtime 输出层  
+   例如：
+   - `runtime_events vs debug_metadata` 准入边界
+   - `runtime event catalog`
 
-3. 只有在这个判断明确后，再考虑 execution 内部更细颗粒度的拆分
+3. 再决定是否继续缩薄 `generateAgentReply(...)`
+
+4. 只有在这个判断明确后，再考虑 execution 内部更细颗粒度的拆分
 
 也就是说，当前更重要的是：
 
-**守住新主线，不要因为“已经能继续拆”就立刻掉进 execution 细碎重构。**
+**守住新主线，并先治理输出层，不要因为“已经能继续拆”就立刻掉进 execution 细碎重构。**
 
 ---
 

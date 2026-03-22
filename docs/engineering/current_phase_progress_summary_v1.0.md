@@ -125,6 +125,9 @@
   - `answer_strategy_selected`
   - `assistant_reply_completed`
   - `thread_state_writeback_completed`
+- 当前 runtime 主线的下一阶段优先级也已前移成：
+  - 先治理输出层
+  - 再决定是否继续细拆 execution
 - `actions.ts` 已开始消费统一 runtime 输出对象
 - `relationship memory` 已通过 `memory_write_requests` subtype 显式产出
 - `follow_up_requests` 已有第一版 executor stub 与显式执行结果对象
