@@ -594,6 +594,62 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
     ]
   },
   {
+    id: "real-chat-long-chain-anti-redirection-explanation-summary",
+    title:
+      "Long-chain continuity holds from anti-redirection to companion-style explanation to short summary",
+    priority: "P0",
+    scenarioPack: "long-chain-continuity",
+    category: "fidelity",
+    purpose:
+      "Verify that the runtime can stay on the user's point, offer a companion-style explanation, and then land a short same-role summary without drifting into neutral explanation mode or templated recap.",
+    setup: [
+      "Use one active agent in the same thread.",
+      "Keep the scripted turns fixed for the first round so failures stay attributable to chain interaction instead of new wording coverage.",
+      "Treat the case as a continuity test across explanation mode shifts, not as a new phrasing-expansion track."
+    ],
+    steps: [
+      'Turn 1: send "你先别岔开话题。"',
+      'Turn 2: send "那你就简单陪我理一下。"',
+      'Turn 3: send "最后你帮我收一句就行。"'
+    ],
+    observe: [
+      "Whether Turn 1 stays on the user's current point instead of drifting away or reframing too broadly.",
+      "Whether Turn 2 lands as a companion-style explanation instead of a neutral explanation taxonomy or detached explanatory block.",
+      "Whether Turn 3 closes with one short same-role summary instead of a templated recap or hard summary voice.",
+      "Whether the whole chain still feels like one continuing role while moving through anti-redirection, explanation, and short closing."
+    ],
+    executionNotes: [
+      "Keep the run at three turns so the first explanation-to-summary distortion stays easy to attribute.",
+      "Do not mix in new phrasing exploration on the first run; use the exact scripted turns from the scenario doc.",
+      "If the case fails, decide first whether the drift is chain-level explanation-mode distortion or a missing local answer shape."
+    ],
+    failureModePriority: [
+      "Turn 1 still redirects or reframes away from the user's point.",
+      "Turn 2 drifts into neutral explanation mode instead of companion-style explanation.",
+      "Turn 3 becomes a templated summary or detached recap.",
+      "The chain loses the same-role feeling while switching from explanation into short closing."
+    ],
+    failureConditions: [
+      "Count it as failed if Turn 1 avoids the user's point or visibly redirects the conversation.",
+      "Count it as failed if Turn 2 reads like neutral explanatory copy instead of same-role companion explanation.",
+      "Count it as failed if Turn 3 lands like a templated summary tool or detached recap instead of one short same-role closing line.",
+      "Count it as failed if the chain looks locally acceptable but still loses relationship continuity by the final turn."
+    ],
+    verdictOptions: [
+      "holds as one continuing role",
+      "soft drift toward neutral explanation",
+      "soft drift toward detached recap",
+      "soft drift toward generic continuation",
+      "needs targeted phrase fix",
+      "needs chain-level guardrail"
+    ],
+    successCriteria: [
+      "The chain stays on one relationship line while moving from anti-redirection to explanation and then short summary.",
+      "Explanation remains companion-style, and the final summary stays short and relational.",
+      "The case can be judged with one scenario verdict instead of reopening single-phrase expansion."
+    ]
+  },
+  {
     id: "real-chat-same-agent-relationship-continuity",
     title: "Same-agent nickname and preferred-name continuity survives a new thread and later short follow-ups",
     priority: "P0",
