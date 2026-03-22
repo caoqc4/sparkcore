@@ -75,6 +75,16 @@ function getApproxContextPressure(
   return "low";
 }
 
+function getRecordField(
+  record: Record<string, unknown> | null | undefined,
+  key: string
+): Record<string, unknown> | null {
+  const value = record?.[key];
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
 function getThreadContinuitySignal({
   messages,
   detectReplyLanguageFromText,
@@ -100,7 +110,12 @@ function getThreadContinuitySignal({
   const diagnosticsMetadata = getDeveloperDiagnosticsMetadata(
     previousAssistantMessage.metadata
   );
+  const groupedLanguageMetadata = getRecordField(
+    previousAssistantMessage.metadata,
+    "language"
+  );
   const metadataLanguage =
+    groupedLanguageMetadata?.detected ??
     diagnosticsMetadata?.reply_language_detected ??
     previousAssistantMessage.metadata?.reply_language_detected;
   const establishedReplyLanguage = isReplyLanguage(metadataLanguage)

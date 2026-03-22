@@ -95,6 +95,21 @@ function getExplanationMetadata(message: ChatMessage) {
   return getMetadataObject(message.metadata?.user_explanation);
 }
 
+function getGroupedMetadata(
+  metadata: Record<string, unknown>,
+  key: string
+) {
+  return getMetadataObject(metadata[key]);
+}
+
+function getGroupedMetadataString(
+  metadata: Record<string, unknown> | null,
+  key: string
+) {
+  const value = metadata?.[key];
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
 function getMetadataString(
   preferred: Record<string, unknown> | null,
   fallback: Record<string, unknown>,
@@ -271,22 +286,24 @@ function getRuntimeSummary(
   const isZh = locale === "zh-CN";
   const explanationMetadata = getExplanationMetadata(message);
   const fallbackMetadata = message.metadata;
+  const groupedModelProfile = getGroupedMetadata(fallbackMetadata, "model_profile");
+  const groupedMemory = getGroupedMetadata(fallbackMetadata, "memory");
 
   const modelProfileName = getMetadataString(
     explanationMetadata,
     fallbackMetadata,
     "model_profile_name"
-  );
+  ) ?? getGroupedMetadataString(groupedModelProfile, "name");
   const modelProfileTierLabel = getMetadataString(
     explanationMetadata,
     fallbackMetadata,
     "model_profile_tier_label"
-  );
+  ) ?? getGroupedMetadataString(groupedModelProfile, "tier_label");
   const modelProfileUsageNote = getMetadataString(
     explanationMetadata,
     fallbackMetadata,
     "model_profile_usage_note"
-  );
+  ) ?? getGroupedMetadataString(groupedModelProfile, "usage_note");
   const underlyingModelLabel =
     getMetadataString(explanationMetadata, fallbackMetadata, "underlying_model_label") ??
     (typeof fallbackMetadata?.model === "string" && fallbackMetadata.model.trim().length > 0
@@ -294,19 +311,25 @@ function getRuntimeSummary(
       : null);
   const memoryHitCount =
     getMetadataNumber(explanationMetadata, fallbackMetadata, "memory_hit_count") ??
+    getMetadataNumber(null, groupedMemory ?? fallbackMetadata, "hit_count") ??
     (Array.isArray(fallbackMetadata?.recalled_memories)
       ? fallbackMetadata.recalled_memories.length
       : null);
   const memoryUsed =
     getMetadataBoolean(explanationMetadata, fallbackMetadata, "memory_used") ??
+    getMetadataBoolean(null, groupedMemory ?? fallbackMetadata, "used") ??
     (typeof memoryHitCount === "number"
       ? memoryHitCount > 0
       : null);
   const memoryTypesUsed = getMetadataStringArray(
     explanationMetadata,
-    fallbackMetadata,
+    groupedMemory ?? fallbackMetadata,
     "memory_types_used"
   );
+  const normalizedMemoryTypesUsed =
+    memoryTypesUsed.length > 0
+      ? memoryTypesUsed
+      : getMetadataStringArray(null, groupedMemory ?? fallbackMetadata, "types_used");
   const memoryWriteTypes = getMetadataStringArray(
     explanationMetadata,
     fallbackMetadata,
@@ -317,13 +340,17 @@ function getRuntimeSummary(
       explanationMetadata,
       fallbackMetadata,
       "hidden_memory_exclusion_count"
-    ) ?? 0;
+    ) ??
+    getMetadataNumber(null, groupedMemory ?? fallbackMetadata, "hidden_exclusion_count") ??
+    0;
   const incorrectExclusionCount =
     getMetadataNumber(
       explanationMetadata,
       fallbackMetadata,
       "incorrect_memory_exclusion_count"
-    ) ?? 0;
+    ) ??
+    getMetadataNumber(null, groupedMemory ?? fallbackMetadata, "incorrect_exclusion_count") ??
+    0;
   const newMemoryCount =
     getMetadataNumber(explanationMetadata, fallbackMetadata, "new_memory_count") ?? 0;
   const updatedMemoryCount =
@@ -401,7 +428,7 @@ function getRuntimeSummary(
 
   const memoryReasonLabel = getMemoryReasonLabel({
     locale,
-    memoryTypesUsed,
+    memoryTypesUsed: normalizedMemoryTypesUsed,
     memoryUsed,
     hiddenExclusionCount,
     incorrectExclusionCount
