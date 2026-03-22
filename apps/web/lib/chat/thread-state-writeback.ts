@@ -7,19 +7,23 @@ export type WriteThreadStateAfterTurnInput = {
   prepared: PreparedRuntimeTurn;
   result: RuntimeTurnResult;
   repository: ThreadStateRepository;
+  repository_name?: "supabase" | "in_memory" | "unknown";
 };
 
 export type WriteThreadStateAfterTurnResult =
   | {
       status: "written";
+      repository: "supabase" | "in_memory" | "unknown";
       thread_state: ThreadStateRecord;
     }
   | {
       status: "skipped";
+      repository: "supabase" | "in_memory" | "unknown";
       reason: string;
     }
   | {
       status: "failed";
+      repository: "supabase" | "in_memory" | "unknown";
       reason: string;
     };
 
@@ -62,11 +66,13 @@ export function buildThreadStateAfterTurn(
 export async function maybeWriteThreadStateAfterTurn(
   input: WriteThreadStateAfterTurnInput
 ): Promise<WriteThreadStateAfterTurnResult> {
+  const repositoryName = input.repository_name ?? "unknown";
   const nextThreadState = buildThreadStateAfterTurn(input);
 
   if (!nextThreadState) {
     return {
       status: "skipped",
+      repository: repositoryName,
       reason: "missing_thread_state_or_assistant_anchor"
     };
   }
@@ -75,11 +81,13 @@ export async function maybeWriteThreadStateAfterTurn(
     await input.repository.saveThreadState(nextThreadState);
     return {
       status: "written",
+      repository: repositoryName,
       thread_state: nextThreadState
     };
   } catch (error) {
     return {
       status: "failed",
+      repository: repositoryName,
       reason:
         error instanceof Error ? error.message : "unknown_thread_state_write_error"
     };

@@ -3720,11 +3720,27 @@ export async function runPreparedRuntimeTurn({
   };
 
   try {
-    await maybeWriteThreadStateAfterTurn({
+    const threadStateWriteback = await maybeWriteThreadStateAfterTurn({
       prepared: preparedRuntimeTurn,
       result: runtimeTurnResult,
-      repository: createAdminThreadStateRepository()
+      repository: createAdminThreadStateRepository(),
+      repository_name: "supabase"
     });
+
+    runtimeTurnResult.debug_metadata = {
+      ...(runtimeTurnResult.debug_metadata ?? {}),
+      thread_state_writeback:
+        threadStateWriteback.status === "written"
+          ? {
+              status: threadStateWriteback.status,
+              repository: threadStateWriteback.repository
+            }
+          : {
+              status: threadStateWriteback.status,
+              repository: threadStateWriteback.repository,
+              reason: threadStateWriteback.reason
+            }
+    };
   } catch {
     // Keep thread state writeback as a soft-fail side effect for now.
   }
