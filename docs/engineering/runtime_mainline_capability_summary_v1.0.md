@@ -21,6 +21,8 @@
 > - `docs/architecture/single_agent_runtime_design_v1.0.md`
 > - `docs/architecture/runtime_event_vs_debug_metadata_boundary_v1.0.md`
 > - `docs/architecture/runtime_event_catalog_v1.0.md`
+> - `docs/architecture/runtime_debug_metadata_naming_v1.0.md`
+> - `docs/architecture/runtime_answer_strategy_debug_metadata_grouping_v1.0.md`
 
 ---
 
@@ -156,6 +158,8 @@
 
 - [runtime_event_vs_debug_metadata_boundary_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/runtime_event_vs_debug_metadata_boundary_v1.0.md)
 - [runtime_event_catalog_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/runtime_event_catalog_v1.0.md)
+- [runtime_debug_metadata_naming_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/runtime_debug_metadata_naming_v1.0.md)
+- [runtime_answer_strategy_debug_metadata_grouping_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/runtime_answer_strategy_debug_metadata_grouping_v1.0.md)
 
 也就是说，当前 runtime 不只是“主路径已经形成”，连输出层的下一步治理方向也已经开始明确。
 
@@ -244,6 +248,8 @@
    例如：
    - `runtime_events vs debug_metadata` 准入边界
    - `runtime event catalog`
+   - `debug_metadata` 命名收口
+   - `answer_strategy*` 的最小 metadata 分组
 
 3. 再决定是否继续缩薄 `generateAgentReply(...)`
 
