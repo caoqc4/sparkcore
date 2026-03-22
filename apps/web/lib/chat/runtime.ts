@@ -33,6 +33,7 @@ import {
   prepareRuntimeSession,
   prepareRuntimeTurn
 } from "@/lib/chat/runtime-prepared-turn";
+import { createAdminThreadStateRepository } from "@/lib/chat/thread-state-admin-repository";
 import {
   buildRuntimeTurnInput,
   type RuntimeTurnInput,
@@ -41,6 +42,7 @@ import type {
   RuntimeFollowUpRequest,
   RuntimeTurnResult
 } from "@/lib/chat/runtime-contract";
+import { maybeWriteThreadStateAfterTurn } from "@/lib/chat/thread-state-writeback";
 import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_PERSONA_SLUGS = ["companion_default", "spark-guide"];
@@ -3642,7 +3644,7 @@ export async function runPreparedRuntimeTurn({
     .eq("id", thread.id)
     .eq("owner_user_id", userId);
 
-  return {
+  const runtimeTurnResult: RuntimeTurnResult = {
     assistant_message: {
       role: "assistant",
       content: result.content,
@@ -3716,6 +3718,18 @@ export async function runPreparedRuntimeTurn({
       follow_up_request_count: followUpRequests.length
     }
   };
+
+  try {
+    await maybeWriteThreadStateAfterTurn({
+      prepared: preparedRuntimeTurn,
+      result: runtimeTurnResult,
+      repository: createAdminThreadStateRepository()
+    });
+  } catch {
+    // Keep thread state writeback as a soft-fail side effect for now.
+  }
+
+  return runtimeTurnResult;
 }
 
 export async function runAgentTurn({
