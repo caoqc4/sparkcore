@@ -18,6 +18,20 @@ export type ThreadStateRecord = {
   updated_at: string;
 };
 
+export type LoadThreadStateInput = {
+  threadId: string;
+  agentId: string;
+};
+
+export type LoadThreadStateResult =
+  | {
+      status: "found";
+      thread_state: ThreadStateRecord;
+    }
+  | {
+      status: "not_found";
+    };
+
 export function buildDefaultThreadState(args: {
   threadId: string;
   agentId: string;
@@ -42,5 +56,13 @@ export function buildDefaultThreadState(args: {
     last_user_message_id: args.lastUserMessageId ?? null,
     last_assistant_message_id: args.lastAssistantMessageId ?? null,
     updated_at: args.updatedAt ?? new Date().toISOString()
+  };
+}
+
+export async function loadThreadState(
+  _input: LoadThreadStateInput
+): Promise<LoadThreadStateResult> {
+  return {
+    status: "not_found"
   };
 }

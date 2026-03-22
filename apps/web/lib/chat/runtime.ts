@@ -3236,7 +3236,7 @@ export async function generateAgentReply({
   supabase?: any;
 }): Promise<RuntimeTurnResult> {
   const supabase = providedSupabase ?? (await createClient());
-  const sessionContext = prepareRuntimeSession({
+  const sessionContext = await prepareRuntimeSession({
     thread,
     agent,
     messages,

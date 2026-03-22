@@ -15,7 +15,10 @@ import {
   type SessionContext,
   type SessionReplyLanguage
 } from "@/lib/chat/session-context";
-import { buildDefaultThreadState } from "@/lib/chat/thread-state";
+import {
+  buildDefaultThreadState,
+  loadThreadState
+} from "@/lib/chat/thread-state";
 
 export type PreparedRuntimeWorkspace = {
   id: string;
@@ -92,7 +95,7 @@ export function buildPreparedRuntimeTurn(args: {
   };
 }
 
-export function prepareRuntimeSession(args: {
+export async function prepareRuntimeSession(args: {
   thread: PreparedRuntimeThread;
   agent: AgentRecord;
   messages: PreparedRuntimeMessage[];
@@ -101,7 +104,7 @@ export function prepareRuntimeSession(args: {
   getDeveloperDiagnosticsMetadata: (
     metadata: Record<string, unknown> | null | undefined
   ) => Record<string, unknown> | null;
-}): SessionContext {
+}): Promise<SessionContext> {
   const latestUserMessage = [...args.messages]
     .reverse()
     .find((message) => message.role === "user");
@@ -112,16 +115,26 @@ export function prepareRuntimeSession(args: {
         message.role === "assistant" && message.status === "completed"
     );
 
+  const threadStateResult = await loadThreadState({
+    threadId: args.thread.id,
+    agentId: args.agent.id
+  });
+
+  const threadState =
+    threadStateResult.status === "found"
+      ? threadStateResult.thread_state
+      : buildDefaultThreadState({
+          threadId: args.thread.id,
+          agentId: args.agent.id,
+          lastUserMessageId: latestUserMessage?.id ?? null,
+          lastAssistantMessageId: latestAssistantMessage?.id ?? null
+        });
+
   return buildSessionContext({
     threadId: args.thread.id,
     agentId: args.agent.id,
     messages: args.messages,
-    threadState: buildDefaultThreadState({
-      threadId: args.thread.id,
-      agentId: args.agent.id,
-      lastUserMessageId: latestUserMessage?.id ?? null,
-      lastAssistantMessageId: latestAssistantMessage?.id ?? null
-    }),
+    threadState,
     detectReplyLanguageFromText: args.detectReplyLanguageFromText,
     isReplyLanguage: args.isReplyLanguage,
     getDeveloperDiagnosticsMetadata: args.getDeveloperDiagnosticsMetadata
