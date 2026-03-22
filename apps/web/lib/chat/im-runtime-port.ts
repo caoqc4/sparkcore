@@ -262,6 +262,20 @@ async function runImRuntimeTurnWithSupabase(args: {
         workspaceId: workspace.id,
         userId: input.user_id,
         updates: {
+          runtime_memory_writes: {
+            request_count: runtimeTurnResult.memory_write_requests.length,
+            preview: runtimeTurnResult.memory_write_requests.map((request) => ({
+              kind: request.kind,
+              memory_type: request.memory_type,
+              relationship_key:
+                request.kind === "relationship_memory"
+                  ? request.relationship_key
+                  : null,
+              confidence: request.confidence,
+              source_turn_id: request.source_turn_id,
+              dedupe_key: request.dedupe_key
+            }))
+          },
           runtime_memory_write_request_count:
             runtimeTurnResult.memory_write_requests.length,
           runtime_memory_write_requests_preview:
@@ -288,9 +302,17 @@ async function runImRuntimeTurnWithSupabase(args: {
         workspaceId: workspace.id,
         userId: input.user_id,
         updates: {
+          runtime_follow_up: {
+            request_count: runtimeTurnResult.follow_up_requests.length,
+            preview: runtimeTurnResult.follow_up_requests.map((request) => ({
+              kind: request.kind,
+              trigger_at: request.trigger_at,
+              reason: request.reason
+            }))
+          },
           runtime_follow_up_request_count:
             runtimeTurnResult.follow_up_requests.length,
-            runtime_follow_up_requests_preview:
+          runtime_follow_up_requests_preview:
             runtimeTurnResult.follow_up_requests.map((request) => ({
               kind: request.kind,
               trigger_at: request.trigger_at,
@@ -333,6 +355,18 @@ async function runImRuntimeTurnWithSupabase(args: {
           workspaceId: workspace.id,
           userId: input.user_id,
           updates: {
+            runtime_memory_writes: {
+              write_count:
+                memoryWriteOutcome.createdCount + memoryWriteOutcome.updatedCount,
+              write_types: Array.from(
+                new Set([
+                  ...memoryWriteOutcome.createdTypes,
+                  ...memoryWriteOutcome.updatedTypes
+                ])
+              ),
+              new_count: memoryWriteOutcome.createdCount,
+              updated_count: memoryWriteOutcome.updatedCount
+            },
             memory_write_count:
               memoryWriteOutcome.createdCount + memoryWriteOutcome.updatedCount,
             memory_write_types: Array.from(
@@ -355,6 +389,24 @@ async function runImRuntimeTurnWithSupabase(args: {
           workspaceId: workspace.id,
           userId: input.user_id,
           updates: {
+            runtime_follow_up_execution: {
+              result_count: followUpExecutionResults.length,
+              results_preview: followUpExecutionResults.map((result) => ({
+                kind: result.kind,
+                status: result.status,
+                reason: result.reason,
+                trigger_at: result.trigger_at ?? null
+              })),
+              enqueued_count: followUpEnqueueResult.inserted_count,
+              enqueued_records_preview: followUpEnqueueResult.records.map(
+                (record) => ({
+                  id: record.id,
+                  kind: record.kind,
+                  status: record.status,
+                  trigger_at: record.trigger_at
+                })
+              )
+            },
             follow_up_execution_result_count: followUpExecutionResults.length,
             follow_up_execution_results_preview: followUpExecutionResults.map(
               (result) => ({
