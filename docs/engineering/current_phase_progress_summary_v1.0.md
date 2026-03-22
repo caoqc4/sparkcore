@@ -211,6 +211,7 @@
 - `RoleResolver` 第一版代码壳已开始：
   - `apps/web/lib/chat/role-service.ts`
 - runtime 已开始显式消费 role layer，而不是只维护本地匿名类型
+- runtime / IM 主路径已开始直接消费 repository + resolver 分层
 - `role repository / service` 的最小边界设计已开始：
   - `docs/architecture/role_repository_service_design_v1.0.md`
 
@@ -223,7 +224,8 @@
   - `runtime preparation`
 - `repository` 第一版代码壳已开始
 - `resolver / service` 第一版代码壳也已开始
-- 但 runtime / IM 主调用面、metadata 收口、默认模型配置边界仍未进一步抽层
+- runtime / IM 主调用面也已开始迁到新分层
+- 但 metadata 收口、默认模型配置边界仍未进一步抽层
 
 ---
 

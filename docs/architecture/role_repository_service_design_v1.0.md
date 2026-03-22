@@ -92,7 +92,7 @@ runtime、IM port、未来别的入口都在直接依赖：
 - `RoleRepository` 第一版代码壳已存在
 - `role-loader.ts` 已开始复用 repository 的纯读取能力
 - `RoleResolver` / `RoleService` 第一版代码壳已存在
-- runtime / IM 主路径仍未直接迁到 resolver
+- runtime / IM 主路径已开始直接迁到 resolver
 
 ---
 
@@ -273,6 +273,10 @@ runtime -> read role table -> decide fallback -> build role packet
 3. 再引入：
    - `role-service.ts` 或 `role-resolver.ts`
 4. 再把 runtime / IM port 改成依赖 resolver，而不是继续依赖兼容包装
+
+状态：
+
+- 已开始
 
 ---
 
