@@ -3727,6 +3727,14 @@ export async function runPreparedRuntimeTurn({
       repository_name: "supabase"
     });
 
+    runtimeTurnResult.runtime_events.push({
+      type: "thread_state_writeback_completed",
+      payload: {
+        status: threadStateWriteback.status,
+        repository: threadStateWriteback.repository
+      }
+    });
+
     runtimeTurnResult.debug_metadata = {
       ...(runtimeTurnResult.debug_metadata ?? {}),
       thread_state_writeback:

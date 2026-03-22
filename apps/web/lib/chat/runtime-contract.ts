@@ -156,7 +156,8 @@ export type RuntimeEvent = {
     | "memory_write_planned"
     | "follow_up_planned"
     | "answer_strategy_selected"
-    | "assistant_reply_completed";
+    | "assistant_reply_completed"
+    | "thread_state_writeback_completed";
   payload?: Record<string, unknown>;
 };
 
