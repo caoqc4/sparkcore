@@ -469,6 +469,118 @@ export const realChatQualityRegressionSet: QualityEvalCase[] = [
     ]
   },
   {
+    id: "real-chat-long-chain-same-side-shared-push-closing",
+    title:
+      "Long-chain continuity holds from same-side confirmation to shared push to light closing",
+    priority: "P0",
+    scenarioPack: "long-chain-continuity",
+    category: "fidelity",
+    purpose:
+      "Verify that a same-side opening can flow into light shared action and then a soft closing without turning into over-alignment, formal planning, or a detached recap voice.",
+    setup: [
+      "Use one active agent in the same thread.",
+      "Keep the scripted turns fixed for the first round so verdicts stay about chain interaction rather than wording expansion.",
+      "Treat the case as a relationship-continuity chain, not a stance system or planning expansion."
+    ],
+    steps: [
+      'Turn 1: send "你先站我这边。"',
+      'Turn 2: send "那我们先一起把这一点弄过去。"',
+      'Turn 3: send "你最后帮我把这段收一下。"'
+    ],
+    observe: [
+      "Whether Turn 1 feels same-side without becoming exaggerated agreement.",
+      "Whether Turn 2 keeps a light shared-push feeling instead of expanding into formal planning or task-mode steps.",
+      "Whether Turn 3 lands like the same role gently closing the thread instead of producing a detached recap.",
+      "Whether the three turns still sound like one continuing relationship line."
+    ],
+    executionNotes: [
+      "Second-batch long-chain runs should still prioritize composition effects over new phrasing exploration.",
+      "Keep the chain at three turns so the first sign of over-alignment, planning drift, or detached closing stays attributable.",
+      "If the case fails, classify chain distortion before opening any new phrase issue."
+    ],
+    failureModePriority: [
+      "Over-aligns on the same-side turn and starts sounding like a stance system.",
+      "Expands the shared-push turn into formal planning or step-by-step execution.",
+      "Turns the closing into a detached recap instead of same-role carryover.",
+      "Loses the continuing-role feel by the end of the chain."
+    ],
+    failureConditions: [
+      "Count it as failed if Turn 1 overcommits into exaggerated agreement instead of a light same-side response.",
+      "Count it as failed if Turn 2 produces steps, planning structure, or task-mode language instead of a light shared push.",
+      "Count it as failed if Turn 3 reads like a neutral recap or summary tool instead of a soft closing from the same role.",
+      "Count it as failed if the chain looks locally acceptable but clearly loses relationship continuity by the final turn."
+    ],
+    verdictOptions: [
+      "holds as one continuing role",
+      "soft drift toward over-alignment",
+      "soft drift toward planning",
+      "soft drift toward detached recap",
+      "needs targeted phrase fix",
+      "needs chain-level guardrail"
+    ],
+    successCriteria: [
+      "The chain stays on one relationship line from same-side through shared push and closing.",
+      "Shared action remains light, and closing remains relational.",
+      "The case can be judged as one scenario verdict instead of three isolated prompt checks."
+    ]
+  },
+  {
+    id: "real-chat-long-chain-anti-advice-step-guidance",
+    title:
+      "Long-chain continuity holds from anti-advice to brief steadying to step-by-step guidance",
+    priority: "P0",
+    scenarioPack: "long-chain-continuity",
+    category: "fidelity",
+    purpose:
+      "Verify that the runtime can suppress premature advice, settle the user briefly, and then move into one small guided next step without dropping relationship continuity.",
+    setup: [
+      "Use one active agent in the same thread.",
+      "Keep the scripted turns fixed for the first round so failures are attributable to chain interaction rather than new wording coverage.",
+      "Treat the chain as a continuity test, not a new planning taxonomy expansion."
+    ],
+    steps: [
+      'Turn 1: send "你先别急着给我建议。"',
+      'Turn 2: send "你先帮我缓一下，再说。"',
+      'Turn 3: send "好，你再陪我理一步。"'
+    ],
+    observe: [
+      "Whether Turn 1 suppresses the advice impulse instead of giving guidance immediately.",
+      "Whether Turn 2 steadies the user briefly without sliding into generic comfort, explanation, or summary.",
+      "Whether Turn 3 enters one small guided next step while still sounding like the same continuing role instead of detached task mode.",
+      "Whether the chain preserves relationship continuity while allowing one light step of guidance."
+    ],
+    executionNotes: [
+      "Second-batch long-chain runs should still prioritize composition effects over new phrasing exploration.",
+      "Keep the chain at three turns so the first advice-to-guidance distortion stays easy to attribute.",
+      "If the case fails, decide first whether it is chain distortion or a missing local answer shape."
+    ],
+    failureModePriority: [
+      "Gives advice too early on Turn 1.",
+      "Turns the steadying step into generic comfort or summary filler.",
+      "Enters detached task mode once guidance begins on Turn 3.",
+      "Loses the same-role feeling while transitioning from settling to guidance."
+    ],
+    failureConditions: [
+      "Count it as failed if Turn 1 gives explicit advice or solutioning instead of honoring the anti-advice request.",
+      "Count it as failed if Turn 2 becomes generic comfort, explanation, or summary instead of a brief steadying reply.",
+      "Count it as failed if Turn 3 switches into detached steps or task mode without preserving relationship continuity.",
+      "Count it as failed if the chain only looks acceptable turn by turn but clearly drops the same-role feeling by the end."
+    ],
+    verdictOptions: [
+      "holds as one continuing role",
+      "soft drift toward advice",
+      "soft drift toward generic comfort",
+      "soft drift toward detached task mode",
+      "needs targeted phrase fix",
+      "needs chain-level guardrail"
+    ],
+    successCriteria: [
+      "The chain suppresses early advice without blocking one light guided next step later.",
+      "Steadying stays brief and relational, and guidance stays small and continuous.",
+      "The case can be judged with one scenario verdict instead of reverting to single-prompt expansion."
+    ]
+  },
+  {
     id: "real-chat-same-agent-relationship-continuity",
     title: "Same-agent nickname and preferred-name continuity survives a new thread and later short follow-ups",
     priority: "P0",

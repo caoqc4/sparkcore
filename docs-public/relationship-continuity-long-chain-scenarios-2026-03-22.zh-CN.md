@@ -148,6 +148,22 @@
 - 第 2 轮变成步骤清单
 - 第 3 轮像一个中性总结器，而不是同一个人在收尾
 
+### 失败模式优先级
+
+1. same-side 做成过度附和
+2. shared-push 变成 formal planning / step list
+3. light closing 变成 detached recap
+4. 到最后不再像同一个持续角色
+
+### 场景级 verdict 候选
+
+- `holds as one continuing role`
+- `soft drift toward over-alignment`
+- `soft drift toward planning`
+- `soft drift toward detached recap`
+- `needs targeted phrase fix`
+- `needs chain-level guardrail`
+
 ### 为什么优先
 
 这条链最贴长期陪跑产品里的“陪住我、一起过一下、然后轻轻收住”。
@@ -173,6 +189,22 @@
 - 第 1 轮直接给建议
 - 第 2 轮变成 generic comfort
 - 第 3 轮一进 guidance 就变成 detached task mode
+
+### 失败模式优先级
+
+1. 第 1 轮过早给建议
+2. 第 2 轮稳一下没成形，变成 generic comfort / summary filler
+3. 第 3 轮一进 guidance 就掉进 detached task mode
+4. 从 steadying 过渡到 guidance 时失去同一角色体感
+
+### 场景级 verdict 候选
+
+- `holds as one continuing role`
+- `soft drift toward advice`
+- `soft drift toward generic comfort`
+- `soft drift toward detached task mode`
+- `needs targeted phrase fix`
+- `needs chain-level guardrail`
 
 ### 为什么优先
 
