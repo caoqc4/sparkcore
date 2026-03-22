@@ -13,7 +13,7 @@
 
 **runtime 在真正推理前，应该先把哪几类依赖装配成什么对象。**
 
-> 状态：设计草案
+> 状态：设计已落第一版代码壳
 > 对应阶段：Phase 1 / runtime 装配层收口
 > 相关文档：
 > - `docs/architecture/runtime_input_contract_v1.0.md`
@@ -37,7 +37,7 @@
 
 - `RuntimeTurnInput` 已经开始落代码
 - `runAgentTurn(input)` 已经有第一版薄壳
-- 但 `generateAgentReply(...)` 仍然直接吃装配后的对象：
+- 但 `generateAgentReply(...)` 仍然主要直接吃装配后的对象：
   - `workspace`
   - `thread`
   - `agent`
@@ -52,7 +52,7 @@
 
 之间。
 
-如果不把这层单独定义出来，后面很容易出现两个问题：
+当前虽然还没把这层完全抽成独立执行入口，但已经有了第一版代码事实。如果不继续把边界写清楚，后面仍然很容易出现两个问题：
 
 1. `RuntimeTurnInput` 被越塞越大，最后变成一个“假统一输入、真巨型对象”
 2. `SessionContext`、`RoleProfile`、`RuntimeMemoryContext` 的来源和归属越来越含混
@@ -92,7 +92,7 @@
 
 ## 6. 推荐最小结构
 
-当前推荐结构如下：
+当前推荐结构如下，且第一版代码壳已经按这个方向落地：
 
 ```ts
 type PreparedRuntimeTurn = {
@@ -240,6 +240,12 @@ type PreparedRuntimeTurn = {
 - 保留现有 `runAgentTurn(input)` 薄壳
 - 在文档里先明确它未来要吃到的内部装配对象
 
+这一步已经完成第一版：
+
+- `runAgentTurn(input)` 已存在
+- `PreparedRuntimeTurn` 已存在第一版代码壳
+- `runtime.ts` 已开始在主流程里显式构造 `PreparedRuntimeTurn`
+
 ### 第二阶段
 
 - 给 `runAgentTurn(input)` 内部补一层最小 `prepareRuntimeTurn(...)`
@@ -257,6 +263,7 @@ type PreparedRuntimeTurn = {
 当前这层装配边界在代码里大致散落在以下位置：
 
 - `apps/web/lib/chat/runtime-input.ts`
+- `apps/web/lib/chat/runtime-prepared-turn.ts`
 - `apps/web/lib/chat/runtime.ts`
 - `apps/web/lib/chat/session-context.ts`
 - `apps/web/lib/chat/role-loader.ts`
@@ -270,9 +277,18 @@ type PreparedRuntimeTurn = {
 - `RuntimeTurnInput` 已经在 `runtime-input.ts` 中存在
 - `runAgentTurn(input)` 已经在 `runtime.ts` 中存在第一版薄壳
 - `SessionContext` 已经在 `session-context.ts` 中有第一版稳定对象
-- 但 `PreparedRuntimeTurn` 还没有对应的显式代码对象
+- `PreparedRuntimeTurn` 已经在 `runtime-prepared-turn.ts` 中有第一版显式代码对象
+- `runtime.ts` 已开始把：
+  - `input`
+  - `role_core`
+  - `session`
+  - `runtimeMemoryContext`
+  - `workspace / thread / messages / assistantMessageId`
+  组织成一个真实的 `PreparedRuntimeTurn`
 
-这正是下一步最自然的收口点。
+这意味着当前已经不只是“应该有这层”，而是：
+
+**runtime 装配层已经开始显式化。**
 
 ---
 
@@ -280,13 +296,15 @@ type PreparedRuntimeTurn = {
 
 ### Step 1：先把 `PreparedRuntimeTurn` 当作文档对象固定下来
 
-先不急着上代码，先把它的存在和边界写清楚。
+这一步已经完成，而且第一版代码壳也已经落下。
 
 ### Step 2：先明确 `SessionContext` 的装配层地位
 
 也就是把它从“runtime 内部实现细节”提升成：
 
 - runtime 装配对象的一部分
+
+这一步当前也已经部分成为代码事实，因为 `PreparedRuntimeTurn.session` 已经存在。
 
 ### Step 3：在 `runAgentTurn(input)` 内部引入最小 `prepareRuntimeTurn(...)`
 
@@ -298,6 +316,10 @@ type PreparedRuntimeTurn = {
 
 并把它们组织成一个明确对象。
 
+当前还没把 `prepareRuntimeTurn(...)` 独立成函数，但已经迈出了第一步：
+
+- 主流程里已有明确 `PreparedRuntimeTurn` 构造点
+
 ### Step 4：最后再考虑把 `generateAgentReply(...)` 的参数面收瘦
 
 也就是先别同时改外层入口和底层实现。
@@ -306,7 +328,7 @@ type PreparedRuntimeTurn = {
 
 ## 12. 当前结论
 
-当前 SparkCore 最值得补的，不是继续增加 runtime 顶层字段，而是让输入后的内部装配依赖也变得清楚。
+当前 SparkCore 最值得补的，不是继续增加 runtime 顶层字段，而是把已经出现的 `PreparedRuntimeTurn` 第一版代码壳继续往真正的装配函数推进。
 
 因此当前更合理的方向是：
 

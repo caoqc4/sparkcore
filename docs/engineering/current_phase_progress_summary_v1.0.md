@@ -104,6 +104,9 @@
 - `runAgentTurn(input)` 已有第一版薄壳，并已接入：
   - IM 入口
   - Web chat 主入口
+- `PreparedRuntimeTurn` 已有第一版代码壳：
+  - `apps/web/lib/chat/runtime-prepared-turn.ts`
+- `runtime.ts` 已开始在主流程中显式构造 `PreparedRuntimeTurn`
 - `memory_write_requests` 已有最小 planner output
 - `follow_up_requests` 已有最小 planner output
 - `runtime_events` 已有第一版标准事件类型
@@ -133,7 +136,8 @@
 - runtime input 也已经不只是设计稿，而是开始出现：
   - IM
   - Web chat
- 这两条真实标准输入路径
+  这两条真实标准输入路径
+- runtime 装配层也已经不只是文档概念，而是开始出现第一版显式对象
 - 但事件 schema、默认 worker 的真实自动调度语义、scheduler 常驻执行仍未完成
 
 ---
