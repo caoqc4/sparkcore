@@ -294,6 +294,7 @@ Success criteria：
 - `packages/integrations/im-adapter/bridge.ts`
 - `packages/integrations/im-adapter/example.ts`
 - `apps/web/lib/chat/im-runtime-port.ts`
+- `supabase/migrations/20260322173000_create_channel_bindings.sql`
 
 当前已具备：
 
@@ -305,6 +306,7 @@ Success criteria：
 - `BindingRepository` 的第一版预留壳
 - `InMemoryBindingRepository` 的最小 repository stub
 - `SupabaseBindingRepository` 的数据库映射壳
+- `channel_bindings` 的第一版数据库 migration 草案
 - `AdapterRuntimePort` 这一层 runtime 接口
 - `handleInboundChannelMessage(...)` 的最小 bridge
 - Web 侧 `AdapterRuntimePort` 第一版适配器
@@ -339,6 +341,12 @@ Success criteria：
   - `BindingRow`
   - `mapBindingRowToChannelBinding(...)`
   - `SupabaseBindingRepository`
+- `supabase/migrations/20260322173000_create_channel_bindings.sql`
+  负责当前最小数据库草案：
+  - `channel_bindings` 表
+  - lookup 索引
+  - active binding 唯一约束
+  - 最小 RLS policy
 - `packages/integrations/im-adapter/bridge.ts`
   负责纯 bridge 逻辑：
   - inbound dedupe key
