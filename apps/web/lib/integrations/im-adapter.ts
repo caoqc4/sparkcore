@@ -1,3 +1,5 @@
+import type { RuntimeEvent } from "@/lib/chat/runtime-contract";
+
 export type ChannelMessageType = "text" | "image" | "attachment";
 
 export type ChannelSendMode = "reply" | "proactive";
@@ -141,10 +143,7 @@ export type AdapterRuntimeAssistantMessage = {
   metadata?: Record<string, unknown>;
 };
 
-export type AdapterRuntimeEvent = {
-  type: string;
-  payload?: Record<string, unknown>;
-};
+export type AdapterRuntimeEvent = RuntimeEvent;
 
 export type AdapterMemoryWriteRequest = {
   memory_type: string;

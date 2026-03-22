@@ -88,8 +88,11 @@ const harnessRuntimePort: AdapterRuntimePort = {
         {
           type: "assistant_reply_completed",
           payload: {
-            harness: true,
-            source: input.source
+            thread_id: input.thread_id,
+            agent_id: input.agent_id,
+            recalled_count: 0,
+            message_type: "text",
+            language: "zh"
           }
         }
       ],
