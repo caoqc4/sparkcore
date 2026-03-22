@@ -3718,8 +3718,10 @@ export async function runPreparedRuntimeTurn({
         recalled_count: allRecalledMemories.length,
         write_request_count: memoryWriteRequests.length
       },
+      follow_up: {
+        request_count: followUpRequests.length
+      },
       reply_language: replyLanguage,
-      follow_up_request_count: followUpRequests.length
     }
   };
 
