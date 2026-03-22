@@ -37,6 +37,14 @@
 
 **先显式 trigger，再接主流程。**
 
+当前状态前移到：
+
+- `session_thread_state_writeback_trigger_design_v1.0.md` 已明确 trigger seam
+- `thread-state-writeback.ts` 第一版代码壳已存在
+- `maybeWriteThreadStateAfterTurn(...)` 已存在
+- `buildThreadStateAfterTurn(...)` 已存在
+- 但 trigger 仍未接入 `runPreparedRuntimeTurn(...)`
+
 ---
 
 ## 3. 当前为什么值得补这层
@@ -177,6 +185,10 @@ type WriteThreadStateAfterTurnResult =
 - trigger 层有独立输入输出
 - 它不直接等于 repository
 - 它也不直接等于 runtime 主结果
+
+当前这层也已经有明确代码落点：
+
+- [thread-state-writeback.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-writeback.ts)
 
 ---
 

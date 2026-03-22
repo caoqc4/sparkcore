@@ -199,7 +199,8 @@
 - 默认 `loadThreadState(...)` 已优先走 Supabase，初始化失败时回退 in-memory
 - `ThreadStateRepository.saveThreadState(...)` 第一版代码壳已开始
 - `InMemoryThreadStateRepository.saveThreadState(...)` 与 `SupabaseThreadStateRepository.saveThreadState(...)` 已存在
-- 但 `thread_state` 仍未进入 runtime 触发写回与 compaction
+- `thread-state-writeback.ts` 第一版 trigger helper 已开始
+- 但 `thread_state` 仍未真正接入 runtime 主流程触发写回，也仍未进入 compaction
 
 ---
 
