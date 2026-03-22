@@ -360,9 +360,13 @@ Telegram 当前不应该承担：
   - `ProactiveSender`
 - `buildProactiveSendTargetFromBinding(...)`
 - `buildProactiveSendRequestFromClaimedFollowUp(...)`
+- `StubProactiveSender`
+- `TelegramProactiveSender`
 
 这意味着：
 
 - proactive sender 已不再只有文档概念
 - 已有 `claimed record + binding -> sender request` 的最小 mapper seam
-- 当前仍未接真实 sender，也未接 Telegram 主动发送实现
+- 已有平台无关 sender stub
+- 已有 Telegram 第一实现样本壳
+- 当前仍未接默认 worker，也未接 claim/send 主流程
