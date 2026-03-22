@@ -6,6 +6,7 @@ import {
 import { executeMemoryWriteRequests } from "@/lib/chat/memory-write";
 import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
+import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import { loadRoleProfile } from "@/lib/chat/role-loader";
 import { generateAgentReply } from "@/lib/chat/runtime";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
@@ -306,7 +307,8 @@ async function runImRuntimeTurnWithSupabase(args: {
         agent_id: thread.agent_id,
         thread_id: thread.id,
         source_message_id: insertedMessage.id,
-        execution_results: followUpExecutionResults
+        execution_results: followUpExecutionResults,
+        repository: createAdminFollowUpRepository()
       });
 
       if (
