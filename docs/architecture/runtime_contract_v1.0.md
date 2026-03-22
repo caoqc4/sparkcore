@@ -251,10 +251,7 @@ runtime 在处理一轮时，至少要消费：
 当前实现补充：
 
 - `debug_metadata` 已开始承接最小 `thread_state_writeback` 摘要
-- `answer_strategy*` 当前也已开始明确下一步最小收口方向：
-  - `answer_strategy`
-  - `answer_strategy_reason_code`
-  更适合逐步收成：
+- `answer_strategy*` 现在也已开始进入最小分组收口：
   - `debug_metadata.answer_strategy.selected`
   - `debug_metadata.answer_strategy.reason_code`
 - 当前更适合继续承接：

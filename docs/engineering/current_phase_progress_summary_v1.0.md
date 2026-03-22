@@ -128,10 +128,7 @@
 - `debug_metadata` 的命名收口方向也已开始明确：
   - 顶层只保留少量稳定 summary key
   - 局部子域信息优先逐步收成嵌套对象
-- `answer_strategy*` 当前也已开始明确下一步最小收口方向：
-  - `answer_strategy`
-  - `answer_strategy_reason_code`
-  更适合逐步收成：
+- `answer_strategy*` 现在也已开始进入最小 metadata 分组：
   - `debug_metadata.answer_strategy.selected`
   - `debug_metadata.answer_strategy.reason_code`
 - 当前 runtime 主线的下一阶段优先级也已前移成：
