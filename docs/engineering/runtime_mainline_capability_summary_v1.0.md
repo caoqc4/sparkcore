@@ -186,6 +186,16 @@
 - quality eval
 - session continuity 邻近读取逻辑
 
+同时，assistant metadata 这条线已经不再只是“builder 开始写 grouped shape”，而是开始出现真实消费面迁移：
+
+- [session-context.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/session-context.ts) 已开始优先读 `metadata.language.detected`
+- [smoke.ts](/Users/caoq/git/sparkcore/apps/web/lib/testing/smoke.ts) 的 continuity helper 已开始优先读 `metadata.language.detected`
+- [chat-thread-view.tsx](/Users/caoq/git/sparkcore/apps/web/app/chat/chat-thread-view.tsx) 的 runtime summary 已开始优先读：
+  - `model_profile`
+  - `memory`
+
+另外，smoke 生成的 assistant metadata 当前也已开始补出兼容式 grouped shape，而不再只产出纯旧平铺结构。
+
 ---
 
 ## 6. 当前仍属于过渡期兼容层的部分

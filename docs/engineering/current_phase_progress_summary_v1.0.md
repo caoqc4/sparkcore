@@ -156,6 +156,18 @@
   - `answer_strategy`
   - `session`
   - `memory`
+- `session-context.ts` 已开始优先读取 grouped assistant metadata：
+  - `metadata.language.detected`
+- `smoke.ts` 的 continuity helper 也已开始优先读取 grouped assistant metadata：
+  - `metadata.language.detected`
+- `chat-thread-view.tsx` 的 runtime summary 也已开始优先读取 grouped assistant metadata：
+  - `model_profile`
+  - `memory`
+- smoke 生成的 assistant metadata 当前也已开始补出兼容式 grouped shape：
+  - `model_profile`
+  - `language`
+  - `session`
+  - `memory`
 - 但为了兼容 smoke / eval / continuity 邻近读取面，关键平铺字段当前仍然保留
 - 当前 runtime 主线的下一阶段优先级也已前移成：
   - 先治理输出层

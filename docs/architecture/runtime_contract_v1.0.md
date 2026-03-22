@@ -163,9 +163,19 @@ runtime 在处理一轮时，至少要消费：
   - smoke tests
   - quality eval
   - session continuity 邻近读取面
+- 当前最靠近 runtime 的读取面也已开始按兼容方式消费 grouped shape，例如：
+  - `session-context.ts` 已开始优先读 `metadata.language.detected`
+  - `smoke.ts` 的 continuity helper 已开始优先读 `metadata.language.detected`
+  - `chat-thread-view.tsx` 的 runtime summary 已开始优先读 `model_profile` 与 `memory`
+- smoke 生成的 assistant metadata 当前也已开始补出兼容式 grouped shape，例如：
+  - `model_profile`
+  - `language`
+  - `session`
+  - `memory`
 - 因此当前 assistant metadata 的状态应理解为：
   - **已开始统一收口**
   - **已开始形成 grouped shape**
+  - **读写两侧都已开始进入 grouped shape**
   - **但仍处在兼容式过渡阶段**
 
 ---
