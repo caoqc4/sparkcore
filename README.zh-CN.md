@@ -8,20 +8,20 @@
   <a href="./README.md">English</a> | 简体中文
 </p>
 
-SparkCore 是一个面向长记忆、角色驱动 AI Agent 的开源基础底座，目标是同时支撑 Web Chat 与 IM 渠道接入。
+SparkCore 是一个面向单 Agent、长记忆、角色驱动 AI 系统的开源基础底座，目标是同时支撑 Web Chat 与 IM 渠道接入。
 
-这个项目面向希望构建可复用 Agent Runtime 的团队，而不是只做一个单点聊天应用。它围绕记忆连续性、角色稳定性、多模态交互、模型路由和渠道集成来设计。
+这个项目面向希望构建可复用 Agent Runtime 的团队，而不是只做一个单点聊天应用。当前主线聚焦于单 Agent runtime、长记忆角色连续性，以及以 IM 作为第一阶段产品入口。
 
 ## 项目愿景
 
 SparkCore 计划提供一套共享核心能力，用于支持：
 
-- 单 Agent 与多 Agent 运行模式
+- 单 Agent 运行时
 - 长期记忆与记忆召回
-- Persona 与 Knowledge 分层
+- 角色连续性与 persona 稳定性
 - Web Chat 与 IM 渠道接入
 - 模型网关与路由
-- 可扩展的工具与适配器
+- 可扩展的适配器与后续升级方向
 
 ## 当前状态
 
@@ -34,6 +34,13 @@ SparkCore 现在已经具备一个可本地试用的 v1 聊天工作台：
 - 已接好 Supabase 登录与持久化，并补了本地 smoke 回归保护
 
 项目仍然处于早期，但已经不是只有脚手架的状态，而是可以交给别人本地试用的一版工作台。
+
+当前主线文档：
+
+- 总纲：[`docs/strategy/sparkcore_repositioning_v1.0.md`](./docs/strategy/sparkcore_repositioning_v1.0.md)
+- 产品流程：[`docs/product/companion_mvp_flow_v1.0.md`](./docs/product/companion_mvp_flow_v1.0.md)
+- Runtime 设计：[`docs/architecture/single_agent_runtime_design_v1.0.md`](./docs/architecture/single_agent_runtime_design_v1.0.md)
+- 工程拆分方案：[`docs/engineering/project_split_plan_v1.0.md`](./docs/engineering/project_split_plan_v1.0.md)
 
 ## 设计原则
 
@@ -48,9 +55,9 @@ SparkCore 现在已经具备一个可本地试用的 v1 聊天工作台：
 近期重点：
 
 1. 建立初始仓库结构
-2. 明确 Runtime 与 Memory 模块边界
-3. 增加第一个可执行的项目脚手架
-4. 补充安装、架构和协作文档
+2. 明确 role、memory、session 与 runtime 的模块边界
+3. 明确 IM adapter 与接入层边界
+4. 以增量方式拆分 core、integrations 与 product 三层结构
 
 ## 仓库结构
 
@@ -81,6 +88,8 @@ SparkCore 现在已经具备一个可本地试用的 v1 聊天工作台：
 ## 开源说明
 
 部分内部规划文档目前有意不放入公开仓库，因为项目还在整理开源结构。后续会逐步把适合公开的文档沉淀到仓库中。
+
+历史上的多 Agent 规划文档仅保留为归档参考，不代表当前实现主线。
 
 ## 环境变量
 

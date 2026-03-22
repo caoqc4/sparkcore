@@ -8,20 +8,20 @@
   English | <a href="./README.zh-CN.md">简体中文</a>
 </p>
 
-SparkCore is an open foundation for building long-memory, persona-driven AI agents that can run across web chat and IM channels.
+SparkCore is an open foundation for building single-agent, long-memory, persona-driven AI systems that can run across web chat and IM channels.
 
-The project is aimed at teams who want a reusable agent runtime instead of a single-purpose chat app. It is being designed around memory continuity, role consistency, multimodal interaction, model routing, and channel integrations.
+The project is aimed at teams who want a reusable agent runtime instead of a single-purpose chat app. The current mainline focuses on single-agent runtime, long-memory role continuity, and IM access as the Phase 1 product entry.
 
 ## Vision
 
 SparkCore is intended to provide a shared core for:
 
-- Single-agent and multi-agent runtimes
+- Single-agent runtime
 - Long-term memory and memory recall
-- Persona and knowledge separation
+- Role continuity and persona consistency
 - Web chat and IM channel access
 - Model gateway and routing
-- Extensible tools and adapters
+- Extensible adapters and future upgrade paths
 
 ## Current Status
 
@@ -34,6 +34,13 @@ SparkCore now includes a working v1 chat workspace for local trial:
 - Supabase auth, persistence, and local smoke regression coverage
 
 The project is still early, but it is already usable as a local trial build rather than just a repository scaffold.
+
+Current mainline docs:
+
+- Strategy: [`docs/strategy/sparkcore_repositioning_v1.0.md`](./docs/strategy/sparkcore_repositioning_v1.0.md)
+- Product flow: [`docs/product/companion_mvp_flow_v1.0.md`](./docs/product/companion_mvp_flow_v1.0.md)
+- Runtime design: [`docs/architecture/single_agent_runtime_design_v1.0.md`](./docs/architecture/single_agent_runtime_design_v1.0.md)
+- Engineering split plan: [`docs/engineering/project_split_plan_v1.0.md`](./docs/engineering/project_split_plan_v1.0.md)
 
 ## Principles
 
@@ -48,9 +55,9 @@ The project is still early, but it is already usable as a local trial build rath
 Near-term focus:
 
 1. Establish the initial repository structure
-2. Define the runtime and memory module boundaries
-3. Add the first executable project scaffold
-4. Document setup, architecture, and contribution workflow
+2. Define the role, memory, session, and runtime boundaries
+3. Define the IM adapter contract and integration boundary
+4. Incrementally split the repo into core, integrations, and product layers
 
 ## Repository Structure
 
@@ -81,6 +88,8 @@ Useful docs:
 ## Open Source Notes
 
 Some internal planning documents are intentionally kept out of the public repository while the open-source structure is being prepared. Public-facing documentation will be added here incrementally as the project is formalized.
+
+Historical multi-agent planning documents are kept only as archive references and are not the current implementation mainline.
 
 ## Environment Variables
 
