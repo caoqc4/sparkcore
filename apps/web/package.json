@@ -8,6 +8,10 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "litellm:test": "tsx scripts/test-litellm.ts",
+    "telegram:webhook:set": "tsx scripts/telegram-set-webhook.ts",
+    "telegram:webhook:delete": "tsx scripts/telegram-delete-webhook.ts",
+    "telegram:binding:upsert": "tsx scripts/telegram-upsert-binding.ts",
+    "telegram:binding:delete": "tsx scripts/telegram-delete-binding.ts",
     "smoke:test": "playwright test",
     "smoke:baseline-confirmation": "playwright test tests/smoke/core-chat.spec.ts -g \"keeps short continuation after direct preferred-name confirmation on the same agent|keeps explicit Chinese continuation requests in Chinese after the thread already switched|keeps profession recall follow-ups on the direct-recall path|keeps correction-aftermath metadata stable for relationship nickname recall\" --reporter=line",
     "quality:eval": "tsx scripts/quality-eval.ts"

@@ -96,6 +96,10 @@ npm run dev
 npm run typecheck
 npm run build
 npm run litellm:test -- --model <your-model-name>
+npm run telegram:webhook:set -- --webhook-base-url <public-https-url>
+npm run telegram:webhook:delete -- --drop-pending-updates
+npm run telegram:binding:upsert -- --thread-id <thread_id> --channel-id <channel_id> --peer-id <peer_id> --platform-user-id <platform_user_id>
+npm run telegram:binding:delete -- --channel-id <channel_id> --peer-id <peer_id> --platform-user-id <platform_user_id>
 npm run smoke:test
 npm run quality:eval
 ```

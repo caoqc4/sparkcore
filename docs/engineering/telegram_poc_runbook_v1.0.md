@@ -127,12 +127,8 @@ https://<random>.trycloudflare.com
 ### Step 3：注册 Telegram webhook
 
 ```bash
-curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://<random>.trycloudflare.com/api/integrations/telegram/webhook",
-    "secret_token": "<TELEGRAM_WEBHOOK_SECRET>"
-  }'
+cd /Users/caoq/git/sparkcore/apps/web
+npm run telegram:webhook:set -- --webhook-base-url https://<random>.trycloudflare.com
 ```
 
 确认方式：
@@ -156,17 +152,35 @@ curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getWebhookInfo"
 
 私聊场景下，这三者通常会是同一个 Telegram user/chat id。
 
-然后插入一条 `channel_bindings` 记录，至少包括：
+推荐用脚本创建：
 
-- `platform = telegram`
-- `channel_id`
-- `peer_id`
-- `platform_user_id`
+```bash
+cd /Users/caoq/git/sparkcore/apps/web
+npm run telegram:binding:upsert -- \
+  --thread-id <thread_id> \
+  --channel-id <channel_id> \
+  --peer-id <peer_id> \
+  --platform-user-id <platform_user_id>
+```
+
+这条命令会自动从 `thread_id` 反查：
+
 - `workspace_id`
-- `user_id`
+- `owner_user_id`
 - `agent_id`
-- `thread_id`
-- `status = active`
+
+如果你暂时没有 `thread_id`，也可以显式传：
+
+```bash
+cd /Users/caoq/git/sparkcore/apps/web
+npm run telegram:binding:upsert -- \
+  --workspace-id <workspace_id> \
+  --user-id <user_id> \
+  --agent-id <agent_id> \
+  --channel-id <channel_id> \
+  --peer-id <peer_id> \
+  --platform-user-id <platform_user_id>
+```
 
 ### Step 5：发送一条文本消息验证闭环
 
@@ -176,6 +190,20 @@ curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getWebhookInfo"
 - binding found
 - runtime processed
 - Telegram 收到文本回复
+
+---
+
+## 5.1 推荐重跑顺序
+
+如果要完整重跑一次 Telegram PoC，当前最推荐的顺序是：
+
+1. `./scripts/start-litellm-proxy.sh` 或临时切远端 LiteLLM gateway
+2. `cd apps/web && npm run dev`
+3. `cloudflared tunnel --protocol http2 --url http://localhost:3000`
+4. `npm run telegram:webhook:set -- --webhook-base-url https://<random>.trycloudflare.com`
+5. 拿到 Telegram 入站身份
+6. `npm run telegram:binding:upsert -- --thread-id ... --channel-id ... --peer-id ... --platform-user-id ...`
+7. 给 bot 发送文本消息验证回复
 
 ---
 
@@ -230,7 +258,8 @@ curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getWebhookInfo"
 删除 webhook：
 
 ```bash
-curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/deleteWebhook?drop_pending_updates=true"
+cd /Users/caoq/git/sparkcore/apps/web
+npm run telegram:webhook:delete -- --drop-pending-updates
 ```
 
 确认方式：
@@ -242,6 +271,16 @@ curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getWebhookInfo"
 期望结果：
 
 - `url` 为空字符串
+
+删除测试 binding：
+
+```bash
+cd /Users/caoq/git/sparkcore/apps/web
+npm run telegram:binding:delete -- \
+  --channel-id <channel_id> \
+  --peer-id <peer_id> \
+  --platform-user-id <platform_user_id>
+```
 
 ---
 
