@@ -1,5 +1,11 @@
 import type { RuntimeMemoryContext } from "@/lib/chat/memory-recall";
-import type { AgentRecord, RoleCorePacket } from "@/lib/chat/role-core";
+import {
+  buildRoleCorePacket,
+  type AgentRecord,
+  type ReplyLanguageSource,
+  type RoleCorePacket,
+  type RuntimeReplyLanguage
+} from "@/lib/chat/role-core";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
 import {
   buildSessionContext,
@@ -99,6 +105,28 @@ export function prepareRuntimeSession(args: {
     detectReplyLanguageFromText: args.detectReplyLanguageFromText,
     isReplyLanguage: args.isReplyLanguage,
     getDeveloperDiagnosticsMetadata: args.getDeveloperDiagnosticsMetadata
+  });
+}
+
+export function prepareRuntimeRole(args: {
+  agent: AgentRecord;
+  replyLanguage: RuntimeReplyLanguage;
+  replyLanguageSource: ReplyLanguageSource;
+  preferSameThreadContinuation: boolean;
+  relationshipRecall: {
+    addressStyleMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+  };
+}): RoleCorePacket {
+  return buildRoleCorePacket({
+    agent: args.agent,
+    replyLanguage: args.replyLanguage,
+    replyLanguageSource: args.replyLanguageSource,
+    preferSameThreadContinuation: args.preferSameThreadContinuation,
+    relationshipRecall: args.relationshipRecall
   });
 }
 

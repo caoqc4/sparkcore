@@ -22,7 +22,6 @@ import {
   type SessionContinuitySignal
 } from "@/lib/chat/session-context";
 import {
-  buildRoleCorePacket,
   type AgentRecord,
   type ReplyLanguageSource,
   type RoleCorePacket,
@@ -33,6 +32,7 @@ import {
   ROLE_PROFILE_SELECT
 } from "@/lib/chat/role-loader";
 import {
+  prepareRuntimeRole,
   prepareRuntimeSession,
   prepareRuntimeTurn
 } from "@/lib/chat/runtime-prepared-turn";
@@ -3381,7 +3381,7 @@ export async function generateAgentReply({
     replyLanguage,
     relationshipRecall
   });
-  const roleCorePacketForTurn = buildRoleCorePacket({
+  const roleCorePacketForTurn = prepareRuntimeRole({
     agent,
     replyLanguage,
     replyLanguageSource: replyLanguageDecision.source,
