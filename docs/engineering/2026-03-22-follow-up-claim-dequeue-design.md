@@ -344,9 +344,12 @@ type FollowUpRepository = {
 - `FollowUpRepository.claimDuePendingFollowUps(...)`
 - `InMemoryFollowUpRepository.claimDuePendingFollowUps(...)`
 - `SupabaseFollowUpRepository.claimDuePendingFollowUps(...)`
+- `claimDuePendingFollowUps(...)` 最小可复用 helper
+- `follow-up-claim-harness.ts` 一次性真实 claim 验证脚本
 
 这意味着：
 
 - claim / dequeue 已不再只有文档概念
+- 已可以用一次性 harness 验证真实 `pending -> claimed`
 - 但当前还没有默认 claim 调用路径
 - 也还没有接到真正的 proactive sender
