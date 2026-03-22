@@ -296,6 +296,12 @@
 
 - [relationship-continuity-test-layering-2026-03-22.zh-CN.md](/Users/caoq/git/sparkcore/docs-public/relationship-continuity-test-layering-2026-03-22.zh-CN.md)
 
+按这套新标准回看，当前这一轮底座层测试已经满足阶段性收停条件：
+
+- representative contract coverage 已足够
+- 两批长链路都已完成验证、修口、rerun
+- 继续默认扩张会明显滑向应用层体验打磨
+
 下一阶段更值得做的，不是继续补单句，而是：
 
 - 用 3 到 5 条长链路拟真场景，验证这些微线串起来之后，角色还能不能一直像同一个持续角色。

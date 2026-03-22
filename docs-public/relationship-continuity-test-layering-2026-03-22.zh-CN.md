@@ -181,6 +181,60 @@
 
 - 更适合在应用层里围绕具体产品体验再优化
 
+## 五、按当前标准是否可以阶段性收停
+
+结论：
+
+- 当前这一轮底座层 `relationship continuity / reply-quality` 测试，可以阶段性收停
+
+这里的“收停”不是指以后都不再测，而是指：
+
+- 不再默认继续往下扩张这一轮的 phrasing / variant / 微体感优化
+- 只在出现新的 failure theme 时，再重启增量测试
+
+### 为什么现在可以收停
+
+因为底座层当前已经具备：
+
+1. continuity contract 的代表性覆盖
+   - `same-thread continuation`
+   - `relationship line preservation`
+   - `language / naming / stance continuity`
+   - `anti-analysis / anti-advice / anti-generic-continuation`
+
+2. 少量代表性的 answer-shape coverage
+   - self-intro
+   - explanatory follow-up
+   - supportive catch
+   - light advice / next-step
+   - summary / closing
+   - presence / resume / same-side / shared-push
+   - anti-* restraint
+
+3. 长链路组合验证已经不是点状
+   - 第一批长链路已完成：验证、修口、rerun
+   - 第二批长链路已完成：验证、修口、rerun
+   - rerun verdict 已经回到 `holds as one continuing role`
+
+### 为什么现在不该默认继续扩张
+
+因为再往下继续新增的内容，大概率会落到：
+
+- very-nearby phrasing
+- 朋友感 / 温柔度 / 松弛度 的细体感优化
+- surface copy / helper copy / explanation copy 的微调
+
+这些按当前分层标准，都不应再作为底座层默认主线继续推进。
+
+### 收停后的默认动作
+
+1. 保留现有 contract tests、代表性 smoke、long-chain scenarios
+2. 不再默认新增 phrase issue
+3. 下一次重启增量测试的触发条件应是：
+   - 新的 long-chain failure theme
+   - 新的 answer-shape precedence drift
+   - 新的 contract break，而不是新的近义说法
+
 ## 一句话结论
 
 当前这批测试已经完成了它在底座层最有价值的工作：
