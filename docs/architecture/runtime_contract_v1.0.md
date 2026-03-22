@@ -216,6 +216,9 @@ runtime 在处理一轮时，至少要消费：
 - 当前 event payload 先只暴露：
   - `status`
   - `repository`
+- 当前边界判断也已开始明确：
+  - `runtime_events` 负责“本轮发生了什么标准过程”
+  - `debug_metadata` 负责“这轮为什么这样、有哪些最小调试摘要”
 
 它主要服务：
 
@@ -236,6 +239,14 @@ runtime 在处理一轮时，至少要消费：
 - answer strategy label
 - continuity signal
 - provider/model details
+
+当前实现补充：
+
+- `debug_metadata` 已开始承接最小 `thread_state_writeback` 摘要
+- 当前更适合继续承接：
+  - 局部原因
+  - 计数摘要
+  - 当前还不值得升级成标准 event 的调试信息
 
 它不应成为业务主逻辑依赖，但应作为当前阶段的重要调试位。
 

@@ -19,6 +19,7 @@
 > - `docs/architecture/runtime_prepared_turn_design_v1.0.md`
 > - `docs/architecture/runtime_execution_boundary_note_v1.0.md`
 > - `docs/architecture/single_agent_runtime_design_v1.0.md`
+> - `docs/architecture/runtime_event_vs_debug_metadata_boundary_v1.0.md`
 
 ---
 
@@ -149,6 +150,12 @@
 这意味着当前 runtime 主线已经不是“只有 adapter 样本在用”，而是：
 
 **Web + IM 两条真实主入口都已经开始共用它。**
+
+另外，runtime 输出治理也已经开始进入文档收口阶段：
+
+- [runtime_event_vs_debug_metadata_boundary_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/runtime_event_vs_debug_metadata_boundary_v1.0.md)
+
+也就是说，当前 runtime 不只是“主路径已经形成”，连输出层的下一步治理方向也已经开始明确。
 
 ---
 
