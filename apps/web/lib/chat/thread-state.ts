@@ -1,5 +1,7 @@
 import type { SessionReplyLanguage } from "@/lib/chat/session-context";
+import { createAdminThreadStateRepository } from "@/lib/chat/thread-state-admin-repository";
 import { InMemoryThreadStateRepository } from "@/lib/chat/thread-state-repository";
+import type { ThreadStateRepository } from "@/lib/chat/thread-state-repository";
 
 export type ThreadLifecycleStatus = "active" | "paused" | "closed";
 
@@ -63,7 +65,21 @@ export function buildDefaultThreadState(args: {
 export async function loadThreadState(
   input: LoadThreadStateInput
 ): Promise<LoadThreadStateResult> {
-  return defaultThreadStateRepository.loadThreadState(input);
+  return getDefaultThreadStateRepository().loadThreadState(input);
 }
 
-const defaultThreadStateRepository = new InMemoryThreadStateRepository();
+let defaultThreadStateRepository: ThreadStateRepository | null = null;
+
+function getDefaultThreadStateRepository(): ThreadStateRepository {
+  if (defaultThreadStateRepository) {
+    return defaultThreadStateRepository;
+  }
+
+  try {
+    defaultThreadStateRepository = createAdminThreadStateRepository();
+  } catch {
+    defaultThreadStateRepository = new InMemoryThreadStateRepository();
+  }
+
+  return defaultThreadStateRepository;
+}
