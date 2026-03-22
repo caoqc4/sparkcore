@@ -310,6 +310,17 @@ export function getChatCopy(locale: ChatLocale) {
         repairMemoryAction: "查看并修正记忆",
         repairHint:
           "这一轮先不做复杂后台，只保证长期使用时能把错的东西纠回来。",
+        memoryVisibilityTitle: "这条会话现在主要在记住什么",
+        memoryVisibilityDescription:
+          "先把影响当前会话的记忆类型收成一层轻摘要，详情仍然留在侧区。",
+        memoryVisibilityEmpty:
+          "当前还没有明显在起作用的长期记忆；这条会话主要依赖线程里的当下上下文。",
+        memoryVisibilityActiveSuffix: "条在生效",
+        memoryVisibilityThreadNotes: "当前线程约定",
+        memoryVisibilityHiddenHintPrefix: "另有 ",
+        memoryVisibilityHiddenHintMiddle: " 条已隐藏，",
+        memoryVisibilityHiddenHintSuffix: " 条已标错，可去侧区继续修正。",
+        memoryVisibilityAction: "查看记忆详情",
         runtimeHint:
           "想看这轮主要依据，就展开回复下方这条简要说明。",
         statusActive: "进行中",
@@ -660,6 +671,17 @@ export function getChatCopy(locale: ChatLocale) {
       repairMemoryAction: "Review and correct memory",
       repairHint:
         "This first pass avoids a heavy admin system and focuses on making correction possible during normal use.",
+      memoryVisibilityTitle: "What this session is actively remembering",
+      memoryVisibilityDescription:
+        "Keep the first layer lightweight: show the memory types shaping this session now, and leave detailed review in the side rail.",
+      memoryVisibilityEmpty:
+        "No long-term memory is obviously shaping this session right now; it is mainly leaning on the current thread context.",
+      memoryVisibilityActiveSuffix: "active now",
+      memoryVisibilityThreadNotes: "Current-thread notes",
+      memoryVisibilityHiddenHintPrefix: "There are also ",
+      memoryVisibilityHiddenHintMiddle: " hidden and ",
+      memoryVisibilityHiddenHintSuffix: " marked incorrect entries you can review in the side rail.",
+      memoryVisibilityAction: "View memory details",
       runtimeHint:
         "Open the short note under the reply when you want the main reason for that turn.",
       statusActive: "active",

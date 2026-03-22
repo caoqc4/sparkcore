@@ -432,6 +432,24 @@ export default async function ChatPage({
   const supersededThreadLocalMemories = supersededMemories.filter((memory) =>
     isThreadLocalMemory(memory.scope)
   );
+  const activeLongTermMemoryCategoryCounts = visibleLongTermMemories.reduce<
+    Record<string, number>
+  >((accumulator, memory) => {
+    accumulator[memory.category] = (accumulator[memory.category] ?? 0) + 1;
+    return accumulator;
+  }, {});
+  const memoryVisibility = {
+    activeByCategory: Object.entries(activeLongTermMemoryCategoryCounts).map(
+      ([key, count]) => ({
+        key,
+        label: getMemoryCategoryLabel(key, locale),
+        count
+      })
+    ),
+    threadLocalCount: visibleThreadLocalMemories.length,
+    hiddenCount: hiddenMemories.length,
+    incorrectCount: incorrectMemories.length
+  };
 
   return (
     <main className="shell">
@@ -1497,6 +1515,7 @@ export default async function ChatPage({
                 initialMessages={messages}
                 key={thread.id}
                 locale={locale}
+                memoryVisibility={memoryVisibility}
                 thread={thread}
               />
             )}

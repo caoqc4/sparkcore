@@ -889,6 +889,59 @@ a {
   gap: 10px;
 }
 
+.thread-memory-visibility {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(15, 118, 110, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.thread-memory-visibility-header {
+  display: grid;
+  gap: 6px;
+}
+
+.thread-memory-visibility-header h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.thread-memory-visibility-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.thread-memory-pill {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid rgba(216, 222, 233, 0.9);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.thread-memory-pill h4 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.thread-memory-pill-label {
+  margin: 0;
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .thread-title-row {
   display: flex;
   align-items: center;
@@ -1430,6 +1483,10 @@ a {
   }
 
   .thread-continuity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .thread-memory-visibility-grid {
     grid-template-columns: 1fr;
   }
 }

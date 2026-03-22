@@ -30,6 +30,16 @@ type ChatThreadViewProps = {
   };
   agentName: string | null;
   workspaceDefaultAgentName: string | null;
+  memoryVisibility: {
+    activeByCategory: Array<{
+      key: string;
+      label: string;
+      count: number;
+    }>;
+    threadLocalCount: number;
+    hiddenCount: number;
+    incorrectCount: number;
+  };
   initialMessages: ChatMessage[];
   locale: ChatLocale;
 };
@@ -432,6 +442,7 @@ export function ChatThreadView({
   thread,
   agentName,
   workspaceDefaultAgentName,
+  memoryVisibility,
   initialMessages,
   locale
 }: ChatThreadViewProps) {
@@ -745,6 +756,61 @@ export function ChatThreadView({
                 </div>
 
                 <p className="section-hint">{copy.thread.repairHint}</p>
+              </section>
+
+              <section className="thread-memory-visibility">
+                <div className="thread-memory-visibility-header">
+                  <h3>{copy.thread.memoryVisibilityTitle}</h3>
+                  <p className="helper-copy">
+                    {copy.thread.memoryVisibilityDescription}
+                  </p>
+                </div>
+
+                {memoryVisibility.activeByCategory.length === 0 &&
+                memoryVisibility.threadLocalCount === 0 ? (
+                  <p className="helper-copy">{copy.thread.memoryVisibilityEmpty}</p>
+                ) : (
+                  <div className="thread-memory-visibility-grid">
+                    {memoryVisibility.activeByCategory.map((item) => (
+                      <article className="thread-memory-pill" key={item.key}>
+                        <p className="thread-memory-pill-label">{item.label}</p>
+                        <h4>{item.count}</h4>
+                        <p className="helper-copy">
+                          {copy.thread.memoryVisibilityActiveSuffix}
+                        </p>
+                      </article>
+                    ))}
+
+                    {memoryVisibility.threadLocalCount > 0 ? (
+                      <article className="thread-memory-pill" key="thread-local">
+                        <p className="thread-memory-pill-label">
+                          {copy.thread.memoryVisibilityThreadNotes}
+                        </p>
+                        <h4>{memoryVisibility.threadLocalCount}</h4>
+                        <p className="helper-copy">
+                          {copy.thread.memoryVisibilityActiveSuffix}
+                        </p>
+                      </article>
+                    ) : null}
+                  </div>
+                )}
+
+                {(memoryVisibility.hiddenCount > 0 ||
+                  memoryVisibility.incorrectCount > 0) ? (
+                  <p className="section-hint">
+                    {copy.thread.memoryVisibilityHiddenHintPrefix}
+                    {memoryVisibility.hiddenCount}
+                    {copy.thread.memoryVisibilityHiddenHintMiddle}
+                    {memoryVisibility.incorrectCount}
+                    {copy.thread.memoryVisibilityHiddenHintSuffix}
+                  </p>
+                ) : null}
+
+                <div className="thread-repair-actions">
+                  <a className="button button-secondary" href="#memory-rail">
+                    {copy.thread.memoryVisibilityAction}
+                  </a>
+                </div>
               </section>
             </>
           )}
