@@ -362,6 +362,8 @@ Telegram 当前不应该承担：
 - `buildProactiveSendRequestFromClaimedFollowUp(...)`
 - `StubProactiveSender`
 - `TelegramProactiveSender`
+- `markFollowUpFromSendResult(...)`
+- `follow-up-send-harness.ts`
 
 这意味着：
 
@@ -369,4 +371,5 @@ Telegram 当前不应该承担：
 - 已有 `claimed record + binding -> sender request` 的最小 mapper seam
 - 已有平台无关 sender stub
 - 已有 Telegram 第一实现样本壳
+- 已能用一次性 harness 验证 `claim -> map -> send -> mark`
 - 当前仍未接默认 worker，也未接 claim/send 主流程
