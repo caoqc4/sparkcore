@@ -206,6 +206,8 @@ session layer 不应：
 - `recent_raw_turns`
 - `current_message_id?`
 - `current_language_hint?`
+- `recent_raw_turn_count?`
+- `approx_context_pressure?`
 - `thread_local_agreements?`
 - `continuity_signals?`
 
@@ -246,6 +248,8 @@ session layer 不应：
 - `threads` 表
 - `messages` 表
 - `threads.agent_id`
+- `apps/web/lib/chat/session-context.ts`
+- `apps/web/lib/chat/runtime.ts`
 
 当前已具备：
 
@@ -253,12 +257,24 @@ session layer 不应：
 - message history
 - agent-thread 绑定
 - recent raw turns 的天然支撑
+- `SessionContext` 第一版代码落点
+- runtime 对显式 session object 的消费起点
 
 当前未正式具备：
 
-- 独立 `SessionContext` contract 文档化
 - 正式 `thread_state` contract
 - 正式 compaction 层
+
+当前代码中已落实的 session 组织字段包括：
+
+- `current_user_message`
+- `current_message_id`
+- `recent_raw_turns`
+- `continuity_signals`
+- `recent_raw_turn_count`
+- `approx_context_pressure`
+
+这意味着当前 session layer 已不再只是设计概念，而是已经有一层最小可执行实现。
 
 ---
 
@@ -279,12 +295,52 @@ session layer 不应：
 
 ---
 
+## 12.1 当前代码文件映射
+
+### A. `apps/web/lib/chat/session-context.ts`
+
+当前角色：
+
+- session layer 的最小代码落点
+- 承载 thread continuity、recent raw turns、context pressure 的组织逻辑
+
+当前主要承载：
+
+- `SessionContext`
+- `RecentRawTurn`
+- `SessionContinuitySignal`
+- `buildSessionContext(...)`
+
+当前判断：
+
+- 这是当前阶段很合适的最小 session 模块
+- 它把原来散落在 runtime 内部的会话组织逻辑收成了统一对象
+- 但目前仍是 runtime 近邻模块，不是最终 core package 形态
+
+### B. `apps/web/lib/chat/runtime.ts`
+
+当前与 session 相关的角色：
+
+- 消费 `SessionContext`
+- 使用 `continuity_signals`
+- 使用 `recent_raw_turn_count`
+- 使用 `approx_context_pressure`
+
+当前判断：
+
+- runtime 已开始围绕显式 session object 工作
+- 这使 `role-memory-session` 三者的协作面更接近文档中的目标状态
+- 后续如果继续抽离，优先级应低于当前把 contract 完全迁出 `apps/web`
+
+---
+
 ## 13. 当前推荐实现顺序
 
 1. 固化 `SessionContext`
 2. 固化 recent raw turns 的最小结构
 3. 明确 `thread_local` 与长期记忆的边界
 4. 让 runtime 显式消费 session contract
+5. 再决定是否需要独立 `thread_state` 与 compaction 层
 
 ---
 
@@ -295,6 +351,12 @@ session layer 不应：
 - recent raw turns 的角色已明确
 - `thread_local` 与长期记忆边界已明确
 - 当前不进入正式 Layer D 实现的判断已固定
+
+当前代码进度补充判断：
+
+- `SessionContext` 已有第一版可执行实现
+- runtime 已开始消费显式 session object
+- 当前仍属于“最小 session contract 已落地，正式 thread state 尚未开始”的阶段
 
 ---
 

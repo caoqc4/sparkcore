@@ -11,13 +11,29 @@ import {
   isMemoryScopeValid
 } from "@/lib/chat/memory-v2";
 import {
-  isDirectAgentNamingQuestion,
-  isDirectUserPreferredNameQuestion,
-  recallAgentNickname,
-  recallUserAddressStyle,
-  recallUserPreferredName,
-  recallRelevantMemories
+  loadRuntimeMemoryContext
 } from "@/lib/chat/memory";
+import { planMemoryWriteRequests } from "@/lib/chat/memory-write";
+import {
+  buildSessionContext,
+  type ApproxContextPressure,
+  type SessionContinuitySignal
+} from "@/lib/chat/session-context";
+import {
+  buildRoleCorePacket,
+  type AgentRecord,
+  type ReplyLanguageSource,
+  type RoleCorePacket,
+  type RuntimeReplyLanguage
+} from "@/lib/chat/role-core";
+import {
+  loadRoleProfile,
+  ROLE_PROFILE_SELECT
+} from "@/lib/chat/role-loader";
+import type {
+  RuntimeFollowUpRequest,
+  RuntimeTurnResult
+} from "@/lib/chat/runtime-contract";
 import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_PERSONA_SLUGS = ["companion_default", "spark-guide"];
@@ -417,6 +433,68 @@ function isRelationshipClosingPrompt(content: string) {
   );
 }
 
+function shouldPlanGentleCheckIn({
+  latestUserMessage,
+  continuationReasonCode
+}: {
+  latestUserMessage: string | null;
+  continuationReasonCode: ContinuationReasonCode | null;
+}) {
+  if (!latestUserMessage) {
+    return false;
+  }
+
+  return (
+    isRelationshipRoughDayPrompt(latestUserMessage) ||
+    isRelationshipSupportivePrompt(latestUserMessage) ||
+    isPresenceConfirmingFollowUpPrompt(latestUserMessage) ||
+    continuationReasonCode === "brief-supportive-carryover"
+  );
+}
+
+function buildFollowUpRequests({
+  latestUserMessage,
+  threadId,
+  agentId,
+  userId,
+  continuationReasonCode,
+  replyLanguage
+}: {
+  latestUserMessage: string | null;
+  threadId: string;
+  agentId: string;
+  userId: string;
+  continuationReasonCode: ContinuationReasonCode | null;
+  replyLanguage: RuntimeReplyLanguage;
+}): RuntimeFollowUpRequest[] {
+  if (
+    !shouldPlanGentleCheckIn({
+      latestUserMessage,
+      continuationReasonCode
+    })
+  ) {
+    return [];
+  }
+
+  return [
+    {
+      kind: "gentle_check_in",
+      trigger_at: new Date(Date.now() + 1000 * 60 * 90).toISOString(),
+      reason:
+        continuationReasonCode === "brief-supportive-carryover"
+          ? "brief supportive carryover may benefit from a gentle follow-up"
+          : "supportive or rough-day conversation may benefit from a gentle check-in",
+      payload: {
+        thread_id: threadId,
+        agent_id: agentId,
+        user_id: userId,
+        reply_language: replyLanguage,
+        source: "runtime_planner"
+      }
+    }
+  ];
+}
+
 function isShortRelationshipSummaryFollowUpPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
 
@@ -617,16 +695,6 @@ type ThreadRecord = {
   updated_at: string;
 };
 
-type AgentRecord = {
-  id: string;
-  name: string;
-  persona_summary: string;
-  style_prompt: string;
-  system_prompt: string;
-  default_model_profile_id: string | null;
-  metadata: Record<string, unknown>;
-};
-
 type ModelProfileRecord = {
   id: string;
   slug: string;
@@ -645,11 +713,6 @@ type MessageRecord = {
   status: string;
   metadata: Record<string, unknown>;
   created_at: string;
-};
-
-type ThreadContinuitySignal = {
-  establishedReplyLanguage: RuntimeReplyLanguage;
-  hasPriorAssistantTurn: boolean;
 };
 
 type ThreadListItem = ThreadRecord & {
@@ -726,7 +789,6 @@ type RequestedThreadFallback = {
   reasonCode: "invalid_or_unauthorized";
 };
 
-type RuntimeReplyLanguage = "zh-Hans" | "en" | "unknown";
 type DirectRecallQuestionKind =
   | "none"
   | "generic-memory"
@@ -759,35 +821,6 @@ type ContinuationReasonCode =
   | "short-fuzzy-follow-up"
   | "brief-supportive-carryover"
   | "brief-summary-carryover";
-type ReplyLanguageSource =
-  | "latest-user-message"
-  | "thread-continuity-fallback"
-  | "no-latest-user-message";
-type ApproxContextPressure = "low" | "medium" | "elevated" | "high";
-type RoleCoreRelationshipStance =
-  | "default-agent-profile"
-  | "formal"
-  | "friendly"
-  | "casual"
-  | "no_full_name";
-type RoleCorePacket = {
-  packet_version: "v1";
-  identity: {
-    agent_id: string;
-    agent_name: string;
-  };
-  persona_summary: string | null;
-  style_guidance: string | null;
-  relationship_stance: {
-    effective: RoleCoreRelationshipStance;
-    source: "agent_profile_default" | "relationship_memory";
-  };
-  language_behavior: {
-    reply_language_target: RuntimeReplyLanguage;
-    reply_language_source: ReplyLanguageSource;
-    same_thread_continuation_preferred: boolean;
-  };
-};
 type AnswerStrategyPriority =
   | "high-deterministic"
   | "semi-constrained"
@@ -878,71 +911,6 @@ function detectExplicitLanguageOverride(content: string): RuntimeReplyLanguage {
   }
 
   return "unknown";
-}
-
-function getRoleCoreRelationshipStance(
-  relationshipRecall: {
-    addressStyleMemory: {
-      memory_type: "relationship";
-      content: string;
-      confidence: number;
-    } | null;
-  }
-): RoleCorePacket["relationship_stance"] {
-  const styleValue = relationshipRecall.addressStyleMemory?.content ?? null;
-
-  if (
-    styleValue === "formal" ||
-    styleValue === "friendly" ||
-    styleValue === "casual" ||
-    styleValue === "no_full_name"
-  ) {
-    return {
-      effective: styleValue,
-      source: "relationship_memory"
-    };
-  }
-
-  return {
-    effective: "default-agent-profile",
-    source: "agent_profile_default"
-  };
-}
-
-function buildRoleCorePacket({
-  agent,
-  replyLanguage,
-  replyLanguageSource,
-  preferSameThreadContinuation,
-  relationshipRecall
-}: {
-  agent: AgentRecord;
-  replyLanguage: RuntimeReplyLanguage;
-  replyLanguageSource: ReplyLanguageSource;
-  preferSameThreadContinuation: boolean;
-  relationshipRecall: {
-    addressStyleMemory: {
-      memory_type: "relationship";
-      content: string;
-      confidence: number;
-    } | null;
-  };
-}): RoleCorePacket {
-  return {
-    packet_version: "v1",
-    identity: {
-      agent_id: agent.id,
-      agent_name: agent.name
-    },
-    persona_summary: agent.persona_summary || null,
-    style_guidance: agent.style_prompt || null,
-    relationship_stance: getRoleCoreRelationshipStance(relationshipRecall),
-    language_behavior: {
-      reply_language_target: replyLanguage,
-      reply_language_source: replyLanguageSource,
-      same_thread_continuation_preferred: preferSameThreadContinuation
-    }
-  };
 }
 
 function summarizeAgentPrompt(prompt: string) {
@@ -2179,74 +2147,12 @@ function getDeveloperDiagnosticsMetadata(
     : null;
 }
 
-function getMostRecentCompletedAssistantMessage(messages: MessageRecord[]) {
-  return [...messages]
-    .reverse()
-    .find(
-      (message) => message.role === "assistant" && message.status === "completed"
-    );
-}
-
-function getThreadContinuitySignal(messages: MessageRecord[]): ThreadContinuitySignal {
-  const previousAssistantMessage = getMostRecentCompletedAssistantMessage(messages);
-
-  if (!previousAssistantMessage) {
-    return {
-      establishedReplyLanguage: "unknown",
-      hasPriorAssistantTurn: false
-    };
-  }
-
-  const diagnosticsMetadata = getDeveloperDiagnosticsMetadata(
-    previousAssistantMessage.metadata
-  );
-  const metadataLanguage =
-    diagnosticsMetadata?.reply_language_detected ??
-    previousAssistantMessage.metadata?.reply_language_detected;
-  const establishedReplyLanguage = isRuntimeReplyLanguage(metadataLanguage)
-    ? metadataLanguage
-    : detectReplyLanguageFromText(previousAssistantMessage.content);
-
-  return {
-    establishedReplyLanguage,
-    hasPriorAssistantTurn: true
-  };
-}
-
-function getRecentRuntimeMessages(messages: MessageRecord[]) {
-  return messages.filter(
-    (message) => message.status !== "failed" && message.status !== "pending"
-  );
-}
-
-function getApproxContextPressure(messages: MessageRecord[]): ApproxContextPressure {
-  const recentMessages = getRecentRuntimeMessages(messages);
-  const approximateCharacterCount = recentMessages.reduce(
-    (sum, message) => sum + message.content.trim().length,
-    0
-  );
-
-  if (recentMessages.length >= 16 || approximateCharacterCount >= 4_200) {
-    return "high";
-  }
-
-  if (recentMessages.length >= 10 || approximateCharacterCount >= 2_600) {
-    return "elevated";
-  }
-
-  if (recentMessages.length >= 6 || approximateCharacterCount >= 1_200) {
-    return "medium";
-  }
-
-  return "low";
-}
-
 function resolveReplyLanguageForTurn({
   latestUserMessage,
   threadContinuity
 }: {
   latestUserMessage: string | null;
-  threadContinuity: ThreadContinuitySignal;
+  threadContinuity: SessionContinuitySignal;
 }) {
   if (!latestUserMessage) {
     return {
@@ -2275,7 +2181,7 @@ function buildThreadContinuityPrompt({
   replyLanguage,
   relationshipRecall
 }: {
-  threadContinuity: ThreadContinuitySignal;
+  threadContinuity: SessionContinuitySignal;
   replyLanguage: RuntimeReplyLanguage;
   relationshipRecall: {
     addressStyleMemory: {
@@ -2534,21 +2440,14 @@ export async function resolveAgentForWorkspace({
   userId: string;
 }) {
   const supabase = await createClient();
-
-  const { data: existingAgent } = await supabase
-    .from("agents")
-    .select(
-      "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata"
-    )
-    .eq("workspace_id", workspaceId)
-    .eq("owner_user_id", userId)
-    .eq("status", "active")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const existingAgent = await loadRoleProfile({
+    supabase,
+    workspaceId,
+    userId
+  });
 
   if (existingAgent) {
-    return existingAgent as AgentRecord;
+    return existingAgent;
   }
 
   const personaPack = await getDefaultPersonaPack();
@@ -2571,9 +2470,7 @@ export async function resolveAgentForWorkspace({
         source_slug: personaPack.slug
       }
     })
-    .select(
-      "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata"
-    )
+    .select(ROLE_PROFILE_SELECT)
     .single();
 
   if (error || !createdAgent) {
@@ -2625,19 +2522,15 @@ export async function getChatState() {
   let agent: AgentRecord | null = null;
 
   if (thread?.agent_id) {
-    const { data: boundAgent } = await supabase
-      .from("agents")
-      .select(
-        "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata"
-      )
-      .eq("id", thread.agent_id)
-      .eq("workspace_id", workspace.id)
-      .eq("owner_user_id", user.id)
-      .eq("status", "active")
-      .maybeSingle();
+    const boundAgent = await loadRoleProfile({
+      supabase,
+      workspaceId: workspace.id,
+      userId: user.id,
+      agentId: thread.agent_id
+    });
 
     if (boundAgent) {
-      agent = boundAgent as AgentRecord;
+      agent = boundAgent;
     }
   }
 
@@ -3316,20 +3209,25 @@ export async function generateAgentReply({
   agent: AgentRecord;
   messages: MessageRecord[];
   assistantMessageId?: string;
-}) {
+}): Promise<RuntimeTurnResult> {
   const supabase = await createClient();
-  const latestUserMessage = [...messages]
-    .reverse()
-    .find((message) => message.role === "user");
-  const latestUserMessageContent = latestUserMessage?.content ?? null;
-  const threadContinuity = getThreadContinuitySignal(messages);
+  const sessionContext = buildSessionContext({
+    threadId: thread.id,
+    agentId: agent.id,
+    messages,
+    detectReplyLanguageFromText,
+    isReplyLanguage: isRuntimeReplyLanguage,
+    getDeveloperDiagnosticsMetadata
+  });
+  const latestUserMessageContent = sessionContext.current_user_message;
+  const threadContinuity = sessionContext.continuity_signals;
   const sameThreadContinuationApplicable =
     latestUserMessageContent !== null &&
     threadContinuity.hasPriorAssistantTurn &&
     isRelationshipContinuationEdgePrompt(latestUserMessageContent);
   const preferSameThreadContinuation = sameThreadContinuationApplicable;
-  const recentRawTurnCount = getRecentRuntimeMessages(messages).length;
-  const approxContextPressure = getApproxContextPressure(messages);
+  const recentRawTurnCount = sessionContext.recent_raw_turn_count;
+  const approxContextPressure = sessionContext.approx_context_pressure;
   const longChainPressureCandidate =
     sameThreadContinuationApplicable &&
     recentRawTurnCount >= 10 &&
@@ -3339,21 +3237,21 @@ export async function generateAgentReply({
     threadContinuity
   });
   const replyLanguage = replyLanguageDecision.replyLanguage;
-  const memoryRecall = latestUserMessageContent !== null
-    ? await recallRelevantMemories({
-        workspaceId: workspace.id,
-        userId,
-        agentId: agent.id,
-        threadId: thread.id,
-        latestUserMessage: latestUserMessageContent,
-        allowDistantFallback: !preferSameThreadContinuation
-      })
-    : {
-        memories: [],
-        usedMemoryTypes: [],
-        hiddenExclusionCount: 0,
-        incorrectExclusionCount: 0
-      };
+  const relationshipStylePrompt =
+    latestUserMessageContent !== null &&
+    isRelationshipAnswerShapePrompt(latestUserMessageContent);
+  const sameThreadContinuity = threadContinuity.hasPriorAssistantTurn;
+  const runtimeMemoryContext = await loadRuntimeMemoryContext({
+    workspaceId: workspace.id,
+    userId,
+    agentId: agent.id,
+    threadId: thread.id,
+    latestUserMessage: latestUserMessageContent,
+    preferSameThreadContinuation,
+    sameThreadContinuity,
+    relationshipStylePrompt
+  });
+  const memoryRecall = runtimeMemoryContext.memoryRecall;
   let relationshipRecall: {
     directNamingQuestion: boolean;
     directPreferredNameQuestion: boolean;
@@ -3390,63 +3288,13 @@ export async function generateAgentReply({
     "default-grounded-fallback";
   let continuationReasonCode: ContinuationReasonCode | null = null;
 
-  if (latestUserMessage) {
-    const relationshipStylePrompt = isRelationshipAnswerShapePrompt(
-      latestUserMessage.content
-    );
-    const sameThreadContinuity = threadContinuity.hasPriorAssistantTurn;
-    const directNamingQuestion = isDirectAgentNamingQuestion(
-      latestUserMessage.content
-    );
-    const directPreferredNameQuestion = isDirectUserPreferredNameQuestion(
-      latestUserMessage.content
-    );
-    const nicknameRecall =
-      directNamingQuestion || relationshipStylePrompt || sameThreadContinuity
-      ? await recallAgentNickname({
-          workspaceId: workspace.id,
-          userId,
-          agentId: agent.id,
-          latestUserMessage: latestUserMessage.content
-        })
-      : {
-          directNamingQuestion: false,
-          nicknameMemory: null
-        };
-
-    const preferredNameRecall =
-      directPreferredNameQuestion ||
-      relationshipStylePrompt ||
-      sameThreadContinuity
-      ? await recallUserPreferredName({
-          workspaceId: workspace.id,
-          userId,
-          agentId: agent.id,
-          latestUserMessage: latestUserMessage.content
-        })
-      : {
-          directPreferredNameQuestion: false,
-          preferredNameMemory: null
-        };
-    const addressStyleRecall = await recallUserAddressStyle({
-      workspaceId: workspace.id,
-      userId,
-      agentId: agent.id
-    });
-
-    relationshipRecall = {
-      ...relationshipRecall,
-      relationshipStylePrompt,
-      sameThreadContinuity,
-      ...addressStyleRecall,
-      ...nicknameRecall,
-      ...preferredNameRecall
-    };
+  if (latestUserMessageContent) {
+    relationshipRecall = runtimeMemoryContext.relationshipRecall;
 
     const answerQuestionRouting = getAnswerQuestionRouting({
-      latestUserMessage: latestUserMessage.content,
+      latestUserMessage: latestUserMessageContent,
       directRecallQuestionKind: getDirectRecallQuestionKind(
-        latestUserMessage.content.normalize("NFKC").trim().toLowerCase()
+        latestUserMessageContent.normalize("NFKC").trim().toLowerCase()
       ),
       directNamingQuestion: relationshipRecall.directNamingQuestion,
       directPreferredNameQuestion: relationshipRecall.directPreferredNameQuestion,
@@ -3522,6 +3370,26 @@ export async function generateAgentReply({
     messages: promptMessages,
     temperature: modelProfile.temperature,
     maxOutputTokens: modelProfile.max_output_tokens
+  });
+
+  const memoryWriteRequests =
+    latestUserMessageContent !== null && sessionContext.current_message_id !== undefined
+      ? await planMemoryWriteRequests({
+          latestUserMessage: latestUserMessageContent,
+          recentContext: sessionContext.recent_raw_turns.slice(-3).map((message) => ({
+            role: message.role,
+            content: message.content
+          })),
+          sourceTurnId: sessionContext.current_message_id
+        })
+      : [];
+  const followUpRequests = buildFollowUpRequests({
+    latestUserMessage: latestUserMessageContent,
+    threadId: thread.id,
+    agentId: agent.id,
+    userId,
+    continuationReasonCode,
+    replyLanguage
   });
 
   const assistantPayload = {
@@ -3617,4 +3485,79 @@ export async function generateAgentReply({
     })
     .eq("id", thread.id)
     .eq("owner_user_id", userId);
+
+  return {
+    assistant_message: {
+      role: "assistant",
+      content: result.content,
+      language: replyLanguage,
+      message_type: "text",
+      metadata: assistantPayload.metadata as Record<string, unknown>
+    },
+    memory_write_requests: memoryWriteRequests,
+    follow_up_requests: followUpRequests,
+    runtime_events: [
+      {
+        type: "memory_recalled",
+        payload: {
+          total_count: allRecalledMemories.length,
+          memory_types: relationshipMemories.length > 0
+            ? Array.from(
+                new Set([...memoryRecall.usedMemoryTypes, "relationship" as const])
+              )
+            : memoryRecall.usedMemoryTypes,
+          hidden_exclusion_count: memoryRecall.hiddenExclusionCount,
+          incorrect_exclusion_count: memoryRecall.incorrectExclusionCount
+        }
+      },
+      {
+        type: "memory_write_planned",
+        payload: {
+          count: memoryWriteRequests.length,
+          memory_types: Array.from(
+            new Set(memoryWriteRequests.map((request) => request.memory_type))
+          )
+        }
+      },
+      {
+        type: "follow_up_planned",
+        payload: {
+          count: followUpRequests.length,
+          kinds: Array.from(
+            new Set(followUpRequests.map((request) => request.kind))
+          )
+        }
+      },
+      {
+        type: "answer_strategy_selected",
+        payload: {
+          question_type: answerQuestionType,
+          answer_strategy: answerStrategy,
+          answer_strategy_reason_code: answerStrategyReasonCode,
+          answer_strategy_priority: answerStrategyPriority,
+          continuation_reason_code: continuationReasonCode,
+          reply_language: replyLanguage
+        }
+      },
+      {
+        type: "assistant_reply_completed",
+        payload: {
+          thread_id: thread.id,
+          agent_id: agent.id,
+          memory_hit_count: allRecalledMemories.length,
+          message_type: "text",
+          language: replyLanguage
+        }
+      }
+    ],
+    debug_metadata: {
+      model_profile_id: modelProfile.id,
+      answer_strategy: answerStrategy,
+      answer_strategy_reason_code: answerStrategyReasonCode,
+      reply_language: replyLanguage,
+      recalled_memory_count: allRecalledMemories.length,
+      memory_write_request_count: memoryWriteRequests.length,
+      follow_up_request_count: followUpRequests.length
+    }
+  };
 }

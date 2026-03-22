@@ -290,6 +290,9 @@ role layer 不应：
 - `agents` 表
 - `persona_packs` 表
 - `default_model_profile_id`
+- `apps/web/lib/chat/role-core.ts`
+- `apps/web/lib/chat/role-loader.ts`
+- `apps/web/lib/chat/runtime.ts`
 
 当前已经具备：
 
@@ -298,12 +301,49 @@ role layer 不应：
 - `style_prompt`
 - `system_prompt`
 - `default_model_profile_id`
+- `RoleProfile` 的第一版代码 contract
+- `buildRoleCorePacket(...)` 的独立组装入口
+- `loadRoleProfile(...)` 的第一版最小加载入口
+- runtime 显式消费 `role_core_packet`
 
 当前仍缺：
 
-- `RoleProfile` 的独立 contract 文档化
-- `role_core_packet` 与持久化 profile 的清晰映射
-- role 与 relationship memory 的优先级正式收口
+- `RoleProfile` 的包级落点
+- `loadRoleProfile(...)` 的独立调用面
+- role 与 model profile 的更清晰独立边界
+- role metadata 的结构化收口
+
+### 11.1 当前代码文件映射
+
+- `apps/web/lib/chat/role-core.ts`
+  当前是 role layer 的最小代码落点，承载：
+  - `RoleProfile`
+  - `RoleCorePacket`
+  - `buildRoleCorePacket(...)`
+  - `getRoleCoreRelationshipStance(...)`
+- `apps/web/lib/chat/role-loader.ts`
+  当前承载 role profile 的最小读取面，负责：
+  - `ROLE_PROFILE_SELECT`
+  - `loadRoleProfile(...)`
+- `apps/web/lib/chat/runtime.ts`
+  当前仍负责：
+  - 从 `agents` 表读取 `RoleProfile` 现实字段
+  - 调用 `buildRoleCorePacket(...)`
+  - 将 `role_core_packet` 注入 runtime prompt 组装
+
+### 11.2 当前对齐结论
+
+当前代码已经开始满足本文档定义的最小 role layer 目标：
+
+- `RoleProfile` 不再只作为 runtime 内部匿名类型存在
+- `role_core_packet` 不再只在 `runtime.ts` 内局部定义
+- role 与 relationship memory 的边界已经体现在 `getRoleCoreRelationshipStance(...)` 中
+
+但当前仍处于第一阶段：
+
+- role 的存储读取还没有独立 service / repository
+- role 的默认模型配置仍散落在 runtime 查询路径中
+- role layer 还没有迁到 `packages/core` 或等价底座目录
 
 ---
 
@@ -323,6 +363,7 @@ role layer 不应：
 - role 与 relationship memory 的边界已明确
 - role 与 session 的边界已明确
 - runtime 已能稳定说明如何消费 role layer
+- 存在独立的 role 代码落点，而不是只在 `runtime.ts` 内部匿名维护
 
 ---
 

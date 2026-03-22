@@ -973,9 +973,9 @@ thread state 回答的是：
 
 当前 memory contract 的主要问题不是“没定义”，而是：
 
-- 仍和 Web 试验壳放在一起
-- 仍带有页面期实现痕迹
-- 还没有沉成 `packages/core/memory`
+- 虽然已开始拆分，但核心实现仍暂时挂在 `apps/web/lib/chat`
+- recall / write / shared / compatibility 现在已有分层，但还没有全部沉成独立 package
+- 只有纯 contract 部分已开始进入 `packages/core/memory`
 
 因此当前最需要补的不是再发明 schema，而是：
 
@@ -999,12 +999,13 @@ thread state 回答的是：
 
 #### C. `MemoryRecallResult` 仍偏隐式
 
-当前代码里 recall 已经在发生，但结果结构还更像：
+当前代码里 recall 已经在发生，而且 runtime 已开始通过统一入口消费它，但 recall 结果仍更多表现为：
 
-- 某些 helper 返回值
-- 若干内部判断结果
+- runtime 内部上下文对象的一部分
+- recall helper 的组合结果
+- 仍未完全上升为独立 package 级 contract
 
-而不是一个真正独立、稳定、可被 runtime 消费的 `MemoryRecallResult` contract。
+也就是说，问题已经不再是“完全隐式”，而是“已开始收口，但尚未彻底独立化”。
 
 这会影响：
 
@@ -1089,34 +1090,92 @@ thread state 回答的是：
 
 当前角色：
 
-- memory layer 的混合实现文件
-- 同时包含 extraction、single-slot upsert、direct recall、semantic recall、相关性评分、去重与写入策略
+- memory layer 的兼容入口
+- 当前主要承担 re-export，而不再承载完整混合实现
 
 当前主要承载：
 
-- extraction prompt 与解析
-- direct recall helper
-- relationship slot 检测
-- single-slot upsert
-- relevant memory recall
-- 记忆相关数据访问
+- 对现有调用方保持稳定 import 路径
+- 把 recall 能力继续暴露给 runtime
+- 把 write 能力继续暴露给 action / caller
 
 建议后续拆分方向：
 
-- `packages/core/memory/extraction`
-- `packages/core/memory/recall`
-- `packages/core/memory/write-path`
-- `packages/core/memory/repositories`
+- 保持为兼容入口，直到调用方全面改完
+- 后续逐步退化为更薄的 facade 或删除
 
 当前判断：
 
-- 它最有价值，但也最混
-- 不适合整体原样迁移
-- 应按“contract / recall / write / repository”拆开
+- 它原本最混，但当前第一轮拆分已经完成
+- 现在已经不适合作为“核心实现文件”理解，而更适合作为“兼容门面”理解
 
 ---
 
-#### C. `apps/web/lib/chat/runtime.ts`
+#### C. `apps/web/lib/chat/memory-shared.ts`
+
+当前角色：
+
+- memory 的共享纯 helper / 类型层
+- 承载 recall 与 write-path 共用的去重、归一化、评分和基础类型
+
+当前主要承载：
+
+- `StoredMemory / MemoryWriteOutcome / MemoryUsageType`
+- `normalizeMemoryContent`
+- `isNearDuplicateMemory`
+- `shouldPreferIncomingMemory`
+- `coalesceCandidates`
+- `scoreMemoryRelevance`
+
+当前判断：
+
+- 这是从原 `memory.ts` 中切出来的第一层“纯 shared” 落点
+- 为 recall / write-path 解耦提供了明显收益
+
+---
+
+#### D. `apps/web/lib/chat/memory-recall.ts`
+
+当前角色：
+
+- recall 查询与 runtime memory context 组装层
+- runtime 当前消费记忆能力的主要统一入口
+
+当前主要承载：
+
+- `recallRelevantMemories`
+- relationship recall helper
+- `loadRuntimeMemoryContext(...)`
+
+当前判断：
+
+- runtime 已不再自行分散调用多处 recall helper
+- 这使 memory 对 runtime 的消费边界开始稳定下来
+
+---
+
+#### E. `apps/web/lib/chat/memory-write.ts`
+
+当前角色：
+
+- memory write-path 与 planner / executor 过渡层
+
+当前主要承载：
+
+- `planMemoryWriteRequests(...)`
+- `executeMemoryWriteRequests(...)`
+- `storeRelationshipMemories(...)`
+- `upsertSingleSlotMemory(...)`
+
+当前判断：
+
+- `profile / preference` 已形成 planner -> executor 的最小闭环
+- relationship memory 仍单独保留，不强行混入通用 planner
+- 这是当前阶段非常合理的过渡结构
+
+---
+
+#### F. `apps/web/lib/chat/runtime.ts`
 
 当前角色：
 
@@ -1129,6 +1188,7 @@ thread state 回答的是：
 - recall prompt 组装
 - thread continuity 与 memory priority 协调
 - recall 命中后的回答策略兑现
+- `memory_write_requests / follow_up_requests / runtime_events` 的最小输出组装
 
 建议后续边界：
 
@@ -1144,8 +1204,9 @@ thread state 回答的是：
 当前判断：
 
 - 这不是 memory 文件
-- 但它是记忆兑现逻辑当前最重要的消费方
-- 因此 memory layer 文档必须能反向指导 runtime 怎么收口
+- 但它仍是记忆兑现逻辑当前最重要的消费方
+- 当前它已开始消费统一 `runtimeMemoryContext`，并显式产出 `memory_write_requests`
+- 因此 memory layer 文档必须继续反向指导 runtime 怎么收口
 
 ---
 
@@ -1154,8 +1215,9 @@ thread state 回答的是：
 如果按“低风险、高收益”排序，建议：
 
 1. 先迁 `memory-v2.ts` 的纯 contract 部分
-2. 再拆 `memory.ts` 中的 `types / recall / write` 主干
-3. 最后让 `runtime.ts` 改为消费稳定 contract，而不是继续直接依赖散乱 helper
+2. 再拆 `memory.ts` 中的 `shared / recall / write` 主干
+3. 让 `runtime.ts` 改为消费统一 `runtimeMemoryContext` 与显式输出对象
+4. 再逐步把 `memory-recall / memory-write / memory-shared` 向 core 落点推进
 
 这会比先动 runtime 主文件更稳。
 

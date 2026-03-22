@@ -233,12 +233,34 @@ runtime 在处理一轮时，至少要消费：
 - answer strategy 逻辑
 - memory recall 消费
 - reply 生成
+- `RuntimeOutput` 已以代码形式初步落地
+- `assistant_message` 已有统一最小字段
+- `memory_write_requests` 已有最小 planner output
+- `follow_up_requests` 已有最小 planner output
+- `runtime_events` 已有标准事件类型雏形
+
+当前代码中的主要落点已包括：
+
+- `apps/web/lib/chat/runtime-contract.ts`
+- `apps/web/lib/chat/runtime.ts`
+- `apps/web/lib/chat/memory-recall.ts`
+- `apps/web/lib/chat/memory-write.ts`
+
+当前已落实的最小输出事实：
+
+- `generateAgentReply(...)` 已返回统一 `RuntimeTurnResult`
+- `assistant_message` 当前至少包含 `role / content / language / message_type / metadata`
+- `memory_write_requests` 当前已能产出 `profile / preference` 的建议写入请求
+- `follow_up_requests` 当前已能产出最小 `gentle_check_in` 请求
+- `actions.ts` 已开始消费统一输出对象，而不是只依赖隐式副作用
 
 当前仍缺：
 
 - `RuntimeInput` 的独立 contract 文档化
-- `RuntimeOutput` 的正式固定
-- `assistant_message / memory_write_requests / follow_up_requests / runtime_events` 的完全收口
+- `RuntimeInput` 到调用方入口的完全统一
+- `memory_write_requests` 与真实执行器之间的进一步解耦与标准化
+- `follow_up_requests` 与 scheduler / adapter 的真实接线
+- `runtime_events` 事件字典与 payload schema 的进一步固定
 
 ---
 
@@ -249,6 +271,11 @@ runtime 在处理一轮时，至少要消费：
 - `assistant_message / memory_write_requests / follow_up_requests / runtime_events / debug_metadata` 的角色已明确
 - runtime 与 role / memory / session 的输入边界已明确
 - 接入层与产品层都可以围绕这一 contract 设计，而不再自行发明结构
+
+当前代码进度补充判断：
+
+- `RuntimeOutput` 已不是纯文档概念，而是已有第一版可执行实现
+- 当前仍属于“最小 contract 已落地，细部 schema 继续收口”的阶段
 
 ---
 

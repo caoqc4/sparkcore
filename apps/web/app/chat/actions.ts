@@ -11,7 +11,10 @@ import {
   normalizeSingleSlotValue
 } from "@/lib/chat/memory-v2";
 import { generateAgentReply, getDefaultModelProfile } from "@/lib/chat/runtime";
-import { extractAndStoreMemories } from "@/lib/chat/memory";
+import {
+  executeMemoryWriteRequests,
+  storeRelationshipMemories
+} from "@/lib/chat/memory-write";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 import {
   CHAT_UI_LANGUAGE_COOKIE,
@@ -1113,7 +1116,7 @@ export async function sendMessage(
   }
 
   try {
-    await generateAgentReply({
+    const runtimeTurnResult = await generateAgentReply({
       userId: user.id,
       workspace: workspace as { id: string; name: string; kind: string },
       thread: {
@@ -1137,18 +1140,112 @@ export async function sendMessage(
       assistantMessageId: assistantPlaceholder.id
     });
 
+    if (!runtimeTurnResult.assistant_message) {
+      throw new Error("Runtime completed without an assistant message.");
+    }
+
+    if (runtimeTurnResult.memory_write_requests.length > 0) {
+      const { data: assistantMessage } = await supabase
+        .from("messages")
+        .select("metadata")
+        .eq("id", assistantPlaceholder.id)
+        .eq("thread_id", thread.id)
+        .eq("workspace_id", workspace.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      await supabase
+        .from("messages")
+        .update({
+          metadata: {
+            ...(assistantMessage?.metadata ?? {}),
+            runtime_memory_write_request_count:
+              runtimeTurnResult.memory_write_requests.length,
+            runtime_memory_write_requests_preview:
+              runtimeTurnResult.memory_write_requests.map((request) => ({
+                memory_type: request.memory_type,
+                confidence: request.confidence,
+                source_turn_id: request.source_turn_id,
+                dedupe_key: request.dedupe_key
+              }))
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", assistantPlaceholder.id)
+        .eq("thread_id", thread.id)
+        .eq("workspace_id", workspace.id)
+        .eq("user_id", user.id);
+    }
+
+    if (runtimeTurnResult.follow_up_requests.length > 0) {
+      const { data: assistantMessage } = await supabase
+        .from("messages")
+        .select("metadata")
+        .eq("id", assistantPlaceholder.id)
+        .eq("thread_id", thread.id)
+        .eq("workspace_id", workspace.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      await supabase
+        .from("messages")
+        .update({
+          metadata: {
+            ...(assistantMessage?.metadata ?? {}),
+            runtime_follow_up_request_count:
+              runtimeTurnResult.follow_up_requests.length,
+            runtime_follow_up_requests_preview:
+              runtimeTurnResult.follow_up_requests.map((request) => ({
+                kind: request.kind,
+                trigger_at: request.trigger_at,
+                reason: request.reason
+              }))
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", assistantPlaceholder.id)
+        .eq("thread_id", thread.id)
+        .eq("workspace_id", workspace.id)
+        .eq("user_id", user.id);
+    }
+
     try {
-      const memoryWriteOutcome = await extractAndStoreMemories({
-        workspaceId: workspace.id,
-        userId: user.id,
-        agentId: thread.agent_id,
-        sourceMessageId: insertedMessage.id,
-        latestUserMessage: trimmedContent,
-        recentContext: updatedMessages.slice(-3).map((message) => ({
-          role: message.role,
-          content: message.content
-        }))
-      });
+      const [plannedMemoryOutcome, relationshipMemoryOutcome] = await Promise.all([
+        executeMemoryWriteRequests({
+          workspaceId: workspace.id,
+          userId: user.id,
+          agentId: thread.agent_id,
+          requests: runtimeTurnResult.memory_write_requests
+        }),
+        storeRelationshipMemories({
+          workspaceId: workspace.id,
+          userId: user.id,
+          agentId: thread.agent_id,
+          sourceMessageId: insertedMessage.id,
+          latestUserMessage: trimmedContent
+        })
+      ]);
+
+      const memoryWriteOutcome = {
+        createdCount:
+          plannedMemoryOutcome.createdCount +
+          relationshipMemoryOutcome.createdCount,
+        createdTypes: Array.from(
+          new Set([
+            ...plannedMemoryOutcome.createdTypes,
+            ...relationshipMemoryOutcome.createdTypes
+          ])
+        ),
+        updatedCount:
+          plannedMemoryOutcome.updatedCount +
+          relationshipMemoryOutcome.updatedCount,
+        updatedTypes: Array.from(
+          new Set([
+            ...plannedMemoryOutcome.updatedTypes,
+            ...relationshipMemoryOutcome.updatedTypes
+          ])
+        )
+      };
 
       if (
         memoryWriteOutcome.createdCount > 0 ||
@@ -1402,7 +1499,7 @@ export async function retryAssistantReply(
     .eq("user_id", user.id);
 
   try {
-    await generateAgentReply({
+    const runtimeTurnResult = await generateAgentReply({
       userId: user.id,
       workspace: workspace as { id: string; name: string; kind: string },
       thread: {
@@ -1425,6 +1522,57 @@ export async function retryAssistantReply(
       messages: promptMessages,
       assistantMessageId: failedMessage.id
     });
+
+    if (!runtimeTurnResult.assistant_message) {
+      throw new Error("Runtime retry completed without an assistant message.");
+    }
+
+    if (runtimeTurnResult.memory_write_requests.length > 0) {
+      await supabase
+        .from("messages")
+        .update({
+          metadata: {
+            ...failedMessage.metadata,
+            runtime_memory_write_request_count:
+              runtimeTurnResult.memory_write_requests.length,
+            runtime_memory_write_requests_preview:
+              runtimeTurnResult.memory_write_requests.map((request) => ({
+                memory_type: request.memory_type,
+                confidence: request.confidence,
+                source_turn_id: request.source_turn_id,
+                dedupe_key: request.dedupe_key
+              }))
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", failedMessage.id)
+        .eq("thread_id", thread.id)
+        .eq("workspace_id", workspace.id)
+        .eq("user_id", user.id);
+    }
+
+    if (runtimeTurnResult.follow_up_requests.length > 0) {
+      await supabase
+        .from("messages")
+        .update({
+          metadata: {
+            ...failedMessage.metadata,
+            runtime_follow_up_request_count:
+              runtimeTurnResult.follow_up_requests.length,
+            runtime_follow_up_requests_preview:
+              runtimeTurnResult.follow_up_requests.map((request) => ({
+                kind: request.kind,
+                trigger_at: request.trigger_at,
+                reason: request.reason
+              }))
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", failedMessage.id)
+        .eq("thread_id", thread.id)
+        .eq("workspace_id", workspace.id)
+        .eq("user_id", user.id);
+    }
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);
 
