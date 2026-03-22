@@ -227,6 +227,7 @@ runtime 在处理一轮时，至少要消费：
   - `answer_strategy_selected.strategy`
   - `answer_strategy_selected.reason_code`
   - `assistant_reply_completed.recalled_count`
+- IM adapter / harness 这一侧也已开始对齐这层 typed runtime event 约束
 - 当前边界判断也已开始明确：
   - `runtime_events` 负责“本轮发生了什么标准过程”
   - `debug_metadata` 负责“这轮为什么这样、有哪些最小调试摘要”

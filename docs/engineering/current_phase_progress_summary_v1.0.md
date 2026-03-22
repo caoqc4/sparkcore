@@ -131,6 +131,7 @@
   - `answer_strategy_selected.strategy`
   - `answer_strategy_selected.reason_code`
   - `assistant_reply_completed.recalled_count`
+- IM adapter / harness 这一侧也已开始跟上这层 typed runtime event 约束
 - `debug_metadata` 的命名收口方向也已开始明确：
   - 顶层只保留少量稳定 summary key
   - 局部子域信息优先逐步收成嵌套对象
