@@ -3398,6 +3398,88 @@ export async function generateAgentReply({
     assistantMessageId,
     supabase
   });
+  return runPreparedRuntimeTurn({
+    preparedRuntimeTurn,
+    userId,
+    latestUserMessageContent,
+    allRecalledMemories,
+    relationshipMemories,
+    modelProfile,
+    replyLanguage,
+    threadContinuityPrompt,
+    answerQuestionType,
+    answerStrategy,
+    answerStrategyReasonCode,
+    answerStrategyPriority,
+    continuationReasonCode,
+    recentRawTurnCount,
+    approxContextPressure,
+    sameThreadContinuationApplicable,
+    longChainPressureCandidate,
+    preferSameThreadContinuation,
+    replyLanguageDecision
+  });
+}
+
+export async function runPreparedRuntimeTurn({
+  preparedRuntimeTurn,
+  userId,
+  latestUserMessageContent,
+  allRecalledMemories,
+  relationshipMemories,
+  modelProfile,
+  replyLanguage,
+  threadContinuityPrompt,
+  answerQuestionType,
+  answerStrategy,
+  answerStrategyReasonCode,
+  answerStrategyPriority,
+  continuationReasonCode,
+  recentRawTurnCount,
+  approxContextPressure,
+  sameThreadContinuationApplicable,
+  longChainPressureCandidate,
+  preferSameThreadContinuation,
+  replyLanguageDecision
+}: {
+  preparedRuntimeTurn: Awaited<ReturnType<typeof prepareRuntimeTurn>>;
+  userId: string;
+  latestUserMessageContent: string | null;
+  allRecalledMemories: Array<{
+    memory_type: "profile" | "preference" | "relationship";
+    content: string;
+    confidence: number;
+  }>;
+  relationshipMemories: Array<{
+    memory_type: "relationship";
+    content: string;
+    confidence: number;
+  }>;
+  modelProfile: Awaited<ReturnType<typeof resolveModelProfileForAgent>>;
+  replyLanguage: RuntimeReplyLanguage;
+  threadContinuityPrompt: string;
+  answerQuestionType: AnswerQuestionType;
+  answerStrategy: AnswerStrategy;
+  answerStrategyReasonCode: AnswerStrategyReasonCode;
+  answerStrategyPriority: AnswerStrategyPriority;
+  continuationReasonCode: ContinuationReasonCode | null;
+  recentRawTurnCount: number;
+  approxContextPressure: ApproxContextPressure;
+  sameThreadContinuationApplicable: boolean;
+  longChainPressureCandidate: boolean;
+  preferSameThreadContinuation: boolean;
+  replyLanguageDecision: {
+    replyLanguage: RuntimeReplyLanguage;
+    source: ReplyLanguageSource;
+  };
+}): Promise<RuntimeTurnResult> {
+  const agent = preparedRuntimeTurn.role.agent;
+  const relationshipRecall =
+    preparedRuntimeTurn.memory.runtime_memory_context.relationshipRecall;
+  const memoryRecall = preparedRuntimeTurn.memory.runtime_memory_context.memoryRecall;
+  const { workspace, thread, messages, assistant_message_id, supabase } =
+    preparedRuntimeTurn.resources;
+  const runtimeSupabase = supabase as any;
   const promptMessages = [
     {
       role: "system" as const,
@@ -3476,7 +3558,7 @@ export async function generateAgentReply({
           typeof modelProfile.metadata?.tier_label === "string"
             ? modelProfile.metadata.tier_label
             : null,
-        model_profile_usage_note:
+      model_profile_usage_note:
           typeof modelProfile.metadata?.usage_note === "string"
             ? modelProfile.metadata.usage_note
             : null,
@@ -3530,18 +3612,18 @@ export async function generateAgentReply({
     }
   };
 
-  const { error } = assistantMessageId
-    ? await supabase
+  const { error } = assistant_message_id
+    ? await runtimeSupabase
         .from("messages")
         .update({
           ...assistantPayload,
           updated_at: new Date().toISOString()
         })
-        .eq("id", assistantMessageId)
+        .eq("id", assistant_message_id)
         .eq("thread_id", thread.id)
         .eq("workspace_id", workspace.id)
         .eq("user_id", userId)
-    : await supabase.from("messages").insert({
+    : await runtimeSupabase.from("messages").insert({
         thread_id: thread.id,
         workspace_id: workspace.id,
         user_id: userId,
@@ -3552,7 +3634,7 @@ export async function generateAgentReply({
     throw new Error(`Failed to store assistant reply: ${error.message}`);
   }
 
-  await supabase
+  await runtimeSupabase
     .from("threads")
     .update({
       agent_id: agent.id,
