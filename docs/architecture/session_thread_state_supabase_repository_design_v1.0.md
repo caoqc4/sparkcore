@@ -38,7 +38,9 @@
 - `SupabaseThreadStateRepository` 第一版代码壳已存在
 - `mapThreadStateRowToRecord(...)` 已存在
 - `createAdminThreadStateRepository()` 已存在
-- 但默认主路径仍未切到 Supabase
+- `thread_states` migration 草案已存在并已落远端库
+- `SupabaseThreadStateRepository` 真实读取已验证通过
+- 默认 `loadThreadState(...)` 已优先走 Supabase
 
 ---
 
@@ -101,7 +103,7 @@
 
 也就是说：
 
-**可以先有 `SupabaseThreadStateRepository`，但仍然先没有 migration。**
+**可以先有 `SupabaseThreadStateRepository`，再补最小 migration，并在默认主路径切换前完成一次受控真实读取验证。**
 
 ---
 
@@ -152,7 +154,7 @@ class SupabaseThreadStateRepository implements ThreadStateRepository {
 
 ## 7. 当前建议的最小 row 形状
 
-虽然这一步不写 migration，但为了让 repository shell 可讨论，当前建议最小 row 映射至少包括：
+当前最小 row 形状已经进入 migration 草案，且 repository shell 所需字段面已被真实读取验证覆盖：
 
 ```ts
 type ThreadStateRow = {
@@ -198,19 +200,23 @@ prepareRuntimeSession(...)
 
 这样真实后端读取不会重新把 fallback 逻辑卷回后端层。
 
-当前这层也已经开始有明确代码落点：
+当前这层已经有明确代码落点：
 
 - `SupabaseThreadStateRepository`
 - `mapThreadStateRowToRecord(...)`
 - `createAdminThreadStateRepository()`
+- `supabase/migrations/20260323113000_create_thread_states.sql`
 
-但它们当前仍然只是后端读取壳，不是默认主路径。
+同时当前也已经完成两步关键推进：
+
+- `thread_states` 已落远端库
+- 默认 `loadThreadState(...)` 已开始优先走 Supabase，初始化失败时回退 `InMemoryThreadStateRepository`
 
 ---
 
 ## 9. 当前不建议立刻做的事
 
-即便下一步开始做 `SupabaseThreadStateRepository`，当前也不建议立刻同时做：
+即便当前已经有 `SupabaseThreadStateRepository` 和 migration，仍不建议立刻同时做：
 
 - `pending` / `claimed` 一样的状态机字段
 - state 写回接口
@@ -236,17 +242,20 @@ prepareRuntimeSession(...)
 
 ### Step 2
 
-再决定：
+再补：
 
-- 是否需要 `createAdminThreadStateRepository()`
+- `createAdminThreadStateRepository()`
+- `thread_states` migration 草案
 
 ### Step 3
 
-再决定：
-
-- 是否需要 migration 草案
+再做一次受控真实读取验证
 
 ### Step 4
+
+再把默认 `loadThreadState(...)` 优先切到 Supabase
+
+### Step 5
 
 最后才讨论：
 
