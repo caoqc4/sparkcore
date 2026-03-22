@@ -90,6 +90,27 @@ export function buildProactiveOutboundMessages(args: {
   }));
 }
 
+export function buildBindingNotFoundOutboundMessage(args: {
+  inbound: InboundChannelMessage;
+  reason?: string;
+}): OutboundChannelMessage[] {
+  return [
+    {
+      platform: args.inbound.platform,
+      channel_id: args.inbound.channel_id,
+      peer_id: args.inbound.peer_id,
+      message_type: "text",
+      content:
+        "This channel is not bound to a SparkCore role yet. Complete the binding flow first, then try again.",
+      send_mode: "reply",
+      metadata: {
+        binding_status: "not_found",
+        binding_reason: args.reason ?? null
+      }
+    }
+  ];
+}
+
 export async function handleInboundChannelMessage(args: {
   inbound: InboundChannelMessage;
   bindingLookup: BindingLookup;
@@ -118,7 +139,11 @@ export async function handleInboundChannelMessage(args: {
       status: "binding_not_found",
       dedupe_key: dedupeKey,
       lookup_input: lookupInput,
-      reason: lookupResult.reason
+      reason: lookupResult.reason,
+      outbound_messages: buildBindingNotFoundOutboundMessage({
+        inbound: args.inbound,
+        reason: lookupResult.reason
+      })
     };
   }
 

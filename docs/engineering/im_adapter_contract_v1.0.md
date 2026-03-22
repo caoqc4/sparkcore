@@ -188,6 +188,8 @@ binding 负责建立：
 6. 把 `assistant_message` 转成 `OutboundChannelMessage`
 7. 把 `follow_up_requests` 交给 scheduler / adapter 协作层
 
+当 binding 未命中时，接入层还应能返回一条最小未绑定提示消息，而不是只暴露内部错误状态。
+
 接入层不应：
 
 - 自己做 memory write 判定
@@ -313,6 +315,7 @@ Success criteria：
 - `handleInboundChannelMessage(...)` 的最小 bridge
 - Web 侧 `AdapterRuntimePort` 第一版适配器
 - Web 侧 `createWebBindingLookup()` 入口
+- `binding_not_found` 的最小出站提示
 
 当前仍缺：
 
@@ -355,6 +358,7 @@ Success criteria：
   负责纯 bridge 逻辑：
   - inbound dedupe key
   - binding lookup
+  - binding-not-found minimal outbound message
   - `InboundChannelMessage -> AdapterRuntimeInput`
   - `AdapterRuntimeOutput -> OutboundChannelMessage`
   - 最小 `handleInboundChannelMessage(...)`

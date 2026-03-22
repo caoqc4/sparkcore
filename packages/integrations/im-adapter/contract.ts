@@ -144,6 +144,7 @@ export type AdapterInboundHandlingResult =
       dedupe_key: string;
       lookup_input: BindingLookupInput;
       reason?: string;
+      outbound_messages: OutboundChannelMessage[];
     }
   | {
       status: "processed";
