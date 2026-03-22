@@ -31,7 +31,7 @@
 
 ## 2. 一句话结论
 
-**当前 thread state 写回已经通过独立 trigger seam 以 soft-fail side effect 方式接入 `runPreparedRuntimeTurn(...)`；后续如果继续推进，最稳的下一步不是把更多状态逻辑揉回 execution 主体，而是先决定 trigger result 是否要继续显式化。**
+**当前 thread state 写回已经通过独立 trigger seam 以 soft-fail side effect 方式接入 `runPreparedRuntimeTurn(...)`，并开始以最小摘要形式进入 `debug_metadata`；后续如果继续推进，最稳的下一步不是把更多状态逻辑揉回 execution 主体，而是再决定是否值得升级成更正式的 runtime output contract。**
 
 一句话说：
 
@@ -44,6 +44,7 @@
 - `maybeWriteThreadStateAfterTurn(...)` 已存在
 - `buildThreadStateAfterTurn(...)` 已存在
 - trigger 已开始以 soft-fail side effect 方式接入 `runPreparedRuntimeTurn(...)`
+- `debug_metadata.thread_state_writeback` 已开始承接最小 writeback 摘要
 
 ---
 
@@ -228,8 +229,8 @@ type WriteThreadStateAfterTurnResult =
 当前推荐：
 
 - thread state 写回失败 **不打断** 主 reply 结果返回
-- 但应返回独立 trigger result
-- 后续可以考虑把 trigger result 写进 debug metadata
+- trigger 保留独立结果对象
+- 当前已开始把最小 trigger result 摘要写进 `debug_metadata`
 
 原因很简单：
 
@@ -254,7 +255,18 @@ runPreparedRuntimeTurn(prepared)
   -> return RuntimeTurnResult
 ```
 
-如果后面需要，也可以演进成：
+当前已前移成：
+
+```ts
+runPreparedRuntimeTurn(prepared)
+  -> RuntimeTurnResult
+  -> maybeWriteThreadStateAfterTurn(...)
+  -> writeback result
+  -> debug_metadata.thread_state_writeback
+  -> return RuntimeTurnResult
+```
+
+如果后面需要，也可以继续演进成：
 
 ```ts
 runPreparedRuntimeTurn(prepared)

@@ -32,17 +32,17 @@
 
 ## 2. 一句话结论
 
-**当前 thread state writeback result 如果继续推进，最稳的下一步不是提升成 `RuntimeTurnResult` 顶层字段，而是先以最小摘要形式进入 `debug_metadata`。**
+**当前 thread state writeback result 已经以最小摘要形式进入 `debug_metadata`；后续如果继续推进，最稳的下一步不是立刻提升成 `RuntimeTurnResult` 顶层字段，而是先观察这层调试可见性是否已经足够。**
 
 一句话说：
 
 **先让 writeback 对调试可见，再决定是否值得进入更正式的 runtime output contract。**
 
-当前推荐的方向是：
+当前已落地的方向是：
 
 - 顶层 `RuntimeTurnResult` 不扩字段
-- `debug_metadata` 增加一个很小的 `thread_state_writeback` 摘要
-- 只暴露：
+- `debug_metadata` 已增加一个很小的 `thread_state_writeback` 摘要
+- 当前只暴露：
   - `status`
   - `repository`
   - `reason?`
@@ -71,9 +71,9 @@
 1. 调试 runtime 回合时，看不到 thread state side effect 是否真的发生
 2. 一旦后面想加 retry / metrics，就会缺少第一版结果面
 
-所以更稳的动作是：
+所以更稳的动作已经变成：
 
-**先给 writeback result 一个很小的调试可见面，但不立刻把它升级成正式顶层 contract。**
+**先以最小调试可见面落地，再决定它是否值得升级成正式顶层 contract。**
 
 ---
 
@@ -250,13 +250,13 @@ type ThreadStateWritebackDebugMetadata = {
 
 ### Step 2
 
-下一步优先补：
+当前已经补上：
 
 - `debug_metadata.thread_state_writeback`
 
 ### Step 3
 
-等这层调试可见性稳定后，再决定是否需要：
+等这层调试可见性再稳定一点后，再决定是否需要：
 
 - 更正式的 writeback result contract
 - retry / metrics
@@ -275,10 +275,10 @@ type ThreadStateWritebackDebugMetadata = {
 
 当前 thread state writeback result 最合理的下一步，不是立刻升级成顶层 runtime output，也不是继续保持完全不可见。
 
-更稳的顺序是：
+更稳的顺序当前已经前移成：
 
-**先以最小摘要形式进入 `debug_metadata`，只提供 `status / repository / reason?` 这几个字段。**
+**先以最小摘要形式进入 `debug_metadata`，当前只提供 `status / repository / reason?` 这几个字段。**
 
 也就是说，当前更好的动作是：
 
-**先补“调试可见”，再决定是否值得升级成更正式的 runtime contract。**
+**先接受“调试可见”已经落地，再决定是否值得升级成更正式的 runtime contract。**
