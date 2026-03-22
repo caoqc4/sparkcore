@@ -4,6 +4,7 @@ import {
   type AdapterRuntimePort
 } from "@/lib/integrations/im-adapter";
 import { executeMemoryWriteRequests } from "@/lib/chat/memory-write";
+import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { loadRoleProfile } from "@/lib/chat/role-loader";
 import { generateAgentReply } from "@/lib/chat/runtime";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
@@ -276,7 +277,7 @@ async function runImRuntimeTurnWithSupabase(args: {
         updates: {
           runtime_follow_up_request_count:
             runtimeTurnResult.follow_up_requests.length,
-          runtime_follow_up_requests_preview:
+            runtime_follow_up_requests_preview:
             runtimeTurnResult.follow_up_requests.map((request) => ({
               kind: request.kind,
               trigger_at: request.trigger_at,
@@ -287,12 +288,17 @@ async function runImRuntimeTurnWithSupabase(args: {
     }
 
     try {
-      const memoryWriteOutcome = await executeMemoryWriteRequests({
-        workspaceId: workspace.id,
-        userId: input.user_id,
-        agentId: thread.agent_id,
-        requests: runtimeTurnResult.memory_write_requests
-      });
+      const [memoryWriteOutcome, followUpExecutionResults] = await Promise.all([
+        executeMemoryWriteRequests({
+          workspaceId: workspace.id,
+          userId: input.user_id,
+          agentId: thread.agent_id,
+          requests: runtimeTurnResult.memory_write_requests
+        }),
+        executeFollowUpRequests({
+          requests: runtimeTurnResult.follow_up_requests
+        })
+      ]);
 
       if (
         memoryWriteOutcome.createdCount > 0 ||
@@ -318,8 +324,29 @@ async function runImRuntimeTurnWithSupabase(args: {
           }
         });
       }
+
+      if (followUpExecutionResults.length > 0) {
+        await updateAssistantPreviewMetadata({
+          supabase,
+          assistantMessageId: assistantPlaceholder.id,
+          threadId: thread.id,
+          workspaceId: workspace.id,
+          userId: input.user_id,
+          updates: {
+            follow_up_execution_result_count: followUpExecutionResults.length,
+            follow_up_execution_results_preview: followUpExecutionResults.map(
+              (result) => ({
+                kind: result.kind,
+                status: result.status,
+                reason: result.reason,
+                trigger_at: result.trigger_at ?? null
+              })
+            )
+          }
+        });
+      }
     } catch (memoryError) {
-      console.error("IM runtime memory extraction failed:", memoryError);
+      console.error("IM runtime post-processing failed:", memoryError);
     }
 
     return runtimeTurnResult;

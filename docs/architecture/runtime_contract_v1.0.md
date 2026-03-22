@@ -151,6 +151,17 @@ runtime 在处理一轮时，至少要消费：
 
 > 这一轮是否需要后续提醒、延迟跟进或 scheduler 回流
 
+当前实现补充：
+
+- runtime 当前已能产出最小 `gentle_check_in` request
+- 当前先通过 executor stub 消费并返回显式 `FollowUpExecutionResult`
+- 当前结果状态至少包括：
+  - `accepted`
+  - `skipped`
+  - `unsupported`
+  - `invalid`
+- 当前阶段不涉及真实持久化或真实调度
+
 ---
 
 ## 7.4 `runtime_events`
@@ -228,6 +239,11 @@ runtime 在处理一轮时，至少要消费：
 8. 产出 `memory_write_requests`
 9. 产出 `follow_up_requests`
 10. 返回 `RuntimeOutput`
+
+当前阶段补充：
+
+11. 外层可选调用 `executeFollowUpRequests(...)` 消费这些 request
+12. 记录 `FollowUpExecutionResult` 作为 debug / observability 元数据
 
 ---
 

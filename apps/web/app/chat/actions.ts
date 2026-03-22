@@ -14,6 +14,7 @@ import { generateAgentReply, getDefaultModelProfile } from "@/lib/chat/runtime";
 import {
   executeMemoryWriteRequests
 } from "@/lib/chat/memory-write";
+import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 import {
   CHAT_UI_LANGUAGE_COOKIE,
@@ -1214,12 +1215,17 @@ export async function sendMessage(
     }
 
     try {
-      const memoryWriteOutcome = await executeMemoryWriteRequests({
-        workspaceId: workspace.id,
-        userId: user.id,
-        agentId: thread.agent_id,
-        requests: runtimeTurnResult.memory_write_requests
-      });
+      const [memoryWriteOutcome, followUpExecutionResults] = await Promise.all([
+        executeMemoryWriteRequests({
+          workspaceId: workspace.id,
+          userId: user.id,
+          agentId: thread.agent_id,
+          requests: runtimeTurnResult.memory_write_requests
+        }),
+        executeFollowUpRequests({
+          requests: runtimeTurnResult.follow_up_requests
+        })
+      ]);
 
       if (
         memoryWriteOutcome.createdCount > 0 ||
@@ -1259,8 +1265,41 @@ export async function sendMessage(
           .eq("workspace_id", workspace.id)
           .eq("user_id", user.id);
       }
+
+      if (followUpExecutionResults.length > 0) {
+        const { data: assistantMessage } = await supabase
+          .from("messages")
+          .select("metadata")
+          .eq("id", assistantPlaceholder.id)
+          .eq("thread_id", thread.id)
+          .eq("workspace_id", workspace.id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        await supabase
+          .from("messages")
+          .update({
+            metadata: {
+              ...(assistantMessage?.metadata ?? {}),
+              follow_up_execution_result_count: followUpExecutionResults.length,
+              follow_up_execution_results_preview: followUpExecutionResults.map(
+                (result) => ({
+                  kind: result.kind,
+                  status: result.status,
+                  reason: result.reason,
+                  trigger_at: result.trigger_at ?? null
+                })
+              )
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", assistantPlaceholder.id)
+          .eq("thread_id", thread.id)
+          .eq("workspace_id", workspace.id)
+          .eq("user_id", user.id);
+      }
     } catch (memoryError) {
-      console.error("Memory extraction failed:", memoryError);
+      console.error("Post-processing failed:", memoryError);
     }
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);

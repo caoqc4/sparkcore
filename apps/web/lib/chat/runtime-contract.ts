@@ -46,6 +46,21 @@ export type RuntimeFollowUpRequest = {
   payload: Record<string, unknown>;
 };
 
+export type RuntimeFollowUpExecutionStatus =
+  | "accepted"
+  | "skipped"
+  | "unsupported"
+  | "invalid";
+
+export type RuntimeFollowUpExecutionResult = {
+  request_index: number;
+  kind: string;
+  status: RuntimeFollowUpExecutionStatus;
+  reason: string;
+  trigger_at?: string;
+  payload?: Record<string, unknown>;
+};
+
 export type RuntimeEvent = {
   type:
     | "memory_recalled"
