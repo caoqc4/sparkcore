@@ -1,5 +1,6 @@
 import type { AgentRecord, RoleProfile } from "@/lib/chat/role-core";
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
+import { resolveRoleProfile } from "@/lib/chat/role-service";
 
 export async function loadRoleProfile({
   supabase,
@@ -13,17 +14,12 @@ export async function loadRoleProfile({
   agentId?: string | null;
 }): Promise<AgentRecord | null> {
   const repository = new SupabaseRoleRepository(supabase);
-
-  if (agentId) {
-    return repository.getRoleProfileById({
-      workspaceId,
-      userId,
-      agentId
-    });
-  }
-
-  return repository.getLatestActiveRoleProfile({
+  const result = await resolveRoleProfile({
+    repository,
     workspaceId,
-    userId
+    userId,
+    requestedAgentId: agentId
   });
+
+  return result.status === "resolved" ? result.role : null;
 }
