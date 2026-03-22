@@ -33,8 +33,10 @@ import {
   loadRoleProfile,
   ROLE_PROFILE_SELECT
 } from "@/lib/chat/role-loader";
-import type {
-  RuntimeTurnInput,
+import { buildPreparedRuntimeTurn } from "@/lib/chat/runtime-prepared-turn";
+import {
+  buildRuntimeTurnInput,
+  type RuntimeTurnInput,
 } from "@/lib/chat/runtime-input";
 import type {
   RuntimeFollowUpRequest,
@@ -3222,6 +3224,7 @@ export async function generateAgentReply({
   agent,
   messages,
   assistantMessageId,
+  runtimeTurnInput,
   supabase: providedSupabase
 }: {
   userId: string;
@@ -3230,6 +3233,7 @@ export async function generateAgentReply({
   agent: AgentRecord;
   messages: MessageRecord[];
   assistantMessageId?: string;
+  runtimeTurnInput?: RuntimeTurnInput;
   supabase?: any;
 }): Promise<RuntimeTurnResult> {
   const supabase = providedSupabase ?? (await createClient());
@@ -3262,6 +3266,20 @@ export async function generateAgentReply({
   const relationshipStylePrompt =
     latestUserMessageContent !== null &&
     isRelationshipAnswerShapePrompt(latestUserMessageContent);
+  const input =
+    runtimeTurnInput ??
+    buildRuntimeTurnInput({
+      userId,
+      agentId: agent.id,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      content: latestUserMessageContent ?? "",
+      source: "internal",
+      messageId: sessionContext.current_message_id,
+      context: {
+        source_platform: "internal"
+      }
+    });
   const sameThreadContinuity = threadContinuity.hasPriorAssistantTurn;
   const runtimeMemoryContext = await loadRuntimeMemoryContext({
     workspaceId: workspace.id,
@@ -3368,11 +3386,23 @@ export async function generateAgentReply({
     preferSameThreadContinuation,
     relationshipRecall
   });
+  const preparedRuntimeTurn = buildPreparedRuntimeTurn({
+    input,
+    agent,
+    roleCorePacket,
+    session: sessionContext,
+    runtimeMemoryContext,
+    workspace,
+    thread,
+    messages,
+    assistantMessageId,
+    supabase
+  });
   const promptMessages = [
     {
       role: "system" as const,
       content: buildAgentSystemPrompt(
-        roleCorePacket,
+        preparedRuntimeTurn.role.role_core,
         agent.system_prompt,
         latestUserMessageContent ?? "",
         allRecalledMemories,
@@ -3397,21 +3427,22 @@ export async function generateAgentReply({
   });
 
   const memoryWriteRequests =
-    latestUserMessageContent !== null && sessionContext.current_message_id !== undefined
+    latestUserMessageContent !== null &&
+    preparedRuntimeTurn.session.current_message_id !== undefined
       ? [
           ...(await planMemoryWriteRequests({
             latestUserMessage: latestUserMessageContent,
-            recentContext: sessionContext.recent_raw_turns
+            recentContext: preparedRuntimeTurn.session.recent_raw_turns
               .slice(-3)
               .map((message) => ({
                 role: message.role,
                 content: message.content
               })),
-            sourceTurnId: sessionContext.current_message_id
+            sourceTurnId: preparedRuntimeTurn.session.current_message_id
           })),
           ...planRelationshipMemoryWriteRequests({
             latestUserMessage: latestUserMessageContent,
-            sourceTurnId: sessionContext.current_message_id,
+            sourceTurnId: preparedRuntimeTurn.session.current_message_id,
             agentId: agent.id
           })
         ]
@@ -3460,7 +3491,18 @@ export async function generateAgentReply({
         incorrect_memory_exclusion_count: memoryRecall.incorrectExclusionCount
       },
       developer_diagnostics: {
-        role_core_packet: roleCorePacket,
+        role_core_packet: preparedRuntimeTurn.role.role_core,
+        prepared_runtime_turn: {
+          input: preparedRuntimeTurn.input,
+          session: {
+            thread_id: preparedRuntimeTurn.session.thread_id,
+            agent_id: preparedRuntimeTurn.session.agent_id,
+            current_message_id: preparedRuntimeTurn.session.current_message_id,
+            recent_raw_turn_count: preparedRuntimeTurn.session.recent_raw_turn_count,
+            approx_context_pressure:
+              preparedRuntimeTurn.session.approx_context_pressure
+          }
+        },
         reply_language_target: replyLanguage,
         reply_language_detected: detectReplyLanguageFromText(result.content),
         question_type: answerQuestionType,
@@ -3632,6 +3674,7 @@ export async function runAgentTurn({
     agent,
     messages,
     assistantMessageId,
+    runtimeTurnInput: input,
     supabase
   });
 }
