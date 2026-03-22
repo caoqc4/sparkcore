@@ -25,12 +25,19 @@
 > - `docs/architecture/session_state_contract_v1.0.md`
 > - `docs/architecture/session_layer_design_v1.0.md`
 > - `docs/engineering/session_next_phase_decision_note_v1.0.md`
+> - `apps/web/lib/chat/thread-state-repository.ts`
 
 ---
 
 ## 2. 一句话结论
 
 **当前 `session` 主线更合理的下一步，不是直接进入 `thread_state` 持久化，而是先把 `ThreadStateRepository` 定义成一个只承接读取语义的最小 repository 边界，让 `loadThreadState(...)` 后续能从默认 loader 平滑过渡到真实读取后端。**
+
+当前状态前移到：
+
+- `ThreadStateRepository` 第一版代码壳已存在
+- `InMemoryThreadStateRepository` 已存在
+- `loadThreadState(...)` 已开始复用默认 repository
 
 ---
 
@@ -41,6 +48,7 @@
 - `ThreadStateRecord`
 - `loadThreadState(...)`
 - `prepareRuntimeSession(...)`
+- `ThreadStateRepository`
 
 并且 `prepareRuntimeSession(...)` 已开始通过 `loadThreadState(...)` 进入主流程。
 
@@ -116,6 +124,15 @@ type ThreadStateRepository = {
 因为当前这一步最需要稳定的是：
 
 **“读状态的后端接口长什么样”。**
+
+当前第一版代码壳已落在：
+
+- [thread-state-repository.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-repository.ts)
+
+其中当前已具备：
+
+- `ThreadStateRepository`
+- `InMemoryThreadStateRepository`
 
 ---
 
@@ -197,6 +214,13 @@ prepareRuntimeSession(...)
   是后端读取抽象
 
 当前不建议让 `prepareRuntimeSession(...)` 直接依赖具体存储实现。
+
+当前这条关系已经开始成为代码事实：
+
+- [thread-state.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state.ts)
+  当前的 `loadThreadState(...)` 已开始复用默认 repository
+- [thread-state-repository.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-repository.ts)
+  当前承接最小读取后端
 
 ---
 
