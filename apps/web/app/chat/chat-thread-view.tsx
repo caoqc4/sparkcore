@@ -737,175 +737,204 @@ export function ChatThreadView({
                 </p>
               </div>
 
-              <section className="thread-continuity-strip">
-                <div className="thread-continuity-header">
-                  <h3>{copy.thread.continuityTitle}</h3>
-                  <p className="helper-copy">{copy.thread.continuityDescription}</p>
-                </div>
+              <details className="thread-support-shell">
+                <summary className="thread-support-summary">
+                  <span className="thread-support-summary-title">
+                    {copy.thread.supportSummaryTitle}
+                  </span>
+                  <span className="thread-support-summary-hint">
+                    {copy.thread.supportSummaryHint}
+                  </span>
+                </summary>
 
-                <div className="thread-continuity-grid">
-                  <article className="thread-continuity-card">
-                    <p className="thread-continuity-label">
-                      {copy.thread.continuityRoleLabel}
-                    </p>
-                    <h4>{threadAgentSummary}</h4>
-                    <p className="helper-copy">{defaultAgentCopy}</p>
-                  </article>
+                <div className="thread-support-body">
+                  <section className="thread-continuity-strip">
+                    <div className="thread-continuity-header">
+                      <h3>{copy.thread.continuityTitle}</h3>
+                      <p className="helper-copy">{copy.thread.continuityDescription}</p>
+                    </div>
 
-                  <article className="thread-continuity-card">
-                    <p className="thread-continuity-label">
-                      {copy.thread.continuityThreadLabel}
-                    </p>
-                    <h4>{threadTitle}</h4>
-                    <p className="helper-copy">{copy.thread.currentThreadViewFirst}</p>
-                  </article>
-
-                  <article className="thread-continuity-card">
-                    <p className="thread-continuity-label">
-                      {copy.thread.continuityMemoryLabel}
-                    </p>
-                    <h4>{copy.thread.memoryContext}</h4>
-                    <p className="helper-copy">{copy.thread.memoryHint}</p>
-                  </article>
-                </div>
-              </section>
-
-              <section className="thread-repair-strip">
-                <div className="thread-repair-header">
-                  <h3>{copy.thread.repairTitle}</h3>
-                  <p className="helper-copy">{copy.thread.repairDescription}</p>
-                </div>
-
-                <div className="thread-repair-actions">
-                  {currentAgentEditor ? (
-                    <AgentEditSheet
-                      agent={{
-                        id: currentAgentEditor.id,
-                        name: currentAgentEditor.name,
-                        persona_summary: currentAgentEditor.persona_summary,
-                        background_summary:
-                          currentAgentEditor.background_summary,
-                        avatar_emoji: currentAgentEditor.avatar_emoji,
-                        system_prompt_summary:
-                          currentAgentEditor.system_prompt_summary,
-                        default_model_profile_id:
-                          currentAgentEditor.default_model_profile_id
-                      }}
-                      isCurrentThreadAgent
-                      isWorkspaceDefaultAgent={
-                        currentAgentEditor.isWorkspaceDefaultAgent
-                      }
-                      locale={locale}
-                      modelProfiles={modelProfiles}
-                      triggerLabel={copy.thread.repairRoleAction}
-                    />
-                  ) : (
-                    <a className="button button-secondary" href="#agent-rail">
-                      {copy.thread.repairRoleAction}
-                    </a>
-                  )}
-                  <a className="button button-secondary" href="#memory-rail">
-                    {copy.thread.repairMemoryAction}
-                  </a>
-                </div>
-
-                <p className="section-hint">{copy.thread.repairHint}</p>
-              </section>
-
-              <section className="thread-memory-visibility">
-                <div className="thread-memory-visibility-header">
-                  <h3>{copy.thread.memoryVisibilityTitle}</h3>
-                  <p className="helper-copy">
-                    {copy.thread.memoryVisibilityDescription}
-                  </p>
-                </div>
-
-                {memoryVisibility.activeByCategory.length === 0 &&
-                memoryVisibility.threadLocalCount === 0 ? (
-                  <p className="helper-copy">{copy.thread.memoryVisibilityEmpty}</p>
-                ) : (
-                  <div className="thread-memory-visibility-grid">
-                    {memoryVisibility.activeByCategory.map((item) => (
-                      <article className="thread-memory-pill" key={item.key}>
-                        <p className="thread-memory-pill-label">{item.label}</p>
-                        <h4>{item.count}</h4>
-                        <p className="helper-copy">
-                          {copy.thread.memoryVisibilityActiveSuffix}
+                    <div className="thread-continuity-grid">
+                      <article className="thread-continuity-card">
+                        <p className="thread-continuity-label">
+                          {copy.thread.continuityRoleLabel}
                         </p>
+                        <h4>{threadAgentSummary}</h4>
+                        <p className="helper-copy">{defaultAgentCopy}</p>
                       </article>
-                    ))}
 
-                    {memoryVisibility.threadLocalCount > 0 ? (
-                      <article className="thread-memory-pill" key="thread-local">
-                        <p className="thread-memory-pill-label">
-                          {copy.thread.memoryVisibilityThreadNotes}
+                      <article className="thread-continuity-card">
+                        <p className="thread-continuity-label">
+                          {copy.thread.continuityThreadLabel}
                         </p>
-                        <h4>{memoryVisibility.threadLocalCount}</h4>
-                        <p className="helper-copy">
-                          {copy.thread.memoryVisibilityActiveSuffix}
-                        </p>
+                        <h4>{threadTitle}</h4>
+                        <p className="helper-copy">{copy.thread.currentThreadViewFirst}</p>
                       </article>
+
+                      <article className="thread-continuity-card">
+                        <p className="thread-continuity-label">
+                          {copy.thread.continuityMemoryLabel}
+                        </p>
+                        <h4>{copy.thread.memoryContext}</h4>
+                        <p className="helper-copy">{copy.thread.memoryHint}</p>
+                      </article>
+                    </div>
+                  </section>
+
+                  <section className="thread-repair-strip">
+                    <div className="thread-repair-header">
+                      <h3>{copy.thread.repairTitle}</h3>
+                      <p className="helper-copy">{copy.thread.repairDescription}</p>
+                    </div>
+
+                    <div className="thread-repair-actions">
+                      {currentAgentEditor ? (
+                        <AgentEditSheet
+                          agent={{
+                            id: currentAgentEditor.id,
+                            name: currentAgentEditor.name,
+                            persona_summary: currentAgentEditor.persona_summary,
+                            background_summary:
+                              currentAgentEditor.background_summary,
+                            avatar_emoji: currentAgentEditor.avatar_emoji,
+                            system_prompt_summary:
+                              currentAgentEditor.system_prompt_summary,
+                            default_model_profile_id:
+                              currentAgentEditor.default_model_profile_id
+                          }}
+                          isCurrentThreadAgent
+                          isWorkspaceDefaultAgent={
+                            currentAgentEditor.isWorkspaceDefaultAgent
+                          }
+                          locale={locale}
+                          modelProfiles={modelProfiles}
+                          triggerLabel={copy.thread.repairRoleAction}
+                        />
+                      ) : (
+                        <a className="button button-secondary" href="#agent-rail">
+                          {copy.thread.repairRoleAction}
+                        </a>
+                      )}
+                      <a className="button button-secondary" href="#memory-rail">
+                        {copy.thread.repairMemoryAction}
+                      </a>
+                    </div>
+
+                    <p className="section-hint">{copy.thread.repairHint}</p>
+                  </section>
+
+                  <section className="thread-memory-visibility">
+                    <div className="thread-memory-visibility-header">
+                      <h3>{copy.thread.memoryVisibilityTitle}</h3>
+                      <p className="helper-copy">
+                        {copy.thread.memoryVisibilityDescription}
+                      </p>
+                    </div>
+
+                    {memoryVisibility.activeByCategory.length === 0 &&
+                    memoryVisibility.threadLocalCount === 0 ? (
+                      <p className="helper-copy">{copy.thread.memoryVisibilityEmpty}</p>
+                    ) : (
+                      <div className="thread-memory-visibility-grid">
+                        {memoryVisibility.activeByCategory.map((item) => (
+                          <article className="thread-memory-pill" key={item.key}>
+                            <p className="thread-memory-pill-label">{item.label}</p>
+                            <h4>{item.count}</h4>
+                            <p className="helper-copy">
+                              {copy.thread.memoryVisibilityActiveSuffix}
+                            </p>
+                          </article>
+                        ))}
+
+                        {memoryVisibility.threadLocalCount > 0 ? (
+                          <article className="thread-memory-pill" key="thread-local">
+                            <p className="thread-memory-pill-label">
+                              {copy.thread.memoryVisibilityThreadNotes}
+                            </p>
+                            <h4>{memoryVisibility.threadLocalCount}</h4>
+                            <p className="helper-copy">
+                              {copy.thread.memoryVisibilityActiveSuffix}
+                            </p>
+                          </article>
+                        ) : null}
+                      </div>
+                    )}
+
+                    {(memoryVisibility.hiddenCount > 0 ||
+                      memoryVisibility.incorrectCount > 0) ? (
+                      <p className="section-hint">
+                        {copy.thread.memoryVisibilityHiddenHintPrefix}
+                        {memoryVisibility.hiddenCount}
+                        {copy.thread.memoryVisibilityHiddenHintMiddle}
+                        {memoryVisibility.incorrectCount}
+                        {copy.thread.memoryVisibilityHiddenHintSuffix}
+                      </p>
                     ) : null}
-                  </div>
-                )}
 
-                {(memoryVisibility.hiddenCount > 0 ||
-                  memoryVisibility.incorrectCount > 0) ? (
-                  <p className="section-hint">
-                    {copy.thread.memoryVisibilityHiddenHintPrefix}
-                    {memoryVisibility.hiddenCount}
-                    {copy.thread.memoryVisibilityHiddenHintMiddle}
-                    {memoryVisibility.incorrectCount}
-                    {copy.thread.memoryVisibilityHiddenHintSuffix}
-                  </p>
-                ) : null}
+                    {memoryVisibility.previewEntries.length > 0 ? (
+                      <div className="thread-memory-preview-list">
+                        {memoryVisibility.previewEntries.map((memory) => (
+                          <article className="thread-memory-preview-card" key={memory.id}>
+                            <div className="thread-memory-preview-badges">
+                              <span className="thread-badge">{memory.categoryLabel}</span>
+                              <span className="thread-badge thread-badge-muted">
+                                {memory.scopeLabel}
+                              </span>
+                            </div>
+                            <p className="thread-memory-preview-content">
+                              {memory.content}
+                            </p>
+                            <div className="thread-memory-preview-actions">
+                              <form action={hideMemory}>
+                                <input
+                                  name="memory_id"
+                                  type="hidden"
+                                  value={memory.id}
+                                />
+                                <input
+                                  name="redirect_thread_id"
+                                  type="hidden"
+                                  value={thread.id}
+                                />
+                                <button
+                                  className="button button-secondary"
+                                  type="submit"
+                                >
+                                  {copy.memory.hide}
+                                </button>
+                              </form>
+                              <form action={markMemoryIncorrect}>
+                                <input
+                                  name="memory_id"
+                                  type="hidden"
+                                  value={memory.id}
+                                />
+                                <input
+                                  name="redirect_thread_id"
+                                  type="hidden"
+                                  value={thread.id}
+                                />
+                                <button
+                                  className="button button-secondary"
+                                  type="submit"
+                                >
+                                  {copy.memory.incorrect}
+                                </button>
+                              </form>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    ) : null}
 
-                {memoryVisibility.previewEntries.length > 0 ? (
-                  <div className="thread-memory-preview-list">
-                    {memoryVisibility.previewEntries.map((memory) => (
-                      <article className="thread-memory-preview-card" key={memory.id}>
-                        <div className="thread-memory-preview-badges">
-                          <span className="thread-badge">{memory.categoryLabel}</span>
-                          <span className="thread-badge thread-badge-muted">
-                            {memory.scopeLabel}
-                          </span>
-                        </div>
-                        <p className="thread-memory-preview-content">{memory.content}</p>
-                        <div className="thread-memory-preview-actions">
-                          <form action={hideMemory}>
-                            <input name="memory_id" type="hidden" value={memory.id} />
-                            <input
-                              name="redirect_thread_id"
-                              type="hidden"
-                              value={thread.id}
-                            />
-                            <button className="button button-secondary" type="submit">
-                              {copy.memory.hide}
-                            </button>
-                          </form>
-                          <form action={markMemoryIncorrect}>
-                            <input name="memory_id" type="hidden" value={memory.id} />
-                            <input
-                              name="redirect_thread_id"
-                              type="hidden"
-                              value={thread.id}
-                            />
-                            <button className="button button-secondary" type="submit">
-                              {copy.memory.incorrect}
-                            </button>
-                          </form>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                ) : null}
-
-                <div className="thread-repair-actions">
-                  <a className="button button-secondary" href="#memory-rail">
-                    {copy.thread.memoryVisibilityAction}
-                  </a>
+                    <div className="thread-repair-actions">
+                      <a className="button button-secondary" href="#memory-rail">
+                        {copy.thread.memoryVisibilityAction}
+                      </a>
+                    </div>
+                  </section>
                 </div>
-              </section>
+              </details>
             </>
           )}
         </div>

@@ -303,6 +303,9 @@ export function getChatCopy(locale: ChatLocale) {
         continuityRoleLabel: "角色连续性",
         continuityThreadLabel: "线程连续性",
         continuityMemoryLabel: "记忆连续性",
+        supportSummaryTitle: "会话支撑信息",
+        supportSummaryHint:
+          "角色连续性、修正入口和记忆摘要都还在这里，需要时再展开。",
         repairTitle: "如果这条会话哪里不对，可以先在这里纠偏",
         repairDescription:
           "先给一个最小修正入口：角色不对味时去调角色，记忆不对时去看当前生效记忆。",
@@ -664,6 +667,9 @@ export function getChatCopy(locale: ChatLocale) {
       continuityRoleLabel: "Role continuity",
       continuityThreadLabel: "Thread continuity",
       continuityMemoryLabel: "Memory continuity",
+      supportSummaryTitle: "Session support",
+      supportSummaryHint:
+        "Role continuity, repair entry points, and memory summary all stay here when you need them.",
       repairTitle: "If something feels off, correct it from here first",
       repairDescription:
         "Keep the first repair loop small: adjust the role when the companion feels wrong, and review memory when the remembered context feels wrong.",

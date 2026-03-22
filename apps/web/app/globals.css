@@ -808,13 +808,62 @@ a {
   gap: 4px;
 }
 
-.thread-continuity-strip {
+.thread-support-shell {
+  margin-top: 18px;
+  border: 1px solid rgba(216, 222, 233, 0.9);
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.thread-support-summary {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.thread-support-summary::-webkit-details-marker {
+  display: none;
+}
+
+.thread-support-summary::after {
+  content: "Show";
+  justify-self: start;
+  color: var(--accent-strong);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.thread-support-shell[open] .thread-support-summary::after {
+  content: "Hide";
+}
+
+.thread-support-summary-title {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.thread-support-summary-hint {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.thread-support-body {
   display: grid;
   gap: 14px;
-  margin-top: 18px;
-  padding: 16px;
+  padding: 0 16px 16px;
+}
+
+.thread-continuity-strip {
+  display: grid;
+  gap: 12px;
+  margin-top: 0;
+  padding: 14px;
   border: 1px solid rgba(15, 118, 110, 0.12);
-  border-radius: 18px;
+  border-radius: 16px;
   background: linear-gradient(180deg, rgba(240, 253, 250, 0.75), rgba(248, 250, 252, 0.94));
 }
 
@@ -863,11 +912,11 @@ a {
 
 .thread-repair-strip {
   display: grid;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 16px;
+  gap: 10px;
+  margin-top: 0;
+  padding: 14px;
   border: 1px dashed rgba(15, 118, 110, 0.24);
-  border-radius: 18px;
+  border-radius: 16px;
   background: rgba(248, 250, 252, 0.92);
 }
 
@@ -891,11 +940,11 @@ a {
 
 .thread-memory-visibility {
   display: grid;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 16px;
+  gap: 10px;
+  margin-top: 0;
+  padding: 14px;
   border: 1px solid rgba(15, 118, 110, 0.1);
-  border-radius: 18px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.92);
 }
 
