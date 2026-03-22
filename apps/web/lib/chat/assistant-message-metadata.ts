@@ -58,12 +58,25 @@ export function buildAssistantMessageMetadata(
     model_provider: input.model_provider,
     model_requested: input.model_requested,
     model_profile_id: input.model_profile_id,
+    role_core_packet: input.role_core_packet,
+    question_type: input.question_type,
+    answer_strategy: input.answer_strategy,
     answer_strategy_reason_code: input.answer_strategy_reason_code,
     continuation_reason_code: input.continuation_reason_code,
+    recent_raw_turn_count: input.recent_raw_turn_count,
+    approx_context_pressure: input.approx_context_pressure,
+    same_thread_continuation_applicable:
+      input.same_thread_continuation_applicable,
+    long_chain_pressure_candidate: input.long_chain_pressure_candidate,
+    same_thread_continuation_preferred:
+      input.same_thread_continuation_preferred,
+    distant_memory_fallback_allowed: input.distant_memory_fallback_allowed,
     reply_language_target: input.reply_language_target,
     reply_language_detected: input.reply_language_detected,
     reply_language_source: input.reply_language_source,
     memory_hit_count: input.memory_hit_count,
+    memory_used: input.memory_used,
+    recalled_memories: input.recalled_memories,
     model_profile: {
       id: input.model_profile_id,
       name: input.model_profile_name,
@@ -75,7 +88,7 @@ export function buildAssistantMessageMetadata(
       detected: input.reply_language_detected,
       source: input.reply_language_source
     },
-    answer_strategy: {
+    answer_strategy_details: {
       selected: input.answer_strategy,
       reason_code: input.answer_strategy_reason_code,
       priority: input.answer_strategy_priority,
