@@ -257,6 +257,8 @@ runtime 在处理一轮时，至少要消费：
 - `memory*` 现在也已开始进入最小分组收口：
   - `debug_metadata.memory.recalled_count`
   - `debug_metadata.memory.write_request_count`
+- `follow_up*` 当前也已开始明确下一步最小分组方向：
+  - `debug_metadata.follow_up.request_count`
 - 当前更适合继续承接：
   - 局部原因
   - 计数摘要
