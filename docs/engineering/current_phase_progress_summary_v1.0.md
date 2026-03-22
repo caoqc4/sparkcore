@@ -112,6 +112,9 @@
   - `app/api/test/followup-run/route.ts`
 - `follow_up` 已具备受 `x-followup-cron-secret` 保护的 internal route：
   - `app/api/internal/followup/run/route.ts`
+- `follow_up` 的 internal route 已完成两类受控真实验证：
+  - 默认 `stub sender` 路径已验证 `pending -> claimed -> resolve binding -> send(stub) -> mark executed`
+  - 显式开启 `FOLLOW_UP_ENABLE_TELEGRAM_SEND=true` 且指定 `sender=telegram` 后，已完成一次真实 Telegram proactive send 验证
 
 这意味着：
 
@@ -320,6 +323,7 @@
 - `runDefaultFollowUpWorker(...)` 已落成最小代码壳，默认仍走 `StubProactiveSender`
 - `app/api/test/followup-run/route.ts` 已可作为最小手动调试入口
 - `app/api/internal/followup/run/route.ts` 已可作为最小受控自动触发入口壳
+- `app/api/internal/followup/run/route.ts` 已完成一次 `stub` 路径真实验证与一次 Telegram proactive send 受控真实验证
 
 当前已经明确暴露出的关键依赖是：
 
@@ -362,7 +366,7 @@
   - 继续补 Telegram 稳定运行入口
   - 不扩附件与复杂命令
 - 如果继续 follow-up：
-  - 先决定 internal route 何时允许真实 sender
+  - 先决定 Telegram proactive send 何时从“受控验证”进入“更稳定的默认运行策略”
   - 暂不直接落 loop / retry / requeue
 
 ---
@@ -381,7 +385,7 @@
   - 只补 Telegram 单通道必需能力
   - 不并行开第二个平台
 - 如果继续调度：
-  - 先补 internal route 的受控真实发送验证
+  - 先决定 internal route 的 sender 开关、环境隔离与运行约束
   - 再决定是否接真实扫描执行、主动发送与 retry
 - 如果回到底座深化：
   - 回到 `role / session / runtime input` 这几块仍未底座化的边界
@@ -392,7 +396,7 @@
 
 当前这一阶段最重要的成果，不是“已经接了多个 IM 平台”或者“已经把 packages 全搬完”，而是：
 
-**SparkCore 已经从“规划重定位”走到了“memory、runtime、session、role、adapter 五个核心边界开始在代码里成形，并且 Telegram PoC、relationship memory contract、follow-up pending / claim / proactive send / default worker / manual route / internal route 都已有真实工程落点”的阶段。**
+**SparkCore 已经从“规划重定位”走到了“memory、runtime、session、role、adapter 五个核心边界开始在代码里成形，并且 Telegram PoC、relationship memory contract、follow-up pending / claim / proactive send / default worker / manual route / internal route 都已有真实工程落点，其中 internal route 的 stub 路径与真实 Telegram proactive send 也都已受控验证”的阶段。**
 
 这意味着下一阶段已经不需要再大面积补总纲，而更适合围绕：
 
