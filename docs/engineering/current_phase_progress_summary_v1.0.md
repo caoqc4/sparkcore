@@ -109,6 +109,7 @@
 - `follow_up` 已具备统一 sender policy helper，用于收口 sender 选择 / 降级逻辑
 - `follow_up` 已能通过一次性 harness 跑通 `claim -> map -> send -> mark`
 - `follow_up` 已具备默认 `claim -> resolve binding -> map -> send -> mark` worker shell
+- `follow_up` 的 harness 与 default worker 默认 sender 初始化都已开始复用统一 sender helper
 - `follow_up` 已具备受 `x-smoke-secret` 保护的手动调试 route：
   - `app/api/test/followup-run/route.ts`
 - `follow_up` 已具备受 `x-followup-cron-secret` 保护的 internal route：
