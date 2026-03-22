@@ -102,6 +102,12 @@
 
 继续混在同一个 `loadRoleProfile(...)` 风格函数里。
 
+当前状态前移到：
+
+- `RoleRepository` 第一版代码壳已存在
+- `role-loader.ts` 已开始复用 repository 的纯读取能力
+- `RoleResolver` / `RoleService` 仍是下一步
+
 ---
 
 ## 6. RoleProfile 与 role_core_packet

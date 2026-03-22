@@ -87,6 +87,12 @@ runtime、IM port、未来别的入口都在直接依赖：
 3. runtime preparation 不再直接背读取/选择逻辑
 4. 后续可平滑推进到 repository shell 与 service shell
 
+当前状态前移到：
+
+- `RoleRepository` 第一版代码壳已存在
+- `role-loader.ts` 已开始复用 repository 的纯读取能力
+- `RoleResolver` / `RoleService` 仍未开始
+
 ---
 
 ## 5. 当前阶段非目标
@@ -245,8 +251,10 @@ runtime -> read role table -> decide fallback -> build role packet
 
 当前代码现实大致是：
 
+- `role-repository.ts`
+  已开始承担纯读取层职责
 - `role-loader.ts`
-  同时承担 repository + resolver 的混合职责
+  仍承担混合职责，但其读取部分已开始复用 repository
 - `role-core.ts`
   承担 role packet 组装职责
 - `runtime.ts`
@@ -257,10 +265,11 @@ runtime -> read role table -> decide fallback -> build role packet
 更稳的下一步不是一次性重写，而是按下面顺序推进：
 
 1. 先把 repository / resolver 边界在文档里固定
-2. 再把 `role-loader.ts` 拆成：
+2. 再把纯读取层先抽成：
    - `role-repository.ts`
+3. 再引入：
    - `role-service.ts` 或 `role-resolver.ts`
-3. 再把 runtime / IM port 改成依赖 resolver，而不是直接读表
+4. 再把 runtime / IM port 改成依赖 resolver，而不是直接读表
 
 ---
 
@@ -269,6 +278,10 @@ runtime -> read role table -> decide fallback -> build role packet
 ### 第一步
 
 引入最小 `RoleRepository` 类型与 `SupabaseRoleRepository` shell。
+
+状态：
+
+- 已完成
 
 ### 第二步
 
