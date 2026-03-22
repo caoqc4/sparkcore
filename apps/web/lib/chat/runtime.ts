@@ -3721,6 +3721,11 @@ export async function runPreparedRuntimeTurn({
       follow_up: {
         request_count: followUpRequests.length
       },
+      session: {
+        continuation_reason_code: continuationReasonCode,
+        recent_turn_count: recentRawTurnCount,
+        context_pressure: approxContextPressure
+      },
       reply_language: replyLanguage,
     }
   };
