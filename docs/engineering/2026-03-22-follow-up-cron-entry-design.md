@@ -302,3 +302,48 @@ cron 入口不需要复杂响应，最小返回即可：
 - 已有一个受内部 secret 保护的最小 internal route
 - 当前默认 sender 仍然保守落在 `stub`
 - Telegram proactive send 只有在显式开启时才允许进入 route 选择
+
+---
+
+## 16. 当前入口用法
+
+当前最小 internal route 已经是：
+
+- `app/api/internal/followup/run/route.ts`
+
+请求方式：
+
+```http
+POST /api/internal/followup/run
+x-followup-cron-secret: <FOLLOW_UP_CRON_SECRET>
+content-type: application/json
+```
+
+当前最小请求体可类似：
+
+```json
+{
+  "limit": 10,
+  "claimedBy": "manual-cron-check",
+  "platform": "telegram",
+  "sender": "stub"
+}
+```
+
+当前返回会包含最小摘要：
+
+- `ok`
+- `sender`
+- `requested_sender`
+- `telegram_send_enabled`
+- `claimed_count`
+- `processed_count`
+- `executed_count`
+- `failed_count`
+- `skipped_count`
+
+当前入口语义应理解成：
+
+- 一个“受控自动触发入口壳”
+- 不是正式生产 cron
+- 也不是默认真实 Telegram proactive send 入口
