@@ -991,6 +991,175 @@ test.describe("core chat smoke", () => {
     expect(restoredAssistantMessage.content).toBe("哈哈，我叫小芳！");
   });
 
+  test("restore reclaims the active single-slot memory and supersedes later overrides", async ({
+    page,
+    request
+  }) => {
+    const admin = getSmokeAdminClient();
+    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(seedThreadResponse.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await seedThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const seedNicknameResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "以后我叫你小芳可以吗？"
+      }
+    });
+
+    expect(seedNicknameResponse.ok()).toBeTruthy();
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${seedThreadId}`
+    );
+
+    const visibleMemoryCards = page.locator(
+      ".memory-list .memory-card:not(.memory-card-hidden)"
+    );
+    const nicknameMemoryCard = visibleMemoryCards
+      .filter({
+        has: page.locator(".memory-content", { hasText: /^小芳$/ })
+      })
+      .first();
+
+    await expect(nicknameMemoryCard).toBeVisible({ timeout: 45_000 });
+    await nicknameMemoryCard.getByRole("button", { name: "Incorrect" }).click();
+    await page.getByText(/Incorrect memories \(1\)/).click();
+
+    const overrideThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(overrideThreadResponse.ok()).toBeTruthy();
+    const { threadId: overrideThreadId } = (await overrideThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const overrideNicknameResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: overrideThreadId,
+        content: "以后我叫你阿花可以吗？"
+      }
+    });
+
+    expect(overrideNicknameResponse.ok()).toBeTruthy();
+
+    const overrideRecallResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: overrideThreadId,
+        content: "你叫什么？"
+      }
+    });
+
+    expect(overrideRecallResponse.ok()).toBeTruthy();
+    const overrideAssistantMessage = await getLatestAssistantMessageForThread(
+      overrideThreadId
+    );
+    expect(overrideAssistantMessage.content).toBe("哈哈，我叫阿花！");
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${seedThreadId}`
+    );
+    await page.getByText(/Incorrect memories \(1\)/).click();
+    const incorrectNicknameCard = page
+      .locator(".memory-card-hidden")
+      .filter({ hasText: "小芳" })
+      .first();
+    await incorrectNicknameCard.getByRole("button", { name: "Restore" }).click();
+    await expect(
+      visibleMemoryCards
+        .filter({
+          has: page.locator(".memory-content", { hasText: /^小芳$/ })
+        })
+        .first()
+    ).toBeVisible({ timeout: 45_000 });
+
+    const smokeAgent = await getSmokeAgentByName("Smoke Memory Coach");
+    const { data: nicknameRowsAfterRestore, error: nicknameRowsAfterRestoreError } =
+      await admin
+        .from("memory_items")
+        .select("content, status")
+        .eq("category", "relationship")
+        .eq("key", "agent_nickname")
+        .eq("scope", "user_agent")
+        .eq("target_agent_id", smokeAgent.id)
+        .order("created_at", { ascending: false });
+
+    expect(nicknameRowsAfterRestoreError).toBeNull();
+    const activeRowsAfterRestore =
+      nicknameRowsAfterRestore
+        ?.filter((row) => row.status === "active")
+        .map((row) => row.content) ?? [];
+    const supersededRowsAfterRestore =
+      nicknameRowsAfterRestore
+        ?.filter((row) => row.status === "superseded")
+        .map((row) => row.content) ?? [];
+
+    expect(activeRowsAfterRestore).toEqual(["小芳"]);
+    expect(supersededRowsAfterRestore).toEqual(expect.arrayContaining(["阿花"]));
+
+    const restoredThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(restoredThreadResponse.ok()).toBeTruthy();
+    const { threadId: restoredThreadId } = (await restoredThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const restoredRecallResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: restoredThreadId,
+        content: "你叫什么？"
+      }
+    });
+
+    expect(restoredRecallResponse.ok()).toBeTruthy();
+    const restoredAssistantMessage = await getLatestAssistantMessageForThread(
+      restoredThreadId
+    );
+    expect(restoredAssistantMessage.content).toBe("哈哈，我叫小芳！");
+  });
+
   test("recalls the user's preferred name for the same agent without leaking it to other agents", async ({
     page,
     request

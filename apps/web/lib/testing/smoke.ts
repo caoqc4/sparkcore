@@ -8,6 +8,9 @@ import { getSupabaseEnv } from "@/lib/env";
 import {
   buildMemoryV2Fields,
   inferLegacyMemoryStability,
+  isMemoryActive,
+  isMemoryHidden,
+  isMemoryIncorrect,
   LEGACY_MEMORY_KEY
 } from "@/lib/chat/memory-v2";
 
@@ -2670,7 +2673,7 @@ export async function createSmokeTurn({
   const { data: existingMemories, error: memoriesError } = await admin
     .from("memory_items")
     .select(
-      "id, memory_type, content, confidence, category, key, value, scope, target_agent_id, metadata"
+      "id, memory_type, content, confidence, category, key, value, scope, status, target_agent_id, metadata"
     )
     .eq("workspace_id", smokeUser.workspaceId)
     .eq("user_id", smokeUser.id)
@@ -2701,19 +2704,13 @@ export async function createSmokeTurn({
   );
 
   const activeMemories =
-    existingMemories?.filter((memory) => {
-      const metadata = (memory.metadata ?? {}) as Record<string, unknown>;
-      return metadata.is_hidden !== true && metadata.is_incorrect !== true;
-    }) ?? [];
+    existingMemories?.filter((memory) => isMemoryActive(memory)) ?? [];
   const hiddenExclusionCount =
-    hiddenMemoryCountResponse.data?.filter(
-      (memory) => ((memory.metadata ?? {}) as Record<string, unknown>).is_hidden === true
-    ).length ?? 0;
+    hiddenMemoryCountResponse.data?.filter((memory) => isMemoryHidden(memory)).length ??
+    0;
   const incorrectExclusionCount =
-    incorrectMemoryCountResponse.data?.filter(
-      (memory) =>
-        ((memory.metadata ?? {}) as Record<string, unknown>).is_incorrect === true
-    ).length ?? 0;
+    incorrectMemoryCountResponse.data?.filter((memory) => isMemoryIncorrect(memory))
+      .length ?? 0;
 
   const recalledMemories: Array<{
     memory_type: "profile" | "preference" | "relationship";

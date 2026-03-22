@@ -6,7 +6,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
   canTransitionMemoryStatus,
-  getMemoryStatus
+  getMemoryStatus,
+  isSupportedSingleSlotPath,
+  normalizeSingleSlotValue
 } from "@/lib/chat/memory-v2";
 import { generateAgentReply, getDefaultModelProfile } from "@/lib/chat/runtime";
 import { extractAndStoreMemories } from "@/lib/chat/memory";
@@ -692,7 +694,9 @@ export async function restoreMemory(formData: FormData) {
 
   const { data: memoryItem } = await supabase
     .from("memory_items")
-    .select("id, metadata, status")
+    .select(
+      "id, workspace_id, category, key, value, content, scope, target_agent_id, target_thread_id, metadata, status"
+    )
     .eq("id", memoryId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -715,11 +719,101 @@ export async function restoreMemory(formData: FormData) {
     );
   }
 
+  const memoryPath =
+    typeof memoryItem.category === "string" && typeof memoryItem.key === "string"
+      ? `${memoryItem.category}.${memoryItem.key}`
+      : null;
+  const scope = typeof memoryItem.scope === "string" ? memoryItem.scope : null;
+  const isRestoringSingleSlot =
+    memoryPath !== null &&
+    isSupportedSingleSlotPath(memoryPath) &&
+    (scope === "user_global" || scope === "user_agent" || scope === "thread_local");
+
+  if (isRestoringSingleSlot) {
+    let conflictingQuery = supabase
+      .from("memory_items")
+      .select("id, metadata")
+      .eq("workspace_id", memoryItem.workspace_id)
+      .eq("user_id", user.id)
+      .eq("category", memoryItem.category)
+      .eq("key", memoryItem.key)
+      .eq("scope", scope)
+      .eq("status", "active")
+      .neq("id", memoryItem.id);
+
+    if (scope === "user_agent") {
+      conflictingQuery = conflictingQuery.eq(
+        "target_agent_id",
+        memoryItem.target_agent_id
+      );
+    } else {
+      conflictingQuery = conflictingQuery.is("target_agent_id", null);
+    }
+
+    if (scope === "thread_local") {
+      conflictingQuery = conflictingQuery.eq(
+        "target_thread_id",
+        memoryItem.target_thread_id
+      );
+    } else {
+      conflictingQuery = conflictingQuery.is("target_thread_id", null);
+    }
+
+    const { data: conflictingActiveRows, error: conflictingRowsError } =
+      await conflictingQuery;
+
+    if (conflictingRowsError) {
+      redirect(
+        appendChatFeedback(redirectTarget, {
+          type: "error",
+          message: conflictingRowsError.message
+        })
+      );
+    }
+
+    for (const row of conflictingActiveRows ?? []) {
+      const nextSupersededMetadata = {
+        ...((row.metadata ?? {}) as Record<string, unknown>),
+        superseded_at: new Date().toISOString(),
+        superseded_by_restore_memory_id: memoryItem.id
+      };
+
+      const { error: supersedeError } = await supabase
+        .from("memory_items")
+        .update({
+          status: "superseded",
+          metadata: nextSupersededMetadata,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", row.id)
+        .eq("user_id", user.id);
+
+      if (supersedeError) {
+        redirect(
+          appendChatFeedback(redirectTarget, {
+            type: "error",
+            message: supersedeError.message
+          })
+        );
+      }
+    }
+  }
+
   const nextMetadata = { ...(memoryItem.metadata ?? {}) } as Record<string, unknown>;
   delete nextMetadata.is_hidden;
   delete nextMetadata.hidden_at;
   delete nextMetadata.is_incorrect;
   delete nextMetadata.incorrect_at;
+  delete nextMetadata.superseded_at;
+  delete nextMetadata.superseded_by_source_message_id;
+  delete nextMetadata.superseded_by_restore_memory_id;
+  const normalizedValueSource =
+    typeof memoryItem.value === "string"
+      ? memoryItem.value
+      : typeof memoryItem.content === "string"
+        ? memoryItem.content
+        : "";
+  nextMetadata.normalization = normalizeSingleSlotValue(normalizedValueSource);
   nextMetadata.restored_at = new Date().toISOString();
 
   const { error } = await supabase
