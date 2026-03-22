@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { AgentEditSheet } from "@/app/chat/agent-edit-sheet";
 import {
   renameThread,
   retryAssistantReply,
@@ -30,6 +31,25 @@ type ChatThreadViewProps = {
   };
   agentName: string | null;
   workspaceDefaultAgentName: string | null;
+  currentAgentEditor: {
+    id: string;
+    name: string;
+    persona_summary: string;
+    background_summary: string | null;
+    avatar_emoji: string | null;
+    system_prompt_summary: string;
+    default_model_profile_id: string | null;
+    isWorkspaceDefaultAgent: boolean;
+  } | null;
+  modelProfiles: Array<{
+    id: string;
+    name: string;
+    provider: string;
+    model: string;
+    tier_label: string | null;
+    usage_note: string | null;
+    underlying_model: string | null;
+  }>;
   memoryVisibility: {
     activeByCategory: Array<{
       key: string;
@@ -442,6 +462,8 @@ export function ChatThreadView({
   thread,
   agentName,
   workspaceDefaultAgentName,
+  currentAgentEditor,
+  modelProfiles,
   memoryVisibility,
   initialMessages,
   locale
@@ -747,9 +769,33 @@ export function ChatThreadView({
                 </div>
 
                 <div className="thread-repair-actions">
-                  <a className="button button-secondary" href="#agent-rail">
-                    {copy.thread.repairRoleAction}
-                  </a>
+                  {currentAgentEditor ? (
+                    <AgentEditSheet
+                      agent={{
+                        id: currentAgentEditor.id,
+                        name: currentAgentEditor.name,
+                        persona_summary: currentAgentEditor.persona_summary,
+                        background_summary:
+                          currentAgentEditor.background_summary,
+                        avatar_emoji: currentAgentEditor.avatar_emoji,
+                        system_prompt_summary:
+                          currentAgentEditor.system_prompt_summary,
+                        default_model_profile_id:
+                          currentAgentEditor.default_model_profile_id
+                      }}
+                      isCurrentThreadAgent
+                      isWorkspaceDefaultAgent={
+                        currentAgentEditor.isWorkspaceDefaultAgent
+                      }
+                      locale={locale}
+                      modelProfiles={modelProfiles}
+                      triggerLabel={copy.thread.repairRoleAction}
+                    />
+                  ) : (
+                    <a className="button button-secondary" href="#agent-rail">
+                      {copy.thread.repairRoleAction}
+                    </a>
+                  )}
                   <a className="button button-secondary" href="#memory-rail">
                     {copy.thread.repairMemoryAction}
                   </a>

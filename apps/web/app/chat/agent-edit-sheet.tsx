@@ -18,6 +18,7 @@ type AgentEditSheetProps = {
   isCurrentThreadAgent: boolean;
   isWorkspaceDefaultAgent: boolean;
   locale: ChatLocale;
+  triggerLabel?: string;
   modelProfiles: Array<{
     id: string;
     name: string;
@@ -34,6 +35,7 @@ export function AgentEditSheet({
   isCurrentThreadAgent,
   isWorkspaceDefaultAgent,
   locale,
+  triggerLabel,
   modelProfiles
 }: AgentEditSheetProps) {
   const router = useRouter();
@@ -172,7 +174,7 @@ export function AgentEditSheet({
         onClick={() => setIsOpen(true)}
         type="button"
       >
-        {copy.common.edit}
+        {triggerLabel ?? copy.common.edit}
       </button>
 
       {isOpen ? (

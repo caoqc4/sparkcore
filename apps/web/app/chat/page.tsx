@@ -394,6 +394,11 @@ export default async function ChatPage({
   const workspaceDefaultAgent =
     availableAgents.find((availableAgent) => availableAgent.is_default_for_workspace) ??
     null;
+  const currentThreadAvailableAgent =
+    thread?.agent_id
+      ? availableAgents.find((availableAgent) => availableAgent.id === thread.agent_id) ??
+        null
+      : null;
   const pageFeedback = params.feedback
     ? {
         tone: params.feedback_type === "success" ? "success" : "error",
@@ -1511,10 +1516,30 @@ export default async function ChatPage({
             ) : (
               <ChatThreadView
                 agentName={agent?.name ?? null}
+                currentAgentEditor={
+                  currentThreadAvailableAgent
+                    ? {
+                        id: currentThreadAvailableAgent.id,
+                        name: currentThreadAvailableAgent.name,
+                        persona_summary:
+                          currentThreadAvailableAgent.persona_summary,
+                        background_summary:
+                          currentThreadAvailableAgent.background_summary,
+                        avatar_emoji: currentThreadAvailableAgent.avatar_emoji,
+                        system_prompt_summary:
+                          currentThreadAvailableAgent.system_prompt_summary,
+                        default_model_profile_id:
+                          currentThreadAvailableAgent.default_model_profile_id,
+                        isWorkspaceDefaultAgent:
+                          currentThreadAvailableAgent.is_default_for_workspace
+                      }
+                    : null
+                }
                 workspaceDefaultAgentName={workspaceDefaultAgent?.name ?? null}
                 initialMessages={messages}
                 key={thread.id}
                 locale={locale}
+                modelProfiles={availableModelProfiles}
                 memoryVisibility={memoryVisibility}
                 thread={thread}
               />
