@@ -8,6 +8,7 @@ node_modules/
 *.tsbuildinfo
 apps/web/playwright-report/
 apps/web/test-results/
+supabase/.temp/
 
 # Local environment files
 .env

@@ -108,3 +108,4 @@ npm run quality:eval
 - Trial checklist: [`../../docs-public/v1-trial-checklist.md`](../../docs-public/v1-trial-checklist.md)
 - Stage 1 quality baseline: [`../../docs-public/stage1-quality-eval-set.md`](../../docs-public/stage1-quality-eval-set.md)
 - Real chat regression set: [`../../docs-public/real-chat-quality-regression-set.md`](../../docs-public/real-chat-quality-regression-set.md)
+- LiteLLM development runbook: [`../../docs/engineering/litellm_dev_runbook_v1.0.md`](../../docs/engineering/litellm_dev_runbook_v1.0.md)
