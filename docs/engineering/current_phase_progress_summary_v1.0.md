@@ -131,6 +131,9 @@
 - `answer_strategy*` 现在也已开始进入最小 metadata 分组：
   - `debug_metadata.answer_strategy.selected`
   - `debug_metadata.answer_strategy.reason_code`
+- `memory*` 当前也已开始明确下一步最小分组方向：
+  - `debug_metadata.memory.recalled_count`
+  - `debug_metadata.memory.write_request_count`
 - 当前 runtime 主线的下一阶段优先级也已前移成：
   - 先治理输出层
   - 再决定是否继续细拆 execution
