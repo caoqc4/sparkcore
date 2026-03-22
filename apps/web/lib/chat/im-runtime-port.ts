@@ -5,6 +5,7 @@ import {
 } from "@/lib/integrations/im-adapter";
 import { executeMemoryWriteRequests } from "@/lib/chat/memory-write";
 import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
+import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { loadRoleProfile } from "@/lib/chat/role-loader";
 import { generateAgentReply } from "@/lib/chat/runtime";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
@@ -299,6 +300,14 @@ async function runImRuntimeTurnWithSupabase(args: {
           requests: runtimeTurnResult.follow_up_requests
         })
       ]);
+      const followUpEnqueueResult = await enqueueAcceptedFollowUps({
+        workspace_id: workspace.id,
+        user_id: input.user_id,
+        agent_id: thread.agent_id,
+        thread_id: thread.id,
+        source_message_id: insertedMessage.id,
+        execution_results: followUpExecutionResults
+      });
 
       if (
         memoryWriteOutcome.createdCount > 0 ||
@@ -340,6 +349,15 @@ async function runImRuntimeTurnWithSupabase(args: {
                 status: result.status,
                 reason: result.reason,
                 trigger_at: result.trigger_at ?? null
+              })
+            ),
+            follow_up_enqueued_count: followUpEnqueueResult.inserted_count,
+            follow_up_enqueued_records_preview: followUpEnqueueResult.records.map(
+              (record) => ({
+                id: record.id,
+                kind: record.kind,
+                status: record.status,
+                trigger_at: record.trigger_at
               })
             )
           }

@@ -92,3 +92,35 @@ export class InMemoryFollowUpRepository implements FollowUpRepository {
     return [...this.records];
   }
 }
+
+const defaultFollowUpRepository = new InMemoryFollowUpRepository();
+
+export async function enqueueAcceptedFollowUps({
+  workspace_id,
+  user_id,
+  agent_id,
+  thread_id,
+  source_message_id,
+  execution_results,
+  repository = defaultFollowUpRepository
+}: {
+  workspace_id: string;
+  user_id: string;
+  agent_id: string;
+  thread_id: string;
+  source_message_id?: string | null;
+  execution_results: RuntimeFollowUpExecutionResult[];
+  repository?: FollowUpRepository;
+}): Promise<EnqueuePendingFollowUpsResult> {
+  return repository.enqueuePendingFollowUps({
+    workspace_id,
+    user_id,
+    agent_id,
+    thread_id,
+    source_message_id,
+    accepted_requests: execution_results.filter(
+      (result): result is RuntimeFollowUpExecutionResult & { status: "accepted" } =>
+        result.status === "accepted"
+    )
+  });
+}
