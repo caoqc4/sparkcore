@@ -100,7 +100,10 @@
 - `RuntimeTurnInput` 已有第一版代码壳：
   - `apps/web/lib/chat/runtime-input.ts`
 - `im-runtime-port.ts` 已开始显式构造 `RuntimeTurnInput`
-- `runAgentTurn(input)` 已有第一版薄壳，并已接入 IM 入口
+- `actions.ts` 的正常发送与重试路径也已开始显式构造 `RuntimeTurnInput`
+- `runAgentTurn(input)` 已有第一版薄壳，并已接入：
+  - IM 入口
+  - Web chat 主入口
 - `memory_write_requests` 已有最小 planner output
 - `follow_up_requests` 已有最小 planner output
 - `runtime_events` 已有第一版标准事件类型
@@ -127,7 +130,10 @@
 这意味着：
 
 - runtime 的对外 contract 已从文档概念变成代码事实
-- runtime input 也已经不只是设计稿，而是开始出现第一条真实标准输入路径
+- runtime input 也已经不只是设计稿，而是开始出现：
+  - IM
+  - Web chat
+ 这两条真实标准输入路径
 - 但事件 schema、默认 worker 的真实自动调度语义、scheduler 常驻执行仍未完成
 
 ---

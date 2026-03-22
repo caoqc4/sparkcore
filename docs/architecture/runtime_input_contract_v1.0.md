@@ -462,6 +462,7 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
 当前这份 input contract 与现有实现最直接对应的是：
 
 - `apps/web/lib/chat/im-runtime-port.ts`
+- `apps/web/app/chat/actions.ts`
 - `apps/web/lib/chat/runtime.ts`
 
 ### 16.1 `im-runtime-port.ts` 当前对应的输入职责
@@ -544,9 +545,12 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
 - `im-runtime-port.ts`
 - IM adapter input
 
-里抽出来的。后续再扩到：
+里抽出来的。当前已经继续扩到了：
 
 - web chat action / route
+
+后续再扩到：
+
 - scheduler 回流入口
 
 #### 层 2：runtime 装配执行层
@@ -597,6 +601,21 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
 - 已有 adapter contract
 - 已有 thread / binding / identity 解析
 - 最容易看清 `actor / message / context` 的边界
+
+### Step 2.5：把 Web chat 主入口也并入同一层输入构造路径
+
+这一步现在也已经完成第一版：
+
+- `apps/web/app/chat/actions.ts` 的正常发送路径已开始构造 `RuntimeTurnInput`
+- `apps/web/app/chat/actions.ts` 的重试路径也已开始构造 `RuntimeTurnInput`
+- 两条路径都已改为调用 `runAgentTurn(input)`
+
+这意味着当前已经不是只有 IM 一条标准输入路径，而是：
+
+- IM adapter
+- Web chat
+
+两条主入口都已开始向同一层 runtime input 收口。
 
 ### Step 3：再给 `generateAgentReply(...)` 外面包一层真正的 `runAgentTurn(input)`
 
