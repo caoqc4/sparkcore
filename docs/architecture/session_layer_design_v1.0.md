@@ -17,6 +17,7 @@
 > - `docs/strategy/sparkcore_repositioning_v1.0.md`
 > - `docs/architecture/memory_layer_design_v1.0.md`
 > - `docs/architecture/single_agent_runtime_design_v1.0.md`
+> - `docs/architecture/runtime_prepared_turn_design_v1.0.md`
 > - `docs/engineering/phase1_adjustment_execution_plan_v1.0.md`
 
 ---

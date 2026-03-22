@@ -17,6 +17,7 @@
 > - `docs/strategy/sparkcore_repositioning_v1.0.md`
 > - `docs/architecture/runtime_input_contract_v1.0.md`
 > - `docs/architecture/runtime_contract_v1.0.md`
+> - `docs/architecture/runtime_prepared_turn_design_v1.0.md`
 
 ---
 
