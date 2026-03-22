@@ -148,6 +148,26 @@ runtime 在处理一轮时，至少要消费：
 
 > 这一轮最终应该返回给用户的内容是什么
 
+当前实现补充：
+
+- `assistant_message.metadata` 已开始进入统一 builder 收口：
+  - `apps/web/lib/chat/assistant-message-metadata.ts`
+- `runtime.ts` 当前已不再直接内联拼接整块 assistant metadata，而是开始通过统一 builder 生成
+- 当前 metadata shape 已开始出现最小分组，例如：
+  - `model_profile`
+  - `language`
+  - `answer_strategy`
+  - `session`
+  - `memory`
+- 但当前仍刻意保留一批关键平铺字段，用于兼容：
+  - smoke tests
+  - quality eval
+  - session continuity 邻近读取面
+- 因此当前 assistant metadata 的状态应理解为：
+  - **已开始统一收口**
+  - **已开始形成 grouped shape**
+  - **但仍处在兼容式过渡阶段**
+
 ---
 
 ## 7.2 `memory_write_requests`

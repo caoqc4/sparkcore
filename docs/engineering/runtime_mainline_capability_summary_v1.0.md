@@ -166,6 +166,26 @@
 
 也就是说，当前 runtime 不只是“主路径已经形成”，连输出层的下一步治理方向也已经开始明确，而且 `answer_strategy*`、`memory*`、`follow_up*` 与 `session / continuity` 都已经开始进入最小 metadata 分组。
 
+另外，`assistant_message.metadata` 这块历史调试面也已经开始进入统一收口：
+
+- [assistant-message-metadata.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/assistant-message-metadata.ts)
+
+当前已经开始通过统一 builder 生成 assistant metadata，并逐步形成：
+
+- `model_profile`
+- `language`
+- `answer_strategy`
+- `session`
+- `memory`
+
+这类 grouped shape。
+
+但当前仍保留关键平铺字段，原因不是边界没想清楚，而是为了兼容：
+
+- smoke tests
+- quality eval
+- session continuity 邻近读取逻辑
+
 ---
 
 ## 6. 当前仍属于过渡期兼容层的部分
@@ -253,6 +273,7 @@
    - `runtime event catalog`
    - `debug_metadata` 命名收口
    - `answer_strategy*` 的最小 metadata 分组
+   - `assistant_message.metadata` 的统一 builder 与兼容式分组收口
 
 3. 再决定是否继续缩薄 `generateAgentReply(...)`
 

@@ -147,6 +147,16 @@
   - `debug_metadata.session.continuation_reason_code`
   - `debug_metadata.session.recent_turn_count`
   - `debug_metadata.session.context_pressure`
+- `assistant_message.metadata` 也已开始进入统一 builder 收口：
+  - `apps/web/lib/chat/assistant-message-metadata.ts`
+- `runtime.ts` 已不再直接内联拼接整块 assistant metadata，而是开始通过统一 builder 生成
+- 当前 assistant metadata 已开始形成 grouped shape，例如：
+  - `model_profile`
+  - `language`
+  - `answer_strategy`
+  - `session`
+  - `memory`
+- 但为了兼容 smoke / eval / continuity 邻近读取面，关键平铺字段当前仍然保留
 - 当前 runtime 主线的下一阶段优先级也已前移成：
   - 先治理输出层
   - 再决定是否继续细拆 execution
