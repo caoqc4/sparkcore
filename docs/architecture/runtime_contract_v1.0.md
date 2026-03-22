@@ -259,9 +259,10 @@ runtime 在处理一轮时，至少要消费：
   - `debug_metadata.memory.write_request_count`
 - `follow_up*` 现在也已开始进入最小分组收口：
   - `debug_metadata.follow_up.request_count`
-- `session / continuity` 当前也已开始进入下一分支评估：
-  - 值得单独评估
-  - 但暂不建议立刻落成 `debug_metadata.session`
+- `session / continuity` 现在也已开始进入最小分组收口：
+  - `debug_metadata.session.continuation_reason_code`
+  - `debug_metadata.session.recent_turn_count`
+  - `debug_metadata.session.context_pressure`
 - 当前更适合继续承接：
   - 局部原因
   - 计数摘要

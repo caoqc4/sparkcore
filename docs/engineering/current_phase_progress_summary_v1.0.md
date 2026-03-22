@@ -136,9 +136,10 @@
   - `debug_metadata.memory.write_request_count`
 - `follow_up*` 现在也已开始进入最小 metadata 分组：
   - `debug_metadata.follow_up.request_count`
-- `session / continuity` 当前也已完成下一分支评估：
-  - 值得成为下一个被认真考虑的 metadata 子域
-  - 但暂不建议立刻落代码
+- `session / continuity` 现在也已开始进入最小 metadata 分组：
+  - `debug_metadata.session.continuation_reason_code`
+  - `debug_metadata.session.recent_turn_count`
+  - `debug_metadata.session.context_pressure`
 - 当前 runtime 主线的下一阶段优先级也已前移成：
   - 先治理输出层
   - 再决定是否继续细拆 execution
