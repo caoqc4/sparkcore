@@ -108,6 +108,7 @@
   - `apps/web/lib/chat/runtime-prepared-turn.ts`
 - `runtime.ts` 已开始在主流程中显式构造 `PreparedRuntimeTurn`
 - `prepareRuntimeTurn(...)` 已有第一版装配函数壳，并已开始被 `runtime.ts` 调用
+- `prepareRuntimeSession(...)` 已有第一版 session 装配函数壳，并已开始被主流程使用
 - `memory_write_requests` 已有最小 planner output
 - `follow_up_requests` 已有最小 planner output
 - `runtime_events` 已有第一版标准事件类型
@@ -149,6 +150,7 @@
 当前 session 相关逻辑不再完全散落在 `runtime.ts` 中，已经出现了第一版统一会话对象：
 
 - `apps/web/lib/chat/session-context.ts`
+- `apps/web/lib/chat/runtime-prepared-turn.ts`
 
 当前已落实的 `SessionContext` 组织字段包括：
 
@@ -158,6 +160,10 @@
 - `continuity_signals`
 - `recent_raw_turn_count`
 - `approx_context_pressure`
+
+另外，session 装配本身也开始出现第一版 preparation 落点：
+
+- `prepareRuntimeSession(...)`
 
 当前 runtime 已开始显式消费这层 session object，而不是继续直接拼 recent turns 和 thread continuity。
 

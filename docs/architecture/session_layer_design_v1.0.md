@@ -250,6 +250,7 @@ session layer 不应：
 - `messages` 表
 - `threads.agent_id`
 - `apps/web/lib/chat/session-context.ts`
+- `apps/web/lib/chat/runtime-prepared-turn.ts`
 - `apps/web/lib/chat/runtime.ts`
 
 当前已具备：
@@ -259,6 +260,9 @@ session layer 不应：
 - agent-thread 绑定
 - recent raw turns 的天然支撑
 - `SessionContext` 第一版代码落点
+- `prepareRuntimeSession(...)` 第一版装配落点
+
+这意味着当前 session 不再只是 `runtime.ts` 内部直接调用的一段实现，而是已经开始通过 runtime preparation 模块进入主流程。
 - runtime 对显式 session object 的消费起点
 
 当前未正式具备：

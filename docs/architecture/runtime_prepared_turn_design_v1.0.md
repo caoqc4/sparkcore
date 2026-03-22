@@ -256,6 +256,7 @@ type PreparedRuntimeTurn = {
 - `prepareRuntimeTurn(...)` 已存在
 - 目前仍是最小壳，先复用 `buildPreparedRuntimeTurn(...)`
 - 但 runtime 主流程已经开始围绕“装配函数 + 装配对象”收口
+- `SessionContext` 的装配也已经开始进入 preparation 模块
 
 ### 第三阶段
 
@@ -285,6 +286,7 @@ type PreparedRuntimeTurn = {
 - `SessionContext` 已经在 `session-context.ts` 中有第一版稳定对象
 - `PreparedRuntimeTurn` 已经在 `runtime-prepared-turn.ts` 中有第一版显式代码对象
 - `prepareRuntimeTurn(...)` 已经在 `runtime-prepared-turn.ts` 中有第一版装配函数
+- `prepareRuntimeSession(...)` 已经在 `runtime-prepared-turn.ts` 中有第一版 session 装配函数
 - `runtime.ts` 已开始把：
   - `input`
   - `role_core`
@@ -326,6 +328,7 @@ type PreparedRuntimeTurn = {
 当前还没把 `prepareRuntimeTurn(...)` 独立成函数，但已经迈出了第一步：
 
 - `prepareRuntimeTurn(...)` 已独立存在
+- `prepareRuntimeSession(...)` 已独立存在
 - 主流程已开始通过它获取 `PreparedRuntimeTurn`
 
 ### Step 4：最后再考虑把 `generateAgentReply(...)` 的参数面收瘦
