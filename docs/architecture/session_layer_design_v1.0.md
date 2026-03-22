@@ -257,6 +257,15 @@ session layer 不应：
 
 - [session_state_contract_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/session_state_contract_v1.0.md)
 - [thread-state.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state.ts)
+- [session_thread_state_loading_boundary_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/session_thread_state_loading_boundary_v1.0.md)
+
+另外，thread state 进入 session 主流程的读取边界也已经开始显式化：
+
+- [thread-state.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state.ts)
+  - `loadThreadState(...)`
+- [runtime-prepared-turn.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime-prepared-turn.ts)
+  - `prepareRuntimeSession(...)` 当前已开始先调 `loadThreadState(...)`
+  - 在 `not_found` 时 fallback 到 `buildDefaultThreadState(...)`
 
 ---
 

@@ -189,6 +189,8 @@
 - 正式 `thread_state` contract 已开始
 - `ThreadStateRecord` 第一版代码壳已开始
 - `prepareRuntimeSession(...)` 已开始最小消费 `thread_state`
+- `loadThreadState(...)` 第一版代码壳已开始
+- `prepareRuntimeSession(...)` 已开始通过 `loadThreadState(...)` 进入 thread state 读取边界
 - 但 `thread_state` 仍未接入持久化，也还没有 compaction
 
 ---

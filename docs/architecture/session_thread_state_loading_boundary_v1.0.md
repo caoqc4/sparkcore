@@ -25,12 +25,19 @@
 > - `docs/architecture/session_layer_design_v1.0.md`
 > - `docs/engineering/session_next_phase_decision_note_v1.0.md`
 > - `docs/engineering/session_mainline_capability_summary_v1.0.md`
+> - `apps/web/lib/chat/thread-state.ts`
 
 ---
 
 ## 2. 一句话结论
 
 **当前最稳的下一步不是立刻做 `thread_state` 持久化，而是先定义一个最小 `loadThreadState(...)` 读取边界，让 `prepareRuntimeSession(...)` 后续能从“默认构造 thread state”平滑过渡到“读取 thread state”。**
+
+当前状态前移到：
+
+- `loadThreadState(...)` 第一版代码壳已存在
+- `prepareRuntimeSession(...)` 已开始通过这层 loader 读取 thread state
+- 当前默认实现仍只返回 `not_found`
 
 ---
 
@@ -41,8 +48,9 @@
 - `ThreadStateRecord`
 - `buildDefaultThreadState(...)`
 - `prepareRuntimeSession(...)`
+- `loadThreadState(...)`
 
-并且 `prepareRuntimeSession(...)` 已开始最小消费 `thread_state`。
+并且 `prepareRuntimeSession(...)` 已开始通过 `loadThreadState(...)` 最小消费 `thread_state`。
 
 但现在最明显的空档是：
 
@@ -156,6 +164,16 @@ Promise<ThreadStateRecord | null>
 
 这样读取层和 fallback 层就不会再次混在一起。
 
+当前第一版代码壳已落在：
+
+- [thread-state.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state.ts)
+
+当前默认实现仍然保持为：
+
+- `status: "not_found"`
+
+这样主流程已经开始经过读取边界，但还没有越界到 persistence。
+
 ---
 
 ## 7. 当前建议的数据流
@@ -181,6 +199,12 @@ loadThreadState(...) -> ThreadStateRecord? -> prepareRuntimeSession(...) -> Sess
 ```ts
 prepareRuntimeSession(...) 直接自己决定如何读表 / 如何查状态 / 如何 fallback
 ```
+
+当前这条数据流已经开始成为代码事实：
+
+- [runtime-prepared-turn.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime-prepared-turn.ts)
+  当前已先调 `loadThreadState(...)`
+- 在 `not_found` 时，再 fallback 到 `buildDefaultThreadState(...)`
 
 ---
 
