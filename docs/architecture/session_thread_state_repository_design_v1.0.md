@@ -38,6 +38,7 @@
 - `ThreadStateRepository` 第一版代码壳已存在
 - `InMemoryThreadStateRepository` 已存在
 - `loadThreadState(...)` 已开始复用默认 repository
+- `SupabaseThreadStateRepository` 第一版代码壳已存在
 
 ---
 
@@ -221,6 +222,8 @@ prepareRuntimeSession(...)
   当前的 `loadThreadState(...)` 已开始复用默认 repository
 - [thread-state-repository.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-repository.ts)
   当前承接最小读取后端
+- [thread-state-supabase-repository.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-supabase-repository.ts)
+  当前已承接真实后端读取壳
 
 ---
 

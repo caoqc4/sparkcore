@@ -25,12 +25,20 @@
 > - `docs/architecture/session_thread_state_loading_boundary_v1.0.md`
 > - `docs/architecture/session_state_contract_v1.0.md`
 > - `docs/engineering/session_next_phase_decision_note_v1.0.md`
+> - `apps/web/lib/chat/thread-state-supabase-repository.ts`
 
 ---
 
 ## 2. 一句话结论
 
 **当前 `session` 主线如果继续推进，最自然的下一步不是立刻做 migration 或写回，而是先给 `ThreadStateRepository` 补一个只承接读取语义的 `SupabaseThreadStateRepository` shell，让 thread state 真实后端读取有明确落点。**
+
+当前状态前移到：
+
+- `SupabaseThreadStateRepository` 第一版代码壳已存在
+- `mapThreadStateRowToRecord(...)` 已存在
+- `createAdminThreadStateRepository()` 已存在
+- 但默认主路径仍未切到 Supabase
 
 ---
 
@@ -42,6 +50,7 @@
 - `loadThreadState(...)`
 - `ThreadStateRepository`
 - `InMemoryThreadStateRepository`
+- `SupabaseThreadStateRepository`
 
 这意味着当前已经完成了：
 
@@ -49,6 +58,7 @@
 2. runtime 侧读取入口
 3. repository 抽象
 4. 默认后端壳
+5. 真实后端读取壳
 
 所以下一步如果还继续，最自然的就是：
 
@@ -133,6 +143,11 @@ class SupabaseThreadStateRepository implements ThreadStateRepository {
 - 不引入第二套读取语义
 - 让 runtime 不需要感知“后端换了”
 
+当前第一版代码壳已落在：
+
+- [thread-state-supabase-repository.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-supabase-repository.ts)
+- [thread-state-admin-repository.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state-admin-repository.ts)
+
 ---
 
 ## 7. 当前建议的最小 row 形状
@@ -182,6 +197,14 @@ prepareRuntimeSession(...)
 - `SupabaseThreadStateRepository` 只负责“查不查得到”
 
 这样真实后端读取不会重新把 fallback 逻辑卷回后端层。
+
+当前这层也已经开始有明确代码落点：
+
+- `SupabaseThreadStateRepository`
+- `mapThreadStateRowToRecord(...)`
+- `createAdminThreadStateRepository()`
+
+但它们当前仍然只是后端读取壳，不是默认主路径。
 
 ---
 

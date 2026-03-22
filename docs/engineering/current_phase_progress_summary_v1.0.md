@@ -193,6 +193,7 @@
 - `prepareRuntimeSession(...)` 已开始通过 `loadThreadState(...)` 进入 thread state 读取边界
 - `ThreadStateRepository` 第一版代码壳已开始
 - `loadThreadState(...)` 已开始复用默认 repository
+- `SupabaseThreadStateRepository` 第一版代码壳已开始
 - 但 `thread_state` 仍未接入持久化，也还没有 compaction
 
 ---
