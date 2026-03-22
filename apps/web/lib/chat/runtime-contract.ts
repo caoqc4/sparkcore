@@ -61,6 +61,51 @@ export type RuntimeFollowUpExecutionResult = {
   payload?: Record<string, unknown>;
 };
 
+export type PendingFollowUpStatus =
+  | "pending"
+  | "claimed"
+  | "executed"
+  | "failed"
+  | "skipped";
+
+export type PendingFollowUpRecord = {
+  id: string;
+  kind: string;
+  status: PendingFollowUpStatus;
+  trigger_at: string;
+  workspace_id: string;
+  user_id: string;
+  agent_id: string;
+  thread_id: string;
+  request_payload: Record<string, unknown>;
+  request_reason: string;
+  source_message_id?: string | null;
+  source_request_index: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EnqueuePendingFollowUpsInput = {
+  workspace_id: string;
+  user_id: string;
+  agent_id: string;
+  thread_id: string;
+  accepted_requests: RuntimeFollowUpExecutionResult[];
+  source_message_id?: string | null;
+};
+
+export type EnqueuePendingFollowUpsResult = {
+  inserted_count: number;
+  records: PendingFollowUpRecord[];
+  skipped_count: number;
+};
+
+export type FollowUpRepository = {
+  enqueuePendingFollowUps: (
+    input: EnqueuePendingFollowUpsInput
+  ) => Promise<EnqueuePendingFollowUpsResult>;
+};
+
 export type RuntimeEvent = {
   type:
     | "memory_recalled"

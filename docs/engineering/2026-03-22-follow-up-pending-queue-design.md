@@ -334,3 +334,19 @@ type FollowUpRepository = {
 - adapter / port 消费结果
 
 又不会过早把系统拖入完整调度复杂度。
+
+---
+
+## 15. 当前实现进展
+
+当前已经补上的最小代码壳包括：
+
+- `PendingFollowUpRecord` 类型
+- `FollowUpRepository` 接口
+- `buildPendingFollowUpRecord(...)`
+- `InMemoryFollowUpRepository`
+
+这意味着：
+
+- pending queue 已不再只有文档概念
+- 但当前仍未接入真实持久化，也未进入真实 enqueue 流程
