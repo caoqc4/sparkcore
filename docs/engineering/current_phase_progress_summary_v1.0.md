@@ -170,10 +170,23 @@
 
 当前 runtime 已开始显式消费这层 session object，而不是继续直接拼 recent turns 和 thread continuity。
 
+另外，session 正式状态层也已经有了第一版设计起点：
+
+- [session_state_contract_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/session_state_contract_v1.0.md)
+
+其中已经开始明确：
+
+- `thread`
+- `thread state`
+- `SessionContext`
+
+三者的分层关系。
+
 这意味着：
 
 - `role-memory-session` 三者协作面中，session 已不是纸面概念
-- 但正式 `thread_state` 与 compaction 层仍未开始
+- 正式 `thread_state` contract 已开始
+- 但 `thread_state` 代码壳与 compaction 层仍未开始
 
 ---
 

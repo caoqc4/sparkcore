@@ -140,6 +140,14 @@ session 不是单独一张表，而是 runtime 当前轮消费的会话上下文
 
 > 当前这一轮在这条 thread 中该如何理解上下文
 
+当前补充判断是：
+
+- `SessionContext` 不应直接等于正式 `session state`
+- 更合理的关系是：
+  - `thread`
+  - `thread state`
+  - `SessionContext`
+
 ---
 
 ## 7. 与 memory 的边界
@@ -225,7 +233,33 @@ session layer 不应：
 
 ---
 
-## 10.3 `ThreadLocalAgreement`
+## 10.3 `ThreadStateRecord`
+
+当前建议作为下一阶段正式化对象预留。
+
+推荐最小字段：
+
+- `thread_id`
+- `agent_id`
+- `state_version`
+- `lifecycle_status`
+- `continuity_status?`
+- `current_language_hint?`
+- `last_user_message_id?`
+- `last_assistant_message_id?`
+- `updated_at`
+
+它回答的是：
+
+> 当前这条 thread 的最小正式局部状态是什么
+
+这层当前还没有第一版代码壳，但已经形成第一版设计方向，见：
+
+- [session_state_contract_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/session_state_contract_v1.0.md)
+
+---
+
+## 10.4 `ThreadLocalAgreement`
 
 当前建议只作为局部层概念预留，不进入长期记忆主面板。
 
@@ -261,13 +295,14 @@ session layer 不应：
 - recent raw turns 的天然支撑
 - `SessionContext` 第一版代码落点
 - `prepareRuntimeSession(...)` 第一版装配落点
+- `thread state / session state` 第一版设计 contract
 
 这意味着当前 session 不再只是 `runtime.ts` 内部直接调用的一段实现，而是已经开始通过 runtime preparation 模块进入主流程。
 - runtime 对显式 session object 的消费起点
 
 当前未正式具备：
 
-- 正式 `thread_state` contract
+- `thread_state` 第一版代码壳
 - 正式 compaction 层
 
 当前代码中已落实的 session 组织字段包括：
@@ -342,10 +377,11 @@ session layer 不应：
 ## 13. 当前推荐实现顺序
 
 1. 固化 `SessionContext`
-2. 固化 recent raw turns 的最小结构
-3. 明确 `thread_local` 与长期记忆的边界
-4. 让 runtime 显式消费 session contract
-5. 再决定是否需要独立 `thread_state` 与 compaction 层
+2. 固化 `thread state / session state` 最小 contract
+3. 固化 recent raw turns 的最小结构
+4. 明确 `thread_local` 与长期记忆的边界
+5. 让 runtime 显式消费 session contract
+6. 再决定是否需要独立 `thread_state` 代码壳与 compaction 层
 
 ---
 
@@ -361,7 +397,8 @@ session layer 不应：
 
 - `SessionContext` 已有第一版可执行实现
 - runtime 已开始消费显式 session object
-- 当前仍属于“最小 session contract 已落地，正式 thread state 尚未开始”的阶段
+- `thread state / session state` 最小 contract 已开始
+- 当前仍属于“最小 session contract 已落地，正式 thread state 代码壳尚未开始”的阶段
 
 ---
 
