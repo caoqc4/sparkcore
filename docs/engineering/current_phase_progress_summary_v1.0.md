@@ -202,6 +202,7 @@
 - `thread-state-writeback.ts` 第一版 trigger helper 已开始
 - `runPreparedRuntimeTurn(...)` 已开始以 soft-fail side effect 触发最小 thread state 写回
 - `debug_metadata.thread_state_writeback` 也已开始承接最小 writeback 摘要
+- `runtime_events` 也已开始承接最小 `thread_state_writeback_completed` 标准事件
 - 但 `thread_state` 仍未进入 retry 与 compaction
 
 ---

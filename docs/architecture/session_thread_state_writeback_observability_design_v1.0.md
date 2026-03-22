@@ -32,13 +32,13 @@
 
 ## 2. 一句话结论
 
-**当前 thread state writeback 如果继续推进观测层，最稳的下一步不是立刻做独立 metrics 平台接线，也不是先加日志洪泛，而是先补一个最小 `runtime event`。**
+**当前 thread state writeback 已经有了最小 `runtime event`；后续如果继续推进观测层，最稳的下一步不是立刻做独立 metrics 平台接线，也不是先加日志洪泛，而是先观察这层标准事件是否已经足够。**
 
 一句话说：
 
 **先让 writeback 对 runtime event 可见，再决定是否值得继续扩到 counter 或日志。**
 
-当前推荐顺序是：
+当前已前移成：
 
 1. `runtime event`
 2. counter / aggregate metrics
@@ -142,7 +142,7 @@
 
 ### 当前推荐
 
-**先选方案 A。**
+**当前已经按方案 A 落下第一版代码事实。**
 
 因为现在最需要的是：
 
@@ -190,7 +190,7 @@
 
 ## 6. 当前建议的最小 event 形状
 
-当前建议先补一个最小 runtime event，例如：
+当前已补上一个最小 runtime event，例如：
 
 ```ts
 type RuntimeEvent =
@@ -204,7 +204,7 @@ type RuntimeEvent =
     };
 ```
 
-当前第一版只建议暴露：
+当前第一版只暴露：
 
 - `status`
 - `repository`
@@ -274,7 +274,7 @@ log / trace 不是永远不做，而是当前不宜优先。
 
 ### Step 2
 
-下一步优先补：
+当前已经补上：
 
 - `runtime_events` 中的最小 `thread_state_writeback_completed`
 
@@ -299,10 +299,10 @@ log / trace 不是永远不做，而是当前不宜优先。
 
 当前 thread state writeback observability 最合理的下一步，不是立刻做 metrics 平台化，也不是先加散落日志。
 
-更稳的顺序是：
+更稳的顺序当前已经前移成：
 
-**先把 thread state writeback 补成一个最小 `runtime event`，再决定是否值得继续扩到 counter 或 trace。**
+**先把 thread state writeback 补成最小 `runtime event`，再决定是否值得继续扩到 counter 或 trace。**
 
 也就是说，当前更好的动作是：
 
-**先回答“如何标准化观测”，再回答“是否需要更重的 observability 基础设施”。**
+**先接受“标准事件观测”已经落地，再回答“是否需要更重的 observability 基础设施”。**

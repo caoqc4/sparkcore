@@ -210,6 +210,13 @@ runtime 在处理一轮时，至少要消费：
 - `answer_strategy_selected`
 - `follow_up_planned`
 
+当前实现补充：
+
+- `runtime_events` 已开始承接最小 `thread_state_writeback_completed` 事件
+- 当前 event payload 先只暴露：
+  - `status`
+  - `repository`
+
 它主要服务：
 
 - debug
