@@ -1,4 +1,6 @@
 import type {
+  ClaimDuePendingFollowUpsInput,
+  ClaimDuePendingFollowUpsResult,
   EnqueuePendingFollowUpsInput,
   EnqueuePendingFollowUpsResult,
   FollowUpRepository,
@@ -85,6 +87,45 @@ export class InMemoryFollowUpRepository implements FollowUpRepository {
       inserted_count: acceptedRecords.length,
       records: acceptedRecords,
       skipped_count: input.accepted_requests.length - acceptedRecords.length
+    };
+  }
+
+  async claimDuePendingFollowUps(
+    input: ClaimDuePendingFollowUpsInput
+  ): Promise<ClaimDuePendingFollowUpsResult> {
+    const claimableRecords = this.records
+      .filter(
+        (record) =>
+          record.status === "pending" &&
+          Date.parse(record.trigger_at) <= Date.parse(input.now)
+      )
+      .sort(
+        (left, right) =>
+          Date.parse(left.trigger_at) - Date.parse(right.trigger_at) ||
+          Date.parse(left.created_at) - Date.parse(right.created_at)
+      )
+      .slice(0, input.limit);
+
+    const claimToken = input.claim_token ?? crypto.randomUUID();
+    const claimedAt = new Date().toISOString();
+
+    const claimedIds = new Set(claimableRecords.map((record) => record.id));
+    this.records.forEach((record) => {
+      if (claimedIds.has(record.id)) {
+        record.status = "claimed";
+        record.updated_at = claimedAt;
+        record.request_payload = {
+          ...record.request_payload,
+          claim_token: claimToken,
+          claimed_at: claimedAt,
+          claimed_by: input.claimed_by
+        };
+      }
+    });
+
+    return {
+      claimed_count: claimableRecords.length,
+      records: this.records.filter((record) => claimedIds.has(record.id))
     };
   }
 

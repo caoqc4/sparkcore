@@ -100,10 +100,25 @@ export type EnqueuePendingFollowUpsResult = {
   skipped_count: number;
 };
 
+export type ClaimDuePendingFollowUpsInput = {
+  now: string;
+  limit: number;
+  claimed_by: string;
+  claim_token?: string;
+};
+
+export type ClaimDuePendingFollowUpsResult = {
+  claimed_count: number;
+  records: PendingFollowUpRecord[];
+};
+
 export type FollowUpRepository = {
   enqueuePendingFollowUps: (
     input: EnqueuePendingFollowUpsInput
   ) => Promise<EnqueuePendingFollowUpsResult>;
+  claimDuePendingFollowUps: (
+    input: ClaimDuePendingFollowUpsInput
+  ) => Promise<ClaimDuePendingFollowUpsResult>;
 };
 
 export type RuntimeEvent = {

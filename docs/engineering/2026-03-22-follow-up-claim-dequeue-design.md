@@ -332,3 +332,21 @@ type FollowUpRepository = {
 - 已可最小领取
 
 这三层之上，而不是把发送、领取、失败处理一次揉在一起。
+
+---
+
+## 17. 当前实现进展
+
+当前已经补上的最小代码壳包括：
+
+- `ClaimDuePendingFollowUpsInput`
+- `ClaimDuePendingFollowUpsResult`
+- `FollowUpRepository.claimDuePendingFollowUps(...)`
+- `InMemoryFollowUpRepository.claimDuePendingFollowUps(...)`
+- `SupabaseFollowUpRepository.claimDuePendingFollowUps(...)`
+
+这意味着：
+
+- claim / dequeue 已不再只有文档概念
+- 但当前还没有默认 claim 调用路径
+- 也还没有接到真正的 proactive sender
