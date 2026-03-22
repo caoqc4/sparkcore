@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { handleInboundChannelMessage } from "../../../../../../../packages/integrations/im-adapter";
+import { handleInboundChannelMessage } from "@/lib/integrations/im-adapter";
 import { createWebBindingLookup } from "@/lib/chat/im-binding-lookup";
 import { webImRuntimePort } from "@/lib/chat/im-runtime-port";
 import {

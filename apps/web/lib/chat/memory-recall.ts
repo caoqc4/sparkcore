@@ -76,12 +76,14 @@ export async function recallAgentNickname({
   workspaceId,
   userId,
   agentId,
-  latestUserMessage
+  latestUserMessage,
+  supabase: providedSupabase
 }: {
   workspaceId: string;
   userId: string;
   agentId: string;
   latestUserMessage: string;
+  supabase?: any;
 }): Promise<{
   directNamingQuestion: boolean;
   nicknameMemory: {
@@ -99,7 +101,7 @@ export async function recallAgentNickname({
     };
   }
 
-  const supabase = await createClient();
+  const supabase = providedSupabase ?? (await createClient());
   const { data, error } = await supabase
     .from("memory_items")
     .select(
@@ -146,12 +148,14 @@ export async function recallUserPreferredName({
   workspaceId,
   userId,
   agentId,
-  latestUserMessage
+  latestUserMessage,
+  supabase: providedSupabase
 }: {
   workspaceId: string;
   userId: string;
   agentId: string;
   latestUserMessage: string;
+  supabase?: any;
 }): Promise<{
   directPreferredNameQuestion: boolean;
   preferredNameMemory: {
@@ -171,7 +175,7 @@ export async function recallUserPreferredName({
     };
   }
 
-  const supabase = await createClient();
+  const supabase = providedSupabase ?? (await createClient());
   const { data, error } = await supabase
     .from("memory_items")
     .select(
@@ -219,11 +223,13 @@ export async function recallUserPreferredName({
 export async function recallUserAddressStyle({
   workspaceId,
   userId,
-  agentId
+  agentId,
+  supabase: providedSupabase
 }: {
   workspaceId: string;
   userId: string;
   agentId: string;
+  supabase?: any;
 }): Promise<{
   addressStyleMemory: {
     memory_type: "relationship";
@@ -231,7 +237,7 @@ export async function recallUserAddressStyle({
     confidence: number;
   } | null;
 }> {
-  const supabase = await createClient();
+  const supabase = providedSupabase ?? (await createClient());
   const { data, error } = await supabase
     .from("memory_items")
     .select(
@@ -278,7 +284,8 @@ export async function recallRelevantMemories({
   agentId,
   threadId,
   latestUserMessage,
-  allowDistantFallback = true
+  allowDistantFallback = true,
+  supabase: providedSupabase
 }: {
   workspaceId: string;
   userId: string;
@@ -286,8 +293,9 @@ export async function recallRelevantMemories({
   threadId?: string | null;
   latestUserMessage: string;
   allowDistantFallback?: boolean;
+  supabase?: any;
 }): Promise<RecallOutcome> {
-  const supabase = await createClient();
+  const supabase = providedSupabase ?? (await createClient());
   const { data, error } = await supabase
     .from("memory_items")
     .select(
@@ -422,7 +430,8 @@ export async function loadRuntimeMemoryContext({
   latestUserMessage,
   preferSameThreadContinuation,
   sameThreadContinuity,
-  relationshipStylePrompt
+  relationshipStylePrompt,
+  supabase: providedSupabase
 }: {
   workspaceId: string;
   userId: string;
@@ -432,6 +441,7 @@ export async function loadRuntimeMemoryContext({
   preferSameThreadContinuation: boolean;
   sameThreadContinuity: boolean;
   relationshipStylePrompt: boolean;
+  supabase?: any;
 }): Promise<RuntimeMemoryContext> {
   const emptyMemoryRecall: RecallOutcome = {
     memories: [],
@@ -463,7 +473,8 @@ export async function loadRuntimeMemoryContext({
     agentId,
     threadId,
     latestUserMessage,
-    allowDistantFallback: !preferSameThreadContinuation
+    allowDistantFallback: !preferSameThreadContinuation,
+    supabase: providedSupabase
   });
 
   const directNamingQuestion = isDirectAgentNamingQuestion(latestUserMessage);
@@ -476,7 +487,8 @@ export async function loadRuntimeMemoryContext({
           workspaceId,
           userId,
           agentId,
-          latestUserMessage
+          latestUserMessage,
+          supabase: providedSupabase
         })
       : {
           directNamingQuestion: false,
@@ -489,7 +501,8 @@ export async function loadRuntimeMemoryContext({
           workspaceId,
           userId,
           agentId,
-          latestUserMessage
+          latestUserMessage,
+          supabase: providedSupabase
         })
       : {
           directPreferredNameQuestion: false,
@@ -499,7 +512,8 @@ export async function loadRuntimeMemoryContext({
   const addressStyleRecall = await recallUserAddressStyle({
     workspaceId,
     userId,
-    agentId
+    agentId,
+    supabase: providedSupabase
   });
 
   return {

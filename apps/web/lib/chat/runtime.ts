@@ -2317,8 +2317,8 @@ function buildAgentSystemPrompt(
   return sections.join("\n\n");
 }
 
-async function getDefaultPersonaPack() {
-  const supabase = await createClient();
+async function getDefaultPersonaPack(providedSupabase?: any) {
+  const supabase = providedSupabase ?? (await createClient());
 
   for (const slug of DEFAULT_PERSONA_SLUGS) {
     const { data: personaPack } = await supabase
@@ -2354,8 +2354,8 @@ async function getDefaultPersonaPack() {
   return personaPack;
 }
 
-export async function getDefaultModelProfile() {
-  const supabase = await createClient();
+export async function getDefaultModelProfile(providedSupabase?: any) {
+  const supabase = providedSupabase ?? (await createClient());
 
   const { data: defaultProfile } = await supabase
     .from("model_profiles")
@@ -2388,13 +2388,15 @@ export async function getDefaultModelProfile() {
 async function resolveModelProfileForAgent({
   agent,
   workspaceId,
-  userId
+  userId,
+  supabase: providedSupabase
 }: {
   agent: AgentRecord;
   workspaceId: string;
   userId: string;
+  supabase?: any;
 }) {
-  const supabase = await createClient();
+  const supabase = providedSupabase ?? (await createClient());
 
   if (agent.default_model_profile_id) {
     const { data: boundProfile } = await supabase
@@ -2409,7 +2411,7 @@ async function resolveModelProfileForAgent({
     }
   }
 
-  const defaultProfile = await getDefaultModelProfile();
+  const defaultProfile = await getDefaultModelProfile(supabase);
 
   const { error } = await supabase
     .from("agents")
@@ -2434,12 +2436,14 @@ async function resolveModelProfileForAgent({
 
 export async function resolveAgentForWorkspace({
   workspaceId,
-  userId
+  userId,
+  supabase: providedSupabase
 }: {
   workspaceId: string;
   userId: string;
+  supabase?: any;
 }) {
-  const supabase = await createClient();
+  const supabase = providedSupabase ?? (await createClient());
   const existingAgent = await loadRoleProfile({
     supabase,
     workspaceId,
@@ -2450,8 +2454,8 @@ export async function resolveAgentForWorkspace({
     return existingAgent;
   }
 
-  const personaPack = await getDefaultPersonaPack();
-  const defaultModelProfile = await getDefaultModelProfile();
+  const personaPack = await getDefaultPersonaPack(supabase);
+  const defaultModelProfile = await getDefaultModelProfile(supabase);
 
   const { data: createdAgent, error } = await supabase
     .from("agents")
@@ -3201,7 +3205,8 @@ export async function generateAgentReply({
   thread,
   agent,
   messages,
-  assistantMessageId
+  assistantMessageId,
+  supabase: providedSupabase
 }: {
   userId: string;
   workspace: WorkspaceRecord;
@@ -3209,8 +3214,9 @@ export async function generateAgentReply({
   agent: AgentRecord;
   messages: MessageRecord[];
   assistantMessageId?: string;
+  supabase?: any;
 }): Promise<RuntimeTurnResult> {
-  const supabase = await createClient();
+  const supabase = providedSupabase ?? (await createClient());
   const sessionContext = buildSessionContext({
     threadId: thread.id,
     agentId: agent.id,
@@ -3249,7 +3255,8 @@ export async function generateAgentReply({
     latestUserMessage: latestUserMessageContent,
     preferSameThreadContinuation,
     sameThreadContinuity,
-    relationshipStylePrompt
+    relationshipStylePrompt,
+    supabase
   });
   const memoryRecall = runtimeMemoryContext.memoryRecall;
   let relationshipRecall: {
@@ -3330,7 +3337,8 @@ export async function generateAgentReply({
   const modelProfile = await resolveModelProfileForAgent({
     agent,
     workspaceId: workspace.id,
-    userId
+    userId,
+    supabase
   });
   const threadContinuityPrompt = buildThreadContinuityPrompt({
     threadContinuity,

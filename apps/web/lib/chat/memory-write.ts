@@ -126,7 +126,15 @@ export async function planMemoryWriteRequests({
     ]
   });
 
-  const candidates = parseMemoryExtraction(extraction.content)
+  let parsedCandidates: ReturnType<typeof parseMemoryExtraction>;
+
+  try {
+    parsedCandidates = parseMemoryExtraction(extraction.content);
+  } catch {
+    return [];
+  }
+
+  const candidates = parsedCandidates
     .filter(
       (candidate) =>
         candidate.should_store &&

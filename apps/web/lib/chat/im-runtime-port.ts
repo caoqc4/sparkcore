@@ -2,7 +2,7 @@ import {
   type AdapterRuntimeInput,
   type AdapterRuntimeOutput,
   type AdapterRuntimePort
-} from "../../../../packages/integrations/im-adapter/contract";
+} from "@/lib/integrations/im-adapter";
 import { executeMemoryWriteRequests, storeRelationshipMemories } from "@/lib/chat/memory-write";
 import { loadRoleProfile } from "@/lib/chat/role-loader";
 import { generateAgentReply } from "@/lib/chat/runtime";
@@ -214,6 +214,7 @@ async function runImRuntimeTurnWithSupabase(args: {
   try {
     const runtimeTurnResult = await generateAgentReply({
       userId: input.user_id,
+      supabase,
       workspace: workspace as { id: string; name: string; kind: string },
       thread: {
         id: thread.id,

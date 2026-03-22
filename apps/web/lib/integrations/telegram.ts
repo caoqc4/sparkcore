@@ -1,7 +1,7 @@
 import type {
   InboundChannelMessage,
   OutboundChannelMessage
-} from "../../../../packages/integrations/im-adapter/contract";
+} from "@/lib/integrations/im-adapter";
 
 type TelegramUser = {
   id: number;
