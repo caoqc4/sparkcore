@@ -283,7 +283,74 @@ Success criteria：
 
 ---
 
-## 16. 当前结论
+## 16. 当前实现映射
+
+当前代码里，IM adapter 的第一版骨架已开始落到：
+
+- `packages/integrations/im-adapter/contract.ts`
+- `packages/integrations/im-adapter/bridge.ts`
+- `packages/integrations/im-adapter/example.ts`
+- `apps/web/lib/chat/im-runtime-port.ts`
+
+当前已具备：
+
+- `InboundChannelMessage` 的第一版代码 contract
+- `OutboundChannelMessage` 的第一版代码 contract
+- binding 最小结构
+- `AdapterRuntimePort` 这一层 runtime 接口
+- `handleInboundChannelMessage(...)` 的最小 bridge
+- Web 侧 `AdapterRuntimePort` 第一版适配器
+
+当前仍缺：
+
+- 真实平台 SDK 接入
+- binding 的持久化查询与写入
+- 出站发送器
+- `follow_up_requests` 与 scheduler 的真实接线
+- 与当前 `apps/web` runtime 的正式适配器
+- `relationship memory` 的显式输出协议收口
+
+### 16.1 当前代码文件映射
+
+- `packages/integrations/im-adapter/contract.ts`
+  负责接入层标准类型、binding、runtime port 和 bridge result
+- `packages/integrations/im-adapter/bridge.ts`
+  负责纯 bridge 逻辑：
+  - inbound dedupe key
+  - `InboundChannelMessage -> AdapterRuntimeInput`
+  - `AdapterRuntimeOutput -> OutboundChannelMessage`
+  - 最小 `handleInboundChannelMessage(...)`
+- `packages/integrations/im-adapter/example.ts`
+  负责最小闭环样例，验证骨架不是空壳
+- `apps/web/lib/chat/im-runtime-port.ts`
+  负责当前 `apps/web` runtime 到 `AdapterRuntimePort` 的第一版适配，复用现有：
+  - user message 持久化
+  - assistant placeholder
+  - `generateAgentReply(...)`
+  - memory write executor
+  - relationship memory 写入路径
+
+### 16.2 当前需要持续注意的边界
+
+当前 `apps/web/lib/chat/im-runtime-port.ts` 应保持为：
+
+- 读取上下文
+- 调用 runtime
+- 执行 runtime 已显式给出的写入请求
+- 返回稳定 output
+
+当前不应继续往里塞：
+
+- 平台专属规则
+- onboarding / binding 策略
+- 复杂重试
+- adapter 专属 message normalization 逻辑
+
+另外，当前 `relationship memory` 仍通过旁路执行；这在当前阶段是可接受的，但后续应逐步纳入更显式、可解释的 contract，而不应长期游离在 runtime 输出之外。
+
+---
+
+## 17. 当前结论
 
 当前阶段 IM adapter contract 最重要的价值，不是支持多少平台，而是：
 

@@ -24,7 +24,7 @@
 
 ## 2. 一句话总结
 
-**SparkCore 当前已经从“重定位后的规划阶段”进入“最小底座开始落代码”的阶段，memory、runtime、session、role 四条主线都已出现第一版工程落点，但仍处于收口和沉淀阶段，尚未进入 IM 最小接入验证。**
+**SparkCore 当前已经从“重定位后的规划阶段”进入“最小底座开始落代码”的阶段，memory、runtime、session、role、im-adapter 五条主线都已出现第一版工程落点，但仍处于收口和沉淀阶段，尚未进入真实平台的 IM 最小接入验证。**
 
 ---
 
@@ -152,6 +152,31 @@
 
 ---
 
+### 3.6 IM adapter 已有最小代码骨架
+
+当前 IM adapter 已不再只停留在文档层，已经出现了第一版接入层 package：
+
+- `packages/integrations/im-adapter/contract.ts`
+- `packages/integrations/im-adapter/bridge.ts`
+- `packages/integrations/im-adapter/example.ts`
+- `apps/web/lib/chat/im-runtime-port.ts`
+
+当前已落实的 adapter 侧事实包括：
+
+- `InboundChannelMessage` 已有第一版代码 contract
+- `OutboundChannelMessage` 已有第一版代码 contract
+- binding 最小结构已落代码
+- `AdapterRuntimePort` 已形成 runtime 边界接口
+- `handleInboundChannelMessage(...)` 已能表达最小 `incoming -> runtime -> outgoing` 骨架
+- Web 侧 runtime 已有第一版 adapter port 适配器
+
+这意味着：
+
+- 接入层已经开始有独立代码落点
+- 但真实平台 SDK、binding 持久化、scheduler 接线仍未开始
+
+---
+
 ## 4. 当前阶段代码结构判断
 
 ### 4.1 已经开始长出来的底座
@@ -163,6 +188,7 @@
 - `apps/web/lib/chat/session-context.ts`
 - `apps/web/lib/chat/role-core.ts`
 - `apps/web/lib/chat/role-loader.ts`
+- `packages/integrations/im-adapter`
 
 其中：
 
@@ -230,14 +256,16 @@
 
 ---
 
-### 5.4 IM adapter 仍停在文档层
+### 5.4 IM adapter 已有骨架，但尚未进入真实通道验证
 
-当前 `im_adapter_contract_v1.0.md` 已经完成，但代码层还没有最小 adapter 骨架。
+当前 `im_adapter_contract_v1.0.md` 已经有对应代码骨架，但当前仍缺：
 
-这意味着：
-
-- 接入契约已经有了
-- 但仍未开始最小通道闭环验证
+- 具体平台接入
+- binding 的真实查询层
+- 出站发送层
+- `follow_up_requests` 到 scheduler / adapter 的真实闭环
+- 与现有 runtime 的正式适配入口
+- `relationship memory` 的显式 contract 收口
 
 ---
 
