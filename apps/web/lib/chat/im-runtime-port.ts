@@ -9,7 +9,7 @@ import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import { buildRuntimeTurnInputFromAdapterInput } from "@/lib/chat/runtime-input";
 import { loadRoleProfile } from "@/lib/chat/role-loader";
-import { generateAgentReply } from "@/lib/chat/runtime";
+import { runAgentTurn } from "@/lib/chat/runtime";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -224,8 +224,8 @@ async function runImRuntimeTurnWithSupabase(args: {
   }
 
   try {
-    const runtimeTurnResult = await generateAgentReply({
-      userId: input.user_id,
+    const runtimeTurnResult = await runAgentTurn({
+      input: runtimeTurnInput,
       supabase,
       workspace: workspace as { id: string; name: string; kind: string },
       thread: {

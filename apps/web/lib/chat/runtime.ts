@@ -34,6 +34,9 @@ import {
   ROLE_PROFILE_SELECT
 } from "@/lib/chat/role-loader";
 import type {
+  RuntimeTurnInput,
+} from "@/lib/chat/runtime-input";
+import type {
   RuntimeFollowUpRequest,
   RuntimeTurnResult
 } from "@/lib/chat/runtime-contract";
@@ -757,6 +760,16 @@ type AvailableModelProfileRecord = {
   tier_label: string | null;
   usage_note: string | null;
   underlying_model: string | null;
+};
+
+export type RunAgentTurnArgs = {
+  input: RuntimeTurnInput;
+  workspace: WorkspaceRecord;
+  thread: ThreadRecord;
+  agent: AgentRecord;
+  messages: MessageRecord[];
+  assistantMessageId?: string;
+  supabase?: any;
 };
 
 type VisibleMemoryRecord = {
@@ -3580,4 +3593,45 @@ export async function generateAgentReply({
       follow_up_request_count: followUpRequests.length
     }
   };
+}
+
+export async function runAgentTurn({
+  input,
+  workspace,
+  thread,
+  agent,
+  messages,
+  assistantMessageId,
+  supabase
+}: RunAgentTurnArgs): Promise<RuntimeTurnResult> {
+  if (input.actor.user_id.trim().length === 0) {
+    throw new Error("RuntimeTurnInput.actor.user_id is required.");
+  }
+
+  if (input.actor.agent_id !== agent.id) {
+    throw new Error("RuntimeTurnInput.actor.agent_id does not match the loaded agent.");
+  }
+
+  if (input.actor.thread_id !== thread.id) {
+    throw new Error("RuntimeTurnInput.actor.thread_id does not match the loaded thread.");
+  }
+
+  if (
+    input.actor.workspace_id &&
+    input.actor.workspace_id !== workspace.id
+  ) {
+    throw new Error(
+      "RuntimeTurnInput.actor.workspace_id does not match the loaded workspace."
+    );
+  }
+
+  return generateAgentReply({
+    userId: input.actor.user_id,
+    workspace,
+    thread,
+    agent,
+    messages,
+    assistantMessageId,
+    supabase
+  });
 }
