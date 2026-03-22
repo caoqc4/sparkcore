@@ -6445,6 +6445,72 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage.content).toContain("阿强");
   });
 
+  test("keeps light closing from collapsing after same-side and shared-push chains", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+
+    for (const content of [
+      "以后你叫我阿强可以吗？",
+      "以后和我说话轻松一点，可以吗？",
+      "你先站我这边。",
+      "那我们先一起把这一点弄过去。",
+      "你最后帮我把这段收一下。"
+    ]) {
+      const response = await request.post("/api/test/smoke-send-turn", {
+        headers: {
+          "x-smoke-secret": smokeSecret,
+          "Content-Type": "application/json"
+        },
+        data: {
+          threadId,
+          content
+        }
+      });
+
+      expect(response.ok()).toBeTruthy();
+    }
+
+    const messages = await getAssistantMessagesForThread(threadId);
+    const sameSideReply = messages.at(-3);
+    const sharedPushReply = messages.at(-2);
+    const closingReply = messages.at(-1);
+
+    expect(sameSideReply).toBeDefined();
+    expect(sharedPushReply).toBeDefined();
+    expect(closingReply).toBeDefined();
+
+    expect(sameSideReply?.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(sharedPushReply?.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(closingReply?.metadata.answer_strategy).toBe(
+      "same-thread-continuation"
+    );
+    expect(closingReply?.metadata.answer_strategy_reason_code).toBe(
+      "same-thread-edge-carryover"
+    );
+    expect(closingReply?.metadata.continuation_reason_code).toBe(
+      "brief-summary-carryover"
+    );
+    expect(closingReply?.content).toContain("阿强");
+    expect(closingReply?.content).not.toContain("先回到你刚刚的问题");
+    expect(closingReply?.content).not.toContain("周计划");
+  });
+
   test("keeps natural carry-forward planning phrasing on the grounded advice path", async ({
     request
   }) => {
