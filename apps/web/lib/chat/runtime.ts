@@ -3658,7 +3658,7 @@ export async function runPreparedRuntimeTurn({
       {
         type: "memory_recalled",
         payload: {
-          total_count: allRecalledMemories.length,
+          count: allRecalledMemories.length,
           memory_types: relationshipMemories.length > 0
             ? Array.from(
                 new Set([...memoryRecall.usedMemoryTypes, "relationship" as const])
@@ -3690,9 +3690,9 @@ export async function runPreparedRuntimeTurn({
         type: "answer_strategy_selected",
         payload: {
           question_type: answerQuestionType,
-          answer_strategy: answerStrategy,
-          answer_strategy_reason_code: answerStrategyReasonCode,
-          answer_strategy_priority: answerStrategyPriority,
+          strategy: answerStrategy,
+          reason_code: answerStrategyReasonCode,
+          priority: answerStrategyPriority,
           continuation_reason_code: continuationReasonCode,
           reply_language: replyLanguage
         }
@@ -3702,7 +3702,7 @@ export async function runPreparedRuntimeTurn({
         payload: {
           thread_id: thread.id,
           agent_id: agent.id,
-          memory_hit_count: allRecalledMemories.length,
+          recalled_count: allRecalledMemories.length,
           message_type: "text",
           language: replyLanguage
         }

@@ -150,16 +150,70 @@ export type FollowUpRepository = {
   ) => Promise<MarkFollowUpFailedResult>;
 };
 
-export type RuntimeEvent = {
-  type:
-    | "memory_recalled"
-    | "memory_write_planned"
-    | "follow_up_planned"
-    | "answer_strategy_selected"
-    | "assistant_reply_completed"
-    | "thread_state_writeback_completed";
-  payload?: Record<string, unknown>;
+export type RuntimeMemoryRecalledEvent = {
+  type: "memory_recalled";
+  payload: {
+    count: number;
+    memory_types: RuntimeMemoryWriteRequest["memory_type"][];
+    hidden_exclusion_count: number;
+    incorrect_exclusion_count: number;
+  };
 };
+
+export type RuntimeMemoryWritePlannedEvent = {
+  type: "memory_write_planned";
+  payload: {
+    count: number;
+    memory_types: RuntimeMemoryWriteRequest["memory_type"][];
+  };
+};
+
+export type RuntimeFollowUpPlannedEvent = {
+  type: "follow_up_planned";
+  payload: {
+    count: number;
+    kinds: RuntimeFollowUpRequest["kind"][];
+  };
+};
+
+export type RuntimeAnswerStrategySelectedEvent = {
+  type: "answer_strategy_selected";
+  payload: {
+    question_type: string;
+    strategy: string;
+    reason_code: string | null;
+    priority: string;
+    continuation_reason_code: string | null;
+    reply_language: string;
+  };
+};
+
+export type RuntimeAssistantReplyCompletedEvent = {
+  type: "assistant_reply_completed";
+  payload: {
+    thread_id: string;
+    agent_id: string;
+    recalled_count: number;
+    message_type: RuntimeAssistantMessage["message_type"];
+    language: string;
+  };
+};
+
+export type RuntimeThreadStateWritebackCompletedEvent = {
+  type: "thread_state_writeback_completed";
+  payload: {
+    status: "written" | "skipped" | "failed";
+    repository: "supabase" | "in_memory" | "unknown";
+  };
+};
+
+export type RuntimeEvent =
+  | RuntimeMemoryRecalledEvent
+  | RuntimeMemoryWritePlannedEvent
+  | RuntimeFollowUpPlannedEvent
+  | RuntimeAnswerStrategySelectedEvent
+  | RuntimeAssistantReplyCompletedEvent
+  | RuntimeThreadStateWritebackCompletedEvent;
 
 export type RuntimeTurnResult = {
   assistant_message: RuntimeAssistantMessage | null;
