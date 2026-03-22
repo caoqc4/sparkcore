@@ -298,6 +298,7 @@ session layer 不应：
 - `prepareRuntimeSession(...)` 第一版装配落点
 - `thread state / session state` 第一版设计 contract
 - `thread-state.ts` 第一版代码壳
+- `prepareRuntimeSession(...)` 已开始最小消费 `ThreadStateRecord`
 
 这意味着当前 session 不再只是 `runtime.ts` 内部直接调用的一段实现，而是已经开始通过 runtime preparation 模块进入主流程。
 - runtime 对显式 session object 的消费起点
@@ -401,7 +402,7 @@ session layer 不应：
 - runtime 已开始消费显式 session object
 - `thread state / session state` 最小 contract 已开始
 - `ThreadStateRecord` 第一版代码壳已开始
-- 当前仍属于“最小 session contract 已落地，thread state 代码壳已开始，但尚未接入主流程与持久化”的阶段
+- 当前仍属于“最小 session contract 已落地，thread state 已开始进入 session preparation，但仍未接入持久化与 compaction”的阶段
 
 ---
 

@@ -188,7 +188,8 @@
 - `role-memory-session` 三者协作面中，session 已不是纸面概念
 - 正式 `thread_state` contract 已开始
 - `ThreadStateRecord` 第一版代码壳已开始
-- 但 `thread_state` 仍未接入主流程，也还没有持久化与 compaction
+- `prepareRuntimeSession(...)` 已开始最小消费 `thread_state`
+- 但 `thread_state` 仍未接入持久化，也还没有 compaction
 
 ---
 

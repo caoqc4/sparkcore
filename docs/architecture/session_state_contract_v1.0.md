@@ -144,6 +144,11 @@ type ThreadStateRecord = {
 - `ThreadContinuityStatus`
 - `buildDefaultThreadState(...)`
 
+当前这层也已经开始进入 session preparation 主线：
+
+- [runtime-prepared-turn.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime-prepared-turn.ts)
+  - `prepareRuntimeSession(...)` 当前已开始通过 `buildDefaultThreadState(...)` 为 `SessionContext` 填充最小 `thread_state`
+
 ### 5.2 `SessionContext`
 
 继续作为 runtime 装配对象存在，但开始更明确地包含：
@@ -293,6 +298,7 @@ type SessionContext = {
 这一步当前已经迈出第一步：
 
 - `buildDefaultThreadState(...)` 已存在
+- `prepareRuntimeSession(...)` 已开始最小消费 `ThreadStateRecord`
 - 但 `loadThreadState(...)` 和真实持久化入口仍未开始
 
 ### Step 3
