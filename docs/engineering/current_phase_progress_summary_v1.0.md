@@ -207,11 +207,17 @@
 - `buildRoleCorePacket(...)` 已从 `runtime.ts` 中抽出
 - `loadRoleProfile(...)` 已形成最小读取面
 - runtime 已开始显式消费 role layer，而不是只维护本地匿名类型
+- `role repository / service` 的最小边界设计已开始：
+  - `docs/architecture/role_repository_service_design_v1.0.md`
 
 这意味着：
 
 - `role-memory-session` 三者协作面中，role 也已经有了第一版代码落点
-- 但 role 的 repository / service、metadata 收口、默认模型配置边界仍未进一步抽层
+- role 的下一层边界已经前移成：
+  - `repository`
+  - `resolver / service`
+  - `runtime preparation`
+- 但对应代码壳、metadata 收口、默认模型配置边界仍未进一步抽层
 
 ---
 

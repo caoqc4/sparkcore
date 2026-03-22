@@ -17,6 +17,7 @@
 > - `docs/strategy/sparkcore_repositioning_v1.0.md`
 > - `docs/architecture/memory_layer_design_v1.0.md`
 > - `docs/architecture/single_agent_runtime_design_v1.0.md`
+> - `docs/architecture/role_repository_service_design_v1.0.md`
 > - `docs/engineering/phase1_adjustment_execution_plan_v1.0.md`
 
 ---
@@ -79,8 +80,27 @@
 
 ### 5.4 与 runtime 的协作
 
-- 提供 `loadRoleProfile(agentId)` 的稳定调用面
+- 提供稳定的 role 读取与解析调用面
 - 提供 `role_core_packet` 的组装依据
+
+### 5.5 与 repository / service 的分层
+
+当前阶段 role layer 还应开始明确：
+
+- `RoleRepository`
+  负责读取 `RoleProfile`
+- `RoleResolver` / `RoleService`
+  负责决定“本轮到底使用哪个 role”
+- runtime preparation
+  负责把已解析的 `RoleProfile` 转成 `role_core_packet`
+
+当前不再建议长期把：
+
+- 读表
+- fallback 选择
+- role packet 组装
+
+继续混在同一个 `loadRoleProfile(...)` 风格函数里。
 
 ---
 
@@ -258,6 +278,41 @@ role 回答的是：
 session 回答的是：
 
 > 当前这条 thread 正发生什么
+
+---
+
+## 10. 与 repository / service 的边界
+
+## 10.1 `RoleRepository`
+
+`RoleRepository` 负责：
+
+- 读取 `RoleProfile`
+- 知道存储字段与 active 过滤
+- 不负责 runtime packet 组装
+- 不负责业务 fallback 语义
+
+## 10.2 `RoleResolver` / `RoleService`
+
+`RoleResolver` / `RoleService` 负责：
+
+- 解释本轮 role 选择规则
+- 处理 `requestedAgentId` 与 fallback
+- 对 runtime 暴露更稳定的解析结果
+
+## 10.3 runtime preparation
+
+runtime preparation 负责：
+
+- 消费已解析 `RoleProfile`
+- 结合 language / relationship recall / session continuity
+- 产出 `RoleCorePacket`
+
+也就是说，当前建议逐步收敛成：
+
+`repository -> resolver/service -> prepareRuntimeRole(...)`
+
+而不是继续让 runtime 或 adapter 直接混合承担三层职责。
 
 因此：
 
