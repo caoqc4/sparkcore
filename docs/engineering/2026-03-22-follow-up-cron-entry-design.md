@@ -283,3 +283,22 @@ cron 入口不需要复杂响应，最小返回即可：
 - 已有 sender 选择控制
 
 这四层之上，而不是一上来就把自动触发和真实发送绑死在一起。
+
+---
+
+## 15. 当前实现进展
+
+当前已经补上的最小代码壳包括：
+
+- `getFollowUpCronEnv()`
+- `app/api/internal/followup/run/route.ts`
+- `x-followup-cron-secret` 请求头鉴权
+- `FOLLOW_UP_DEFAULT_SENDER`
+- `FOLLOW_UP_ENABLE_TELEGRAM_SEND`
+
+这意味着：
+
+- cron 风格入口已不再只有设计稿
+- 已有一个受内部 secret 保护的最小 internal route
+- 当前默认 sender 仍然保守落在 `stub`
+- Telegram proactive send 只有在显式开启时才允许进入 route 选择

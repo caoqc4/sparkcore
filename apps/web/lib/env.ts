@@ -50,3 +50,27 @@ export function getTelegramBotEnv() {
     webhookSecret
   };
 }
+
+export function getFollowUpCronEnv() {
+  const secret = process.env.FOLLOW_UP_CRON_SECRET;
+  const defaultSender = process.env.FOLLOW_UP_DEFAULT_SENDER ?? "stub";
+  const enableTelegramSend = process.env.FOLLOW_UP_ENABLE_TELEGRAM_SEND === "true";
+
+  if (!secret || secret.trim().length === 0) {
+    throw new Error(
+      "Missing follow-up cron secret. Set FOLLOW_UP_CRON_SECRET."
+    );
+  }
+
+  if (defaultSender !== "stub" && defaultSender !== "telegram") {
+    throw new Error(
+      "Invalid FOLLOW_UP_DEFAULT_SENDER. Expected 'stub' or 'telegram'."
+    );
+  }
+
+  return {
+    secret,
+    defaultSender,
+    enableTelegramSend
+  };
+}
