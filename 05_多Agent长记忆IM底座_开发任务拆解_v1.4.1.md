@@ -909,6 +909,59 @@ EPIC-04, EPIC-05, EPIC-08
 - 应记为 `environment noise`
 - 不直接记为 `product drift`
 
+## 当前阶段同步（2026-03-22）
+
+在上面这轮 relationship continuity / reply-quality 验证继续推进之后，当前执行状态需要再补一层校准：
+
+### 已阶段性收口的部分
+
+- `relationship continuity / reply-quality` 底座层测试已阶段性收口
+- phrase-by-phrase 扩张不再默认继续
+- 长链路验证已经完成两批：
+  - failure theme 暴露
+  - chain-level 修口
+  - rerun verdict 回到 `holds as one continuing role`
+
+这意味着当前不应再把主执行节奏放在：
+
+- very-nearby phrasing 扩张
+- 风格细磨
+- explanation / helper / 表层文案微调
+
+### 已完成的 Layer A / B / D 阶段成果
+
+- Layer A：已完成最小 `role_core_packet` contract 定形
+  - 参见 [layer-a-role-core-packet-contract-2026-03-22.zh-CN.md](docs-public/layer-a-role-core-packet-contract-2026-03-22.zh-CN.md)
+- Layer B：已完成第一批关键 contract
+  - single-slot override / restore semantics
+  - memory status semantics
+  - `user_agent` recall scope consistency
+- Layer D：已完成 observation record 统一模板
+  - 仍停在 observation 层，不进入 thread compaction 实现
+
+### 当前为什么不继续硬挖 Layer B
+
+当前 Layer B 继续往下最自然的点，会落到 `thread_local`。
+
+但现阶段 `thread_local` 还没有真实回答路径在用，所以如果此时继续往下做，最容易发生的不是“继续 hardening contract”，而是：
+
+- 为了继续推进，去发明新的 `thread_local` 使用面
+- 把 contract hardening 变成新功能设计
+
+因此，Layer B 这一小批当前最合理的是：
+
+- 先阶段性收口
+- 不为了继续做而硬开下一刀
+
+### 当前推荐执行顺序（校准后）
+
+如果继续往下推进，建议优先顺序调整为：
+
+1. 先同步主设计文档与阶段结论
+2. 优先挑选“真实使用面已经存在”的 contract hardening
+3. 不继续默认深挖 phrasing 线
+4. 不为了推进而发明 `thread_local` 新 surface
+
 ## 第一批必须先做（最小骨架）
 1. EPIC-00 工程骨架
 2. EPIC-01 鉴权与 workspace
