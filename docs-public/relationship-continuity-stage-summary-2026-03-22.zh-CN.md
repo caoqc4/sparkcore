@@ -4,6 +4,14 @@
 
 这不是一份完整测试策略，也不是 changelog。
 
+它默认服务于：
+
+- `role-layer continuity contract` 的阶段总结
+
+而不是：
+
+- 具体应用层里的最终回复体验优化
+
 它只回答 3 个问题：
 
 1. 这一阶段我们到底已经收到了哪
@@ -265,6 +273,28 @@
 
 - 把 `relationship continuity` 从少数规则，收成了一组可复验的微产品线
 - 并且已经足够支持更高层的产品判断
+
+## 测试分层校准
+
+当前需要明确一个边界：
+
+- 这批测试首先服务于能力底座层
+- 不是继续把应用层的回复体感优化提前压到 runtime 底座上做
+
+因此，从这一阶段往后：
+
+- 底座层继续保留：
+  - continuity contract
+  - 少量代表性的 answer-shape coverage
+  - 长链路组合失真验证
+- 不再继续默认推进：
+  - phrase-by-phrase 近义扩张
+  - 朋友感 / 温柔度 / 松弛度 的持续微调
+  - explanation / helper / surface 文案的持续优化
+
+更完整的边界说明见：
+
+- [relationship-continuity-test-layering-2026-03-22.zh-CN.md](/Users/caoq/git/sparkcore/docs-public/relationship-continuity-test-layering-2026-03-22.zh-CN.md)
 
 下一阶段更值得做的，不是继续补单句，而是：
 

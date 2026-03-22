@@ -4,11 +4,21 @@
 
 这不是新的 phrase 扩张清单。
 
+它也不是应用层体验打磨清单。
+
 它服务于下一阶段测试主线：
 
 - 不再继续 phrase-by-phrase 补单句
 - 改成验证 3 到 5 轮连续对话里，角色是否还能一直像同一个持续角色
 - 并从长链路失败点里长出下一批最小 guardrail
+
+也就是说，这份文档默认服务于：
+
+- 底座层的 `role-layer continuity contract`
+
+而不是：
+
+- 继续优化“哪句话更像朋友、更温柔、更口语”
 
 ## 进入长链路阶段的原因
 
@@ -33,6 +43,11 @@
 4. 如果失败，优先长最小 guardrail，而不是立刻扩 phrase 包
 5. 第一轮优先识别“组合后是否失真”，而不是继续扩大单句覆盖面
 6. 第一轮长链路不要混入新的 phrasing 探索，先固定已收好的切口
+7. 这类长链路默认属于底座层 contract 验证，不承担应用层体感精修任务
+
+更完整的分层边界见：
+
+- [relationship-continuity-test-layering-2026-03-22.zh-CN.md](/Users/caoq/git/sparkcore/docs-public/relationship-continuity-test-layering-2026-03-22.zh-CN.md)
 
 ## 建议优先顺序
 
