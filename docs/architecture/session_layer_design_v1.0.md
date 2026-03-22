@@ -253,9 +253,10 @@ session layer 不应：
 
 > 当前这条 thread 的最小正式局部状态是什么
 
-这层当前还没有第一版代码壳，但已经形成第一版设计方向，见：
+这层当前已经有第一版代码壳，且设计方向已明确，见：
 
 - [session_state_contract_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/session_state_contract_v1.0.md)
+- [thread-state.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state.ts)
 
 ---
 
@@ -296,13 +297,14 @@ session layer 不应：
 - `SessionContext` 第一版代码落点
 - `prepareRuntimeSession(...)` 第一版装配落点
 - `thread state / session state` 第一版设计 contract
+- `thread-state.ts` 第一版代码壳
 
 这意味着当前 session 不再只是 `runtime.ts` 内部直接调用的一段实现，而是已经开始通过 runtime preparation 模块进入主流程。
 - runtime 对显式 session object 的消费起点
 
 当前未正式具备：
 
-- `thread_state` 第一版代码壳
+- `thread_state` 持久化 / 读取入口
 - 正式 compaction 层
 
 当前代码中已落实的 session 组织字段包括：
@@ -398,7 +400,8 @@ session layer 不应：
 - `SessionContext` 已有第一版可执行实现
 - runtime 已开始消费显式 session object
 - `thread state / session state` 最小 contract 已开始
-- 当前仍属于“最小 session contract 已落地，正式 thread state 代码壳尚未开始”的阶段
+- `ThreadStateRecord` 第一版代码壳已开始
+- 当前仍属于“最小 session contract 已落地，thread state 代码壳已开始，但尚未接入主流程与持久化”的阶段
 
 ---
 

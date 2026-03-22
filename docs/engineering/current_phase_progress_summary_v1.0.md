@@ -173,6 +173,7 @@
 另外，session 正式状态层也已经有了第一版设计起点：
 
 - [session_state_contract_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/session_state_contract_v1.0.md)
+- [thread-state.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state.ts)
 
 其中已经开始明确：
 
@@ -186,7 +187,8 @@
 
 - `role-memory-session` 三者协作面中，session 已不是纸面概念
 - 正式 `thread_state` contract 已开始
-- 但 `thread_state` 代码壳与 compaction 层仍未开始
+- `ThreadStateRecord` 第一版代码壳已开始
+- 但 `thread_state` 仍未接入主流程，也还没有持久化与 compaction
 
 ---
 

@@ -11,7 +11,7 @@
 
 本文档不是 thread compaction 设计，也不是 scheduler 设计，而是当前阶段最小 `session state / thread state` contract 说明。
 
-> 状态：设计稿
+> 状态：设计稿已落第一版代码壳
 > 对应阶段：Phase 1 / session formalization
 > 相关文档：
 > - `docs/architecture/session_layer_design_v1.0.md`
@@ -132,6 +132,17 @@ type ThreadStateRecord = {
 - 当前语言连续性大致是什么
 - 当前局部承接状态大致是什么
 - 最近一轮锚点消息是谁
+
+当前第一版代码壳已落在：
+
+- [thread-state.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-state.ts)
+
+其中当前已具备：
+
+- `ThreadStateRecord`
+- `ThreadLifecycleStatus`
+- `ThreadContinuityStatus`
+- `buildDefaultThreadState(...)`
 
 ### 5.2 `SessionContext`
 
@@ -278,6 +289,11 @@ type SessionContext = {
 ### Step 2
 
 在 session layer 里补一个最小 `loadThreadState(...)` 或 `buildDefaultThreadState(...)` 的边界设计。
+
+这一步当前已经迈出第一步：
+
+- `buildDefaultThreadState(...)` 已存在
+- 但 `loadThreadState(...)` 和真实持久化入口仍未开始
 
 ### Step 3
 
