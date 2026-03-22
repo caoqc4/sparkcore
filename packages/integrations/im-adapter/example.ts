@@ -3,7 +3,7 @@ import {
   buildRuntimeInputFromInbound,
   handleInboundChannelMessage
 } from "./bridge";
-import { InMemoryBindingLookup } from "./binding";
+import { createBindingLookupFromRepository, InMemoryBindingRepository } from "./repository";
 import type {
   AdapterRuntimePort,
   ChannelBinding,
@@ -37,7 +37,13 @@ export const exampleBinding: ChannelBinding = {
   status: "active"
 };
 
-export const exampleBindingLookup = new InMemoryBindingLookup([exampleBinding]);
+export const exampleBindingRepository = new InMemoryBindingRepository([
+  exampleBinding
+]);
+
+export const exampleBindingLookup = createBindingLookupFromRepository(
+  exampleBindingRepository
+);
 
 export const exampleRuntimePort: AdapterRuntimePort = {
   async runTurn(input) {

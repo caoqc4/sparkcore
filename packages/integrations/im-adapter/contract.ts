@@ -77,6 +77,10 @@ export type BindingLookup = {
   lookup: (input: BindingLookupInput) => Promise<BindingLookupResult>;
 };
 
+export type BindingRepository = {
+  findActiveBinding: (input: BindingLookupInput) => Promise<ChannelBinding | null>;
+};
+
 export type AdapterRuntimeInput = {
   user_id: string;
   agent_id: string;

@@ -289,6 +289,7 @@ Success criteria：
 
 - `packages/integrations/im-adapter/contract.ts`
 - `packages/integrations/im-adapter/binding.ts`
+- `packages/integrations/im-adapter/repository.ts`
 - `packages/integrations/im-adapter/bridge.ts`
 - `packages/integrations/im-adapter/example.ts`
 - `apps/web/lib/chat/im-runtime-port.ts`
@@ -300,6 +301,8 @@ Success criteria：
 - binding 最小结构
 - `BindingLookup` 的第一版查询接口
 - `InMemoryBindingLookup` 的最小 stub 实现
+- `BindingRepository` 的第一版预留壳
+- `InMemoryBindingRepository` 的最小 repository stub
 - `AdapterRuntimePort` 这一层 runtime 接口
 - `handleInboundChannelMessage(...)` 的最小 bridge
 - Web 侧 `AdapterRuntimePort` 第一版适配器
@@ -323,6 +326,11 @@ Success criteria：
   - `BindingLookupInput`
   - `BindingLookupResult`
   - `InMemoryBindingLookup`
+- `packages/integrations/im-adapter/repository.ts`
+  负责 binding repository 的最小预留壳：
+  - `BindingRepository`
+  - `InMemoryBindingRepository`
+  - `createBindingLookupFromRepository(...)`
 - `packages/integrations/im-adapter/bridge.ts`
   负责纯 bridge 逻辑：
   - inbound dedupe key

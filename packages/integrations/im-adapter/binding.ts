@@ -4,36 +4,22 @@ import type {
   BindingLookupResult,
   ChannelBinding
 } from "./contract";
-
-function matchesBinding(binding: ChannelBinding, input: BindingLookupInput) {
-  return (
-    binding.platform === input.platform &&
-    binding.channel_id === input.channel_id &&
-    binding.peer_id === input.peer_id &&
-    binding.platform_user_id === input.platform_user_id &&
-    binding.status === "active"
-  );
-}
+import {
+  createBindingLookupFromRepository,
+  InMemoryBindingRepository
+} from "./repository";
 
 export class InMemoryBindingLookup implements BindingLookup {
-  constructor(private readonly bindings: ChannelBinding[]) {}
+  private readonly delegate: BindingLookup;
+
+  constructor(bindings: ChannelBinding[]) {
+    this.delegate = createBindingLookupFromRepository(
+      new InMemoryBindingRepository(bindings)
+    );
+  }
 
   async lookup(input: BindingLookupInput): Promise<BindingLookupResult> {
-    const binding = this.bindings.find((candidate) =>
-      matchesBinding(candidate, input)
-    );
-
-    if (!binding) {
-      return {
-        status: "not_found",
-        reason: "no active binding matched the inbound identity"
-      };
-    }
-
-    return {
-      status: "found",
-      binding
-    };
+    return this.delegate.lookup(input);
   }
 }
 
