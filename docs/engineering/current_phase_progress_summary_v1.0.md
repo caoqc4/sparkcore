@@ -19,12 +19,14 @@
 > - `docs/architecture/memory_layer_design_v1.0.md`
 > - `docs/architecture/runtime_contract_v1.0.md`
 > - `docs/architecture/session_layer_design_v1.0.md`
+> - `docs/engineering/telegram_poc_runbook_v1.0.md`
+> - `docs/engineering/litellm_dev_runbook_v1.0.md`
 
 ---
 
 ## 2. 一句话总结
 
-**SparkCore 当前已经从“重定位后的规划阶段”进入“最小底座开始落代码”的阶段，memory、runtime、session、role、im-adapter 五条主线都已出现第一版工程落点，并已进入单通道 Telegram PoC 骨架阶段，但仍处于收口和沉淀阶段。**
+**SparkCore 当前已经从“重定位后的规划阶段”进入“最小底座开始落代码”的阶段，memory、runtime、session、role、im-adapter 五条主线都已出现第一版工程落点；Telegram 单通道 PoC 也已完成一次真实闭环验证，但整体仍处于收口和沉淀阶段。**
 
 ---
 
@@ -181,12 +183,18 @@
   - `apps/web/lib/integrations/telegram.ts`
   - `apps/web/app/api/integrations/telegram/webhook/route.ts`
   - `apps/web/lib/supabase/admin.ts`
+- Telegram 单通道 PoC 已完成一次真实闭环验证：
+  - webhook 已成功注册并命中过真实入站
+  - 真实 Telegram 身份已完成 binding 查询验证
+  - `binding lookup -> runtime -> outbound reply` 已跑通
+  - 验证结束后测试 binding 与 webhook 已完成清理
 
 这意味着：
 
 - 接入层已经开始有独立代码落点
-- 已开始进入最快验证闭环的单通道接入阶段
-- 但真实 Telegram token / webhook 配置、scheduler 接线、富媒体支持仍未开始
+- 已经证明“最快验证闭环”的单通道接入路径是成立的
+- 但 Telegram 当前仍停留在 PoC 层，不是稳定常驻接入入口
+- scheduler 接线、富媒体支持、真实绑定流程仍未开始
 
 ---
 
@@ -269,15 +277,22 @@
 
 ---
 
-### 5.4 IM adapter 已有骨架，并已进入 Telegram 单通道 PoC 骨架阶段
+### 5.4 IM adapter 已有骨架，并已完成 Telegram 单通道 PoC 验证
 
 当前 `im_adapter_contract_v1.0.md` 已经有对应代码骨架，但当前仍缺：
 
-- Telegram webhook 的真实环境变量配置与线上回调验证
+- Telegram webhook 的稳定运行入口
+- binding 的正式创建流程
 - `follow_up_requests` 到 scheduler / adapter 的真实闭环
 - `relationship memory` 的显式 contract 收口
 - 更稳定的平台级重试 / 幂等执行
-- 真实绑定创建与 onboarding 流程
+- LiteLLM 的稳定开发运行方式
+
+当前已经明确暴露出的关键依赖是：
+
+- webhook 运行路径不能依赖 request-scope Supabase client
+- memory planner 不能因 JSON 解析失败打爆整轮 turn
+- LiteLLM 是否可用，会直接决定 Telegram PoC 是否能真正回复
 
 ---
 
@@ -285,34 +300,34 @@
 
 当前最推荐的推进顺序如下：
 
-### Step 1：先收住 Telegram PoC 骨架
+### Step 1：先收住 Telegram PoC 的运行入口与回放说明
 
 目标：
 
-- 把当前这轮 Telegram webhook / binding lookup / runtime port 接线视作一个阶段成果
-- 不继续无边界扩张平台专属功能
+- 把当前这轮 Telegram webhook / binding lookup / runtime port / LiteLLM 运行方式视作一个阶段成果
+- 让下次重跑 Telegram PoC 不再依赖临时记忆
 
 建议动作：
 
-- 检查 Telegram env、route、send path 的最小命名与说明
-- 补最小 webhook 配置说明
 - 维持只支持文本消息
+- 依赖 `telegram_poc_runbook_v1.0.md`
+- 依赖 `litellm_dev_runbook_v1.0.md`
 
 ---
 
-### Step 2：做真实 Telegram 回调验证
+### Step 2：决定 Telegram 是否进入“可重复重跑”阶段
 
 原因：
 
-- 当前代码已经有 webhook 路由、binding lookup、runtime port、出站发送
-- 剩下最关键的是验证真实 Bot Token + Webhook 能否打通
+- 当前已经完成过一次真实 Telegram 闭环
+- 下一步重点不再是“证明能不能通”，而是“能不能更稳定、可重复地重跑”
 
 建议动作：
 
-- 配置 `TELEGRAM_BOT_TOKEN`
-- 可选配置 `TELEGRAM_WEBHOOK_SECRET`
-- 配置 Telegram webhook 指向当前 route
-- 用一个真实 binding 做一次最小消息闭环
+- 如果继续平台化：
+  - 增加更稳定的重跑脚本或命令入口
+  - 明确 binding 创建 / 清理脚本
+  - 保持单通道，不扩附件与复杂命令
 
 ---
 
@@ -338,12 +353,12 @@
 
 当前这一阶段最重要的成果，不是“已经接了多个 IM 平台”或者“已经把 packages 全搬完”，而是：
 
-**SparkCore 已经从“规划重定位”走到了“memory、runtime、session、role、adapter 五个核心边界开始在代码里成形，并且 Telegram 单通道 PoC 骨架已经立起来”的阶段。**
+**SparkCore 已经从“规划重定位”走到了“memory、runtime、session、role、adapter 五个核心边界开始在代码里成形，并且 Telegram 单通道 PoC 已完成真实闭环验证”的阶段。**
 
 这意味着下一阶段已经不需要再大面积补总纲，而更适合围绕：
 
-- 收住 Telegram PoC 骨架
-- 跑一次真实 Telegram 回调闭环
+- 收住 Telegram PoC 的运行与回放入口
+- 收稳 LiteLLM 开发运行方式
 - 再决定是继续平台能力，还是回到底座深化
 
 按这个顺序继续推进，返工会最少。
