@@ -1,7 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { runDefaultFollowUpWorker } from "@/lib/chat/default-follow-up-worker";
 import { createAdminFollowUpBindingResolver } from "@/lib/chat/follow-up-binding";
-import { StubProactiveSender } from "@/lib/chat/follow-up-proactive-sender";
+import {
+  resolveFollowUpSender,
+  type FollowUpSenderKind
+} from "@/lib/chat/follow-up-sender-policy";
 import {
   getSmokeConfig,
   isAuthorizedSmokeRequest
@@ -19,6 +22,7 @@ export async function POST(request: NextRequest) {
       limit?: number;
       claimedBy?: string;
       platform?: string;
+      sender?: FollowUpSenderKind;
     };
 
     const limit =
@@ -36,10 +40,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const senderPolicy = resolveFollowUpSender({
+      routeKind: "test",
+      requestedSender: payload.sender,
+      defaultSender: "stub",
+      enableTelegramSend: false
+    });
+
     const result = await runDefaultFollowUpWorker({
       limit,
       claimedBy: payload.claimedBy?.trim() || "followup-test-route",
-      sender: new StubProactiveSender(),
+      sender: senderPolicy.sender,
       resolveBinding: createAdminFollowUpBindingResolver({
         platform: payload.platform?.trim() || undefined
       })
@@ -47,7 +58,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      sender: "stub",
+      sender: senderPolicy.senderKind,
+      requested_sender: senderPolicy.requestedSender,
+      telegram_send_enabled: senderPolicy.telegramSendEnabled,
       ...result
     });
   } catch (error) {

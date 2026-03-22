@@ -1,9 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { runDefaultFollowUpWorker } from "@/lib/chat/default-follow-up-worker";
 import { createAdminFollowUpBindingResolver } from "@/lib/chat/follow-up-binding";
-import { StubProactiveSender } from "@/lib/chat/follow-up-proactive-sender";
+import {
+  resolveFollowUpSender,
+  type FollowUpSenderKind
+} from "@/lib/chat/follow-up-sender-policy";
 import { getFollowUpCronEnv } from "@/lib/env";
-import { TelegramProactiveSender } from "@/lib/integrations/telegram-proactive-sender";
 
 function isAuthorizedFollowUpCronRequest(request: NextRequest, secret: string) {
   return request.headers.get("x-followup-cron-secret") === secret;
@@ -21,7 +23,7 @@ export async function POST(request: NextRequest) {
       limit?: number;
       claimedBy?: string;
       platform?: string;
-      sender?: "stub" | "telegram";
+      sender?: FollowUpSenderKind;
     };
 
     const limit =
@@ -39,21 +41,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const requestedSender = payload.sender ?? config.defaultSender;
-    const sender =
-      requestedSender === "telegram" && config.enableTelegramSend
-        ? new TelegramProactiveSender()
-        : new StubProactiveSender();
-
-    const senderName =
-      requestedSender === "telegram" && config.enableTelegramSend
-        ? "telegram"
-        : "stub";
+    const senderPolicy = resolveFollowUpSender({
+      routeKind: "internal",
+      requestedSender: payload.sender,
+      defaultSender: config.defaultSender,
+      enableTelegramSend: config.enableTelegramSend
+    });
 
     const result = await runDefaultFollowUpWorker({
       limit,
       claimedBy: payload.claimedBy?.trim() || "followup-cron-route",
-      sender,
+      sender: senderPolicy.sender,
       resolveBinding: createAdminFollowUpBindingResolver({
         platform: payload.platform?.trim() || undefined
       })
@@ -61,9 +59,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      sender: senderName,
-      requested_sender: requestedSender,
-      telegram_send_enabled: config.enableTelegramSend,
+      sender: senderPolicy.senderKind,
+      requested_sender: senderPolicy.requestedSender,
+      telegram_send_enabled: senderPolicy.telegramSendEnabled,
       ...result
     });
   } catch (error) {

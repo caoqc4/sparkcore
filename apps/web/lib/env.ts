@@ -53,7 +53,8 @@ export function getTelegramBotEnv() {
 
 export function getFollowUpCronEnv() {
   const secret = process.env.FOLLOW_UP_CRON_SECRET;
-  const defaultSender = process.env.FOLLOW_UP_DEFAULT_SENDER ?? "stub";
+  const defaultSender =
+    (process.env.FOLLOW_UP_DEFAULT_SENDER ?? "stub") as "stub" | "telegram";
   const enableTelegramSend = process.env.FOLLOW_UP_ENABLE_TELEGRAM_SEND === "true";
 
   if (!secret || secret.trim().length === 0) {
