@@ -1,4 +1,5 @@
 import type { SessionReplyLanguage } from "@/lib/chat/session-context";
+import { InMemoryThreadStateRepository } from "@/lib/chat/thread-state-repository";
 
 export type ThreadLifecycleStatus = "active" | "paused" | "closed";
 
@@ -60,9 +61,9 @@ export function buildDefaultThreadState(args: {
 }
 
 export async function loadThreadState(
-  _input: LoadThreadStateInput
+  input: LoadThreadStateInput
 ): Promise<LoadThreadStateResult> {
-  return {
-    status: "not_found"
-  };
+  return defaultThreadStateRepository.loadThreadState(input);
 }
+
+const defaultThreadStateRepository = new InMemoryThreadStateRepository();
