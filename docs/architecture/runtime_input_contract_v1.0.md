@@ -13,7 +13,7 @@
 
 **single-agent runtime 到底应该“吃什么输入”。**
 
-> 状态：设计草案
+> 状态：设计已落第一版代码壳
 > 对应阶段：Phase 1 / runtime input 收口
 > 相关文档：
 > - `docs/architecture/runtime_contract_v1.0.md`
@@ -51,7 +51,7 @@
 - runtime 现在仍带有较多 Web 邻近层组装逻辑
 - adapter port 还没有真正对齐到统一 runtime 入参
 - role / memory / session 虽然已分层，但 input 协作面还不够明确
-- `runAgentTurn(input)` 还没有真正成为清晰的统一入口
+- `runAgentTurn(input)` 直到最近才开始形成第一版代码薄壳
 
 所以当前更值得做的，不是继续深推 `follow_up`，而是先把：
 
@@ -452,6 +452,8 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
 - 已明确 runtime 外围与 runtime 内部装配层的边界
 - 已明确 `RuntimeTurnInput` 与 `SessionContext` 不等同
 - 已明确下一步统一入口应朝 `runAgentTurn(input)` 收敛
+- 已有第一版 `RuntimeTurnInput` 代码壳
+- 已有第一版 `runAgentTurn(input)` wrapper
 
 ---
 
@@ -470,6 +472,10 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
   - `user_id`
   - `agent_id`
   - `thread_id`
+- 显式构造：
+  - `RuntimeTurnInput.actor`
+  - `RuntimeTurnInput.message`
+  - `RuntimeTurnInput.context`
 - 组织 inbound message：
   - `input.message`
   - `input.source`
@@ -477,15 +483,15 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
   - `input.metadata`
 - 为 runtime 运行准备 thread / workspace / agent 上下文
 
-也就是说，当前它虽然还没有显式构造一个名为 `RuntimeTurnInput` 的对象，但它实际上已经在承担：
+也就是说，当前它已经不只是“接近”这层职责，而是已经开始显式构造：
 
-**adapter input -> runtime turn input 候选结构**
+**adapter input -> RuntimeTurnInput**
 
-这也是后续最适合先抽纯的一层。
+并把它作为 IM 入口的第一条标准输入构造路径。
 
 ### 16.2 `runtime.ts` 当前对应的输入职责
 
-`runtime.ts` 里的 `generateAgentReply(...)` 当前吃进去的并不是一个统一输入对象，而是：
+`runtime.ts` 里的底层实现 `generateAgentReply(...)` 当前吃进去的并不是一个统一输入对象，而是：
 
 - `userId`
 - `workspace`
@@ -495,7 +501,7 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
 - `assistantMessageId`
 - `supabase`
 
-这说明它现在仍然更像：
+这说明它目前仍然更像：
 
 **Web 邻近层里的“已装配运行时调用”**
 
@@ -508,27 +514,44 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
 - output 已较统一
 - input 仍是装配后对象直接塞进 runtime
 
+不过当前已经新增了一层第一版统一入口：
+
+- `runAgentTurn(input: RuntimeTurnInput)`
+
+这层目前仍是薄壳：
+
+- 先做最小 actor/workspace 一致性校验
+- 再复用现有 `generateAgentReply(...)`
+
+所以当前更准确的判断是：
+
+- `generateAgentReply(...)` 仍是主要底层实现
+- `runAgentTurn(input)` 已开始成为对外统一入口的第一版代码事实
+
 ### 16.3 当前最适合拆出来的两层
 
 当前更稳的拆法不是一步把 `generateAgentReply(...)` 改成最终形态，而是先拆成两层：
 
 #### 层 1：外部输入组装层
 
-例如未来可形成为：
+当前已经形成：
 
 - `buildRuntimeTurnInput(...)`
+- `buildRuntimeTurnInputFromAdapterInput(...)`
 
-这层最适合从：
+这层最先是从：
 
 - `im-runtime-port.ts`
+- IM adapter input
+
+里抽出来的。后续再扩到：
+
 - web chat action / route
 - scheduler 回流入口
 
-里逐步抽出。
-
 #### 层 2：runtime 装配执行层
 
-例如未来可形成为：
+当前已经形成第一版：
 
 - `runAgentTurn(input: RuntimeTurnInput)`
 
@@ -539,7 +562,7 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
 - 加载 memory
 - 产出 `RuntimeTurnResult`
 
-当前 `generateAgentReply(...)` 更接近这层的雏形，但还混着过多装配后对象。
+当前 `runAgentTurn(input)` 先复用了 `generateAgentReply(...)`，因此这层已经开始落地，但还没有把 role / session / memory 装配进一步集中。
 
 ---
 
@@ -555,11 +578,20 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
 - `message`
 - `context`
 
-哪怕暂时只是一个中间对象，也值得先做。
+这一步已经完成第一版：
+
+- `apps/web/lib/chat/runtime-input.ts`
+- `buildRuntimeTurnInput(...)`
+- `buildRuntimeTurnInputFromAdapterInput(...)`
 
 ### Step 2：让 `im-runtime-port.ts` 成为第一条标准输入构造路径
 
-原因是：
+这一步也已经完成第一版：
+
+- `im-runtime-port.ts` 已开始构造 `RuntimeTurnInput`
+- `im-runtime-port.ts` 已开始调用 `runAgentTurn(input)`
+
+原因仍然成立：
 
 - 它的输入来源清楚
 - 已有 adapter contract
@@ -568,7 +600,7 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
 
 ### Step 3：再给 `generateAgentReply(...)` 外面包一层真正的 `runAgentTurn(input)`
 
-这一步不必一开始就移除现有参数结构，而是可以先做一层 wrapper：
+这一步现在也已经开始，但仍保持在最小 wrapper 边界：
 
 - 外层吃 `RuntimeTurnInput`
 - 内层暂时仍调用现有 `generateAgentReply(...)`
@@ -589,7 +621,7 @@ runAgentTurn(input: RuntimeTurnInput): Promise<RuntimeTurnResult>
 
 ## 18. 当前结论
 
-当前 SparkCore 最需要补的，不是再继续扩 `follow_up`，而是把 runtime 的输入面收成一个真正稳定的统一入口。
+当前 SparkCore 最需要补的，不是再继续扩 `follow_up`，而是把 runtime 的输入面继续从“第一版代码壳”推进成一个真正稳定的统一入口。
 
 因此当前最合理的下一步不是继续深推调度，而是：
 
