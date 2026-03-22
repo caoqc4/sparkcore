@@ -3714,9 +3714,11 @@ export async function runPreparedRuntimeTurn({
         selected: answerStrategy,
         reason_code: answerStrategyReasonCode
       },
+      memory: {
+        recalled_count: allRecalledMemories.length,
+        write_request_count: memoryWriteRequests.length
+      },
       reply_language: replyLanguage,
-      recalled_memory_count: allRecalledMemories.length,
-      memory_write_request_count: memoryWriteRequests.length,
       follow_up_request_count: followUpRequests.length
     }
   };
