@@ -1409,6 +1409,46 @@ export default async function ChatPage({
           </aside>
 
           <section className="panel chat-panel">
+            <section className="companion-session-shell">
+              <div className="companion-session-shell-copy">
+                <p className="eyebrow">{copy.page.shellEyebrow}</p>
+                <h2>{copy.page.shellTitle}</h2>
+                <p className="helper-copy">{copy.page.shellDescription}</p>
+              </div>
+
+              <div className="companion-session-shell-grid">
+                <article className="session-shell-card">
+                  <p className="session-shell-label">{copy.page.shellRoleLabel}</p>
+                  <h3>{agent?.name ?? copy.page.shellRoleFallback}</h3>
+                  <p className="helper-copy">
+                    {agent?.persona_summary || copy.sidebar.noPersonaSummary}
+                  </p>
+                </article>
+
+                <article className="session-shell-card">
+                  <p className="session-shell-label">{copy.page.shellThreadLabel}</p>
+                  <h3>{thread?.title ?? copy.page.shellThreadFallback}</h3>
+                  <p className="helper-copy">
+                    {thread
+                      ? `${copy.sidebar.updatedPrefix}${formatThreadUpdatedAt(
+                          thread.updated_at,
+                          locale
+                        )}`
+                      : copy.states.noThreadsTitle}
+                  </p>
+                </article>
+
+                <article className="session-shell-card">
+                  <p className="session-shell-label">{copy.page.shellRailLabel}</p>
+                  <h3>
+                    {copy.sidebar.threadsTitle} · {copy.sidebar.agentsTitle} ·{" "}
+                    {copy.memory.title}
+                  </h3>
+                  <p className="helper-copy">{copy.page.shellRailDescription}</p>
+                </article>
+              </div>
+            </section>
+
             {requestedThreadFallback ? (
               <div className="notice notice-warning chat-inline-notice">
                 {copy.states.requestedThreadFallback}

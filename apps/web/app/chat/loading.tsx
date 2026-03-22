@@ -37,6 +37,23 @@ export default async function ChatLoading() {
           </aside>
 
           <section className="panel chat-panel">
+            <section className="companion-session-shell companion-session-shell-loading">
+              <div className="companion-session-shell-copy">
+                <p className="eyebrow">{copy.loading.eyebrow}</p>
+                <h2>{copy.page.shellTitle}</h2>
+                <p className="helper-copy">{copy.page.shellDescription}</p>
+              </div>
+              <div className="companion-session-shell-grid">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div className="session-shell-card" key={index}>
+                    <div className="skeleton skeleton-meta" />
+                    <div className="skeleton skeleton-line" />
+                    <div className="skeleton skeleton-meta" />
+                  </div>
+                ))}
+              </div>
+            </section>
+
             <div className="thread-state-card thread-state-card-loading">
               <div className="thread-state-copy">
                 <p className="eyebrow thread-state-eyebrow">{copy.loading.eyebrow}</p>

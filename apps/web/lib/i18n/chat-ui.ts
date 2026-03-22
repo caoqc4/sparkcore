@@ -186,9 +186,20 @@ export function getChatCopy(locale: ChatLocale) {
         eyebrow: "聊天",
         titleReady: "线程工作台已就绪",
         titleUnavailable: "聊天工作台暂不可用",
-        heroTitle: "多线程聊天基础已具备",
+        heroTitle: "单角色长期陪跑会话",
         heroDescription:
-          "线程会根据 URL 解析，侧边栏会与当前会话保持同步，每个线程都保留自己的 agent 绑定和消息历史。"
+          "把当前线程作为一个持续中的陪跑会话来看：主区负责承接对话，侧区负责线程、agent 和记忆支撑。",
+        shellEyebrow: "Session shell",
+        shellTitle: "第一版单角色陪跑会话壳",
+        shellDescription:
+          "这里先收一个最小可用闭环：一个持续角色、一条持续线程，以及围绕它展开的支撑信息。",
+        shellRoleLabel: "当前角色",
+        shellRoleFallback: "先在侧区创建或选择一个 agent",
+        shellThreadLabel: "当前会话",
+        shellThreadFallback: "等待第一条线程",
+        shellRailLabel: "支撑侧区",
+        shellRailDescription:
+          "线程切换、agent 调整和记忆查看先放在侧区，避免压住主会话本身。"
       },
       sheets: {
         createAgentEyebrow: "创建 agent",
@@ -511,9 +522,20 @@ export function getChatCopy(locale: ChatLocale) {
       eyebrow: "Chat",
       titleReady: "Thread workspace is ready",
       titleUnavailable: "Chat workspace is unavailable",
-      heroTitle: "Chat foundation for multi-thread work",
+      heroTitle: "Single-role companion session",
       heroDescription:
-        "Threads now resolve from the URL, the sidebar stays aligned with the active conversation, and each thread keeps its own agent binding and message history."
+        "Treat the current thread as one continuing companion session: the main surface carries the conversation, while the side rail keeps threads, agent setup, and memory support nearby.",
+      shellEyebrow: "Session shell",
+      shellTitle: "First single-role companion session shell",
+      shellDescription:
+        "This first pass keeps the loop small but usable: one continuing role, one continuing thread, and the nearby support needed to keep it coherent over time.",
+      shellRoleLabel: "Current role",
+      shellRoleFallback: "Create or choose an agent from the side rail first",
+      shellThreadLabel: "Current session",
+      shellThreadFallback: "Waiting for the first thread",
+      shellRailLabel: "Support rail",
+      shellRailDescription:
+        "Thread switching, agent setup, and memory review stay in the side rail so they support the session instead of overpowering it."
     },
     sheets: {
       createAgentEyebrow: "Create agent",

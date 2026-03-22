@@ -250,7 +250,7 @@ a {
 .chat-layout {
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
 }
 
 .chat-page-feedback {
@@ -264,6 +264,73 @@ a {
 .chat-sidebar,
 .chat-panel {
   min-height: 0;
+}
+
+.chat-panel {
+  order: 1;
+}
+
+.chat-sidebar {
+  order: 2;
+}
+
+.companion-session-shell {
+  display: grid;
+  gap: 16px;
+  padding: 20px 20px 18px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(15, 118, 110, 0.14);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(240, 253, 250, 0.92), rgba(248, 250, 252, 0.96)),
+    #ffffff;
+}
+
+.companion-session-shell-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.companion-session-shell-copy h2 {
+  margin: 0;
+  font-size: clamp(1.3rem, 2vw, 1.7rem);
+  line-height: 1.15;
+}
+
+.companion-session-shell-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.session-shell-card {
+  display: grid;
+  gap: 8px;
+  min-height: 120px;
+  padding: 16px;
+  border: 1px solid rgba(216, 222, 233, 0.9);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.session-shell-card h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.session-shell-label {
+  margin: 0;
+  color: var(--accent-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.companion-session-shell-loading {
+  opacity: 0.9;
 }
 
 .thread-sidebar-header {
@@ -1269,6 +1336,15 @@ a {
 
 @media (max-width: 860px) {
   .chat-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-panel,
+  .chat-sidebar {
+    order: initial;
+  }
+
+  .companion-session-shell-grid {
     grid-template-columns: 1fr;
   }
 }
