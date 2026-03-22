@@ -162,7 +162,7 @@
 - [runtime_answer_strategy_debug_metadata_grouping_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/runtime_answer_strategy_debug_metadata_grouping_v1.0.md)
 - [runtime_memory_debug_metadata_grouping_v1.0.md](/Users/caoq/git/sparkcore/docs/architecture/runtime_memory_debug_metadata_grouping_v1.0.md)
 
-也就是说，当前 runtime 不只是“主路径已经形成”，连输出层的下一步治理方向也已经开始明确，而且 `answer_strategy*` 与 `memory*` 都已经开始出现最小 metadata 分组方向。
+也就是说，当前 runtime 不只是“主路径已经形成”，连输出层的下一步治理方向也已经开始明确，而且 `answer_strategy*` 与 `memory*` 都已经开始进入最小 metadata 分组。
 
 ---
 

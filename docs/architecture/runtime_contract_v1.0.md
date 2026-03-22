@@ -254,7 +254,7 @@ runtime 在处理一轮时，至少要消费：
 - `answer_strategy*` 现在也已开始进入最小分组收口：
   - `debug_metadata.answer_strategy.selected`
   - `debug_metadata.answer_strategy.reason_code`
-- `memory*` 当前也已开始明确下一步最小分组方向：
+- `memory*` 现在也已开始进入最小分组收口：
   - `debug_metadata.memory.recalled_count`
   - `debug_metadata.memory.write_request_count`
 - 当前更适合继续承接：
