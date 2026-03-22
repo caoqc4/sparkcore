@@ -7,6 +7,7 @@ import { executeMemoryWriteRequests } from "@/lib/chat/memory-write";
 import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
+import { buildRuntimeTurnInputFromAdapterInput } from "@/lib/chat/runtime-input";
 import { loadRoleProfile } from "@/lib/chat/role-loader";
 import { generateAgentReply } from "@/lib/chat/runtime";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
@@ -138,7 +139,14 @@ async function runImRuntimeTurnWithSupabase(args: {
     throw new Error("The bound agent for the IM runtime turn could not be loaded.");
   }
 
-  const trimmedContent = input.message.trim();
+  const runtimeTurnInput = buildRuntimeTurnInputFromAdapterInput({
+    input,
+    workspaceId: workspace.id,
+    context: {
+      source_platform: "im"
+    }
+  });
+  const trimmedContent = runtimeTurnInput.message.content.trim();
   const { data: insertedMessage, error: insertError } = await supabase
     .from("messages")
     .insert({
@@ -148,9 +156,10 @@ async function runImRuntimeTurnWithSupabase(args: {
       role: "user",
       content: trimmedContent,
       metadata: {
-        source: input.source,
-        runtime_source_timestamp: input.timestamp,
-        adapter_metadata: input.metadata
+        source: runtimeTurnInput.message.source,
+        runtime_source_timestamp: runtimeTurnInput.message.timestamp,
+        adapter_metadata: runtimeTurnInput.message.metadata,
+        runtime_turn_input: runtimeTurnInput
       }
     })
     .select("id")
