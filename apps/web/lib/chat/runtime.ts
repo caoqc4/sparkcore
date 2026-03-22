@@ -18,7 +18,6 @@ import {
   planRelationshipMemoryWriteRequests
 } from "@/lib/chat/memory-write";
 import {
-  buildSessionContext,
   type ApproxContextPressure,
   type SessionContinuitySignal
 } from "@/lib/chat/session-context";
@@ -33,7 +32,10 @@ import {
   loadRoleProfile,
   ROLE_PROFILE_SELECT
 } from "@/lib/chat/role-loader";
-import { prepareRuntimeTurn } from "@/lib/chat/runtime-prepared-turn";
+import {
+  prepareRuntimeSession,
+  prepareRuntimeTurn
+} from "@/lib/chat/runtime-prepared-turn";
 import {
   buildRuntimeTurnInput,
   type RuntimeTurnInput,
@@ -3237,9 +3239,9 @@ export async function generateAgentReply({
   supabase?: any;
 }): Promise<RuntimeTurnResult> {
   const supabase = providedSupabase ?? (await createClient());
-  const sessionContext = buildSessionContext({
-    threadId: thread.id,
-    agentId: agent.id,
+  const sessionContext = prepareRuntimeSession({
+    thread,
+    agent,
     messages,
     detectReplyLanguageFromText,
     isReplyLanguage: isRuntimeReplyLanguage,
@@ -3379,7 +3381,7 @@ export async function generateAgentReply({
     replyLanguage,
     relationshipRecall
   });
-  const roleCorePacket = buildRoleCorePacket({
+  const roleCorePacketForTurn = buildRoleCorePacket({
     agent,
     replyLanguage,
     replyLanguageSource: replyLanguageDecision.source,
@@ -3389,7 +3391,7 @@ export async function generateAgentReply({
   const preparedRuntimeTurn = await prepareRuntimeTurn({
     input,
     agent,
-    roleCorePacket,
+    roleCorePacket: roleCorePacketForTurn,
     session: sessionContext,
     runtimeMemoryContext,
     workspace,

@@ -1,7 +1,11 @@
 import type { RuntimeMemoryContext } from "@/lib/chat/memory-recall";
 import type { AgentRecord, RoleCorePacket } from "@/lib/chat/role-core";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
-import type { SessionContext } from "@/lib/chat/session-context";
+import {
+  buildSessionContext,
+  type SessionContext,
+  type SessionReplyLanguage
+} from "@/lib/chat/session-context";
 
 export type PreparedRuntimeWorkspace = {
   id: string;
@@ -76,6 +80,26 @@ export function buildPreparedRuntimeTurn(args: {
       supabase: args.supabase
     }
   };
+}
+
+export function prepareRuntimeSession(args: {
+  thread: PreparedRuntimeThread;
+  agent: AgentRecord;
+  messages: PreparedRuntimeMessage[];
+  detectReplyLanguageFromText: (content: string) => SessionReplyLanguage;
+  isReplyLanguage: (value: unknown) => value is SessionReplyLanguage;
+  getDeveloperDiagnosticsMetadata: (
+    metadata: Record<string, unknown> | null | undefined
+  ) => Record<string, unknown> | null;
+}): SessionContext {
+  return buildSessionContext({
+    threadId: args.thread.id,
+    agentId: args.agent.id,
+    messages: args.messages,
+    detectReplyLanguageFromText: args.detectReplyLanguageFromText,
+    isReplyLanguage: args.isReplyLanguage,
+    getDeveloperDiagnosticsMetadata: args.getDeveloperDiagnosticsMetadata
+  });
 }
 
 export async function prepareRuntimeTurn(args: {
