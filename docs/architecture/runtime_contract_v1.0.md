@@ -15,6 +15,7 @@
 > 对应阶段：Phase 1
 > 相关文档：
 > - `docs/architecture/single_agent_runtime_design_v1.0.md`
+> - `docs/architecture/runtime_input_contract_v1.0.md`
 > - `docs/architecture/role_layer_design_v1.0.md`
 > - `docs/architecture/memory_layer_design_v1.0.md`
 > - `docs/architecture/session_layer_design_v1.0.md`
@@ -52,23 +53,52 @@
 
 ## 5. 标准输入对象
 
-当前建议统一为 `RuntimeInput`。
+当前建议统一为：
 
-最小字段：
+- `RuntimeTurnInput`
 
-- `user_id`
-- `agent_id`
-- `thread_id`
-- `message`
-- `message_type`
-- `source`
-- `timestamp`
-- `metadata`
+其最小结构应遵循 `actor / message / context` 三块分层：
+
+```ts
+type RuntimeTurnInput = {
+  actor: {
+    user_id: string
+    agent_id: string
+    thread_id: string
+    workspace_id?: string | null
+  }
+
+  message: {
+    content: string
+    message_type: "text"
+    source: "web" | "im" | "scheduler" | "internal"
+    timestamp?: string
+    message_id?: string | null
+    metadata?: Record<string, unknown>
+  }
+
+  context?: {
+    source_platform?: string | null
+    binding_id?: string | null
+    trigger_kind?: string | null
+  }
+}
+```
+
+最小必需字段：
+
+- `actor.user_id`
+- `actor.agent_id`
+- `actor.thread_id`
+- `message.content`
+- `message.message_type`
+- `message.source`
 
 说明：
 
-- `source` 可标识 `im / web / scheduler / internal`
-- `message_type` 当前至少支持 `text`，后续再扩图片、语音、附件说明
+- `RuntimeTurnInput` 只表达原始外部输入
+- 不建议把 `RoleProfile / SessionContext / MemoryRecallResult` 直接塞进原始输入对象
+- 这些对象应在 runtime 入口或邻近装配层被加载
 
 ---
 
@@ -78,9 +108,14 @@ runtime 在处理一轮时，至少要消费：
 
 - `RoleProfile / role_core_packet`
 - `SessionContext`
-- `MemoryRecallResult`
+- `RuntimeMemoryContext`
 
 这三者不是 runtime input 原始字段本身，但属于 runtime 必须加载与组织的标准依赖对象。
+
+当前更稳的分层是：
+
+- 外部入口传入：`RuntimeTurnInput`
+- runtime 内部装配得到：`PreparedRuntimeTurn`
 
 ---
 
@@ -229,12 +264,12 @@ runtime 在处理一轮时，至少要消费：
 
 ## 9. 当前推荐最小处理流程
 
-1. 接收 `RuntimeInput`
+1. 接收 `RuntimeTurnInput`
 2. 加载 `RoleProfile`
 3. 加载 `SessionContext`
-4. 发起 `MemoryRecallQuery`
-5. 获取 `MemoryRecallResult`
-6. 组装推理上下文
+4. 加载 `RuntimeMemoryContext`
+5. 组装推理上下文
+6. 进入统一运行入口
 7. 生成 `assistant_message`
 8. 产出 `memory_write_requests`
 9. 产出 `follow_up_requests`
@@ -252,6 +287,10 @@ runtime 在处理一轮时，至少要消费：
 当前 runtime 相关逻辑主要集中在：
 
 - `apps/web/lib/chat/runtime.ts`
+
+当前 input 相关设计已在独立文档中收口：
+
+- `docs/architecture/runtime_input_contract_v1.0.md`
 
 当前已有：
 
