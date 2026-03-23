@@ -5,6 +5,10 @@ import {
 } from "@/lib/chat/follow-up-binding";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import { buildProactiveSendRequestFromClaimedFollowUp } from "@/lib/chat/follow-up-proactive-send";
+import {
+  buildFollowUpBindingNotFoundFailureMetadata,
+  buildFollowUpRequestMappingFailureMetadata
+} from "@/lib/chat/follow-up-result-metadata";
 import { createFollowUpSender } from "@/lib/chat/follow-up-sender-policy";
 import { markFollowUpFromSendResult } from "@/lib/chat/follow-up-result-marking";
 import type {
@@ -41,11 +45,7 @@ async function processClaimedRecord(args: {
       id: args.record.id,
       failed_at: new Date().toISOString(),
       failure_reason: "binding_not_found",
-      failure_metadata: {
-        thread_id: args.record.thread_id,
-        user_id: args.record.user_id,
-        agent_id: args.record.agent_id
-      }
+      failure_metadata: buildFollowUpBindingNotFoundFailureMetadata(args.record)
     });
 
     return {
@@ -65,9 +65,7 @@ async function processClaimedRecord(args: {
       id: args.record.id,
       failed_at: new Date().toISOString(),
       failure_reason: "proactive_request_mapping_failed",
-      failure_metadata: {
-        follow_up_kind: args.record.kind
-      }
+      failure_metadata: buildFollowUpRequestMappingFailureMetadata(args.record)
     });
 
     return {

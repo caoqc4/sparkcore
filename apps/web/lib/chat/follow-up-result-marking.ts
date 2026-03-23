@@ -2,6 +2,10 @@ import type {
   FollowUpRepository,
   PendingFollowUpRecord
 } from "@/lib/chat/runtime-contract";
+import {
+  buildFollowUpExecutionMetadata,
+  buildFollowUpSendFailureMetadata
+} from "@/lib/chat/follow-up-result-metadata";
 import type { ProactiveSendResult } from "@/lib/integrations/im-adapter";
 
 export async function markFollowUpFromSendResult({
@@ -17,10 +21,7 @@ export async function markFollowUpFromSendResult({
     return repository.markFollowUpExecuted({
       id: record.id,
       executed_at: new Date().toISOString(),
-      execution_metadata: {
-        platform_message_id: sendResult.platform_message_id ?? null,
-        sender_metadata: sendResult.metadata ?? {}
-      }
+      execution_metadata: buildFollowUpExecutionMetadata(sendResult)
     });
   }
 
@@ -28,9 +29,6 @@ export async function markFollowUpFromSendResult({
     id: record.id,
     failed_at: new Date().toISOString(),
     failure_reason: sendResult.failure_reason ?? `proactive send ${sendResult.status}`,
-    failure_metadata: {
-      status: sendResult.status,
-      sender_metadata: sendResult.metadata ?? {}
-    }
+    failure_metadata: buildFollowUpSendFailureMetadata(sendResult)
   });
 }
