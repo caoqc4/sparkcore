@@ -106,6 +106,21 @@ P4 首批要做的，是把 namespace 从：
   - project boundary 下会解析出 `project-1 / world-1`
   - runtime memory write preview 会暴露这层 routed project/world ids
 
+当前已成立的第三刀代码事实：
+
+- `apps/web/lib/chat/memory-namespace.ts` 当前已开始把 namespace boundary 显式收成最小 recall budget：
+  - `profile_budget`
+  - `episode_budget`
+  - `timeline_budget`
+- `apps/web/lib/chat/memory-recall.ts` 当前也已开始复用这层 budget：
+  - thread-primary namespace 下，profile / episode / timeline 的 recall selection 不再只受 route 开关影响，也开始受 namespace budget 影响
+- 当前最小规则已经成立：
+  - thread-primary namespace 下：
+    - `profile_budget = 1`
+    - `episode_budget = 1`
+    - `timeline_budget = 0`
+- `memory-upgrade-harness.ts` 当前也已开始显式校验这层 tighter recall budget
+
 ### 4.2 Retention budget / pruning v2
 
 P4 首批要把 `Thread retention` 从：

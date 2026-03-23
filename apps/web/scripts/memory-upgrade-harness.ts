@@ -302,6 +302,12 @@ function main() {
     threadBoundary.allow_timeline_fallback === false,
     "Expected thread-primary namespace to disable timeline fallback in P4."
   );
+  expect(
+    threadBoundary.profile_budget === 1 &&
+      threadBoundary.episode_budget === 1 &&
+      threadBoundary.timeline_budget === 0,
+    "Expected thread-primary namespace to expose a tighter recall budget in P4."
+  );
   const threadScopedRoutes = selectMemoryRecallRoutes({
     latestUserMessage: "Can you remind me how this changed over time?",
     allowDistantFallback: true,
@@ -1210,7 +1216,12 @@ function main() {
           planned_relationship_id: plannedRelationship.memory_id,
           planned_thread_focus: plannedThreadState.focus_mode,
           selected_routes: selectedRoutes,
-          thread_scoped_routes: threadScopedRoutes
+          thread_scoped_routes: threadScopedRoutes,
+          thread_boundary_budget: {
+            profile: threadBoundary.profile_budget,
+            episode: threadBoundary.episode_budget,
+            timeline: threadBoundary.timeline_budget
+          }
         },
         runtime_semantic_summary: semanticSummary,
         record_only_semantic_summary: recordOnlySemanticSummary,

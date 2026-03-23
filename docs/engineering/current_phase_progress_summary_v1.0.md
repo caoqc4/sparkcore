@@ -261,6 +261,12 @@
   - `apps/web/lib/chat/memory-write-targets.ts` 当前也已开始在 namespace-aware target resolution 中显式产出 `routed_project_id / routed_world_id`
   - `apps/web/lib/chat/runtime-preview-metadata.ts` 当前也已开始把这层 routed project/world ids 暴露到 memory write preview
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 project boundary 下的 routed project/world ids 与 preview 暴露
+  - `apps/web/lib/chat/memory-namespace.ts` 当前也已开始把 namespace boundary 显式收成最小 recall budget：
+    - `profile_budget`
+    - `episode_budget`
+    - `timeline_budget`
+  - `apps/web/lib/chat/memory-recall.ts` 当前也已开始复用这层 budget，使 thread-primary namespace 下的 recall selection 不再只受 route 开关影响，也开始受 namespace budget 影响
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 thread-primary namespace 下的 tighter recall budget
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

@@ -334,6 +334,7 @@ export async function recallRelevantMemories({
     hasThreadState,
     activeNamespace
   });
+  const namespaceBoundary = resolveRuntimeMemoryBoundary(activeNamespace);
   const supabase = providedSupabase ?? (await createClient());
   const selectColumns =
     "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at, updated_at";
@@ -481,7 +482,7 @@ export async function recallRelevantMemories({
                 new Date(left.created_at).getTime()
               );
             })
-            .slice(0, 2)
+            .slice(0, namespaceBoundary.profile_budget)
             .map((memory) => buildRecalledProfileMemoryFromStoredMemory(memory))
             .filter((memory): memory is NonNullable<typeof memory> => memory != null)
         : [];
@@ -504,7 +505,7 @@ export async function recallRelevantMemories({
     });
   const recalledEpisodeMemories = appliedRoutes.includes("episode")
     ? scoredEpisodeRows
-        .slice(0, 1)
+        .slice(0, namespaceBoundary.episode_budget)
         .map((entry) => buildRecalledEpisodeMemoryFromStoredMemory(entry.memory))
         .filter((memory): memory is NonNullable<typeof memory> => memory != null)
     : [];
@@ -527,7 +528,7 @@ export async function recallRelevantMemories({
 
             return right.confidence - left.confidence;
           })
-          .slice(0, 1)
+          .slice(0, namespaceBoundary.timeline_budget)
           .map((memory) => buildRecalledTimelineMemoryFromStoredMemory(memory))
           .filter((memory): memory is NonNullable<typeof memory> => memory != null)
       : [];

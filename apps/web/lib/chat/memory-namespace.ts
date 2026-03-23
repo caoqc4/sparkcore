@@ -15,6 +15,9 @@ export type RuntimeMemoryBoundary = {
   retrieval_boundary: "default" | "thread" | "project" | "world";
   write_boundary: "default" | "thread" | "project" | "world";
   allow_timeline_fallback: boolean;
+  profile_budget: number;
+  episode_budget: number;
+  timeline_budget: number;
 };
 
 type NamespaceScopedMemoryLike = {
@@ -112,25 +115,37 @@ export function resolveRuntimeMemoryBoundary(
       return {
         retrieval_boundary: "thread",
         write_boundary: "thread",
-        allow_timeline_fallback: false
+        allow_timeline_fallback: false,
+        profile_budget: 1,
+        episode_budget: 1,
+        timeline_budget: 0
       };
     case "project":
       return {
         retrieval_boundary: "project",
         write_boundary: "project",
-        allow_timeline_fallback: true
+        allow_timeline_fallback: true,
+        profile_budget: 2,
+        episode_budget: 2,
+        timeline_budget: 1
       };
     case "world":
       return {
         retrieval_boundary: "world",
         write_boundary: "world",
-        allow_timeline_fallback: true
+        allow_timeline_fallback: true,
+        profile_budget: 2,
+        episode_budget: 1,
+        timeline_budget: 1
       };
     default:
       return {
         retrieval_boundary: "default",
         write_boundary: "default",
-        allow_timeline_fallback: true
+        allow_timeline_fallback: true,
+        profile_budget: 2,
+        episode_budget: 1,
+        timeline_budget: 1
       };
   }
 }
@@ -151,6 +166,12 @@ export function buildMemoryNamespaceScopedMetadata(args: {
       resolveRuntimeMemoryBoundary(args.namespace).retrieval_boundary,
     active_memory_write_boundary:
       resolveRuntimeMemoryBoundary(args.namespace).write_boundary,
+    active_memory_profile_budget:
+      resolveRuntimeMemoryBoundary(args.namespace).profile_budget,
+    active_memory_episode_budget:
+      resolveRuntimeMemoryBoundary(args.namespace).episode_budget,
+    active_memory_timeline_budget:
+      resolveRuntimeMemoryBoundary(args.namespace).timeline_budget,
     project_id: getNamespaceRefId(args.namespace, "project"),
     world_id: getNamespaceRefId(args.namespace, "world")
   };
