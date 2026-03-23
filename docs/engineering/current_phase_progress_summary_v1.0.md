@@ -337,6 +337,13 @@
   - `memory-upgrade-harness.ts` 当前也已开始显式校验：
     - `project_ops` 下允许出现 `MR2`
     - `companion` 下不会出现 `MR2`
+  - `apps/web/lib/chat/runtime.ts` 当前也已开始让 `scenario pack` 真实影响 `dynamic_profile` 的消费条件
+  - 当前最小规则已经成立：
+    - `project_ops` 在 `memory_record` 已承接执行上下文时，会压低 `dynamic_profile`
+    - `companion` 仍会保留 `dynamic_profile` 与 `memory_record` 并存
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验：
+    - `project_ops` 下 `dynamic_profile` 会被压下去
+    - `companion` 下 `dynamic_profile` 仍会保留
 - `P4-5 regression / acceptance expansion` 当前也已开始进入真实实现：
   - `memory-upgrade-harness.ts` 当前已开始显式产出 `p4_regression_gate`
   - 当前第一版 `P4` gate 已开始锁：

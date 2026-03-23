@@ -1266,7 +1266,15 @@ function buildMemoryLayerAssemblyPrompt(args: {
   );
   const dynamicProfileMemories = relationshipFilteredMemories
     .filter((memory) => memory.semantic_layer === "dynamic_profile")
-    .slice(0, 1);
+    .slice(
+      0,
+      args.scenarioPack?.pack_id === "project_ops" &&
+        relationshipFilteredMemories.some(
+          (memory) => memory.semantic_layer === "memory_record"
+        )
+        ? 0
+        : 1
+    );
   const staticProfileMemories = relationshipFilteredMemories
     .filter((memory) => memory.semantic_layer === "static_profile")
     .slice(0, args.scenarioPack?.pack_id === "companion" ? 2 : 1);

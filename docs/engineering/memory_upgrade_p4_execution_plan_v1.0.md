@@ -292,6 +292,16 @@ P4 首批要把 `Scenario pack` 从：
   - `project_ops` 下允许出现 `MR2`
   - `companion` 下不会出现 `MR2`
 
+当前已成立的第四刀代码事实：
+
+- [runtime.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime.ts) 当前已开始让 `scenario pack` 真实影响 `dynamic_profile` 的消费条件：
+  - `project_ops` 在 `memory_record` 已承接执行上下文时，会压低 `dynamic_profile` 的消费
+  - `companion` 则继续保留 `dynamic_profile` 与 `memory_record` 并存
+- 也就是说，pack-specific consumption 当前已不只控制 slot budget，还开始控制不同 memory layer 的并存优先级
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - `project_ops` 下 `dynamic_profile` 会被压下去
+  - `companion` 下 `dynamic_profile` 仍会保留
+
 ### 4.5 P4 regression / acceptance expansion
 
 P4 首批要把 gate 继续扩大到：

@@ -1441,6 +1441,93 @@ function main() {
     dynamicProfilePrompt.includes("2. dynamic_profile:"),
     "Expected system prompt assembly to place dynamic_profile in the context assembly order."
   );
+  const projectOpsDynamicVsRecordPrompt = buildAgentSystemPrompt(
+    {
+      packet_version: "v1",
+      identity: {
+        agent_id: "agent-1",
+        agent_name: "Helper"
+      },
+      persona_summary: "Helpful assistant",
+      style_guidance: "Be concise",
+      relationship_stance: {
+        effective: "friendly",
+        source: "relationship_memory"
+      },
+      language_behavior: {
+        reply_language_target: "en",
+        reply_language_source: "latest-user-message",
+        same_thread_continuation_preferred: true
+      }
+    },
+    "Keep answers grounded.",
+    "What should I prioritize next in this onboarding flow?",
+    [
+      {
+        memory_type: "profile",
+        content: "In this thread, keep the tone extra formal.",
+        confidence: 0.9,
+        semantic_layer: "dynamic_profile"
+      },
+      promptRecalledEpisode
+    ],
+    runtimeKnowledge,
+    compactedThreadSummary,
+    activeMemoryNamespace,
+    "en"
+  );
+  expect(
+    !projectOpsDynamicVsRecordPrompt.includes("2. dynamic_profile:"),
+    "Expected project_ops system prompt assembly to suppress dynamic_profile when memory_record is already carrying execution context in P4."
+  );
+  const companionDynamicVsRecordPrompt = buildAgentSystemPrompt(
+    {
+      packet_version: "v1",
+      identity: {
+        agent_id: "agent-1",
+        agent_name: "Helper"
+      },
+      persona_summary: "Helpful assistant",
+      style_guidance: "Be concise",
+      relationship_stance: {
+        effective: "friendly",
+        source: "relationship_memory"
+      },
+      language_behavior: {
+        reply_language_target: "en",
+        reply_language_source: "latest-user-message",
+        same_thread_continuation_preferred: true
+      }
+    },
+    "Keep answers grounded.",
+    "What should I prioritize next in this onboarding flow?",
+    [
+      {
+        memory_type: "profile",
+        content: "In this thread, keep the tone extra formal.",
+        confidence: 0.9,
+        semantic_layer: "dynamic_profile"
+      },
+      promptRecalledEpisode
+    ],
+    [buildRuntimeKnowledgeSnippet(worldKnowledgeSnapshot)],
+    compactedThreadSummary,
+    {
+      namespace_id: "user:user-1|world:world-1",
+      primary_layer: "world",
+      active_layers: ["user", "world"],
+      refs: [
+        { layer: "user", entity_id: "user-1" },
+        { layer: "world", entity_id: "world-1" }
+      ],
+      selection_reason: "session_and_knowledge_scope"
+    },
+    "en"
+  );
+  expect(
+    companionDynamicVsRecordPrompt.includes("2. dynamic_profile:"),
+    "Expected companion system prompt assembly to preserve dynamic_profile alongside memory_record in P4."
+  );
 
   console.log(
     JSON.stringify(
