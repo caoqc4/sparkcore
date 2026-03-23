@@ -1,6 +1,7 @@
 import {
   buildFailedAssistantMetadata,
-  buildPendingAssistantMetadata
+  buildPendingAssistantMetadata,
+  buildRetriedAssistantMetadata
 } from "@/lib/chat/assistant-message-state-metadata";
 
 type AssistantMessageStateTarget = {
@@ -59,6 +60,29 @@ export async function markAssistantMessageFailed(
         errorType: args.errorType,
         errorMessage: args.errorMessage,
         baseMetadata: args.baseMetadata
+      }),
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", args.assistantMessageId)
+    .eq("thread_id", args.threadId)
+    .eq("workspace_id", args.workspaceId)
+    .eq("user_id", args.userId);
+}
+
+export async function markAssistantMessageRetried(
+  args: AssistantMessageStateTarget & {
+    assistantMessageId: string;
+    baseMetadata?: Record<string, unknown> | null;
+    retriedAt?: string;
+  }
+) {
+  return args.supabase
+    .from("messages")
+    .update({
+      status: "pending",
+      metadata: buildRetriedAssistantMetadata({
+        baseMetadata: args.baseMetadata,
+        retriedAt: args.retriedAt
       }),
       updated_at: new Date().toISOString()
     })

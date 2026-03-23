@@ -20,10 +20,10 @@ import {
 import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
-import { buildRetriedAssistantMetadata } from "@/lib/chat/assistant-message-state-metadata";
 import {
   insertPendingAssistantMessage,
-  markAssistantMessageFailed
+  markAssistantMessageFailed,
+  markAssistantMessageRetried
 } from "@/lib/chat/assistant-message-state-persistence";
 import {
   updateAssistantFollowUpExecutionPreview,
@@ -1441,19 +1441,14 @@ export async function retryAssistantReply(
     };
   }
 
-  await supabase
-    .from("messages")
-    .update({
-      status: "pending",
-      metadata: buildRetriedAssistantMetadata({
-        baseMetadata: failedMessage.metadata
-      }),
-      updated_at: new Date().toISOString()
-    })
-    .eq("id", failedMessage.id)
-    .eq("thread_id", thread.id)
-    .eq("workspace_id", workspace.id)
-    .eq("user_id", user.id);
+  await markAssistantMessageRetried({
+    supabase,
+    assistantMessageId: failedMessage.id,
+    threadId: thread.id,
+    workspaceId: workspace.id,
+    userId: user.id,
+    baseMetadata: failedMessage.metadata
+  });
 
   try {
     const runtimeTurnInput = buildWebRuntimeTurnInput({
