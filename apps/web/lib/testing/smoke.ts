@@ -2,7 +2,6 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { loadThreadMessages } from "@/lib/chat/message-read";
 import { loadRecentOwnedMemories } from "@/lib/chat/memory-item-read";
-import { createOwnedThread, loadOwnedActiveAgentByName } from "@/lib/chat/runtime-turn-context";
 import { getSmokeModelProfiles } from "@/lib/testing/smoke-seed-persistence";
 import {
   ensureSmokeModelProfiles,
@@ -51,6 +50,7 @@ import {
   isAuthorizedSmokeRequest
 } from "@/lib/testing/smoke-config";
 import { createSmokeLoginResponse } from "@/lib/testing/smoke-login";
+import { createSmokeThread } from "@/lib/testing/smoke-threads";
 import {
   detectSmokeReplyLanguage,
   getSmokeApproxContextPressure,
@@ -136,52 +136,7 @@ export async function resetSmokeState() {
   };
 }
 
-export async function createSmokeThread({
-  agentName
-}: {
-  agentName: string;
-}) {
-  const config = getSmokeConfig();
-
-  if (!config) {
-    throw new Error(
-      "Smoke thread creation requires the smoke env vars and service role key."
-    );
-  }
-
-  const admin = getSmokeAdminClient(config);
-  const smokeUser = await ensureSmokeUser(admin, config);
-
-  const { data: agent, error: agentError } = await loadOwnedActiveAgentByName({
-    supabase: admin,
-    agentName,
-    workspaceId: smokeUser.workspaceId,
-    userId: smokeUser.id
-  });
-
-  if (agentError || !agent) {
-    throw new Error(
-      agentError?.message ?? `Smoke agent "${agentName}" is unavailable.`
-    );
-  }
-
-  const { data: thread, error: threadError } = await createOwnedThread({
-    supabase: admin,
-    workspaceId: smokeUser.workspaceId,
-    userId: smokeUser.id,
-    agentId: agent.id
-  });
-
-  if (threadError || !thread) {
-    throw new Error(
-      threadError?.message ?? "Failed to create the smoke test thread."
-    );
-  }
-
-  return {
-    threadId: thread.id
-  };
-}
+export { createSmokeThread };
 
 function isSmokeLightStyleSofteningPrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
