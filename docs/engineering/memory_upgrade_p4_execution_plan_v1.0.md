@@ -353,3 +353,49 @@ P4 首批明确不做：
 - `P3` 已把 namespace 推到 recall / write / routed scope
 - 再往前一刀，最容易形成 `P4` 的第一条真实主路径事实
 - 这也最能决定后续 retention / knowledge / pack 差异能否站在稳定边界上继续做深
+
+---
+
+## 8. P4 当前小复盘
+
+当前 `P4` 已经从前中段推进到更明确的中后段。
+
+按 `P4-1 ~ P4-5` 看：
+
+- `P4-1 Namespace retrieval / write boundary v2`
+  - 当前处于中段
+  - boundary helper / routed target / recall budget 都已经成立
+
+- `P4-2 Retention budget / pruning v2`
+  - 当前处于中段
+  - retention budget / retained-fields pruning / summary composition / keep-drop 都已经成立
+
+- `P4-3 Knowledge route influence v2`
+  - 当前处于中后段
+  - selection priority / pack-level route influence / decision visibility / route rationale 都已经成立
+
+- `P4-4 Scenario pack consumption expansion v2`
+  - 当前处于前中段到中段之间
+  - 现在已成立两条真实 pack-specific consumption 差异：
+    - relationship memory slot budget 随 pack 变化
+    - static_profile slot budget 随 pack 变化
+
+- `P4-5 regression / acceptance expansion`
+  - 当前第一版已成立
+  - `p4_regression_gate` 已开始锁：
+    - `namespace_boundary_v2_ok`
+    - `retention_budget_v2_ok`
+    - `knowledge_route_influence_v2_ok`
+    - `scenario_pack_consumption_v2_ok`
+
+整体判断：
+
+- 当前 `P4` 大约在 `70% - 75%`
+- 已经不是起步阶段
+- 但还没进入 `close-readiness`
+- 当前最弱的一项仍是 `P4-4`
+
+因此，下一步建议仍然是：
+
+- 继续补 `P4-4`
+- 先不进入 `P4 close-readiness`
