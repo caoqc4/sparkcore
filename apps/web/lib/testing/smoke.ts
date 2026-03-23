@@ -10,7 +10,9 @@ import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import {
   createOwnedThread,
   loadOwnedActiveAgent,
+  loadOwnedActiveAgentByName,
   loadOwnedThread,
+  loadOwnedWorkspaceBySlug,
   updateOwnedThread
 } from "@/lib/chat/runtime-turn-context";
 import { getSupabaseEnv } from "@/lib/env";
@@ -555,12 +557,11 @@ async function ensureSmokeUser(
     );
   }
 
-  const { data: workspace, error: workspaceError } = await admin
-    .from("workspaces")
-    .select("id")
-    .eq("owner_user_id", ensuredUser.id)
-    .eq("slug", workspaceSlug)
-    .maybeSingle();
+  const { data: workspace, error: workspaceError } = await loadOwnedWorkspaceBySlug({
+    supabase: admin,
+    workspaceSlug,
+    userId: ensuredUser.id
+  });
 
   if (workspaceError || !workspace) {
     throw new Error(
@@ -758,14 +759,12 @@ export async function createSmokeThread({
   const admin = getAdminClient(config);
   const smokeUser = await ensureSmokeUser(admin, config);
 
-  const { data: agent, error: agentError } = await admin
-    .from("agents")
-    .select("id")
-    .eq("workspace_id", smokeUser.workspaceId)
-    .eq("owner_user_id", smokeUser.id)
-    .eq("status", "active")
-    .eq("name", agentName)
-    .maybeSingle();
+  const { data: agent, error: agentError } = await loadOwnedActiveAgentByName({
+    supabase: admin,
+    agentName,
+    workspaceId: smokeUser.workspaceId,
+    userId: smokeUser.id
+  });
 
   if (agentError || !agent) {
     throw new Error(

@@ -35,6 +35,19 @@ export async function loadOwnedWorkspace(args: {
     .maybeSingle();
 }
 
+export async function loadOwnedWorkspaceBySlug(args: {
+  supabase: any;
+  workspaceSlug: string;
+  userId: string;
+}) {
+  return args.supabase
+    .from("workspaces")
+    .select(WORKSPACE_SELECT)
+    .eq("owner_user_id", args.userId)
+    .eq("slug", args.workspaceSlug)
+    .maybeSingle();
+}
+
 export async function loadOwnedThread(args: {
   supabase: any;
   threadId: string;
@@ -95,6 +108,22 @@ export async function loadOwnedActiveAgent(args: {
     .eq("workspace_id", args.workspaceId)
     .eq("owner_user_id", args.userId)
     .eq("status", "active")
+    .maybeSingle();
+}
+
+export async function loadOwnedActiveAgentByName(args: {
+  supabase: any;
+  agentName: string;
+  workspaceId: string;
+  userId: string;
+}) {
+  return args.supabase
+    .from("agents")
+    .select(AGENT_SELECT)
+    .eq("workspace_id", args.workspaceId)
+    .eq("owner_user_id", args.userId)
+    .eq("status", "active")
+    .eq("name", args.agentName)
     .maybeSingle();
 }
 
