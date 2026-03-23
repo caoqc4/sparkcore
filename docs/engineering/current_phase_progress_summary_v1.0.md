@@ -163,6 +163,15 @@
     - generic `memory_record`
     的判定收成共用 semantic predicate，而不再在 recall 主路径里散落 raw `category / scope` 判断
   - runtime 的 visible / hidden / incorrect / superseded memory list 当前也已开始通过共用 normalizer 生成 canonical displayed record，而不再各自重复拼装 legacy row 的 category / scope / source 字段
+- `P1-5 regression / acceptance expansion` 当前也已开始进入真实实现：
+  - `memory-upgrade-harness.ts` 当前不只锁 `P1-1 ~ P1-3`
+  - 也已开始显式校验：
+    - `isStoredMemoryStaticProfile(...)`
+    - `isStoredMemoryDynamicProfile(...)`
+    - `isStoredMemoryRelationshipMemoryRecord(...)`
+    - `isStoredMemoryGenericMemoryRecord(...)`
+    - `resolveSupportedSingleSlotTarget(...)`
+    这些 `P1-4` 相关 gate
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`
 

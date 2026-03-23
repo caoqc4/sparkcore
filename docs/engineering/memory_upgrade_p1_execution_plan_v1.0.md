@@ -257,6 +257,20 @@ P1 仍然保持：
 - `apps/web/scripts/memory-upgrade-harness.ts`
 - 邻近 runtime / smoke regression 路径
 
+当前代码事实：
+
+- `memory-upgrade-harness.ts` 当前不只锁：
+  - `episode / timeline` retrieval
+  - `dynamic_profile` adapter
+  - `context assembly order`
+- 也已开始显式校验：
+  - `isStoredMemoryStaticProfile(...)`
+  - `isStoredMemoryDynamicProfile(...)`
+  - `isStoredMemoryRelationshipMemoryRecord(...)`
+  - `isStoredMemoryGenericMemoryRecord(...)`
+  - `resolveSupportedSingleSlotTarget(...)`
+  这些 `P1-4` 相关 gate
+
 ---
 
 ## 8. P1 第一批验收标准
@@ -269,6 +283,7 @@ P1 首批至少应满足：
 - 新语义路径进一步收紧，legacy 直接暴露继续减少
 - `memory-upgrade-harness` 增强后仍稳定通过
 - `tsc --noEmit -p apps/web/tsconfig.json` 持续通过
+- `P1-4` 新增的 semantic predicate / restore target resolver 也被回归脚手架锁住
 
 ---
 

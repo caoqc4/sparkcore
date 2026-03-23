@@ -7,7 +7,11 @@ import {
   buildRecalledRelationshipMemoryFromStoredMemory,
   buildRecalledTimelineMemoryFromStoredMemory,
   buildStaticProfileRecordFromStoredMemory,
-  classifyStoredMemorySemanticTarget
+  classifyStoredMemorySemanticTarget,
+  isStoredMemoryDynamicProfile,
+  isStoredMemoryGenericMemoryRecord,
+  isStoredMemoryRelationshipMemoryRecord,
+  isStoredMemoryStaticProfile
 } from "@/lib/chat/memory-records";
 import { buildAgentSystemPrompt } from "@/lib/chat/runtime";
 import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
@@ -21,6 +25,7 @@ import {
   buildPlannedThreadStateCandidate
 } from "@/lib/chat/memory-write-record-candidates";
 import type { StoredMemory } from "@/lib/chat/memory-shared";
+import { resolveSupportedSingleSlotTarget } from "@/lib/chat/memory-v2";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
 import { buildRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { selectMemoryRecallRoutes } from "@/lib/chat/memory-recall";
@@ -69,11 +74,13 @@ function main() {
   });
   const preferenceMemory = createStoredMemory({
     id: "mem-preference",
-    content: "Call the user Alex.",
+    content: "en",
     memory_type: "preference",
     category: "preference",
     scope: "user_agent",
-    target_agent_id: "agent-1"
+    target_agent_id: "agent-1",
+    key: "reply_language",
+    value: "en"
   });
   const relationshipMemory = createStoredMemory({
     id: "mem-relationship",
@@ -127,6 +134,32 @@ function main() {
     classifyStoredMemorySemanticTarget(threadLocalProfileMemory) ===
       "dynamic_profile",
     "Expected thread-local profile memory to map to dynamic_profile."
+  );
+  expect(
+    isStoredMemoryStaticProfile(profileMemory),
+    "Expected static-profile predicate to recognize user-global profile memory."
+  );
+  expect(
+    isStoredMemoryDynamicProfile(threadLocalProfileMemory),
+    "Expected dynamic-profile predicate to recognize thread-local profile memory."
+  );
+  expect(
+    isStoredMemoryRelationshipMemoryRecord(relationshipMemory),
+    "Expected relationship memory-record predicate to recognize relationship memory."
+  );
+  expect(
+    isStoredMemoryGenericMemoryRecord(episodeMemory),
+    "Expected generic memory-record predicate to recognize episode/timeline seed memory."
+  );
+
+  const restoreTarget = resolveSupportedSingleSlotTarget(preferenceMemory);
+  expect(
+    restoreTarget?.path === "preference.reply_language",
+    "Expected single-slot restore target resolver to preserve canonical path for preference rows."
+  );
+  expect(
+    restoreTarget?.scope === "user_agent",
+    "Expected single-slot restore target resolver to preserve canonical scope."
   );
 
   const staticProfileRecord = buildStaticProfileRecordFromStoredMemory(profileMemory);
