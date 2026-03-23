@@ -7,6 +7,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
 import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
+import {
+  createOwnedThread,
+  loadOwnedActiveAgent,
+  loadOwnedThread,
+  updateOwnedThread
+} from "@/lib/chat/runtime-turn-context";
 import { getSupabaseEnv } from "@/lib/env";
 import { getAssistantDetectedReplyLanguage } from "@/lib/chat/assistant-message-metadata-read";
 import {
@@ -767,16 +773,12 @@ export async function createSmokeThread({
     );
   }
 
-  const { data: thread, error: threadError } = await admin
-    .from("threads")
-    .insert({
-      workspace_id: smokeUser.workspaceId,
-      owner_user_id: smokeUser.id,
-      agent_id: agent.id,
-      title: "New chat"
-    })
-    .select("id")
-    .single();
+  const { data: thread, error: threadError } = await createOwnedThread({
+    supabase: admin,
+    workspaceId: smokeUser.workspaceId,
+    userId: smokeUser.id,
+    agentId: agent.id
+  });
 
   if (threadError || !thread) {
     throw new Error(
@@ -2781,13 +2783,12 @@ export async function createSmokeTurn({
     throw new Error("Smoke turn content is required.");
   }
 
-  const { data: thread, error: threadError } = await admin
-    .from("threads")
-    .select("id, workspace_id, owner_user_id, agent_id, title")
-    .eq("id", threadId)
-    .eq("workspace_id", smokeUser.workspaceId)
-    .eq("owner_user_id", smokeUser.id)
-    .maybeSingle();
+  const { data: thread, error: threadError } = await loadOwnedThread({
+    supabase: admin,
+    threadId,
+    workspaceId: smokeUser.workspaceId,
+    userId: smokeUser.id
+  });
 
   if (threadError || !thread) {
     throw new Error(
@@ -2799,14 +2800,12 @@ export async function createSmokeTurn({
     throw new Error("The smoke thread is not bound to an agent.");
   }
 
-  const { data: agent, error: agentError } = await admin
-    .from("agents")
-    .select("id, name, persona_summary, style_prompt, default_model_profile_id")
-    .eq("id", thread.agent_id)
-    .eq("workspace_id", smokeUser.workspaceId)
-    .eq("owner_user_id", smokeUser.id)
-    .eq("status", "active")
-    .maybeSingle();
+  const { data: agent, error: agentError } = await loadOwnedActiveAgent({
+    supabase: admin,
+    agentId: thread.agent_id,
+    workspaceId: smokeUser.workspaceId,
+    userId: smokeUser.id
+  });
 
   if (agentError || !agent) {
     throw new Error(
@@ -3045,11 +3044,12 @@ export async function createSmokeTurn({
     shouldSummarizeTitle: thread.title === "New chat"
   });
 
-  const { error: threadUpdateError } = await admin
-    .from("threads")
-    .update(threadPatch)
-    .eq("id", thread.id)
-    .eq("owner_user_id", smokeUser.id);
+  const { error: threadUpdateError } = await updateOwnedThread({
+    supabase: admin,
+    threadId: thread.id,
+    userId: smokeUser.id,
+    patch: threadPatch
+  });
 
   if (threadUpdateError) {
     throw new Error(
