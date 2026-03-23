@@ -226,6 +226,9 @@
     - `knowledge_scope_ok`
     - `scenario_pack_ok`
   - 也就是说，`P3-1 ~ P3-4` 当前已经不只是零散断言，而开始有了一组阶段聚合 gate
+- `P3` 当前也已进入 close-readiness 复盘阶段：
+  - [memory_upgrade_p3_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p3_close_readiness_v1.0.md)
+    已开始对 `P3-1 ~ P3-5` 的阶段状态做集中判断
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
