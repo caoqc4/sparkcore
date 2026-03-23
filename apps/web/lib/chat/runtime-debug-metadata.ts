@@ -72,7 +72,8 @@ export function buildRuntimeDebugMetadata(
           namespace_id: input.active_memory_namespace.namespace_id,
           primary_layer: input.active_memory_namespace.primary_layer,
           active_layers: input.active_memory_namespace.active_layers,
-          selection_reason: input.active_memory_namespace.selection_reason
+          selection_reason: input.active_memory_namespace.selection_reason,
+          refs: input.active_memory_namespace.refs
         }
       : null,
     thread_compaction: buildThreadCompactionSummary({

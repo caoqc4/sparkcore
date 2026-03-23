@@ -27,6 +27,7 @@ export function buildPlannedGenericMemoryInsertRow(args: {
   sourceTurnId?: string;
   threshold: number;
   target: GenericWriteTarget;
+  namespaceMetadata?: Record<string, unknown>;
 }): Record<string, unknown> {
   const staticProfile = buildPlannedStaticProfileRecord({
     workspaceId: args.workspaceId,
@@ -61,7 +62,8 @@ export function buildPlannedGenericMemoryInsertRow(args: {
       writeMode: args.matchingRequest?.write_mode ?? "upsert",
       threshold: args.threshold,
       recordTarget: args.target.recordTarget,
-      canonicalMemoryType: args.target.canonicalMemoryType
+      canonicalMemoryType: args.target.canonicalMemoryType,
+      namespaceMetadata: args.namespaceMetadata
     })
   };
 }
@@ -76,6 +78,7 @@ export function buildPlannedGenericMemoryUpdateRow(args: {
   threshold: number;
   target: GenericWriteTarget;
   convergenceUpdatedAt: string;
+  namespaceMetadata?: Record<string, unknown>;
 }): MemoryUpsertRow {
   const staticProfile = buildPlannedStaticProfileRecord({
     workspaceId: args.workspaceId,
@@ -98,7 +101,8 @@ export function buildPlannedGenericMemoryUpdateRow(args: {
       threshold: args.threshold,
       convergenceUpdatedAt: args.convergenceUpdatedAt,
       recordTarget: args.target.recordTarget,
-      canonicalMemoryType: args.target.canonicalMemoryType
+      canonicalMemoryType: args.target.canonicalMemoryType,
+      namespaceMetadata: args.namespaceMetadata
     }),
     category: args.candidate.memory_type as MemoryType,
     key: staticProfile.key ?? LEGACY_MEMORY_KEY,

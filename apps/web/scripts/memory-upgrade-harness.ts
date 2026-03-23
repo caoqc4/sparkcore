@@ -35,9 +35,14 @@ import {
   buildRuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
 import {
+  buildMemoryNamespaceScopedMetadata,
   isMemoryWithinNamespace,
   resolveActiveMemoryNamespace
 } from "@/lib/chat/memory-namespace";
+import {
+  buildGenericPlannerMemoryInsertMetadata,
+  buildRelationshipPlannerMemoryMetadata
+} from "@/lib/chat/memory-write-metadata";
 import { buildCompactedThreadSummary } from "@/lib/chat/thread-compaction";
 import {
   buildPlannedRelationshipMemoryRecord,
@@ -454,6 +459,45 @@ function main() {
       namespace: activeMemoryNamespace
     }),
     "Expected namespace helper to reject out-of-namespace project-scoped memory."
+  );
+  const namespaceWriteMetadata = buildMemoryNamespaceScopedMetadata({
+    namespace: activeMemoryNamespace
+  });
+  expect(
+    namespaceWriteMetadata.project_id === "project-1",
+    "Expected namespace-scoped write metadata to preserve project scope."
+  );
+  const genericPlannerMetadata = buildGenericPlannerMemoryInsertMetadata({
+    reason: "Thread-local preference shift.",
+    threshold: 0.8,
+    recordTarget: "memory_record",
+    canonicalMemoryType: "profile",
+    namespaceMetadata: namespaceWriteMetadata
+  });
+  expect(
+    genericPlannerMetadata.project_id === "project-1",
+    "Expected generic planner metadata to carry namespace project scope."
+  );
+  const relationshipPlannerMetadata = buildRelationshipPlannerMemoryMetadata(
+    {
+      kind: "relationship_memory",
+      memory_type: "relationship",
+      relationship_key: "agent_nickname",
+      relationship_scope: "user_agent",
+      candidate_content: "小助手",
+      reason: "The user explicitly proposed a stable nickname for this agent.",
+      confidence: 0.96,
+      source_turn_id: "msg-1",
+      target_agent_id: "agent-1",
+      target_thread_id: null,
+      dedupe_key: "relationship.agent_nickname:小助手",
+      write_mode: "upsert"
+    },
+    namespaceWriteMetadata
+  );
+  expect(
+    relationshipPlannerMetadata.project_id === "project-1",
+    "Expected relationship planner metadata to carry namespace project scope."
   );
   const applicableKnowledge = filterKnowledgeByActiveNamespace({
     knowledge: runtimeKnowledge,

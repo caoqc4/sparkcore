@@ -44,6 +44,11 @@ import {
   buildPlannedRelationshipMemoryRecord,
   buildPlannedThreadStateCandidate
 } from "@/lib/chat/memory-write-record-candidates";
+import {
+  buildMemoryNamespaceScopedMetadata,
+  isMemoryWithinNamespace,
+  type ActiveRuntimeMemoryNamespace
+} from "@/lib/chat/memory-namespace";
 import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 import {
   insertMemoryItem,
@@ -356,7 +361,8 @@ export async function upsertSingleSlotMemory({
   stability,
   targetAgentId = null,
   targetThreadId = null,
-  metadata = {}
+  metadata = {},
+  activeNamespace = null
 }: {
   workspaceId: string;
   userId: string;
@@ -371,6 +377,7 @@ export async function upsertSingleSlotMemory({
   targetAgentId?: string | null;
   targetThreadId?: string | null;
   metadata?: Record<string, unknown>;
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null;
 }) {
   const path = `${category}.${key}`;
 
@@ -408,6 +415,11 @@ export async function upsertSingleSlotMemory({
 
   const activeRows = ((existingRows ?? []) as StoredMemory[]).filter((row) =>
     isMemoryActive(row)
+  ).filter((row) =>
+    isMemoryWithinNamespace({
+      memory: row,
+      namespace: activeNamespace ?? null
+    })
   );
   const sameValueRow = activeRows.find((row) => {
     const rowValue =
@@ -526,6 +538,7 @@ export async function executeMemoryWriteRequests({
   agentId,
   threadId,
   threadStateRepository,
+  activeNamespace = null,
   requests
 }: {
   workspaceId: string;
@@ -533,6 +546,7 @@ export async function executeMemoryWriteRequests({
   agentId: string | null;
   threadId?: string | null;
   threadStateRepository?: ThreadStateRepository | null;
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null;
   requests: RuntimeMemoryWriteRequest[];
 }): Promise<MemoryWriteOutcome> {
   if (requests.length === 0) {
@@ -565,6 +579,9 @@ export async function executeMemoryWriteRequests({
 
   const relationshipCreatedTypes: MemoryUsageType[] = [];
   const relationshipUpdatedTypes: MemoryUsageType[] = [];
+  const namespaceMetadata = buildMemoryNamespaceScopedMetadata({
+    namespace: activeNamespace
+  });
 
   for (const request of relationshipRequests) {
     const target = resolvePlannedMemoryWriteTarget(request);
@@ -587,8 +604,9 @@ export async function executeMemoryWriteRequests({
       confidence: request.confidence,
       stability:
         request.relationship_key === "user_address_style" ? "medium" : "high",
+      activeNamespace,
       metadata: {
-        ...buildRelationshipPlannerMemoryMetadata(request),
+        ...buildRelationshipPlannerMemoryMetadata(request, namespaceMetadata),
         record_target: target.recordTarget,
         semantic_subject_id: relationshipRecord.subject.entity_id
       }
@@ -722,6 +740,12 @@ export async function executeMemoryWriteRequests({
 
   const activeExistingMemories = ((existingMemories ?? []) as StoredMemory[])
     .filter((memory) => isMemoryActive(memory))
+    .filter((memory) =>
+      isMemoryWithinNamespace({
+        memory,
+        namespace: activeNamespace
+      })
+    )
     .map((memory) => ({
       ...memory,
       normalized_content: normalizeMemoryContent(memory.content)
@@ -762,7 +786,8 @@ export async function executeMemoryWriteRequests({
           matchingRequest,
           sourceTurnId,
           threshold: MEMORY_CONFIDENCE_THRESHOLD,
-          target
+          target,
+          namespaceMetadata
         })
       );
       continue;
@@ -782,7 +807,8 @@ export async function executeMemoryWriteRequests({
         userId,
         threshold: MEMORY_CONFIDENCE_THRESHOLD,
         target,
-        convergenceUpdatedAt: new Date().toISOString()
+        convergenceUpdatedAt: new Date().toISOString(),
+        namespaceMetadata
       })
     );
   }

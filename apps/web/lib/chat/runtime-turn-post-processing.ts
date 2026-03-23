@@ -9,6 +9,7 @@ import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { executeMemoryWriteRequests } from "@/lib/chat/memory-write";
+import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import { createAdminThreadStateRepository } from "@/lib/chat/thread-state-admin-repository";
 
 type AssistantPostProcessingTarget = {
@@ -54,6 +55,7 @@ export async function processAssistantRuntimePostProcessing(
   args: AssistantPostProcessingTarget & {
     agentId: string;
     sourceMessageId: string;
+    activeMemoryNamespace?: ActiveRuntimeMemoryNamespace | null;
     runtimeTurnResult: Pick<
       RuntimeTurnResult,
       "memory_write_requests" | "follow_up_requests"
@@ -67,6 +69,7 @@ export async function processAssistantRuntimePostProcessing(
       agentId: args.agentId,
       threadId: args.threadId,
       threadStateRepository: createAdminThreadStateRepository(),
+      activeNamespace: args.activeMemoryNamespace ?? null,
       requests: args.runtimeTurnResult.memory_write_requests
     }),
     executeFollowUpRequests({

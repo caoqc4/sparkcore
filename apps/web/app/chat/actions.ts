@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
 import { classifyStoredMemorySemanticTarget } from "@/lib/chat/memory-records";
+import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import {
   canTransitionMemoryStatus,
   getMemoryStatus,
@@ -1099,6 +1100,10 @@ export async function sendMessage(
         userId: user.id,
         agentId: thread.agent_id,
         sourceMessageId: insertedMessage.id,
+        activeMemoryNamespace:
+          ((runtimeTurnResult.debug_metadata as {
+            memory_namespace?: ActiveRuntimeMemoryNamespace | null;
+          } | undefined)?.memory_namespace ?? null),
         runtimeTurnResult
       });
     } catch (memoryError) {

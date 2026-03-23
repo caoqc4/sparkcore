@@ -140,6 +140,10 @@
   - `apps/web/lib/chat/memory-recall.ts` 当前已开始支持 `activeNamespace` 输入，并先按 namespace 过滤可参与 recall 的 memory row
   - `apps/web/lib/chat/runtime-prepared-turn.ts` / `apps/web/lib/chat/runtime.ts` 当前也已开始把 active namespace 传入 memory preparation 主路径
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 in-namespace / out-of-namespace project memory 的过滤行为
+  - `apps/web/lib/chat/memory-write.ts` 当前也已开始支持 `activeNamespace` 输入，并在 generic / relationship write 执行中先按 namespace 过滤 existing row，避免 project/world 跨 namespace 的错误 refresh / dedupe
+  - `apps/web/lib/chat/memory-namespace.ts` 当前也已开始提供 namespace-scoped write metadata helper，把 `project / world` scope 真实写入 planner metadata
+  - `apps/web/lib/chat/runtime-turn-post-processing.ts` / `apps/web/app/chat/actions.ts` 当前也已开始把 runtime 期的 active namespace 传入 post-processing write path
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 namespace-scoped planner metadata
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

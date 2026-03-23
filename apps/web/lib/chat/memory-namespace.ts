@@ -98,6 +98,23 @@ export function buildMemoryNamespaceSummary(args: {
   };
 }
 
+export function buildMemoryNamespaceScopedMetadata(args: {
+  namespace: ActiveRuntimeMemoryNamespace | null | undefined;
+}) {
+  if (!args.namespace) {
+    return {};
+  }
+
+  return {
+    active_memory_namespace_id: args.namespace.namespace_id,
+    active_memory_namespace_primary_layer: args.namespace.primary_layer,
+    active_memory_namespace_layers: args.namespace.active_layers,
+    active_memory_namespace_selection_reason: args.namespace.selection_reason,
+    project_id: getNamespaceRefId(args.namespace, "project"),
+    world_id: getNamespaceRefId(args.namespace, "world")
+  };
+}
+
 function getNamespaceRefId(
   namespace: ActiveMemoryNamespace | null | undefined,
   layer: MemoryNamespaceLayer

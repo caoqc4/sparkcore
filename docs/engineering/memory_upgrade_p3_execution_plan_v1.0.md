@@ -84,6 +84,15 @@ P3 首批要做的，不是完整多 Agent 共享状态引擎，而是把 namesp
   - in-namespace project memory 会被保留
   - out-of-namespace project memory 会被过滤
 
+当前已成立的第二刀代码事实：
+
+- `apps/web/lib/chat/memory-write.ts` 当前已开始支持 `activeNamespace` 输入，并在 generic / relationship write 执行中先按 namespace 过滤可参与去重或 single-slot refresh 的 existing row
+- `apps/web/lib/chat/memory-namespace.ts` 当前也已开始提供 namespace-scoped write metadata helper，用于把 `project / world` scope 真实写入 planner metadata
+- `apps/web/lib/chat/runtime-turn-post-processing.ts` / `apps/web/app/chat/actions.ts` 当前也已开始把 runtime 期的 active namespace 传入 post-processing write path
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - generic planner metadata 会携带 namespace project scope
+  - relationship planner metadata 会携带 namespace project scope
+
 ### 4.2 Thread retention strategy v1
 
 P3 首批要把 `Thread Compaction` 再往前推进一层，形成最小 retention 策略。

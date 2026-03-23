@@ -2,9 +2,11 @@ import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
 import type { PlannedMemoryRecordTarget } from "@/lib/chat/memory-write-targets";
 
 export function buildRelationshipPlannerMemoryMetadata(
-  request: Extract<RuntimeMemoryWriteRequest, { kind: "relationship_memory" }>
-) {
+  request: Extract<RuntimeMemoryWriteRequest, { kind: "relationship_memory" }>,
+  namespaceMetadata?: Record<string, unknown>
+): Record<string, unknown> {
   return {
+    ...(namespaceMetadata ?? {}),
     source: "runtime_planner",
     record_target: "memory_record",
     semantic_target: "memory_record",
@@ -24,8 +26,10 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
   threshold: number;
   recordTarget: PlannedMemoryRecordTarget;
   canonicalMemoryType?: string | null;
-}) {
+  namespaceMetadata?: Record<string, unknown>;
+}): Record<string, unknown> {
   return {
+    ...(args.namespaceMetadata ?? {}),
     extraction_reason: args.reason,
     source: "runtime_planner",
     record_target: args.recordTarget,
@@ -46,9 +50,11 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
   convergenceUpdatedAt: string;
   recordTarget: PlannedMemoryRecordTarget;
   canonicalMemoryType?: string | null;
-}) {
+  namespaceMetadata?: Record<string, unknown>;
+}): Record<string, unknown> {
   return {
     ...(args.existingMetadata ?? {}),
+    ...(args.namespaceMetadata ?? {}),
     extraction_reason: args.reason,
     source: "runtime_planner",
     record_target: args.recordTarget,
