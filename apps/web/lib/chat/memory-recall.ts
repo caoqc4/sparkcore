@@ -13,7 +13,10 @@ import {
   type MemoryUsageType,
   scoreMemoryRelevance
 } from "@/lib/chat/memory-shared";
-import { loadRecentOwnedRelationshipMemories } from "@/lib/chat/memory-item-read";
+import {
+  loadRecentOwnedMemoriesByTypes,
+  loadRecentOwnedRelationshipMemories
+} from "@/lib/chat/memory-item-read";
 import { createClient } from "@/lib/supabase/server";
 
 function isMemoryApplicableToRecall({
@@ -233,19 +236,16 @@ export async function recallUserAddressStyle({
   } | null;
 }> {
   const supabase = providedSupabase ?? (await createClient());
-  const { data, error } = await supabase
-    .from("memory_items")
-    .select(
-      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at"
-    )
-    .eq("workspace_id", workspaceId)
-    .eq("user_id", userId)
-    .eq("category", "relationship")
-    .eq("key", "user_address_style")
-    .eq("scope", "user_agent")
-    .eq("target_agent_id", agentId)
-    .order("created_at", { ascending: false })
-    .limit(10);
+  const { data, error } = await loadRecentOwnedRelationshipMemories({
+    supabase,
+    workspaceId,
+    userId,
+    targetAgentId: agentId,
+    key: "user_address_style",
+    select:
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at",
+    limit: 10
+  });
 
   if (error) {
     throw new Error(
@@ -291,17 +291,15 @@ export async function recallRelevantMemories({
   supabase?: any;
 }): Promise<RecallOutcome> {
   const supabase = providedSupabase ?? (await createClient());
-  const { data, error } = await supabase
-    .from("memory_items")
-    .select(
-      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at"
-    )
-    .eq("workspace_id", workspaceId)
-    .eq("user_id", userId)
-    .in("memory_type", ["profile", "preference"])
-    .gte("confidence", MEMORY_CONFIDENCE_THRESHOLD)
-    .order("created_at", { ascending: false })
-    .limit(60);
+  const { data, error } = await loadRecentOwnedMemoriesByTypes({
+    supabase,
+    workspaceId,
+    userId,
+    memoryTypes: ["profile", "preference"],
+    select:
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at",
+    limit: 60
+  }).gte("confidence", MEMORY_CONFIDENCE_THRESHOLD);
 
   if (error) {
     throw new Error(`Failed to load memory items: ${error.message}`);

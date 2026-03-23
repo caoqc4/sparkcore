@@ -41,7 +41,10 @@ import {
   insertMemoryItems,
   updateMemoryItem
 } from "@/lib/chat/memory-item-persistence";
-import { loadActiveSingleSlotMemoryRows } from "@/lib/chat/memory-item-read";
+import {
+  loadActiveSingleSlotMemoryRows,
+  loadRecentOwnedMemoriesByTypes
+} from "@/lib/chat/memory-item-read";
 import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
 import { createClient } from "@/lib/supabase/server";
 
@@ -585,19 +588,15 @@ export async function executeMemoryWriteRequests({
   );
 
   const supabase = await createClient();
-  const { data: existingMemories } = await supabase
-    .from("memory_items")
-    .select(
-      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at"
-    )
-    .eq("workspace_id", workspaceId)
-    .eq("user_id", userId)
-    .in(
-      "memory_type",
-      Array.from(new Set(normalizedCandidates.map((item) => item.memory_type)))
-    )
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const { data: existingMemories } = await loadRecentOwnedMemoriesByTypes({
+    supabase,
+    workspaceId,
+    userId,
+    memoryTypes: Array.from(new Set(normalizedCandidates.map((item) => item.memory_type))),
+    select:
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at",
+    limit: 50
+  });
 
   const activeExistingMemories = ((existingMemories ?? []) as StoredMemory[])
     .filter((memory) => isMemoryActive(memory))

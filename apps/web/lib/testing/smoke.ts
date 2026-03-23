@@ -7,6 +7,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
 import {
+  loadRecentOwnedMemories,
   loadOwnedMemoryItemByTypeAndContent,
   loadOwnedRelationshipMemoryByValue
 } from "@/lib/chat/memory-item-read";
@@ -2891,18 +2892,33 @@ export async function createSmokeTurn({
     );
   }
 
-  const { data: existingMemories, error: memoriesError } = await admin
-    .from("memory_items")
-    .select(
-      "id, memory_type, content, confidence, category, key, value, scope, status, target_agent_id, target_thread_id, metadata"
-    )
-    .eq("workspace_id", smokeUser.workspaceId)
-    .eq("user_id", smokeUser.id)
-    .order("created_at", { ascending: false });
+  const { data: existingMemories, error: memoriesError } = await loadRecentOwnedMemories({
+    supabase: admin,
+    workspaceId: smokeUser.workspaceId,
+    userId: smokeUser.id,
+    select:
+      "id, memory_type, content, confidence, category, key, value, scope, status, target_agent_id, target_thread_id, metadata",
+    limit: 200
+  });
 
   if (memoriesError) {
     throw new Error(`Failed to load smoke memories: ${memoriesError.message}`);
   }
+
+  const smokeExistingMemories = (existingMemories ?? []) as Array<{
+    id: string;
+    memory_type: "profile" | "preference" | null;
+    content: string;
+    confidence: number;
+    category: string | null;
+    key: string | null;
+    value: string | null;
+    scope: string | null;
+    status: string | null;
+    target_agent_id: string | null;
+    target_thread_id: string | null;
+    metadata: Record<string, unknown> | null;
+  }>;
 
   const { data: existingMessages, error: messagesError } = await admin
     .from("messages")
@@ -2925,7 +2941,7 @@ export async function createSmokeTurn({
   );
 
   const validExistingMemories =
-    existingMemories?.filter((memory) =>
+    smokeExistingMemories.filter((memory) =>
       isSmokeMemoryApplicableToThread({
         memory,
         agentId: ensuredAgent.id,
