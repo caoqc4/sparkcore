@@ -43,6 +43,24 @@ export function getAssistantMemoryMetadata(
   return getAssistantMetadataGroup(metadata, "memory");
 }
 
+export function getAssistantAnswerStrategyMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "answer_strategy_details");
+}
+
+export function getAssistantSessionMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "session");
+}
+
+export function getAssistantFollowUpMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "follow_up");
+}
+
 export function getAssistantMetadataString(
   metadata: Record<string, unknown> | null | undefined,
   key: string
@@ -322,5 +340,80 @@ export function getAssistantUpdatedMemoryCount(
       metadata,
       "updated_memory_count"
     ) ?? 0
+  );
+}
+
+export function getAssistantAnswerStrategySelected(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const strategyMetadata = getAssistantAnswerStrategyMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(strategyMetadata, "selected") ??
+    getAssistantMetadataString(metadata, "answer_strategy")
+  );
+}
+
+export function getAssistantAnswerStrategyReasonCode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const strategyMetadata = getAssistantAnswerStrategyMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(strategyMetadata, "reason_code") ??
+    getAssistantMetadataString(metadata, "answer_strategy_reason_code")
+  );
+}
+
+export function getAssistantAnswerQuestionType(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const strategyMetadata = getAssistantAnswerStrategyMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(strategyMetadata, "question_type") ??
+    getAssistantMetadataString(metadata, "question_type")
+  );
+}
+
+export function getAssistantSessionContinuationReasonCode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const sessionMetadata = getAssistantSessionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(sessionMetadata, "continuation_reason_code") ??
+    getAssistantMetadataString(metadata, "continuation_reason_code")
+  );
+}
+
+export function getAssistantSessionRecentTurnCount(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const sessionMetadata = getAssistantSessionMetadata(metadata);
+
+  return (
+    getAssistantMetadataNumber(sessionMetadata, "recent_turn_count") ??
+    getAssistantMetadataNumber(metadata, "recent_raw_turn_count")
+  );
+}
+
+export function getAssistantSessionContextPressure(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const sessionMetadata = getAssistantSessionMetadata(metadata);
+
+  const groupedValue = getAssistantMetadataString(sessionMetadata, "context_pressure");
+  return groupedValue ?? getAssistantMetadataString(metadata, "approx_context_pressure");
+}
+
+export function getAssistantFollowUpRequestCount(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const followUpMetadata = getAssistantFollowUpMetadata(metadata);
+
+  return (
+    getAssistantMetadataNumber(followUpMetadata, "request_count") ??
+    getAssistantMetadataNumber(metadata, "follow_up_request_count")
   );
 }

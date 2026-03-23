@@ -12,6 +12,7 @@ import {
 } from "@/lib/chat/memory-v2";
 import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
+import { buildRuntimeDebugMetadata } from "@/lib/chat/runtime-debug-metadata";
 import {
   planMemoryWriteRequests,
   planRelationshipMemoryWriteRequests
@@ -3687,26 +3688,18 @@ export async function runPreparedRuntimeTurn({
         }
       }
     ],
-    debug_metadata: {
+    debug_metadata: buildRuntimeDebugMetadata({
       model_profile_id: modelProfile.id,
-      answer_strategy: {
-        selected: answerStrategy,
-        reason_code: answerStrategyReasonCode
-      },
-      memory: {
-        recalled_count: allRecalledMemories.length,
-        write_request_count: memoryWriteRequests.length
-      },
-      follow_up: {
-        request_count: followUpRequests.length
-      },
-      session: {
-        continuation_reason_code: continuationReasonCode,
-        recent_turn_count: recentRawTurnCount,
-        context_pressure: approxContextPressure
-      },
-      reply_language: replyLanguage,
-    }
+      answer_strategy: answerStrategy,
+      answer_strategy_reason_code: answerStrategyReasonCode,
+      recalled_memory_count: allRecalledMemories.length,
+      memory_write_request_count: memoryWriteRequests.length,
+      follow_up_request_count: followUpRequests.length,
+      continuation_reason_code: continuationReasonCode,
+      recent_turn_count: recentRawTurnCount,
+      context_pressure: approxContextPressure,
+      reply_language: replyLanguage
+    })
   };
 
   try {
