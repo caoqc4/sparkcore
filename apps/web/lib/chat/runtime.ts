@@ -2443,6 +2443,12 @@ function buildMemorySemanticSummaryPrompt(args: {
       ? `本轮记忆语义摘要：primary_layer = ${semanticSummary.primary_layer ?? "none"}；observed_layers = ${semanticSummary.observed_layers.join(", ") || "none"}。`
       : `Memory semantic summary for this turn: primary_layer = ${semanticSummary.primary_layer ?? "none"}; observed_layers = ${semanticSummary.observed_layers.join(", ") || "none"}.`
   ];
+  const hasEpisodeMemory = args.recalledMemories.some(
+    (memory) => memory.memory_type === "episode"
+  );
+  const hasTimelineMemory = args.recalledMemories.some(
+    (memory) => memory.memory_type === "timeline"
+  );
 
   if (semanticSummary.primary_layer === "thread_state") {
     sections.push(
@@ -2461,6 +2467,22 @@ function buildMemorySemanticSummaryPrompt(args: {
       isZh
         ? "优先把关系/事件类记忆当作当前问题的直接事实来源，不要被更远的默认 profile 稀释。"
         : "Treat relationship or event-like memory as the direct fact source for this turn before falling back to more distant profile defaults."
+    );
+  }
+
+  if (hasEpisodeMemory) {
+    sections.push(
+      isZh
+        ? "如果命中 episode 记忆，把它当作与当前问题直接相关的过去事件或阶段事实，优先用来支撑当前回答，不要把它压扁成泛泛偏好。"
+        : "When episode memory is present, treat it as a concrete past event or stage fact tied to the current question instead of flattening it into a generic preference."
+    );
+  }
+
+  if (hasTimelineMemory) {
+    sections.push(
+      isZh
+        ? "如果命中 timeline 记忆，把它当作“变化过程/阶段演进”的线索，用来解释事情是怎么一路发展到现在，而不是只摘一条静态事实。"
+        : "When timeline memory is present, use it as a cue for how the situation evolved over time rather than reducing it to a single static fact."
     );
   }
 

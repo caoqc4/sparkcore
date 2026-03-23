@@ -429,6 +429,50 @@ function main() {
     "Expected system prompt assembly to include memory semantic summary."
   );
 
+  const routeAwarePrompt = buildAgentSystemPrompt(
+    {
+      packet_version: "v1",
+      identity: {
+        agent_id: "agent-1",
+        agent_name: "Helper"
+      },
+      persona_summary: "Helpful assistant",
+      style_guidance: "Be concise",
+      relationship_stance: {
+        effective: "friendly",
+        source: "relationship_memory"
+      },
+      language_behavior: {
+        reply_language_target: "en",
+        reply_language_source: "latest-user-message",
+        same_thread_continuation_preferred: true
+      }
+    },
+    "Keep answers grounded.",
+    "How did this change over time?",
+    [
+      {
+        memory_type: "episode",
+        content: "The user switched from weekly planning to daily check-ins last month.",
+        confidence: 0.88
+      },
+      {
+        memory_type: "timeline",
+        content: "The planning cadence gradually shifted over several weeks.",
+        confidence: 0.84
+      }
+    ],
+    "en"
+  );
+  expect(
+    routeAwarePrompt.includes("When episode memory is present"),
+    "Expected system prompt assembly to include episode-memory guidance."
+  );
+  expect(
+    routeAwarePrompt.includes("When timeline memory is present"),
+    "Expected system prompt assembly to include timeline-memory guidance."
+  );
+
   console.log(
     JSON.stringify(
       {
@@ -469,6 +513,14 @@ function main() {
           ),
           includes_primary_layer: systemPrompt.includes(
             "primary_layer = thread_state"
+          )
+        },
+        system_prompt_route_guidance: {
+          includes_episode_guidance: routeAwarePrompt.includes(
+            "When episode memory is present"
+          ),
+          includes_timeline_guidance: routeAwarePrompt.includes(
+            "When timeline memory is present"
           )
         }
       },

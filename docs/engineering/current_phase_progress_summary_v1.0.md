@@ -134,6 +134,7 @@
   - `buildRecalledEpisodeMemoryFromStoredMemory(...)`
   - `buildRecalledTimelineMemoryFromStoredMemory(...)`
     已开始把 legacy `memory_record` 语义转成最小 recalled item
+  - runtime `buildAgentSystemPrompt(...)` 当前也已开始在命中 `episode / timeline` 时注入对应 route-aware 指令
   - `memory-upgrade-harness.ts` 当前也已开始显式校验这条 `P1-1` retrieval 线
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`

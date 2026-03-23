@@ -89,6 +89,10 @@ P1 首批要做的，是把：
 - `memory-upgrade-harness.ts` 当前也已开始显式校验：
   - `episode / timeline` adapter
   - `episode / timeline` route selection
+- runtime `buildAgentSystemPrompt(...)` 当前也已开始在命中：
+  - `episode`
+  - `timeline`
+  时注入对应 route-aware 指令，确保它们不只“被召回”，也真正影响 context assembly
 
 ### 4.2 DynamicProfile 最小真实化
 
