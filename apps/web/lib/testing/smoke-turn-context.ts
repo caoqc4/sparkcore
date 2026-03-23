@@ -103,3 +103,5 @@ export async function loadSmokeTurnContext(args: {
     existingMessages
   };
 }
+
+export type SmokeTurnContext = Awaited<ReturnType<typeof loadSmokeTurnContext>>;
