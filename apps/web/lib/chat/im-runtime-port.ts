@@ -13,11 +13,11 @@ import {
   processAssistantRuntimePostProcessing
 } from "@/lib/chat/runtime-turn-post-processing";
 import { buildImRuntimeTurnInput } from "@/lib/chat/runtime-input";
+import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import { insertRuntimeUserMessage } from "@/lib/chat/runtime-user-message-persistence";
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
 import { resolveRoleProfile } from "@/lib/chat/role-service";
 import { runAgentTurn } from "@/lib/chat/runtime";
-import { summarizeThreadTitle } from "@/lib/chat/thread-title";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 async function runImRuntimeTurnWithSupabase(args: {
@@ -89,16 +89,10 @@ async function runImRuntimeTurnWithSupabase(args: {
     throw new Error(insertError?.message ?? "Failed to store inbound IM user message.");
   }
 
-  const threadPatch: {
-    updated_at: string;
-    title?: string;
-  } = {
-    updated_at: new Date().toISOString()
-  };
-
-  if (thread.title === "New chat") {
-    threadPatch.title = summarizeThreadTitle(trimmedContent);
-  }
+  const threadPatch = buildThreadActivityPatch({
+    content: trimmedContent,
+    shouldSummarizeTitle: thread.title === "New chat"
+  });
 
   await supabase
     .from("threads")

@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
-import { summarizeThreadTitle } from "@/lib/chat/thread-title";
+import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import {
   canTransitionMemoryStatus,
   getMemoryStatus,
@@ -1009,16 +1009,10 @@ export async function sendMessage(
     };
   }
 
-  const threadPatch: {
-    updated_at: string;
-    title?: string;
-  } = {
-    updated_at: new Date().toISOString()
-  };
-
-  if (thread.title === "New chat") {
-    threadPatch.title = summarizeThreadTitle(trimmedContent);
-  }
+  const threadPatch = buildThreadActivityPatch({
+    content: trimmedContent,
+    shouldSummarizeTitle: thread.title === "New chat"
+  });
 
   await supabase
     .from("threads")

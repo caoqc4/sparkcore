@@ -6,7 +6,7 @@ import {
 import { NextResponse, type NextRequest } from "next/server";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
-import { summarizeThreadTitle } from "@/lib/chat/thread-title";
+import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import { getSupabaseEnv } from "@/lib/env";
 import { getAssistantDetectedReplyLanguage } from "@/lib/chat/assistant-message-metadata-read";
 import {
@@ -3040,13 +3040,10 @@ export async function createSmokeTurn({
 
   const ensuredUserMessage = insertedUserMessage;
 
-  const threadPatch: { updated_at: string; title?: string } = {
-    updated_at: new Date().toISOString()
-  };
-
-  if (thread.title === "New chat") {
-    threadPatch.title = summarizeThreadTitle(trimmedContent);
-  }
+  const threadPatch = buildThreadActivityPatch({
+    content: trimmedContent,
+    shouldSummarizeTitle: thread.title === "New chat"
+  });
 
   const { error: threadUpdateError } = await admin
     .from("threads")
