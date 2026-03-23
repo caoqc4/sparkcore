@@ -241,6 +241,8 @@
     - `P3-1 ~ P3-4`：接近完成
     - `P3-5`：第一版已成立
   - 整体 `P3` 当前约在 `85%`，已进入更明确的 close-readiness 区间
+  - [memory_upgrade_p3_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p3_close_note_v1.0.md)
+    当前也已新增，用于正式收口“P3 已达到 close-ready，剩余项转入非阻塞尾项”的阶段判断
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
