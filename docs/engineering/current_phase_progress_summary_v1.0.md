@@ -135,6 +135,11 @@
 - `memory_upgrade_p2_close_readiness_v1.0.md` 当前也已新增，用于对 `P2-1 ~ P2-5` 做整体完成度复盘，避免继续无边界扩张 `P2`
 - `memory_upgrade_p2_close_note_v1.0.md` 当前也已新增，用于正式收口“P2 已达到 close-ready，剩余项转入非阻塞尾项”的阶段判断
 - `memory_upgrade_p3_execution_plan_v1.0.md` 当前也已新增，用于把下一阶段从 `P2` 已成立 seam 推进成正式执行起点
+- `P3-1 Namespace boundary expansion` 当前也已开始进入真实实现：
+  - `apps/web/lib/chat/memory-namespace.ts` 当前已开始提供 namespace-aware memory applicability 判断
+  - `apps/web/lib/chat/memory-recall.ts` 当前已开始支持 `activeNamespace` 输入，并先按 namespace 过滤可参与 recall 的 memory row
+  - `apps/web/lib/chat/runtime-prepared-turn.ts` / `apps/web/lib/chat/runtime.ts` 当前也已开始把 active namespace 传入 memory preparation 主路径
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 in-namespace / out-of-namespace project memory 的过滤行为
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

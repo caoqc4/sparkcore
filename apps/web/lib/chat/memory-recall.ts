@@ -32,6 +32,8 @@ import {
   isStoredMemoryRelationshipMemoryRecord,
   isStoredMemorySemanticTarget
 } from "@/lib/chat/memory-records";
+import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
+import { isMemoryWithinNamespace } from "@/lib/chat/memory-namespace";
 import { createClient } from "@/lib/supabase/server";
 
 export function selectMemoryRecallRoutes(args: {
@@ -306,6 +308,7 @@ export async function recallRelevantMemories({
   latestUserMessage,
   hasThreadState = false,
   allowDistantFallback = true,
+  activeNamespace = null,
   supabase: providedSupabase
 }: {
   workspaceId: string;
@@ -315,6 +318,7 @@ export async function recallRelevantMemories({
   latestUserMessage: string;
   hasThreadState?: boolean;
   allowDistantFallback?: boolean;
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null;
   supabase?: any;
 }): Promise<RecallOutcome> {
   const appliedRoutes = selectMemoryRecallRoutes({
@@ -344,6 +348,12 @@ export async function recallRelevantMemories({
         memory,
         agentId,
         threadId
+      })
+    )
+    .filter((memory) =>
+      isMemoryWithinNamespace({
+        memory,
+        namespace: activeNamespace
       })
     )
     .filter(
@@ -386,6 +396,12 @@ export async function recallRelevantMemories({
         memory,
         agentId,
         threadId
+      })
+    )
+    .filter((memory) =>
+      isMemoryWithinNamespace({
+        memory,
+        namespace: activeNamespace
       })
     )
     .filter((memory) => isStoredMemoryGenericMemoryRecord(memory));
@@ -585,6 +601,7 @@ export async function loadRuntimeMemoryContext({
   sameThreadContinuity,
   relationshipStylePrompt,
   threadState,
+  activeNamespace = null,
   supabase: providedSupabase
 }: {
   workspaceId: string;
@@ -596,6 +613,7 @@ export async function loadRuntimeMemoryContext({
   sameThreadContinuity: boolean;
   relationshipStylePrompt: boolean;
   threadState?: ThreadStateRecord | null;
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null;
   supabase?: any;
 }): Promise<RuntimeMemoryContext> {
   const emptyMemoryRecall: RecallOutcome = {
@@ -643,6 +661,7 @@ export async function loadRuntimeMemoryContext({
     latestUserMessage,
     hasThreadState: threadStateRecall.applied,
     allowDistantFallback: !preferSameThreadContinuation,
+    activeNamespace,
     supabase: providedSupabase
   });
 

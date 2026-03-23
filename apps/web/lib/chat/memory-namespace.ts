@@ -1,5 +1,6 @@
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
+import { getMemoryScope } from "@/lib/chat/memory-v2";
 import {
   buildActiveMemoryNamespace,
   type ActiveMemoryNamespace,
@@ -8,6 +9,14 @@ import {
 
 export type ActiveRuntimeMemoryNamespace = ActiveMemoryNamespace & {
   selection_reason: "session_and_knowledge_scope";
+};
+
+type NamespaceScopedMemoryLike = {
+  metadata?: Record<string, unknown> | null;
+  subject_user_id?: string | null;
+  target_agent_id?: string | null;
+  target_thread_id?: string | null;
+  scope?: string | null;
 };
 
 function formatNamespaceLayer(layer: MemoryNamespaceLayer, isZh: boolean) {
@@ -87,4 +96,77 @@ export function buildMemoryNamespaceSummary(args: {
     active_layers: args.namespace.active_layers,
     selection_reason: args.namespace.selection_reason
   };
+}
+
+function getNamespaceRefId(
+  namespace: ActiveMemoryNamespace | null | undefined,
+  layer: MemoryNamespaceLayer
+) {
+  return namespace?.refs.find((ref) => ref.layer === layer)?.entity_id ?? null;
+}
+
+function getScopedMetadataId(
+  metadata: Record<string, unknown> | null | undefined,
+  key: string
+) {
+  const value = metadata?.[key];
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+export function isMemoryWithinNamespace(args: {
+  memory: NamespaceScopedMemoryLike;
+  namespace: ActiveMemoryNamespace | null | undefined;
+}) {
+  if (!args.namespace) {
+    return true;
+  }
+
+  const userId = getNamespaceRefId(args.namespace, "user");
+  const agentId = getNamespaceRefId(args.namespace, "agent");
+  const threadId = getNamespaceRefId(args.namespace, "thread");
+  const projectId = getNamespaceRefId(args.namespace, "project");
+  const worldId = getNamespaceRefId(args.namespace, "world");
+  const memoryProjectId = getScopedMetadataId(args.memory.metadata, "project_id");
+  const memoryWorldId = getScopedMetadataId(args.memory.metadata, "world_id");
+
+  if (memoryProjectId && projectId && memoryProjectId !== projectId) {
+    return false;
+  }
+
+  if (memoryWorldId && worldId && memoryWorldId !== worldId) {
+    return false;
+  }
+
+  if (
+    typeof args.memory.subject_user_id === "string" &&
+    args.memory.subject_user_id.length > 0 &&
+    userId &&
+    args.memory.subject_user_id !== userId
+  ) {
+    return false;
+  }
+
+  const scope = getMemoryScope(args.memory);
+
+  if (
+    scope === "user_agent" &&
+    typeof args.memory.target_agent_id === "string" &&
+    args.memory.target_agent_id.length > 0 &&
+    agentId &&
+    args.memory.target_agent_id !== agentId
+  ) {
+    return false;
+  }
+
+  if (
+    scope === "thread_local" &&
+    typeof args.memory.target_thread_id === "string" &&
+    args.memory.target_thread_id.length > 0 &&
+    threadId &&
+    args.memory.target_thread_id !== threadId
+  ) {
+    return false;
+  }
+
+  return true;
 }

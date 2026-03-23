@@ -75,6 +75,15 @@ P3 首批要做的，不是完整多 Agent 共享状态引擎，而是把 namesp
 - 至少一条 write / target decision 开始显式受 namespace 影响
 - `project / world` 不再只作为 metadata 可见层存在
 
+当前已成立的第一刀代码事实：
+
+- `apps/web/lib/chat/memory-namespace.ts` 当前已开始提供 namespace-aware memory applicability 判断
+- `apps/web/lib/chat/memory-recall.ts` 当前已开始支持 `activeNamespace` 输入，并先按 namespace 过滤可参与 recall 的 memory row
+- `apps/web/lib/chat/runtime-prepared-turn.ts` / `apps/web/lib/chat/runtime.ts` 当前已开始把 active namespace 传入 memory preparation 主路径
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - in-namespace project memory 会被保留
+  - out-of-namespace project memory 会被过滤
+
 ### 4.2 Thread retention strategy v1
 
 P3 首批要把 `Thread Compaction` 再往前推进一层，形成最小 retention 策略。

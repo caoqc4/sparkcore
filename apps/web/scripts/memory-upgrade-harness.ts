@@ -34,7 +34,10 @@ import {
   filterKnowledgeByActiveNamespace,
   buildRuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
-import { resolveActiveMemoryNamespace } from "@/lib/chat/memory-namespace";
+import {
+  isMemoryWithinNamespace,
+  resolveActiveMemoryNamespace
+} from "@/lib/chat/memory-namespace";
 import { buildCompactedThreadSummary } from "@/lib/chat/thread-compaction";
 import {
   buildPlannedRelationshipMemoryRecord,
@@ -128,7 +131,20 @@ function main() {
     content: "The user switched from weekly planning to daily check-ins last month.",
     memory_type: "profile",
     category: "project_history",
-    scope: "user_global"
+    scope: "user_global",
+    metadata: {
+      project_id: "project-1"
+    }
+  });
+  const outOfNamespaceEpisodeMemory = createStoredMemory({
+    id: "mem-episode-other",
+    content: "This belongs to another project history track.",
+    memory_type: "profile",
+    category: "project_history",
+    scope: "user_global",
+    metadata: {
+      project_id: "project-other"
+    }
   });
   const legacyDisplayMemory = createStoredMemory({
     id: "mem-legacy-display",
@@ -425,6 +441,20 @@ function main() {
     threadId: "thread-1",
     relevantKnowledge: runtimeKnowledge
   });
+  expect(
+    isMemoryWithinNamespace({
+      memory: episodeMemory,
+      namespace: activeMemoryNamespace
+    }),
+    "Expected namespace helper to allow in-namespace project-scoped memory."
+  );
+  expect(
+    !isMemoryWithinNamespace({
+      memory: outOfNamespaceEpisodeMemory,
+      namespace: activeMemoryNamespace
+    }),
+    "Expected namespace helper to reject out-of-namespace project-scoped memory."
+  );
   const applicableKnowledge = filterKnowledgeByActiveNamespace({
     knowledge: runtimeKnowledge,
     namespace: activeMemoryNamespace

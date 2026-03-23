@@ -3618,6 +3618,12 @@ export async function generateAgentReply({
       messageId: sessionContext.current_message_id,
     });
   const sameThreadContinuity = threadContinuity.hasPriorAssistantTurn;
+  const activeMemoryNamespace = resolveActiveMemoryNamespace({
+    userId,
+    agentId: agent.id,
+    threadId: thread.id,
+    relevantKnowledge: []
+  });
   const runtimeMemoryContext = await prepareRuntimeMemory({
     workspaceId: workspace.id,
     userId,
@@ -3628,6 +3634,7 @@ export async function generateAgentReply({
     sameThreadContinuity,
     relationshipStylePrompt,
     threadState: sessionContext.thread_state,
+    activeNamespace: activeMemoryNamespace,
     supabase
   });
   const memoryRecall = runtimeMemoryContext.memoryRecall;

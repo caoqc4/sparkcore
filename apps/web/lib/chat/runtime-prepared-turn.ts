@@ -2,6 +2,7 @@ import {
   loadRuntimeMemoryContext,
   type RuntimeMemoryContext
 } from "@/lib/chat/memory-recall";
+import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import {
   buildRoleCorePacket,
   type AgentRecord,
@@ -169,6 +170,7 @@ export async function prepareRuntimeMemory(args: {
   sameThreadContinuity: boolean;
   relationshipStylePrompt: boolean;
   threadState?: SessionContext["thread_state"];
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null;
   supabase?: any;
 }): Promise<RuntimeMemoryContext> {
   return loadRuntimeMemoryContext({
@@ -181,6 +183,7 @@ export async function prepareRuntimeMemory(args: {
     sameThreadContinuity: args.sameThreadContinuity,
     relationshipStylePrompt: args.relationshipStylePrompt,
     threadState: args.threadState,
+    activeNamespace: args.activeNamespace ?? null,
     supabase: args.supabase
   });
 }
