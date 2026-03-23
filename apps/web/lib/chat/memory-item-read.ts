@@ -50,3 +50,43 @@ export function loadActiveSingleSlotMemoryRows(args: {
 
   return query;
 }
+
+export function loadOwnedMemoryItemByTypeAndContent(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+  memoryType: string;
+  content: string;
+  select?: string;
+}) {
+  return args.supabase
+    .from("memory_items")
+    .select(args.select ?? "id, metadata")
+    .eq("workspace_id", args.workspaceId)
+    .eq("user_id", args.userId)
+    .eq("memory_type", args.memoryType)
+    .eq("content", args.content)
+    .maybeSingle();
+}
+
+export function loadOwnedRelationshipMemoryByValue(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+  key: string;
+  targetAgentId: string;
+  value: string;
+  select?: string;
+}) {
+  return args.supabase
+    .from("memory_items")
+    .select(args.select ?? "id")
+    .eq("workspace_id", args.workspaceId)
+    .eq("user_id", args.userId)
+    .eq("category", "relationship")
+    .eq("key", args.key)
+    .eq("scope", "user_agent")
+    .eq("target_agent_id", args.targetAgentId)
+    .eq("value", args.value)
+    .maybeSingle();
+}

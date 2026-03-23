@@ -41,6 +41,7 @@ import {
   insertMemoryItems,
   updateMemoryItem
 } from "@/lib/chat/memory-item-persistence";
+import { loadActiveSingleSlotMemoryRows } from "@/lib/chat/memory-item-read";
 import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
 import { createClient } from "@/lib/supabase/server";
 
@@ -374,29 +375,18 @@ export async function upsertSingleSlotMemory({
   }
 
   const supabase = await createClient();
-  let query = supabase
-    .from("memory_items")
-    .select(
+  const { data: existingRows, error: loadError } = await loadActiveSingleSlotMemoryRows({
+    supabase,
+    workspaceId,
+    userId,
+    category,
+    key,
+    scope,
+    targetAgentId,
+    targetThreadId,
+    select:
       "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at"
-    )
-    .eq("workspace_id", workspaceId)
-    .eq("user_id", userId)
-    .eq("category", category)
-    .eq("key", key)
-    .eq("scope", scope);
-
-  query =
-    scope === "user_agent"
-      ? query.eq("target_agent_id", targetAgentId)
-      : query.is("target_agent_id", null);
-  query =
-    scope === "thread_local"
-      ? query.eq("target_thread_id", targetThreadId)
-      : query.is("target_thread_id", null);
-
-  const { data: existingRows, error: loadError } = await query.order("created_at", {
-    ascending: false
-  });
+  }).order("created_at", { ascending: false });
   if (loadError) {
     throw new Error(`Failed to load single-slot memories: ${loadError.message}`);
   }

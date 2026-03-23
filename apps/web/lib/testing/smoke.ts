@@ -7,6 +7,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
 import {
+  loadOwnedMemoryItemByTypeAndContent,
+  loadOwnedRelationshipMemoryByValue
+} from "@/lib/chat/memory-item-read";
+import {
   insertMemoryItem,
   updateMemoryItem
 } from "@/lib/chat/memory-item-persistence";
@@ -3119,14 +3123,14 @@ export async function createSmokeTurn({
   const loweredContent = trimmedContent.toLowerCase();
 
   async function upsertMemory(memoryType: "profile" | "preference", value: string, confidence: number) {
-    const { data: existingMemory } = await admin
-      .from("memory_items")
-      .select("id, metadata")
-      .eq("workspace_id", smokeUser.workspaceId)
-      .eq("user_id", smokeUser.id)
-      .eq("memory_type", memoryType)
-      .eq("content", value)
-      .maybeSingle();
+    const { data: existingMemory } = await loadOwnedMemoryItemByTypeAndContent({
+      supabase: admin,
+      workspaceId: smokeUser.workspaceId,
+      userId: smokeUser.id,
+      memoryType,
+      content: value,
+      select: "id, metadata"
+    });
 
     if (existingMemory) {
       await updateMemoryItem({
@@ -3248,17 +3252,14 @@ export async function createSmokeTurn({
   }
 
   if (smokeNickname) {
-    const { data: existingNickname } = await admin
-      .from("memory_items")
-      .select("id")
-      .eq("workspace_id", smokeUser.workspaceId)
-      .eq("user_id", smokeUser.id)
-      .eq("category", "relationship")
-      .eq("key", "agent_nickname")
-      .eq("scope", "user_agent")
-      .eq("target_agent_id", ensuredAgent.id)
-      .eq("value", smokeNickname)
-      .maybeSingle();
+    const { data: existingNickname } = await loadOwnedRelationshipMemoryByValue({
+      supabase: admin,
+      workspaceId: smokeUser.workspaceId,
+      userId: smokeUser.id,
+      key: "agent_nickname",
+      targetAgentId: ensuredAgent.id,
+      value: smokeNickname
+    });
 
     if (!existingNickname) {
       await insertRelationshipMemory({
@@ -3272,17 +3273,14 @@ export async function createSmokeTurn({
   }
 
   if (smokePreferredName) {
-    const { data: existingPreferredName } = await admin
-      .from("memory_items")
-      .select("id")
-      .eq("workspace_id", smokeUser.workspaceId)
-      .eq("user_id", smokeUser.id)
-      .eq("category", "relationship")
-      .eq("key", "user_preferred_name")
-      .eq("scope", "user_agent")
-      .eq("target_agent_id", ensuredAgent.id)
-      .eq("value", smokePreferredName)
-      .maybeSingle();
+    const { data: existingPreferredName } = await loadOwnedRelationshipMemoryByValue({
+      supabase: admin,
+      workspaceId: smokeUser.workspaceId,
+      userId: smokeUser.id,
+      key: "user_preferred_name",
+      targetAgentId: ensuredAgent.id,
+      value: smokePreferredName
+    });
 
     if (!existingPreferredName) {
       await insertRelationshipMemory({
@@ -3296,17 +3294,14 @@ export async function createSmokeTurn({
   }
 
   if (smokeUserAddressStyle) {
-    const { data: existingAddressStyle } = await admin
-      .from("memory_items")
-      .select("id")
-      .eq("workspace_id", smokeUser.workspaceId)
-      .eq("user_id", smokeUser.id)
-      .eq("category", "relationship")
-      .eq("key", "user_address_style")
-      .eq("scope", "user_agent")
-      .eq("target_agent_id", ensuredAgent.id)
-      .eq("value", smokeUserAddressStyle)
-      .maybeSingle();
+    const { data: existingAddressStyle } = await loadOwnedRelationshipMemoryByValue({
+      supabase: admin,
+      workspaceId: smokeUser.workspaceId,
+      userId: smokeUser.id,
+      key: "user_address_style",
+      targetAgentId: ensuredAgent.id,
+      value: smokeUserAddressStyle
+    });
 
     if (!existingAddressStyle) {
       await insertRelationshipMemory({
