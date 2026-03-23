@@ -3,22 +3,18 @@ import {
 } from "@/lib/testing/smoke-relationship-context";
 import {
   analyzeSmokeMemoryState,
-  type SmokeMemoryRow
 } from "@/lib/testing/smoke-memory-analysis";
 import {
   getSmokeRecentAssistantReply,
-  type SmokeContinuityReply
 } from "@/lib/testing/smoke-reply-analysis";
 import { getSmokeTurnContinuityContext } from "@/lib/testing/smoke-turn-continuity-context";
 import { selectSmokeRecalledMemories } from "@/lib/testing/smoke-memory-recall-selection";
 import { getSmokeTurnRelationshipContext } from "@/lib/testing/smoke-turn-relationship-context";
-
-type SmokeRuntimeMessage = {
-  role: "user" | "assistant";
-  content: string;
-  status: string;
-  metadata: Record<string, unknown>;
-};
+import type {
+  SmokeContinuityReply,
+  SmokeMemoryRow,
+  SmokeRuntimeMessage
+} from "@/lib/testing/smoke-turn-analysis-types";
 
 export function analyzeSmokeTurnContext({
   trimmedContent,
