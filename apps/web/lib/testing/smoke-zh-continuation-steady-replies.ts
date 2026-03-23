@@ -5,13 +5,18 @@ import {
   isSmokeLightSharedPushPrompt,
   isSmokeOneLineSoftCatchPrompt,
 } from "@/lib/testing/smoke-follow-up-prompts";
-import { buildSmokeZhSoftCatchReply } from "@/lib/testing/smoke-soft-catch-replies";
 import {
   buildSmokeZhBriefSteadyingReply,
   buildSmokeZhCarryForwardReply,
   buildSmokeZhGuidedNextStepReply,
   buildSmokeZhSharedPushReply,
 } from "@/lib/testing/smoke-zh-soft-steady-replies";
+
+function buildSmokeZhSoftCatchReply(userName: string | null) {
+  return userName
+    ? `${userName}，我在，先别一个人扛着。`
+    : "我在，先别一个人扛着。";
+}
 
 export function buildSmokeZhSteadyContinuationReply(args: {
   content: string;

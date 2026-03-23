@@ -14,10 +14,18 @@ import {
 import { buildSmokeRelationshipClosingCoreReply } from "@/lib/testing/smoke-relationship-closing-core";
 import type { SmokeRelationshipReplyInput } from "@/lib/testing/smoke-relationship-reply-types";
 import { buildSmokeRelationshipSupportiveCoreReply } from "@/lib/testing/smoke-relationship-supportive-core";
-import {
-  buildSmokeEnSoftCatchReply,
-  buildSmokeZhSoftCatchReply
-} from "@/lib/testing/smoke-soft-catch-replies";
+
+function buildSmokeZhSoftCatchReply(userName: string | null) {
+  return userName
+    ? `${userName}，我在，先别一个人扛着。`
+    : "我在，先别一个人扛着。";
+}
+
+function buildSmokeEnSoftCatchReply(userName: string | null) {
+  return userName
+    ? `${userName}, I am here, and you do not have to carry this alone.`
+    : "I am here, and you do not have to carry this alone.";
+}
 
 export function buildSmokeRelationshipOrContinuationReply(
   args: SmokeRelationshipReplyInput

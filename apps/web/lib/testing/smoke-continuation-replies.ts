@@ -3,8 +3,22 @@ import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 import { buildSmokeEnDefaultContinuationReply as buildSmokeEnDefaultContinuationReplyByStyle } from "@/lib/testing/smoke-en-continuation-replies";
 import { buildSmokeZhSteadyContinuationReply } from "@/lib/testing/smoke-zh-continuation-steady-replies";
 import { buildSmokeZhBoundaryFollowUpReply } from "@/lib/testing/smoke-zh-boundary-followups";
-import { buildSmokeZhContinuationTail } from "@/lib/testing/smoke-zh-continuation-tail";
 import type { SmokeContinuityReply } from "@/lib/testing/smoke-turn-analysis";
+import { buildSmokeZhContinuationPromptReply } from "@/lib/testing/smoke-zh-continuation-prompt-replies";
+import { buildSmokeZhContinuationStyleReply } from "@/lib/testing/smoke-zh-continuation-style-replies";
+
+function buildSmokeZhContinuationTail(args: {
+  content: string;
+  normalized: string;
+  styleValue: string | null;
+  userName: string | null;
+  recentAssistantReply: SmokeContinuityReply | null;
+}) {
+  return (
+    buildSmokeZhContinuationPromptReply(args) ??
+    buildSmokeZhContinuationStyleReply(args)
+  );
+}
 
 export function buildSmokeZhDefaultContinuationReply(args: {
   content: string;
