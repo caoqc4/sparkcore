@@ -1,9 +1,21 @@
 import {
   getSmokeAnswerStrategy
 } from "@/lib/testing/smoke-answer-strategy";
+import type { SmokeContinuityReply } from "@/lib/testing/smoke-assistant-continuity";
 import { selectSmokeRelationshipMemories } from "@/lib/testing/smoke-relationship-memory-selection";
+import type {
+  SmokeActiveRelationshipMemory,
+  SmokeRelationshipRecallMemoryList
+} from "@/lib/testing/smoke-relationship-memory-types";
 import { getSmokeTurnRelationshipFlags } from "@/lib/testing/smoke-turn-relationship-flags";
-import type { SmokeTurnRelationshipContextInput } from "@/lib/testing/smoke-turn-relationship-context-types";
+
+export type SmokeTurnRelationshipContextInput = {
+  trimmedContent: string;
+  activeMemories: SmokeActiveRelationshipMemory[];
+  agentId: string;
+  recentAssistantReply: SmokeContinuityReply | null;
+  recalledMemories: SmokeRelationshipRecallMemoryList;
+};
 
 export function getSmokeTurnRelationshipContext(args: SmokeTurnRelationshipContextInput) {
   const {
