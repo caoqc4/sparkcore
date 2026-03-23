@@ -16,7 +16,8 @@ import {
   buildRuntimeFollowUpExecutionMetadata,
   buildRuntimeFollowUpRequestMetadata,
   buildRuntimeMemoryWriteOutcomeMetadata,
-  buildRuntimeMemoryWriteRequestMetadata
+  buildRuntimeMemoryWriteRequestMetadata,
+  getRuntimePreviewMetadataGroup
 } from "@/lib/chat/runtime-preview-metadata";
 import { buildImRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
@@ -280,13 +281,17 @@ async function runImRuntimeTurnWithSupabase(args: {
       ) {
         await updateAssistantPreviewMetadata({
           supabase,
-        assistantMessageId: assistantPlaceholder.id,
-        threadId: thread.id,
-        workspaceId: workspace.id,
-        userId: input.user_id,
-        updates: buildRuntimeMemoryWriteOutcomeMetadata(memoryWriteOutcome)
-      });
-    }
+          assistantMessageId: assistantPlaceholder.id,
+          threadId: thread.id,
+          workspaceId: workspace.id,
+          userId: input.user_id,
+          updates: (currentMetadata) =>
+            buildRuntimeMemoryWriteOutcomeMetadata(
+              memoryWriteOutcome,
+              getRuntimePreviewMetadataGroup(currentMetadata, "runtime_memory_writes")
+            )
+        });
+      }
 
       if (followUpExecutionResults.length > 0) {
         await updateAssistantPreviewMetadata({

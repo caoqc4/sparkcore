@@ -4,7 +4,9 @@ export async function updateAssistantPreviewMetadata(args: {
   threadId: string;
   workspaceId: string;
   userId: string;
-  updates: Record<string, unknown>;
+  updates:
+    | Record<string, unknown>
+    | ((currentMetadata: Record<string, unknown> | null) => Record<string, unknown>);
 }) {
   const { data: assistantMessage } = await args.supabase
     .from("messages")
@@ -15,12 +17,23 @@ export async function updateAssistantPreviewMetadata(args: {
     .eq("user_id", args.userId)
     .maybeSingle();
 
+  const currentMetadata =
+    assistantMessage?.metadata &&
+    typeof assistantMessage.metadata === "object" &&
+    !Array.isArray(assistantMessage.metadata)
+      ? (assistantMessage.metadata as Record<string, unknown>)
+      : null;
+  const nextUpdates =
+    typeof args.updates === "function"
+      ? args.updates(currentMetadata)
+      : args.updates;
+
   await args.supabase
     .from("messages")
     .update({
       metadata: {
-        ...(assistantMessage?.metadata ?? {}),
-        ...args.updates
+        ...(currentMetadata ?? {}),
+        ...nextUpdates
       },
       updated_at: new Date().toISOString()
     })

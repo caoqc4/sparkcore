@@ -1242,28 +1242,20 @@ export async function sendMessage(
         memoryWriteOutcome.createdCount > 0 ||
         memoryWriteOutcome.updatedCount > 0
       ) {
-        const { data: assistantMessage } = await supabase
-          .from("messages")
-          .select("metadata")
-          .eq("id", assistantPlaceholder.id)
-          .eq("thread_id", thread.id)
-          .eq("workspace_id", workspace.id)
-          .eq("user_id", user.id)
-          .maybeSingle();
-
         await updateAssistantPreviewMetadata({
           supabase,
           assistantMessageId: assistantPlaceholder.id,
           threadId: thread.id,
           workspaceId: workspace.id,
           userId: user.id,
-          updates: buildRuntimeMemoryWriteOutcomeMetadata(
-            memoryWriteOutcome,
-            getRuntimePreviewMetadataGroup(
-              assistantMessage?.metadata,
-              "runtime_memory_writes"
+          updates: (currentMetadata) =>
+            buildRuntimeMemoryWriteOutcomeMetadata(
+              memoryWriteOutcome,
+              getRuntimePreviewMetadataGroup(
+                currentMetadata,
+                "runtime_memory_writes"
+              )
             )
-          )
         });
       }
 
