@@ -46,6 +46,10 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   knowledge_count?: number;
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
+  active_memory_namespace_id?: string | null;
+  active_memory_namespace_primary_layer?: string | null;
+  active_memory_namespace_layers?: string[];
+  active_memory_namespace_selection_reason?: string | null;
   compacted_thread_summary_id?: string | null;
   compacted_thread_summary_text?: string | null;
   compacted_thread_summary_lifecycle_status?: string | null;
@@ -104,6 +108,10 @@ export type BuildAssistantMessageMetadataInput = {
   knowledge_count?: number;
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
+  active_memory_namespace_id?: string | null;
+  active_memory_namespace_primary_layer?: string | null;
+  active_memory_namespace_layers?: string[];
+  active_memory_namespace_selection_reason?: string | null;
   compacted_thread_summary_id?: string | null;
   compacted_thread_summary_text?: string | null;
   compacted_thread_summary_lifecycle_status?: string | null;
@@ -186,6 +194,15 @@ export function buildAssistantMetadataSummaryGroups(
       titles: input.knowledge_titles ?? [],
       source_kinds: input.knowledge_source_kinds ?? []
     },
+    memory_namespace: input.active_memory_namespace_id
+      ? {
+          namespace_id: input.active_memory_namespace_id,
+          primary_layer: input.active_memory_namespace_primary_layer ?? null,
+          active_layers: input.active_memory_namespace_layers ?? [],
+          selection_reason:
+            input.active_memory_namespace_selection_reason ?? null
+        }
+      : null,
     thread_compaction: input.compacted_thread_summary_id
       ? {
           summary_id: input.compacted_thread_summary_id,
@@ -220,6 +237,12 @@ export function buildAssistantMetadataSummaryGroups(
       knowledge_count: input.knowledge_count,
       knowledge_titles: input.knowledge_titles,
       knowledge_source_kinds: input.knowledge_source_kinds,
+      active_memory_namespace_id: input.active_memory_namespace_id,
+      active_memory_namespace_primary_layer:
+        input.active_memory_namespace_primary_layer,
+      active_memory_namespace_layers: input.active_memory_namespace_layers,
+      active_memory_namespace_selection_reason:
+        input.active_memory_namespace_selection_reason,
       compacted_thread_summary_id: input.compacted_thread_summary_id,
       compacted_thread_summary_text: input.compacted_thread_summary_text,
       compacted_thread_summary_lifecycle_status:

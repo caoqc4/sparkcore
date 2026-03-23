@@ -28,6 +28,11 @@ import {
   type RuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
 import {
+  buildMemoryNamespacePromptSection,
+  resolveActiveMemoryNamespace,
+  type ActiveRuntimeMemoryNamespace
+} from "@/lib/chat/memory-namespace";
+import {
   buildCompactedThreadSummary,
   buildThreadCompactionPromptSection
 } from "@/lib/chat/thread-compaction";
@@ -1356,6 +1361,16 @@ function buildThreadCompactionLayerPrompt(args: {
   });
 }
 
+function buildMemoryNamespaceLayerPrompt(args: {
+  activeMemoryNamespace: ActiveRuntimeMemoryNamespace | null | undefined;
+  replyLanguage: RuntimeReplyLanguage;
+}) {
+  return buildMemoryNamespacePromptSection({
+    namespace: args.activeMemoryNamespace ?? null,
+    replyLanguage: args.replyLanguage
+  });
+}
+
 function buildAddressStyleRecallInstructions({
   isZh,
   styleValue
@@ -2455,6 +2470,7 @@ function buildAgentSystemPromptInternal(
   recalledMemories: RecalledMemory[] = [],
   relevantKnowledge: RuntimeKnowledgeSnippet[] = [],
   compactedThreadSummary: ReturnType<typeof buildCompactedThreadSummary> = null,
+  activeMemoryNamespace: ActiveRuntimeMemoryNamespace | null = null,
   replyLanguage: RuntimeReplyLanguage = "unknown",
   relationshipRecall: {
     directNamingQuestion: boolean;
@@ -2511,6 +2527,10 @@ function buildAgentSystemPromptInternal(
     }),
     buildKnowledgeLayerPrompt({
       relevantKnowledge,
+      replyLanguage
+    }),
+    buildMemoryNamespaceLayerPrompt({
+      activeMemoryNamespace,
       replyLanguage
     }),
     buildThreadCompactionLayerPrompt({
@@ -2708,6 +2728,7 @@ export function buildAgentSystemPrompt(
   recalledMemories: RecalledMemory[] = [],
   relevantKnowledge: RuntimeKnowledgeSnippet[] = [],
   compactedThreadSummary: ReturnType<typeof buildCompactedThreadSummary> = null,
+  activeMemoryNamespace: ActiveRuntimeMemoryNamespace | null = null,
   replyLanguage: RuntimeReplyLanguage = "unknown",
   relationshipRecall: {
     directNamingQuestion: boolean;
@@ -2748,6 +2769,7 @@ export function buildAgentSystemPrompt(
     recalledMemories,
     relevantKnowledge,
     compactedThreadSummary,
+    activeMemoryNamespace,
     replyLanguage,
     relationshipRecall,
     threadContinuityPrompt,
@@ -3794,6 +3816,12 @@ export async function runPreparedRuntimeTurn({
     recentTurnCount: recentRawTurnCount,
     latestUserMessage: latestUserMessageContent
   });
+  const activeMemoryNamespace = resolveActiveMemoryNamespace({
+    userId,
+    agentId: agent.id,
+    threadId: preparedRuntimeTurn.session.thread_id,
+    relevantKnowledge: []
+  });
   const { workspace, thread, messages, assistant_message_id, supabase } =
     preparedRuntimeTurn.resources;
   const runtimeSupabase = supabase as any;
@@ -3807,6 +3835,7 @@ export async function runPreparedRuntimeTurn({
         allRecalledMemories,
         [],
         compactedThreadSummary,
+        activeMemoryNamespace,
         replyLanguage,
         relationshipRecall,
         threadContinuityPrompt,
@@ -3958,6 +3987,9 @@ export async function runPreparedRuntimeTurn({
       knowledge: {
         snippets: []
       },
+      namespace: {
+        active_namespace: activeMemoryNamespace
+      },
       compaction: {
         summary: compactedThreadSummary
       },
@@ -4091,6 +4123,7 @@ export async function runPreparedRuntimeTurn({
       reply_language: replyLanguage,
       scenario_memory_pack: resolveActiveScenarioMemoryPack(),
       relevant_knowledge: [],
+      active_memory_namespace: activeMemoryNamespace,
       compacted_thread_summary: compactedThreadSummary
     })
   };

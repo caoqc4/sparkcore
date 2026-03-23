@@ -192,6 +192,29 @@ P2 首批要把当前更偏单 Agent 的 scope 语义，推进到更明确的多
 - 完整多 Agent 共享记忆仲裁
 - 完整世界状态同步引擎
 
+当前代码事实：
+
+- `packages/core/memory/namespace.ts` 当前已新增首版：
+  - `MemoryNamespaceLayer`
+  - `MemoryNamespaceRef`
+  - `ActiveMemoryNamespace`
+  - `buildActiveMemoryNamespace(...)`
+- `apps/web/lib/chat/memory-namespace.ts` 当前已新增：
+  - `resolveActiveMemoryNamespace(...)`
+  - `buildMemoryNamespacePromptSection(...)`
+  - `buildMemoryNamespaceSummary(...)`
+- runtime `buildAgentSystemPrompt(...)` 当前也已开始显式注入最小 namespace section：
+  - `Active Memory Namespace: primary_layer = ...`
+- assistant metadata / debug metadata 当前也已开始暴露最小 namespace 摘要：
+  - `namespace_id`
+  - `primary_layer`
+  - `active_layers`
+  - `selection_reason`
+- `memory-upgrade-harness.ts` 当前也已开始显式校验 namespace seam：
+  - metadata reader
+  - prompt 注入
+  - project-layer 可见性
+
 ### 4.5 P2 regression / acceptance expansion
 
 P2 首批要把 gate 从：

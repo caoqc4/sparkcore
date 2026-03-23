@@ -63,6 +63,12 @@ export function getAssistantKnowledgeMetadata(
   return getAssistantMetadataGroup(metadata, "knowledge");
 }
 
+export function getAssistantMemoryNamespaceMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "memory_namespace");
+}
+
 export function getAssistantThreadCompactionMetadata(
   metadata: Record<string, unknown> | null | undefined
 ) {
@@ -302,6 +308,17 @@ export function getAssistantKnowledgeCount(
   return (
     getAssistantMetadataNumber(knowledgeMetadata, "count") ??
     getAssistantMetadataNumber(metadata, "knowledge_count")
+  );
+}
+
+export function getAssistantMemoryNamespacePrimaryLayer(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(namespaceMetadata, "primary_layer") ??
+    getAssistantMetadataString(metadata, "active_memory_namespace_primary_layer")
   );
 }
 

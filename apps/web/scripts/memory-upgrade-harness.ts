@@ -19,6 +19,7 @@ import {
   getAssistantMemoryObservedSemanticLayers,
   getAssistantCompactedThreadSummaryText,
   getAssistantKnowledgeCount,
+  getAssistantMemoryNamespacePrimaryLayer,
   getAssistantMemoryScenarioPackId,
   getAssistantMemoryPrimarySemanticLayer
 } from "@/lib/chat/assistant-message-metadata-read";
@@ -30,6 +31,7 @@ import {
   buildKnowledgeSnapshot,
   buildRuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
+import { resolveActiveMemoryNamespace } from "@/lib/chat/memory-namespace";
 import { buildCompactedThreadSummary } from "@/lib/chat/thread-compaction";
 import {
   buildPlannedRelationshipMemoryRecord,
@@ -399,6 +401,12 @@ function main() {
     capturedAt: "2026-03-23T00:00:00.000Z"
   });
   const runtimeKnowledge = [buildRuntimeKnowledgeSnippet(knowledgeSnapshot)];
+  const activeMemoryNamespace = resolveActiveMemoryNamespace({
+    userId: "user-1",
+    agentId: "agent-1",
+    threadId: "thread-1",
+    relevantKnowledge: runtimeKnowledge
+  });
   const compactedThreadSummary = buildCompactedThreadSummary({
     threadState: {
       thread_id: "thread-1",
@@ -516,6 +524,9 @@ function main() {
       knowledge: {
         snippets: runtimeKnowledge
       },
+      namespace: {
+        active_namespace: activeMemoryNamespace
+      },
       compaction: {
         summary: compactedThreadSummary
       },
@@ -547,6 +558,10 @@ function main() {
     ),
     "Expected assistant metadata reader to expose the compacted thread summary text in P2."
   );
+  expect(
+    getAssistantMemoryNamespacePrimaryLayer(assistantMetadata) === "project",
+    "Expected assistant metadata reader to expose project as the primary namespace layer in P2."
+  );
 
   const systemPrompt = buildAgentSystemPrompt(
     {
@@ -572,6 +587,7 @@ function main() {
     [promptRecalledProfile],
     runtimeKnowledge,
     compactedThreadSummary,
+    activeMemoryNamespace,
     "en",
     undefined,
     "",
@@ -621,6 +637,10 @@ function main() {
     systemPrompt.includes("Focus: Finish the onboarding checklist this week."),
     "Expected system prompt assembly to include compacted thread focus context in P2."
   );
+  expect(
+    systemPrompt.includes("Active Memory Namespace: primary_layer = project."),
+    "Expected system prompt assembly to include the active memory namespace in P2."
+  );
 
   const routeAwarePrompt = buildAgentSystemPrompt(
     {
@@ -656,6 +676,7 @@ function main() {
       }
     ],
     [],
+    null,
     null,
     "en"
   );
@@ -697,6 +718,7 @@ function main() {
       }
     ],
     [],
+    null,
     null,
     "en"
   );
@@ -757,6 +779,9 @@ function main() {
         assistant_metadata_thread_compaction: {
           summary_text: getAssistantCompactedThreadSummaryText(assistantMetadata)
         },
+        assistant_metadata_namespace: {
+          primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata)
+        },
         scenario_memory_pack: {
           pack_id: scenarioMemoryPack.pack_id,
           preferred_routes: scenarioMemoryPack.preferred_routes,
@@ -783,6 +808,9 @@ function main() {
           ),
           includes_thread_compaction_focus: systemPrompt.includes(
             "Focus: Finish the onboarding checklist this week."
+          ),
+          includes_memory_namespace: systemPrompt.includes(
+            "Active Memory Namespace: primary_layer = project."
           )
         },
         system_prompt_route_guidance: {

@@ -6,6 +6,7 @@ Current scope:
 - thread compaction contracts
 - memory contract types
 - knowledge contracts
+- namespace contracts
 - scenario memory pack contracts
 - memory request and response shapes
 - memory compatibility helpers for legacy `memory_items` records

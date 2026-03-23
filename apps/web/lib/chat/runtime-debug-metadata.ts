@@ -4,6 +4,7 @@ import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
 import type { ActiveScenarioMemoryPack } from "@/lib/chat/memory-packs";
 import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
+import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import { buildKnowledgeSummary } from "@/lib/chat/memory-knowledge";
 import type { CompactedThreadSummary } from "../../../../packages/core/memory";
 import { buildThreadCompactionSummary } from "@/lib/chat/thread-compaction";
@@ -26,6 +27,7 @@ export type BuildRuntimeDebugMetadataInput = {
   reply_language: string;
   scenario_memory_pack?: ActiveScenarioMemoryPack | null;
   relevant_knowledge?: RuntimeKnowledgeSnippet[];
+  active_memory_namespace?: ActiveRuntimeMemoryNamespace | null;
   compacted_thread_summary?: CompactedThreadSummary | null;
 };
 
@@ -64,6 +66,14 @@ export function buildRuntimeDebugMetadata(
     knowledge: buildKnowledgeSummary({
       knowledge: input.relevant_knowledge ?? []
     }),
+    memory_namespace: input.active_memory_namespace
+      ? {
+          namespace_id: input.active_memory_namespace.namespace_id,
+          primary_layer: input.active_memory_namespace.primary_layer,
+          active_layers: input.active_memory_namespace.active_layers,
+          selection_reason: input.active_memory_namespace.selection_reason
+        }
+      : null,
     thread_compaction: buildThreadCompactionSummary({
       compactedThreadSummary: input.compacted_thread_summary ?? null
     }),

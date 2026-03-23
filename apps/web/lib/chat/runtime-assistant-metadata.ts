@@ -11,6 +11,7 @@ import type {
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
 import type { ActiveScenarioMemoryPack } from "@/lib/chat/memory-packs";
 import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
+import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import type { CompactedThreadSummary } from "../../../../packages/core/memory";
 
 type RecalledMemoryMetadataItem = BuildAssistantMessageMetadataInput["recalled_memories"][number];
@@ -77,6 +78,9 @@ export type BuildRuntimeAssistantMetadataInput = {
   };
   knowledge: {
     snippets: RuntimeKnowledgeSnippet[];
+  };
+  namespace: {
+    active_namespace: ActiveRuntimeMemoryNamespace | null;
   };
   compaction: {
     summary: CompactedThreadSummary | null;
@@ -151,6 +155,14 @@ export function buildRuntimeAssistantMetadataInput(
     knowledge_source_kinds: Array.from(
       new Set(input.knowledge.snippets.map((item) => item.source_kind))
     ),
+    active_memory_namespace_id:
+      input.namespace.active_namespace?.namespace_id ?? null,
+    active_memory_namespace_primary_layer:
+      input.namespace.active_namespace?.primary_layer ?? null,
+    active_memory_namespace_layers:
+      input.namespace.active_namespace?.active_layers ?? [],
+    active_memory_namespace_selection_reason:
+      input.namespace.active_namespace?.selection_reason ?? null,
     compacted_thread_summary_id: input.compaction.summary?.summary_id ?? null,
     compacted_thread_summary_text: input.compaction.summary?.summary_text ?? null,
     compacted_thread_summary_lifecycle_status:

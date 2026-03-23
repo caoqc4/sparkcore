@@ -10,6 +10,7 @@ export type RuntimeKnowledgeSnippet = {
   title: string;
   summary: string;
   source_kind: KnowledgeSourceKind;
+  scope: MemoryScopeRef;
 };
 
 export function buildKnowledgeSnapshot(args: {
@@ -40,6 +41,7 @@ export function buildRuntimeKnowledgeSnippet(
     title: snapshot.title,
     summary: snapshot.summary,
     source_kind: snapshot.source_kind,
+    scope: snapshot.scope
   };
 }
 
