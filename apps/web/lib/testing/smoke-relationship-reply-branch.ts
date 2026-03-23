@@ -7,12 +7,17 @@ import {
   buildSmokeEnDefaultContinuationReply,
   buildSmokeZhDefaultContinuationReply
 } from "@/lib/testing/smoke-continuation-replies";
+import { isSmokeOneLineSoftCatchPrompt } from "@/lib/testing/smoke-follow-up-prompts";
 import {
   buildSmokeRelationshipExplanatoryCoreReply
 } from "@/lib/testing/smoke-relationship-explanatory-core";
 import { buildSmokeRelationshipClosingCoreReply } from "@/lib/testing/smoke-relationship-closing-core";
 import type { SmokeRelationshipReplyInput } from "@/lib/testing/smoke-relationship-reply-types";
-import { buildSmokeRelationshipSupportiveReply } from "@/lib/testing/smoke-relationship-supportive-reply";
+import { buildSmokeRelationshipSupportiveCoreReply } from "@/lib/testing/smoke-relationship-supportive-core";
+import {
+  buildSmokeEnSoftCatchReply,
+  buildSmokeZhSoftCatchReply
+} from "@/lib/testing/smoke-soft-catch-replies";
 
 export function buildSmokeRelationshipOrContinuationReply(
   args: SmokeRelationshipReplyInput
@@ -32,7 +37,13 @@ export function buildSmokeRelationshipOrContinuationReply(
   }
 
   if (isSmokeRelationshipSupportivePrompt(args.content)) {
-    return buildSmokeRelationshipSupportiveReply({
+    if (isSmokeOneLineSoftCatchPrompt(args.content)) {
+      return args.replyLanguage === "zh-Hans"
+        ? buildSmokeZhSoftCatchReply(userName)
+        : buildSmokeEnSoftCatchReply(userName);
+    }
+
+    return buildSmokeRelationshipSupportiveCoreReply({
       content: args.content,
       replyLanguage: args.replyLanguage,
       addressStyleValue,
