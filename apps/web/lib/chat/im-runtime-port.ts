@@ -3,20 +3,14 @@ import {
   type AdapterRuntimeOutput,
   type AdapterRuntimePort
 } from "@/lib/integrations/im-adapter";
-import { executeMemoryWriteRequests } from "@/lib/chat/memory-write";
-import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
-import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
-import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import {
   insertPendingAssistantMessage,
   markAssistantMessageFailed
 } from "@/lib/chat/assistant-message-state-persistence";
 import {
-  updateAssistantFollowUpExecutionPreview,
-  updateAssistantFollowUpRequestPreview,
-  updateAssistantMemoryWriteOutcomePreview,
-  updateAssistantMemoryWriteRequestPreview
-} from "@/lib/chat/assistant-preview-metadata";
+  persistAssistantRequestPreviews,
+  processAssistantRuntimePostProcessing
+} from "@/lib/chat/runtime-turn-post-processing";
 import { buildImRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { insertRuntimeUserMessage } from "@/lib/chat/runtime-user-message-persistence";
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
@@ -213,78 +207,26 @@ async function runImRuntimeTurnWithSupabase(args: {
       throw new Error("Runtime completed without an assistant message.");
     }
 
-    if (runtimeTurnResult.memory_write_requests.length > 0) {
-      await updateAssistantMemoryWriteRequestPreview({
-        supabase,
-        assistantMessageId: assistantPlaceholder.id,
-        threadId: thread.id,
-        workspaceId: workspace.id,
-        userId: input.user_id,
-        requests: runtimeTurnResult.memory_write_requests
-      });
-    }
-
-    if (runtimeTurnResult.follow_up_requests.length > 0) {
-      await updateAssistantFollowUpRequestPreview({
-        supabase,
-        assistantMessageId: assistantPlaceholder.id,
-        threadId: thread.id,
-        workspaceId: workspace.id,
-        userId: input.user_id,
-        requests: runtimeTurnResult.follow_up_requests
-      });
-    }
+    await persistAssistantRequestPreviews({
+      supabase,
+      assistantMessageId: assistantPlaceholder.id,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      userId: input.user_id,
+      runtimeTurnResult
+    });
 
     try {
-      const [memoryWriteOutcome, followUpExecutionResults] = await Promise.all([
-        executeMemoryWriteRequests({
-          workspaceId: workspace.id,
-          userId: input.user_id,
-          agentId: thread.agent_id,
-          requests: runtimeTurnResult.memory_write_requests
-        }),
-        executeFollowUpRequests({
-          requests: runtimeTurnResult.follow_up_requests
-        })
-      ]);
-      const followUpEnqueueResult = await enqueueAcceptedFollowUps({
-        workspace_id: workspace.id,
-        user_id: input.user_id,
-        agent_id: thread.agent_id,
-        thread_id: thread.id,
-        source_message_id: insertedMessage.id,
-        execution_results: followUpExecutionResults,
-        repository: createAdminFollowUpRepository()
+      await processAssistantRuntimePostProcessing({
+        supabase,
+        assistantMessageId: assistantPlaceholder.id,
+        threadId: thread.id,
+        workspaceId: workspace.id,
+        userId: input.user_id,
+        agentId: thread.agent_id,
+        sourceMessageId: insertedMessage.id,
+        runtimeTurnResult
       });
-
-      if (
-        memoryWriteOutcome.createdCount > 0 ||
-        memoryWriteOutcome.updatedCount > 0
-      ) {
-        await updateAssistantMemoryWriteOutcomePreview({
-          supabase,
-          assistantMessageId: assistantPlaceholder.id,
-          threadId: thread.id,
-          workspaceId: workspace.id,
-          userId: input.user_id,
-          outcome: memoryWriteOutcome
-        });
-      }
-
-      if (followUpExecutionResults.length > 0) {
-        await updateAssistantFollowUpExecutionPreview({
-          supabase,
-          assistantMessageId: assistantPlaceholder.id,
-          threadId: thread.id,
-          workspaceId: workspace.id,
-          userId: input.user_id,
-          execution: {
-            followUpExecutionResults,
-            followUpEnqueueInsertedCount: followUpEnqueueResult.inserted_count,
-            followUpEnqueueRecords: followUpEnqueueResult.records
-          }
-        });
-      }
     } catch (memoryError) {
       console.error("IM runtime post-processing failed:", memoryError);
     }

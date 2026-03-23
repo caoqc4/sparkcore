@@ -18,22 +18,14 @@ import {
 } from "@/lib/chat/runtime-user-message-persistence";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
-  executeMemoryWriteRequests
-} from "@/lib/chat/memory-write";
-import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
-import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
-import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
-import {
   insertPendingAssistantMessage,
   markAssistantMessageFailed,
   markAssistantMessageRetried
 } from "@/lib/chat/assistant-message-state-persistence";
 import {
-  updateAssistantFollowUpExecutionPreview,
-  updateAssistantFollowUpRequestPreview,
-  updateAssistantMemoryWriteOutcomePreview,
-  updateAssistantMemoryWriteRequestPreview
-} from "@/lib/chat/assistant-preview-metadata";
+  persistAssistantRequestPreviews,
+  processAssistantRuntimePostProcessing
+} from "@/lib/chat/runtime-turn-post-processing";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 import {
   CHAT_UI_LANGUAGE_COOKIE,
@@ -1174,78 +1166,26 @@ export async function sendMessage(
       throw new Error("Runtime completed without an assistant message.");
     }
 
-    if (runtimeTurnResult.memory_write_requests.length > 0) {
-      await updateAssistantMemoryWriteRequestPreview({
-        supabase,
-        assistantMessageId: assistantPlaceholder.id,
-        threadId: thread.id,
-        workspaceId: workspace.id,
-        userId: user.id,
-        requests: runtimeTurnResult.memory_write_requests
-      });
-    }
-
-    if (runtimeTurnResult.follow_up_requests.length > 0) {
-      await updateAssistantFollowUpRequestPreview({
-        supabase,
-        assistantMessageId: assistantPlaceholder.id,
-        threadId: thread.id,
-        workspaceId: workspace.id,
-        userId: user.id,
-        requests: runtimeTurnResult.follow_up_requests
-      });
-    }
+    await persistAssistantRequestPreviews({
+      supabase,
+      assistantMessageId: assistantPlaceholder.id,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      userId: user.id,
+      runtimeTurnResult
+    });
 
     try {
-      const [memoryWriteOutcome, followUpExecutionResults] = await Promise.all([
-        executeMemoryWriteRequests({
-          workspaceId: workspace.id,
-          userId: user.id,
-          agentId: thread.agent_id,
-          requests: runtimeTurnResult.memory_write_requests
-        }),
-        executeFollowUpRequests({
-          requests: runtimeTurnResult.follow_up_requests
-        })
-      ]);
-      const followUpEnqueueResult = await enqueueAcceptedFollowUps({
-        workspace_id: workspace.id,
-        user_id: user.id,
-        agent_id: thread.agent_id,
-        thread_id: thread.id,
-        source_message_id: insertedMessage.id,
-        execution_results: followUpExecutionResults,
-        repository: createAdminFollowUpRepository()
+      await processAssistantRuntimePostProcessing({
+        supabase,
+        assistantMessageId: assistantPlaceholder.id,
+        threadId: thread.id,
+        workspaceId: workspace.id,
+        userId: user.id,
+        agentId: thread.agent_id,
+        sourceMessageId: insertedMessage.id,
+        runtimeTurnResult
       });
-
-      if (
-        memoryWriteOutcome.createdCount > 0 ||
-        memoryWriteOutcome.updatedCount > 0
-      ) {
-        await updateAssistantMemoryWriteOutcomePreview({
-          supabase,
-          assistantMessageId: assistantPlaceholder.id,
-          threadId: thread.id,
-          workspaceId: workspace.id,
-          userId: user.id,
-          outcome: memoryWriteOutcome
-        });
-      }
-
-      if (followUpExecutionResults.length > 0) {
-        await updateAssistantFollowUpExecutionPreview({
-          supabase,
-          assistantMessageId: assistantPlaceholder.id,
-          threadId: thread.id,
-          workspaceId: workspace.id,
-          userId: user.id,
-          execution: {
-            followUpExecutionResults,
-            followUpEnqueueInsertedCount: followUpEnqueueResult.inserted_count,
-            followUpEnqueueRecords: followUpEnqueueResult.records
-          }
-        });
-      }
     } catch (memoryError) {
       console.error("Post-processing failed:", memoryError);
     }
@@ -1489,27 +1429,14 @@ export async function retryAssistantReply(
       throw new Error("Runtime retry completed without an assistant message.");
     }
 
-    if (runtimeTurnResult.memory_write_requests.length > 0) {
-      await updateAssistantMemoryWriteRequestPreview({
-        supabase,
-        assistantMessageId: failedMessage.id,
-        threadId: thread.id,
-        workspaceId: workspace.id,
-        userId: user.id,
-        requests: runtimeTurnResult.memory_write_requests
-      });
-    }
-
-    if (runtimeTurnResult.follow_up_requests.length > 0) {
-      await updateAssistantFollowUpRequestPreview({
-        supabase,
-        assistantMessageId: failedMessage.id,
-        threadId: thread.id,
-        workspaceId: workspace.id,
-        userId: user.id,
-        requests: runtimeTurnResult.follow_up_requests
-      });
-    }
+    await persistAssistantRequestPreviews({
+      supabase,
+      assistantMessageId: failedMessage.id,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      userId: user.id,
+      runtimeTurnResult
+    });
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);
 
