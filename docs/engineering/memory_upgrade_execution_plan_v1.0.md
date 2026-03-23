@@ -177,14 +177,14 @@ P0 只做一件事：
 - `apps/web/lib/chat/memory-write-rows.ts` 已开始承接 generic memory 的 insert / update row 组装
 - `apps/web/lib/chat/memory-write-record-candidates.ts` 已开始承接 generic `StaticProfileRecord` candidate adapter
 - relationship 写入当前也已开始先构造正式 `MemoryRecord` candidate，再进入 single-slot upsert
-- `thread_state_candidate` 当前也已开始具备正式 candidate seam 与 preview 摘要入口
+- `thread_state_candidate` 当前也已开始具备正式 candidate seam、preview 摘要入口与最小真实 commit
 - 当前最小分类为：
   - `static_profile`
   - `memory_record`
   - `thread_state_candidate`
 - `profile / preference` 当前默认进入 `static_profile`
 - `relationship` 当前默认进入 `memory_record`
-- legacy `goal` 语义当前保守进入 `thread_state_candidate`
+- legacy `goal` 语义当前保守进入 `thread_state_candidate`，并在具备 `threadId + repository` 时写入 `ThreadState`
 
 ### 4.3 最小四路检索
 
@@ -576,9 +576,10 @@ P0 最小要求：
 - generic memory insert / update row builder 已成立
 - generic `StaticProfileRecord` candidate adapter 已成立
 - relationship `MemoryRecord` candidate adapter 已成立
-- `thread_state_candidate` seam 已成立，但仍未进入真实 commit
+- `thread_state_candidate` seam 已成立，并已开始进入最小真实 commit
 - `static_profile` 当前已成为三条里第一条进入真实主读路径的分支
 - `static_profile` 当前也已成为三条里第一条进入 runtime 注入层的分支
+- 当前 `goal` 不进入 reply recall prompt，而是保守沉淀为 `ThreadState.focus_mode`
 - 下一步应继续把：
   - `canonical type`
   - `scope`

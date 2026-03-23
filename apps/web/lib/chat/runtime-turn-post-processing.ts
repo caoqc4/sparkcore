@@ -9,6 +9,7 @@ import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { executeMemoryWriteRequests } from "@/lib/chat/memory-write";
+import { createAdminThreadStateRepository } from "@/lib/chat/thread-state-admin-repository";
 
 type AssistantPostProcessingTarget = {
   supabase: any;
@@ -64,6 +65,8 @@ export async function processAssistantRuntimePostProcessing(
       workspaceId: args.workspaceId,
       userId: args.userId,
       agentId: args.agentId,
+      threadId: args.threadId,
+      threadStateRepository: createAdminThreadStateRepository(),
       requests: args.runtimeTurnResult.memory_write_requests
     }),
     executeFollowUpRequests({

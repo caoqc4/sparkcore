@@ -3340,7 +3340,15 @@ export async function generateAgentReply({
     answerStrategy = answerStrategyRule.strategy;
     answerStrategyPriority = answerStrategyRule.priority;
   }
-  const recalledMemories = memoryRecall.memories;
+  const recalledMemories = memoryRecall.memories.filter(
+    (
+      memory
+    ): memory is {
+      memory_type: "profile" | "preference" | "relationship";
+      content: string;
+      confidence: number;
+    } => memory.memory_type !== "goal"
+  );
   const relationshipMemories = [
     relationshipRecall.addressStyleMemory,
     relationshipRecall.nicknameMemory,

@@ -4,7 +4,7 @@ export const MEMORY_CONFIDENCE_THRESHOLD = 0.8;
 export const MEMORY_RECALL_LIMIT = 3;
 export const MEMORY_RELEVANCE_THRESHOLD = 0.35;
 
-export type MemoryType = "profile" | "preference";
+export type MemoryType = "profile" | "preference" | "goal";
 export type MemoryUsageType = MemoryType | "relationship";
 
 export type ContextMessage = {

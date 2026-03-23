@@ -8,7 +8,7 @@ export type RuntimeAssistantMessage = {
 
 export type RuntimeGenericMemoryWriteRequest = {
   kind: "generic_memory";
-  memory_type: "profile" | "preference";
+  memory_type: "profile" | "preference" | "goal";
   candidate_content: string;
   reason: string;
   confidence: number;

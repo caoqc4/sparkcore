@@ -8,10 +8,7 @@ export type PlannedMemoryRecordTarget =
 
 export type PlannedMemoryWriteTarget = {
   recordTarget: PlannedMemoryRecordTarget;
-  canonicalMemoryType:
-    | RuntimeMemoryWriteRequest["memory_type"]
-    | "goal"
-  | null;
+  canonicalMemoryType: RuntimeMemoryWriteRequest["memory_type"] | null;
   legacyScope: MemoryScope;
 };
 
@@ -52,6 +49,14 @@ export function resolvePlannedMemoryWriteTarget(
       recordTarget: "static_profile",
       canonicalMemoryType: request.memory_type,
       legacyScope: "user_global"
+    };
+  }
+
+  if (request.memory_type === "goal") {
+    return {
+      recordTarget: "thread_state_candidate",
+      canonicalMemoryType: request.memory_type,
+      legacyScope: "thread_local"
     };
   }
 

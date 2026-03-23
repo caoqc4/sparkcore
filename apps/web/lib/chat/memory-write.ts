@@ -40,7 +40,10 @@ import {
   buildPlannedGenericMemoryInsertRow,
   buildPlannedGenericMemoryUpdateRow
 } from "@/lib/chat/memory-write-rows";
-import { buildPlannedRelationshipMemoryRecord } from "@/lib/chat/memory-write-record-candidates";
+import {
+  buildPlannedRelationshipMemoryRecord,
+  buildPlannedThreadStateCandidate
+} from "@/lib/chat/memory-write-record-candidates";
 import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 import {
   insertMemoryItem,
@@ -52,6 +55,8 @@ import {
   loadRecentOwnedMemoriesByTypes
 } from "@/lib/chat/memory-item-read";
 import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
+import { buildDefaultThreadState } from "@/lib/chat/thread-state";
+import type { ThreadStateRepository } from "@/lib/chat/thread-state-repository";
 import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_MODEL = "replicate-llama-3-8b";
@@ -77,7 +82,7 @@ function buildExtractionPrompt({
     "Extract long-term memory candidates from the latest user message.",
     "Only return memories that are explicit, self-stated, and relatively stable.",
     "Do not store temporary states, one-off plans, vague guesses, or emotional snapshots.",
-    "Supported memory_type values are only: profile, preference.",
+    "Supported memory_type values are only: profile, preference, goal.",
     `Store only when should_store is true and confidence reflects the quality of the evidence.`,
     "Return strict JSON with this exact shape:",
     '{"memories":[{"memory_type":"profile","content":"...","should_store":true,"confidence":0.95,"reason":"..."}]}',
@@ -112,7 +117,8 @@ function parseMemoryExtraction(payload: string) {
     .filter(
       (candidate) =>
         (candidate.memory_type === "profile" ||
-          candidate.memory_type === "preference") &&
+          candidate.memory_type === "preference" ||
+          candidate.memory_type === "goal") &&
         candidate.content.length > 0
     );
 }
@@ -518,11 +524,15 @@ export async function executeMemoryWriteRequests({
   workspaceId,
   userId,
   agentId,
+  threadId,
+  threadStateRepository,
   requests
 }: {
   workspaceId: string;
   userId: string;
   agentId: string | null;
+  threadId?: string | null;
+  threadStateRepository?: ThreadStateRepository | null;
   requests: RuntimeMemoryWriteRequest[];
 }): Promise<MemoryWriteOutcome> {
   if (requests.length === 0) {
@@ -541,6 +551,16 @@ export async function executeMemoryWriteRequests({
   const genericRequests = requests.filter(
     (request): request is Extract<RuntimeMemoryWriteRequest, { kind: "generic_memory" }> =>
       request.kind === "generic_memory"
+  );
+  const threadStateRequests = genericRequests.filter(
+    (request) =>
+      resolvePlannedMemoryWriteTarget(request).recordTarget ===
+      "thread_state_candidate"
+  );
+  const persistedGenericRequests = genericRequests.filter(
+    (request) =>
+      resolvePlannedMemoryWriteTarget(request).recordTarget !==
+      "thread_state_candidate"
   );
 
   const relationshipCreatedTypes: MemoryUsageType[] = [];
@@ -583,17 +603,103 @@ export async function executeMemoryWriteRequests({
     }
   }
 
-  if (genericRequests.length === 0) {
+  let threadStateCreatedCount = 0;
+  let threadStateUpdatedCount = 0;
+
+  if (
+    threadStateRequests.length > 0 &&
+    threadId &&
+    agentId &&
+    threadStateRepository
+  ) {
+    const normalizedGoalCandidates = coalesceCandidates(
+      threadStateRequests.map((request) => ({
+        memory_type: request.memory_type,
+        content: request.candidate_content,
+        should_store: true,
+        confidence: request.confidence,
+        reason: request.reason,
+        normalized_content: normalizeMemoryContent(request.candidate_content)
+      }))
+    );
+    const selectedGoalCandidate = normalizedGoalCandidates.sort(
+      (left, right) => right.confidence - left.confidence
+    )[0];
+    const matchingGoalRequest = selectedGoalCandidate
+      ? threadStateRequests.find(
+          (request) =>
+            request.memory_type === selectedGoalCandidate.memory_type &&
+            normalizeMemoryContent(request.candidate_content) ===
+              selectedGoalCandidate.normalized_content
+        ) ?? null
+      : null;
+
+    if (selectedGoalCandidate && matchingGoalRequest) {
+      const threadStateCandidate = buildPlannedThreadStateCandidate({
+        threadId,
+        agentId,
+        goalText: selectedGoalCandidate.content,
+        sourceTurnId: matchingGoalRequest.source_turn_id
+      });
+      const existingThreadState = await threadStateRepository.loadThreadState({
+        threadId,
+        agentId
+      });
+      const nextUpdatedAt = new Date().toISOString();
+
+      if (existingThreadState.status === "found") {
+        await threadStateRepository.saveThreadState({
+          ...existingThreadState.thread_state,
+          state_version: existingThreadState.thread_state.state_version + 1,
+          focus_mode: threadStateCandidate.focus_mode,
+          continuity_status:
+            threadStateCandidate.continuity_status ??
+            existingThreadState.thread_state.continuity_status,
+          last_user_message_id:
+            threadStateCandidate.source_turn_id ??
+            existingThreadState.thread_state.last_user_message_id,
+          updated_at: nextUpdatedAt
+        });
+        threadStateUpdatedCount = 1;
+      } else {
+        await threadStateRepository.saveThreadState(
+          buildDefaultThreadState({
+            threadId,
+            agentId,
+            focusMode: threadStateCandidate.focus_mode,
+            continuityStatus: threadStateCandidate.continuity_status,
+            lastUserMessageId: threadStateCandidate.source_turn_id,
+            updatedAt: nextUpdatedAt
+          })
+        );
+        threadStateCreatedCount = 1;
+      }
+    }
+  }
+
+  if (persistedGenericRequests.length === 0) {
     return {
-      createdCount: relationshipCreatedTypes.length,
-      createdTypes: Array.from(new Set<MemoryUsageType>(relationshipCreatedTypes)),
-      updatedCount: relationshipUpdatedTypes.length,
-      updatedTypes: Array.from(new Set<MemoryUsageType>(relationshipUpdatedTypes))
+      createdCount: relationshipCreatedTypes.length + threadStateCreatedCount,
+      createdTypes: Array.from(
+        new Set<MemoryUsageType>(
+          relationshipCreatedTypes.concat(
+            threadStateCreatedCount > 0 ? ["goal"] : []
+          )
+        )
+      ),
+      updatedCount: relationshipUpdatedTypes.length + threadStateUpdatedCount,
+      updatedTypes: Array.from(
+        new Set<MemoryUsageType>(
+          relationshipUpdatedTypes.concat(
+            threadStateUpdatedCount > 0 ? ["goal"] : []
+          )
+        )
+      )
     };
   }
 
   const normalizedCandidates = coalesceCandidates(
-    genericRequests.map((request) => ({
+    persistedGenericRequests.map((request) => ({
       memory_type: request.memory_type,
       content: request.candidate_content,
       should_store: true,
@@ -720,23 +826,31 @@ export async function executeMemoryWriteRequests({
   }
 
   return {
-    createdCount: relationshipCreatedTypes.length + rowsToInsert.length,
+    createdCount:
+      relationshipCreatedTypes.length + rowsToInsert.length + threadStateCreatedCount,
     createdTypes: Array.from(
       new Set<MemoryUsageType>(
-        relationshipCreatedTypes.concat(
-          rowsToInsert
-            .map((row) => row.memory_type)
-            .filter(
-              (type): type is MemoryType =>
-                type === "profile" || type === "preference"
-            )
-        )
+        relationshipCreatedTypes
+          .concat(
+            rowsToInsert
+              .map((row) => row.memory_type)
+              .filter(
+                (type): type is MemoryType =>
+                  type === "profile" ||
+                  type === "preference" ||
+                  type === "goal"
+              )
+          )
+          .concat(threadStateCreatedCount > 0 ? ["goal"] : [])
       )
     ),
-    updatedCount: relationshipUpdatedTypes.length + rowsToUpdate.length,
+    updatedCount:
+      relationshipUpdatedTypes.length + rowsToUpdate.length + threadStateUpdatedCount,
     updatedTypes: Array.from(
       new Set<MemoryUsageType>(
-        relationshipUpdatedTypes.concat(rowsToUpdate.map((row) => row.memory_type))
+        relationshipUpdatedTypes
+          .concat(rowsToUpdate.map((row) => row.memory_type))
+          .concat(threadStateUpdatedCount > 0 ? ["goal"] : [])
       )
     )
   };
