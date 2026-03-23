@@ -3,7 +3,6 @@ import {
   isSmokeDirectUserPreferredNameQuestion,
   isSmokeOpenEndedSummaryQuestion
 } from "@/lib/testing/smoke-answer-strategy";
-import { hasSmokeRelationshipCarryover } from "@/lib/testing/smoke-relationship-carryover";
 import { findAndRecallSmokeRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-recall";
 import { maybeFindAndRecallSmokeRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-optional-recall";
 import type {
@@ -19,10 +18,12 @@ export function selectSmokeRelationshipMemories(args: {
   sameThreadContinuity: boolean;
   recalledMemories: SmokeRelationshipRecallMemoryList;
 }) {
-  const relationshipCarryoverAvailable = hasSmokeRelationshipCarryover({
-    activeMemories: args.activeMemories,
-    agentId: args.agentId
-  });
+  const relationshipCarryoverAvailable = args.activeMemories.some(
+    (memory) =>
+      memory.category === "relationship" &&
+      memory.scope === "user_agent" &&
+      memory.target_agent_id === args.agentId
+  );
   const sharedNameRecallPrompt =
     args.relationshipStylePrompt ||
     isSmokeOpenEndedSummaryQuestion(args.trimmedContent) ||
