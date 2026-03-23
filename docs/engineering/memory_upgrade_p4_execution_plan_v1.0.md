@@ -420,6 +420,11 @@ P4 首批明确不做：
     - `retention_budget_v2_ok`
     - `knowledge_route_influence_v2_ok`
     - `scenario_pack_consumption_v2_ok`
+  - 当前这层 gate 也已开始把 `P4-4` 里更完整的 pack-specific consumption 差异锁进同一组阶段级断言：
+    - relationship slot budget
+    - static_profile slot budget
+    - memory_record subtype priority
+    - dynamic_profile coexistence rule
 
 整体判断：
 

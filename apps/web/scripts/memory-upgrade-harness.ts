@@ -1720,8 +1720,13 @@ function main() {
             systemPrompt.includes("RM1:") &&
             !systemPrompt.includes("RM2:") &&
             companionSystemPrompt.includes("RM2:") &&
+            systemPrompt.includes("SP1:") &&
+            !systemPrompt.includes("SP2:") &&
+            companionSystemPrompt.includes("SP2:") &&
             systemPrompt.includes("MR1 [timeline]:") &&
-            companionSystemPrompt.includes("MR1 [episode]:"),
+            companionSystemPrompt.includes("MR1 [episode]:") &&
+            !projectOpsDynamicVsRecordPrompt.includes("2. dynamic_profile:") &&
+            companionDynamicVsRecordPrompt.includes("2. dynamic_profile:"),
         },
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(

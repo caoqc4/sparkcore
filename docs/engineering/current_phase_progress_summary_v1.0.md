@@ -358,6 +358,11 @@
     - `retention_budget_v2_ok`
     - `knowledge_route_influence_v2_ok`
     - `scenario_pack_consumption_v2_ok`
+  - 当前这层 gate 也已开始把 `P4-4` 里更完整的 pack-specific consumption 差异锁进同一组阶段级断言：
+    - relationship slot budget
+    - static_profile slot budget
+    - memory_record subtype priority
+    - dynamic_profile coexistence rule
   - 也就是说，`P4-1 ~ P4-4` 当前已不再只是分散断言，而开始有一组阶段级聚合 gate
 - `P4` 当前也已进入 close-readiness 复盘阶段：
   - [memory_upgrade_p4_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p4_close_readiness_v1.0.md)
