@@ -8,6 +8,12 @@ import {
   isSmokeOpenEndedSummaryQuestion
 } from "@/lib/testing/smoke-question-prompts";
 import type { SmokeAnswerStrategyDecision } from "@/lib/testing/smoke-answer-strategy-types";
+import {
+  buildSmokeDirectFactStrategy,
+  buildSmokeDirectRelationshipStrategy,
+  buildSmokeOpenEndedAdviceStrategy,
+  buildSmokeOpenEndedSummaryStrategy
+} from "@/lib/testing/smoke-direct-answer-strategy-builders";
 
 export function getSmokeDirectOrOpenEndedAnswerStrategy(
   content: string
@@ -21,39 +27,19 @@ export function getSmokeDirectOrOpenEndedAnswerStrategy(
     isSmokeDirectReplyStyleQuestion(content);
 
   if (directNamingQuestion || directPreferredNameQuestion) {
-    return {
-      questionType: "direct-relationship-confirmation",
-      answerStrategy: "relationship-recall-first",
-      reasonCode: "direct-relationship-question",
-      continuationReasonCode: null
-    };
+    return buildSmokeDirectRelationshipStrategy();
   }
 
   if (directFactQuestion) {
-    return {
-      questionType: "direct-fact",
-      answerStrategy: "structured-recall-first",
-      reasonCode: "direct-memory-question",
-      continuationReasonCode: null
-    };
+    return buildSmokeDirectFactStrategy();
   }
 
   if (isSmokeOpenEndedPlanningHelpQuestion(content)) {
-    return {
-      questionType: "open-ended-advice",
-      answerStrategy: "grounded-open-ended-advice",
-      reasonCode: "open-ended-advice-prompt",
-      continuationReasonCode: null
-    };
+    return buildSmokeOpenEndedAdviceStrategy();
   }
 
   if (isSmokeOpenEndedSummaryQuestion(content)) {
-    return {
-      questionType: "open-ended-summary",
-      answerStrategy: "grounded-open-ended-summary",
-      reasonCode: "open-ended-summary-prompt",
-      continuationReasonCode: null
-    };
+    return buildSmokeOpenEndedSummaryStrategy();
   }
 
   return null;

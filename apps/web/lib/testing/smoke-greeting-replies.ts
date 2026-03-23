@@ -1,9 +1,10 @@
-import type { SmokeReplyLanguage } from "@/lib/testing/smoke-assistant-builders";
+import type {
+  SmokeBriefGreetingReplyInput,
+  SmokeNamingReplyInput,
+  SmokePreferredNameReplyInput
+} from "@/lib/testing/smoke-greeting-reply-types";
 
-export function buildSmokeBriefGreetingReply(args: {
-  replyLanguage: SmokeReplyLanguage;
-  styleValue: string | null;
-}) {
+export function buildSmokeBriefGreetingReply(args: SmokeBriefGreetingReplyInput) {
   if (args.styleValue === "formal") {
     return args.replyLanguage === "zh-Hans"
       ? "您好，很高兴继续为您提供帮助。"
@@ -27,11 +28,7 @@ export function buildSmokeBriefGreetingReply(args: {
     : "Hello, it is good to see you.";
 }
 
-export function buildSmokeNamingReply(args: {
-  replyLanguage: SmokeReplyLanguage;
-  agentName: string;
-  nickname: string | null;
-}) {
+export function buildSmokeNamingReply(args: SmokeNamingReplyInput) {
   if (args.nickname) {
     return args.replyLanguage === "zh-Hans"
       ? `哈哈，我叫${args.nickname}！`
@@ -43,10 +40,7 @@ export function buildSmokeNamingReply(args: {
     : `My name is ${args.agentName}.`;
 }
 
-export function buildSmokePreferredNameReply(args: {
-  replyLanguage: SmokeReplyLanguage;
-  preferredName: string | null;
-}) {
+export function buildSmokePreferredNameReply(args: SmokePreferredNameReplyInput) {
   if (args.preferredName) {
     return args.replyLanguage === "zh-Hans"
       ? `我应该叫你${args.preferredName}。`
