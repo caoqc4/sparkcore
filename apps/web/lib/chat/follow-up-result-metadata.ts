@@ -1,5 +1,7 @@
 import type {
   ClaimDuePendingFollowUpsInput,
+  MarkFollowUpExecutedInput,
+  MarkFollowUpFailedInput,
   PendingFollowUpRecord
 } from "@/lib/chat/runtime-contract";
 import type { ProactiveSendResult } from "@/lib/integrations/im-adapter";
@@ -49,5 +51,31 @@ export function buildFollowUpSendFailureMetadata(
   return {
     status: sendResult.status,
     sender_metadata: sendResult.metadata ?? {}
+  };
+}
+
+export function buildExecutedFollowUpRequestPayload(args: {
+  basePayload?: Record<string, unknown> | null;
+  executedAt: string;
+  executionMetadata?: MarkFollowUpExecutedInput["execution_metadata"];
+}) {
+  return {
+    ...(args.basePayload ?? {}),
+    execution_metadata: args.executionMetadata ?? {},
+    executed_at: args.executedAt
+  };
+}
+
+export function buildFailedFollowUpRequestPayload(args: {
+  basePayload?: Record<string, unknown> | null;
+  failedAt: string;
+  failureReason: string;
+  failureMetadata?: MarkFollowUpFailedInput["failure_metadata"];
+}) {
+  return {
+    ...(args.basePayload ?? {}),
+    failed_at: args.failedAt,
+    failure_reason: args.failureReason,
+    failure_metadata: args.failureMetadata ?? {}
   };
 }

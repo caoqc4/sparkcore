@@ -11,7 +11,11 @@ import type {
   PendingFollowUpRecord,
   RuntimeFollowUpExecutionResult
 } from "@/lib/chat/runtime-contract";
-import { buildFollowUpClaimMetadata } from "@/lib/chat/follow-up-result-metadata";
+import {
+  buildExecutedFollowUpRequestPayload,
+  buildFailedFollowUpRequestPayload,
+  buildFollowUpClaimMetadata
+} from "@/lib/chat/follow-up-result-metadata";
 
 function isAcceptedFollowUpExecutionResult(
   result: RuntimeFollowUpExecutionResult
@@ -149,11 +153,11 @@ export class InMemoryFollowUpRepository implements FollowUpRepository {
 
     record.status = "executed";
     record.updated_at = input.executed_at;
-    record.request_payload = {
-      ...record.request_payload,
-      execution_metadata: input.execution_metadata ?? {},
-      executed_at: input.executed_at
-    };
+    record.request_payload = buildExecutedFollowUpRequestPayload({
+      basePayload: record.request_payload,
+      executedAt: input.executed_at,
+      executionMetadata: input.execution_metadata
+    });
 
     return {
       updated: true,
@@ -174,12 +178,12 @@ export class InMemoryFollowUpRepository implements FollowUpRepository {
 
     record.status = "failed";
     record.updated_at = input.failed_at;
-    record.request_payload = {
-      ...record.request_payload,
-      failed_at: input.failed_at,
-      failure_reason: input.failure_reason,
-      failure_metadata: input.failure_metadata ?? {}
-    };
+    record.request_payload = buildFailedFollowUpRequestPayload({
+      basePayload: record.request_payload,
+      failedAt: input.failed_at,
+      failureReason: input.failure_reason,
+      failureMetadata: input.failure_metadata
+    });
 
     return {
       updated: true,

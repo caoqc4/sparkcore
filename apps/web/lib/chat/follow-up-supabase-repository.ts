@@ -10,7 +10,11 @@ import type {
   MarkFollowUpFailedResult,
   PendingFollowUpRecord
 } from "@/lib/chat/runtime-contract";
-import { buildFollowUpClaimMetadata } from "@/lib/chat/follow-up-result-metadata";
+import {
+  buildExecutedFollowUpRequestPayload,
+  buildFailedFollowUpRequestPayload,
+  buildFollowUpClaimMetadata
+} from "@/lib/chat/follow-up-result-metadata";
 import { buildPendingFollowUpRecord } from "@/lib/chat/follow-up-repository";
 
 export const DEFAULT_PENDING_FOLLOW_UPS_TABLE = "pending_follow_ups";
@@ -203,13 +207,14 @@ export class SupabaseFollowUpRepository implements FollowUpRepository {
       );
     }
 
-    const nextRequestPayload = {
-      ...(((existingRow as { request_payload?: Record<string, unknown> | null } | null)
-        ?.request_payload ??
-        {}) as Record<string, unknown>),
-      execution_metadata: input.execution_metadata ?? {},
-      executed_at: input.executed_at
-    };
+    const nextRequestPayload = buildExecutedFollowUpRequestPayload({
+      basePayload:
+        ((existingRow as { request_payload?: Record<string, unknown> | null } | null)
+          ?.request_payload ??
+          {}) as Record<string, unknown>,
+      executedAt: input.executed_at,
+      executionMetadata: input.execution_metadata
+    });
 
     const { data, error } = await this.supabase
       .from(this.tableName)
@@ -258,14 +263,15 @@ export class SupabaseFollowUpRepository implements FollowUpRepository {
       );
     }
 
-    const nextRequestPayload = {
-      ...(((existingRow as { request_payload?: Record<string, unknown> | null } | null)
-        ?.request_payload ??
-        {}) as Record<string, unknown>),
-      failed_at: input.failed_at,
-      failure_reason: input.failure_reason,
-      failure_metadata: input.failure_metadata ?? {}
-    };
+    const nextRequestPayload = buildFailedFollowUpRequestPayload({
+      basePayload:
+        ((existingRow as { request_payload?: Record<string, unknown> | null } | null)
+          ?.request_payload ??
+          {}) as Record<string, unknown>,
+      failedAt: input.failed_at,
+      failureReason: input.failure_reason,
+      failureMetadata: input.failure_metadata
+    });
 
     const { data, error } = await this.supabase
       .from(this.tableName)
