@@ -2,8 +2,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { insertSmokeSeedAgents } from "@/lib/testing/smoke-agent-seed-persistence";
 import { getSmokeModelProfiles } from "@/lib/testing/smoke-model-profile-seeds";
 
-export { getSmokeModelProfiles } from "@/lib/testing/smoke-model-profile-seeds";
-
 type SmokeUser = {
   id: string;
   workspaceId: string;
@@ -33,5 +31,3 @@ export async function upsertSmokeModelProfiles(admin: SupabaseClient) {
     onConflict: "slug"
   });
 }
-
-export { insertSmokeSeedAgents } from "@/lib/testing/smoke-agent-seed-persistence";
