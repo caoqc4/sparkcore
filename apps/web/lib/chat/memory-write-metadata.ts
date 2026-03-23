@@ -5,6 +5,8 @@ export function buildRelationshipPlannerMemoryMetadata(
 ) {
   return {
     source: "runtime_planner",
+    record_target: "memory_record",
+    canonical_memory_type: "relationship",
     relation_kind: request.relationship_key,
     dedupe_key: request.dedupe_key ?? null,
     write_mode: request.write_mode ?? "upsert",
@@ -18,10 +20,14 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
   dedupeKey?: string | null;
   writeMode?: string | null;
   threshold: number;
+  recordTarget: "static_profile" | "memory_record" | "thread_state_candidate";
+  canonicalMemoryType?: string | null;
 }) {
   return {
     extraction_reason: args.reason,
     source: "runtime_planner",
+    record_target: args.recordTarget,
+    canonical_memory_type: args.canonicalMemoryType ?? null,
     threshold: args.threshold,
     dedupe_key: args.dedupeKey ?? null,
     write_mode: args.writeMode ?? "upsert"
@@ -35,11 +41,15 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
   writeMode?: string | null;
   threshold: number;
   convergenceUpdatedAt: string;
+  recordTarget: "static_profile" | "memory_record" | "thread_state_candidate";
+  canonicalMemoryType?: string | null;
 }) {
   return {
     ...(args.existingMetadata ?? {}),
     extraction_reason: args.reason,
     source: "runtime_planner",
+    record_target: args.recordTarget,
+    canonical_memory_type: args.canonicalMemoryType ?? null,
     threshold: args.threshold,
     convergence_updated_at: args.convergenceUpdatedAt,
     dedupe_key: args.dedupeKey ?? null,

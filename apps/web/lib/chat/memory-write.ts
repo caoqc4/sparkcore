@@ -50,6 +50,25 @@ import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_MODEL = "replicate-llama-3-8b";
 
+type PlannedMemoryRecordTarget =
+  | "static_profile"
+  | "memory_record"
+  | "thread_state_candidate";
+
+function classifyMemoryWriteTarget(
+  request: RuntimeMemoryWriteRequest
+): PlannedMemoryRecordTarget {
+  if (request.kind === "relationship_memory") {
+    return "memory_record";
+  }
+
+  if (request.memory_type === "profile" || request.memory_type === "preference") {
+    return "static_profile";
+  }
+
+  return "memory_record";
+}
+
 function buildExtractionPrompt({
   latestUserMessage,
   recentContext
@@ -541,6 +560,7 @@ export async function executeMemoryWriteRequests({
   const relationshipUpdatedTypes: MemoryUsageType[] = [];
 
   for (const request of relationshipRequests) {
+    const recordTarget = classifyMemoryWriteTarget(request);
     const relationshipWrite = await upsertSingleSlotMemory({
       workspaceId,
       userId,
@@ -555,7 +575,10 @@ export async function executeMemoryWriteRequests({
       confidence: request.confidence,
       stability:
         request.relationship_key === "user_address_style" ? "medium" : "high",
-      metadata: buildRelationshipPlannerMemoryMetadata(request)
+      metadata: {
+        ...buildRelationshipPlannerMemoryMetadata(request),
+        record_target: recordTarget
+      }
     });
 
     if (relationshipWrite.created) {
@@ -617,6 +640,9 @@ export async function executeMemoryWriteRequests({
     );
 
     const sourceTurnId = matchingRequest?.source_turn_id;
+    const recordTarget = matchingRequest
+      ? classifyMemoryWriteTarget(matchingRequest)
+      : "static_profile";
     const matchingExisting = activeExistingMemories.find(
       (memory) =>
         memory.memory_type === candidate.memory_type &&
@@ -649,7 +675,9 @@ export async function executeMemoryWriteRequests({
           reason: candidate.reason,
           dedupeKey: matchingRequest?.dedupe_key ?? null,
           writeMode: matchingRequest?.write_mode ?? "upsert",
-          threshold: MEMORY_CONFIDENCE_THRESHOLD
+          threshold: MEMORY_CONFIDENCE_THRESHOLD,
+          recordTarget,
+          canonicalMemoryType: candidate.memory_type
         })
       });
       continue;
@@ -670,7 +698,9 @@ export async function executeMemoryWriteRequests({
         dedupeKey: matchingRequest?.dedupe_key ?? null,
         writeMode: matchingRequest?.write_mode ?? "upsert",
         threshold: MEMORY_CONFIDENCE_THRESHOLD,
-        convergenceUpdatedAt: new Date().toISOString()
+        convergenceUpdatedAt: new Date().toISOString(),
+        recordTarget,
+        canonicalMemoryType: candidate.memory_type
       }),
       category: candidate.memory_type,
       key: LEGACY_MEMORY_KEY,
