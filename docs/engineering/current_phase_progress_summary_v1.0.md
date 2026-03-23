@@ -173,6 +173,11 @@
   - 统一 builder
   - 统一 read helper
   - Web / IM 两侧 runtime preview metadata 的统一 builder / updater
+- `runtime user message` 这条线当前也已开始进一步收口：
+  - user message metadata builder 已并回真实 persistence 入口
+  - Webhook binding lookup factory 这类单跳 helper 也已开始被继续裁掉
+- `thread activity` 这条线当前也已更直接：
+  - title summarize 已并回 `thread activity patch` builder
 - 也就是说，assistant / runtime metadata 这条线当前已经从“开始收组”前移到了：
   - 写出面开始共用 builder
   - 读取面开始共用 grouped + fallback helper
@@ -188,6 +193,10 @@
 - 当前更准确的判断是：
   - `smoke` harness 已进入尾段清扫
   - 剩余小文件大多已经是稳定公共原语，而不是明显多余的中转层
+- `chat` 主线当前也开始进入相似的收尾区：
+  - `thread message` 单跳 persistence shell 已裁掉
+  - `runtime user message` metadata 小壳已裁掉
+  - `thread title` 小壳已裁掉
 - 当前 runtime 主线的下一阶段优先级也已前移成：
   - 先治理输出层
   - 再决定是否继续细拆 execution
