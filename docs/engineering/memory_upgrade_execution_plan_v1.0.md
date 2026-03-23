@@ -18,6 +18,7 @@
 阶段补充：
 
 - 当 P0 进入后半段后，请结合 [memory_upgrade_p0_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p0_close_readiness_v1.0.md) 做收口判断，而不要继续无限扩张 P0 范围
+- 当前 P0 收官结论，请以 [memory_upgrade_p0_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p0_close_note_v1.0.md) 为准
 
 适用阶段：
 

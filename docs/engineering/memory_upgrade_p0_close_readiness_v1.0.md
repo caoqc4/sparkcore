@@ -224,8 +224,8 @@
 - `P0-6`：高完成度进行中
 - `P0-7`：第一版已成立
 
-当前最合理的下一步不是继续盲推新点，而是：
+当前这轮收口判断已经完成，下一步应以：
 
-- 围绕 `P0-6 / P0-7` 做最后一轮收口判断
-- 再决定是否需要补最后一刀代码
-- 然后准备 `P0 close note`
+- [memory_upgrade_p0_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p0_close_note_v1.0.md)
+
+作为 P0 是否可收官的正式结论入口，而不是继续无限扩张 P0 范围。
