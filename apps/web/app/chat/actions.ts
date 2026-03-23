@@ -18,6 +18,10 @@ import {
 import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
+import {
+  buildFailedAssistantMetadata,
+  buildPendingAssistantMetadata
+} from "@/lib/chat/assistant-message-state-metadata";
 import { updateAssistantPreviewMetadata } from "@/lib/chat/assistant-preview-metadata";
 import {
   buildRuntimeFollowUpExecutionMetadata,
@@ -1108,10 +1112,10 @@ export async function sendMessage(
         role: "assistant",
         content: "",
         status: "pending",
-        metadata: {
-          agent_id: thread.agent_id,
-          user_message_id: insertedMessage.id
-        }
+        metadata: buildPendingAssistantMetadata({
+          agentId: thread.agent_id,
+          userMessageId: insertedMessage.id
+        })
       })
       .select("id")
       .single();
@@ -1273,12 +1277,12 @@ export async function sendMessage(
       .update({
         status: "failed",
         content: "",
-        metadata: {
-          agent_id: thread.agent_id,
-          user_message_id: insertedMessage.id,
-          error_type: assistantFailure.errorType,
-          error_message: assistantFailure.message
-        },
+        metadata: buildFailedAssistantMetadata({
+          agentId: thread.agent_id,
+          userMessageId: insertedMessage.id,
+          errorType: assistantFailure.errorType,
+          errorMessage: assistantFailure.message
+        }),
         updated_at: new Date().toISOString()
       })
       .eq("id", assistantPlaceholder.id)
@@ -1552,17 +1556,17 @@ export async function retryAssistantReply(
     const assistantFailure = classifyAssistantError(error);
 
     await supabase
-      .from("messages")
-      .update({
-        status: "failed",
-        content: "",
-        metadata: {
-          ...failedMessage.metadata,
-          error_type: assistantFailure.errorType,
-          error_message: assistantFailure.message
-        },
-        updated_at: new Date().toISOString()
-      })
+    .from("messages")
+    .update({
+      status: "failed",
+      content: "",
+      metadata: buildFailedAssistantMetadata({
+        baseMetadata: failedMessage.metadata,
+        errorType: assistantFailure.errorType,
+        errorMessage: assistantFailure.message
+      }),
+      updated_at: new Date().toISOString()
+    })
       .eq("id", failedMessage.id)
       .eq("thread_id", thread.id)
       .eq("workspace_id", workspace.id)

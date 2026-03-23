@@ -7,6 +7,10 @@ import { executeMemoryWriteRequests } from "@/lib/chat/memory-write";
 import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
+import {
+  buildFailedAssistantMetadata,
+  buildPendingAssistantMetadata
+} from "@/lib/chat/assistant-message-state-metadata";
 import { updateAssistantPreviewMetadata } from "@/lib/chat/assistant-preview-metadata";
 import {
   buildRuntimeFollowUpExecutionMetadata,
@@ -184,11 +188,11 @@ async function runImRuntimeTurnWithSupabase(args: {
         role: "assistant",
         content: "",
         status: "pending",
-        metadata: {
-          agent_id: thread.agent_id,
-          user_message_id: insertedMessage.id,
+        metadata: buildPendingAssistantMetadata({
+          agentId: thread.agent_id,
+          userMessageId: insertedMessage.id,
           source: input.source
-        }
+        })
       })
       .select("id")
       .single();
@@ -318,13 +322,13 @@ async function runImRuntimeTurnWithSupabase(args: {
       .update({
         status: "failed",
         content: "",
-        metadata: {
-          agent_id: thread.agent_id,
-          user_message_id: insertedMessage.id,
-          error_type: assistantFailure.errorType,
-          error_message: assistantFailure.message,
+        metadata: buildFailedAssistantMetadata({
+          agentId: thread.agent_id,
+          userMessageId: insertedMessage.id,
+          errorType: assistantFailure.errorType,
+          errorMessage: assistantFailure.message,
           source: input.source
-        },
+        }),
         updated_at: new Date().toISOString()
       })
       .eq("id", assistantPlaceholder.id)
