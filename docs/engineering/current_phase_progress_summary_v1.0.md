@@ -394,6 +394,12 @@
 - `P0 ~ P4` 当前的非阻塞尾项也已统一收束到：
   - [memory_upgrade_tail_cleanup_backlog_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_tail_cleanup_backlog_v1.0.md)
   - 用于后续按 batch 处理 tail cleanup / gate strengthening / deepening backlog，而不再回头阻塞主线
+- `memory_upgrade_p5_execution_plan_v1.0.md` 当前也已新增，用于把下一阶段从 `P4` 已成立的 boundary / pruning / route influence / pack consumption 推进成正式执行起点：
+  - namespace multi-budget routing
+  - retention layering / pruning strategy v3
+  - knowledge route weighting v3
+  - scenario pack strategy layer v3
+  - `P5` regression / acceptance expansion
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
