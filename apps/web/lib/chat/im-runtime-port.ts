@@ -17,17 +17,8 @@ import { insertRuntimeUserMessage } from "@/lib/chat/runtime-user-message-persis
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
 import { resolveRoleProfile } from "@/lib/chat/role-service";
 import { runAgentTurn } from "@/lib/chat/runtime";
+import { summarizeThreadTitle } from "@/lib/chat/thread-title";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-function summarizeThreadTitle(content: string) {
-  const normalized = content.replace(/\s+/g, " ").trim();
-
-  if (normalized.length <= 48) {
-    return normalized;
-  }
-
-  return `${normalized.slice(0, 45).trimEnd()}...`;
-}
 
 async function runImRuntimeTurnWithSupabase(args: {
   supabase: any;

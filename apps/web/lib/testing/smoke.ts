@@ -6,6 +6,7 @@ import {
 import { NextResponse, type NextRequest } from "next/server";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
+import { summarizeThreadTitle } from "@/lib/chat/thread-title";
 import { getSupabaseEnv } from "@/lib/env";
 import { getAssistantDetectedReplyLanguage } from "@/lib/chat/assistant-message-metadata-read";
 import {
@@ -786,16 +787,6 @@ export async function createSmokeThread({
   return {
     threadId: thread.id
   };
-}
-
-function summarizeThreadTitle(content: string) {
-  const normalized = content.replace(/\s+/g, " ").trim();
-
-  if (normalized.length <= 48) {
-    return normalized;
-  }
-
-  return `${normalized.slice(0, 45).trimEnd()}...`;
 }
 
 function detectSmokeReplyLanguage(content: string): SmokeReplyLanguage {

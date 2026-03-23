@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
+import { summarizeThreadTitle } from "@/lib/chat/thread-title";
 import {
   canTransitionMemoryStatus,
   getMemoryStatus,
@@ -53,16 +54,6 @@ export type RenameAgentResult =
   | { ok: false; agentId: string | null; message: string };
 
 type ChatFeedbackTone = "success" | "error";
-
-function summarizeThreadTitle(content: string) {
-  const normalized = content.replace(/\s+/g, " ").trim();
-
-  if (normalized.length <= 48) {
-    return normalized;
-  }
-
-  return `${normalized.slice(0, 45).trimEnd()}...`;
-}
 
 function normalizeThreadTitle(title: string) {
   const normalized = title.replace(/\s+/g, " ").trim();
