@@ -1,5 +1,6 @@
 import { getSmokeTurnExecutionContext } from "@/lib/testing/smoke-turn-execution-context";
-import { prepareSmokeTurnExecutionState } from "@/lib/testing/smoke-turn-execution-state";
+import { prepareSmokeExecutionAnalysis } from "@/lib/testing/smoke-turn-execution-analysis";
+import { buildSmokeTurnExecutionResult } from "@/lib/testing/smoke-turn-execution-result-builder";
 import { persistSmokeMemoryTurnStep } from "@/lib/testing/smoke-turn-memory-step";
 import { persistSmokeUserTurnStep } from "@/lib/testing/smoke-turn-user-step";
 import { runSmokeAssistantTurnStep } from "@/lib/testing/smoke-turn-assistant-run";
@@ -18,7 +19,7 @@ export async function executeSmokeTurn(
     existingMemories,
     existingMessages
   } = getSmokeTurnExecutionContext(args);
-  const { analysis } = prepareSmokeTurnExecutionState({
+  const analysis = prepareSmokeExecutionAnalysis({
     trimmedContent: args.trimmedContent,
     existingMemories,
     existingMessages,
@@ -76,8 +77,8 @@ export async function executeSmokeTurn(
     createdTypes
   });
 
-  return {
+  return buildSmokeTurnExecutionResult({
     userMessageId: ensuredUserMessage.id,
     assistantMessageId: insertedAssistantMessage.id
-  };
+  });
 }
