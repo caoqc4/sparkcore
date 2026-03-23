@@ -23,6 +23,8 @@ import {
   getAssistantKnowledgeScopeLayers,
   getAssistantMemoryNamespacePrimaryLayer,
   getAssistantMemoryScenarioPackAssemblyEmphasis,
+  getAssistantMemoryScenarioPackStrategyAssemblyOrder,
+  getAssistantMemoryScenarioPackStrategyBundleId,
   getAssistantMemoryScenarioPackKnowledgeBudgetWeight,
   getAssistantMemoryScenarioPackKnowledgeRouteWeight,
   getAssistantMemoryScenarioPackId,
@@ -1717,6 +1719,16 @@ function main() {
       scenarioMemoryPackStrategy.strategy_bundle_id === "project_execution" &&
       scenarioMemoryPackStrategy.assembly_layer_order.join(",") ===
         "memory_record,static_profile,relationship,dynamic_profile" &&
+      getAssistantMemoryScenarioPackStrategyBundleId(assistantMetadata) ===
+        "project_execution" &&
+      getAssistantMemoryScenarioPackStrategyAssemblyOrder(
+        assistantMetadata
+      ).join(",") ===
+        "memory_record,static_profile,relationship,dynamic_profile" &&
+      runtimeDebugMetadata.memory.pack?.strategy_bundle_id ===
+        "project_execution" &&
+      runtimeDebugMetadata.memory.pack?.strategy_assembly_order?.join(",") ===
+        "memory_record,static_profile,relationship,dynamic_profile" &&
       systemPrompt.includes("RM1:") &&
       !systemPrompt.includes("RM2:") &&
       systemPrompt.includes("SP1:") &&
@@ -1814,6 +1826,12 @@ function main() {
             getAssistantMemoryScenarioPackKnowledgeBudgetWeight(
               assistantMetadata
             ),
+          strategy_bundle_id:
+            getAssistantMemoryScenarioPackStrategyBundleId(assistantMetadata),
+          strategy_assembly_order:
+            getAssistantMemoryScenarioPackStrategyAssemblyOrder(
+              assistantMetadata
+            ),
           route_influence_reason:
             getAssistantMemoryScenarioPackRouteInfluenceReason(
               assistantMetadata
@@ -1840,6 +1858,10 @@ function main() {
             runtimeDebugMetadata.memory.pack?.knowledge_route_weight ?? null,
           pack_knowledge_budget_weight:
             runtimeDebugMetadata.memory.pack?.knowledge_budget_weight ?? null,
+          pack_strategy_bundle_id:
+            runtimeDebugMetadata.memory.pack?.strategy_bundle_id ?? null,
+          pack_strategy_assembly_order:
+            runtimeDebugMetadata.memory.pack?.strategy_assembly_order ?? [],
           pack_route_influence_reason:
             runtimeDebugMetadata.memory.pack?.route_influence_reason ?? null,
           knowledge_count: runtimeDebugMetadata.knowledge.count,

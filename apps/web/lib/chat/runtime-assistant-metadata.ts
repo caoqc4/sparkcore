@@ -9,7 +9,10 @@ import type {
   RuntimeReplyLanguage,
 } from "@/lib/chat/role-core";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
-import type { ActiveScenarioMemoryPack } from "@/lib/chat/memory-packs";
+import {
+  resolveScenarioMemoryPackStrategy,
+  type ActiveScenarioMemoryPack
+} from "@/lib/chat/memory-packs";
 import {
   resolveKnowledgeScopeLayer,
   type RuntimeKnowledgeSnippet
@@ -96,6 +99,10 @@ export type BuildRuntimeAssistantMetadataInput = {
 export function buildRuntimeAssistantMetadataInput(
   input: BuildRuntimeAssistantMetadataInput
 ): BuildAssistantMessageMetadataInput {
+  const scenarioPackStrategy = input.memory.scenario_pack
+    ? resolveScenarioMemoryPackStrategy(input.memory.scenario_pack)
+    : null;
+
   return {
     agent_id: input.agent.id,
     agent_name: input.agent.name,
@@ -161,6 +168,10 @@ export function buildRuntimeAssistantMetadataInput(
       input.memory.scenario_pack?.knowledge_budget_weight ?? null,
     scenario_memory_pack_route_influence_reason:
       input.memory.scenario_pack?.route_influence_reason ?? null,
+    scenario_memory_pack_strategy_bundle_id:
+      scenarioPackStrategy?.strategy_bundle_id ?? null,
+    scenario_memory_pack_strategy_assembly_order:
+      scenarioPackStrategy?.assembly_layer_order ?? [],
     hidden_memory_exclusion_count: input.memory.hidden_exclusion_count,
     incorrect_memory_exclusion_count: input.memory.incorrect_exclusion_count,
     knowledge_count: input.knowledge.snippets.length,

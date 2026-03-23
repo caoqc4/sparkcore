@@ -1095,6 +1095,9 @@
     - retention layering v3
     - knowledge route weighting v3
     - scenario pack strategy v3
+  - 其中 `scenario pack strategy v3` 现在也已开始锁 assistant/debug metadata 内的：
+    - `strategy_bundle_id`
+    - `strategy_assembly_order`
   - 同时开始提供：
     - `checks_passed / checks_total`
     - `failed_checks`

@@ -352,6 +352,28 @@ export function getAssistantMemoryScenarioPackKnowledgeBudgetWeight(
   );
 }
 
+export function getAssistantMemoryScenarioPackStrategyBundleId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "strategy_bundle_id") ??
+    getAssistantMetadataString(metadata, "scenario_memory_pack_strategy_bundle_id")
+  );
+}
+
+export function getAssistantMemoryScenarioPackStrategyAssemblyOrder(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return getAssistantMetadataStringArray(
+    packMetadata ?? metadata,
+    "strategy_assembly_order"
+  );
+}
+
 export function getAssistantKnowledgeCount(
   metadata: Record<string, unknown> | null | undefined
 ) {

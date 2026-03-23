@@ -2,7 +2,10 @@ import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type { RuntimeThreadStateRecall } from "@/lib/chat/memory-recall";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
-import type { ActiveScenarioMemoryPack } from "@/lib/chat/memory-packs";
+import {
+  resolveScenarioMemoryPackStrategy,
+  type ActiveScenarioMemoryPack
+} from "@/lib/chat/memory-packs";
 import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import { buildKnowledgeSummary } from "@/lib/chat/memory-knowledge";
@@ -34,6 +37,10 @@ export type BuildRuntimeDebugMetadataInput = {
 export function buildRuntimeDebugMetadata(
   input: BuildRuntimeDebugMetadataInput
 ) {
+  const scenarioPackStrategy = input.scenario_memory_pack
+    ? resolveScenarioMemoryPackStrategy(input.scenario_memory_pack)
+    : null;
+
   return {
     model_profile_id: input.model_profile_id,
     answer_strategy: {
@@ -67,7 +74,11 @@ export function buildRuntimeDebugMetadata(
             knowledge_budget_weight:
               input.scenario_memory_pack.knowledge_budget_weight,
             route_influence_reason:
-              input.scenario_memory_pack.route_influence_reason
+              input.scenario_memory_pack.route_influence_reason,
+            strategy_bundle_id:
+              scenarioPackStrategy?.strategy_bundle_id ?? null,
+            strategy_assembly_order:
+              scenarioPackStrategy?.assembly_layer_order ?? []
           }
         : null,
       write_request_count: input.memory_write_request_count

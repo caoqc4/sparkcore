@@ -48,6 +48,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   scenario_memory_pack_knowledge_route_weight?: number | null;
   scenario_memory_pack_knowledge_budget_weight?: number | null;
   scenario_memory_pack_route_influence_reason?: string | null;
+  scenario_memory_pack_strategy_bundle_id?: string | null;
+  scenario_memory_pack_strategy_assembly_order?: string[];
   knowledge_count?: number;
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
@@ -119,6 +121,8 @@ export type BuildAssistantMessageMetadataInput = {
   scenario_memory_pack_knowledge_route_weight?: number | null;
   scenario_memory_pack_knowledge_budget_weight?: number | null;
   scenario_memory_pack_route_influence_reason?: string | null;
+  scenario_memory_pack_strategy_bundle_id?: string | null;
+  scenario_memory_pack_strategy_assembly_order?: string[];
   knowledge_count?: number;
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
@@ -200,7 +204,11 @@ export function buildAssistantMetadataSummaryGroups(
             knowledge_budget_weight:
               input.scenario_memory_pack_knowledge_budget_weight ?? null,
             route_influence_reason:
-              input.scenario_memory_pack_route_influence_reason ?? null
+              input.scenario_memory_pack_route_influence_reason ?? null,
+            strategy_bundle_id:
+              input.scenario_memory_pack_strategy_bundle_id ?? null,
+            strategy_assembly_order:
+              input.scenario_memory_pack_strategy_assembly_order ?? []
           }
         : null,
       semantic_summary: buildRuntimeMemorySemanticSummary({
@@ -279,6 +287,10 @@ export function buildAssistantMetadataSummaryGroups(
         input.scenario_memory_pack_knowledge_budget_weight,
       scenario_memory_pack_route_influence_reason:
         input.scenario_memory_pack_route_influence_reason,
+      scenario_memory_pack_strategy_bundle_id:
+        input.scenario_memory_pack_strategy_bundle_id,
+      scenario_memory_pack_strategy_assembly_order:
+        input.scenario_memory_pack_strategy_assembly_order,
       knowledge_count: input.knowledge_count,
       knowledge_titles: input.knowledge_titles,
       knowledge_source_kinds: input.knowledge_source_kinds,
