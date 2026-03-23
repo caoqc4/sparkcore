@@ -141,6 +141,22 @@ P4 首批要把 `Thread retention` 从：
 - 至少一条 budget helper 成为真实主路径输入
 - 至少一条 pruning 决策开始显式区分不同 retention mode
 
+当前已成立的第一刀代码事实：
+
+- `packages/core/memory/compaction.ts` 当前已开始把 `retention_budget` 收成正式 contract
+- `apps/web/lib/chat/thread-compaction.ts` 当前已开始根据：
+  - `retention_mode`
+  - `retention_reason`
+  推导最小 retention budget
+- 当前最小规则已经成立：
+  - `focus_anchor = 2`
+  - `continuity_anchor = 2`
+  - `recent_window = 3`
+  - `minimal = 1`
+- runtime prompt / assistant metadata / debug metadata 当前也已开始承接这层 retention budget
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - `focus_anchor` 下的 `retention_budget = 2`
+
 ### 4.3 Knowledge route influence v2
 
 P4 首批要把 `Knowledge` 从：

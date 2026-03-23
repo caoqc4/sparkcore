@@ -940,6 +940,12 @@ function main() {
   );
   expect(
     getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+      "Retention budget: 2."
+    ),
+    "Expected assistant metadata reader to expose the retention budget inside the compacted summary text in P4."
+  );
+  expect(
+    getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
       "Retention mode: focus_anchor."
     ),
     "Expected assistant metadata reader to expose the retention mode inside the compacted summary text."
@@ -996,6 +1002,10 @@ function main() {
     runtimeDebugMetadata.thread_compaction?.retention_reason ===
       "focus_mode_present",
     "Expected runtime debug metadata to expose the retention reason in P3."
+  );
+  expect(
+    runtimeDebugMetadata.thread_compaction?.retention_budget === 2,
+    "Expected runtime debug metadata to expose the retention budget in P4."
   );
   expect(
     runtimeDebugMetadata.memory_namespace?.primary_layer === "project",

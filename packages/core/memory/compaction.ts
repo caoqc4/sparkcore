@@ -25,6 +25,7 @@ export type CompactedThreadSummary = {
   current_language_hint: string | null;
   retention_mode: ThreadRetentionMode;
   retention_reason: ThreadRetentionReason;
+  retention_budget: number;
   retained_fields: string[];
   summary_text: string;
   generated_at: string;

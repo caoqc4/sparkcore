@@ -76,6 +76,23 @@ function buildRetainedFields(args: {
   return Array.from(fields);
 }
 
+function resolveThreadRetentionBudget(args: {
+  retentionMode: ThreadRetentionMode;
+  retentionReason: ThreadRetentionReason;
+}) {
+  switch (args.retentionMode) {
+    case "focus_anchor":
+      return 2;
+    case "continuity_anchor":
+      return 2;
+    case "recent_window":
+      return 3;
+    case "minimal":
+    default:
+      return args.retentionReason === "closed_minimal_pruned" ? 0 : 1;
+  }
+}
+
 function resolveThreadRetentionReason(args: {
   threadState: ThreadStateRecord;
   recentTurnCount: number;
@@ -127,6 +144,10 @@ export function buildCompactedThreadSummary(args: {
     retentionReason,
     latestUserMessage
   });
+  const retentionBudget = resolveThreadRetentionBudget({
+    retentionMode,
+    retentionReason
+  });
 
   const summaryParts = [
     retainedFields.includes("focus_mode") ? `Focus: ${focus}.` : null,
@@ -139,6 +160,7 @@ export function buildCompactedThreadSummary(args: {
     retainedFields.includes("latest_user_message")
       ? `Latest user message: ${latestUserMessage}.`
       : null,
+    `Retention budget: ${retentionBudget}.`,
     `Retention mode: ${retentionMode}.`,
     `Retention reason: ${retentionReason}.`,
   ].filter((part): part is string => Boolean(part));
@@ -153,6 +175,7 @@ export function buildCompactedThreadSummary(args: {
     current_language_hint: args.threadState.current_language_hint ?? null,
     retention_mode: retentionMode,
     retention_reason: retentionReason,
+    retention_budget: retentionBudget,
     retained_fields: retainedFields,
     summary_text: summaryParts.join(" "),
     generated_at: args.generatedAt ?? new Date().toISOString()
@@ -227,6 +250,7 @@ export function buildThreadCompactionSummary(args: {
             args.compactedThreadSummary.current_language_hint,
           retention_mode: args.compactedThreadSummary.retention_mode,
           retention_reason: args.compactedThreadSummary.retention_reason,
+          retention_budget: args.compactedThreadSummary.retention_budget,
           retained_fields: args.compactedThreadSummary.retained_fields,
       }
     : null;

@@ -267,6 +267,16 @@
     - `timeline_budget`
   - `apps/web/lib/chat/memory-recall.ts` 当前也已开始复用这层 budget，使 thread-primary namespace 下的 recall selection 不再只受 route 开关影响，也开始受 namespace budget 影响
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 thread-primary namespace 下的 tighter recall budget
+- `P4-2 Retention budget / pruning v2` 当前也已开始进入真实实现：
+  - `packages/core/memory/compaction.ts` 当前已开始把 `retention_budget` 收成正式 contract
+  - `apps/web/lib/chat/thread-compaction.ts` 当前已开始根据 `retention_mode / retention_reason` 推导最小 retention budget
+  - 当前最小规则已经成立：
+    - `focus_anchor = 2`
+    - `continuity_anchor = 2`
+    - `recent_window = 3`
+    - `minimal = 1`
+  - runtime prompt / assistant metadata / debug metadata 当前也已开始承接这层 retention budget
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` 下的 `retention_budget = 2`
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
