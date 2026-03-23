@@ -30,4 +30,10 @@ export type SmokeReplyLanguageSource =
   | "thread-continuity-fallback"
   | "no-latest-user-message";
 export type SmokeApproxContextPressure = "low" | "medium" | "elevated" | "high";
+export type SmokeAnswerStrategyDecision = {
+  questionType: SmokeAnswerQuestionType;
+  answerStrategy: SmokeAnswerStrategy;
+  reasonCode: SmokeAnswerStrategyReasonCode;
+  continuationReasonCode: SmokeContinuationReasonCode | null;
+};
 export type { SmokeRoleCorePacket } from "@/lib/testing/smoke-role-core-packet";

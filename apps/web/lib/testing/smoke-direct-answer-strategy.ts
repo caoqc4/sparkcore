@@ -9,7 +9,7 @@ import {
   isSmokeOpenEndedPlanningHelpQuestion,
   isSmokeOpenEndedSummaryQuestion
 } from "@/lib/testing/smoke-open-ended-question-prompts";
-import type { SmokeAnswerStrategyDecision } from "@/lib/testing/smoke-answer-strategy-types";
+import type { SmokeAnswerStrategyDecision } from "@/lib/testing/smoke-assistant-builders";
 import {
   buildSmokeDirectFactStrategy,
   buildSmokeDirectRelationshipStrategy,

@@ -1,5 +1,5 @@
 import type { SmokeContinuationReasonCode } from "@/lib/testing/smoke-assistant-builders";
-import type { SmokeAnswerStrategyDecision } from "@/lib/testing/smoke-answer-strategy-types";
+import type { SmokeAnswerStrategyDecision } from "@/lib/testing/smoke-assistant-builders";
 import { getSmokeContinuationReasonCode } from "@/lib/testing/smoke-continuation-reason";
 import { getSmokeDirectOrOpenEndedAnswerStrategy } from "@/lib/testing/smoke-direct-answer-strategy";
 export {

@@ -1,4 +1,4 @@
-import type { SmokeAnswerStrategyDecision } from "@/lib/testing/smoke-answer-strategy-types";
+import type { SmokeAnswerStrategyDecision } from "@/lib/testing/smoke-assistant-builders";
 
 export function buildSmokeDirectRelationshipStrategy(): SmokeAnswerStrategyDecision {
   return {
