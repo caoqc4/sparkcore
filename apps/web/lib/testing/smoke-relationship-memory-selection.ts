@@ -7,37 +7,24 @@ import {
   findSmokeRelationshipMemory,
   prependSmokeRelationshipRecall
 } from "@/lib/testing/smoke-relationship-context";
-
-type SmokeActiveMemory = {
-  category: string | null;
-  scope: string | null;
-  target_agent_id: string | null;
-  content: string;
-  confidence: number;
-  key: string | null;
-  value: string | null;
-};
-
-type SmokeRecalledMemory = {
-  memory_type: "profile" | "preference" | "relationship";
-  content: string;
-  confidence: number;
-};
+import { hasSmokeRelationshipCarryover } from "@/lib/testing/smoke-relationship-carryover";
+import type {
+  SmokeActiveRelationshipMemory,
+  SmokeRelationshipRecallMemoryList
+} from "@/lib/testing/smoke-relationship-memory-types";
 
 export function selectSmokeRelationshipMemories(args: {
   trimmedContent: string;
-  activeMemories: SmokeActiveMemory[];
+  activeMemories: SmokeActiveRelationshipMemory[];
   agentId: string;
   relationshipStylePrompt: boolean;
   sameThreadContinuity: boolean;
-  recalledMemories: SmokeRecalledMemory[];
+  recalledMemories: SmokeRelationshipRecallMemoryList;
 }) {
-  const relationshipCarryoverAvailable = args.activeMemories.some(
-    (memory) =>
-      memory.category === "relationship" &&
-      memory.scope === "user_agent" &&
-      memory.target_agent_id === args.agentId
-  );
+  const relationshipCarryoverAvailable = hasSmokeRelationshipCarryover({
+    activeMemories: args.activeMemories,
+    agentId: args.agentId
+  });
 
   const nicknameMemory =
     isSmokeDirectNamingQuestion(args.trimmedContent) ||
