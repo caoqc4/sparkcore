@@ -35,6 +35,9 @@ export function resolvePlannedMemoryWriteTarget(
 ): PlannedRelationshipMemoryWriteTarget;
 export function resolvePlannedMemoryWriteTarget(
   request: RuntimeMemoryWriteRequest
+): PlannedMemoryWriteTarget;
+export function resolvePlannedMemoryWriteTarget(
+  request: RuntimeMemoryWriteRequest
 ): PlannedMemoryWriteTarget {
   if (request.kind === "relationship_memory") {
     return {

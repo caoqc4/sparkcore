@@ -1,13 +1,8 @@
-import type { RuntimeFollowUpRequest } from "@/lib/chat/runtime-contract";
-
-type RuntimeMemoryWriteRequest = {
-  kind: string;
-  memory_type: string;
-  relationship_key?: string | null;
-  confidence: number | null;
-  source_turn_id: string | null;
-  dedupe_key?: string | null;
-};
+import type {
+  RuntimeFollowUpRequest,
+  RuntimeMemoryWriteRequest
+} from "@/lib/chat/runtime-contract";
+import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 
 type MemoryWriteOutcome = {
   createdCount: number;
@@ -48,15 +43,21 @@ export function getRuntimePreviewMetadataGroup(
 function buildRuntimeMemoryWriteRequestPreview(
   requests: RuntimeMemoryWriteRequest[]
 ) {
-  return requests.map((request) => ({
-    kind: request.kind,
-    memory_type: request.memory_type,
-    relationship_key:
-      request.kind === "relationship_memory" ? request.relationship_key : null,
-    confidence: request.confidence,
-    source_turn_id: request.source_turn_id,
-    dedupe_key: request.dedupe_key
-  }));
+  return requests.map((request) => {
+    const target = resolvePlannedMemoryWriteTarget(request);
+
+    return {
+      kind: request.kind,
+      memory_type: request.memory_type,
+      record_target: target.recordTarget,
+      canonical_memory_type: target.canonicalMemoryType,
+      relationship_key:
+        request.kind === "relationship_memory" ? request.relationship_key : null,
+      confidence: request.confidence,
+      source_turn_id: request.source_turn_id,
+      dedupe_key: request.dedupe_key
+    };
+  });
 }
 
 function buildRuntimeFollowUpRequestPreview(
