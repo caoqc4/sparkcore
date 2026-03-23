@@ -1133,7 +1133,7 @@ function main() {
     },
     "Keep answers grounded.",
     "Help me finish onboarding.",
-    [promptRecalledProfile],
+    [promptRecalledProfile, recalledRelationship],
     runtimeKnowledge,
     compactedThreadSummary,
     activeMemoryNamespace,
@@ -1206,6 +1206,87 @@ function main() {
   expect(
     systemPrompt.includes("Active Memory Namespace: primary_layer = project."),
     "Expected system prompt assembly to include the active memory namespace in P2."
+  );
+  expect(
+    systemPrompt.includes("5. relationship memory: keep only a minimal relationship-grounding layer so it does not outweigh project execution context."),
+    "Expected project_ops system prompt assembly to downshift relationship-memory consumption in P4."
+  );
+  expect(
+    systemPrompt.includes("RM1:"),
+    "Expected project_ops system prompt assembly to retain one relationship-memory slot in P4."
+  );
+  expect(
+    !systemPrompt.includes("RM2:"),
+    "Expected project_ops system prompt assembly to cap relationship-memory consumption at one slot in P4."
+  );
+
+  const companionSystemPrompt = buildAgentSystemPrompt(
+    {
+      packet_version: "v1",
+      identity: {
+        agent_id: "agent-1",
+        agent_name: "Spark"
+      },
+      persona_summary: "Warm companion",
+      style_guidance: "Stay steady",
+      relationship_stance: {
+        effective: "friendly",
+        source: "relationship_memory"
+      },
+      language_behavior: {
+        reply_language_target: "en",
+        reply_language_source: "latest-user-message",
+        same_thread_continuation_preferred: true
+      }
+    },
+    "Keep continuity.",
+    "Thanks for sticking with me.",
+    [
+      promptRecalledProfile,
+      recalledRelationship,
+      {
+        ...recalledRelationship,
+        content: "The user usually treats this agent like a steady teammate."
+      }
+    ],
+    [buildRuntimeKnowledgeSnippet(worldKnowledgeSnapshot)],
+    compactedThreadSummary,
+    {
+      namespace_id: "user:user-1|world:world-1",
+      primary_layer: "world",
+      active_layers: ["user", "world"],
+      refs: [
+        { layer: "user", entity_id: "user-1" },
+        { layer: "world", entity_id: "world-1" }
+      ],
+      selection_reason: "session_and_knowledge_scope"
+    },
+    "en",
+    undefined,
+    "",
+    {
+      thread_id: "thread-2",
+      agent_id: "agent-1",
+      state_version: 1,
+      lifecycle_status: "active",
+      focus_mode: null,
+      current_language_hint: "en",
+      recent_turn_window_size: 4,
+      continuity_status: "warm",
+      last_user_message_id: "msg-10",
+      last_assistant_message_id: "msg-11",
+      updated_at: "2026-03-23T00:00:00.000Z"
+    }
+  );
+  expect(
+    companionSystemPrompt.includes(
+      "5. relationship memory: use as a continuity and relationship-grounding support layer."
+    ),
+    "Expected companion system prompt assembly to preserve stronger relationship-memory consumption in P4."
+  );
+  expect(
+    companionSystemPrompt.includes("RM2:"),
+    "Expected companion system prompt assembly to allow two relationship-memory slots in P4."
   );
 
   const routeAwarePrompt = buildAgentSystemPrompt(

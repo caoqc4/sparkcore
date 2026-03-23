@@ -21,7 +21,8 @@ import {
 } from "@/lib/chat/memory-records";
 import {
   buildScenarioMemoryPackPromptSection,
-  resolveActiveScenarioMemoryPack
+  resolveActiveScenarioMemoryPack,
+  type ActiveScenarioMemoryPack
 } from "@/lib/chat/memory-packs";
 import {
   buildKnowledgePromptSection,
@@ -1253,9 +1254,13 @@ function buildMemoryRecallPrompt(
 function buildMemoryLayerAssemblyPrompt(args: {
   recalledMemories: RecalledMemory[];
   threadState: ThreadStateRecord | null | undefined;
+  scenarioPack: ActiveScenarioMemoryPack | null | undefined;
   replyLanguage: RuntimeReplyLanguage;
 }) {
   const isZh = args.replyLanguage === "zh-Hans";
+  const relationshipMemories = args.recalledMemories
+    .filter((memory) => memory.memory_type === "relationship")
+    .slice(0, args.scenarioPack?.pack_id === "companion" ? 2 : 1);
   const relationshipFilteredMemories = args.recalledMemories.filter(
     (memory) => memory.memory_type !== "relationship"
   );
@@ -1324,6 +1329,25 @@ function buildMemoryLayerAssemblyPrompt(args: {
         isZh
           ? `   - MR${index + 1} [${memory.memory_type}]: ${memory.content}`
           : `   - MR${index + 1} [${memory.memory_type}]: ${memory.content}`
+      )
+    );
+  }
+
+  if (relationshipMemories.length > 0) {
+    sections.push(
+      isZh
+        ? args.scenarioPack?.pack_id === "companion"
+          ? "5. relationship memory：作为陪伴连续性与关系 grounding 的补充锚点。"
+          : "5. relationship memory：仅保留最小关系 grounding，避免压过项目执行上下文。"
+        : args.scenarioPack?.pack_id === "companion"
+          ? "5. relationship memory: use as a continuity and relationship-grounding support layer."
+          : "5. relationship memory: keep only a minimal relationship-grounding layer so it does not outweigh project execution context."
+    );
+    sections.push(
+      ...relationshipMemories.map((memory, index) =>
+        isZh
+          ? `   - RM${index + 1}: ${memory.content}`
+          : `   - RM${index + 1}: ${memory.content}`
       )
     );
   }
@@ -2519,6 +2543,11 @@ function buildAgentSystemPromptInternal(
   threadContinuityPrompt = "",
   threadState: ThreadStateRecord | null = null
 ) {
+  const activePack = resolveActiveScenarioMemoryPack({
+    activeNamespace: activeMemoryNamespace ?? null,
+    relevantKnowledge
+  });
+
   const sections = [
     `You are ${roleCorePacket.identity.agent_name}.`,
     roleCorePacket.persona_summary
@@ -2558,6 +2587,7 @@ function buildAgentSystemPromptInternal(
     buildMemoryLayerAssemblyPrompt({
       recalledMemories,
       threadState,
+      scenarioPack: activePack,
       replyLanguage
     }),
     agentSystemPrompt,

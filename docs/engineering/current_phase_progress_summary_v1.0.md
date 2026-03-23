@@ -314,6 +314,15 @@
   - `ActiveScenarioMemoryPack` 当前也已开始显式产出：
     - `route_influence_reason`
   - 也就是说，knowledge-driven pack routing 当前不再只是“结果可见”，而开始把“为什么这样排 route/order”收成正式 runtime fact
+- `P4-4 Scenario pack consumption expansion v2` 当前也已开始进入真实实现：
+  - `apps/web/lib/chat/runtime.ts` 当前已开始让 `scenario pack` 真实影响 relationship memory 的消费预算
+  - 当前最小规则已经成立：
+    - `companion` 最多保留 2 条 relationship memory
+    - `project_ops` 收紧到最多 1 条 relationship memory
+  - 也就是说，pack-specific consumption 当前已不再只停在 knowledge budget，而开始进入 memory-layer assembly 的真实 slot 控制
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验：
+    - `project_ops` 下只有 `RM1`
+    - `companion` 下允许出现 `RM2`
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
