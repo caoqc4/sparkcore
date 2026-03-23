@@ -1,4 +1,7 @@
-import { getSmokeApproxContextPressure, getSmokeRecentRuntimeMessages } from "@/lib/testing/smoke-reply-analysis";
+import {
+  getSmokeApproxContextPressure,
+  getSmokeRecentRuntimeMessages
+} from "@/lib/testing/smoke-context-pressure";
 
 export function getSmokeTurnContinuityContext(args: {
   trimmedContent: string;

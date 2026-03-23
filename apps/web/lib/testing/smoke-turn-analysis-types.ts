@@ -5,7 +5,7 @@ import type {
   SmokeContinuationReasonCode,
 } from "@/lib/testing/smoke-assistant-builders";
 import type { SmokeMemoryRow } from "@/lib/testing/smoke-memory-analysis";
-import type { SmokeContinuityReply } from "@/lib/testing/smoke-reply-analysis";
+import type { SmokeContinuityReply } from "@/lib/testing/smoke-reply-language";
 
 export type SmokeRuntimeMessage = {
   role: "user" | "assistant";

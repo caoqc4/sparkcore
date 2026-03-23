@@ -1,6 +1,6 @@
 import type { SmokeRelationshipRecallMemoryList } from "@/lib/testing/smoke-relationship-memory-types";
-import type { SmokeContinuityReply } from "@/lib/testing/smoke-reply-analysis";
 import type { SmokeActiveRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-types";
+import type { SmokeContinuityReply } from "@/lib/testing/smoke-reply-language";
 
 export type SmokeTurnRelationshipContextInput = {
   trimmedContent: string;
