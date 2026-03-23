@@ -17,7 +17,10 @@ import {
   resolveKnowledgeScopeLayer,
   type RuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
-import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
+import {
+  resolveRuntimeMemoryBoundary,
+  type ActiveRuntimeMemoryNamespace
+} from "@/lib/chat/memory-namespace";
 import type { CompactedThreadSummary } from "../../../../packages/core/memory";
 
 type RecalledMemoryMetadataItem = BuildAssistantMessageMetadataInput["recalled_memories"][number];
@@ -101,6 +104,9 @@ export function buildRuntimeAssistantMetadataInput(
 ): BuildAssistantMessageMetadataInput {
   const scenarioPackStrategy = input.memory.scenario_pack
     ? resolveScenarioMemoryPackStrategy(input.memory.scenario_pack)
+    : null;
+  const namespaceBoundary = input.namespace.active_namespace
+    ? resolveRuntimeMemoryBoundary(input.namespace.active_namespace)
     : null;
 
   return {
@@ -190,6 +196,10 @@ export function buildRuntimeAssistantMetadataInput(
       input.namespace.active_namespace?.active_layers ?? [],
     active_memory_namespace_selection_reason:
       input.namespace.active_namespace?.selection_reason ?? null,
+    active_memory_namespace_policy_bundle_id:
+      namespaceBoundary?.policy_bundle_id ?? null,
+    active_memory_namespace_route_governance_mode:
+      namespaceBoundary?.route_governance_mode ?? null,
     compacted_thread_summary_id: input.compaction.summary?.summary_id ?? null,
     compacted_thread_summary_text: input.compaction.summary?.summary_text ?? null,
     compacted_thread_summary_lifecycle_status:

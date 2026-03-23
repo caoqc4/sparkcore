@@ -404,6 +404,34 @@ export function getAssistantMemoryNamespacePrimaryLayer(
   );
 }
 
+export function getAssistantMemoryNamespacePolicyBundleId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(namespaceMetadata, "policy_bundle_id") ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_policy_bundle_id"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceRouteGovernanceMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(namespaceMetadata, "route_governance_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_route_governance_mode"
+    )
+  );
+}
+
 export function getAssistantCompactedThreadSummaryText(
   metadata: Record<string, unknown> | null | undefined
 ) {

@@ -1140,4 +1140,24 @@
 
 当前更推荐的下一步：
 
-- **从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 开始，直接落 `P6-1 Namespace policy orchestration` 的第一刀代码事实**
+- **继续顺着 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 推进 `P6-1 Namespace policy orchestration`**
+
+当前已成立的第一刀事实：
+
+- namespace 当前已不再只停在：
+  - retrieval / write boundary
+  - budget
+  - route order
+- 而已开始正式产出：
+  - `policy_bundle_id`
+  - `route_governance_mode`
+- 当前最小 policy 已成立：
+  - `thread_strict_focus`
+  - `project_balanced_coordination`
+  - `world_reference_exploration`
+  - `default_balanced_memory`
+- 这层 policy 当前已进入：
+  - recall / write 共用 boundary helper
+  - assistant metadata
+  - runtime debug metadata
+  - harness

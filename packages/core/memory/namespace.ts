@@ -17,6 +17,12 @@ export type ActiveMemoryNamespace = {
   refs: MemoryNamespaceRef[];
 };
 
+export type MemoryNamespacePolicyBundleId =
+  | "thread_strict_focus"
+  | "project_balanced_coordination"
+  | "world_reference_exploration"
+  | "default_balanced_memory";
+
 function getPrimaryNamespaceLayer(
   layers: MemoryNamespaceLayer[]
 ): MemoryNamespaceLayer {

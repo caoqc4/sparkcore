@@ -58,6 +58,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
   active_memory_namespace_selection_reason?: string | null;
+  active_memory_namespace_policy_bundle_id?: string | null;
+  active_memory_namespace_route_governance_mode?: string | null;
   compacted_thread_summary_id?: string | null;
   compacted_thread_summary_text?: string | null;
   compacted_thread_summary_lifecycle_status?: string | null;
@@ -131,6 +133,8 @@ export type BuildAssistantMessageMetadataInput = {
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
   active_memory_namespace_selection_reason?: string | null;
+  active_memory_namespace_policy_bundle_id?: string | null;
+  active_memory_namespace_route_governance_mode?: string | null;
   compacted_thread_summary_id?: string | null;
   compacted_thread_summary_text?: string | null;
   compacted_thread_summary_lifecycle_status?: string | null;
@@ -237,7 +241,11 @@ export function buildAssistantMetadataSummaryGroups(
           primary_layer: input.active_memory_namespace_primary_layer ?? null,
           active_layers: input.active_memory_namespace_layers ?? [],
           selection_reason:
-            input.active_memory_namespace_selection_reason ?? null
+            input.active_memory_namespace_selection_reason ?? null,
+          policy_bundle_id:
+            input.active_memory_namespace_policy_bundle_id ?? null,
+          route_governance_mode:
+            input.active_memory_namespace_route_governance_mode ?? null
         }
       : null,
     thread_compaction: input.compacted_thread_summary_id
@@ -301,6 +309,10 @@ export function buildAssistantMetadataSummaryGroups(
       active_memory_namespace_layers: input.active_memory_namespace_layers,
       active_memory_namespace_selection_reason:
         input.active_memory_namespace_selection_reason,
+      active_memory_namespace_policy_bundle_id:
+        input.active_memory_namespace_policy_bundle_id,
+      active_memory_namespace_route_governance_mode:
+        input.active_memory_namespace_route_governance_mode,
       compacted_thread_summary_id: input.compacted_thread_summary_id,
       compacted_thread_summary_text: input.compacted_thread_summary_text,
       compacted_thread_summary_lifecycle_status:

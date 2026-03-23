@@ -75,6 +75,31 @@ P6 首批要把 namespace 从：
 - 至少一条 namespace 决策不再只输出 budget/order，而开始输出正式 policy id
 - 至少一条 retrieval / write 行为开始复用这层 policy，而不再各自拼接细项
 
+当前已成立的第一刀代码事实：
+
+- [packages/core/memory/namespace.ts](/Users/caoq/git/sparkcore/packages/core/memory/namespace.ts) 当前已开始把 namespace orchestration 从 boundary/order 组合事实上提成正式 policy bundle contract：
+  - `MemoryNamespacePolicyBundleId`
+  - `thread_strict_focus`
+  - `project_balanced_coordination`
+  - `world_reference_exploration`
+  - `default_balanced_memory`
+- [memory-namespace.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-namespace.ts) 当前已开始让 `resolveRuntimeMemoryBoundary(...)` 不只产出 budget/order，还会显式产出：
+  - `policy_bundle_id`
+  - `route_governance_mode`
+- 当前最小规则已经成立：
+  - `thread` primary namespace：
+    - `policy_bundle_id = thread_strict_focus`
+    - `route_governance_mode = thread_strict`
+  - `project` primary namespace：
+    - `policy_bundle_id = project_balanced_coordination`
+    - `route_governance_mode = project_balanced`
+- [memory-recall.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-recall.ts) 与 [memory-write-targets.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-write-targets.ts) 当前都已继续复用同一层 boundary/policy 输出，不再各自拼接 route 细节
+- 这层 policy 当前也已进入：
+  - assistant metadata
+  - runtime debug metadata
+  - memory namespace summary
+  - [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts)
+
 ### 4.2 Retention lifecycle policy v4
 
 P6 首批要把 retention 从：

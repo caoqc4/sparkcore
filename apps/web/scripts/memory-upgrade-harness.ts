@@ -21,7 +21,9 @@ import {
   getAssistantCompactedThreadSummaryText,
   getAssistantKnowledgeCount,
   getAssistantKnowledgeScopeLayers,
+  getAssistantMemoryNamespacePolicyBundleId,
   getAssistantMemoryNamespacePrimaryLayer,
+  getAssistantMemoryNamespaceRouteGovernanceMode,
   getAssistantMemoryScenarioPackAssemblyEmphasis,
   getAssistantMemoryScenarioPackStrategyAssemblyOrder,
   getAssistantMemoryScenarioPackStrategyBundleId,
@@ -323,9 +325,11 @@ function main() {
   expect(
     threadBoundary.retrieval_route_order.join(",") ===
       "thread_state,profile,episode" &&
+      threadBoundary.policy_bundle_id === "thread_strict_focus" &&
+      threadBoundary.route_governance_mode === "thread_strict" &&
       threadBoundary.write_fallback_order.join(",") ===
         "thread,project,world,default",
-    "Expected thread-primary namespace to expose explicit retrieval/write order in P5."
+    "Expected thread-primary namespace to expose explicit namespace policy facts in P6."
   );
   expect(
     threadBoundary.allow_timeline_fallback === false,
@@ -379,8 +383,10 @@ function main() {
   expect(
     projectBoundary.retrieval_route_order.join(",") ===
       "thread_state,profile,episode,timeline" &&
+      projectBoundary.policy_bundle_id === "project_balanced_coordination" &&
+      projectBoundary.route_governance_mode === "project_balanced" &&
       projectBoundary.write_fallback_order.join(",") === "project,world,default",
-    "Expected project-primary namespace to expose explicit retrieval/write order in P5."
+    "Expected project-primary namespace to expose explicit namespace policy facts in P6."
   );
 
   const visibleMemoryRecord = buildVisibleMemoryRecord({
@@ -1670,6 +1676,10 @@ function main() {
     namespace_multi_budget_routing_ok:
       threadBoundary.parallel_timeline_budget === 0 &&
       projectBoundary.parallel_timeline_budget === 1 &&
+      threadBoundary.policy_bundle_id === "thread_strict_focus" &&
+      projectBoundary.policy_bundle_id === "project_balanced_coordination" &&
+      threadBoundary.route_governance_mode === "thread_strict" &&
+      projectBoundary.route_governance_mode === "project_balanced" &&
       Array.isArray(threadBoundary.retrieval_route_order) &&
       threadBoundary.retrieval_route_order.join(",") ===
         "thread_state,profile,episode" &&
@@ -1825,6 +1835,12 @@ function main() {
             thread_write: threadBoundary.write_fallback_order,
             project_retrieval: projectBoundary.retrieval_route_order,
             project_write: projectBoundary.write_fallback_order
+          },
+          namespace_policy: {
+            thread_bundle: threadBoundary.policy_bundle_id,
+            thread_mode: threadBoundary.route_governance_mode,
+            project_bundle: projectBoundary.policy_bundle_id,
+            project_mode: projectBoundary.route_governance_mode
           }
         },
         runtime_semantic_summary: semanticSummary,
@@ -1872,7 +1888,11 @@ function main() {
           summary_text: getAssistantCompactedThreadSummaryText(assistantMetadata)
         },
         assistant_metadata_namespace: {
-          primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata)
+          primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata),
+          policy_bundle_id:
+            getAssistantMemoryNamespacePolicyBundleId(assistantMetadata),
+          route_governance_mode:
+            getAssistantMemoryNamespaceRouteGovernanceMode(assistantMetadata)
         },
         runtime_debug_metadata: {
           pack_id: runtimeDebugMetadata.memory.pack?.pack_id ?? null,
@@ -1894,7 +1914,11 @@ function main() {
           thread_compaction_summary_id:
             runtimeDebugMetadata.thread_compaction?.summary_id ?? null,
           namespace_primary_layer:
-            runtimeDebugMetadata.memory_namespace?.primary_layer ?? null
+            runtimeDebugMetadata.memory_namespace?.primary_layer ?? null,
+          namespace_policy_bundle_id:
+            runtimeDebugMetadata.memory_namespace?.policy_bundle_id ?? null,
+          namespace_route_governance_mode:
+            runtimeDebugMetadata.memory_namespace?.route_governance_mode ?? null
         },
         scenario_memory_pack: {
           pack_id: scenarioMemoryPack.pack_id,

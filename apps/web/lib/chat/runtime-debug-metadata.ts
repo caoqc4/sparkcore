@@ -7,7 +7,10 @@ import {
   type ActiveScenarioMemoryPack
 } from "@/lib/chat/memory-packs";
 import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
-import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
+import {
+  resolveRuntimeMemoryBoundary,
+  type ActiveRuntimeMemoryNamespace
+} from "@/lib/chat/memory-namespace";
 import { buildKnowledgeSummary } from "@/lib/chat/memory-knowledge";
 import type { CompactedThreadSummary } from "../../../../packages/core/memory";
 import { buildThreadCompactionSummary } from "@/lib/chat/thread-compaction";
@@ -93,6 +96,12 @@ export function buildRuntimeDebugMetadata(
           primary_layer: input.active_memory_namespace.primary_layer,
           active_layers: input.active_memory_namespace.active_layers,
           selection_reason: input.active_memory_namespace.selection_reason,
+          policy_bundle_id: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).policy_bundle_id,
+          route_governance_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).route_governance_mode,
           refs: input.active_memory_namespace.refs
         }
       : null,

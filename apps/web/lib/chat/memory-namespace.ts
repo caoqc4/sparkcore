@@ -5,7 +5,8 @@ import type { MemoryRecallRoute } from "@/lib/chat/memory-shared";
 import {
   buildActiveMemoryNamespace,
   type ActiveMemoryNamespace,
-  type MemoryNamespaceLayer
+  type MemoryNamespaceLayer,
+  type MemoryNamespacePolicyBundleId
 } from "../../../../packages/core/memory";
 
 export type ActiveRuntimeMemoryNamespace = ActiveMemoryNamespace & {
@@ -15,6 +16,12 @@ export type ActiveRuntimeMemoryNamespace = ActiveMemoryNamespace & {
 export type RuntimeMemoryBoundary = {
   retrieval_boundary: "default" | "thread" | "project" | "world";
   write_boundary: "default" | "thread" | "project" | "world";
+  policy_bundle_id: MemoryNamespacePolicyBundleId;
+  route_governance_mode:
+    | "thread_strict"
+    | "project_balanced"
+    | "world_expansive"
+    | "default_balanced";
   retrieval_route_order: MemoryRecallRoute[];
   write_fallback_order: Array<"thread" | "project" | "world" | "default">;
   allow_timeline_fallback: boolean;
@@ -103,11 +110,15 @@ export function buildMemoryNamespaceSummary(args: {
     return null;
   }
 
+  const boundary = resolveRuntimeMemoryBoundary(args.namespace);
+
   return {
     namespace_id: args.namespace.namespace_id,
     primary_layer: args.namespace.primary_layer,
     active_layers: args.namespace.active_layers,
-    selection_reason: args.namespace.selection_reason
+    selection_reason: args.namespace.selection_reason,
+    policy_bundle_id: boundary.policy_bundle_id,
+    route_governance_mode: boundary.route_governance_mode
   };
 }
 
@@ -119,6 +130,8 @@ export function resolveRuntimeMemoryBoundary(
       return {
         retrieval_boundary: "thread",
         write_boundary: "thread",
+        policy_bundle_id: "thread_strict_focus",
+        route_governance_mode: "thread_strict",
         retrieval_route_order: ["thread_state", "profile", "episode"],
         write_fallback_order: ["thread", "project", "world", "default"],
         allow_timeline_fallback: false,
@@ -131,6 +144,8 @@ export function resolveRuntimeMemoryBoundary(
       return {
         retrieval_boundary: "project",
         write_boundary: "project",
+        policy_bundle_id: "project_balanced_coordination",
+        route_governance_mode: "project_balanced",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
         write_fallback_order: ["project", "world", "default"],
         allow_timeline_fallback: true,
@@ -143,6 +158,8 @@ export function resolveRuntimeMemoryBoundary(
       return {
         retrieval_boundary: "world",
         write_boundary: "world",
+        policy_bundle_id: "world_reference_exploration",
+        route_governance_mode: "world_expansive",
         retrieval_route_order: ["thread_state", "profile", "timeline", "episode"],
         write_fallback_order: ["world", "default"],
         allow_timeline_fallback: true,
@@ -155,6 +172,8 @@ export function resolveRuntimeMemoryBoundary(
       return {
         retrieval_boundary: "default",
         write_boundary: "default",
+        policy_bundle_id: "default_balanced_memory",
+        route_governance_mode: "default_balanced",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
         write_fallback_order: ["default"],
         allow_timeline_fallback: true,
@@ -173,27 +192,24 @@ export function buildMemoryNamespaceScopedMetadata(args: {
     return {};
   }
 
+  const boundary = resolveRuntimeMemoryBoundary(args.namespace);
+
   return {
     active_memory_namespace_id: args.namespace.namespace_id,
     active_memory_namespace_primary_layer: args.namespace.primary_layer,
     active_memory_namespace_layers: args.namespace.active_layers,
     active_memory_namespace_selection_reason: args.namespace.selection_reason,
-    active_memory_retrieval_boundary:
-      resolveRuntimeMemoryBoundary(args.namespace).retrieval_boundary,
-    active_memory_write_boundary:
-      resolveRuntimeMemoryBoundary(args.namespace).write_boundary,
-    active_memory_retrieval_route_order:
-      resolveRuntimeMemoryBoundary(args.namespace).retrieval_route_order,
-    active_memory_write_fallback_order:
-      resolveRuntimeMemoryBoundary(args.namespace).write_fallback_order,
-    active_memory_profile_budget:
-      resolveRuntimeMemoryBoundary(args.namespace).profile_budget,
-    active_memory_episode_budget:
-      resolveRuntimeMemoryBoundary(args.namespace).episode_budget,
-    active_memory_timeline_budget:
-      resolveRuntimeMemoryBoundary(args.namespace).timeline_budget,
-    active_memory_parallel_timeline_budget:
-      resolveRuntimeMemoryBoundary(args.namespace).parallel_timeline_budget,
+    active_memory_namespace_policy_bundle_id: boundary.policy_bundle_id,
+    active_memory_namespace_route_governance_mode:
+      boundary.route_governance_mode,
+    active_memory_retrieval_boundary: boundary.retrieval_boundary,
+    active_memory_write_boundary: boundary.write_boundary,
+    active_memory_retrieval_route_order: boundary.retrieval_route_order,
+    active_memory_write_fallback_order: boundary.write_fallback_order,
+    active_memory_profile_budget: boundary.profile_budget,
+    active_memory_episode_budget: boundary.episode_budget,
+    active_memory_timeline_budget: boundary.timeline_budget,
+    active_memory_parallel_timeline_budget: boundary.parallel_timeline_budget,
     project_id: getNamespaceRefId(args.namespace, "project"),
     world_id: getNamespaceRefId(args.namespace, "world")
   };
