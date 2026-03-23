@@ -1110,3 +1110,7 @@
 当前更推荐的下一步：
 
 - **先做一次 `P5 close-readiness` 前置评估**
+
+当前对应复盘文档：
+
+- [memory_upgrade_p5_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p5_close_readiness_v1.0.md)
