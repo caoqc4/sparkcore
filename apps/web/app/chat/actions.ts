@@ -22,6 +22,7 @@ import {
   loadOwnedThread,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
+import { recoverRetryRuntimeTurn } from "@/lib/chat/runtime-turn-retry";
 import {
   insertPendingAssistantMessage,
   markAssistantMessageFailed,
@@ -1236,11 +1237,19 @@ export async function retryAssistantReply(
     };
   }
 
-  const failedIndex = messages.findIndex(
-    (message) => message.id === failedMessageId && message.status === "failed"
-  );
+  const retryTurn = recoverRetryRuntimeTurn({
+    messages: messages as Array<{
+      id: string;
+      role: string;
+      content: string;
+      status: string;
+      metadata: Record<string, unknown> | null;
+      created_at: string;
+    }>,
+    failedMessageId
+  });
 
-  if (failedIndex === -1) {
+  if (retryTurn.status === "failed_message_not_found") {
     return {
       ok: false,
       threadId,
@@ -1248,55 +1257,15 @@ export async function retryAssistantReply(
     };
   }
 
-  const failedMessage = messages[failedIndex] as {
-    id: string;
-    role: "assistant";
-    content: string;
-    status: string;
-    metadata: Record<string, unknown>;
-    created_at: string;
-  };
-
-  const sourceUserMessageId =
-    typeof failedMessage.metadata?.user_message_id === "string"
-      ? failedMessage.metadata.user_message_id
-      : null;
-
-  const promptMessages = messages
-    .slice(0, failedIndex)
-    .filter((message) => {
-      if (message.status === "failed" || message.status === "pending") {
-        return false;
-      }
-
-      if (message.role === "user" || message.role === "assistant") {
-        return true;
-      }
-
-      return false;
-    })
-    .map((message) => ({
-      id: message.id,
-      role: message.role as "user" | "assistant",
-      content: message.content,
-      status: message.status,
-      metadata: (message.metadata ?? {}) as Record<string, unknown>,
-      created_at: message.created_at
-    }));
-
-  const latestUserMessage = [...promptMessages]
-    .reverse()
-    .find((message) =>
-      sourceUserMessageId ? message.id === sourceUserMessageId : message.role === "user"
-    );
-
-  if (!latestUserMessage) {
+  if (retryTurn.status === "source_user_message_not_found") {
     return {
       ok: false,
       threadId,
       message: "The user message for this failed reply could not be recovered."
     };
   }
+
+  const { failedMessage, promptMessages, latestUserMessage } = retryTurn;
 
   await markAssistantMessageRetried({
     supabase,
