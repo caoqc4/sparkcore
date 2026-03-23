@@ -1,23 +1,12 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { loadThreadMessages } from "@/lib/chat/message-read";
-import {
-  loadRecentOwnedMemories,
-  loadOwnedMemoryItemByTypeAndContent,
-  loadOwnedRelationshipMemoryByValue
-} from "@/lib/chat/memory-item-read";
+import { loadRecentOwnedMemories } from "@/lib/chat/memory-item-read";
 import { insertMessage } from "@/lib/chat/message-persistence";
-import {
-  insertMemoryItem,
-  updateMemoryItem
-} from "@/lib/chat/memory-item-persistence";
 import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import {
-  loadActiveModelProfileById,
   createOwnedThread,
-  loadOwnedActiveAgent,
   loadOwnedActiveAgentByName,
-  loadOwnedThread,
   updateOwnedThread
 } from "@/lib/chat/runtime-turn-context";
 import { getSmokeModelProfiles } from "@/lib/testing/smoke-seed-persistence";
@@ -32,8 +21,11 @@ import {
 } from "@/lib/testing/smoke-runtime-state";
 import { loadSmokeTurnContext } from "@/lib/testing/smoke-turn-context";
 import {
+  ensureSmokeRelationshipMemory,
+  upsertSmokeProfileMemory
+} from "@/lib/testing/smoke-memory-seeding";
+import {
   buildSmokeSeedMetadata,
-  mergeSmokeSeedMetadata
 } from "@/lib/testing/smoke-seed-metadata";
 import {
   buildSmokeAssistantMetadata,
@@ -66,13 +58,10 @@ import {
   type SmokeContinuityReply
 } from "@/lib/testing/smoke-reply-analysis";
 import {
-  buildMemoryV2Fields,
-  inferLegacyMemoryStability,
   isMemoryActive,
   isMemoryHidden,
   isMemoryIncorrect,
   isMemoryScopeValid,
-  LEGACY_MEMORY_KEY
 } from "@/lib/chat/memory-v2";
 
 const SMOKE_MODEL_PROFILES = getSmokeModelProfiles();
@@ -2184,73 +2173,38 @@ export async function createSmokeTurn({
   const createdTypes: Array<"profile" | "preference" | "relationship"> = [];
   const loweredContent = trimmedContent.toLowerCase();
 
-  async function upsertMemory(memoryType: "profile" | "preference", value: string, confidence: number) {
-    const { data: existingMemory } = await loadOwnedMemoryItemByTypeAndContent({
+  if (loweredContent.includes("product designer")) {
+    const result = await upsertSmokeProfileMemory({
       supabase: admin,
       workspaceId: smokeUser.workspaceId,
       userId: smokeUser.id,
-      memoryType,
-      content: value,
-      select: "id, metadata"
+      agentId: ensuredAgent.id,
+      sourceMessageId: ensuredUserMessage.id,
+      memoryType: "profile",
+      value: "product designer",
+      confidence: 0.95
     });
 
-    if (existingMemory) {
-      await updateMemoryItem({
-        supabase: admin,
-        memoryItemId: existingMemory.id,
-        patch: {
-          status: "active",
-          metadata: mergeSmokeSeedMetadata(
-            (existingMemory.metadata ?? {}) as Record<string, unknown>
-          ),
-          updated_at: new Date().toISOString()
-        }
-      }).eq("user_id", smokeUser.id);
-      return;
+    if (result.created) {
+      createdTypes.push("profile");
     }
-
-    const { error } = await insertMemoryItem({
-      supabase: admin,
-      payload: {
-      workspace_id: smokeUser.workspaceId,
-      user_id: smokeUser.id,
-      agent_id: ensuredAgent.id,
-      memory_type: memoryType,
-      content: value,
-      confidence,
-      source_message_id: ensuredUserMessage.id,
-      ...buildMemoryV2Fields({
-        category: memoryType,
-        key: LEGACY_MEMORY_KEY,
-        value,
-        scope: "user_global",
-        subjectUserId: smokeUser.id,
-        stability: inferLegacyMemoryStability(memoryType),
-        status: "active",
-        sourceRefs: [
-          {
-            kind: "message",
-            source_message_id: ensuredUserMessage.id
-          }
-        ]
-      }),
-      metadata: buildSmokeSeedMetadata()
-      }
-    });
-
-    if (error) {
-      throw new Error(`Failed to seed smoke memory: ${error.message}`);
-    }
-
-    createdTypes.push(memoryType);
-  }
-
-  if (loweredContent.includes("product designer")) {
-    await upsertMemory("profile", "product designer", 0.95);
   }
 
   if (loweredContent.includes("concise weekly planning")) {
-    await upsertMemory("preference", "concise weekly planning", 0.93);
+    const result = await upsertSmokeProfileMemory({
+      supabase: admin,
+      workspaceId: smokeUser.workspaceId,
+      userId: smokeUser.id,
+      agentId: ensuredAgent.id,
+      sourceMessageId: ensuredUserMessage.id,
+      memoryType: "preference",
+      value: "concise weekly planning",
+      confidence: 0.93
+    });
+
+    if (result.created) {
+      createdTypes.push("preference");
+    }
   }
 
   const smokeNickname = detectSmokeNicknameCandidate(trimmedContent);
@@ -2268,111 +2222,63 @@ export async function createSmokeTurn({
       : addressStyleMemory.content
     : null;
 
-  async function insertRelationshipMemory(args: {
-    key: "agent_nickname" | "user_preferred_name" | "user_address_style";
-    value: string;
-    confidence: number;
-    stability: "high" | "medium";
-    errorLabel: string;
-  }) {
-    const { error } = await insertMemoryItem({
-      supabase: admin,
-      payload: {
-      workspace_id: smokeUser.workspaceId,
-      user_id: smokeUser.id,
-      agent_id: ensuredAgent.id,
-      source_message_id: ensuredUserMessage.id,
-      memory_type: null,
-      content: args.value,
-      confidence: args.confidence,
-      importance: 0.5,
-      ...buildMemoryV2Fields({
-        category: "relationship",
-        key: args.key,
-        value: args.value,
-        scope: "user_agent",
-        subjectUserId: smokeUser.id,
-        targetAgentId: ensuredAgent.id,
-        stability: args.stability,
-        status: "active",
-        sourceRefs: [
-          {
-            kind: "message",
-            source_message_id: ensuredUserMessage.id
-          }
-        ]
-      }),
-      metadata: buildSmokeRelationshipSeedMetadata(args.key)
-      }
-    });
-
-    if (error) {
-      throw new Error(`Failed to seed ${args.errorLabel} memory: ${error.message}`);
-    }
-
-    createdTypes.push("relationship");
-  }
-
   if (smokeNickname) {
-    const { data: existingNickname } = await loadOwnedRelationshipMemoryByValue({
+    const result = await ensureSmokeRelationshipMemory({
       supabase: admin,
       workspaceId: smokeUser.workspaceId,
       userId: smokeUser.id,
+      agentId: ensuredAgent.id,
+      sourceMessageId: ensuredUserMessage.id,
       key: "agent_nickname",
-      targetAgentId: ensuredAgent.id,
-      value: smokeNickname
+      value: smokeNickname,
+      confidence: 0.96,
+      stability: "high",
+      errorLabel: "nickname",
+      metadataBuilder: buildSmokeRelationshipSeedMetadata
     });
 
-    if (!existingNickname) {
-      await insertRelationshipMemory({
-        key: "agent_nickname",
-        value: smokeNickname,
-        confidence: 0.96,
-        stability: "high",
-        errorLabel: "nickname"
-      });
+    if (result.created) {
+      createdTypes.push("relationship");
     }
   }
 
   if (smokePreferredName) {
-    const { data: existingPreferredName } = await loadOwnedRelationshipMemoryByValue({
+    const result = await ensureSmokeRelationshipMemory({
       supabase: admin,
       workspaceId: smokeUser.workspaceId,
       userId: smokeUser.id,
+      agentId: ensuredAgent.id,
+      sourceMessageId: ensuredUserMessage.id,
       key: "user_preferred_name",
-      targetAgentId: ensuredAgent.id,
-      value: smokePreferredName
+      value: smokePreferredName,
+      confidence: 0.94,
+      stability: "high",
+      errorLabel: "preferred-name",
+      metadataBuilder: buildSmokeRelationshipSeedMetadata
     });
 
-    if (!existingPreferredName) {
-      await insertRelationshipMemory({
-        key: "user_preferred_name",
-        value: smokePreferredName,
-        confidence: 0.94,
-        stability: "high",
-        errorLabel: "preferred-name"
-      });
+    if (result.created) {
+      createdTypes.push("relationship");
     }
   }
 
   if (smokeUserAddressStyle) {
-    const { data: existingAddressStyle } = await loadOwnedRelationshipMemoryByValue({
+    const result = await ensureSmokeRelationshipMemory({
       supabase: admin,
       workspaceId: smokeUser.workspaceId,
       userId: smokeUser.id,
+      agentId: ensuredAgent.id,
+      sourceMessageId: ensuredUserMessage.id,
       key: "user_address_style",
-      targetAgentId: ensuredAgent.id,
-      value: smokeUserAddressStyle
+      value: smokeUserAddressStyle,
+      confidence: 0.9,
+      stability: "medium",
+      errorLabel: "address-style",
+      metadataBuilder: buildSmokeRelationshipSeedMetadata
     });
 
-    if (!existingAddressStyle) {
-      await insertRelationshipMemory({
-        key: "user_address_style",
-        value: smokeUserAddressStyle,
-        confidence: 0.9,
-        stability: "medium",
-        errorLabel: "address-style"
-      });
+    if (result.created) {
+      createdTypes.push("relationship");
     }
   }
 
