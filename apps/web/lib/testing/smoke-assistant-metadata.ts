@@ -1,49 +1,9 @@
-import type {
-  SmokeAnswerQuestionType,
-  SmokeAnswerStrategy,
-  SmokeAnswerStrategyReasonCode,
-  SmokeApproxContextPressure,
-  SmokeContinuationReasonCode
-} from "@/lib/testing/smoke-assistant-builders";
 import { buildSmokeAssistantMetadataSummary } from "@/lib/testing/smoke-assistant-metadata-summary";
-import type {
-  SmokeReplyLanguage,
-  SmokeReplyLanguageSource,
-  SmokeRoleCorePacket
-} from "@/lib/testing/smoke-role-core-packet";
 import { buildSmokeAssistantMetadataBase } from "@/lib/testing/smoke-assistant-metadata-base";
 import { buildSmokeAssistantMemoryOutcome } from "@/lib/testing/smoke-assistant-memory-outcome";
+import type { SmokeAssistantMetadataInput } from "@/lib/testing/smoke-assistant-metadata-types";
 
-export function buildSmokeAssistantMetadata(args: {
-  agentId: string;
-  agentName: string;
-  roleCorePacket: SmokeRoleCorePacket;
-  modelProfileId: string;
-  modelProfileName: string;
-  model: string;
-  replyLanguage: SmokeReplyLanguage;
-  replyLanguageDetected: SmokeReplyLanguage;
-  replyLanguageSource: SmokeReplyLanguageSource;
-  questionType: SmokeAnswerQuestionType;
-  answerStrategy: SmokeAnswerStrategy;
-  answerStrategyReasonCode: SmokeAnswerStrategyReasonCode;
-  continuationReasonCode: SmokeContinuationReasonCode | null;
-  recentRawTurnCount: number;
-  approxContextPressure: SmokeApproxContextPressure;
-  sameThreadContinuationApplicable: boolean;
-  longChainPressureCandidate: boolean;
-  sameThreadContinuationPreferred: boolean;
-  distantMemoryFallbackAllowed: boolean;
-  recalledMemories: Array<{
-    memory_type: string | null;
-    content: string;
-    confidence: number | null;
-  }>;
-  usedMemoryTypes: string[];
-  hiddenExclusionCount: number;
-  incorrectExclusionCount: number;
-  createdTypes: string[];
-}) {
+export function buildSmokeAssistantMetadata(args: SmokeAssistantMetadataInput) {
   const recalledMemoryCount = args.recalledMemories.length;
   const memoryUsed = recalledMemoryCount > 0;
 
