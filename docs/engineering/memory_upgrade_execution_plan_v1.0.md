@@ -177,6 +177,7 @@ P0 只做一件事：
 - `apps/web/lib/chat/memory-write-rows.ts` 已开始承接 generic memory 的 insert / update row 组装
 - `apps/web/lib/chat/memory-write-record-candidates.ts` 已开始承接 generic `StaticProfileRecord` candidate adapter
 - relationship 写入当前也已开始先构造正式 `MemoryRecord` candidate，再进入 single-slot upsert
+- `thread_state_candidate` 当前也已开始具备正式 candidate seam 与 preview 摘要入口
 - 当前最小分类为：
   - `static_profile`
   - `memory_record`
@@ -572,6 +573,7 @@ P0 最小要求：
 - generic memory insert / update row builder 已成立
 - generic `StaticProfileRecord` candidate adapter 已成立
 - relationship `MemoryRecord` candidate adapter 已成立
+- `thread_state_candidate` seam 已成立，但仍未进入真实 commit
 - 下一步应继续把：
   - `canonical type`
   - `scope`
