@@ -2,7 +2,7 @@ import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import type {
   SmokeSeedPersonaPack,
   SmokeUserLike
-} from "@/lib/testing/smoke-agent-seeding-types";
+} from "@/lib/testing/smoke-agent-seeding";
 
 export function buildSmokeSeedAgentPayloads(args: {
   user: SmokeUserLike;

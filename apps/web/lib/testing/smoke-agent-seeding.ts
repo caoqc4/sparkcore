@@ -2,11 +2,28 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadActivePersonaPacksBySlugs } from "@/lib/chat/runtime-turn-context";
 import { resolveSmokeAgentSeedDependencies } from "@/lib/testing/smoke-agent-seed-dependencies";
 import { buildSmokeSeedAgentPayloads } from "@/lib/testing/smoke-agent-seed-payload";
-import type {
-  SmokeModelProfile,
-  SmokeSeedPersonaPack,
-  SmokeUserLike
-} from "@/lib/testing/smoke-agent-seeding-types";
+
+export type SmokeUserLike = {
+  id: string;
+  email: string;
+  workspaceId: string;
+};
+
+export type SmokeModelProfile = {
+  id: string;
+  slug: string;
+  name: string;
+};
+
+export type SmokeSeedPersonaPack = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  persona_summary: string;
+  style_prompt: string;
+  system_prompt: string;
+};
 
 async function insertSmokeSeedAgents(args: {
   admin: SupabaseClient;

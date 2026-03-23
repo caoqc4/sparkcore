@@ -1,7 +1,7 @@
 import type {
   SmokeModelProfile,
   SmokeSeedPersonaPack
-} from "@/lib/testing/smoke-agent-seeding-types";
+} from "@/lib/testing/smoke-agent-seeding";
 
 export function resolveSmokeAgentSeedDependencies(args: {
   personaPacks: SmokeSeedPersonaPack[];
