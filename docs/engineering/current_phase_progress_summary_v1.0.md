@@ -88,6 +88,7 @@
 - relationship 写入当前也已开始先构造正式 `MemoryRecord` candidate，再进入 single-slot upsert
 - `thread_state_candidate` 当前也已开始具备正式 candidate seam、preview 摘要入口与最小真实 commit
 - `static_profile` 当前也已开始进入真实 profile recall 主路径
+- `thread_state` route 当前也已开始通过正式 route selection 输入，而不再只在 recall 后补入 `appliedRoutes`
 - `static_profile` 当前也已开始进入 runtime metadata 注入层，最小 `profile_snapshot` 已可见
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`

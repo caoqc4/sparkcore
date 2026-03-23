@@ -282,6 +282,7 @@ export async function recallRelevantMemories({
   agentId,
   threadId,
   latestUserMessage,
+  hasThreadState = false,
   allowDistantFallback = true,
   supabase: providedSupabase
 }: {
@@ -290,13 +291,14 @@ export async function recallRelevantMemories({
   agentId?: string | null;
   threadId?: string | null;
   latestUserMessage: string;
+  hasThreadState?: boolean;
   allowDistantFallback?: boolean;
   supabase?: any;
 }): Promise<RecallOutcome> {
   const appliedRoutes = selectMemoryRecallRoutes({
     latestUserMessage,
     allowDistantFallback,
-    hasThreadState: false
+    hasThreadState
   });
   const supabase = providedSupabase ?? (await createClient());
   const { data, error } = await loadRecentOwnedMemoriesByTypes({
@@ -492,12 +494,10 @@ export async function loadRuntimeMemoryContext({
     agentId,
     threadId,
     latestUserMessage,
+    hasThreadState: threadStateRecall.applied,
     allowDistantFallback: !preferSameThreadContinuation,
     supabase: providedSupabase
   });
-  if (threadStateRecall.applied && !memoryRecall.appliedRoutes.includes("thread_state")) {
-    memoryRecall.appliedRoutes = ["thread_state", ...memoryRecall.appliedRoutes];
-  }
 
   const directNamingQuestion = isDirectAgentNamingQuestion(latestUserMessage);
   const directPreferredNameQuestion =
