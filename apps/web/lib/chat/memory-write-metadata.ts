@@ -6,6 +6,8 @@ export function buildRelationshipPlannerMemoryMetadata(
   namespaceMetadata?: Record<string, unknown>,
   targetMetadata?: {
     writeBoundary?: string | null;
+    routedProjectId?: string | null;
+    routedWorldId?: string | null;
     namespacePrimaryLayer?: string | null;
     targetNamespaceId?: string | null;
   }
@@ -20,6 +22,8 @@ export function buildRelationshipPlannerMemoryMetadata(
     routed_scope: "user_agent",
     routed_target_agent_id: request.target_agent_id,
     routed_target_thread_id: request.target_thread_id ?? null,
+    routed_project_id: targetMetadata?.routedProjectId ?? null,
+    routed_world_id: targetMetadata?.routedWorldId ?? null,
     namespace_primary_layer: targetMetadata?.namespacePrimaryLayer ?? null,
     target_namespace_id: targetMetadata?.targetNamespaceId ?? null,
     relation_kind: request.relationship_key,
@@ -42,6 +46,8 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
   routedScope?: string | null;
   routedTargetAgentId?: string | null;
   routedTargetThreadId?: string | null;
+  routedProjectId?: string | null;
+  routedWorldId?: string | null;
   namespacePrimaryLayer?: string | null;
   targetNamespaceId?: string | null;
 }): Record<string, unknown> {
@@ -56,6 +62,8 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
     routed_scope: args.routedScope ?? null,
     routed_target_agent_id: args.routedTargetAgentId ?? null,
     routed_target_thread_id: args.routedTargetThreadId ?? null,
+    routed_project_id: args.routedProjectId ?? null,
+    routed_world_id: args.routedWorldId ?? null,
     namespace_primary_layer: args.namespacePrimaryLayer ?? null,
     target_namespace_id: args.targetNamespaceId ?? null,
     threshold: args.threshold,
@@ -78,6 +86,8 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
   routedScope?: string | null;
   routedTargetAgentId?: string | null;
   routedTargetThreadId?: string | null;
+  routedProjectId?: string | null;
+  routedWorldId?: string | null;
   namespacePrimaryLayer?: string | null;
   targetNamespaceId?: string | null;
 }): Record<string, unknown> {
@@ -93,6 +103,8 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
     routed_scope: args.routedScope ?? null,
     routed_target_agent_id: args.routedTargetAgentId ?? null,
     routed_target_thread_id: args.routedTargetThreadId ?? null,
+    routed_project_id: args.routedProjectId ?? null,
+    routed_world_id: args.routedWorldId ?? null,
     namespace_primary_layer: args.namespacePrimaryLayer ?? null,
     target_namespace_id: args.targetNamespaceId ?? null,
     threshold: args.threshold,

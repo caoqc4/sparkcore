@@ -23,6 +23,8 @@ export type PlannedMemoryWriteTarget = {
   routedScope: MemoryScope;
   routedTargetAgentId: string | null;
   routedTargetThreadId: string | null;
+  routedProjectId: string | null;
+  routedWorldId: string | null;
   writeBoundary: PlannedMemoryWriteBoundary;
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
@@ -37,6 +39,8 @@ export type PlannedGenericMemoryWriteTarget = {
   routedScope: MemoryScope;
   routedTargetAgentId: string | null;
   routedTargetThreadId: string | null;
+  routedProjectId: string | null;
+  routedWorldId: string | null;
   writeBoundary: PlannedMemoryWriteBoundary;
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
@@ -51,6 +55,8 @@ export type PlannedRelationshipMemoryWriteTarget = {
   routedScope: MemoryScope;
   routedTargetAgentId: string | null;
   routedTargetThreadId: string | null;
+  routedProjectId: string | null;
+  routedWorldId: string | null;
   writeBoundary: PlannedMemoryWriteBoundary;
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
@@ -90,6 +96,8 @@ export function resolvePlannedMemoryWriteTarget(
   const writeBoundary = resolveWriteBoundary(namespace);
   const namespacePrimaryLayer = namespace?.primary_layer ?? null;
   const targetNamespaceId = namespace?.namespace_id ?? null;
+  const routedProjectId = getNamespaceRefId(namespace, "project");
+  const routedWorldId = getNamespaceRefId(namespace, "world");
 
   if (request.kind === "relationship_memory") {
     return {
@@ -99,6 +107,8 @@ export function resolvePlannedMemoryWriteTarget(
       routedScope: request.relationship_scope,
       routedTargetAgentId: request.target_agent_id,
       routedTargetThreadId: request.target_thread_id ?? null,
+      routedProjectId,
+      routedWorldId,
       writeBoundary,
       namespacePrimaryLayer,
       targetNamespaceId
@@ -116,6 +126,8 @@ export function resolvePlannedMemoryWriteTarget(
       routedScope: routedThreadId ? "thread_local" : "user_global",
       routedTargetAgentId: null,
       routedTargetThreadId: routedThreadId,
+      routedProjectId,
+      routedWorldId,
       writeBoundary,
       namespacePrimaryLayer,
       targetNamespaceId
@@ -130,6 +142,8 @@ export function resolvePlannedMemoryWriteTarget(
       routedScope: "thread_local",
       routedTargetAgentId: null,
       routedTargetThreadId: getNamespaceRefId(namespace, "thread"),
+      routedProjectId,
+      routedWorldId,
       writeBoundary,
       namespacePrimaryLayer,
       targetNamespaceId
@@ -147,6 +161,8 @@ export function resolvePlannedMemoryWriteTarget(
     routedTargetAgentId: null,
     routedTargetThreadId:
       writeBoundary === "thread" ? getNamespaceRefId(namespace, "thread") : null,
+    routedProjectId,
+    routedWorldId,
     writeBoundary,
     namespacePrimaryLayer,
     targetNamespaceId

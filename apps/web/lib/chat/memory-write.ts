@@ -794,6 +794,12 @@ export async function executeMemoryWriteRequests({
               ? activeNamespace?.refs.find((ref) => ref.layer === "thread")
                   ?.entity_id ?? null
               : null,
+          routedProjectId:
+            activeNamespace?.refs.find((ref) => ref.layer === "project")
+              ?.entity_id ?? null,
+          routedWorldId:
+            activeNamespace?.refs.find((ref) => ref.layer === "world")
+              ?.entity_id ?? null,
           writeBoundary: fallbackWriteBoundary,
           namespacePrimaryLayer: activeNamespace?.primary_layer ?? null,
           targetNamespaceId: activeNamespace?.namespace_id ?? null

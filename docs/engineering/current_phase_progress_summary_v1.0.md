@@ -258,6 +258,9 @@
   - `apps/web/lib/chat/memory-recall.ts` 当前已开始复用这层 boundary，使 thread-primary namespace 下的 recall route 会主动关闭 `timeline` fallback
   - `apps/web/lib/chat/memory-write-targets.ts` 当前也已开始复用同一层 boundary helper，使 write boundary 与 retrieval boundary 不再各自手写
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 thread-primary namespace 下的 `thread` retrieval/write boundary 与 timeline fallback 收紧
+  - `apps/web/lib/chat/memory-write-targets.ts` 当前也已开始在 namespace-aware target resolution 中显式产出 `routed_project_id / routed_world_id`
+  - `apps/web/lib/chat/runtime-preview-metadata.ts` 当前也已开始把这层 routed project/world ids 暴露到 memory write preview
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 project boundary 下的 routed project/world ids 与 preview 暴露
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

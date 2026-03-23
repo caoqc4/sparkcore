@@ -646,6 +646,11 @@ function main() {
     namespaceAwareWriteTarget.namespacePrimaryLayer === "project",
     "Expected namespace-aware write target resolution to expose the project primary layer."
   );
+  expect(
+    namespaceAwareWriteTarget.routedProjectId === "project-1" &&
+      namespaceAwareWriteTarget.routedWorldId === "world-1",
+    "Expected namespace-aware write target resolution to expose routed project/world ids in P4."
+  );
   const runtimeWritePreview = buildRuntimeMemoryWriteRequestMetadata(
     [
       {
@@ -669,6 +674,13 @@ function main() {
     Array.isArray(runtimeWritePreview.runtime_memory_write_boundaries) &&
       runtimeWritePreview.runtime_memory_write_boundaries.includes("project"),
     "Expected runtime memory write preview metadata to expose project write boundary."
+  );
+  expect(
+    runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+      ?.routed_project_id === "project-1" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.routed_world_id === "world-1",
+    "Expected runtime memory write preview metadata to expose routed project/world ids in P4."
   );
   const applicableKnowledge = filterKnowledgeByActiveNamespace({
     knowledge: runtimeKnowledge,

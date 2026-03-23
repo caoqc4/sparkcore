@@ -95,6 +95,17 @@ P4 首批要做的，是把 namespace 从：
   - thread-primary namespace 会解析出 `thread` retrieval/write boundary
   - thread-primary namespace 会关闭 `timeline` fallback
 
+当前已成立的第二刀代码事实：
+
+- `apps/web/lib/chat/memory-write-targets.ts` 当前已开始在 namespace-aware target resolution 中显式产出：
+  - `routed_project_id`
+  - `routed_world_id`
+- 也就是说，write routing 当前不只知道自己落在哪一层 boundary，也开始知道自己落到哪组 project/world namespace 实体
+- `apps/web/lib/chat/runtime-preview-metadata.ts` 当前也已开始把这层 routed project/world ids 暴露到 memory write preview
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - project boundary 下会解析出 `project-1 / world-1`
+  - runtime memory write preview 会暴露这层 routed project/world ids
+
 ### 4.2 Retention budget / pruning v2
 
 P4 首批要把 `Thread retention` 从：

@@ -70,6 +70,8 @@ export function buildPlannedGenericMemoryInsertRow(args: {
       routedScope: args.target.routedScope,
       routedTargetAgentId: args.target.routedTargetAgentId,
       routedTargetThreadId: args.target.routedTargetThreadId,
+      routedProjectId: args.target.routedProjectId,
+      routedWorldId: args.target.routedWorldId,
       namespacePrimaryLayer: args.target.namespacePrimaryLayer,
       targetNamespaceId: args.target.targetNamespaceId
     })
@@ -115,6 +117,8 @@ export function buildPlannedGenericMemoryUpdateRow(args: {
       routedScope: args.target.routedScope,
       routedTargetAgentId: args.target.routedTargetAgentId,
       routedTargetThreadId: args.target.routedTargetThreadId,
+      routedProjectId: args.target.routedProjectId,
+      routedWorldId: args.target.routedWorldId,
       namespacePrimaryLayer: args.target.namespacePrimaryLayer,
       targetNamespaceId: args.target.targetNamespaceId
     }),
