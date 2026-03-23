@@ -1,24 +1,26 @@
 import {
   isSmokeAntiAdviceFollowUpPrompt,
-  isSmokeAntiAnalysisFollowUpPrompt,
-  isSmokeAntiCategorizingFollowUpPrompt,
   isSmokeAntiComfortingFollowUpPrompt,
   isSmokeAntiComparingFollowUpPrompt,
+  isSmokeAntiMinimizingFollowUpPrompt,
+  isSmokeAntiNormalizingFollowUpPrompt,
+  isSmokeAntiProbingFollowUpPrompt,
+  isSmokeAntiRedirectionFollowUpPrompt,
+  isSmokeAntiRushingFollowUpPrompt,
+  isSmokeAntiSolutioningFollowUpPrompt
+} from "@/lib/testing/smoke-anti-pressure-prompts";
+import {
+  isSmokeAntiAnalysisFollowUpPrompt,
+  isSmokeAntiCategorizingFollowUpPrompt,
   isSmokeAntiConclusionFollowUpPrompt,
   isSmokeAntiCorrectionFollowUpPrompt,
   isSmokeAntiDefinitionFollowUpPrompt,
   isSmokeAntiLabelingFollowUpPrompt,
   isSmokeAntiLecturingFollowUpPrompt,
-  isSmokeAntiMinimizingFollowUpPrompt,
   isSmokeAntiMischaracterizationFollowUpPrompt,
-  isSmokeAntiNormalizingFollowUpPrompt,
   isSmokeAntiOverreadingFollowUpPrompt,
-  isSmokeAntiProbingFollowUpPrompt,
-  isSmokeAntiRedirectionFollowUpPrompt,
-  isSmokeAntiRushingFollowUpPrompt,
-  isSmokeAntiSolutioningFollowUpPrompt,
   isSmokeAntiTaggingFollowUpPrompt
-} from "@/lib/testing/smoke-anti-follow-up-prompts";
+} from "@/lib/testing/smoke-anti-judgment-prompts";
 import {
   isSmokeFriendLikeSoftFollowUpPrompt,
   isSmokeGentleCarryForwardAfterSteadyingPrompt,
