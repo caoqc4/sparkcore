@@ -25,6 +25,7 @@ import {
 } from "@/lib/chat/memory-packs";
 import {
   buildKnowledgePromptSection,
+  filterKnowledgeByActiveNamespace,
   type RuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
 import {
@@ -1340,10 +1341,12 @@ function buildScenarioMemoryPackAssemblyPrompt(args: {
 
 function buildKnowledgeLayerPrompt(args: {
   relevantKnowledge: RuntimeKnowledgeSnippet[];
+  activeMemoryNamespace: ActiveRuntimeMemoryNamespace | null | undefined;
   replyLanguage: RuntimeReplyLanguage;
 }) {
   return buildKnowledgePromptSection({
     knowledge: args.relevantKnowledge,
+    activeNamespace: args.activeMemoryNamespace ?? null,
     replyLanguage: args.replyLanguage
   });
 }
@@ -2527,6 +2530,7 @@ function buildAgentSystemPromptInternal(
     }),
     buildKnowledgeLayerPrompt({
       relevantKnowledge,
+      activeMemoryNamespace,
       replyLanguage
     }),
     buildMemoryNamespaceLayerPrompt({
@@ -3822,6 +3826,10 @@ export async function runPreparedRuntimeTurn({
     threadId: preparedRuntimeTurn.session.thread_id,
     relevantKnowledge: []
   });
+  const applicableKnowledge = filterKnowledgeByActiveNamespace({
+    knowledge: [],
+    namespace: activeMemoryNamespace
+  });
   const { workspace, thread, messages, assistant_message_id, supabase } =
     preparedRuntimeTurn.resources;
   const runtimeSupabase = supabase as any;
@@ -3833,7 +3841,7 @@ export async function runPreparedRuntimeTurn({
         agent.system_prompt,
         latestUserMessageContent ?? "",
         allRecalledMemories,
-        [],
+        applicableKnowledge,
         compactedThreadSummary,
         activeMemoryNamespace,
         replyLanguage,
@@ -3985,7 +3993,7 @@ export async function runPreparedRuntimeTurn({
         incorrect_exclusion_count: memoryRecall.incorrectExclusionCount
       },
       knowledge: {
-        snippets: []
+        snippets: applicableKnowledge
       },
       namespace: {
         active_namespace: activeMemoryNamespace
@@ -4122,7 +4130,7 @@ export async function runPreparedRuntimeTurn({
         preparedRuntimeTurn.memory.runtime_memory_context.threadStateRecall,
       reply_language: replyLanguage,
       scenario_memory_pack: resolveActiveScenarioMemoryPack(),
-      relevant_knowledge: [],
+      relevant_knowledge: applicableKnowledge,
       active_memory_namespace: activeMemoryNamespace,
       compacted_thread_summary: compactedThreadSummary
     })

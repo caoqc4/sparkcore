@@ -205,6 +205,8 @@ P2 首批要把当前更偏单 Agent 的 scope 语义，推进到更明确的多
   - `buildMemoryNamespaceSummary(...)`
 - runtime `buildAgentSystemPrompt(...)` 当前也已开始显式注入最小 namespace section：
   - `Active Memory Namespace: primary_layer = ...`
+- namespace 当前也已开始影响真实 knowledge 作用边界：
+  - out-of-namespace knowledge 不再进入 prompt / summary
 - assistant metadata / debug metadata 当前也已开始暴露最小 namespace 摘要：
   - `namespace_id`
   - `primary_layer`

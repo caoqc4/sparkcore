@@ -154,6 +154,7 @@
   - `packages/core/memory/namespace.ts` 已新增首版 `MemoryNamespaceLayer / MemoryNamespaceRef / ActiveMemoryNamespace` contract
   - `apps/web/lib/chat/memory-namespace.ts` 已新增最小 namespace resolver / prompt section / metadata summary helper
   - runtime `buildAgentSystemPrompt(...)` 当前也已开始显式注入最小 namespace section
+  - namespace 当前也已开始影响真实 knowledge 过滤边界，out-of-namespace knowledge 不再进入 prompt / summary
   - assistant metadata / debug metadata 当前也已开始暴露最小 memory namespace 摘要
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 namespace metadata reader 与 project-layer prompt 注入
 - `P2-5 regression / acceptance expansion` 当前也已开始进入真实实现：

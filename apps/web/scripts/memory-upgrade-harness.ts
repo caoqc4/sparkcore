@@ -30,6 +30,8 @@ import {
 } from "@/lib/chat/memory-packs";
 import {
   buildKnowledgeSnapshot,
+  buildKnowledgeSummary,
+  filterKnowledgeByActiveNamespace,
   buildRuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
 import { resolveActiveMemoryNamespace } from "@/lib/chat/memory-namespace";
@@ -401,12 +403,35 @@ function main() {
     sourceKind: "project_document",
     capturedAt: "2026-03-23T00:00:00.000Z"
   });
-  const runtimeKnowledge = [buildRuntimeKnowledgeSnippet(knowledgeSnapshot)];
+  const worldMismatchedKnowledgeSnapshot = buildKnowledgeSnapshot({
+    snapshotId: "knowledge-snapshot-2",
+    resourceId: "resource-2",
+    scope: {
+      workspace_id: "workspace-1",
+      project_id: "project-other"
+    },
+    title: "Other project brief",
+    summary: "This belongs to a different project namespace and should be filtered out.",
+    sourceKind: "project_document",
+    capturedAt: "2026-03-23T00:00:00.000Z"
+  });
+  const runtimeKnowledge = [
+    buildRuntimeKnowledgeSnippet(knowledgeSnapshot),
+    buildRuntimeKnowledgeSnippet(worldMismatchedKnowledgeSnapshot)
+  ];
   const activeMemoryNamespace = resolveActiveMemoryNamespace({
     userId: "user-1",
     agentId: "agent-1",
     threadId: "thread-1",
     relevantKnowledge: runtimeKnowledge
+  });
+  const applicableKnowledge = filterKnowledgeByActiveNamespace({
+    knowledge: runtimeKnowledge,
+    namespace: activeMemoryNamespace
+  });
+  const knowledgeSummary = buildKnowledgeSummary({
+    knowledge: runtimeKnowledge,
+    activeNamespace: activeMemoryNamespace
   });
   const compactedThreadSummary = buildCompactedThreadSummary({
     threadState: {
@@ -523,7 +548,7 @@ function main() {
         incorrect_exclusion_count: 0
       },
       knowledge: {
-        snippets: runtimeKnowledge
+        snippets: applicableKnowledge
       },
       namespace: {
         active_namespace: activeMemoryNamespace
@@ -580,7 +605,7 @@ function main() {
   );
   expect(
     getAssistantKnowledgeCount(assistantMetadata) === 1,
-    "Expected assistant metadata reader to expose the injected knowledge count."
+    "Expected assistant metadata reader to expose the namespace-filtered knowledge count."
   );
   expect(
     getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
@@ -675,6 +700,10 @@ function main() {
   expect(
     systemPrompt.includes("Onboarding checklist guide"),
     "Expected system prompt assembly to include the injected knowledge title."
+  );
+  expect(
+    !systemPrompt.includes("Other project brief"),
+    "Expected system prompt assembly to filter knowledge outside the active namespace in P2."
   );
   expect(
     systemPrompt.includes("Compacted thread summary:"),
@@ -823,6 +852,7 @@ function main() {
         assistant_metadata_knowledge: {
           count: getAssistantKnowledgeCount(assistantMetadata)
         },
+        filtered_knowledge_summary: knowledgeSummary,
         assistant_metadata_thread_compaction: {
           summary_text: getAssistantCompactedThreadSummaryText(assistantMetadata)
         },
@@ -858,6 +888,9 @@ function main() {
           includes_knowledge_layer: systemPrompt.includes(
             "Relevant Knowledge Layer:"
           ),
+          excludes_out_of_namespace_knowledge: !systemPrompt.includes(
+            "Other project brief"
+          ),
           includes_thread_compaction: systemPrompt.includes(
             "Compacted thread summary:"
           ),
@@ -871,6 +904,9 @@ function main() {
         p2_regression_gate: {
           pack_metadata_ok: runtimeDebugMetadata.memory.pack?.pack_id === "companion",
           knowledge_metadata_ok: runtimeDebugMetadata.knowledge.count === 1,
+          knowledge_namespace_filter_ok:
+            knowledgeSummary.count === 1 &&
+            knowledgeSummary.titles[0] === "Onboarding checklist guide",
           compaction_metadata_ok:
             runtimeDebugMetadata.thread_compaction?.summary_id ===
             compactedThreadSummary?.summary_id,

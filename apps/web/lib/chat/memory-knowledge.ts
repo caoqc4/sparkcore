@@ -1,5 +1,6 @@
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type {
+  ActiveMemoryNamespace,
   KnowledgeSnapshot,
   KnowledgeSourceKind,
 } from "../../../../packages/core/memory";
@@ -45,18 +46,86 @@ export function buildRuntimeKnowledgeSnippet(
   };
 }
 
+export function isKnowledgeSnippetInNamespace(args: {
+  snippet: RuntimeKnowledgeSnippet;
+  namespace: ActiveMemoryNamespace | null | undefined;
+}) {
+  if (!args.namespace) {
+    return true;
+  }
+
+  const namespaceRefByLayer = new Map(
+    args.namespace.refs.map((ref) => [ref.layer, ref.entity_id])
+  );
+
+  if (
+    args.snippet.scope.world_id &&
+    namespaceRefByLayer.get("world") !== args.snippet.scope.world_id
+  ) {
+    return false;
+  }
+
+  if (
+    args.snippet.scope.project_id &&
+    namespaceRefByLayer.get("project") !== args.snippet.scope.project_id
+  ) {
+    return false;
+  }
+
+  if (
+    args.snippet.scope.thread_id &&
+    namespaceRefByLayer.get("thread") !== args.snippet.scope.thread_id
+  ) {
+    return false;
+  }
+
+  if (
+    args.snippet.scope.agent_id &&
+    namespaceRefByLayer.get("agent") !== args.snippet.scope.agent_id
+  ) {
+    return false;
+  }
+
+  if (
+    args.snippet.scope.user_id &&
+    namespaceRefByLayer.get("user") !== args.snippet.scope.user_id
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+export function filterKnowledgeByActiveNamespace(args: {
+  knowledge: RuntimeKnowledgeSnippet[];
+  namespace: ActiveMemoryNamespace | null | undefined;
+}) {
+  return args.knowledge.filter((snippet) =>
+    isKnowledgeSnippetInNamespace({
+      snippet,
+      namespace: args.namespace
+    })
+  );
+}
+
 export function buildKnowledgePromptSection(args: {
   knowledge: RuntimeKnowledgeSnippet[];
+  activeNamespace?: ActiveMemoryNamespace | null;
   replyLanguage: RuntimeReplyLanguage;
 }) {
-  if (args.knowledge.length === 0) {
+  const applicableKnowledge = filterKnowledgeByActiveNamespace({
+    knowledge: args.knowledge,
+    namespace: args.activeNamespace
+  });
+
+  if (applicableKnowledge.length === 0) {
     return "";
   }
 
   const isZh = args.replyLanguage === "zh-Hans";
   const lines = [
     isZh ? "相关 Knowledge Layer：" : "Relevant Knowledge Layer:",
-    ...args.knowledge.slice(0, 2).map((item, index) =>
+    ...applicableKnowledge.slice(0, 2).map((item, index) =>
       isZh
         ? `${index + 1}. [${item.source_kind}] ${item.title}：${item.summary}`
         : `${index + 1}. [${item.source_kind}] ${item.title}: ${item.summary}`
@@ -71,10 +140,18 @@ export function buildKnowledgePromptSection(args: {
 
 export function buildKnowledgeSummary(args: {
   knowledge: RuntimeKnowledgeSnippet[];
+  activeNamespace?: ActiveMemoryNamespace | null;
 }) {
+  const applicableKnowledge = filterKnowledgeByActiveNamespace({
+    knowledge: args.knowledge,
+    namespace: args.activeNamespace
+  });
+
   return {
-    count: args.knowledge.length,
-    titles: args.knowledge.map((item) => item.title),
-    source_kinds: Array.from(new Set(args.knowledge.map((item) => item.source_kind))),
+    count: applicableKnowledge.length,
+    titles: applicableKnowledge.map((item) => item.title),
+    source_kinds: Array.from(
+      new Set(applicableKnowledge.map((item) => item.source_kind))
+    ),
   };
 }
