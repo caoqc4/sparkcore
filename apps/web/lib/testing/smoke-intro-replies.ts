@@ -5,6 +5,10 @@ import {
   isSmokeDirectUserPreferredNameQuestion,
   isSmokeSelfIntroGreetingRequest
 } from "@/lib/testing/smoke-answer-strategy";
+import {
+  buildSmokeEnStyleGreeting,
+  buildSmokeZhStyleGreeting
+} from "@/lib/testing/smoke-style-greetings";
 
 type SmokeRelationshipRecallMemory = {
   memory_type: "relationship";
@@ -26,22 +30,10 @@ export function buildSmokeIntroReply(args: {
     const userName = args.preferredNameMemory?.content ?? null;
 
     if (args.replyLanguage === "zh-Hans") {
-      const greeting =
-        styleValue === "formal"
-          ? userName
-            ? `您好，${userName}。`
-            : "您好。"
-          : styleValue === "friendly"
-            ? userName
-              ? `嗨，${userName}。`
-              : "嗨，朋友。"
-            : styleValue === "casual"
-              ? userName
-                ? `嗨，${userName}。`
-                : "嗨。"
-              : userName
-                ? `你好，${userName}。`
-                : "你好。";
+      const greeting = buildSmokeZhStyleGreeting({
+        styleValue,
+        userName
+      });
 
       const intro =
         args.nicknameMemory || styleValue === "friendly"
@@ -51,22 +43,10 @@ export function buildSmokeIntroReply(args: {
       return `${greeting} ${intro}`;
     }
 
-    const greeting =
-      styleValue === "formal"
-        ? userName
-          ? `Hello, ${userName}.`
-          : "Hello."
-        : styleValue === "friendly"
-          ? userName
-            ? `Hey, ${userName}.`
-            : "Hey, friend."
-          : styleValue === "casual"
-            ? userName
-              ? `Hey, ${userName}.`
-              : "Hey."
-            : userName
-              ? `Hello, ${userName}.`
-              : "Hello.";
+    const greeting = buildSmokeEnStyleGreeting({
+      styleValue,
+      userName
+    });
 
     const intro =
       args.nicknameMemory || styleValue === "friendly"
@@ -133,22 +113,10 @@ export function buildSmokeIntroReply(args: {
     const styleValue = args.addressStyleMemory?.content ?? null;
     const selfName = args.nicknameMemory?.content ?? "SparkCore";
     const userName = args.preferredNameMemory?.content ?? null;
-    const opening =
-      styleValue === "formal"
-        ? userName
-          ? `您好，${userName}。`
-          : "您好。"
-        : styleValue === "friendly"
-          ? userName
-            ? `嗨，${userName}。`
-            : "嗨，朋友。"
-          : styleValue === "casual"
-            ? userName
-              ? `嗨，${userName}。`
-              : "嗨。"
-            : userName
-              ? `你好，${userName}。`
-              : "你好。";
+    const opening = buildSmokeZhStyleGreeting({
+      styleValue,
+      userName
+    });
 
     return `${opening} 我是${selfName}，可以用中文帮助你梳理计划、整理记忆，并继续当前线程里的对话。`;
   }
