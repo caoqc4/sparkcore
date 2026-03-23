@@ -4,10 +4,9 @@ import {
   isSmokeOpenEndedSummaryQuestion
 } from "@/lib/testing/smoke-answer-strategy";
 import {
-  findSmokeRelationshipMemory,
-  prependSmokeRelationshipRecall
 } from "@/lib/testing/smoke-relationship-context";
 import { hasSmokeRelationshipCarryover } from "@/lib/testing/smoke-relationship-carryover";
+import { findAndRecallSmokeRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-recall";
 import type {
   SmokeActiveRelationshipMemory,
   SmokeRelationshipRecallMemoryList
@@ -31,36 +30,33 @@ export function selectSmokeRelationshipMemories(args: {
     args.relationshipStylePrompt ||
     isSmokeOpenEndedSummaryQuestion(args.trimmedContent) ||
     args.sameThreadContinuity
-      ? findSmokeRelationshipMemory({
+      ? findAndRecallSmokeRelationshipMemory({
           memories: args.activeMemories,
           key: "agent_nickname",
-          agentId: args.agentId
+          agentId: args.agentId,
+          recalledMemories: args.recalledMemories
         })
       : null;
-
-  prependSmokeRelationshipRecall(args.recalledMemories, nicknameMemory);
 
   const preferredNameMemory =
     isSmokeDirectUserPreferredNameQuestion(args.trimmedContent) ||
     args.relationshipStylePrompt ||
     isSmokeOpenEndedSummaryQuestion(args.trimmedContent) ||
     args.sameThreadContinuity
-      ? findSmokeRelationshipMemory({
+      ? findAndRecallSmokeRelationshipMemory({
           memories: args.activeMemories,
           key: "user_preferred_name",
-          agentId: args.agentId
+          agentId: args.agentId,
+          recalledMemories: args.recalledMemories
         })
       : null;
 
-  prependSmokeRelationshipRecall(args.recalledMemories, preferredNameMemory);
-
-  const addressStyleMemory = findSmokeRelationshipMemory({
+  const addressStyleMemory = findAndRecallSmokeRelationshipMemory({
     memories: args.activeMemories,
     key: "user_address_style",
-    agentId: args.agentId
+    agentId: args.agentId,
+    recalledMemories: args.recalledMemories
   });
-
-  prependSmokeRelationshipRecall(args.recalledMemories, addressStyleMemory);
 
   return {
     addressStyleMemory,
