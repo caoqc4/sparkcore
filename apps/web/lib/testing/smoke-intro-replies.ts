@@ -5,13 +5,12 @@ import {
   isSmokeDirectUserPreferredNameQuestion,
   isSmokeSelfIntroGreetingRequest
 } from "@/lib/testing/smoke-answer-strategy";
-import { isSmokeHelpIntroRequest } from "@/lib/testing/smoke-help-intro-prompts";
 import { getSmokeIntroReplyContext } from "@/lib/testing/smoke-intro-reply-context";
 import type { SmokeIntroReplyInput } from "@/lib/testing/smoke-intro-reply-types";
 import {
-  buildSmokeHelpIntroReply,
-  buildSmokeSelfIntroReply
-} from "@/lib/testing/smoke-self-intro-replies";
+  buildSmokeEnStyleGreeting,
+  buildSmokeZhStyleGreeting
+} from "@/lib/testing/smoke-style-greetings";
 
 function buildSmokeBriefGreetingReply(args: {
   replyLanguage: SmokeReplyLanguage;
@@ -69,6 +68,60 @@ function buildSmokePreferredNameReply(args: {
   return args.replyLanguage === "zh-Hans"
     ? "我还没有记住你偏好的称呼。"
     : "I have not stored your preferred name yet.";
+}
+
+function isSmokeHelpIntroRequest(content: string) {
+  return (
+    content.includes("请用两句话介绍你自己") ||
+    content.includes("你能如何帮助我")
+  );
+}
+
+function buildSmokeSelfIntroReply(args: {
+  replyLanguage: SmokeReplyLanguage;
+  styleValue: string | null;
+  selfName: string;
+  userName: string | null;
+  hasNicknameMemory: boolean;
+}) {
+  if (args.replyLanguage === "zh-Hans") {
+    const greeting = buildSmokeZhStyleGreeting({
+      styleValue: args.styleValue,
+      userName: args.userName
+    });
+
+    const intro =
+      args.hasNicknameMemory || args.styleValue === "friendly"
+        ? `我是${args.selfName}，很高兴继续和你聊。`
+        : `我是${args.selfName}，很高兴继续为你提供帮助。`;
+
+    return `${greeting} ${intro}`;
+  }
+
+  const greeting = buildSmokeEnStyleGreeting({
+    styleValue: args.styleValue,
+    userName: args.userName
+  });
+
+  const intro =
+    args.hasNicknameMemory || args.styleValue === "friendly"
+      ? `I am ${args.selfName}, and it is good to keep chatting with you.`
+      : `I am ${args.selfName}, and I am glad to keep helping you.`;
+
+  return `${greeting} ${intro}`;
+}
+
+function buildSmokeHelpIntroReply(args: {
+  styleValue: string | null;
+  selfName: string;
+  userName: string | null;
+}) {
+  const opening = buildSmokeZhStyleGreeting({
+    styleValue: args.styleValue,
+    userName: args.userName
+  });
+
+  return `${opening} 我是${args.selfName}，可以用中文帮助你梳理计划、整理记忆，并继续当前线程里的对话。`;
 }
 
 export function buildSmokeIntroReply(args: SmokeIntroReplyInput) {
