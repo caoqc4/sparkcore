@@ -190,10 +190,31 @@ export class SupabaseFollowUpRepository implements FollowUpRepository {
   async markFollowUpExecuted(
     input: MarkFollowUpExecutedInput
   ): Promise<MarkFollowUpExecutedResult> {
+    const { data: existingRow, error: existingRowError } = await this.supabase
+      .from(this.tableName)
+      .select("request_payload")
+      .eq("id", input.id)
+      .maybeSingle();
+
+    if (existingRowError) {
+      throw new Error(
+        `Failed to load follow-up before marking executed in ${this.tableName}: ${existingRowError.message}`
+      );
+    }
+
+    const nextRequestPayload = {
+      ...(((existingRow as { request_payload?: Record<string, unknown> | null } | null)
+        ?.request_payload ??
+        {}) as Record<string, unknown>),
+      execution_metadata: input.execution_metadata ?? {},
+      executed_at: input.executed_at
+    };
+
     const { data, error } = await this.supabase
       .from(this.tableName)
       .update({
         status: "executed",
+        request_payload: nextRequestPayload,
         updated_at: input.executed_at
       })
       .eq("id", input.id)
@@ -224,10 +245,32 @@ export class SupabaseFollowUpRepository implements FollowUpRepository {
   async markFollowUpFailed(
     input: MarkFollowUpFailedInput
   ): Promise<MarkFollowUpFailedResult> {
+    const { data: existingRow, error: existingRowError } = await this.supabase
+      .from(this.tableName)
+      .select("request_payload")
+      .eq("id", input.id)
+      .maybeSingle();
+
+    if (existingRowError) {
+      throw new Error(
+        `Failed to load follow-up before marking failed in ${this.tableName}: ${existingRowError.message}`
+      );
+    }
+
+    const nextRequestPayload = {
+      ...(((existingRow as { request_payload?: Record<string, unknown> | null } | null)
+        ?.request_payload ??
+        {}) as Record<string, unknown>),
+      failed_at: input.failed_at,
+      failure_reason: input.failure_reason,
+      failure_metadata: input.failure_metadata ?? {}
+    };
+
     const { data, error } = await this.supabase
       .from(this.tableName)
       .update({
         status: "failed",
+        request_payload: nextRequestPayload,
         updated_at: input.failed_at
       })
       .eq("id", input.id)
