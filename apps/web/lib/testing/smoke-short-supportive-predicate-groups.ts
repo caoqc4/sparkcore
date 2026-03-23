@@ -8,7 +8,7 @@ import {
   isSmokeAntiRedirectionFollowUpPrompt,
   isSmokeAntiRushingFollowUpPrompt,
   isSmokeAntiSolutioningFollowUpPrompt
-} from "@/lib/testing/smoke-anti-pressure-prompts";
+} from "@/lib/testing/smoke-follow-up-prompts";
 import {
   isSmokeAntiAnalysisFollowUpPrompt,
   isSmokeAntiCategorizingFollowUpPrompt,

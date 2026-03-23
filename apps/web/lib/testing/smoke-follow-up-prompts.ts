@@ -4,11 +4,13 @@ export {
   isSmokeAntiComparingFollowUpPrompt,
   isSmokeAntiMinimizingFollowUpPrompt,
   isSmokeAntiNormalizingFollowUpPrompt,
+} from "@/lib/testing/smoke-anti-soothing-prompts";
+export {
   isSmokeAntiProbingFollowUpPrompt,
   isSmokeAntiRedirectionFollowUpPrompt,
   isSmokeAntiRushingFollowUpPrompt,
   isSmokeAntiSolutioningFollowUpPrompt
-} from "@/lib/testing/smoke-anti-pressure-prompts";
+} from "@/lib/testing/smoke-anti-boundary-prompts";
 export {
   isSmokeAntiAnalysisFollowUpPrompt,
   isSmokeAntiCategorizingFollowUpPrompt,
