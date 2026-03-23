@@ -1,5 +1,3 @@
-import { getSmokeModelProfiles } from "@/lib/testing/smoke-model-profile-seeds";
-import type { SmokeConfig, SmokeUser } from "@/lib/testing/smoke-runtime-types";
 import { resetSmokeState } from "@/lib/testing/smoke-reset";
 import {
   getSmokeConfig,
@@ -9,8 +7,6 @@ import { createSmokeLoginResponse } from "@/lib/testing/smoke-login";
 import { loadSmokeTurnContext } from "@/lib/testing/smoke-turn-context";
 import { executeSmokeTurn } from "@/lib/testing/smoke-turn-execution";
 import { createSmokeThread } from "@/lib/testing/smoke-threads";
-
-const SMOKE_MODEL_PROFILES = getSmokeModelProfiles();
 
 export { getSmokeConfig, isAuthorizedSmokeRequest };
 
