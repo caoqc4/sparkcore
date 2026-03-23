@@ -24,6 +24,8 @@ import {
   loadActiveModelProfilesBySlugs,
   loadActivePersonaPacksBySlugs,
   createOwnedThread,
+  deleteOwnedAgents,
+  deleteOwnedThreads,
   loadOwnedActiveAgent,
   loadOwnedActiveAgentByName,
   loadOwnedThread,
@@ -699,10 +701,10 @@ async function resetSmokeWorkspaceState(
   admin: SupabaseClient,
   user: SmokeUser
 ) {
-  const { error: deleteThreadsError } = await admin
-    .from("threads")
-    .delete()
-    .eq("owner_user_id", user.id);
+  const { error: deleteThreadsError } = await deleteOwnedThreads({
+    supabase: admin,
+    userId: user.id
+  });
 
   if (deleteThreadsError) {
     throw new Error(
@@ -721,10 +723,10 @@ async function resetSmokeWorkspaceState(
     );
   }
 
-  const { error: deleteAgentsError } = await admin
-    .from("agents")
-    .delete()
-    .eq("owner_user_id", user.id);
+  const { error: deleteAgentsError } = await deleteOwnedAgents({
+    supabase: admin,
+    userId: user.id
+  });
 
   if (deleteAgentsError) {
     throw new Error(

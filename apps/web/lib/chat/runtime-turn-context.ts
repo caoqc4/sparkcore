@@ -101,6 +101,13 @@ export async function loadOwnedThreads(args: {
     .order("updated_at", { ascending: false });
 }
 
+export function deleteOwnedThreads(args: {
+  supabase: any;
+  userId: string;
+}) {
+  return args.supabase.from("threads").delete().eq("owner_user_id", args.userId);
+}
+
 export async function loadOwnedActiveAgent(args: {
   supabase: any;
   agentId: string;
@@ -115,6 +122,13 @@ export async function loadOwnedActiveAgent(args: {
     .eq("owner_user_id", args.userId)
     .eq("status", "active")
     .maybeSingle();
+}
+
+export function deleteOwnedAgents(args: {
+  supabase: any;
+  userId: string;
+}) {
+  return args.supabase.from("agents").delete().eq("owner_user_id", args.userId);
 }
 
 export async function loadOwnedActiveAgentByName(args: {
