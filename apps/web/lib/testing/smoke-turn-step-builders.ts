@@ -1,72 +1,56 @@
 import type { runSmokeAssistantTurnStep } from "@/lib/testing/smoke-turn-assistant-run";
 import type { persistSmokeMemoryTurnStep } from "@/lib/testing/smoke-turn-memory-step";
+import type { SmokeTurnStepContext } from "@/lib/testing/smoke-turn-step-context";
 import type { persistSmokeUserTurnStep } from "@/lib/testing/smoke-turn-user-step";
 import type { SmokeTurnAnalysis } from "@/lib/testing/smoke-turn-assistant-run-types";
 
 export function buildSmokeUserTurnStepInput(args: {
-  admin: Parameters<typeof persistSmokeUserTurnStep>[0]["supabase"];
-  threadId: string;
-  workspaceId: string;
-  userId: string;
-  threadTitle: Parameters<typeof persistSmokeUserTurnStep>[0]["threadTitle"];
+  context: SmokeTurnStepContext;
   trimmedContent: string;
 }) {
   return {
-    supabase: args.admin,
-    threadId: args.threadId,
-    workspaceId: args.workspaceId,
-    userId: args.userId,
-    threadTitle: args.threadTitle,
+    supabase: args.context.admin,
+    threadId: args.context.threadId,
+    workspaceId: args.context.workspaceId,
+    userId: args.context.userId,
+    threadTitle: args.context.threadTitle,
     trimmedContent: args.trimmedContent
   };
 }
 
 export function buildSmokeMemoryTurnStepInput(args: {
-  admin: Parameters<typeof persistSmokeMemoryTurnStep>[0]["supabase"];
-  workspaceId: string;
-  userId: string;
-  agentId: string;
+  context: SmokeTurnStepContext;
   sourceMessageId: string;
   trimmedContent: string;
 }) {
   return {
-    supabase: args.admin,
-    workspaceId: args.workspaceId,
-    userId: args.userId,
-    agentId: args.agentId,
+    supabase: args.context.admin,
+    workspaceId: args.context.workspaceId,
+    userId: args.context.userId,
+    agentId: args.context.agentId,
     sourceMessageId: args.sourceMessageId,
     trimmedContent: args.trimmedContent
   };
 }
 
 export function buildSmokeAssistantTurnStepInput(args: {
-  admin: Parameters<typeof runSmokeAssistantTurnStep>[0]["supabase"];
-  threadId: string;
-  workspaceId: string;
-  userId: string;
-  agentId: string;
-  agentName: string;
-  personaSummary: string | null;
-  styleGuidance: string | null;
-  modelProfileId: string;
-  modelProfileName: string;
-  model: string;
+  context: SmokeTurnStepContext;
   trimmedContent: string;
   analysis: SmokeTurnAnalysis;
   createdTypes: Parameters<typeof runSmokeAssistantTurnStep>[0]["createdTypes"];
 }) {
   return {
-    supabase: args.admin,
-    threadId: args.threadId,
-    workspaceId: args.workspaceId,
-    userId: args.userId,
-    agentId: args.agentId,
-    agentName: args.agentName,
-    personaSummary: args.personaSummary,
-    styleGuidance: args.styleGuidance,
-    modelProfileId: args.modelProfileId,
-    modelProfileName: args.modelProfileName,
-    model: args.model,
+    supabase: args.context.admin,
+    threadId: args.context.threadId,
+    workspaceId: args.context.workspaceId,
+    userId: args.context.userId,
+    agentId: args.context.agentId,
+    agentName: args.context.agentName,
+    personaSummary: args.context.personaSummary,
+    styleGuidance: args.context.styleGuidance,
+    modelProfileId: args.context.modelProfileId,
+    modelProfileName: args.context.modelProfileName,
+    model: args.context.model,
     trimmedContent: args.trimmedContent,
     analysis: args.analysis,
     createdTypes: args.createdTypes

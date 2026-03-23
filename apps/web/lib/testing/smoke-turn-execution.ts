@@ -9,6 +9,7 @@ import {
   buildSmokeMemoryTurnStepInput,
   buildSmokeUserTurnStepInput
 } from "@/lib/testing/smoke-turn-step-builders";
+import { getSmokeTurnStepContext } from "@/lib/testing/smoke-turn-step-context";
 import type { SmokeTurnExecutionInput } from "@/lib/testing/smoke-turn-execution-types";
 import type { SmokeTurnExecutionResult } from "@/lib/testing/smoke-turn-execution-result";
 
@@ -24,6 +25,7 @@ export async function executeSmokeTurn(
     existingMemories,
     existingMessages
   } = getSmokeTurnExecutionContext(args);
+  const stepContext = getSmokeTurnStepContext(args);
   const analysis = prepareSmokeExecutionAnalysis({
     trimmedContent: args.trimmedContent,
     existingMemories,
@@ -34,38 +36,21 @@ export async function executeSmokeTurn(
 
   const ensuredUserMessage = await persistSmokeUserTurnStep(
     buildSmokeUserTurnStepInput({
-      admin,
-      threadId: thread.id,
-      workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id,
-      threadTitle: thread.title,
+      context: stepContext,
       trimmedContent: args.trimmedContent
     })
   );
 
   const { createdTypes } = await persistSmokeMemoryTurnStep(
     buildSmokeMemoryTurnStepInput({
-      admin,
-      workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id,
-      agentId: ensuredAgent.id,
+      context: stepContext,
       sourceMessageId: ensuredUserMessage.id,
       trimmedContent: args.trimmedContent
     })
   );
   const insertedAssistantMessage = await runSmokeAssistantTurnStep(
     buildSmokeAssistantTurnStepInput({
-      admin,
-      threadId: thread.id,
-      workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id,
-      agentId: ensuredAgent.id,
-      agentName: ensuredAgent.name,
-      personaSummary: ensuredAgent.persona_summary ?? null,
-      styleGuidance: ensuredAgent.style_prompt ?? null,
-      modelProfileId: modelProfile.id,
-      modelProfileName: modelProfile.name,
-      model: modelProfile.model,
+      context: stepContext,
       trimmedContent: args.trimmedContent,
       analysis,
       createdTypes
