@@ -148,6 +148,10 @@
   - `apps/web/lib/chat/runtime-preview-metadata.ts` 当前也已开始把 namespace-aware write routing 暴露到 runtime memory write preview
   - `apps/web/lib/chat/runtime.ts` 当前也已开始把 `write_boundaries` 写入 `memory_write_planned` event
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 project namespace 下的 write boundary 解析与 preview metadata 暴露
+  - `apps/web/lib/chat/memory-write-targets.ts` 当前也已开始显式产出 `routed_scope / routed_target_agent_id / routed_target_thread_id`
+  - 在 thread namespace 下，generic `profile / preference` 写入当前也已开始走真实 `thread_local` routed scope，而不再只停在 `write_boundary = thread` 的元信息层
+  - `apps/web/lib/chat/memory-write-rows.ts` 当前也已开始把这层 routed scope / routed target ids 真正写进 generic insert / update row
+  - `apps/web/lib/chat/runtime-preview-metadata.ts` 当前也已开始把这层 routed scope 暴露到 memory write preview
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

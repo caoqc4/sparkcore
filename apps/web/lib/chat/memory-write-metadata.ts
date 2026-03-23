@@ -17,6 +17,9 @@ export function buildRelationshipPlannerMemoryMetadata(
     semantic_target: "memory_record",
     canonical_memory_type: "relationship",
     write_boundary: targetMetadata?.writeBoundary ?? null,
+    routed_scope: "user_agent",
+    routed_target_agent_id: request.target_agent_id,
+    routed_target_thread_id: request.target_thread_id ?? null,
     namespace_primary_layer: targetMetadata?.namespacePrimaryLayer ?? null,
     target_namespace_id: targetMetadata?.targetNamespaceId ?? null,
     relation_kind: request.relationship_key,
@@ -36,6 +39,9 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
   canonicalMemoryType?: string | null;
   namespaceMetadata?: Record<string, unknown>;
   writeBoundary?: string | null;
+  routedScope?: string | null;
+  routedTargetAgentId?: string | null;
+  routedTargetThreadId?: string | null;
   namespacePrimaryLayer?: string | null;
   targetNamespaceId?: string | null;
 }): Record<string, unknown> {
@@ -47,6 +53,9 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
     semantic_target: args.recordTarget,
     canonical_memory_type: args.canonicalMemoryType ?? null,
     write_boundary: args.writeBoundary ?? null,
+    routed_scope: args.routedScope ?? null,
+    routed_target_agent_id: args.routedTargetAgentId ?? null,
+    routed_target_thread_id: args.routedTargetThreadId ?? null,
     namespace_primary_layer: args.namespacePrimaryLayer ?? null,
     target_namespace_id: args.targetNamespaceId ?? null,
     threshold: args.threshold,
@@ -66,6 +75,9 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
   canonicalMemoryType?: string | null;
   namespaceMetadata?: Record<string, unknown>;
   writeBoundary?: string | null;
+  routedScope?: string | null;
+  routedTargetAgentId?: string | null;
+  routedTargetThreadId?: string | null;
   namespacePrimaryLayer?: string | null;
   targetNamespaceId?: string | null;
 }): Record<string, unknown> {
@@ -78,6 +90,9 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
     semantic_target: args.recordTarget,
     canonical_memory_type: args.canonicalMemoryType ?? null,
     write_boundary: args.writeBoundary ?? null,
+    routed_scope: args.routedScope ?? null,
+    routed_target_agent_id: args.routedTargetAgentId ?? null,
+    routed_target_thread_id: args.routedTargetThreadId ?? null,
     namespace_primary_layer: args.namespacePrimaryLayer ?? null,
     target_namespace_id: args.targetNamespaceId ?? null,
     threshold: args.threshold,

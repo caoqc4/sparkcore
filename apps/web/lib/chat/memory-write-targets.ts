@@ -17,6 +17,9 @@ export type PlannedMemoryWriteTarget = {
   recordTarget: PlannedMemoryRecordTarget;
   canonicalMemoryType: RuntimeMemoryWriteRequest["memory_type"] | null;
   legacyScope: MemoryScope;
+  routedScope: MemoryScope;
+  routedTargetAgentId: string | null;
+  routedTargetThreadId: string | null;
   writeBoundary: PlannedMemoryWriteBoundary;
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
@@ -28,6 +31,9 @@ export type PlannedGenericMemoryWriteTarget = {
   recordTarget: PlannedMemoryRecordTarget;
   canonicalMemoryType: Extract<RuntimeMemoryWriteRequest, { kind: "generic_memory" }>["memory_type"];
   legacyScope: "user_global";
+  routedScope: MemoryScope;
+  routedTargetAgentId: string | null;
+  routedTargetThreadId: string | null;
   writeBoundary: PlannedMemoryWriteBoundary;
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
@@ -39,6 +45,9 @@ export type PlannedRelationshipMemoryWriteTarget = {
   recordTarget: "memory_record";
   canonicalMemoryType: "relationship";
   legacyScope: "user_agent";
+  routedScope: MemoryScope;
+  routedTargetAgentId: string | null;
+  routedTargetThreadId: string | null;
   writeBoundary: PlannedMemoryWriteBoundary;
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
@@ -68,6 +77,13 @@ function resolveWriteBoundary(
   return "default";
 }
 
+function getNamespaceRefId(
+  namespace: ActiveRuntimeMemoryNamespace | null | undefined,
+  layer: ActiveRuntimeMemoryNamespace["active_layers"][number]
+) {
+  return namespace?.refs.find((ref) => ref.layer === layer)?.entity_id ?? null;
+}
+
 export function resolvePlannedMemoryWriteTarget(
   request: Extract<RuntimeMemoryWriteRequest, { kind: "generic_memory" }>,
   namespace?: ActiveRuntimeMemoryNamespace | null
@@ -93,6 +109,9 @@ export function resolvePlannedMemoryWriteTarget(
       recordTarget: "memory_record",
       canonicalMemoryType: "relationship",
       legacyScope: request.relationship_scope,
+      routedScope: request.relationship_scope,
+      routedTargetAgentId: request.target_agent_id,
+      routedTargetThreadId: request.target_thread_id ?? null,
       writeBoundary,
       namespacePrimaryLayer,
       targetNamespaceId
@@ -100,10 +119,16 @@ export function resolvePlannedMemoryWriteTarget(
   }
 
   if (request.memory_type === "profile" || request.memory_type === "preference") {
+    const routedThreadId =
+      writeBoundary === "thread" ? getNamespaceRefId(namespace, "thread") : null;
+
     return {
       recordTarget: "static_profile",
       canonicalMemoryType: request.memory_type,
       legacyScope: "user_global",
+      routedScope: routedThreadId ? "thread_local" : "user_global",
+      routedTargetAgentId: null,
+      routedTargetThreadId: routedThreadId,
       writeBoundary,
       namespacePrimaryLayer,
       targetNamespaceId
@@ -115,6 +140,9 @@ export function resolvePlannedMemoryWriteTarget(
       recordTarget: "thread_state_candidate",
       canonicalMemoryType: request.memory_type,
       legacyScope: "thread_local",
+      routedScope: "thread_local",
+      routedTargetAgentId: null,
+      routedTargetThreadId: getNamespaceRefId(namespace, "thread"),
       writeBoundary,
       namespacePrimaryLayer,
       targetNamespaceId
@@ -125,6 +153,13 @@ export function resolvePlannedMemoryWriteTarget(
     recordTarget: "memory_record",
     canonicalMemoryType: request.memory_type,
     legacyScope: "user_global",
+    routedScope:
+      writeBoundary === "thread" && getNamespaceRefId(namespace, "thread")
+        ? "thread_local"
+        : "user_global",
+    routedTargetAgentId: null,
+    routedTargetThreadId:
+      writeBoundary === "thread" ? getNamespaceRefId(namespace, "thread") : null,
     writeBoundary,
     namespacePrimaryLayer,
     targetNamespaceId

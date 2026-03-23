@@ -784,6 +784,16 @@ export async function executeMemoryWriteRequests({
           recordTarget: "static_profile" as const,
           canonicalMemoryType: candidate.memory_type,
           legacyScope: "user_global" as const,
+          routedScope:
+            fallbackWriteBoundary === "thread"
+              ? ("thread_local" as const)
+              : ("user_global" as const),
+          routedTargetAgentId: null,
+          routedTargetThreadId:
+            fallbackWriteBoundary === "thread"
+              ? activeNamespace?.refs.find((ref) => ref.layer === "thread")
+                  ?.entity_id ?? null
+              : null,
           writeBoundary: fallbackWriteBoundary,
           namespacePrimaryLayer: activeNamespace?.primary_layer ?? null,
           targetNamespaceId: activeNamespace?.namespace_id ?? null

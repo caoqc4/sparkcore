@@ -103,6 +103,16 @@ P3 首批要做的，不是完整多 Agent 共享状态引擎，而是把 namesp
 - `apps/web/lib/chat/runtime.ts` 当前也已开始把 `write_boundaries` 写入 `memory_write_planned` event
 - `memory-upgrade-harness.ts` 当前也已开始显式校验 project namespace 下的 write boundary 解析与 preview metadata 暴露
 
+当前已成立的第四刀代码事实：
+
+- `apps/web/lib/chat/memory-write-targets.ts` 当前也已开始显式产出：
+  - `routed_scope`
+  - `routed_target_agent_id`
+  - `routed_target_thread_id`
+- 在 thread namespace 下，generic `profile / preference` 写入当前会开始走 `thread_local` routed scope，而不再只停留在 `write_boundary = thread` 的元信息层
+- `apps/web/lib/chat/memory-write-rows.ts` 当前也已开始把这层 routed scope / routed target ids 真正写进 generic insert / update row
+- `apps/web/lib/chat/runtime-preview-metadata.ts` 当前已开始把这层 routed scope 暴露到 memory write preview
+
 ### 4.2 Thread retention strategy v1
 
 P3 首批要把 `Thread Compaction` 再往前推进一层，形成最小 retention 策略。

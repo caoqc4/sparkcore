@@ -55,6 +55,9 @@ function buildRuntimeMemoryWriteRequestPreview(
       record_target: target.recordTarget,
       canonical_memory_type: target.canonicalMemoryType,
       write_boundary: target.writeBoundary,
+      routed_scope: target.routedScope,
+      routed_target_agent_id: target.routedTargetAgentId,
+      routed_target_thread_id: target.routedTargetThreadId,
       namespace_primary_layer: target.namespacePrimaryLayer,
       target_namespace_id: target.targetNamespaceId,
       thread_state_candidate:

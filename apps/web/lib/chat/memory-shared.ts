@@ -251,10 +251,10 @@ export type MemoryUpsertRow = {
   category: MemoryType;
   key: string;
   value: string;
-  scope: "user_global";
+  scope: "user_global" | "user_agent" | "thread_local";
   subject_user_id: string;
-  target_agent_id: null;
-  target_thread_id: null;
+  target_agent_id: string | null;
+  target_thread_id: string | null;
   stability: MemoryStability;
   status: string;
   source_refs: Array<Record<string, string>>;
