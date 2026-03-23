@@ -298,6 +298,17 @@ P3 首批要把 gate 继续扩大到：
 - 只存在于 metadata
 - 只存在于文档
 
+当前已成立的第一刀代码事实：
+
+- `apps/web/scripts/memory-upgrade-harness.ts` 当前已开始显式产出 `p3_regression_gate`
+- 当前第一版 `P3` gate 已开始锁：
+  - `namespace_recall_ok`
+  - `namespace_write_boundary_ok`
+  - `retention_strategy_ok`
+  - `knowledge_scope_ok`
+  - `scenario_pack_ok`
+- 也就是说，`P3-1 ~ P3-4` 当前不再只是分散被单点断言覆盖，而是已经有一组更接近阶段视角的聚合 gate
+
 ---
 
 ## 5. P3 明确不做的事项

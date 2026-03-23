@@ -1181,23 +1181,36 @@ function main() {
             "Active Memory Namespace: primary_layer = project."
           )
         },
-        p2_regression_gate: {
-          pack_metadata_ok: runtimeDebugMetadata.memory.pack?.pack_id === "project_ops",
-          knowledge_metadata_ok: runtimeDebugMetadata.knowledge.count === 3,
-          knowledge_namespace_filter_ok:
-            knowledgeSummary.count === 3 &&
-            knowledgeSummary.scope_layers.join(",") === "project,world,general",
-          compaction_metadata_ok:
-            runtimeDebugMetadata.thread_compaction?.summary_id ===
-            compactedThreadSummary?.summary_id,
-          namespace_metadata_ok:
+        p3_regression_gate: {
+          namespace_recall_ok:
+            !systemPrompt.includes("Other project brief") &&
             runtimeDebugMetadata.memory_namespace?.primary_layer === "project",
-          prompt_namespace_ok: systemPrompt.includes(
-            "Active Memory Namespace: primary_layer = project."
-          ),
-          prompt_compaction_ok: systemPrompt.includes(
-            "Compacted thread summary:"
-          )
+          namespace_write_boundary_ok:
+            Array.isArray(runtimeWritePreview.runtime_memory_write_boundaries) &&
+            runtimeWritePreview.runtime_memory_write_boundaries.includes(
+              "project"
+            ),
+          retention_strategy_ok:
+            runtimeDebugMetadata.thread_compaction?.retention_mode ===
+              "focus_anchor" &&
+            runtimeDebugMetadata.thread_compaction?.retention_reason ===
+              "focus_mode_present" &&
+            !getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+              "Latest user message:"
+            ),
+          knowledge_scope_ok:
+            knowledgeSummary.count === 3 &&
+            knowledgeSummary.scope_layers.join(",") ===
+              "project,world,general" &&
+            selectedKnowledgeForPrompt.map((item) => item.title).join(",") ===
+              "Onboarding checklist guide,Workspace operating norms" &&
+            worldPrimarySelection.map((item) => item.title).join(",") ===
+              "Workspace operating norms,Onboarding checklist guide",
+          scenario_pack_ok:
+            runtimeDebugMetadata.memory.pack?.pack_id === "project_ops" &&
+            getAssistantMemoryScenarioPackId(assistantMetadata) ===
+              "project_ops" &&
+            systemPrompt.includes("Active Scenario Memory Pack: project_ops")
         },
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(

@@ -210,6 +210,15 @@
     - prompt guidance
   - runtime prompt / assistant metadata / debug metadata 当前也已开始承接这层 pack 切换
   - `memory-upgrade-harness.ts` 当前也已开始显式校验默认 `companion` 路径与 project namespace 下的 `project_ops` 切换
+- `P3-5 regression / acceptance expansion` 当前也已开始进入真实实现：
+  - `memory-upgrade-harness.ts` 当前已开始显式产出 `p3_regression_gate`
+  - 第一版 `P3` gate 当前已开始锁：
+    - `namespace_recall_ok`
+    - `namespace_write_boundary_ok`
+    - `retention_strategy_ok`
+    - `knowledge_scope_ok`
+    - `scenario_pack_ok`
+  - 也就是说，`P3-1 ~ P3-4` 当前已经不只是零散断言，而开始有了一组阶段聚合 gate
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
