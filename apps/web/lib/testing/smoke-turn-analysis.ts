@@ -1,9 +1,5 @@
 import { buildSmokeTurnAnalysisResult } from "@/lib/testing/smoke-turn-analysis-builders";
-import {
-  getSmokeRecentAssistantReply,
-} from "@/lib/testing/smoke-reply-analysis";
-import { getSmokeTurnMemoryContext } from "@/lib/testing/smoke-turn-memory-context";
-import { getSmokeTurnStrategyContext } from "@/lib/testing/smoke-turn-strategy-context";
+import { prepareSmokeTurnAnalysisContext } from "@/lib/testing/smoke-turn-analysis-context";
 import type { SmokeTurnAnalysisInput } from "@/lib/testing/smoke-turn-analysis-input";
 import type { SmokeTurnAnalysisResult } from "@/lib/testing/smoke-turn-analysis-result";
 import type {
@@ -19,53 +15,15 @@ export function analyzeSmokeTurnContext({
   agentId,
   threadId
 }: SmokeTurnAnalysisInput): SmokeTurnAnalysisResult {
-  const recentAssistantReply = getSmokeRecentAssistantReply(existingMessages);
-  const {
-    activeMemories,
-    recalledMemories,
-    hiddenExclusionCount,
-    incorrectExclusionCount
-  } = getSmokeTurnMemoryContext({
-    trimmedContent,
-    existingMemories,
-    agentId,
-    threadId
-  });
-  const {
-    addressStyleMemory,
-    answerStrategyRule,
-    approxContextPressure,
-    longChainPressureCandidate,
-    nicknameMemory,
-    preferSameThreadContinuation,
-    preferredNameMemory,
-    recentRawTurnCount,
-    sameThreadContinuationApplicable
-  } = getSmokeTurnStrategyContext({
-    trimmedContent,
-    activeMemories,
-    agentId,
-    recentAssistantReply,
-    existingMessages,
-    recalledMemories
-  });
-
-  return buildSmokeTurnAnalysisResult({
-    activeMemories,
-    addressStyleMemory,
-    answerStrategyRule,
-    approxContextPressure,
-    hiddenExclusionCount,
-    incorrectExclusionCount,
-    longChainPressureCandidate,
-    nicknameMemory,
-    preferredNameMemory,
-    preferSameThreadContinuation,
-    recentAssistantReply,
-    recentRawTurnCount,
-    recalledMemories,
-    sameThreadContinuationApplicable
-  });
+  return buildSmokeTurnAnalysisResult(
+    prepareSmokeTurnAnalysisContext({
+      trimmedContent,
+      existingMemories,
+      existingMessages,
+      agentId,
+      threadId
+    })
+  );
 }
 
 export type {
