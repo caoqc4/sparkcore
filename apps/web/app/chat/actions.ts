@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
-import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import {
   canTransitionMemoryStatus,
   getMemoryStatus,
@@ -24,6 +23,7 @@ import {
   markAssistantMessageFailed,
   markAssistantMessageRetried
 } from "@/lib/chat/assistant-message-state-persistence";
+import { bootstrapRuntimeAssistantTurn } from "@/lib/chat/runtime-turn-bootstrap";
 import {
   persistAssistantRequestPreviews,
   processAssistantRuntimePostProcessing
@@ -1009,60 +1009,44 @@ export async function sendMessage(
     };
   }
 
-  const threadPatch = buildThreadActivityPatch({
-    content: trimmedContent,
-    shouldSummarizeTitle: thread.title === "New chat"
-  });
+  let threadPatch: { updated_at: string; title?: string };
+  let updatedMessages: Array<{
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+    status: string;
+    metadata: Record<string, unknown>;
+    created_at: string;
+  }>;
+  let assistantPlaceholder: { id: string };
 
-  await supabase
-    .from("threads")
-    .update(threadPatch)
-    .eq("id", thread.id)
-    .eq("owner_user_id", user.id);
-
-  const { data: persistedMessages, error: persistedMessagesError } = await supabase
-    .from("messages")
-    .select("id, role, content, status, metadata, created_at")
-    .eq("thread_id", thread.id)
-    .eq("workspace_id", workspace.id)
-    .order("created_at", { ascending: true });
-
-  if (persistedMessagesError) {
-    return {
-      ok: false,
-      threadId: thread.id,
-      message: persistedMessagesError.message
-    };
-  }
-
-  const updatedMessages = [
-    ...((persistedMessages ?? []) as Array<{
-      id: string;
-      role: "user" | "assistant";
-      content: string;
-      status: string;
-      metadata: Record<string, unknown>;
-      created_at: string;
-    }>)
-  ];
-
-  const { data: assistantPlaceholder, error: assistantPlaceholderError } =
-    await insertPendingAssistantMessage({
+  try {
+    const bootstrap = await bootstrapRuntimeAssistantTurn({
       supabase,
-      threadId: thread.id,
+      thread: {
+        id: thread.id,
+        title: thread.title,
+        agent_id: thread.agent_id,
+        created_at: thread.created_at,
+        updated_at: thread.updated_at,
+        status: thread.status
+      },
       workspaceId: workspace.id,
       userId: user.id,
-      agentId: thread.agent_id,
+      content: trimmedContent,
       userMessageId: insertedMessage.id
     });
-
-  if (assistantPlaceholderError || !assistantPlaceholder) {
+    threadPatch = bootstrap.threadPatch;
+    updatedMessages = bootstrap.persistedMessages;
+    assistantPlaceholder = bootstrap.assistantPlaceholder;
+  } catch (bootstrapError) {
     return {
       ok: false,
       threadId: thread.id,
       message:
-        assistantPlaceholderError?.message ??
-        "Failed to initialize the assistant reply."
+        bootstrapError instanceof Error
+          ? bootstrapError.message
+          : "Failed to initialize the assistant reply."
     };
   }
 

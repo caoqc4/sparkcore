@@ -8,12 +8,12 @@ import {
   insertPendingAssistantMessage,
   markAssistantMessageFailed
 } from "@/lib/chat/assistant-message-state-persistence";
+import { bootstrapRuntimeAssistantTurn } from "@/lib/chat/runtime-turn-bootstrap";
 import {
   persistAssistantRequestPreviews,
   processAssistantRuntimePostProcessing
 } from "@/lib/chat/runtime-turn-post-processing";
 import { buildImRuntimeTurnInput } from "@/lib/chat/runtime-input";
-import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import { insertRuntimeUserMessage } from "@/lib/chat/runtime-user-message-persistence";
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
 import { resolveRoleProfile } from "@/lib/chat/role-service";
@@ -89,45 +89,26 @@ async function runImRuntimeTurnWithSupabase(args: {
     throw new Error(insertError?.message ?? "Failed to store inbound IM user message.");
   }
 
-  const threadPatch = buildThreadActivityPatch({
+  const {
+    threadPatch,
+    persistedMessages,
+    assistantPlaceholder
+  } = await bootstrapRuntimeAssistantTurn({
+    supabase,
+    thread: {
+      id: thread.id,
+      title: thread.title,
+      agent_id: thread.agent_id,
+      created_at: thread.created_at,
+      updated_at: thread.updated_at,
+      status: thread.status
+    },
+    workspaceId: workspace.id,
+    userId: input.user_id,
     content: trimmedContent,
-    shouldSummarizeTitle: thread.title === "New chat"
+    userMessageId: insertedMessage.id,
+    source: input.source
   });
-
-  await supabase
-    .from("threads")
-    .update(threadPatch)
-    .eq("id", thread.id)
-    .eq("owner_user_id", input.user_id);
-
-  const { data: persistedMessages, error: persistedMessagesError } = await supabase
-    .from("messages")
-    .select("id, role, content, status, metadata, created_at")
-    .eq("thread_id", thread.id)
-    .eq("workspace_id", workspace.id)
-    .order("created_at", { ascending: true });
-
-  if (persistedMessagesError) {
-    throw new Error(persistedMessagesError.message);
-  }
-
-  const { data: assistantPlaceholder, error: assistantPlaceholderError } =
-    await insertPendingAssistantMessage({
-      supabase,
-      threadId: thread.id,
-      workspaceId: workspace.id,
-      userId: input.user_id,
-      agentId: thread.agent_id,
-      userMessageId: insertedMessage.id,
-      source: input.source
-    });
-
-  if (assistantPlaceholderError || !assistantPlaceholder) {
-    throw new Error(
-      assistantPlaceholderError?.message ??
-        "Failed to initialize the IM assistant reply placeholder."
-    );
-  }
 
   try {
     const runtimeTurnResult = await runAgentTurn({
@@ -143,14 +124,7 @@ async function runImRuntimeTurnWithSupabase(args: {
         agent_id: thread.agent_id
       },
       agent,
-      messages: (persistedMessages ?? []) as Array<{
-        id: string;
-        role: "user" | "assistant";
-        content: string;
-        status: string;
-        metadata: Record<string, unknown>;
-        created_at: string;
-      }>,
+      messages: persistedMessages,
       assistantMessageId: assistantPlaceholder.id
     });
 
