@@ -1,4 +1,14 @@
 import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
+export {
+  isSmokeBriefGreetingRequest,
+  isSmokeRelationshipAnswerShapePrompt,
+  isSmokeRelationshipClosingPrompt,
+  isSmokeRelationshipExplanatoryPrompt,
+  isSmokeRelationshipHelpNextPrompt,
+  isSmokeRelationshipRoughDayPrompt,
+  isSmokeRelationshipSupportivePrompt,
+  isSmokeSelfIntroGreetingRequest
+} from "@/lib/testing/smoke-relationship-prompts";
 
 export function isSmokeDirectNamingQuestion(content: string) {
   const normalized = normalizeSmokePrompt(content);
@@ -29,116 +39,6 @@ export function isSmokeDirectUserPreferredNameQuestion(content: string) {
     normalized.includes("what should you call me") ||
     normalized.includes("what do you call me") ||
     normalized.includes("how should you address me")
-  );
-}
-
-export function isSmokeBriefGreetingRequest(content: string) {
-  const normalized = normalizeSmokePrompt(content);
-
-  return (
-    normalized.includes("请简单和我打个招呼") ||
-    normalized.includes("简单和我打个招呼") ||
-    normalized.includes("简短和我打个招呼") ||
-    normalized.includes("greet me briefly") ||
-    normalized.includes("say a quick hello")
-  );
-}
-
-export function isSmokeSelfIntroGreetingRequest(content: string) {
-  const normalized = normalizeSmokePrompt(content);
-
-  return (
-    normalized.includes("请简单介绍一下你自己") ||
-    normalized.includes("简单介绍一下你自己") ||
-    normalized.includes("先简单介绍一下你自己") ||
-    normalized.includes("你先介绍一下你自己吧") ||
-    normalized.includes("你先介绍下你自己吧") ||
-    normalized.includes("先和我介绍一下你自己") ||
-    normalized.includes("简单说说你自己") ||
-    normalized.includes("introduce yourself briefly") ||
-    normalized.includes("briefly introduce yourself") ||
-    normalized.includes("introduce yourself first") ||
-    normalized.includes("tell me who you are first")
-  );
-}
-
-export function isSmokeRelationshipExplanatoryPrompt(content: string) {
-  return (
-    isSmokeRelationshipHelpNextPrompt(content) ||
-    isSmokeRelationshipRoughDayPrompt(content)
-  );
-}
-
-export function isSmokeRelationshipHelpNextPrompt(content: string) {
-  const normalized = normalizeSmokePrompt(content);
-
-  return (
-    normalized.includes("接下来你会怎么帮助我") ||
-    normalized.includes("接下来你会怎么帮我继续") ||
-    normalized.includes("接下来你会怎么陪我继续") ||
-    normalized.includes("你会怎么帮助我") ||
-    normalized.includes("那你会怎么帮我继续") ||
-    normalized.includes("你会怎么帮我往前推进") ||
-    normalized.includes("你会怎么陪我往前走") ||
-    normalized.includes("how would you help me continue") ||
-    normalized.includes("how would you help me next") ||
-    normalized.includes("what will you do next to help me")
-  );
-}
-
-export function isSmokeRelationshipRoughDayPrompt(content: string) {
-  const normalized = normalizeSmokePrompt(content);
-
-  return (
-    normalized.includes("如果我今天状态不太好") ||
-    normalized.includes("你会怎么和我说") ||
-    normalized.includes("你会怎么解释") ||
-    normalized.includes("你会怎么安慰我") ||
-    normalized.includes("how would you explain that") ||
-    normalized.includes("how would you say that to me") ||
-    normalized.includes("if i was having a rough day")
-  );
-}
-
-export function isSmokeRelationshipSupportivePrompt(content: string) {
-  const normalized = normalizeSmokePrompt(content);
-
-  return (
-    normalized.includes("鼓励我一句") ||
-    normalized.includes("安慰我一句") ||
-    normalized.includes("安慰我一下") ||
-    normalized.includes("轻轻接我一下") ||
-    normalized.includes("接住我一下") ||
-    normalized.includes("陪陪我") ||
-    normalized.includes("支持我一下") ||
-    normalized.includes("给我一点鼓励") ||
-    normalized.includes("如果我有点慌") ||
-    normalized.includes("如果我有点没底") ||
-    normalized.includes("give me a little encouragement") ||
-    normalized.includes("encourage me a bit") ||
-    normalized.includes("comfort me a little") ||
-    normalized.includes("if i feel a bit overwhelmed") ||
-    normalized.includes("if i am feeling unsure")
-  );
-}
-
-export function isSmokeRelationshipClosingPrompt(content: string) {
-  const normalized = normalizeSmokePrompt(content);
-
-  return (
-    normalized.includes("最后你会怎么陪我把事情推进下去") ||
-    normalized.includes("最后你会怎么收尾") ||
-    normalized.includes("how would you help me close this out") ||
-    normalized.includes("how would you wrap this up")
-  );
-}
-
-export function isSmokeRelationshipAnswerShapePrompt(content: string) {
-  return (
-    isSmokeSelfIntroGreetingRequest(content) ||
-    isSmokeRelationshipSupportivePrompt(content) ||
-    isSmokeRelationshipExplanatoryPrompt(content) ||
-    isSmokeRelationshipClosingPrompt(content)
   );
 }
 
