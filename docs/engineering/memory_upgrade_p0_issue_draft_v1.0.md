@@ -230,8 +230,12 @@
 
 当前状态：
 
-- 待开始
-- 当前已有方向，但仍偏执行文档描述，尚未收成明确迁移清单
+- 进行中
+- 当前已具备：
+  - legacy semantic target classifier
+  - profile / relationship recall 过滤
+  - chat preview / memory card 可视化
+  - memory 管理动作 semantic_target 标注
 
 依赖：
 
@@ -268,6 +272,7 @@
   - 最小功能 gate 草案
   - 最小结构 gate 草案
   - 最小回归 gate 草案
+  - `apps/web/scripts/memory-upgrade-harness.ts` 最小回归脚手架
 
 依赖：
 
@@ -280,6 +285,7 @@
 
 - 有功能、结构、回归三类检查项
 - `typecheck` 与主路径行为回归都被列入 gate
+- `memory:upgrade:harness` 可稳定运行
 - gate 不只停留在标题级，而已具备最小可执行门槛
 
 ---

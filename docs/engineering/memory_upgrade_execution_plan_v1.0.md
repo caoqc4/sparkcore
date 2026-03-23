@@ -702,6 +702,7 @@ P0 结构 gate 通过的最小条件：
 P0 回归 gate 通过的最小条件：
 
 - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json` 通过
+- `pnpm --filter @sparkcore/web memory:upgrade:harness` 通过
 - Web chat 主路径仍可：
   - 发消息
   - 写 assistant reply
