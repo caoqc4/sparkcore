@@ -14,7 +14,11 @@ import { buildRuntimeAssistantPayload } from "@/lib/chat/assistant-message-paylo
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
 import { persistCompletedAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
-import { loadPrimaryWorkspace } from "@/lib/chat/runtime-turn-context";
+import {
+  loadLatestOwnedThread,
+  loadOwnedThreads,
+  loadPrimaryWorkspace
+} from "@/lib/chat/runtime-turn-context";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import {
   getModelProfileTierLabel,
@@ -2525,14 +2529,11 @@ export async function getChatState() {
     };
   }
 
-  let { data: thread } = await supabase
-    .from("threads")
-    .select("id, title, status, agent_id, created_at, updated_at")
-    .eq("workspace_id", workspace.id)
-    .eq("owner_user_id", user.id)
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  let { data: thread } = await loadLatestOwnedThread({
+    supabase,
+    workspaceId: workspace.id,
+    userId: user.id
+  });
 
   let agent: AgentRecord | null = null;
 
@@ -2661,12 +2662,11 @@ export async function getChatPageState({
     };
   }
 
-  const { data: rawThreads, error: threadsError } = await supabase
-    .from("threads")
-    .select("id, title, status, agent_id, created_at, updated_at")
-    .eq("workspace_id", workspace.id)
-    .eq("owner_user_id", user.id)
-    .order("updated_at", { ascending: false });
+  const { data: rawThreads, error: threadsError } = await loadOwnedThreads({
+    supabase,
+    workspaceId: workspace.id,
+    userId: user.id
+  });
 
   if (threadsError) {
     throw new Error(`Failed to load threads: ${threadsError.message}`);

@@ -48,6 +48,34 @@ export async function loadOwnedThread(args: {
   return query.maybeSingle();
 }
 
+export async function loadLatestOwnedThread(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+}) {
+  return args.supabase
+    .from("threads")
+    .select("id, title, status, agent_id, created_at, updated_at")
+    .eq("workspace_id", args.workspaceId)
+    .eq("owner_user_id", args.userId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+}
+
+export async function loadOwnedThreads(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+}) {
+  return args.supabase
+    .from("threads")
+    .select("id, title, status, agent_id, created_at, updated_at")
+    .eq("workspace_id", args.workspaceId)
+    .eq("owner_user_id", args.userId)
+    .order("updated_at", { ascending: false });
+}
+
 export async function loadOwnedActiveAgent(args: {
   supabase: any;
   agentId: string;
