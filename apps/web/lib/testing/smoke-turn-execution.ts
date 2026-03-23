@@ -1,10 +1,7 @@
 import { applySmokeTurnMemoryUpdates } from "@/lib/testing/smoke-turn-memory-updates";
-import {
-  insertSmokeUserTurn,
-  patchSmokeThreadAfterUserTurn
-} from "@/lib/testing/smoke-turn-persistence";
 import { buildSmokeSeedMetadata } from "@/lib/testing/smoke-seed-metadata";
 import { insertAnalyzedSmokeAssistantReply } from "@/lib/testing/smoke-turn-assistant";
+import { persistSmokeUserTurnStep } from "@/lib/testing/smoke-turn-user-step";
 import {
   analyzeSmokeTurnContext,
   type SmokeMemoryRow,
@@ -58,20 +55,13 @@ export async function executeSmokeTurn(args: {
     threadId: thread.id
   });
 
-  const ensuredUserMessage = await insertSmokeUserTurn({
+  const ensuredUserMessage = await persistSmokeUserTurnStep({
     supabase: admin,
     threadId: thread.id,
     workspaceId: smokeUser.workspaceId,
     userId: smokeUser.id,
-    content: args.trimmedContent
-  });
-
-  await patchSmokeThreadAfterUserTurn({
-    supabase: admin,
-    threadId: thread.id,
-    userId: smokeUser.id,
-    title: thread.title,
-    content: args.trimmedContent
+    threadTitle: thread.title,
+    trimmedContent: args.trimmedContent
   });
 
   const { createdTypes } = await applySmokeTurnMemoryUpdates({
