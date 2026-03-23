@@ -391,6 +391,9 @@
 - 当前不再有明显落后的单项，`P4-1 / P4-2` 仍是相对更浅的两条线
 - `P4` 当前已达到 `close-ready / 可收官`
 - 下一步更合理的是切到下一阶段规划，或只做少量 tail cleanup
+- `P0 ~ P4` 当前的非阻塞尾项也已统一收束到：
+  - [memory_upgrade_tail_cleanup_backlog_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_tail_cleanup_backlog_v1.0.md)
+  - 用于后续按 batch 处理 tail cleanup / gate strengthening / deepening backlog，而不再回头阻塞主线
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
