@@ -1,10 +1,5 @@
 import type { SmokeReplyLanguage } from "@/lib/testing/smoke-assistant-builders";
-
-type SmokeRecallMemory = {
-  memory_type: "profile" | "preference" | "relationship";
-  content: string;
-  confidence: number;
-};
+import type { SmokeRecallMemory } from "@/lib/testing/smoke-recall-memory-types";
 
 export function buildSmokeRememberedFactReply(args: {
   replyLanguage: SmokeReplyLanguage;

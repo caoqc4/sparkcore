@@ -6,18 +6,10 @@ import {
 } from "@/lib/testing/smoke-answer-strategy";
 import { buildSmokeRememberedFactReply } from "@/lib/testing/smoke-direct-memory-fact-replies";
 import { buildSmokeDirectReplyStyleReply } from "@/lib/testing/smoke-direct-style-replies";
-
-type SmokeRelationshipRecallMemory = {
-  memory_type: "relationship";
-  content: string;
-  confidence: number;
-} | null;
-
-type SmokeRecallMemory = {
-  memory_type: "profile" | "preference" | "relationship";
-  content: string;
-  confidence: number;
-};
+import type {
+  SmokeRecallMemory,
+  SmokeRelationshipRecallMemory
+} from "@/lib/testing/smoke-recall-memory-types";
 
 export function buildSmokeFactReply(args: {
   content: string;

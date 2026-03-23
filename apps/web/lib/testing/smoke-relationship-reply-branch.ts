@@ -10,13 +10,8 @@ import {
   buildSmokeRelationshipExplanatoryReply,
   buildSmokeRelationshipSupportiveReply
 } from "@/lib/testing/smoke-relationship-replies";
+import type { SmokeRelationshipRecallMemory } from "@/lib/testing/smoke-recall-memory-types";
 import type { SmokeContinuityReply } from "@/lib/testing/smoke-turn-analysis";
-
-export type SmokeRelationshipRecallMemory = {
-  memory_type: "relationship";
-  content: string;
-  confidence: number;
-} | null;
 
 export function buildSmokeRelationshipOrContinuationReply(args: {
   content: string;

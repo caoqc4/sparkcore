@@ -7,18 +7,10 @@ import { buildSmokeGroundedReply } from "@/lib/testing/smoke-grounded-replies";
 import { buildSmokeIntroReply } from "@/lib/testing/smoke-intro-replies";
 import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 import { buildSmokeQuickHelloReply } from "@/lib/testing/smoke-quick-hello-replies";
-
-type SmokeRelationshipRecallMemory = {
-  memory_type: "relationship";
-  content: string;
-  confidence: number;
-} | null;
-
-type SmokeRecallMemory = {
-  memory_type: "profile" | "preference" | "relationship";
-  content: string;
-  confidence: number;
-};
+import type {
+  SmokeRecallMemory,
+  SmokeRelationshipRecallMemory
+} from "@/lib/testing/smoke-recall-memory-types";
 
 export function buildSmokeDirectOrGroundedReply({
   content,

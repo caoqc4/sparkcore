@@ -8,18 +8,10 @@ import {
   isSmokeOpenEndedPlanningHelpQuestion,
   isSmokeOpenEndedSummaryQuestion
 } from "@/lib/testing/smoke-answer-strategy";
-
-type SmokeRelationshipRecallMemory = {
-  memory_type: "relationship";
-  content: string;
-  confidence: number;
-} | null;
-
-type SmokeRecallMemory = {
-  memory_type: "profile" | "preference" | "relationship";
-  content: string;
-  confidence: number;
-};
+import type {
+  SmokeRecallMemory,
+  SmokeRelationshipRecallMemory
+} from "@/lib/testing/smoke-recall-memory-types";
 
 export function buildSmokeGroundedReply(args: {
   content: string;

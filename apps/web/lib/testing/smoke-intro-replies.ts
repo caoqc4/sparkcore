@@ -16,12 +16,7 @@ import {
   buildSmokeHelpIntroReply,
   buildSmokeSelfIntroReply
 } from "@/lib/testing/smoke-self-intro-replies";
-
-type SmokeRelationshipRecallMemory = {
-  memory_type: "relationship";
-  content: string;
-  confidence: number;
-} | null;
+import type { SmokeRelationshipRecallMemory } from "@/lib/testing/smoke-recall-memory-types";
 
 export function buildSmokeIntroReply(args: {
   content: string;
