@@ -185,7 +185,7 @@ export async function bindOwnedThreadAgent(args: {
     .single();
 }
 
-export async function updateOwnedThread(args: {
+export function updateOwnedThread(args: {
   supabase: any;
   threadId: string;
   userId: string;

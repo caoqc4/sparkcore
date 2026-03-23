@@ -18,9 +18,11 @@ import {
 } from "@/lib/chat/runtime-user-message-persistence";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
+  createOwnedThread,
   loadOwnedActiveAgent,
   loadOwnedThread,
-  loadPrimaryWorkspace
+  loadPrimaryWorkspace,
+  updateOwnedThread
 } from "@/lib/chat/runtime-turn-context";
 import { loadThreadMessages } from "@/lib/chat/thread-message-persistence";
 import { recoverRetryRuntimeTurn } from "@/lib/chat/runtime-turn-retry";
@@ -420,14 +422,12 @@ export async function createThread(formData: FormData) {
     redirect("/workspace");
   }
 
-  const { data: agent } = await supabase
-    .from("agents")
-    .select("id, name")
-    .eq("id", agentId)
-    .eq("workspace_id", workspace.id)
-    .eq("owner_user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle();
+  const { data: agent } = await loadOwnedActiveAgent({
+    supabase,
+    agentId,
+    workspaceId: workspace.id,
+    userId: user.id
+  });
 
   if (!agent) {
     redirect(
@@ -438,16 +438,12 @@ export async function createThread(formData: FormData) {
     );
   }
 
-  const { data: createdThread, error } = await supabase
-    .from("threads")
-    .insert({
-      workspace_id: workspace.id,
-      owner_user_id: user.id,
-      agent_id: agent.id,
-      title: "New chat"
-    })
-    .select("id")
-    .single();
+  const { data: createdThread, error } = await createOwnedThread({
+    supabase,
+    workspaceId: workspace.id,
+    userId: user.id,
+    agentId: agent.id
+  });
 
   if (error || !createdThread) {
     redirect(
@@ -1399,16 +1395,16 @@ export async function renameThread(
     };
   }
 
-  const { data: thread, error } = await supabase
-    .from("threads")
-    .update({
+  const { data: thread, error } = await updateOwnedThread({
+    supabase,
+    threadId,
+    userId: user.id,
+    patch: {
       title: normalizedTitle,
       updated_at: new Date().toISOString()
-    })
-    .eq("id", threadId)
-    .eq("owner_user_id", user.id)
-    .select("id, title")
-    .single();
+    },
+    select: "id, title"
+  }).single();
 
   if (error || !thread) {
     return {
