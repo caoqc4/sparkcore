@@ -1,16 +1,10 @@
 import { applySmokeTurnMemoryUpdates } from "@/lib/testing/smoke-turn-memory-updates";
-import { buildSmokeSeedMetadata } from "@/lib/testing/smoke-seed-metadata";
+import { buildSmokeRelationshipSeedMetadata } from "@/lib/testing/smoke-relationship-seed-metadata";
 import { insertAnalyzedSmokeAssistantReply } from "@/lib/testing/smoke-turn-assistant";
 import { prepareSmokeTurnExecutionState } from "@/lib/testing/smoke-turn-execution-state";
 import { persistSmokeUserTurnStep } from "@/lib/testing/smoke-turn-user-step";
 import { prepareSmokeAssistantTurn } from "@/lib/testing/smoke-turn-assistant-prep";
 import type { SmokeTurnContext } from "@/lib/testing/smoke-turn-context";
-
-function buildSmokeRelationshipSeedMetadata(relationKind: string) {
-  return buildSmokeSeedMetadata({
-    relation_kind: relationKind
-  });
-}
 
 export async function executeSmokeTurn(args: {
   context: SmokeTurnContext;
