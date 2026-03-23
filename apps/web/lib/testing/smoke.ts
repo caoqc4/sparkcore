@@ -1,4 +1,3 @@
-import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { loadThreadMessages } from "@/lib/chat/message-read";
@@ -56,6 +55,7 @@ import {
   getSmokeConfig,
   isAuthorizedSmokeRequest
 } from "@/lib/testing/smoke-config";
+import { createSmokeLoginResponse } from "@/lib/testing/smoke-login";
 import {
   detectSmokeReplyLanguage,
   getSmokeApproxContextPressure,
@@ -2545,56 +2545,4 @@ export async function createSmokeTurn({
   };
 }
 
-export async function createSmokeLoginResponse(
-  request: NextRequest,
-  redirectPath: string
-) {
-  const config = getSmokeConfig();
-
-  if (!config) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message:
-          "Smoke login is not configured. Add the smoke env vars and service role key first."
-      },
-      { status: 503 }
-    );
-  }
-
-  const admin = getSmokeAdminClient(config);
-  await ensureSmokeUser(admin, config, {
-    resetPassword: true
-  });
-
-  let response = NextResponse.redirect(new URL(redirectPath, request.url));
-  const supabase = createServerClient(config.url, config.anonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
-        });
-      }
-    }
-  });
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email: config.email,
-    password: config.password
-  });
-
-  if (error) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: error.message
-      },
-      { status: 500 }
-    );
-  }
-
-  return response;
-}
+export { createSmokeLoginResponse };
