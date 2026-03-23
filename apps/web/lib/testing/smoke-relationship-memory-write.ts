@@ -1,4 +1,5 @@
 import { ensureSmokeRelationshipMemory } from "@/lib/testing/smoke-memory-seeding";
+import type { SmokeRelationshipMemoryKey } from "@/lib/testing/smoke-relationship-memory-types";
 
 export async function writeSmokeRelationshipMemory(args: {
   supabase: Parameters<typeof ensureSmokeRelationshipMemory>[0]["supabase"];
@@ -6,7 +7,7 @@ export async function writeSmokeRelationshipMemory(args: {
   userId: string;
   agentId: string;
   sourceMessageId: string;
-  key: "agent_nickname" | "user_preferred_name" | "user_address_style";
+  key: SmokeRelationshipMemoryKey;
   value: string;
   confidence: number;
   stability: "high" | "medium";

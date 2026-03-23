@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildMemoryV2Fields } from "@/lib/chat/memory-v2";
 import { loadOwnedRelationshipMemoryByValue } from "@/lib/chat/memory-item-read";
 import { insertMemoryItem } from "@/lib/chat/memory-item-persistence";
+import type { SmokeRelationshipMemoryKey } from "@/lib/testing/smoke-relationship-memory-types";
 
 export async function ensureSmokeRelationshipMemory(args: {
   supabase: SupabaseClient;
@@ -9,7 +10,7 @@ export async function ensureSmokeRelationshipMemory(args: {
   userId: string;
   agentId: string;
   sourceMessageId: string;
-  key: "agent_nickname" | "user_preferred_name" | "user_address_style";
+  key: SmokeRelationshipMemoryKey;
   value: string;
   confidence: number;
   stability: "high" | "medium";

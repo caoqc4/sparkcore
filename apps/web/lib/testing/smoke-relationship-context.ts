@@ -2,6 +2,7 @@ import type {
   SmokeRelationshipMemoryRow,
   SmokeRelationshipRecallMemory
 } from "@/lib/testing/smoke-relationship-context-types";
+import type { SmokeRelationshipMemoryKey } from "@/lib/testing/smoke-relationship-memory-types";
 
 export function toSmokeRelationshipRecallMemory(
   memory: SmokeRelationshipMemoryRow | null
@@ -20,7 +21,7 @@ export function toSmokeRelationshipRecallMemory(
 
 export function findSmokeRelationshipMemory(args: {
   memories: SmokeRelationshipMemoryRow[];
-  key: "agent_nickname" | "user_preferred_name" | "user_address_style";
+  key: SmokeRelationshipMemoryKey;
   agentId: string;
 }) {
   return (

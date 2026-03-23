@@ -4,12 +4,13 @@ import {
 } from "@/lib/testing/smoke-relationship-context";
 import type {
   SmokeActiveRelationshipMemory,
+  SmokeRelationshipMemoryKey,
   SmokeRelationshipRecallMemoryList
 } from "@/lib/testing/smoke-relationship-memory-types";
 
 export function findAndRecallSmokeRelationshipMemory(args: {
   memories: SmokeActiveRelationshipMemory[];
-  key: "agent_nickname" | "user_preferred_name" | "user_address_style";
+  key: SmokeRelationshipMemoryKey;
   agentId: string;
   recalledMemories: SmokeRelationshipRecallMemoryList;
 }) {
