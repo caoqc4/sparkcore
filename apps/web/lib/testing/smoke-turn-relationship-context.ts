@@ -7,7 +7,10 @@ import type {
   SmokeActiveRelationshipMemory,
   SmokeRelationshipRecallMemoryList
 } from "@/lib/testing/smoke-relationship-memory-types";
-import { getSmokeTurnRelationshipFlags } from "@/lib/testing/smoke-turn-relationship-flags";
+import {
+  isSmokeRelationshipAnswerShapePrompt,
+  isSmokeRelationshipContinuationEdgePrompt
+} from "@/lib/testing/smoke-answer-strategy";
 
 export type SmokeTurnRelationshipContextInput = {
   trimmedContent: string;
@@ -16,6 +19,23 @@ export type SmokeTurnRelationshipContextInput = {
   recentAssistantReply: SmokeContinuityReply | null;
   recalledMemories: SmokeRelationshipRecallMemoryList;
 };
+
+function getSmokeTurnRelationshipFlags(args: {
+  trimmedContent: string;
+  recentAssistantReply: unknown | null;
+}) {
+  const relationshipStylePrompt =
+    isSmokeRelationshipAnswerShapePrompt(args.trimmedContent);
+  const sameThreadContinuity = args.recentAssistantReply !== null;
+
+  return {
+    relationshipStylePrompt,
+    sameThreadContinuity,
+    sameThreadContinuationApplicable:
+      sameThreadContinuity &&
+      isSmokeRelationshipContinuationEdgePrompt(args.trimmedContent)
+  };
+}
 
 export function getSmokeTurnRelationshipContext(args: SmokeTurnRelationshipContextInput) {
   const {

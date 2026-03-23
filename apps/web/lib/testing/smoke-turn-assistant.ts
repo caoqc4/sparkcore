@@ -1,22 +1,22 @@
 import { insertSmokeAssistantReply } from "@/lib/testing/smoke-assistant-persistence";
 import type { SmokeAnalyzedAssistantInsertArgs } from "@/lib/testing/smoke-assistant-persistence-types";
-import { buildSmokeAssistantTurnMetadata } from "@/lib/testing/smoke-turn-assistant-metadata";
+import { detectSmokeReplyLanguage } from "@/lib/testing/smoke-language-detection";
+import { buildSmokeRoleCorePacket } from "@/lib/testing/smoke-role-core-packet";
 
 function buildSmokeAssistantInsertArgs(
   args: SmokeAnalyzedAssistantInsertArgs
 ) {
-  const { roleCorePacket, replyLanguageDetected } =
-    buildSmokeAssistantTurnMetadata({
-      agentId: args.agentId,
-      agentName: args.agentName,
-      personaSummary: args.personaSummary,
-      styleGuidance: args.styleGuidance,
-      relationshipStyleValue: args.relationshipStyleValue,
-      replyLanguage: args.replyLanguage,
-      replyLanguageSource: args.replyLanguageSource,
-      sameThreadContinuationPreferred: args.sameThreadContinuationPreferred,
-      assistantContent: args.assistantContent
-    });
+  const roleCorePacket = buildSmokeRoleCorePacket({
+    agentId: args.agentId,
+    agentName: args.agentName,
+    personaSummary: args.personaSummary,
+    styleGuidance: args.styleGuidance,
+    relationshipStyleValue: args.relationshipStyleValue,
+    replyLanguage: args.replyLanguage,
+    replyLanguageSource: args.replyLanguageSource,
+    preferSameThreadContinuation: args.sameThreadContinuationPreferred
+  });
+  const replyLanguageDetected = detectSmokeReplyLanguage(args.assistantContent);
 
   return {
     supabase: args.supabase,
