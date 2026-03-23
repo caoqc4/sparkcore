@@ -1,4 +1,3 @@
-import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
 import type {
   SmokeAnswerQuestionType,
   SmokeAnswerStrategy,
@@ -6,6 +5,7 @@ import type {
   SmokeApproxContextPressure,
   SmokeContinuationReasonCode
 } from "@/lib/testing/smoke-assistant-builders";
+import { buildSmokeAssistantMetadataSummary } from "@/lib/testing/smoke-assistant-metadata-summary";
 import type {
   SmokeReplyLanguage,
   SmokeReplyLanguageSource,
@@ -42,6 +42,9 @@ export function buildSmokeAssistantMetadata(args: {
   incorrectExclusionCount: number;
   createdTypes: string[];
 }) {
+  const recalledMemoryCount = args.recalledMemories.length;
+  const memoryUsed = recalledMemoryCount > 0;
+
   return {
     agent_id: args.agentId,
     agent_name: args.agentName,
@@ -62,34 +65,29 @@ export function buildSmokeAssistantMetadata(args: {
     same_thread_continuation_preferred: args.sameThreadContinuationPreferred,
     distant_memory_fallback_allowed: args.distantMemoryFallbackAllowed,
     reply_language_source: args.replyLanguageSource,
-    memory_hit_count: args.recalledMemories.length,
-    memory_used: args.recalledMemories.length > 0,
+    memory_hit_count: recalledMemoryCount,
+    memory_used: memoryUsed,
     memory_types_used: args.usedMemoryTypes,
     hidden_memory_exclusion_count: args.hiddenExclusionCount,
     incorrect_memory_exclusion_count: args.incorrectExclusionCount,
-    ...buildAssistantMetadataSummaryGroups({
-      model_profile_id: args.modelProfileId,
-      model_profile_name: args.modelProfileName,
-      model_profile_tier_label: null,
-      model_profile_usage_note: null,
-      underlying_model_label: args.model,
-      reply_language_target: args.replyLanguage,
-      reply_language_detected: args.replyLanguageDetected,
-      reply_language_source: args.replyLanguageSource,
-      question_type: args.questionType,
-      answer_strategy: args.answerStrategy,
-      answer_strategy_reason_code: args.answerStrategyReasonCode,
-      answer_strategy_priority: null,
-      answer_strategy_priority_label: null,
-      continuation_reason_code: args.continuationReasonCode,
-      recent_raw_turn_count: args.recentRawTurnCount,
-      approx_context_pressure: args.approxContextPressure,
-      memory_hit_count: args.recalledMemories.length,
-      memory_used: args.recalledMemories.length > 0,
-      memory_types_used: args.usedMemoryTypes,
-      hidden_memory_exclusion_count: args.hiddenExclusionCount,
-      incorrect_memory_exclusion_count: args.incorrectExclusionCount,
-      follow_up_request_count: 0
+    ...buildSmokeAssistantMetadataSummary({
+      modelProfileId: args.modelProfileId,
+      modelProfileName: args.modelProfileName,
+      model: args.model,
+      replyLanguage: args.replyLanguage,
+      replyLanguageDetected: args.replyLanguageDetected,
+      replyLanguageSource: args.replyLanguageSource,
+      questionType: args.questionType,
+      answerStrategy: args.answerStrategy,
+      answerStrategyReasonCode: args.answerStrategyReasonCode,
+      continuationReasonCode: args.continuationReasonCode,
+      recentRawTurnCount: args.recentRawTurnCount,
+      approxContextPressure: args.approxContextPressure,
+      recalledMemoryCount,
+      memoryUsed,
+      usedMemoryTypes: args.usedMemoryTypes,
+      hiddenExclusionCount: args.hiddenExclusionCount,
+      incorrectExclusionCount: args.incorrectExclusionCount
     }),
     recalled_memories: args.recalledMemories.map((memory) => ({
       memory_type: memory.memory_type,
