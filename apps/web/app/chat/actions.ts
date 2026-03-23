@@ -931,13 +931,10 @@ export async function sendMessage(
     };
   }
 
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("id, name, kind")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data: workspace } = await loadPrimaryWorkspace({
+    supabase,
+    userId: user.id
+  });
 
   if (!workspace) {
     return {
