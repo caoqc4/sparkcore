@@ -9,9 +9,8 @@ import {
   buildSmokeZhSoftCatchReply
 } from "@/lib/testing/smoke-soft-catch-replies";
 import {
-  buildSmokeEnDefaultContinuationReply,
-  buildSmokeZhDefaultContinuationReply
 } from "@/lib/testing/smoke-continuation-replies";
+import { buildSmokeDefaultContinuationReply as buildSmokeDefaultContinuationReplyByLanguage } from "@/lib/testing/smoke-default-continuation-reply";
 import type {
   SmokeReplyLanguage
 } from "@/lib/testing/smoke-assistant-builders";
@@ -92,17 +91,9 @@ export function buildSmokeDefaultContinuationReply({
   userName: string | null;
   recentAssistantReply: SmokeContinuityReply | null;
 }) {
-  if (replyLanguage === "zh-Hans") {
-    return buildSmokeZhDefaultContinuationReply({
-      content,
-      addressStyleValue,
-      userName,
-      recentAssistantReply
-    });
-  }
-
-  return buildSmokeEnDefaultContinuationReply({
+  return buildSmokeDefaultContinuationReplyByLanguage({
     content,
+    replyLanguage,
     addressStyleValue,
     userName,
     recentAssistantReply

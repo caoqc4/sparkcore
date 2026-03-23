@@ -1,8 +1,5 @@
 import {
   getSmokeAnswerStrategy,
-  isSmokeDirectNamingQuestion,
-  isSmokeDirectUserPreferredNameQuestion,
-  isSmokeOpenEndedSummaryQuestion,
   isSmokeRelationshipAnswerShapePrompt,
   isSmokeRelationshipContinuationEdgePrompt
 } from "@/lib/testing/smoke-answer-strategy";
