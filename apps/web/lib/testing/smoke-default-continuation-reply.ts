@@ -2,16 +2,11 @@ import {
   buildSmokeEnDefaultContinuationReply,
   buildSmokeZhDefaultContinuationReply
 } from "@/lib/testing/smoke-continuation-replies";
-import type { SmokeReplyLanguage } from "@/lib/testing/smoke-assistant-builders";
-import type { SmokeContinuityReply } from "@/lib/testing/smoke-turn-analysis";
+import type { SmokeDefaultContinuationReplyArgs } from "@/lib/testing/smoke-continuation-reply-types";
 
-export function buildSmokeDefaultContinuationReply(args: {
-  content: string;
-  replyLanguage: SmokeReplyLanguage;
-  addressStyleValue: string | null;
-  userName: string | null;
-  recentAssistantReply: SmokeContinuityReply | null;
-}) {
+export function buildSmokeDefaultContinuationReply(
+  args: SmokeDefaultContinuationReplyArgs
+) {
   if (args.replyLanguage === "zh-Hans") {
     return buildSmokeZhDefaultContinuationReply({
       content: args.content,
