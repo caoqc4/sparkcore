@@ -10,6 +10,7 @@ import {
 import { getSmokeTurnContinuityContext } from "@/lib/testing/smoke-turn-continuity-context";
 import { selectSmokeRecalledMemories } from "@/lib/testing/smoke-memory-recall-selection";
 import { getSmokeTurnRelationshipContext } from "@/lib/testing/smoke-turn-relationship-context";
+import type { SmokeTurnAnalysisInput } from "@/lib/testing/smoke-turn-analysis-input";
 import type {
   SmokeContinuityReply,
   SmokeMemoryRow,
@@ -22,13 +23,7 @@ export function analyzeSmokeTurnContext({
   existingMessages,
   agentId,
   threadId
-}: {
-  trimmedContent: string;
-  existingMemories: SmokeMemoryRow[];
-  existingMessages: SmokeRuntimeMessage[];
-  agentId: string;
-  threadId: string;
-}) {
+}: SmokeTurnAnalysisInput) {
   const recentAssistantReply = getSmokeRecentAssistantReply(existingMessages);
   const { activeMemories, hiddenExclusionCount, incorrectExclusionCount } =
     analyzeSmokeMemoryState({

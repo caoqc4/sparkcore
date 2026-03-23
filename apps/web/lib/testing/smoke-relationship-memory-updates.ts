@@ -3,18 +3,12 @@ import {
   detectSmokeUserAddressStyleCandidate,
   detectSmokeUserPreferredNameCandidate
 } from "@/lib/testing/smoke-relationship-detection";
-import { ensureSmokeRelationshipMemory } from "@/lib/testing/smoke-memory-seeding";
 import { applySmokeRelationshipMemoryUpdate } from "@/lib/testing/smoke-relationship-memory-update-step";
+import type { SmokeRelationshipMemoryUpdatesInput } from "@/lib/testing/smoke-relationship-memory-update-types";
 
-export async function applySmokeRelationshipMemoryUpdates(args: {
-  supabase: Parameters<typeof ensureSmokeRelationshipMemory>[0]["supabase"];
-  workspaceId: string;
-  userId: string;
-  agentId: string;
-  sourceMessageId: string;
-  trimmedContent: string;
-  relationshipSeedMetadataBuilder: (relationKind: string) => Record<string, unknown>;
-}) {
+export async function applySmokeRelationshipMemoryUpdates(
+  args: SmokeRelationshipMemoryUpdatesInput
+) {
   const createdTypes: Array<"relationship"> = [];
   const smokeNickname = detectSmokeNicknameCandidate(args.trimmedContent);
   const smokePreferredName = detectSmokeUserPreferredNameCandidate(
