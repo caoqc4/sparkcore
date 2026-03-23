@@ -1278,9 +1278,26 @@ function buildMemoryLayerAssemblyPrompt(args: {
   const staticProfileMemories = relationshipFilteredMemories
     .filter((memory) => memory.semantic_layer === "static_profile")
     .slice(0, args.scenarioPack?.pack_id === "companion" ? 2 : 1);
+  const memoryRecordBudget = args.scenarioPack?.pack_id === "project_ops" ? 2 : 1;
   const memoryRecordMemories = relationshipFilteredMemories
     .filter((memory) => memory.semantic_layer === "memory_record")
-    .slice(0, args.scenarioPack?.pack_id === "project_ops" ? 2 : 1);
+    .sort((left, right) => {
+      const getMemoryRecordPriority = (memoryType: RecalledMemory["memory_type"]) => {
+        if (args.scenarioPack?.pack_id === "project_ops") {
+          if (memoryType === "timeline") return 0;
+          if (memoryType === "episode") return 1;
+          return 2;
+        }
+
+        if (memoryType === "episode") return 0;
+        if (memoryType === "timeline") return 1;
+        return 2;
+      };
+      const leftPriority = getMemoryRecordPriority(left.memory_type);
+      const rightPriority = getMemoryRecordPriority(right.memory_type);
+      return leftPriority - rightPriority;
+    })
+    .slice(0, memoryRecordBudget);
 
   const sections: string[] = [
     isZh
@@ -1334,11 +1351,11 @@ function buildMemoryLayerAssemblyPrompt(args: {
     sections.push(
       isZh
         ? args.scenarioPack?.pack_id === "project_ops"
-          ? "4. memory_record：优先承接事件事实、进展轨迹与执行上下文。"
-          : "4. memory_record：仅保留最小事件事实支撑。"
+          ? "4. memory_record：优先承接进展轨迹、事件事实与执行上下文。"
+          : "4. memory_record：仅保留最小事件事实支撑，并优先当前最直接的 episode 线索。"
         : args.scenarioPack?.pack_id === "project_ops"
-          ? "4. memory_record: prioritize event facts, progress traces, and execution context."
-          : "4. memory_record: keep only a minimal event-facts support layer."
+          ? "4. memory_record: prioritize progress traces, event facts, and execution context."
+          : "4. memory_record: keep only a minimal event-facts support layer and favor the most direct episode cue first."
     );
     sections.push(
       ...memoryRecordMemories.map((memory, index) =>

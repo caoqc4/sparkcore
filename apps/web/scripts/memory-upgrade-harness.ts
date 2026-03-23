@@ -1251,13 +1251,14 @@ function main() {
   );
   expect(
     systemPrompt.includes(
-      "4. memory_record: prioritize event facts, progress traces, and execution context."
+      "4. memory_record: prioritize progress traces, event facts, and execution context."
     ),
     "Expected project_ops system prompt assembly to upshift memory-record consumption in P4."
   );
   expect(
-    systemPrompt.includes("MR2 [timeline]:"),
-    "Expected project_ops system prompt assembly to allow two memory-record slots in P4."
+    systemPrompt.includes("MR1 [timeline]:") &&
+      systemPrompt.includes("MR2 [episode]:"),
+    "Expected project_ops system prompt assembly to prioritize timeline before episode within the two memory-record slots in P4."
   );
 
   const companionSystemPrompt = buildAgentSystemPrompt(
@@ -1340,13 +1341,15 @@ function main() {
   );
   expect(
     companionSystemPrompt.includes(
-      "4. memory_record: keep only a minimal event-facts support layer."
+      "4. memory_record: keep only a minimal event-facts support layer and favor the most direct episode cue first."
     ),
     "Expected companion system prompt assembly to downshift memory-record consumption in P4."
   );
   expect(
-    !companionSystemPrompt.includes("MR2 [timeline]:"),
-    "Expected companion system prompt assembly to cap memory-record consumption at one slot in P4."
+    companionSystemPrompt.includes("MR1 [episode]:") &&
+      !companionSystemPrompt.includes("MR2 [timeline]:") &&
+      !companionSystemPrompt.includes("MR1 [timeline]:"),
+    "Expected companion system prompt assembly to cap memory-record consumption at one slot and prefer episode over timeline in P4."
   );
 
   const routeAwarePrompt = buildAgentSystemPrompt(
@@ -1716,7 +1719,9 @@ function main() {
           scenario_pack_consumption_v2_ok:
             systemPrompt.includes("RM1:") &&
             !systemPrompt.includes("RM2:") &&
-            companionSystemPrompt.includes("RM2:")
+            companionSystemPrompt.includes("RM2:") &&
+            systemPrompt.includes("MR1 [timeline]:") &&
+            companionSystemPrompt.includes("MR1 [episode]:"),
         },
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(

@@ -344,6 +344,13 @@
   - `memory-upgrade-harness.ts` 当前也已开始显式校验：
     - `project_ops` 下 `dynamic_profile` 会被压下去
     - `companion` 下 `dynamic_profile` 仍会保留
+  - `apps/web/lib/chat/runtime.ts` 当前也已开始让 `scenario pack` 真实影响 `memory_record` 内部的 `episode / timeline` 消费优先级
+  - 当前最小规则已经成立：
+    - `project_ops` 会优先保留 `timeline -> episode`
+    - `companion` 会优先保留 `episode -> timeline`
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验：
+    - `project_ops` 下 `MR1` 会优先变成 `timeline`
+    - `companion` 下单槽 `memory_record` 会优先保留 `episode`
 - `P4-5 regression / acceptance expansion` 当前也已开始进入真实实现：
   - `memory-upgrade-harness.ts` 当前已开始显式产出 `p4_regression_gate`
   - 当前第一版 `P4` gate 已开始锁：

@@ -302,6 +302,16 @@ P4 首批要把 `Scenario pack` 从：
   - `project_ops` 下 `dynamic_profile` 会被压下去
   - `companion` 下 `dynamic_profile` 仍会保留
 
+当前已成立的第五刀代码事实：
+
+- [runtime.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime.ts) 当前已开始让 `scenario pack` 真实影响 `memory_record` 内部的 `episode / timeline` 消费优先级：
+  - `project_ops` 会优先保留 `timeline -> episode`
+  - `companion` 会优先保留 `episode -> timeline`
+- 也就是说，pack-specific consumption 当前已不只控制不同 memory layer 的 slot 和并存关系，也开始进入 `memory_record` 子类型内部的真实 selection priority
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - `project_ops` 下 `MR1` 会优先变成 `timeline`
+  - `companion` 下单槽 `memory_record` 会优先保留 `episode`
+
 ### 4.5 P4 regression / acceptance expansion
 
 P4 首批要把 gate 继续扩大到：
@@ -396,10 +406,12 @@ P4 首批明确不做：
 
 - `P4-4 Scenario pack consumption expansion v2`
   - 当前处于中段
-  - 现在已成立三条真实 pack-specific consumption 差异：
+  - 现在已成立多条真实 pack-specific consumption 差异：
     - relationship memory slot budget 随 pack 变化
     - static_profile slot budget 随 pack 变化
     - memory_record slot budget 随 pack 变化
+    - dynamic_profile 与 memory_record 的并存优先级随 pack 变化
+    - `episode / timeline` 的 subtype selection priority 随 pack 变化
 
 - `P4-5 regression / acceptance expansion`
   - 当前第一版已成立
