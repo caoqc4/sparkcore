@@ -122,6 +122,8 @@ function getMemorySemanticTargetLabel(
   switch (target) {
     case "static_profile":
       return isZh ? "静态画像" : "static profile";
+    case "dynamic_profile":
+      return isZh ? "动态画像" : "dynamic profile";
     case "memory_record":
       return isZh ? "记忆记录" : "memory record";
     case "thread_state_candidate":

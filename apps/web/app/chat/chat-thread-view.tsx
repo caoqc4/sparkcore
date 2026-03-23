@@ -271,6 +271,10 @@ function getRuntimeSummary(
       ? isZh
         ? "主要依赖静态画像。"
         : "Primarily relied on static profile memory."
+      : memoryPrimarySemanticLayer === "dynamic_profile"
+        ? isZh
+          ? "主要依赖动态画像。"
+          : "Primarily relied on dynamic profile memory."
       : memoryPrimarySemanticLayer === "memory_record"
         ? isZh
           ? "主要依赖记忆记录。"

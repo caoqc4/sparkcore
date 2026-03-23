@@ -11,6 +11,11 @@ export type RecalledMemoryType =
   | "relationship"
   | "episode"
   | "timeline";
+export type MemorySemanticLayer =
+  | "static_profile"
+  | "dynamic_profile"
+  | "memory_record"
+  | "thread_state";
 
 export type ContextMessage = {
   role: "user" | "assistant";
@@ -52,6 +57,7 @@ export type RecalledMemory = {
   memory_type: RecalledMemoryType;
   content: string;
   confidence: number;
+  semantic_layer?: MemorySemanticLayer | null;
 };
 
 export type RecallOutcome = {

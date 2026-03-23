@@ -1,4 +1,5 @@
 import type {
+  MemorySemanticLayer,
   RecalledMemory,
   StoredMemory
 } from "@/lib/chat/memory-shared";
@@ -17,14 +18,12 @@ export type ChatDynamicProfileRecord = DynamicProfileRecord;
 export type ChatMemoryScopeRef = MemoryScopeRef;
 export type LegacyMemorySemanticTarget =
   | "static_profile"
+  | "dynamic_profile"
   | "memory_record"
   | "thread_state_candidate"
   | "legacy_unsupported";
 
-export type RuntimeMemorySemanticLayer =
-  | "static_profile"
-  | "memory_record"
-  | "thread_state";
+export type RuntimeMemorySemanticLayer = MemorySemanticLayer;
 
 function buildProfileIdentity(memory: StoredMemory) {
   const userId = memory.subject_user_id ?? "unknown_user";
@@ -60,7 +59,7 @@ export function classifyStoredMemorySemanticTarget(
     memory.scope === "thread_local" &&
     (memory.category === "profile" || memory.category === "preference")
   ) {
-    return "thread_state_candidate";
+    return "dynamic_profile";
   }
 
   if (memory.memory_type || memory.category) {
@@ -110,12 +109,30 @@ export function buildStaticProfileRecordFromStoredMemory(
 export function buildDynamicProfileRecordFromStoredMemory(
   memory: StoredMemory
 ): ChatDynamicProfileRecord | null {
-  // P0 keeps legacy goal-like rows out of DynamicProfile.
-  // Existing goal semantics are closer to thread/run execution state and will
-  // be migrated toward ThreadState before DynamicProfile is allowed to absorb
-  // any long-lived phase-level state.
-  void memory;
-  return null;
+  if (classifyStoredMemorySemanticTarget(memory) !== "dynamic_profile") {
+    return null;
+  }
+
+  const { subjectId, scope } = buildProfileIdentity(memory);
+  const key =
+    typeof memory.key === "string" && memory.key.length > 0
+      ? memory.key
+      : memory.memory_type ?? "legacy_dynamic_profile";
+  const effectiveAt = memory.created_at ?? new Date().toISOString();
+
+  return {
+    profile_id: `prof_dynamic:${memory.id}`,
+    subject_type: "user",
+    subject_id: subjectId,
+    scope,
+    key,
+    value: memory.value ?? memory.content,
+    confidence: memory.confidence,
+    effective_at: effectiveAt,
+    expires_at: null,
+    source_refs: buildMemoryRecordFromLegacy(memory).source_refs,
+    updated_at: memory.updated_at ?? effectiveAt
+  };
 }
 
 export function buildProfileRecordsFromStoredMemory(memory: StoredMemory): {
@@ -143,7 +160,28 @@ export function buildRecalledProfileMemoryFromStoredMemory(
       typeof staticProfile.value === "string"
         ? staticProfile.value
         : String(staticProfile.value ?? ""),
-    confidence: staticProfile.confidence ?? 0
+    confidence: staticProfile.confidence ?? 0,
+    semantic_layer: "static_profile"
+  };
+}
+
+export function buildRecalledDynamicProfileMemoryFromStoredMemory(
+  memory: StoredMemory
+): RecalledMemory | null {
+  const dynamicProfile = buildDynamicProfileRecordFromStoredMemory(memory);
+
+  if (!dynamicProfile) {
+    return null;
+  }
+
+  return {
+    memory_type: memory.memory_type === "preference" ? "preference" : "profile",
+    content:
+      typeof dynamicProfile.value === "string"
+        ? dynamicProfile.value
+        : String(dynamicProfile.value ?? ""),
+    confidence: dynamicProfile.confidence ?? 0,
+    semantic_layer: "dynamic_profile"
   };
 }
 
@@ -153,6 +191,7 @@ export function buildRecalledRelationshipMemoryFromStoredMemory(
   memory_type: "relationship";
   content: string;
   confidence: number;
+  semantic_layer: "memory_record";
 } | null {
   if (memory.category !== "relationship") {
     return null;
@@ -163,7 +202,8 @@ export function buildRecalledRelationshipMemoryFromStoredMemory(
   return {
     memory_type: "relationship",
     content: relationshipRecord.canonical_text,
-    confidence: relationshipRecord.confidence ?? 0
+    confidence: relationshipRecord.confidence ?? 0,
+    semantic_layer: "memory_record"
   };
 }
 
@@ -186,7 +226,8 @@ export function buildRecalledEpisodeMemoryFromStoredMemory(
   return {
     memory_type: "episode",
     content: record.canonical_text,
-    confidence: record.confidence ?? 0
+    confidence: record.confidence ?? 0,
+    semantic_layer: "memory_record"
   };
 }
 
@@ -202,7 +243,8 @@ export function buildRecalledTimelineMemoryFromStoredMemory(
   return {
     memory_type: "timeline",
     content: record.canonical_text,
-    confidence: record.confidence ?? 0
+    confidence: record.confidence ?? 0,
+    semantic_layer: "memory_record"
   };
 }
 
@@ -227,21 +269,39 @@ export function buildRuntimeMemorySemanticSummary(args: {
   profileSnapshot: string[];
   hasThreadState: boolean;
   threadStateFocusMode?: string | null;
+  semanticLayersUsed?: Array<RuntimeMemorySemanticLayer | null | undefined>;
 }) {
   const observedLayers: RuntimeMemorySemanticLayer[] = [];
-  const usesProfile =
-    args.profileSnapshot.length > 0 ||
-    args.memoryTypesUsed.some(
-      (type) => type === "profile" || type === "preference"
-    );
-  const usesMemoryRecord = args.memoryTypesUsed.some(
-    (type) =>
-      type === "relationship" || type === "episode" || type === "timeline"
+  const semanticLayersUsed = Array.from(
+    new Set(
+      (args.semanticLayersUsed ?? []).filter(
+        (layer): layer is RuntimeMemorySemanticLayer => Boolean(layer)
+      )
+    )
   );
+  const usesStaticProfile =
+    semanticLayersUsed.includes("static_profile") ||
+    (semanticLayersUsed.length === 0 &&
+      (args.profileSnapshot.length > 0 ||
+        args.memoryTypesUsed.some(
+          (type) => type === "profile" || type === "preference"
+        )));
+  const usesDynamicProfile = semanticLayersUsed.includes("dynamic_profile");
+  const usesMemoryRecord =
+    semanticLayersUsed.includes("memory_record") ||
+    (semanticLayersUsed.length === 0 &&
+      args.memoryTypesUsed.some(
+        (type) =>
+          type === "relationship" || type === "episode" || type === "timeline"
+      ));
   const usesThreadState = args.hasThreadState;
 
-  if (usesProfile) {
+  if (usesStaticProfile) {
     observedLayers.push("static_profile");
+  }
+
+  if (usesDynamicProfile) {
+    observedLayers.push("dynamic_profile");
   }
 
   if (usesMemoryRecord) {
@@ -256,11 +316,19 @@ export function buildRuntimeMemorySemanticSummary(args: {
 
   if (args.threadStateFocusMode && args.threadStateFocusMode.trim().length > 0) {
     primaryLayer = "thread_state";
-  } else if (usesProfile && !usesMemoryRecord) {
+  } else if (usesDynamicProfile && !usesStaticProfile && !usesMemoryRecord) {
+    primaryLayer = "dynamic_profile";
+  } else if (usesStaticProfile && !usesDynamicProfile && !usesMemoryRecord) {
     primaryLayer = "static_profile";
-  } else if (usesMemoryRecord && !usesProfile) {
+  } else if (usesDynamicProfile) {
+    primaryLayer = "dynamic_profile";
+  } else if (
+    usesMemoryRecord &&
+    !usesStaticProfile &&
+    !usesDynamicProfile
+  ) {
     primaryLayer = "memory_record";
-  } else if (usesProfile) {
+  } else if (usesStaticProfile) {
     primaryLayer = "static_profile";
   } else if (usesMemoryRecord) {
     primaryLayer = "memory_record";

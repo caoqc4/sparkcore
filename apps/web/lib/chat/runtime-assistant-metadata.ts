@@ -1,6 +1,7 @@
 import type {
   BuildAssistantMessageMetadataInput,
 } from "@/lib/chat/assistant-message-metadata";
+import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type {
   ReplyLanguageSource,
@@ -65,6 +66,7 @@ export type BuildRuntimeAssistantMetadataInput = {
     hit_count: number;
     used: boolean;
     types_used: string[];
+    semantic_layers: MemorySemanticLayer[];
     profile_snapshot: string[];
     hidden_exclusion_count: number;
     incorrect_exclusion_count: number;
@@ -122,6 +124,7 @@ export function buildRuntimeAssistantMetadataInput(
     memory_hit_count: input.memory.hit_count,
     memory_used: input.memory.used,
     memory_types_used: input.memory.types_used,
+    memory_semantic_layers: input.memory.semantic_layers,
     profile_snapshot: input.memory.profile_snapshot,
     hidden_memory_exclusion_count: input.memory.hidden_exclusion_count,
     incorrect_memory_exclusion_count: input.memory.incorrect_exclusion_count,

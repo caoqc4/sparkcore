@@ -1,4 +1,5 @@
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
+import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import type { ReplyLanguageSource, RoleCorePacket, RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
@@ -7,6 +8,7 @@ type RecalledMemoryMetadataItem = {
   memory_type: string | null;
   content: string;
   confidence: number | null;
+  semantic_layer?: string | null;
 };
 
 export type BuildAssistantMetadataSummaryGroupsInput = {
@@ -33,6 +35,7 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   memory_hit_count: number;
   memory_used: boolean;
   memory_types_used: string[];
+  memory_semantic_layers: MemorySemanticLayer[];
   profile_snapshot: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -78,6 +81,7 @@ export type BuildAssistantMessageMetadataInput = {
   memory_hit_count: number;
   memory_used: boolean;
   memory_types_used: string[];
+  memory_semantic_layers: MemorySemanticLayer[];
   profile_snapshot: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -137,7 +141,8 @@ export function buildAssistantMetadataSummaryGroups(
           Boolean(input.thread_state_focus_mode) ||
           Boolean(input.thread_state_continuity_status) ||
           Boolean(input.thread_state_current_language_hint),
-        threadStateFocusMode: input.thread_state_focus_mode ?? null
+        threadStateFocusMode: input.thread_state_focus_mode ?? null,
+        semanticLayersUsed: input.memory_semantic_layers
       }),
       hidden_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_exclusion_count: input.incorrect_memory_exclusion_count
@@ -153,6 +158,7 @@ export function buildAssistantMetadataSummaryGroups(
       memory_hit_count: input.memory_hit_count,
       memory_used: input.memory_used,
       memory_types_used: input.memory_types_used,
+      memory_semantic_layers: input.memory_semantic_layers,
       profile_snapshot: input.profile_snapshot,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_memory_exclusion_count: input.incorrect_memory_exclusion_count

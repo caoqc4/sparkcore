@@ -2427,7 +2427,10 @@ function buildMemorySemanticSummaryPrompt(args: {
     memoryTypesUsed: args.recalledMemories.map((memory) => memory.memory_type),
     profileSnapshot,
     hasThreadState: Boolean(args.threadState),
-    threadStateFocusMode: args.threadState?.focus_mode ?? null
+    threadStateFocusMode: args.threadState?.focus_mode ?? null,
+    semanticLayersUsed: args.recalledMemories.map(
+      (memory) => memory.semantic_layer
+    )
   });
 
   if (
@@ -2462,6 +2465,12 @@ function buildMemorySemanticSummaryPrompt(args: {
         ? "优先把稳定 profile / preference 作为回答基线，再按需要补充关系或线程状态。"
         : "Use stable profile and preference facts as the baseline first, then layer in relationship or thread-state detail only when needed."
     );
+  } else if (semanticSummary.primary_layer === "dynamic_profile") {
+    sections.push(
+      isZh
+        ? "优先把当前阶段仍持续有效的动态画像当作本轮回答基线，不要把它误压回线程即时状态或静态长期偏好。"
+        : "Use the currently active dynamic profile as the baseline for this turn instead of collapsing it back into thread-state immediacy or static long-term preference."
+    );
   } else if (semanticSummary.primary_layer === "memory_record") {
     sections.push(
       isZh
@@ -2483,6 +2492,17 @@ function buildMemorySemanticSummaryPrompt(args: {
       isZh
         ? "如果命中 timeline 记忆，把它当作“变化过程/阶段演进”的线索，用来解释事情是怎么一路发展到现在，而不是只摘一条静态事实。"
         : "When timeline memory is present, use it as a cue for how the situation evolved over time rather than reducing it to a single static fact."
+    );
+  }
+
+  if (
+    semanticSummary.observed_layers.includes("dynamic_profile") &&
+    semanticSummary.observed_layers.includes("thread_state")
+  ) {
+    sections.push(
+      isZh
+        ? "如果同时命中 dynamic profile 和 thread_state，让 thread_state 决定即时线程推进，让 dynamic profile 决定当前阶段仍持续有效的工作方式或偏好。"
+        : "When both dynamic profile and thread_state are present, let thread_state govern immediate thread coordination while dynamic profile carries the still-active phase-level working mode or preference."
     );
   }
 
@@ -3792,7 +3812,8 @@ export async function runPreparedRuntimeTurn({
         recalled_memories: allRecalledMemories.map((memory) => ({
           memory_type: memory.memory_type,
           content: memory.content,
-          confidence: memory.confidence
+          confidence: memory.confidence,
+          semantic_layer: memory.semantic_layer ?? null
         })),
         hit_count: allRecalledMemories.length,
         used: allRecalledMemories.length > 0,
@@ -3802,6 +3823,13 @@ export async function runPreparedRuntimeTurn({
                 new Set([...memoryRecall.usedMemoryTypes, "relationship" as const])
               )
             : memoryRecall.usedMemoryTypes,
+        semantic_layers: Array.from(
+          new Set(
+            allRecalledMemories
+              .map((memory) => memory.semantic_layer)
+              .filter((layer): layer is NonNullable<typeof layer> => Boolean(layer))
+          )
+        ),
         profile_snapshot: recalledProfileSnapshot,
         hidden_exclusion_count: memoryRecall.hiddenExclusionCount,
         incorrect_exclusion_count: memoryRecall.incorrectExclusionCount
@@ -3917,6 +3945,13 @@ export async function runPreparedRuntimeTurn({
               new Set([...memoryRecall.usedMemoryTypes, "relationship" as const])
             )
           : memoryRecall.usedMemoryTypes,
+      memory_semantic_layers: Array.from(
+        new Set(
+          allRecalledMemories
+            .map((memory) => memory.semantic_layer)
+            .filter((layer): layer is NonNullable<typeof layer> => Boolean(layer))
+        )
+      ),
       memory_recall_routes: memoryRecall.appliedRoutes,
       profile_snapshot: recalledProfileSnapshot,
       memory_write_request_count: memoryWriteRequests.length,

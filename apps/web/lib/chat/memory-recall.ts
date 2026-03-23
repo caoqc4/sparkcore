@@ -22,6 +22,7 @@ import {
 } from "@/lib/chat/memory-item-read";
 import {
   buildRecalledEpisodeMemoryFromStoredMemory,
+  buildRecalledDynamicProfileMemoryFromStoredMemory,
   buildRecalledProfileMemoryFromStoredMemory,
   buildRecalledRelationshipMemoryFromStoredMemory,
   buildRecalledTimelineMemoryFromStoredMemory,
@@ -339,11 +340,21 @@ export async function recallRelevantMemories({
         threadId
       })
     )
-    .filter((memory) => isStoredMemorySemanticTarget(memory, "static_profile"));
+    .filter(
+      (memory) =>
+        isStoredMemorySemanticTarget(memory, "static_profile") ||
+        isStoredMemorySemanticTarget(memory, "dynamic_profile")
+    );
   const activeMemories = validMemories.filter((memory) => isMemoryActive(memory));
   const hiddenCandidates = validMemories.filter((memory) => isMemoryHidden(memory));
   const incorrectCandidates = validMemories.filter((memory) =>
     isMemoryIncorrect(memory)
+  );
+  const activeDynamicProfileMemories = activeMemories.filter((memory) =>
+    isStoredMemorySemanticTarget(memory, "dynamic_profile")
+  );
+  const activeStaticProfileMemories = activeMemories.filter((memory) =>
+    isStoredMemorySemanticTarget(memory, "static_profile")
   );
 
   const shouldLoadMemoryRecords =
@@ -395,7 +406,17 @@ export async function recallRelevantMemories({
     };
   }
 
-  const scored = activeMemories
+  const scoredDynamicProfiles = activeDynamicProfileMemories
+    .map((memory) => ({
+      memory,
+      score: scoreMemoryRelevance(latestUserMessage, memory)
+    }))
+    .filter((entry) => entry.score >= MEMORY_RELEVANCE_THRESHOLD)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 1)
+    .map((entry) => entry.memory);
+
+  const scored = activeStaticProfileMemories
     .map((memory) => ({
       memory,
       score: scoreMemoryRelevance(latestUserMessage, memory)
@@ -405,6 +426,13 @@ export async function recallRelevantMemories({
     .slice(0, 2)
     .map((entry) => entry.memory);
 
+  const recalledDynamicProfileMemories =
+    scoredDynamicProfiles.length > 0
+      ? scoredDynamicProfiles
+          .map((memory) => buildRecalledDynamicProfileMemoryFromStoredMemory(memory))
+          .filter((memory): memory is NonNullable<typeof memory> => memory != null)
+      : [];
+
   const recalledProfileMemories =
     scored.length > 0
       ? scored
@@ -412,7 +440,7 @@ export async function recallRelevantMemories({
           .map((memory) => buildRecalledProfileMemoryFromStoredMemory(memory))
           .filter((memory): memory is NonNullable<typeof memory> => memory != null)
       : allowDistantFallback
-        ? activeMemories
+        ? activeStaticProfileMemories
             .slice()
             .sort((left, right) => {
               if (right.confidence !== left.confidence) {
@@ -476,6 +504,7 @@ export async function recallRelevantMemories({
       : [];
 
   const recalledMemories = [
+    ...recalledDynamicProfileMemories,
     ...recalledProfileMemories,
     ...recalledEpisodeMemories,
     ...recalledTimelineMemories

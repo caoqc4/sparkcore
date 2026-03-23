@@ -1,5 +1,6 @@
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type { RuntimeThreadStateRecall } from "@/lib/chat/memory-recall";
+import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
 
 export type BuildRuntimeDebugMetadataInput = {
@@ -8,6 +9,7 @@ export type BuildRuntimeDebugMetadataInput = {
   answer_strategy_reason_code: string | null;
   recalled_memory_count: number;
   memory_types_used: string[];
+  memory_semantic_layers?: Array<MemorySemanticLayer | null | undefined>;
   memory_recall_routes: Array<"profile" | "episode" | "timeline" | "thread_state">;
   profile_snapshot: string[];
   memory_write_request_count: number;
@@ -37,7 +39,8 @@ export function buildRuntimeDebugMetadata(
         memoryTypesUsed: input.memory_types_used,
         profileSnapshot: input.profile_snapshot,
         hasThreadState: Boolean(input.thread_state_recall?.applied),
-        threadStateFocusMode: input.thread_state_recall?.snapshot?.focus_mode ?? null
+        threadStateFocusMode: input.thread_state_recall?.snapshot?.focus_mode ?? null,
+        semanticLayersUsed: input.memory_semantic_layers
       }),
       write_request_count: input.memory_write_request_count
     },

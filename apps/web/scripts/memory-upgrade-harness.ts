@@ -1,6 +1,8 @@
 import {
   buildRecalledEpisodeMemoryFromStoredMemory,
+  buildRecalledDynamicProfileMemoryFromStoredMemory,
   buildRuntimeMemorySemanticSummary,
+  buildDynamicProfileRecordFromStoredMemory,
   buildRecalledProfileMemoryFromStoredMemory,
   buildRecalledRelationshipMemoryFromStoredMemory,
   buildRecalledTimelineMemoryFromStoredMemory,
@@ -123,8 +125,8 @@ function main() {
   );
   expect(
     classifyStoredMemorySemanticTarget(threadLocalProfileMemory) ===
-      "thread_state_candidate",
-    "Expected thread-local profile memory to map to thread_state_candidate."
+      "dynamic_profile",
+    "Expected thread-local profile memory to map to dynamic_profile."
   );
 
   const staticProfileRecord = buildStaticProfileRecordFromStoredMemory(profileMemory);
@@ -162,6 +164,18 @@ function main() {
   expect(
     recalledTimeline?.memory_type === "timeline",
     "Expected timeline recall adapter to produce timeline memory."
+  );
+  const dynamicProfileRecord =
+    buildDynamicProfileRecordFromStoredMemory(threadLocalProfileMemory);
+  expect(
+    dynamicProfileRecord?.profile_id === "prof_dynamic:mem-thread-profile",
+    "Expected dynamic profile adapter to produce a dynamic-profile record."
+  );
+  const recalledDynamicProfile =
+    buildRecalledDynamicProfileMemoryFromStoredMemory(threadLocalProfileMemory);
+  expect(
+    recalledDynamicProfile?.semantic_layer === "dynamic_profile",
+    "Expected dynamic profile recall adapter to tag the semantic layer."
   );
 
   const selectedRoutes = selectMemoryRecallRoutes({
@@ -246,7 +260,8 @@ function main() {
     memoryTypesUsed: ["profile", "relationship"],
     profileSnapshot: ["User prefers concise technical explanations."],
     hasThreadState: true,
-    threadStateFocusMode: plannedThreadState.focus_mode
+    threadStateFocusMode: plannedThreadState.focus_mode,
+    semanticLayersUsed: ["static_profile", "memory_record"]
   });
   expect(
     semanticSummary.primary_layer === "thread_state",
@@ -261,11 +276,23 @@ function main() {
     memoryTypesUsed: ["episode", "timeline"],
     profileSnapshot: [],
     hasThreadState: false,
-    threadStateFocusMode: null
+    threadStateFocusMode: null,
+    semanticLayersUsed: ["memory_record"]
   });
   expect(
     recordOnlySemanticSummary.primary_layer === "memory_record",
     "Expected episode/timeline memory types to map to memory_record semantic layer."
+  );
+  const dynamicOnlySemanticSummary = buildRuntimeMemorySemanticSummary({
+    memoryTypesUsed: ["profile"],
+    profileSnapshot: [],
+    hasThreadState: false,
+    threadStateFocusMode: null,
+    semanticLayersUsed: ["dynamic_profile"]
+  });
+  expect(
+    dynamicOnlySemanticSummary.primary_layer === "dynamic_profile",
+    "Expected dynamic-profile semantic layer to become the primary layer when it is the only active layer."
   );
 
   const assistantMetadata = buildAssistantMessageMetadata(
@@ -358,6 +385,7 @@ function main() {
         hit_count: 2,
         used: true,
         types_used: ["profile", "relationship"],
+        semantic_layers: ["static_profile", "memory_record"],
         profile_snapshot: ["User prefers concise technical explanations."],
         hidden_exclusion_count: 0,
         incorrect_exclusion_count: 0
@@ -472,6 +500,41 @@ function main() {
     routeAwarePrompt.includes("When timeline memory is present"),
     "Expected system prompt assembly to include timeline-memory guidance."
   );
+  const dynamicProfilePrompt = buildAgentSystemPrompt(
+    {
+      packet_version: "v1",
+      identity: {
+        agent_id: "agent-1",
+        agent_name: "Helper"
+      },
+      persona_summary: "Helpful assistant",
+      style_guidance: "Be concise",
+      relationship_stance: {
+        effective: "friendly",
+        source: "relationship_memory"
+      },
+      language_behavior: {
+        reply_language_target: "en",
+        reply_language_source: "latest-user-message",
+        same_thread_continuation_preferred: true
+      }
+    },
+    "Keep answers grounded.",
+    "Keep going with the same working style.",
+    [
+      {
+        memory_type: "profile",
+        content: "In this thread, keep the tone extra formal.",
+        confidence: 0.9,
+        semantic_layer: "dynamic_profile"
+      }
+    ],
+    "en"
+  );
+  expect(
+    dynamicProfilePrompt.includes("dynamic profile"),
+    "Expected system prompt assembly to include dynamic-profile guidance."
+  );
 
   console.log(
     JSON.stringify(
@@ -489,6 +552,9 @@ function main() {
           static_profile_record: staticProfileRecord.profile_id,
           recalled_profile_type: recalledProfile.memory_type,
           recalled_relationship_type: recalledRelationship?.memory_type ?? null,
+          dynamic_profile_record: dynamicProfileRecord?.profile_id ?? null,
+          recalled_dynamic_profile_layer:
+            recalledDynamicProfile?.semantic_layer ?? null,
           recalled_episode_type: recalledEpisode?.memory_type ?? null,
           recalled_timeline_type: recalledTimeline?.memory_type ?? null,
           planned_profile_id: plannedProfile.profile_id,
@@ -498,6 +564,7 @@ function main() {
         },
         runtime_semantic_summary: semanticSummary,
         record_only_semantic_summary: recordOnlySemanticSummary,
+        dynamic_only_semantic_summary: dynamicOnlySemanticSummary,
         assistant_metadata_semantic_summary: {
           primary_layer: getAssistantMemoryPrimarySemanticLayer(assistantMetadata),
           observed_layers: getAssistantMemoryObservedSemanticLayers(
@@ -521,6 +588,11 @@ function main() {
           ),
           includes_timeline_guidance: routeAwarePrompt.includes(
             "When timeline memory is present"
+          )
+        },
+        system_prompt_dynamic_profile: {
+          includes_dynamic_profile_guidance: dynamicProfilePrompt.includes(
+            "dynamic profile"
           )
         }
       },
