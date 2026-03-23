@@ -22,3 +22,10 @@ export function updateMemoryItem(args: {
     .update(args.patch)
     .eq("id", args.memoryItemId);
 }
+
+export function deleteOwnedMemoryItems(args: {
+  supabase: any;
+  userId: string;
+}) {
+  return args.supabase.from("memory_items").delete().eq("user_id", args.userId);
+}

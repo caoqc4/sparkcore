@@ -1,3 +1,5 @@
+import { loadRecentOwnedMemories as loadRecentOwnedMemoryItems } from "@/lib/chat/memory-item-read";
+
 const WORKSPACE_SELECT = "id, name, kind";
 const THREAD_SELECT = "id, title, status, agent_id, workspace_id, created_at, updated_at";
 const AGENT_SELECT =
@@ -407,15 +409,14 @@ export async function loadRecentOwnedMemories(args: {
   userId: string;
   limit?: number;
 }) {
-  return args.supabase
-    .from("memory_items")
-    .select(
-      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, metadata, source_message_id, created_at, updated_at"
-    )
-    .eq("workspace_id", args.workspaceId)
-    .eq("user_id", args.userId)
-    .order("created_at", { ascending: false })
-    .limit(args.limit ?? 60);
+  return loadRecentOwnedMemoryItems({
+    supabase: args.supabase,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    select:
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, metadata, source_message_id, created_at, updated_at",
+    limit: args.limit ?? 60
+  });
 }
 
 export async function loadPersonaPackNamesByIds(args: {

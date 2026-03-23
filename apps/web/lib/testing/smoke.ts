@@ -12,6 +12,7 @@ import {
   loadOwnedRelationshipMemoryByValue
 } from "@/lib/chat/memory-item-read";
 import {
+  deleteOwnedMemoryItems,
   insertMemoryItem,
   updateMemoryItem
 } from "@/lib/chat/memory-item-persistence";
@@ -707,10 +708,10 @@ async function resetSmokeWorkspaceState(
     );
   }
 
-  const { error: deleteMemoryError } = await admin
-    .from("memory_items")
-    .delete()
-    .eq("user_id", user.id);
+  const { error: deleteMemoryError } = await deleteOwnedMemoryItems({
+    supabase: admin,
+    userId: user.id
+  });
 
   if (deleteMemoryError) {
     throw new Error(
