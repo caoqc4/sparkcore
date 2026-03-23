@@ -19,6 +19,7 @@
 
 - [memory_upgrade_p1_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p1_close_note_v1.0.md)
 - [memory_upgrade_p2_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p2_close_readiness_v1.0.md)
+- [memory_upgrade_p2_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p2_close_note_v1.0.md)
 - `doc_private/SparkCore_记忆层升级方案_v0.2.md`
 - [memory_upgrade_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_execution_plan_v1.0.md)
 

@@ -133,6 +133,7 @@
 - `memory_upgrade_p1_close_note_v1.0.md` 当前也已新增，用于正式收口“P1 已达到 close-ready，剩余项转入非阻塞尾项”的阶段判断
 - `memory_upgrade_p2_execution_plan_v1.0.md` 当前也已新增，用于把 `P2` 从 v0.2 中的高阶方向推进成正式执行起点
 - `memory_upgrade_p2_close_readiness_v1.0.md` 当前也已新增，用于对 `P2-1 ~ P2-5` 做整体完成度复盘，避免继续无边界扩张 `P2`
+- `memory_upgrade_p2_close_note_v1.0.md` 当前也已新增，用于正式收口“P2 已达到 close-ready，剩余项转入非阻塞尾项”的阶段判断
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
