@@ -3,10 +3,25 @@ import {
   type SmokeMemoryRow,
   type SmokeRuntimeMessage
 } from "@/lib/testing/smoke-turn-analysis";
-import type {
-  SmokeTurnExecutionState,
-  SmokeTurnExecutionStateInput
-} from "@/lib/testing/smoke-turn-execution-state-types";
+
+export type SmokeTurnExecutionStateInput = {
+  trimmedContent: string;
+  existingMemories: unknown[] | null | undefined;
+  existingMessages: Array<{
+    role: "user" | "assistant";
+    content: string;
+    status: string;
+    metadata: Record<string, unknown>;
+  }> | null | undefined;
+  agentId: string;
+  threadId: string;
+};
+
+export type SmokeTurnExecutionState = {
+  smokeExistingMemories: SmokeMemoryRow[];
+  smokeExistingMessages: SmokeRuntimeMessage[];
+  analysis: import("@/lib/testing/smoke-turn-analysis-result").SmokeTurnAnalysisResult;
+};
 
 export function prepareSmokeTurnExecutionState(
   args: SmokeTurnExecutionStateInput

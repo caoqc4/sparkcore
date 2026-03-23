@@ -1,7 +1,7 @@
-import type {
-  SmokeRelationshipMemoryRow
-} from "@/lib/testing/smoke-relationship-context-types";
-import { toSmokeRelationshipRecallMemory } from "@/lib/testing/smoke-relationship-memory-accessors";
+import {
+  toSmokeRelationshipRecallMemory,
+  type SmokeRelationshipMemoryRow
+} from "@/lib/testing/smoke-relationship-memory-accessors";
 import type { SmokeRelationshipMemoryKey } from "@/lib/testing/smoke-relationship-memory-types";
 
 export function findSmokeRelationshipMemory(args: {

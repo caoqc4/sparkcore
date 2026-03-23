@@ -5,7 +5,6 @@ import {
   isSmokeDirectUserPreferredNameQuestion,
   isSmokeSelfIntroGreetingRequest
 } from "@/lib/testing/smoke-answer-strategy";
-import { getSmokeIntroReplyContext } from "@/lib/testing/smoke-intro-reply-context";
 import type { SmokeRelationshipRecallMemory } from "@/lib/testing/smoke-recall-memory-types";
 import {
   buildSmokeEnStyleGreeting,
@@ -20,6 +19,22 @@ export type SmokeIntroReplyInput = {
   nicknameMemory: SmokeRelationshipRecallMemory;
   preferredNameMemory: SmokeRelationshipRecallMemory;
 };
+
+function getSmokeIntroReplyContext(args: {
+  agentName: string;
+  addressStyleMemory: SmokeRelationshipRecallMemory;
+  nicknameMemory: SmokeRelationshipRecallMemory;
+  preferredNameMemory: SmokeRelationshipRecallMemory;
+}) {
+  return {
+    styleValue: args.addressStyleMemory?.content ?? null,
+    selfName: args.nicknameMemory?.content ?? args.agentName,
+    userName: args.preferredNameMemory?.content ?? null,
+    nickname: args.nicknameMemory?.content ?? null,
+    preferredName: args.preferredNameMemory?.content ?? null,
+    hasNicknameMemory: Boolean(args.nicknameMemory)
+  };
+}
 
 function buildSmokeBriefGreetingReply(args: {
   replyLanguage: SmokeReplyLanguage;
