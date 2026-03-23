@@ -12,9 +12,9 @@ import type {
   RuntimeFollowUpExecutionResult
 } from "@/lib/chat/runtime-contract";
 import {
+  buildClaimedFollowUpRequestPayload,
   buildExecutedFollowUpRequestPayload,
-  buildFailedFollowUpRequestPayload,
-  buildFollowUpClaimMetadata
+  buildFailedFollowUpRequestPayload
 } from "@/lib/chat/follow-up-result-metadata";
 
 function isAcceptedFollowUpExecutionResult(
@@ -123,14 +123,12 @@ export class InMemoryFollowUpRepository implements FollowUpRepository {
       if (claimedIds.has(record.id)) {
         record.status = "claimed";
         record.updated_at = claimedAt;
-        record.request_payload = {
-          ...record.request_payload,
-          ...buildFollowUpClaimMetadata({
-            claimToken,
-            claimedAt,
-            claimedBy: input.claimed_by
-          })
-        };
+        record.request_payload = buildClaimedFollowUpRequestPayload({
+          basePayload: record.request_payload,
+          claimToken,
+          claimedAt,
+          claimedBy: input.claimed_by
+        });
       }
     });
 

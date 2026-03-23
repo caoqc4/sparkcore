@@ -11,9 +11,9 @@ import type {
   PendingFollowUpRecord
 } from "@/lib/chat/runtime-contract";
 import {
+  buildClaimedFollowUpRequestPayload,
   buildExecutedFollowUpRequestPayload,
-  buildFailedFollowUpRequestPayload,
-  buildFollowUpClaimMetadata
+  buildFailedFollowUpRequestPayload
 } from "@/lib/chat/follow-up-result-metadata";
 import { buildPendingFollowUpRecord } from "@/lib/chat/follow-up-repository";
 
@@ -157,33 +157,39 @@ export class SupabaseFollowUpRepository implements FollowUpRepository {
 
     const claimToken = input.claim_token ?? crypto.randomUUID();
     const claimedAt = new Date().toISOString();
-    const ids = claimableRows.map((row) => row.id);
+    const claimResults = await Promise.all(
+      claimableRows.map(async (row) => {
+        const { data, error } = await this.supabase
+          .from(this.tableName)
+          .update({
+            status: "claimed",
+            request_payload: buildClaimedFollowUpRequestPayload({
+              basePayload: row.request_payload,
+              claimToken,
+              claimedAt,
+              claimedBy: input.claimed_by
+            }),
+            updated_at: claimedAt
+          })
+          .eq("id", row.id)
+          .eq("status", "pending")
+          .select(
+            "id, kind, status, trigger_at, workspace_id, user_id, agent_id, thread_id, request_payload, request_reason, source_message_id, source_request_index, created_at, updated_at"
+          )
+          .maybeSingle();
 
-    const { data: claimedRows, error: claimError } = await this.supabase
-      .from(this.tableName)
-      .update({
-        status: "claimed",
-        metadata: buildFollowUpClaimMetadata({
-          claimToken,
-          claimedAt,
-          claimedBy: input.claimed_by
-        }),
-        updated_at: claimedAt
+        if (error) {
+          throw new Error(
+            `Failed to claim follow-up ${row.id} in ${this.tableName}: ${error.message}`
+          );
+        }
+
+        return data ? mapPendingFollowUpRowToRecord(data as PendingFollowUpRow) : null;
       })
-      .in("id", ids)
-      .eq("status", "pending")
-      .select(
-        "id, kind, status, trigger_at, workspace_id, user_id, agent_id, thread_id, request_payload, request_reason, source_message_id, source_request_index, created_at, updated_at"
-      );
+    );
 
-    if (claimError) {
-      throw new Error(
-        `Failed to claim due pending follow-ups in ${this.tableName}: ${claimError.message}`
-      );
-    }
-
-    const records = ((claimedRows ?? []) as PendingFollowUpRow[]).map(
-      mapPendingFollowUpRowToRecord
+    const records = claimResults.filter(
+      (record): record is PendingFollowUpRecord => record !== null
     );
 
     return {

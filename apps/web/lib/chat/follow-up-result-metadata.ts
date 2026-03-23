@@ -18,6 +18,22 @@ export function buildFollowUpClaimMetadata(args: {
   };
 }
 
+export function buildClaimedFollowUpRequestPayload(args: {
+  basePayload?: Record<string, unknown> | null;
+  claimToken: string;
+  claimedAt: string;
+  claimedBy: ClaimDuePendingFollowUpsInput["claimed_by"];
+}) {
+  return {
+    ...(args.basePayload ?? {}),
+    ...buildFollowUpClaimMetadata({
+      claimToken: args.claimToken,
+      claimedAt: args.claimedAt,
+      claimedBy: args.claimedBy
+    })
+  };
+}
+
 export function buildFollowUpBindingNotFoundFailureMetadata(
   record: PendingFollowUpRecord
 ) {
