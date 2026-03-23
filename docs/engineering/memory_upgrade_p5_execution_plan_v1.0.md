@@ -74,6 +74,24 @@ P5 首批要把 namespace 从：
 - 至少一条 namespace budget 不再只控制 recall count，而开始控制 layer-weighting 或 fallback order
 - 至少一条 write route 决策开始体现更细的 namespace priority
 
+当前已成立的第一刀代码事实：
+
+- [memory-namespace.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-namespace.ts) 当前已开始把 namespace boundary 从单层 recall budget 推进成更明确的 multi-budget 结构：
+  - `profile_budget`
+  - `episode_budget`
+  - `timeline_budget`
+  - `parallel_timeline_budget`
+- 当前最小规则已经成立：
+  - `thread` primary namespace 下：
+    - `parallel_timeline_budget = 0`
+  - `project / world` primary namespace 下：
+    - `parallel_timeline_budget = 1`
+- [memory-recall.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-recall.ts) 当前也已开始复用这层 budget：
+  - 当 namespace 允许 `parallel_timeline_budget > 0` 时，timeline recall 不再只能在 `episode = 0` 时触发，而开始允许与 episode 并行保留一条 timeline
+- [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已开始显式校验：
+  - `thread` boundary 下 `parallel_timeline_budget = 0`
+  - `project` boundary 下 `parallel_timeline_budget = 1`
+
 ### 4.2 Retention layering / pruning strategy v3
 
 P5 首批要把 retention 从：

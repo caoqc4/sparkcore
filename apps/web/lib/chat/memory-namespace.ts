@@ -18,6 +18,7 @@ export type RuntimeMemoryBoundary = {
   profile_budget: number;
   episode_budget: number;
   timeline_budget: number;
+  parallel_timeline_budget: number;
 };
 
 type NamespaceScopedMemoryLike = {
@@ -118,7 +119,8 @@ export function resolveRuntimeMemoryBoundary(
         allow_timeline_fallback: false,
         profile_budget: 1,
         episode_budget: 1,
-        timeline_budget: 0
+        timeline_budget: 0,
+        parallel_timeline_budget: 0
       };
     case "project":
       return {
@@ -127,7 +129,8 @@ export function resolveRuntimeMemoryBoundary(
         allow_timeline_fallback: true,
         profile_budget: 2,
         episode_budget: 2,
-        timeline_budget: 1
+        timeline_budget: 1,
+        parallel_timeline_budget: 1
       };
     case "world":
       return {
@@ -136,7 +139,8 @@ export function resolveRuntimeMemoryBoundary(
         allow_timeline_fallback: true,
         profile_budget: 2,
         episode_budget: 1,
-        timeline_budget: 1
+        timeline_budget: 1,
+        parallel_timeline_budget: 1
       };
     default:
       return {
@@ -145,7 +149,8 @@ export function resolveRuntimeMemoryBoundary(
         allow_timeline_fallback: true,
         profile_budget: 2,
         episode_budget: 1,
-        timeline_budget: 1
+        timeline_budget: 1,
+        parallel_timeline_budget: 0
       };
   }
 }
@@ -172,6 +177,8 @@ export function buildMemoryNamespaceScopedMetadata(args: {
       resolveRuntimeMemoryBoundary(args.namespace).episode_budget,
     active_memory_timeline_budget:
       resolveRuntimeMemoryBoundary(args.namespace).timeline_budget,
+    active_memory_parallel_timeline_budget:
+      resolveRuntimeMemoryBoundary(args.namespace).parallel_timeline_budget,
     project_id: getNamespaceRefId(args.namespace, "project"),
     world_id: getNamespaceRefId(args.namespace, "world")
   };

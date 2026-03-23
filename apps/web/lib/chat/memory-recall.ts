@@ -511,7 +511,9 @@ export async function recallRelevantMemories({
     : [];
 
   const recalledTimelineMemories =
-    appliedRoutes.includes("timeline") && recalledEpisodeMemories.length === 0
+    appliedRoutes.includes("timeline") &&
+    (recalledEpisodeMemories.length === 0 ||
+      namespaceBoundary.parallel_timeline_budget > 0)
       ? activeMemoryRecordRows
           .slice()
           .sort((left, right) => {
@@ -528,7 +530,15 @@ export async function recallRelevantMemories({
 
             return right.confidence - left.confidence;
           })
-          .slice(0, namespaceBoundary.timeline_budget)
+          .slice(
+            0,
+            recalledEpisodeMemories.length > 0
+              ? Math.min(
+                  namespaceBoundary.timeline_budget,
+                  namespaceBoundary.parallel_timeline_budget
+                )
+              : namespaceBoundary.timeline_budget
+          )
           .map((memory) => buildRecalledTimelineMemoryFromStoredMemory(memory))
           .filter((memory): memory is NonNullable<typeof memory> => memory != null)
       : [];

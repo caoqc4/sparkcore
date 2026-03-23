@@ -400,6 +400,20 @@
   - knowledge route weighting v3
   - scenario pack strategy layer v3
   - `P5` regression / acceptance expansion
+- `P5-1 Namespace multi-budget routing` 当前也已开始进入真实实现：
+  - `apps/web/lib/chat/memory-namespace.ts` 当前已开始把 namespace boundary 从单层 recall budget 推进成更明确的 multi-budget 结构：
+    - `profile_budget`
+    - `episode_budget`
+    - `timeline_budget`
+    - `parallel_timeline_budget`
+  - 当前最小规则已经成立：
+    - `thread` primary namespace 下：`parallel_timeline_budget = 0`
+    - `project / world` primary namespace 下：`parallel_timeline_budget = 1`
+  - `apps/web/lib/chat/memory-recall.ts` 当前也已开始复用这层 budget：
+    - 当 namespace 允许 `parallel_timeline_budget > 0` 时，timeline recall 不再只能在 `episode = 0` 时触发，而开始允许与 episode 并行保留一条 timeline
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验：
+    - thread boundary 下 `parallel_timeline_budget = 0`
+    - project boundary 下 `parallel_timeline_budget = 1`
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

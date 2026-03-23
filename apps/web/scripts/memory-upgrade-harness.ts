@@ -321,7 +321,8 @@ function main() {
   expect(
     threadBoundary.profile_budget === 1 &&
       threadBoundary.episode_budget === 1 &&
-      threadBoundary.timeline_budget === 0,
+      threadBoundary.timeline_budget === 0 &&
+      threadBoundary.parallel_timeline_budget === 0,
     "Expected thread-primary namespace to expose a tighter recall budget in P4."
   );
   const threadScopedRoutes = selectMemoryRecallRoutes({
@@ -333,6 +334,34 @@ function main() {
   expect(
     threadScopedRoutes.join(",") === "thread_state,profile,episode",
     "Expected thread-primary namespace to trim timeline fallback from recall routes in P4."
+  );
+  const projectPrimaryNamespace: ActiveRuntimeMemoryNamespace = {
+    namespace_id: "user:user-1|project:project-1|world:world-1",
+    primary_layer: "project",
+    active_layers: ["user", "project", "world"],
+    refs: [
+      {
+        layer: "user",
+        entity_id: "user-1"
+      },
+      {
+        layer: "project",
+        entity_id: "project-1"
+      },
+      {
+        layer: "world",
+        entity_id: "world-1"
+      }
+    ],
+    selection_reason: "session_and_knowledge_scope"
+  };
+  const projectBoundary = resolveRuntimeMemoryBoundary(projectPrimaryNamespace);
+  expect(
+    projectBoundary.profile_budget === 2 &&
+      projectBoundary.episode_budget === 2 &&
+      projectBoundary.timeline_budget === 1 &&
+      projectBoundary.parallel_timeline_budget === 1,
+    "Expected project-primary namespace to expose a multi-budget route profile in P5."
   );
 
   const visibleMemoryRecord = buildVisibleMemoryRecord({
@@ -1561,7 +1590,14 @@ function main() {
           thread_boundary_budget: {
             profile: threadBoundary.profile_budget,
             episode: threadBoundary.episode_budget,
-            timeline: threadBoundary.timeline_budget
+            timeline: threadBoundary.timeline_budget,
+            parallel_timeline: threadBoundary.parallel_timeline_budget
+          },
+          project_boundary_budget: {
+            profile: projectBoundary.profile_budget,
+            episode: projectBoundary.episode_budget,
+            timeline: projectBoundary.timeline_budget,
+            parallel_timeline: projectBoundary.parallel_timeline_budget
           }
         },
         runtime_semantic_summary: semanticSummary,
