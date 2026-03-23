@@ -1,14 +1,6 @@
-import type {
-  SmokeAnswerStrategy,
-  SmokeReplyLanguage
-} from "@/lib/testing/smoke-assistant-builders";
+import type { SmokeAssistantReplyInput } from "@/lib/testing/smoke-assistant-reply-types";
 import { buildSmokeDirectOrGroundedReply } from "@/lib/testing/smoke-direct-replies";
 import { buildSmokeRelationshipOrContinuationReply } from "@/lib/testing/smoke-relationship-reply-branch";
-import type {
-  SmokeRecallMemory,
-  SmokeRelationshipRecallMemory
-} from "@/lib/testing/smoke-recall-memory-types";
-import type { SmokeContinuityReply } from "@/lib/testing/smoke-turn-analysis";
 
 export function buildSmokeAssistantReply({
   content,
@@ -21,18 +13,7 @@ export function buildSmokeAssistantReply({
   addressStyleMemory,
   nicknameMemory,
   preferredNameMemory
-}: {
-  content: string;
-  answerStrategy: SmokeAnswerStrategy;
-  modelProfileName: string;
-  replyLanguage: SmokeReplyLanguage;
-  recentAssistantReply: SmokeContinuityReply | null;
-  agentName: string;
-  addressStyleMemory: SmokeRelationshipRecallMemory;
-  nicknameMemory: SmokeRelationshipRecallMemory;
-  preferredNameMemory: SmokeRelationshipRecallMemory;
-  recalledMemories: SmokeRecallMemory[];
-}) {
+}: SmokeAssistantReplyInput) {
   const directOrGroundedReply = buildSmokeDirectOrGroundedReply({
     content,
     answerStrategy,
