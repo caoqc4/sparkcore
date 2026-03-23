@@ -2,6 +2,7 @@ import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type {
   ActiveMemoryNamespace,
   KnowledgeSnapshot,
+  KnowledgeScopeLayer,
   KnowledgeSourceKind,
 } from "../../../../packages/core/memory";
 import type { MemoryScopeRef } from "../../../../packages/core/memory/records";
@@ -13,6 +14,20 @@ export type RuntimeKnowledgeSnippet = {
   source_kind: KnowledgeSourceKind;
   scope: MemoryScopeRef;
 };
+
+export function resolveKnowledgeScopeLayer(
+  snippet: RuntimeKnowledgeSnippet
+): KnowledgeScopeLayer {
+  if (snippet.scope.project_id) {
+    return "project";
+  }
+
+  if (snippet.scope.world_id) {
+    return "world";
+  }
+
+  return "general";
+}
 
 export function buildKnowledgeSnapshot(args: {
   snapshotId: string;
@@ -126,13 +141,24 @@ export function buildKnowledgePromptSection(args: {
   const lines = [
     isZh ? "相关 Knowledge Layer：" : "Relevant Knowledge Layer:",
     ...applicableKnowledge.slice(0, 2).map((item, index) =>
-      isZh
-        ? `${index + 1}. [${item.source_kind}] ${item.title}：${item.summary}`
-        : `${index + 1}. [${item.source_kind}] ${item.title}: ${item.summary}`
+      {
+        const scopeLayer = resolveKnowledgeScopeLayer(item);
+        const scopeLabel = isZh
+          ? scopeLayer === "project"
+            ? "项目"
+            : scopeLayer === "world"
+              ? "世界"
+              : "通用"
+          : scopeLayer;
+
+        return isZh
+          ? `${index + 1}. [${scopeLabel}/${item.source_kind}] ${item.title}：${item.summary}`
+          : `${index + 1}. [${scopeLabel}/${item.source_kind}] ${item.title}: ${item.summary}`;
+      }
     ),
     isZh
-      ? "把这些内容当作外部/项目资料事实来源，不要把它们误写成用户长期偏好或线程即时状态。"
-      : "Treat these items as external or project knowledge facts, not as user preference memory or live thread-state.",
+      ? "把这些内容当作按 project/world/general 分层的外部知识来源，不要把它们误写成用户长期偏好或线程即时状态。"
+      : "Treat these items as project/world/general knowledge inputs, not as user preference memory or live thread-state.",
   ];
 
   return lines.join("\n");
@@ -153,5 +179,19 @@ export function buildKnowledgeSummary(args: {
     source_kinds: Array.from(
       new Set(applicableKnowledge.map((item) => item.source_kind))
     ),
+    scope_layers: Array.from(
+      new Set(applicableKnowledge.map((item) => resolveKnowledgeScopeLayer(item)))
+    ),
+    scope_counts: {
+      project: applicableKnowledge.filter(
+        (item) => resolveKnowledgeScopeLayer(item) === "project"
+      ).length,
+      world: applicableKnowledge.filter(
+        (item) => resolveKnowledgeScopeLayer(item) === "world"
+      ).length,
+      general: applicableKnowledge.filter(
+        (item) => resolveKnowledgeScopeLayer(item) === "general"
+      ).length
+    }
   };
 }

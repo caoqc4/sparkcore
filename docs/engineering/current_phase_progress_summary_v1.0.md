@@ -168,6 +168,21 @@
   - `focus_mode_present` 当前会保留 `focus_mode / continuity_status / current_language_hint`，但不会再顺手带入 `latest_user_message`
   - `recent_turn_window` 当前会显式保留 `latest_user_message / recent_turn_window`
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` 摘要不会错误保留 `Latest user message`
+- `P3-3 Knowledge scope materialization` 当前也已开始进入真实实现：
+  - `packages/core/memory/knowledge.ts` 当前已开始把 `KnowledgeScopeLayer` 收成正式 contract：
+    - `project`
+    - `world`
+    - `general`
+  - `apps/web/lib/chat/memory-knowledge.ts` 当前已开始提供 `resolveKnowledgeScopeLayer(...)`
+  - knowledge summary 当前也已开始显式产出：
+    - `scope_layers`
+    - `scope_counts`
+  - knowledge prompt 当前也已开始按 scope 显式标出：
+    - `[project/... ]`
+    - `[world/... ]`
+    而不再只显示 `source_kind`
+  - assistant metadata / debug metadata 当前也已开始暴露 knowledge scope layers
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 namespace 过滤后的 `project / world` knowledge 以及 prompt 中的 scope 区分
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

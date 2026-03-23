@@ -20,6 +20,7 @@ import {
   getAssistantMemoryObservedSemanticLayers,
   getAssistantCompactedThreadSummaryText,
   getAssistantKnowledgeCount,
+  getAssistantKnowledgeScopeLayers,
   getAssistantMemoryNamespacePrimaryLayer,
   getAssistantMemoryScenarioPackId,
   getAssistantMemoryPrimarySemanticLayer
@@ -422,11 +423,24 @@ function main() {
     resourceId: "resource-1",
     scope: {
       workspace_id: "workspace-1",
-      project_id: "project-1"
+      project_id: "project-1",
+      world_id: "world-1"
     },
     title: "Onboarding checklist guide",
     summary: "The onboarding checklist should be completed in order and signed off by the project owner.",
     sourceKind: "project_document",
+    capturedAt: "2026-03-23T00:00:00.000Z"
+  });
+  const worldKnowledgeSnapshot = buildKnowledgeSnapshot({
+    snapshotId: "knowledge-snapshot-world",
+    resourceId: "resource-world",
+    scope: {
+      workspace_id: "workspace-1",
+      world_id: "world-1"
+    },
+    title: "Workspace operating norms",
+    summary: "Across this workspace, important threads should keep a compact continuity anchor.",
+    sourceKind: "workspace_note",
     capturedAt: "2026-03-23T00:00:00.000Z"
   });
   const worldMismatchedKnowledgeSnapshot = buildKnowledgeSnapshot({
@@ -443,6 +457,7 @@ function main() {
   });
   const runtimeKnowledge = [
     buildRuntimeKnowledgeSnippet(knowledgeSnapshot),
+    buildRuntimeKnowledgeSnippet(worldKnowledgeSnapshot),
     buildRuntimeKnowledgeSnippet(worldMismatchedKnowledgeSnapshot)
   ];
   const activeMemoryNamespace = resolveActiveMemoryNamespace({
@@ -754,8 +769,13 @@ function main() {
     "Expected assistant metadata reader to expose the active scenario memory pack."
   );
   expect(
-    getAssistantKnowledgeCount(assistantMetadata) === 1,
+    getAssistantKnowledgeCount(assistantMetadata) === 2,
     "Expected assistant metadata reader to expose the namespace-filtered knowledge count."
+  );
+  expect(
+    getAssistantKnowledgeScopeLayers(assistantMetadata).join(",") ===
+      "project,world",
+    "Expected assistant metadata reader to expose project/world knowledge scope layers in P3."
   );
   expect(
     getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
@@ -784,8 +804,13 @@ function main() {
     "Expected runtime debug metadata to expose the active scenario memory pack in P2."
   );
   expect(
-    runtimeDebugMetadata.knowledge.count === 1,
+    runtimeDebugMetadata.knowledge.count === 2,
     "Expected runtime debug metadata to expose the injected knowledge count in P2."
+  );
+  expect(
+    Array.isArray(runtimeDebugMetadata.knowledge.scope_layers) &&
+      runtimeDebugMetadata.knowledge.scope_layers.join(",") === "project,world",
+    "Expected runtime debug metadata to expose project/world knowledge scope layers in P3."
   );
   expect(
     runtimeDebugMetadata.thread_compaction?.summary_id ===
@@ -871,6 +896,11 @@ function main() {
   expect(
     systemPrompt.includes("Onboarding checklist guide"),
     "Expected system prompt assembly to include the injected knowledge title."
+  );
+  expect(
+    systemPrompt.includes("[project/project_document]") &&
+      systemPrompt.includes("[world/workspace_note]"),
+    "Expected system prompt assembly to distinguish project/world knowledge scopes in P3."
   );
   expect(
     !systemPrompt.includes("Other project brief"),
@@ -1021,7 +1051,8 @@ function main() {
           pack_id: getAssistantMemoryScenarioPackId(assistantMetadata)
         },
         assistant_metadata_knowledge: {
-          count: getAssistantKnowledgeCount(assistantMetadata)
+          count: getAssistantKnowledgeCount(assistantMetadata),
+          scope_layers: getAssistantKnowledgeScopeLayers(assistantMetadata)
         },
         filtered_knowledge_summary: knowledgeSummary,
         assistant_metadata_thread_compaction: {
@@ -1074,10 +1105,10 @@ function main() {
         },
         p2_regression_gate: {
           pack_metadata_ok: runtimeDebugMetadata.memory.pack?.pack_id === "companion",
-          knowledge_metadata_ok: runtimeDebugMetadata.knowledge.count === 1,
+          knowledge_metadata_ok: runtimeDebugMetadata.knowledge.count === 2,
           knowledge_namespace_filter_ok:
-            knowledgeSummary.count === 1 &&
-            knowledgeSummary.titles[0] === "Onboarding checklist guide",
+            knowledgeSummary.count === 2 &&
+            knowledgeSummary.scope_layers.join(",") === "project,world",
           compaction_metadata_ok:
             runtimeDebugMetadata.thread_compaction?.summary_id ===
             compactedThreadSummary?.summary_id,

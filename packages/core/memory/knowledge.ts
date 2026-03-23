@@ -5,6 +5,8 @@ export type KnowledgeSourceKind =
   | "project_document"
   | "workspace_note";
 
+export type KnowledgeScopeLayer = "project" | "world" | "general";
+
 export type KnowledgeResource = {
   resource_id: string;
   scope: MemoryScopeRef;

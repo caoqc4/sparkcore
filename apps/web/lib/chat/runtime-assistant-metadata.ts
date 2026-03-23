@@ -10,7 +10,10 @@ import type {
 } from "@/lib/chat/role-core";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
 import type { ActiveScenarioMemoryPack } from "@/lib/chat/memory-packs";
-import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
+import {
+  resolveKnowledgeScopeLayer,
+  type RuntimeKnowledgeSnippet
+} from "@/lib/chat/memory-knowledge";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import type { CompactedThreadSummary } from "../../../../packages/core/memory";
 
@@ -154,6 +157,9 @@ export function buildRuntimeAssistantMetadataInput(
     knowledge_titles: input.knowledge.snippets.map((item) => item.title),
     knowledge_source_kinds: Array.from(
       new Set(input.knowledge.snippets.map((item) => item.source_kind))
+    ),
+    knowledge_scope_layers: Array.from(
+      new Set(input.knowledge.snippets.map((item) => resolveKnowledgeScopeLayer(item)))
     ),
     active_memory_namespace_id:
       input.namespace.active_namespace?.namespace_id ?? null,

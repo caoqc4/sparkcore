@@ -199,6 +199,24 @@ P3 首批要让 `Knowledge Layer` 更明确地区分：
 - runtime 或 retrieval 至少一条逻辑开始显式区分 `project / world`
 - 不再只靠 prompt 文字说明它们不同
 
+当前已成立的第一刀代码事实：
+
+- `packages/core/memory/knowledge.ts` 当前已开始把 `KnowledgeScopeLayer` 收成正式 contract：
+  - `project`
+  - `world`
+  - `general`
+- `apps/web/lib/chat/memory-knowledge.ts` 当前已开始提供：
+  - `resolveKnowledgeScopeLayer(...)`
+  - knowledge summary 的 `scope_layers / scope_counts`
+- knowledge prompt 当前也已开始按 scope 显式标出：
+  - `[project/... ]`
+  - `[world/... ]`
+  而不再只显示 `source_kind`
+- assistant metadata / debug metadata 当前也已开始暴露 knowledge scope layers
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - namespace 过滤后的 knowledge 会同时保留 `project / world`
+  - prompt 会显式区分 `project/world` knowledge
+
 ### 4.4 Scenario pack expansion point v1
 
 P3 首批要把 `Scenario Memory Pack` 从“一个默认 companion pack”推进到“更明确的扩展位”。

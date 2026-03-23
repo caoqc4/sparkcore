@@ -311,6 +311,14 @@ export function getAssistantKnowledgeCount(
   );
 }
 
+export function getAssistantKnowledgeScopeLayers(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return getAssistantMetadataStringArray(knowledgeMetadata ?? metadata, "scope_layers");
+}
+
 export function getAssistantMemoryNamespacePrimaryLayer(
   metadata: Record<string, unknown> | null | undefined
 ) {
