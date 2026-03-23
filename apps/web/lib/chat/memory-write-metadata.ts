@@ -7,6 +7,7 @@ export function buildRelationshipPlannerMemoryMetadata(
   return {
     source: "runtime_planner",
     record_target: "memory_record",
+    semantic_target: "memory_record",
     canonical_memory_type: "relationship",
     relation_kind: request.relationship_key,
     dedupe_key: request.dedupe_key ?? null,
@@ -28,6 +29,7 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
     extraction_reason: args.reason,
     source: "runtime_planner",
     record_target: args.recordTarget,
+    semantic_target: args.recordTarget,
     canonical_memory_type: args.canonicalMemoryType ?? null,
     threshold: args.threshold,
     dedupe_key: args.dedupeKey ?? null,
@@ -50,6 +52,7 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
     extraction_reason: args.reason,
     source: "runtime_planner",
     record_target: args.recordTarget,
+    semantic_target: args.recordTarget,
     canonical_memory_type: args.canonicalMemoryType ?? null,
     threshold: args.threshold,
     convergence_updated_at: args.convergenceUpdatedAt,

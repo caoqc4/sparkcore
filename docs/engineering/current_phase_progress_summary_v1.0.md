@@ -80,6 +80,8 @@
 - chat memory 卡片当前也已开始显式展示 semantic target，迁移期语义归属已不只停留在 preview
 - chat thread memory visibility 当前也已开始按 semantic target 汇总，可直接看到当前会话里新语义层的大致分布
 - `hide / restore / incorrect` 管理动作当前也已开始写入 `semantic_target`
+- planner memory metadata 当前也已开始稳定写入 `semantic_target`
+- restore 过程里被 supersede 的冲突 row 当前也已开始补写 `semantic_target`
 - `memory.ts` 已退成兼容入口
 - `P0-6` 当前已不再只是迁移方向说明，而已进入：
   - classifier
@@ -88,6 +90,8 @@
   - memory card UI
   - memory visibility summary
   - memory 管理动作
+  - planner metadata
+  - superseded writeback metadata
 - `P0-7` 当前也已开始形成明确 gate：
   - 功能 gate
   - 结构 gate

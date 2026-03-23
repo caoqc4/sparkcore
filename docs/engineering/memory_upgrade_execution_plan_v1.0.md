@@ -165,6 +165,8 @@ P0 只做一件事：
 - chat memory 卡片当前也已开始显式展示 semantic target，迁移期语义归属已不只停留在 preview
 - chat thread memory visibility 当前也已开始按 semantic target 汇总，可直接看到当前会话里新语义层的大致分布
 - `hide / restore / incorrect` 管理动作当前也已开始把 `semantic_target` 写入 metadata
+- planner memory metadata 当前也已开始稳定写入 `semantic_target`
+- restore 过程里被 supersede 的冲突 row 当前也已开始补写 `semantic_target`
 
 ### 4.2 最小写入闭环
 

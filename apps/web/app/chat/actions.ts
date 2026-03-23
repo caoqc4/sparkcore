@@ -724,7 +724,7 @@ export async function restoreMemory(formData: FormData) {
       excludedMemoryItemId: memoryItem.id,
       targetAgentId: memoryItem.target_agent_id,
       targetThreadId: memoryItem.target_thread_id,
-      select: "id, metadata"
+      select: "id, memory_type, category, scope, metadata"
     });
 
     const { data: conflictingActiveRows, error: conflictingRowsError } =
@@ -743,7 +743,8 @@ export async function restoreMemory(formData: FormData) {
       const nextSupersededMetadata = {
         ...((row.metadata ?? {}) as Record<string, unknown>),
         superseded_at: new Date().toISOString(),
-        superseded_by_restore_memory_id: memoryItem.id
+        superseded_by_restore_memory_id: memoryItem.id,
+        semantic_target: classifyStoredMemorySemanticTarget(row)
       };
 
       const { error: supersedeError } = await updateMemoryItem({
