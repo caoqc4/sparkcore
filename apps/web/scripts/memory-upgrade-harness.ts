@@ -535,6 +535,14 @@ function main() {
     dynamicProfilePrompt.includes("dynamic profile"),
     "Expected system prompt assembly to include dynamic-profile guidance."
   );
+  expect(
+    dynamicProfilePrompt.includes("Context assembly order for this turn:"),
+    "Expected system prompt assembly to include explicit context assembly order."
+  );
+  expect(
+    dynamicProfilePrompt.includes("2. dynamic_profile:"),
+    "Expected system prompt assembly to place dynamic_profile in the context assembly order."
+  );
 
   console.log(
     JSON.stringify(
@@ -593,6 +601,12 @@ function main() {
         system_prompt_dynamic_profile: {
           includes_dynamic_profile_guidance: dynamicProfilePrompt.includes(
             "dynamic profile"
+          ),
+          includes_context_assembly_order: dynamicProfilePrompt.includes(
+            "Context assembly order for this turn:"
+          ),
+          includes_dynamic_profile_order_slot: dynamicProfilePrompt.includes(
+            "2. dynamic_profile:"
           )
         }
       },

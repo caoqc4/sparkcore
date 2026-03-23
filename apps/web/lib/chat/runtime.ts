@@ -1193,6 +1193,87 @@ function buildMemoryRecallPrompt(
   return sections.join("\n");
 }
 
+function buildMemoryLayerAssemblyPrompt(args: {
+  recalledMemories: RecalledMemory[];
+  threadState: ThreadStateRecord | null | undefined;
+  replyLanguage: RuntimeReplyLanguage;
+}) {
+  const isZh = args.replyLanguage === "zh-Hans";
+  const relationshipFilteredMemories = args.recalledMemories.filter(
+    (memory) => memory.memory_type !== "relationship"
+  );
+  const dynamicProfileMemories = relationshipFilteredMemories
+    .filter((memory) => memory.semantic_layer === "dynamic_profile")
+    .slice(0, 1);
+  const staticProfileMemories = relationshipFilteredMemories
+    .filter((memory) => memory.semantic_layer === "static_profile")
+    .slice(0, 2);
+  const memoryRecordMemories = relationshipFilteredMemories
+    .filter((memory) => memory.semantic_layer === "memory_record")
+    .slice(0, 2);
+
+  const sections: string[] = [
+    isZh
+      ? "本轮 context assembly 顺序："
+      : "Context assembly order for this turn:"
+  ];
+
+  if (args.threadState) {
+    sections.push(
+      isZh
+        ? "1. thread_state：优先承接当前线程的即时 focus、continuity 和语言提示。"
+        : "1. thread_state: anchor immediate thread focus, continuity, and language carryover first."
+    );
+  }
+
+  if (dynamicProfileMemories.length > 0) {
+    sections.push(
+      isZh
+        ? "2. dynamic_profile：承接当前阶段仍持续有效的工作方式或偏好。"
+        : "2. dynamic_profile: carry the still-active phase-level working mode or preference."
+    );
+    sections.push(
+      ...dynamicProfileMemories.map((memory, index) =>
+        isZh
+          ? `   - DP${index + 1}: ${memory.content}`
+          : `   - DP${index + 1}: ${memory.content}`
+      )
+    );
+  }
+
+  if (staticProfileMemories.length > 0) {
+    sections.push(
+      isZh
+        ? "3. static_profile：作为稳定长期偏好的回答基线。"
+        : "3. static_profile: use as the stable long-term preference baseline."
+    );
+    sections.push(
+      ...staticProfileMemories.map((memory, index) =>
+        isZh
+          ? `   - SP${index + 1}: ${memory.content}`
+          : `   - SP${index + 1}: ${memory.content}`
+      )
+    );
+  }
+
+  if (memoryRecordMemories.length > 0) {
+    sections.push(
+      isZh
+        ? "4. memory_record：用作事件事实或变化轨迹的直接支撑。"
+        : "4. memory_record: use as the direct support layer for events and change-over-time facts."
+    );
+    sections.push(
+      ...memoryRecordMemories.map((memory, index) =>
+        isZh
+          ? `   - MR${index + 1} [${memory.memory_type}]: ${memory.content}`
+          : `   - MR${index + 1} [${memory.memory_type}]: ${memory.content}`
+      )
+    );
+  }
+
+  return sections.length > 1 ? sections.join("\n") : "";
+}
+
 function buildAddressStyleRecallInstructions({
   isZh,
   styleValue
@@ -2337,6 +2418,11 @@ function buildAgentSystemPromptInternal(
     threadContinuityPrompt,
     buildThreadStatePrompt(threadState, replyLanguage),
     buildMemorySemanticSummaryPrompt({
+      recalledMemories,
+      threadState,
+      replyLanguage
+    }),
+    buildMemoryLayerAssemblyPrompt({
       recalledMemories,
       threadState,
       replyLanguage

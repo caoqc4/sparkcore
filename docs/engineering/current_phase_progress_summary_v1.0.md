@@ -140,6 +140,14 @@
   - `thread_local profile / preference` 当前已开始从 `thread_state_candidate` 迁移到 `dynamic_profile`
   - `buildDynamicProfileRecordFromStoredMemory(...)` 当前已开始产出最小 `DynamicProfileRecord`
   - dynamic-profile recalled item 当前也已开始进入 real recall、runtime semantic summary 与 system prompt guidance
+- `P1-3 context assembly v2` 当前也已开始进入真实实现：
+  - runtime `buildAgentSystemPrompt(...)` 当前已开始显式注入 `Context assembly order for this turn`
+  - 当前最小顺序已开始收成：
+    1. `thread_state`
+    2. `dynamic_profile`
+    3. `static_profile`
+    4. `memory_record`
+  - 每层当前也已开始带最小片段注入，而不再只停留在语义摘要层
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`
 
