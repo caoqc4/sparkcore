@@ -5,6 +5,8 @@ import {
   buildRuntimeMemoryWriteRequestMetadata,
   getRuntimePreviewMetadataGroup
 } from "@/lib/chat/runtime-preview-metadata";
+import { loadScopedMessageById } from "@/lib/chat/message-read";
+import { updateScopedMessage } from "@/lib/chat/message-persistence";
 
 type AssistantPreviewTarget = {
   supabase: any;
@@ -24,14 +26,14 @@ export async function updateAssistantPreviewMetadata(args: {
     | Record<string, unknown>
     | ((currentMetadata: Record<string, unknown> | null) => Record<string, unknown>);
 }) {
-  const { data: assistantMessage } = await args.supabase
-    .from("messages")
-    .select("metadata")
-    .eq("id", args.assistantMessageId)
-    .eq("thread_id", args.threadId)
-    .eq("workspace_id", args.workspaceId)
-    .eq("user_id", args.userId)
-    .maybeSingle();
+  const { data: assistantMessage } = await loadScopedMessageById({
+    supabase: args.supabase,
+    messageId: args.assistantMessageId,
+    threadId: args.threadId,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    select: "metadata"
+  });
 
   const currentMetadata =
     assistantMessage?.metadata &&
@@ -44,19 +46,20 @@ export async function updateAssistantPreviewMetadata(args: {
       ? args.updates(currentMetadata)
       : args.updates;
 
-  await args.supabase
-    .from("messages")
-    .update({
+  await updateScopedMessage({
+    supabase: args.supabase,
+    messageId: args.assistantMessageId,
+    threadId: args.threadId,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    patch: {
       metadata: {
         ...(currentMetadata ?? {}),
         ...nextUpdates
       },
       updated_at: new Date().toISOString()
-    })
-    .eq("id", args.assistantMessageId)
-    .eq("thread_id", args.threadId)
-    .eq("workspace_id", args.workspaceId)
-    .eq("user_id", args.userId);
+    }
+  });
 }
 
 export async function updateAssistantMemoryWriteRequestPreview(

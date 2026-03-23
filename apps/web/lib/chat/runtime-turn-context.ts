@@ -1,4 +1,8 @@
 import { loadRecentOwnedMemories as loadRecentOwnedMemoryItems } from "@/lib/chat/memory-item-read";
+import {
+  loadCompletedMessagesForThreads as loadCompletedThreadMessages,
+  loadMessagesByIds
+} from "@/lib/chat/message-read";
 
 const WORKSPACE_SELECT = "id, name, kind";
 const THREAD_SELECT = "id, title, status, agent_id, workspace_id, created_at, updated_at";
@@ -445,11 +449,12 @@ export async function loadSourceMessagesByIds(args: {
   sourceMessageIds: string[];
   workspaceId: string;
 }) {
-  return args.supabase
-    .from("messages")
-    .select("id, thread_id, created_at")
-    .in("id", args.sourceMessageIds)
-    .eq("workspace_id", args.workspaceId);
+  return loadMessagesByIds({
+    supabase: args.supabase,
+    messageIds: args.sourceMessageIds,
+    workspaceId: args.workspaceId,
+    select: "id, thread_id, created_at"
+  });
 }
 
 export async function loadOwnedThreadTitlesByIds(args: {
@@ -471,11 +476,5 @@ export async function loadCompletedMessagesForThreads(args: {
   threadIds: string[];
   workspaceId: string;
 }) {
-  return args.supabase
-    .from("messages")
-    .select("thread_id, content, created_at, status")
-    .in("thread_id", args.threadIds)
-    .eq("workspace_id", args.workspaceId)
-    .in("status", ["completed"])
-    .order("created_at", { ascending: false });
+  return loadCompletedThreadMessages(args);
 }

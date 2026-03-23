@@ -11,6 +11,7 @@ import {
   loadOwnedMemoryItemByTypeAndContent,
   loadOwnedRelationshipMemoryByValue
 } from "@/lib/chat/memory-item-read";
+import { insertMessage } from "@/lib/chat/message-persistence";
 import {
   deleteOwnedMemoryItems,
   insertMemoryItem,
@@ -3098,17 +3099,17 @@ export async function createSmokeTurn({
   );
 
   const { data: insertedUserMessage, error: insertedUserMessageError } =
-    await admin
-      .from("messages")
-      .insert({
-        thread_id: thread.id,
-        workspace_id: smokeUser.workspaceId,
-        user_id: smokeUser.id,
+    await insertMessage({
+      supabase: admin,
+      threadId: thread.id,
+      workspaceId: smokeUser.workspaceId,
+      userId: smokeUser.id,
+      payload: {
         role: "user",
         content: trimmedContent
-      })
-      .select("id")
-      .single();
+      },
+      select: "id"
+    }).single();
 
   if (insertedUserMessageError || !insertedUserMessage) {
     throw new Error(
@@ -3382,12 +3383,12 @@ export async function createSmokeTurn({
   });
 
   const { data: insertedAssistantMessage, error: insertedAssistantMessageError } =
-    await admin
-      .from("messages")
-      .insert({
-        thread_id: thread.id,
-        workspace_id: smokeUser.workspaceId,
-        user_id: smokeUser.id,
+    await insertMessage({
+      supabase: admin,
+      threadId: thread.id,
+      workspaceId: smokeUser.workspaceId,
+      userId: smokeUser.id,
+      payload: {
         role: "assistant",
         content: assistantContent,
         status: "completed",
@@ -3417,9 +3418,9 @@ export async function createSmokeTurn({
           incorrectExclusionCount,
           createdTypes
         })
-      })
-      .select("id")
-      .single();
+      },
+      select: "id"
+    }).single();
 
   if (insertedAssistantMessageError || !insertedAssistantMessage) {
     throw new Error(
