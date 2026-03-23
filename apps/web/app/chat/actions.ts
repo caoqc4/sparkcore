@@ -18,6 +18,7 @@ import {
 import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
+import { updateAssistantPreviewMetadata } from "@/lib/chat/assistant-preview-metadata";
 import {
   buildRuntimeFollowUpExecutionMetadata,
   buildRuntimeFollowUpRequestMetadata,
@@ -1171,57 +1172,29 @@ export async function sendMessage(
     }
 
     if (runtimeTurnResult.memory_write_requests.length > 0) {
-      const { data: assistantMessage } = await supabase
-        .from("messages")
-        .select("metadata")
-        .eq("id", assistantPlaceholder.id)
-        .eq("thread_id", thread.id)
-        .eq("workspace_id", workspace.id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      await supabase
-        .from("messages")
-        .update({
-          metadata: {
-            ...(assistantMessage?.metadata ?? {}),
-            ...buildRuntimeMemoryWriteRequestMetadata(
-              runtimeTurnResult.memory_write_requests
-            )
-          },
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", assistantPlaceholder.id)
-        .eq("thread_id", thread.id)
-        .eq("workspace_id", workspace.id)
-        .eq("user_id", user.id);
+      await updateAssistantPreviewMetadata({
+        supabase,
+        assistantMessageId: assistantPlaceholder.id,
+        threadId: thread.id,
+        workspaceId: workspace.id,
+        userId: user.id,
+        updates: buildRuntimeMemoryWriteRequestMetadata(
+          runtimeTurnResult.memory_write_requests
+        )
+      });
     }
 
     if (runtimeTurnResult.follow_up_requests.length > 0) {
-      const { data: assistantMessage } = await supabase
-        .from("messages")
-        .select("metadata")
-        .eq("id", assistantPlaceholder.id)
-        .eq("thread_id", thread.id)
-        .eq("workspace_id", workspace.id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      await supabase
-        .from("messages")
-        .update({
-          metadata: {
-            ...(assistantMessage?.metadata ?? {}),
-            ...buildRuntimeFollowUpRequestMetadata(
-              runtimeTurnResult.follow_up_requests
-            )
-          },
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", assistantPlaceholder.id)
-        .eq("thread_id", thread.id)
-        .eq("workspace_id", workspace.id)
-        .eq("user_id", user.id);
+      await updateAssistantPreviewMetadata({
+        supabase,
+        assistantMessageId: assistantPlaceholder.id,
+        threadId: thread.id,
+        workspaceId: workspace.id,
+        userId: user.id,
+        updates: buildRuntimeFollowUpRequestMetadata(
+          runtimeTurnResult.follow_up_requests
+        )
+      });
     }
 
     try {
@@ -1259,56 +1232,35 @@ export async function sendMessage(
           .eq("user_id", user.id)
           .maybeSingle();
 
-        const nextMetadata = {
-          ...(assistantMessage?.metadata ?? {}),
-          ...buildRuntimeMemoryWriteOutcomeMetadata(
+        await updateAssistantPreviewMetadata({
+          supabase,
+          assistantMessageId: assistantPlaceholder.id,
+          threadId: thread.id,
+          workspaceId: workspace.id,
+          userId: user.id,
+          updates: buildRuntimeMemoryWriteOutcomeMetadata(
             memoryWriteOutcome,
             getRuntimePreviewMetadataGroup(
               assistantMessage?.metadata,
               "runtime_memory_writes"
             )
           )
-        };
-
-        await supabase
-          .from("messages")
-          .update({
-            metadata: nextMetadata,
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", assistantPlaceholder.id)
-          .eq("thread_id", thread.id)
-          .eq("workspace_id", workspace.id)
-          .eq("user_id", user.id);
+        });
       }
 
       if (followUpExecutionResults.length > 0) {
-        const { data: assistantMessage } = await supabase
-          .from("messages")
-          .select("metadata")
-          .eq("id", assistantPlaceholder.id)
-          .eq("thread_id", thread.id)
-          .eq("workspace_id", workspace.id)
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        await supabase
-          .from("messages")
-          .update({
-            metadata: {
-              ...(assistantMessage?.metadata ?? {}),
-              ...buildRuntimeFollowUpExecutionMetadata({
-                followUpExecutionResults,
-                followUpEnqueueInsertedCount: followUpEnqueueResult.inserted_count,
-                followUpEnqueueRecords: followUpEnqueueResult.records
-              })
-            },
-            updated_at: new Date().toISOString()
+        await updateAssistantPreviewMetadata({
+          supabase,
+          assistantMessageId: assistantPlaceholder.id,
+          threadId: thread.id,
+          workspaceId: workspace.id,
+          userId: user.id,
+          updates: buildRuntimeFollowUpExecutionMetadata({
+            followUpExecutionResults,
+            followUpEnqueueInsertedCount: followUpEnqueueResult.inserted_count,
+            followUpEnqueueRecords: followUpEnqueueResult.records
           })
-          .eq("id", assistantPlaceholder.id)
-          .eq("thread_id", thread.id)
-          .eq("workspace_id", workspace.id)
-          .eq("user_id", user.id);
+        });
       }
     } catch (memoryError) {
       console.error("Post-processing failed:", memoryError);
