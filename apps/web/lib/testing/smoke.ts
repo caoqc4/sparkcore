@@ -80,6 +80,19 @@ type SmokeThread = {
   title: string;
 };
 
+function buildSmokeSeedMetadata(fields?: Record<string, unknown>) {
+  return {
+    smoke_seed: true,
+    ...(fields ?? {})
+  };
+}
+
+function buildSmokeRelationshipSeedMetadata(relationKind: string) {
+  return buildSmokeSeedMetadata({
+    relation_kind: relationKind
+  });
+}
+
 type SmokeReplyLanguage = "zh-Hans" | "en" | "unknown";
 type SmokeAnswerQuestionType =
   | "direct-fact"
@@ -650,12 +663,11 @@ async function seedSmokeAgents(
       default_model_profile_id: defaultProfile.id,
       is_custom: false,
       status: "active",
-      metadata: {
-        smoke_seed: true,
+      metadata: buildSmokeSeedMetadata({
         source_slug: sparkGuidePack.slug,
         source_description: sparkGuidePack.description,
         is_default_for_workspace: true
-      }
+      })
     },
     {
       workspace_id: user.workspaceId,
@@ -668,11 +680,10 @@ async function seedSmokeAgents(
       default_model_profile_id: altProfile.id,
       is_custom: false,
       status: "active",
-      metadata: {
-        smoke_seed: true,
+      metadata: buildSmokeSeedMetadata({
         source_slug: memoryCoachPack.slug,
         source_description: memoryCoachPack.description
-      }
+      })
     }
   ]);
 
@@ -3092,7 +3103,7 @@ export async function createSmokeTurn({
         ]
       }),
       metadata: {
-        smoke_seed: true
+        ...buildSmokeSeedMetadata()
       }
     });
 
@@ -3166,8 +3177,7 @@ export async function createSmokeTurn({
           ]
         }),
         metadata: {
-          smoke_seed: true,
-          relation_kind: "agent_nickname"
+          ...buildSmokeRelationshipSeedMetadata("agent_nickname")
         }
       });
 
@@ -3219,8 +3229,7 @@ export async function createSmokeTurn({
           ]
         }),
         metadata: {
-          smoke_seed: true,
-          relation_kind: "user_preferred_name"
+          ...buildSmokeRelationshipSeedMetadata("user_preferred_name")
         }
       });
 
@@ -3272,8 +3281,7 @@ export async function createSmokeTurn({
           ]
         }),
         metadata: {
-          smoke_seed: true,
-          relation_kind: "user_address_style"
+          ...buildSmokeRelationshipSeedMetadata("user_address_style")
         }
       });
 
