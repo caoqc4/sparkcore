@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { insertMessage } from "@/lib/chat/message-persistence";
+import { buildSmokeAssistantMessagePayload } from "@/lib/testing/smoke-assistant-message-payload";
 import {
-  buildSmokeAssistantMetadata,
   type SmokeApproxContextPressure,
   type SmokeAnswerQuestionType,
   type SmokeAnswerStrategy,
@@ -53,37 +53,7 @@ export async function insertSmokeAssistantReply(args: {
       threadId: args.threadId,
       workspaceId: args.workspaceId,
       userId: args.userId,
-      payload: {
-        role: "assistant",
-        content: args.assistantContent,
-        status: "completed",
-        metadata: buildSmokeAssistantMetadata({
-          agentId: args.agentId,
-          agentName: args.agentName,
-          roleCorePacket: args.roleCorePacket,
-          modelProfileId: args.modelProfileId,
-          modelProfileName: args.modelProfileName,
-          model: args.model,
-          replyLanguage: args.replyLanguage,
-          replyLanguageDetected: args.replyLanguageDetected,
-          replyLanguageSource: args.replyLanguageSource,
-          questionType: args.questionType,
-          answerStrategy: args.answerStrategy,
-          answerStrategyReasonCode: args.answerStrategyReasonCode,
-          continuationReasonCode: args.continuationReasonCode,
-          recentRawTurnCount: args.recentRawTurnCount,
-          approxContextPressure: args.approxContextPressure,
-          sameThreadContinuationApplicable: args.sameThreadContinuationApplicable,
-          longChainPressureCandidate: args.longChainPressureCandidate,
-          sameThreadContinuationPreferred: args.sameThreadContinuationPreferred,
-          distantMemoryFallbackAllowed: args.distantMemoryFallbackAllowed,
-          recalledMemories: args.recalledMemories,
-          usedMemoryTypes: args.usedMemoryTypes,
-          hiddenExclusionCount: args.hiddenExclusionCount,
-          incorrectExclusionCount: args.incorrectExclusionCount,
-          createdTypes: args.createdTypes
-        })
-      },
+      payload: buildSmokeAssistantMessagePayload(args),
       select: "id"
     }).single();
 
