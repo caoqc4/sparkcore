@@ -1,7 +1,8 @@
 import {
   analyzeSmokeTurnContext,
   type SmokeMemoryRow,
-  type SmokeRuntimeMessage
+  type SmokeRuntimeMessage,
+  type SmokeTurnAnalysisResult
 } from "@/lib/testing/smoke-turn-analysis";
 
 export type SmokeTurnExecutionStateInput = {
@@ -20,7 +21,7 @@ export type SmokeTurnExecutionStateInput = {
 export type SmokeTurnExecutionState = {
   smokeExistingMemories: SmokeMemoryRow[];
   smokeExistingMessages: SmokeRuntimeMessage[];
-  analysis: import("@/lib/testing/smoke-turn-analysis-result").SmokeTurnAnalysisResult;
+  analysis: SmokeTurnAnalysisResult;
 };
 
 export function prepareSmokeTurnExecutionState(

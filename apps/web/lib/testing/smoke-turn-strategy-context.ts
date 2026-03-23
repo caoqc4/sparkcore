@@ -1,6 +1,9 @@
 import { getSmokeTurnContinuityContext } from "@/lib/testing/smoke-turn-continuity-context";
 import { getSmokeTurnRelationshipContext } from "@/lib/testing/smoke-turn-relationship-context";
-import type { SmokeContinuityReply, SmokeMemoryRow } from "@/lib/testing/smoke-turn-analysis-types";
+import type {
+  SmokeContinuityReply,
+  SmokeMemoryRow
+} from "@/lib/testing/smoke-turn-analysis";
 
 export function getSmokeTurnStrategyContext(args: {
   trimmedContent: string;

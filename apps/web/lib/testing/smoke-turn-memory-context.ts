@@ -1,6 +1,6 @@
 import { analyzeSmokeMemoryState } from "@/lib/testing/smoke-memory-analysis";
 import { selectSmokeRecalledMemories } from "@/lib/testing/smoke-memory-recall-selection";
-import type { SmokeMemoryRow } from "@/lib/testing/smoke-turn-analysis-types";
+import type { SmokeMemoryRow } from "@/lib/testing/smoke-turn-analysis";
 
 export function getSmokeTurnMemoryContext(args: {
   trimmedContent: string;
