@@ -2,6 +2,7 @@ import type {
   SmokeAnswerStrategy,
   SmokeReplyLanguage
 } from "@/lib/testing/smoke-assistant-builders";
+import { getSmokeGroundedMemoryContext } from "@/lib/testing/smoke-grounded-memory-context";
 import { buildSmokeGroundedPlanningReply } from "@/lib/testing/smoke-grounded-planning-replies";
 import { buildSmokeGroundedSummaryReply } from "@/lib/testing/smoke-grounded-summary-replies";
 import {
@@ -23,16 +24,8 @@ export function buildSmokeGroundedReply(args: {
   preferredNameMemory: SmokeRelationshipRecallMemory;
   recalledMemories: SmokeRecallMemory[];
 }) {
-  const rememberedProfession = args.recalledMemories.find(
-    (memory) =>
-      memory.memory_type === "profile" &&
-      memory.content.toLowerCase().includes("product designer")
-  );
-  const rememberedPlanningPreference = args.recalledMemories.find(
-    (memory) =>
-      memory.memory_type === "preference" &&
-      memory.content.toLowerCase().includes("concise weekly planning")
-  );
+  const { rememberedProfession, rememberedPlanningPreference } =
+    getSmokeGroundedMemoryContext(args.recalledMemories);
 
   if (
     args.answerStrategy === "grounded-open-ended-advice" &&
@@ -41,8 +34,8 @@ export function buildSmokeGroundedReply(args: {
     return buildSmokeGroundedPlanningReply({
       replyLanguage: args.replyLanguage,
       styleValue: args.addressStyleMemory?.content ?? null,
-      rememberedProfession: Boolean(rememberedProfession),
-      rememberedPlanningPreference: Boolean(rememberedPlanningPreference)
+      rememberedProfession,
+      rememberedPlanningPreference
     });
   }
 
@@ -54,7 +47,7 @@ export function buildSmokeGroundedReply(args: {
       replyLanguage: args.replyLanguage,
       selfName: args.nicknameMemory?.content ?? args.agentName,
       userName: args.preferredNameMemory?.content ?? null,
-      rememberedProfession: Boolean(rememberedProfession)
+      rememberedProfession
     });
   }
 
