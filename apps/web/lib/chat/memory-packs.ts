@@ -11,8 +11,34 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
   selection_reason:
     | "default_companion_phase"
     | "project_namespace_priority"
-    | "project_knowledge_priority";
+    | "project_knowledge_priority"
+    | "world_knowledge_influence";
 };
+
+function withWorldKnowledgeInfluence(
+  pack: ScenarioMemoryPack
+): ActiveScenarioMemoryPack {
+  const preferredRoutes = [
+    "thread_state",
+    "knowledge",
+    ...pack.preferred_routes.filter((route) => route !== "thread_state" && route !== "knowledge")
+  ] as ScenarioMemoryPack["preferred_routes"];
+
+  const assemblyOrder = [
+    "thread_state",
+    "knowledge",
+    ...pack.assembly_order.filter(
+      (layer) => layer !== "thread_state" && layer !== "knowledge"
+    )
+  ] as ScenarioMemoryPack["assembly_order"];
+
+  return {
+    ...pack,
+    preferred_routes: preferredRoutes,
+    assembly_order: assemblyOrder,
+    selection_reason: "world_knowledge_influence"
+  };
+}
 
 export function resolveActiveScenarioMemoryPack(args?: {
   activeNamespace?: ActiveRuntimeMemoryNamespace | null;
@@ -37,6 +63,12 @@ export function resolveActiveScenarioMemoryPack(args?: {
       ...resolveBuiltInScenarioMemoryPack("project_ops"),
       selection_reason: "project_knowledge_priority"
     };
+  }
+
+  if (worldKnowledgeCount > 0 && worldKnowledgeCount > projectKnowledgeCount) {
+    return withWorldKnowledgeInfluence(
+      resolveBuiltInScenarioMemoryPack("companion")
+    );
   }
 
   return {

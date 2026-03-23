@@ -290,6 +290,19 @@
     - `paused + minimal_context + retention_budget <= 1`
       的 compaction summary 会被主动丢弃
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` 下不会错误保留 `Language hint: en.`，以及 paused-minimal pruning
+- `P4-3 Knowledge route influence v2` 当前也已开始进入真实实现：
+  - `apps/web/lib/chat/memory-packs.ts` 当前已开始让 `world` knowledge 真实影响 active pack 的有效 `preferred_routes / assembly_order`
+  - 当前最小规则已经成立：
+    - 在 `world > project` 的 knowledge context 下，`companion` pack 仍保持 `companion`
+    - 但有效 `preferred_routes` 会提升成：
+      - `thread_state -> knowledge -> profile -> episode -> timeline`
+    - 有效 `assembly_order` 会提升成：
+      - `thread_state -> knowledge -> dynamic_profile -> static_profile -> memory_record`
+  - 也就是说，knowledge influence 当前已经不只体现在 knowledge snippet 的 prompt selection，而开始进入 pack-level route / assembly 决策
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验：
+    - `world_knowledge_influence`
+    - knowledge-promoted preferred routes
+    - knowledge-promoted assembly order
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

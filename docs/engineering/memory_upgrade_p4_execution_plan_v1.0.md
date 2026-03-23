@@ -201,6 +201,20 @@ P4 首批要把 `Knowledge` 从：
 - 至少一条 knowledge route/assembly 决策开始显式受 `project / world / general` 影响
 - 不再只靠 prompt 中的排序体现差异
 
+当前已成立的第一刀代码事实：
+
+- [memory-packs.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-packs.ts) 当前已开始让 `world` knowledge 真实影响 active pack 的**有效** route / assembly：
+  - `companion` pack 在 `world > project` 的 knowledge context 下，仍保持 `companion`
+  - 但有效 `preferred_routes` 会提升成：
+    - `thread_state -> knowledge -> profile -> episode -> timeline`
+  - 有效 `assembly_order` 会提升成：
+    - `thread_state -> knowledge -> dynamic_profile -> static_profile -> memory_record`
+- 也就是说，knowledge route influence 当前已经不只体现在 knowledge snippet 的 prompt selection，而开始进入 pack-level route / assembly decision
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - `world_knowledge_influence`
+  - knowledge-promoted preferred routes
+  - knowledge-promoted assembly order
+
 ### 4.4 Scenario pack consumption expansion v2
 
 P4 首批要把 `Scenario pack` 从：

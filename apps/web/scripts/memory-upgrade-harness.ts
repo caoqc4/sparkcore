@@ -574,6 +574,47 @@ function main() {
       "project_knowledge_priority",
     "Expected project-scoped knowledge to surface a project_knowledge_priority pack selection reason in P3."
   );
+  const worldKnowledgeDrivenScenarioMemoryPack = resolveActiveScenarioMemoryPack({
+    activeNamespace: {
+      namespace_id: "user:user-1|world:world-1",
+      primary_layer: "world",
+      active_layers: ["user", "world"],
+      refs: [
+        {
+          layer: "user",
+          entity_id: "user-1"
+        },
+        {
+          layer: "world",
+          entity_id: "world-1"
+        }
+      ],
+      selection_reason: "session_and_knowledge_scope"
+    },
+    relevantKnowledge: [
+      buildRuntimeKnowledgeSnippet(worldKnowledgeSnapshot),
+      buildRuntimeKnowledgeSnippet(generalKnowledgeSnapshot)
+    ]
+  });
+  expect(
+    worldKnowledgeDrivenScenarioMemoryPack.pack_id === "companion",
+    "Expected world-only knowledge context to keep the companion pack active in P4."
+  );
+  expect(
+    worldKnowledgeDrivenScenarioMemoryPack.selection_reason ===
+      "world_knowledge_influence",
+    "Expected world-scoped knowledge to surface a world_knowledge_influence pack selection reason in P4."
+  );
+  expect(
+    worldKnowledgeDrivenScenarioMemoryPack.preferred_routes.join(",") ===
+      "thread_state,knowledge,profile,episode,timeline",
+    "Expected world-scoped knowledge to promote knowledge into the effective preferred routes in P4."
+  );
+  expect(
+    worldKnowledgeDrivenScenarioMemoryPack.assembly_order.join(",") ===
+      "thread_state,knowledge,dynamic_profile,static_profile,memory_record",
+    "Expected world-scoped knowledge to promote knowledge into the effective assembly order in P4."
+  );
   expect(
     isMemoryWithinNamespace({
       memory: episodeMemory,
