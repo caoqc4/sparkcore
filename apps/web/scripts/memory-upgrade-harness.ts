@@ -401,22 +401,24 @@ function main() {
     dynamicOnlySemanticSummary.primary_layer === "dynamic_profile",
     "Expected dynamic-profile semantic layer to become the primary layer when it is the only active layer."
   );
-  const scenarioMemoryPack = resolveActiveScenarioMemoryPack();
+  const defaultScenarioMemoryPack = resolveActiveScenarioMemoryPack();
   expect(
-    scenarioMemoryPack.pack_id === "companion",
+    defaultScenarioMemoryPack.pack_id === "companion",
     "Expected companion scenario memory pack to be the default active pack in P2-1."
   );
   expect(
-    scenarioMemoryPack.preferred_routes.join(",") ===
+    defaultScenarioMemoryPack.preferred_routes.join(",") ===
       "thread_state,profile,episode,timeline",
     "Expected companion scenario memory pack to preserve the P1 retrieval preference order."
   );
-  const scenarioMemoryPackPrompt = buildScenarioMemoryPackPromptSection({
-    pack: scenarioMemoryPack,
+  const defaultScenarioMemoryPackPrompt = buildScenarioMemoryPackPromptSection({
+    pack: defaultScenarioMemoryPack,
     replyLanguage: "en"
   });
   expect(
-    scenarioMemoryPackPrompt.includes("Active Scenario Memory Pack: companion"),
+    defaultScenarioMemoryPackPrompt.includes(
+      "Active Scenario Memory Pack: companion"
+    ),
     "Expected scenario memory pack prompt section to expose the active companion pack."
   );
   const knowledgeSnapshot = buildKnowledgeSnapshot({
@@ -479,6 +481,26 @@ function main() {
     threadId: "thread-1",
     relevantKnowledge: runtimeKnowledge
   });
+  const scenarioMemoryPack = resolveActiveScenarioMemoryPack({
+    activeNamespace: activeMemoryNamespace
+  });
+  expect(
+    scenarioMemoryPack.pack_id === "project_ops",
+    "Expected project-primary namespace to switch the active scenario memory pack to project_ops in P3."
+  );
+  expect(
+    scenarioMemoryPack.preferred_routes.join(",") ===
+      "thread_state,knowledge,episode,profile",
+    "Expected project_ops scenario memory pack to prioritize knowledge retrieval in P3."
+  );
+  const scenarioMemoryPackPrompt = buildScenarioMemoryPackPromptSection({
+    pack: scenarioMemoryPack,
+    replyLanguage: "en"
+  });
+  expect(
+    scenarioMemoryPackPrompt.includes("Active Scenario Memory Pack: project_ops"),
+    "Expected project namespace scenario memory pack prompt section to expose project_ops in P3."
+  );
   expect(
     isMemoryWithinNamespace({
       memory: episodeMemory,
@@ -806,7 +828,7 @@ function main() {
     "Expected assistant metadata reader to expose all observed semantic layers."
   );
   expect(
-    getAssistantMemoryScenarioPackId(assistantMetadata) === "companion",
+    getAssistantMemoryScenarioPackId(assistantMetadata) === "project_ops",
     "Expected assistant metadata reader to expose the active scenario memory pack."
   );
   expect(
@@ -841,7 +863,7 @@ function main() {
     "Expected assistant metadata reader to expose project as the primary namespace layer in P2."
   );
   expect(
-    runtimeDebugMetadata.memory.pack?.pack_id === "companion",
+    runtimeDebugMetadata.memory.pack?.pack_id === "project_ops",
     "Expected runtime debug metadata to expose the active scenario memory pack in P2."
   );
   expect(
@@ -938,7 +960,7 @@ function main() {
     "Expected system prompt assembly to include memory semantic summary."
   );
   expect(
-    systemPrompt.includes("Active Scenario Memory Pack: companion"),
+    systemPrompt.includes("Active Scenario Memory Pack: project_ops"),
     "Expected system prompt assembly to include active scenario memory pack guidance."
   );
   expect(
@@ -1141,7 +1163,7 @@ function main() {
             "primary_layer = thread_state"
           ),
           includes_scenario_memory_pack: systemPrompt.includes(
-            "Active Scenario Memory Pack: companion"
+            "Active Scenario Memory Pack: project_ops"
           ),
           includes_knowledge_layer: systemPrompt.includes(
             "Relevant Knowledge Layer:"
@@ -1160,7 +1182,7 @@ function main() {
           )
         },
         p2_regression_gate: {
-          pack_metadata_ok: runtimeDebugMetadata.memory.pack?.pack_id === "companion",
+          pack_metadata_ok: runtimeDebugMetadata.memory.pack?.pack_id === "project_ops",
           knowledge_metadata_ok: runtimeDebugMetadata.knowledge.count === 3,
           knowledge_namespace_filter_ok:
             knowledgeSummary.count === 3 &&

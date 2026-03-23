@@ -4,12 +4,24 @@ import {
   type ScenarioMemoryPack,
 } from "../../../../packages/core/memory";
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
+import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 
 export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
-  selection_reason: "default_companion_phase";
+  selection_reason:
+    | "default_companion_phase"
+    | "project_namespace_priority";
 };
 
-export function resolveActiveScenarioMemoryPack(): ActiveScenarioMemoryPack {
+export function resolveActiveScenarioMemoryPack(args?: {
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null;
+}): ActiveScenarioMemoryPack {
+  if (args?.activeNamespace?.primary_layer === "project") {
+    return {
+      ...resolveBuiltInScenarioMemoryPack("project_ops"),
+      selection_reason: "project_namespace_priority"
+    };
+  }
+
   return {
     ...resolveBuiltInScenarioMemoryPack("companion"),
     selection_reason: "default_companion_phase",
@@ -55,7 +67,11 @@ export function buildScenarioMemoryPackPromptSection(args: {
           .join(" -> ")}。`
       : `Default assembly order: ${args.pack.assembly_order.join(" -> ")}.`,
     isZh
-      ? "如果当前回复缺少直接任务事实，优先保持陪伴连续性、关系 grounding 与稳定偏好一致性。"
-      : "When the current reply lacks direct task facts, prioritize continuity, relationship grounding, and stable preference alignment.",
+      ? args.pack.pack_id === "project_ops"
+        ? "如果当前回复缺少直接任务事实，优先保持项目知识 grounding、线程连续性与执行上下文一致。"
+        : "如果当前回复缺少直接任务事实，优先保持陪伴连续性、关系 grounding 与稳定偏好一致性。"
+      : args.pack.pack_id === "project_ops"
+        ? "When the current reply lacks direct task facts, prioritize project knowledge grounding, thread continuity, and execution-context alignment."
+        : "When the current reply lacks direct task facts, prioritize continuity, relationship grounding, and stable preference alignment.",
   ].join("\n");
 }

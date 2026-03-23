@@ -12,7 +12,7 @@ export type ScenarioMemoryRoute =
   | "thread_state"
   | "knowledge";
 
-export type ScenarioMemoryPackId = "companion";
+export type ScenarioMemoryPackId = "companion" | "project_ops";
 
 export type ScenarioMemoryPack = {
   pack_id: ScenarioMemoryPackId;
@@ -54,10 +54,41 @@ export const COMPANION_SCENARIO_MEMORY_PACK: ScenarioMemoryPack = {
   ]
 };
 
+export const PROJECT_OPS_SCENARIO_MEMORY_PACK: ScenarioMemoryPack = {
+  pack_id: "project_ops",
+  label: "Project Ops",
+  description:
+    "Optimize memory behavior for project execution with stronger project knowledge grounding, clearer task continuity, and tighter thread-to-project handoff.",
+  schema_extensions: [
+    "project objective anchor",
+    "delivery risk note",
+    "execution preference drift"
+  ],
+  extraction_hints: [
+    "Prefer project-scoped facts before broad relationship carryover.",
+    "Keep execution-mode preferences in dynamic profile when they persist across turns.",
+    "Promote project knowledge into context before generic guidance."
+  ],
+  preferred_routes: ["thread_state", "knowledge", "episode", "profile"],
+  assembly_order: [
+    "thread_state",
+    "knowledge",
+    "dynamic_profile",
+    "memory_record"
+  ],
+  eval_hooks: [
+    "project_grounding",
+    "task_continuity",
+    "knowledge_budget_priority"
+  ]
+};
+
 export function resolveBuiltInScenarioMemoryPack(
   packId: ScenarioMemoryPackId = "companion"
 ): ScenarioMemoryPack {
   switch (packId) {
+    case "project_ops":
+      return PROJECT_OPS_SCENARIO_MEMORY_PACK;
     case "companion":
     default:
       return COMPANION_SCENARIO_MEMORY_PACK;
