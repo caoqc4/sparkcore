@@ -23,6 +23,38 @@ export type RoleRepository = {
   ) => Promise<RoleProfile | null>;
 };
 
+function loadSupabaseRoleProfileById(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+  agentId: string;
+}) {
+  return args.supabase
+    .from("agents")
+    .select(ROLE_PROFILE_SELECT)
+    .eq("workspace_id", args.workspaceId)
+    .eq("owner_user_id", args.userId)
+    .eq("status", "active")
+    .eq("id", args.agentId)
+    .maybeSingle();
+}
+
+function loadSupabaseLatestActiveRoleProfile(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+}) {
+  return args.supabase
+    .from("agents")
+    .select(ROLE_PROFILE_SELECT)
+    .eq("workspace_id", args.workspaceId)
+    .eq("owner_user_id", args.userId)
+    .eq("status", "active")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+}
+
 function asRoleProfile(record: unknown): RoleProfile | null {
   return record ? (record as RoleProfile) : null;
 }
@@ -49,14 +81,12 @@ export class SupabaseRoleRepository implements RoleRepository {
   async getRoleProfileById(
     input: GetRoleProfileByIdInput
   ): Promise<RoleProfile | null> {
-    const { data } = await this.supabase
-      .from("agents")
-      .select(ROLE_PROFILE_SELECT)
-      .eq("workspace_id", input.workspaceId)
-      .eq("owner_user_id", input.userId)
-      .eq("status", "active")
-      .eq("id", input.agentId)
-      .maybeSingle();
+    const { data } = await loadSupabaseRoleProfileById({
+      supabase: this.supabase,
+      workspaceId: input.workspaceId,
+      userId: input.userId,
+      agentId: input.agentId
+    });
 
     return asRoleProfile(data);
   }
@@ -64,15 +94,11 @@ export class SupabaseRoleRepository implements RoleRepository {
   async getLatestActiveRoleProfile(
     input: GetLatestActiveRoleProfileInput
   ): Promise<RoleProfile | null> {
-    const { data } = await this.supabase
-      .from("agents")
-      .select(ROLE_PROFILE_SELECT)
-      .eq("workspace_id", input.workspaceId)
-      .eq("owner_user_id", input.userId)
-      .eq("status", "active")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const { data } = await loadSupabaseLatestActiveRoleProfile({
+      supabase: this.supabase,
+      workspaceId: input.workspaceId,
+      userId: input.userId
+    });
 
     return asRoleProfile(data);
   }
