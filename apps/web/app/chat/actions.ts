@@ -12,6 +12,10 @@ import {
   normalizeSingleSlotValue
 } from "@/lib/chat/memory-v2";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
+import {
+  loadActiveSingleSlotMemoryRows,
+  loadOwnedMemoryItemById
+} from "@/lib/chat/memory-item-read";
 import { updateMemoryItem } from "@/lib/chat/memory-item-persistence";
 import { buildWebRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import {
@@ -592,12 +596,12 @@ export async function hideMemory(formData: FormData) {
     redirect("/login");
   }
 
-  const { data: memoryItem } = await supabase
-    .from("memory_items")
-    .select("id, metadata, status")
-    .eq("id", memoryId)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data: memoryItem } = await loadOwnedMemoryItemById({
+    supabase,
+    memoryItemId: memoryId,
+    userId: user.id,
+    select: "id, metadata, status"
+  });
 
   if (!memoryItem) {
     redirect(
@@ -671,14 +675,13 @@ export async function restoreMemory(formData: FormData) {
     redirect("/login");
   }
 
-  const { data: memoryItem } = await supabase
-    .from("memory_items")
-    .select(
+  const { data: memoryItem } = await loadOwnedMemoryItemById({
+    supabase,
+    memoryItemId: memoryId,
+    userId: user.id,
+    select:
       "id, workspace_id, category, key, value, content, scope, target_agent_id, target_thread_id, metadata, status"
-    )
-    .eq("id", memoryId)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  });
 
   if (!memoryItem) {
     redirect(
@@ -709,34 +712,18 @@ export async function restoreMemory(formData: FormData) {
     (scope === "user_global" || scope === "user_agent" || scope === "thread_local");
 
   if (isRestoringSingleSlot) {
-    let conflictingQuery = supabase
-      .from("memory_items")
-      .select("id, metadata")
-      .eq("workspace_id", memoryItem.workspace_id)
-      .eq("user_id", user.id)
-      .eq("category", memoryItem.category)
-      .eq("key", memoryItem.key)
-      .eq("scope", scope)
-      .eq("status", "active")
-      .neq("id", memoryItem.id);
-
-    if (scope === "user_agent") {
-      conflictingQuery = conflictingQuery.eq(
-        "target_agent_id",
-        memoryItem.target_agent_id
-      );
-    } else {
-      conflictingQuery = conflictingQuery.is("target_agent_id", null);
-    }
-
-    if (scope === "thread_local") {
-      conflictingQuery = conflictingQuery.eq(
-        "target_thread_id",
-        memoryItem.target_thread_id
-      );
-    } else {
-      conflictingQuery = conflictingQuery.is("target_thread_id", null);
-    }
+    const conflictingQuery = loadActiveSingleSlotMemoryRows({
+      supabase,
+      workspaceId: memoryItem.workspace_id,
+      userId: user.id,
+      category: memoryItem.category,
+      key: memoryItem.key,
+      scope,
+      excludedMemoryItemId: memoryItem.id,
+      targetAgentId: memoryItem.target_agent_id,
+      targetThreadId: memoryItem.target_thread_id,
+      select: "id, metadata"
+    });
 
     const { data: conflictingActiveRows, error: conflictingRowsError } =
       await conflictingQuery;
@@ -845,12 +832,12 @@ export async function markMemoryIncorrect(formData: FormData) {
     redirect("/login");
   }
 
-  const { data: memoryItem } = await supabase
-    .from("memory_items")
-    .select("id, metadata, status")
-    .eq("id", memoryId)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data: memoryItem } = await loadOwnedMemoryItemById({
+    supabase,
+    memoryItemId: memoryId,
+    userId: user.id,
+    select: "id, metadata, status"
+  });
 
   if (!memoryItem) {
     redirect(
