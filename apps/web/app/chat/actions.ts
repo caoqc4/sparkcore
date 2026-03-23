@@ -1088,6 +1088,10 @@ export async function sendMessage(
       threadId: thread.id,
       workspaceId: workspace.id,
       userId: user.id,
+      activeNamespace:
+        ((runtimeTurnResult.debug_metadata as {
+          memory_namespace?: ActiveRuntimeMemoryNamespace | null;
+        } | undefined)?.memory_namespace ?? null),
       runtimeTurnResult
     });
 
@@ -1314,6 +1318,10 @@ export async function retryAssistantReply(
       threadId: thread.id,
       workspaceId: workspace.id,
       userId: user.id,
+      activeNamespace:
+        ((runtimeTurnResult.debug_metadata as {
+          memory_namespace?: ActiveRuntimeMemoryNamespace | null;
+        } | undefined)?.memory_namespace ?? null),
       runtimeTurnResult
     });
   } catch (error) {

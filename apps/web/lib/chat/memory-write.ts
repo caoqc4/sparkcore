@@ -49,7 +49,10 @@ import {
   isMemoryWithinNamespace,
   type ActiveRuntimeMemoryNamespace
 } from "@/lib/chat/memory-namespace";
-import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
+import {
+  resolvePlannedMemoryWriteTarget,
+  type PlannedMemoryWriteBoundary
+} from "@/lib/chat/memory-write-targets";
 import {
   insertMemoryItem,
   insertMemoryItems,
@@ -568,12 +571,12 @@ export async function executeMemoryWriteRequests({
   );
   const threadStateRequests = genericRequests.filter(
     (request) =>
-      resolvePlannedMemoryWriteTarget(request).recordTarget ===
+      resolvePlannedMemoryWriteTarget(request, activeNamespace).recordTarget ===
       "thread_state_candidate"
   );
   const persistedGenericRequests = genericRequests.filter(
     (request) =>
-      resolvePlannedMemoryWriteTarget(request).recordTarget !==
+      resolvePlannedMemoryWriteTarget(request, activeNamespace).recordTarget !==
       "thread_state_candidate"
   );
 
@@ -584,7 +587,7 @@ export async function executeMemoryWriteRequests({
   });
 
   for (const request of relationshipRequests) {
-    const target = resolvePlannedMemoryWriteTarget(request);
+    const target = resolvePlannedMemoryWriteTarget(request, activeNamespace);
     const relationshipRecord = buildPlannedRelationshipMemoryRecord({
       workspaceId,
       userId,
@@ -606,7 +609,11 @@ export async function executeMemoryWriteRequests({
         request.relationship_key === "user_address_style" ? "medium" : "high",
       activeNamespace,
       metadata: {
-        ...buildRelationshipPlannerMemoryMetadata(request, namespaceMetadata),
+        ...buildRelationshipPlannerMemoryMetadata(request, namespaceMetadata, {
+          writeBoundary: target.writeBoundary,
+          namespacePrimaryLayer: target.namespacePrimaryLayer,
+          targetNamespaceId: target.targetNamespaceId
+        }),
         record_target: target.recordTarget,
         semantic_subject_id: relationshipRecord.subject.entity_id
       }
@@ -763,12 +770,23 @@ export async function executeMemoryWriteRequests({
     );
 
     const sourceTurnId = matchingRequest?.source_turn_id;
+    const fallbackWriteBoundary: PlannedMemoryWriteBoundary =
+      activeNamespace?.primary_layer === "world"
+        ? "world"
+        : activeNamespace?.primary_layer === "project"
+          ? "project"
+          : activeNamespace?.primary_layer === "thread"
+            ? "thread"
+            : "default";
     const target = matchingRequest
-      ? resolvePlannedMemoryWriteTarget(matchingRequest)
+      ? resolvePlannedMemoryWriteTarget(matchingRequest, activeNamespace)
       : {
           recordTarget: "static_profile" as const,
           canonicalMemoryType: candidate.memory_type,
-          legacyScope: "user_global" as const
+          legacyScope: "user_global" as const,
+          writeBoundary: fallbackWriteBoundary,
+          namespacePrimaryLayer: activeNamespace?.primary_layer ?? null,
+          targetNamespaceId: activeNamespace?.namespace_id ?? null
         };
     const matchingExisting = activeExistingMemories.find(
       (memory) =>

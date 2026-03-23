@@ -93,6 +93,16 @@ P3 首批要做的，不是完整多 Agent 共享状态引擎，而是把 namesp
   - generic planner metadata 会携带 namespace project scope
   - relationship planner metadata 会携带 namespace project scope
 
+当前已成立的第三刀代码事实：
+
+- `apps/web/lib/chat/memory-write-targets.ts` 当前已开始把 active namespace 纳入 `resolvePlannedMemoryWriteTarget(...)`，并显式产出：
+  - `write_boundary`
+  - `namespace_primary_layer`
+  - `target_namespace_id`
+- `apps/web/lib/chat/runtime-preview-metadata.ts` 当前也已开始把这层 namespace-aware write routing 暴露到 runtime memory write preview
+- `apps/web/lib/chat/runtime.ts` 当前也已开始把 `write_boundaries` 写入 `memory_write_planned` event
+- `memory-upgrade-harness.ts` 当前也已开始显式校验 project namespace 下的 write boundary 解析与 preview metadata 暴露
+
 ### 4.2 Thread retention strategy v1
 
 P3 首批要把 `Thread Compaction` 再往前推进一层，形成最小 retention 策略。

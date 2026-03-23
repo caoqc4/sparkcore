@@ -63,7 +63,10 @@ export function buildPlannedGenericMemoryInsertRow(args: {
       threshold: args.threshold,
       recordTarget: args.target.recordTarget,
       canonicalMemoryType: args.target.canonicalMemoryType,
-      namespaceMetadata: args.namespaceMetadata
+      namespaceMetadata: args.namespaceMetadata,
+      writeBoundary: args.target.writeBoundary,
+      namespacePrimaryLayer: args.target.namespacePrimaryLayer,
+      targetNamespaceId: args.target.targetNamespaceId
     })
   };
 }
@@ -102,7 +105,10 @@ export function buildPlannedGenericMemoryUpdateRow(args: {
       convergenceUpdatedAt: args.convergenceUpdatedAt,
       recordTarget: args.target.recordTarget,
       canonicalMemoryType: args.target.canonicalMemoryType,
-      namespaceMetadata: args.namespaceMetadata
+      namespaceMetadata: args.namespaceMetadata,
+      writeBoundary: args.target.writeBoundary,
+      namespacePrimaryLayer: args.target.namespacePrimaryLayer,
+      targetNamespaceId: args.target.targetNamespaceId
     }),
     category: args.candidate.memory_type as MemoryType,
     key: staticProfile.key ?? LEGACY_MEMORY_KEY,

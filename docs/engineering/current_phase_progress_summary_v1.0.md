@@ -144,6 +144,10 @@
   - `apps/web/lib/chat/memory-namespace.ts` 当前也已开始提供 namespace-scoped write metadata helper，把 `project / world` scope 真实写入 planner metadata
   - `apps/web/lib/chat/runtime-turn-post-processing.ts` / `apps/web/app/chat/actions.ts` 当前也已开始把 runtime 期的 active namespace 传入 post-processing write path
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 namespace-scoped planner metadata
+  - `apps/web/lib/chat/memory-write-targets.ts` 当前也已开始把 active namespace 纳入 `resolvePlannedMemoryWriteTarget(...)`，并显式产出 `write_boundary / namespace_primary_layer / target_namespace_id`
+  - `apps/web/lib/chat/runtime-preview-metadata.ts` 当前也已开始把 namespace-aware write routing 暴露到 runtime memory write preview
+  - `apps/web/lib/chat/runtime.ts` 当前也已开始把 `write_boundaries` 写入 `memory_write_planned` event
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 project namespace 下的 write boundary 解析与 preview metadata 暴露
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

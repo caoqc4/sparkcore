@@ -4071,7 +4071,22 @@ export async function runPreparedRuntimeTurn({
           record_targets: Array.from(
             new Set(
               memoryWriteRequests.map(
-                (request) => resolvePlannedMemoryWriteTarget(request).recordTarget
+                (request) =>
+                  resolvePlannedMemoryWriteTarget(
+                    request,
+                    activeMemoryNamespace
+                  ).recordTarget
+              )
+            )
+          ),
+          write_boundaries: Array.from(
+            new Set(
+              memoryWriteRequests.map(
+                (request) =>
+                  resolvePlannedMemoryWriteTarget(
+                    request,
+                    activeMemoryNamespace
+                  ).writeBoundary
               )
             )
           )

@@ -22,6 +22,7 @@ type AssistantPostProcessingTarget = {
 
 export async function persistAssistantRequestPreviews(
   args: AssistantPostProcessingTarget & {
+    activeNamespace?: ActiveRuntimeMemoryNamespace | null;
     runtimeTurnResult: Pick<
       RuntimeTurnResult,
       "memory_write_requests" | "follow_up_requests"
@@ -35,6 +36,7 @@ export async function persistAssistantRequestPreviews(
       threadId: args.threadId,
       workspaceId: args.workspaceId,
       userId: args.userId,
+      activeNamespace: args.activeNamespace ?? null,
       requests: args.runtimeTurnResult.memory_write_requests
     });
   }

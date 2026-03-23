@@ -43,6 +43,8 @@ import {
   buildGenericPlannerMemoryInsertMetadata,
   buildRelationshipPlannerMemoryMetadata
 } from "@/lib/chat/memory-write-metadata";
+import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
+import { buildRuntimeMemoryWriteRequestMetadata } from "@/lib/chat/runtime-preview-metadata";
 import { buildCompactedThreadSummary } from "@/lib/chat/thread-compaction";
 import {
   buildPlannedRelationshipMemoryRecord,
@@ -498,6 +500,55 @@ function main() {
   expect(
     relationshipPlannerMetadata.project_id === "project-1",
     "Expected relationship planner metadata to carry namespace project scope."
+  );
+  const namespaceAwareWriteTarget = resolvePlannedMemoryWriteTarget(
+    {
+      kind: "relationship_memory",
+      memory_type: "relationship",
+      relationship_key: "agent_nickname",
+      relationship_scope: "user_agent",
+      candidate_content: "小助手",
+      reason: "The user explicitly proposed a stable nickname for this agent.",
+      confidence: 0.96,
+      source_turn_id: "msg-1",
+      target_agent_id: "agent-1",
+      target_thread_id: null,
+      dedupe_key: "relationship.agent_nickname:小助手",
+      write_mode: "upsert"
+    },
+    activeMemoryNamespace
+  );
+  expect(
+    namespaceAwareWriteTarget.writeBoundary === "project",
+    "Expected namespace-aware write target resolution to produce a project boundary."
+  );
+  expect(
+    namespaceAwareWriteTarget.namespacePrimaryLayer === "project",
+    "Expected namespace-aware write target resolution to expose the project primary layer."
+  );
+  const runtimeWritePreview = buildRuntimeMemoryWriteRequestMetadata(
+    [
+      {
+        kind: "relationship_memory",
+        memory_type: "relationship",
+        relationship_key: "agent_nickname",
+        relationship_scope: "user_agent",
+        candidate_content: "小助手",
+        reason: "The user explicitly proposed a stable nickname for this agent.",
+        confidence: 0.96,
+        source_turn_id: "msg-1",
+        target_agent_id: "agent-1",
+        target_thread_id: null,
+        dedupe_key: "relationship.agent_nickname:小助手",
+        write_mode: "upsert"
+      }
+    ],
+    activeMemoryNamespace
+  );
+  expect(
+    Array.isArray(runtimeWritePreview.runtime_memory_write_boundaries) &&
+      runtimeWritePreview.runtime_memory_write_boundaries.includes("project"),
+    "Expected runtime memory write preview metadata to expose project write boundary."
   );
   const applicableKnowledge = filterKnowledgeByActiveNamespace({
     knowledge: runtimeKnowledge,

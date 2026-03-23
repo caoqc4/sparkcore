@@ -5,6 +5,7 @@ import {
   buildRuntimeMemoryWriteRequestMetadata,
   getRuntimePreviewMetadataGroup
 } from "@/lib/chat/runtime-preview-metadata";
+import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import { loadScopedMessageById } from "@/lib/chat/message-read";
 import { updateScopedMessage } from "@/lib/chat/message-persistence";
 
@@ -65,11 +66,15 @@ export async function updateAssistantPreviewMetadata(args: {
 export async function updateAssistantMemoryWriteRequestPreview(
   args: AssistantPreviewTarget & {
     requests: Parameters<typeof buildRuntimeMemoryWriteRequestMetadata>[0];
+    activeNamespace?: ActiveRuntimeMemoryNamespace | null;
   }
 ) {
   return updateAssistantPreviewMetadata({
     ...args,
-    updates: buildRuntimeMemoryWriteRequestMetadata(args.requests)
+    updates: buildRuntimeMemoryWriteRequestMetadata(
+      args.requests,
+      args.activeNamespace ?? null
+    )
   });
 }
 

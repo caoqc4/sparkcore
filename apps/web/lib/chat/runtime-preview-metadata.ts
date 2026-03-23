@@ -2,6 +2,7 @@ import type {
   RuntimeFollowUpRequest,
   RuntimeMemoryWriteRequest
 } from "@/lib/chat/runtime-contract";
+import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 import { buildPlannedThreadStateCandidatePreview } from "@/lib/chat/memory-write-record-candidates";
 
@@ -42,16 +43,20 @@ export function getRuntimePreviewMetadataGroup(
 }
 
 function buildRuntimeMemoryWriteRequestPreview(
-  requests: RuntimeMemoryWriteRequest[]
+  requests: RuntimeMemoryWriteRequest[],
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null
 ) {
   return requests.map((request) => {
-    const target = resolvePlannedMemoryWriteTarget(request);
+    const target = resolvePlannedMemoryWriteTarget(request, activeNamespace);
 
     return {
       kind: request.kind,
       memory_type: request.memory_type,
       record_target: target.recordTarget,
       canonical_memory_type: target.canonicalMemoryType,
+      write_boundary: target.writeBoundary,
+      namespace_primary_layer: target.namespacePrimaryLayer,
+      target_namespace_id: target.targetNamespaceId,
       thread_state_candidate:
         target.recordTarget === "thread_state_candidate"
           ? buildPlannedThreadStateCandidatePreview({
@@ -69,12 +74,28 @@ function buildRuntimeMemoryWriteRequestPreview(
 }
 
 function buildRuntimeMemoryWriteRecordTargets(
-  requests: RuntimeMemoryWriteRequest[]
+  requests: RuntimeMemoryWriteRequest[],
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null
 ) {
   return Array.from(
     new Set(
       requests.map(
-        (request) => resolvePlannedMemoryWriteTarget(request).recordTarget
+        (request) =>
+          resolvePlannedMemoryWriteTarget(request, activeNamespace).recordTarget
+      )
+    )
+  );
+}
+
+function buildRuntimeMemoryWriteBoundaries(
+  requests: RuntimeMemoryWriteRequest[],
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null
+) {
+  return Array.from(
+    new Set(
+      requests.map(
+        (request) =>
+          resolvePlannedMemoryWriteTarget(request, activeNamespace).writeBoundary
       )
     )
   );
@@ -113,19 +134,32 @@ function buildFollowUpEnqueuedRecordsPreview(
 }
 
 export function buildRuntimeMemoryWriteRequestMetadata(
-  requests: RuntimeMemoryWriteRequest[]
+  requests: RuntimeMemoryWriteRequest[],
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null
 ) {
-  const preview = buildRuntimeMemoryWriteRequestPreview(requests);
-  const recordTargets = buildRuntimeMemoryWriteRecordTargets(requests);
+  const preview = buildRuntimeMemoryWriteRequestPreview(
+    requests,
+    activeNamespace
+  );
+  const recordTargets = buildRuntimeMemoryWriteRecordTargets(
+    requests,
+    activeNamespace
+  );
+  const writeBoundaries = buildRuntimeMemoryWriteBoundaries(
+    requests,
+    activeNamespace
+  );
 
   return {
     runtime_memory_writes: {
       request_count: requests.length,
       record_targets: recordTargets,
+      write_boundaries: writeBoundaries,
       preview
     },
     runtime_memory_write_request_count: requests.length,
     runtime_memory_write_record_targets: recordTargets,
+    runtime_memory_write_boundaries: writeBoundaries,
     runtime_memory_write_requests_preview: preview
   };
 }

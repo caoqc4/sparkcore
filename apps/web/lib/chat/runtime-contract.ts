@@ -170,6 +170,7 @@ export type RuntimeMemoryWritePlannedEvent = {
     record_targets: Array<
       "static_profile" | "memory_record" | "thread_state_candidate"
     >;
+    write_boundaries: Array<"default" | "thread" | "project" | "world">;
   };
 };
 
