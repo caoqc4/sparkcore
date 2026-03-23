@@ -69,3 +69,11 @@ export const SMOKE_DIRECT_SUPPORTIVE_PREDICATES = [
   isSmokeNonJudgingFollowUpPrompt,
   isSmokeSameSideFollowUpPrompt
 ] as const;
+
+export function matchesSmokeShortSupportivePredicate(content: string) {
+  return (
+    SMOKE_DIRECT_SUPPORTIVE_PREDICATES.some((predicate) => predicate(content)) ||
+    SMOKE_SOFT_SUPPORTIVE_PREDICATES.some((predicate) => predicate(content)) ||
+    SMOKE_ANTI_SUPPORTIVE_PREDICATES.some((predicate) => predicate(content))
+  );
+}

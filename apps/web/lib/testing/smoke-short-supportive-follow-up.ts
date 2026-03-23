@@ -1,5 +1,5 @@
-import { SMOKE_SHORT_SUPPORTIVE_PREDICATES } from "@/lib/testing/smoke-short-supportive-predicates";
+import { matchesSmokeShortSupportivePredicate } from "@/lib/testing/smoke-short-supportive-predicate-groups";
 
 export function isSmokeShortRelationshipSupportivePrompt(content: string) {
-  return SMOKE_SHORT_SUPPORTIVE_PREDICATES.some((predicate) => predicate(content));
+  return matchesSmokeShortSupportivePredicate(content);
 }
