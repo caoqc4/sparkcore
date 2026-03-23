@@ -1,6 +1,26 @@
 import { prepareSmokeAssistantTurn } from "@/lib/testing/smoke-turn-assistant-prep";
 import { persistPreparedSmokeAssistantTurn } from "@/lib/testing/smoke-turn-assistant-persistence";
-import type { SmokeAssistantTurnRunInput } from "@/lib/testing/smoke-turn-assistant-run-types";
+
+export type SmokeTurnAnalysis = ReturnType<
+  typeof import("@/lib/testing/smoke-turn-execution-state").prepareSmokeTurnExecutionState
+>["analysis"];
+
+export type SmokeAssistantTurnRunInput = {
+  supabase: Parameters<typeof persistPreparedSmokeAssistantTurn>[0]["supabase"];
+  threadId: string;
+  workspaceId: string;
+  userId: string;
+  agentId: string;
+  agentName: string;
+  personaSummary: string | null;
+  styleGuidance: string | null;
+  modelProfileId: string;
+  modelProfileName: string;
+  model: string;
+  trimmedContent: string;
+  analysis: SmokeTurnAnalysis;
+  createdTypes: Parameters<typeof persistPreparedSmokeAssistantTurn>[0]["createdTypes"];
+};
 
 export async function runSmokeAssistantTurnStep(args: SmokeAssistantTurnRunInput) {
   const preparedAssistantTurn = prepareSmokeAssistantTurn({
