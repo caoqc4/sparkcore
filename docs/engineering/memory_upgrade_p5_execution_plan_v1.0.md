@@ -278,6 +278,18 @@ P5 首批要把 scenario pack 从：
   - memory record budget
   - dynamic profile coexist/suppress 规则
   - memory record subtype priority
+- 当前已成立的第二刀代码事实：
+  - [memory-packs.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-packs.ts) 当前已开始把 strategy bundle 从“预算 bundle”推进成“assembly bundle”：
+    - `assembly_layer_order`
+  - 当前最小规则已经成立：
+    - `project_execution`
+      - `memory_record -> static_profile -> relationship -> dynamic_profile`
+    - `companion_continuity`
+      - `dynamic_profile -> relationship -> static_profile -> memory_record`
+  - [runtime.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime.ts) 当前已开始通过这层 `assembly_layer_order` 真实改变 memory layer prompt section 的进入顺序，而不再只按 runtime 固定顺序组装
+  - [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已开始显式校验：
+    - `project_execution` 下 `memory_record` 先于 `static_profile`
+    - `companion_continuity` 下 `relationship` 先于 `static_profile / memory_record`
 - [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已开始显式校验：
   - `project_execution` strategy bundle
   - prompt 中已能看到 `Current strategy bundle = project_execution; relationship/static_profile/memory_record budget = 1/1/2.`

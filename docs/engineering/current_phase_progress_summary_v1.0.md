@@ -54,6 +54,9 @@
   - `layer_budget_bundle`
   - `dynamic_profile_strategy`
   - `memory_record_priority_order`
+  - `assembly_layer_order`
+  - 当前 `project_execution` 已让 `memory_record` 先于 `static_profile`
+  - 当前 `companion_continuity` 已让 `relationship` 先于 `static_profile / memory_record`
 
 ---
 

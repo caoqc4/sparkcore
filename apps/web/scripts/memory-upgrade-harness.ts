@@ -601,7 +601,9 @@ function main() {
     scenarioMemoryPackStrategy.strategy_bundle_id === "project_execution" &&
       scenarioMemoryPackStrategy.layer_budget_bundle.relationship_limit === 1 &&
       scenarioMemoryPackStrategy.layer_budget_bundle.static_profile_limit === 1 &&
-      scenarioMemoryPackStrategy.layer_budget_bundle.memory_record_limit === 2,
+      scenarioMemoryPackStrategy.layer_budget_bundle.memory_record_limit === 2 &&
+      scenarioMemoryPackStrategy.assembly_layer_order.join(",") ===
+        "memory_record,static_profile,relationship,dynamic_profile",
     "Expected project_ops scenario memory pack to resolve a reusable project_execution strategy bundle in P5."
   );
   expect(
@@ -1649,6 +1651,18 @@ function main() {
     companionDynamicVsRecordPrompt.includes("2. dynamic_profile:"),
     "Expected companion system prompt assembly to preserve dynamic_profile alongside memory_record in P4."
   );
+  expect(
+    systemPrompt.indexOf("4. memory_record:") <
+      systemPrompt.indexOf("3. static_profile:"),
+    "Expected project_execution strategy bundle to place memory_record ahead of static_profile in P5."
+  );
+  expect(
+    companionSystemPrompt.indexOf("5. relationship memory:") <
+      companionSystemPrompt.indexOf("3. static_profile:") &&
+      companionSystemPrompt.indexOf("3. static_profile:") <
+        companionSystemPrompt.indexOf("4. memory_record:"),
+    "Expected companion_continuity strategy bundle to place relationship grounding ahead of static_profile and memory_record in P5."
+  );
 
   const p5RegressionGateChecks = {
     namespace_multi_budget_routing_ok:
@@ -1701,13 +1715,20 @@ function main() {
       ),
     scenario_pack_strategy_v3_ok:
       scenarioMemoryPackStrategy.strategy_bundle_id === "project_execution" &&
+      scenarioMemoryPackStrategy.assembly_layer_order.join(",") ===
+        "memory_record,static_profile,relationship,dynamic_profile" &&
       systemPrompt.includes("RM1:") &&
       !systemPrompt.includes("RM2:") &&
       systemPrompt.includes("SP1:") &&
       !systemPrompt.includes("SP2:") &&
       systemPrompt.includes(
         "Current strategy bundle = project_execution; relationship/static_profile/memory_record budget = 1/1/2."
-      )
+      ) &&
+      systemPrompt.includes(
+        "Current strategy assembly order = memory_record -> static_profile -> relationship -> dynamic_profile."
+      ) &&
+      systemPrompt.indexOf("4. memory_record:") <
+        systemPrompt.indexOf("3. static_profile:")
   } as const;
   const p5RegressionGateFailedChecks = Object.entries(
     p5RegressionGateChecks

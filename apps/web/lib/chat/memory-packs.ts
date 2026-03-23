@@ -15,6 +15,9 @@ export type ScenarioMemoryPackStrategy = {
     static_profile_limit: number;
     memory_record_limit: number;
   };
+  assembly_layer_order: Array<
+    "dynamic_profile" | "static_profile" | "memory_record" | "relationship"
+  >;
   dynamic_profile_strategy:
     | "coexist_with_memory_record"
     | "suppress_when_memory_record_present";
@@ -49,6 +52,12 @@ export function resolveScenarioMemoryPackStrategy(
         static_profile_limit: 1,
         memory_record_limit: 2
       },
+      assembly_layer_order: [
+        "memory_record",
+        "static_profile",
+        "relationship",
+        "dynamic_profile"
+      ],
       dynamic_profile_strategy: "suppress_when_memory_record_present",
       memory_record_priority_order: ["timeline", "episode", "relationship", "profile"]
     };
@@ -61,6 +70,12 @@ export function resolveScenarioMemoryPackStrategy(
       static_profile_limit: 2,
       memory_record_limit: 1
     },
+    assembly_layer_order: [
+      "dynamic_profile",
+      "relationship",
+      "static_profile",
+      "memory_record"
+    ],
     dynamic_profile_strategy: "coexist_with_memory_record",
     memory_record_priority_order: ["episode", "timeline", "relationship", "profile"]
   };
@@ -203,6 +218,9 @@ export function buildScenarioMemoryPackPromptSection(args: {
     isZh
       ? `当前 strategy bundle = ${strategy.strategy_bundle_id}；relationship/static_profile/memory_record budget = ${strategy.layer_budget_bundle.relationship_limit}/${strategy.layer_budget_bundle.static_profile_limit}/${strategy.layer_budget_bundle.memory_record_limit}。`
       : `Current strategy bundle = ${strategy.strategy_bundle_id}; relationship/static_profile/memory_record budget = ${strategy.layer_budget_bundle.relationship_limit}/${strategy.layer_budget_bundle.static_profile_limit}/${strategy.layer_budget_bundle.memory_record_limit}.`,
+    isZh
+      ? `当前 strategy assembly order = ${strategy.assembly_layer_order.join(" -> ")}。`
+      : `Current strategy assembly order = ${strategy.assembly_layer_order.join(" -> ")}.`,
     isZh
       ? args.pack.pack_id === "project_ops"
         ? "如果当前回复缺少直接任务事实，优先保持项目知识 grounding、线程连续性与执行上下文一致。"

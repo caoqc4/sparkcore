@@ -1313,77 +1313,98 @@ function buildMemoryLayerAssemblyPrompt(args: {
     );
   }
 
+  const layerPromptSections: Array<{
+    layer:
+      | "dynamic_profile"
+      | "static_profile"
+      | "memory_record"
+      | "relationship";
+    content: string[];
+  }> = [];
+
   if (dynamicProfileMemories.length > 0) {
-    sections.push(
-      isZh
-        ? "2. dynamic_profile：承接当前阶段仍持续有效的工作方式或偏好。"
-        : "2. dynamic_profile: carry the still-active phase-level working mode or preference."
-    );
-    sections.push(
-      ...dynamicProfileMemories.map((memory, index) =>
+    layerPromptSections.push({
+      layer: "dynamic_profile",
+      content: [
         isZh
-          ? `   - DP${index + 1}: ${memory.content}`
-          : `   - DP${index + 1}: ${memory.content}`
-      )
-    );
+          ? "2. dynamic_profile：承接当前阶段仍持续有效的工作方式或偏好。"
+          : "2. dynamic_profile: carry the still-active phase-level working mode or preference.",
+        ...dynamicProfileMemories.map((memory, index) =>
+          isZh
+            ? `   - DP${index + 1}: ${memory.content}`
+            : `   - DP${index + 1}: ${memory.content}`
+        )
+      ]
+    });
   }
 
   if (staticProfileMemories.length > 0) {
-    sections.push(
-      isZh
-        ? args.scenarioPack?.pack_id === "companion"
-          ? "3. static_profile：作为稳定长期偏好的回答基线。"
-          : "3. static_profile：仅保留最小稳定偏好基线，避免压过执行上下文。"
-        : args.scenarioPack?.pack_id === "companion"
-          ? "3. static_profile: use as the stable long-term preference baseline."
-          : "3. static_profile: keep only a minimal stable-preference baseline so it does not outweigh execution context."
-    );
-    sections.push(
-      ...staticProfileMemories.map((memory, index) =>
+    layerPromptSections.push({
+      layer: "static_profile",
+      content: [
         isZh
-          ? `   - SP${index + 1}: ${memory.content}`
-          : `   - SP${index + 1}: ${memory.content}`
-      )
-    );
+          ? args.scenarioPack?.pack_id === "companion"
+            ? "3. static_profile：作为稳定长期偏好的回答基线。"
+            : "3. static_profile：仅保留最小稳定偏好基线，避免压过执行上下文。"
+          : args.scenarioPack?.pack_id === "companion"
+            ? "3. static_profile: use as the stable long-term preference baseline."
+            : "3. static_profile: keep only a minimal stable-preference baseline so it does not outweigh execution context.",
+        ...staticProfileMemories.map((memory, index) =>
+          isZh
+            ? `   - SP${index + 1}: ${memory.content}`
+            : `   - SP${index + 1}: ${memory.content}`
+        )
+      ]
+    });
   }
 
   if (memoryRecordMemories.length > 0) {
-    sections.push(
-      isZh
-        ? args.scenarioPack?.pack_id === "project_ops"
-          ? "4. memory_record：优先承接进展轨迹、事件事实与执行上下文。"
-          : "4. memory_record：仅保留最小事件事实支撑，并优先当前最直接的 episode 线索。"
-        : args.scenarioPack?.pack_id === "project_ops"
-          ? "4. memory_record: prioritize progress traces, event facts, and execution context."
-          : "4. memory_record: keep only a minimal event-facts support layer and favor the most direct episode cue first."
-    );
-    sections.push(
-      ...memoryRecordMemories.map((memory, index) =>
+    layerPromptSections.push({
+      layer: "memory_record",
+      content: [
         isZh
-          ? `   - MR${index + 1} [${memory.memory_type}]: ${memory.content}`
-          : `   - MR${index + 1} [${memory.memory_type}]: ${memory.content}`
-      )
-    );
+          ? args.scenarioPack?.pack_id === "project_ops"
+            ? "4. memory_record：优先承接进展轨迹、事件事实与执行上下文。"
+            : "4. memory_record：仅保留最小事件事实支撑，并优先当前最直接的 episode 线索。"
+          : args.scenarioPack?.pack_id === "project_ops"
+            ? "4. memory_record: prioritize progress traces, event facts, and execution context."
+            : "4. memory_record: keep only a minimal event-facts support layer and favor the most direct episode cue first.",
+        ...memoryRecordMemories.map((memory, index) =>
+          isZh
+            ? `   - MR${index + 1} [${memory.memory_type}]: ${memory.content}`
+            : `   - MR${index + 1} [${memory.memory_type}]: ${memory.content}`
+        )
+      ]
+    });
   }
 
   if (relationshipMemories.length > 0) {
-    sections.push(
-      isZh
-        ? args.scenarioPack?.pack_id === "companion"
-          ? "5. relationship memory：作为陪伴连续性与关系 grounding 的补充锚点。"
-          : "5. relationship memory：仅保留最小关系 grounding，避免压过项目执行上下文。"
-        : args.scenarioPack?.pack_id === "companion"
-          ? "5. relationship memory: use as a continuity and relationship-grounding support layer."
-          : "5. relationship memory: keep only a minimal relationship-grounding layer so it does not outweigh project execution context."
-    );
-    sections.push(
-      ...relationshipMemories.map((memory, index) =>
+    layerPromptSections.push({
+      layer: "relationship",
+      content: [
         isZh
-          ? `   - RM${index + 1}: ${memory.content}`
-          : `   - RM${index + 1}: ${memory.content}`
-      )
-    );
+          ? args.scenarioPack?.pack_id === "companion"
+            ? "5. relationship memory：作为陪伴连续性与关系 grounding 的补充锚点。"
+            : "5. relationship memory：仅保留最小关系 grounding，避免压过项目执行上下文。"
+          : args.scenarioPack?.pack_id === "companion"
+            ? "5. relationship memory: use as a continuity and relationship-grounding support layer."
+            : "5. relationship memory: keep only a minimal relationship-grounding layer so it does not outweigh project execution context.",
+        ...relationshipMemories.map((memory, index) =>
+          isZh
+            ? `   - RM${index + 1}: ${memory.content}`
+            : `   - RM${index + 1}: ${memory.content}`
+        )
+      ]
+    });
   }
+
+  const orderedLayerPromptSections = layerPromptSections.sort((left, right) => {
+    const leftPriority = strategy.assembly_layer_order.indexOf(left.layer);
+    const rightPriority = strategy.assembly_layer_order.indexOf(right.layer);
+    return leftPriority - rightPriority;
+  });
+
+  sections.push(...orderedLayerPromptSections.flatMap((section) => section.content));
 
   return sections.length > 1 ? sections.join("\n") : "";
 }
