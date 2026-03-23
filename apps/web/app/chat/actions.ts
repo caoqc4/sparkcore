@@ -14,8 +14,7 @@ import {
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildWebRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import {
-  insertUserMessage,
-  persistRuntimeUserMessageMetadata
+  insertAndPersistRuntimeUserMessage
 } from "@/lib/chat/runtime-user-message-persistence";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
@@ -990,12 +989,27 @@ export async function sendMessage(
 
   const trimmedContent = content.trim();
 
-  const { data: insertedMessage, error: insertError } = await insertUserMessage({
+  const {
+    data: insertedMessage,
+    error: insertError,
+    runtimeTurnInput,
+    metadataError
+  } = await insertAndPersistRuntimeUserMessage({
     supabase,
     threadId: thread.id,
     workspaceId: workspace.id,
     userId: user.id,
-    content: trimmedContent
+    content: trimmedContent,
+    buildRuntimeTurnInput: (messageId) =>
+      buildWebRuntimeTurnInput({
+        userId: user.id,
+        agentId: thread.agent_id,
+        threadId: thread.id,
+        workspaceId: workspace.id,
+        content: trimmedContent,
+        messageId,
+        trigger: "chat_send"
+      })
   });
 
   if (insertError || !insertedMessage) {
@@ -1004,6 +1018,10 @@ export async function sendMessage(
       threadId: thread.id,
       message: insertError?.message ?? "Failed to store the user message."
     };
+  }
+
+  if (metadataError) {
+    console.warn("Failed to persist runtime user message metadata:", metadataError);
   }
 
   let threadPatch: { updated_at: string; title?: string };
@@ -1048,31 +1066,8 @@ export async function sendMessage(
   }
 
   try {
-    const runtimeTurnInput = buildWebRuntimeTurnInput({
-      userId: user.id,
-      agentId: thread.agent_id,
-      threadId: thread.id,
-      workspaceId: workspace.id,
-      content: trimmedContent,
-      messageId: insertedMessage.id,
-      trigger: "chat_send"
-    });
-
-    try {
-      await persistRuntimeUserMessageMetadata({
-        supabase,
-        threadId: thread.id,
-        workspaceId: workspace.id,
-        userId: user.id,
-        messageId: insertedMessage.id,
-        runtimeTurnInput
-      });
-    } catch (metadataError) {
-      console.warn("Failed to persist runtime user message metadata:", metadataError);
-    }
-
     const runtimeTurnResult = await runAgentTurn({
-      input: runtimeTurnInput,
+      input: runtimeTurnInput!,
       workspace: workspace as { id: string; name: string; kind: string },
       thread: {
         id: thread.id,

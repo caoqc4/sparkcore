@@ -58,3 +58,50 @@ export async function insertRuntimeUserMessage(
     metadata: buildRuntimeUserMessageMetadata(args.runtimeTurnInput)
   });
 }
+
+export async function insertAndPersistRuntimeUserMessage(
+  args: UserMessageTarget & {
+    content: string;
+    buildRuntimeTurnInput: (messageId: string) => RuntimeTurnInput;
+  }
+) {
+  const insertResult = await insertUserMessage({
+    supabase: args.supabase,
+    threadId: args.threadId,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    content: args.content
+  });
+
+  const insertedMessage = insertResult.data;
+
+  if (insertResult.error || !insertedMessage) {
+    return {
+      ...insertResult,
+      runtimeTurnInput: null
+    };
+  }
+
+  const runtimeTurnInput = args.buildRuntimeTurnInput(insertedMessage.id);
+
+  let metadataError: unknown = null;
+
+  try {
+    await persistRuntimeUserMessageMetadata({
+      supabase: args.supabase,
+      threadId: args.threadId,
+      workspaceId: args.workspaceId,
+      userId: args.userId,
+      messageId: insertedMessage.id,
+      runtimeTurnInput
+    });
+  } catch (error) {
+    metadataError = error;
+  }
+
+  return {
+    ...insertResult,
+    runtimeTurnInput,
+    metadataError
+  };
+}
