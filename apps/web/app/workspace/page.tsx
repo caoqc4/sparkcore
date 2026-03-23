@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FormSubmitButton } from "@/components/form-submit-button";
+import { loadPrimaryWorkspace } from "@/lib/chat/runtime-turn-context";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
 
@@ -14,13 +15,10 @@ export default async function WorkspacePage() {
     redirect("/login");
   }
 
-  const { data: workspace, error: workspaceError } = await supabase
-    .from("workspaces")
-    .select("id, name, kind")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data: workspace, error: workspaceError } = await loadPrimaryWorkspace({
+    supabase,
+    userId: user.id
+  });
 
   return (
     <main className="shell">
