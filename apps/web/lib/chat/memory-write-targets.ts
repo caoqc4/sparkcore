@@ -11,17 +11,17 @@ export type PlannedMemoryWriteTarget = {
   canonicalMemoryType:
     | RuntimeMemoryWriteRequest["memory_type"]
     | "goal"
-    | null;
+  | null;
   legacyScope: MemoryScope;
 };
 
-type PlannedGenericMemoryWriteTarget = {
+export type PlannedGenericMemoryWriteTarget = {
   recordTarget: PlannedMemoryRecordTarget;
   canonicalMemoryType: Extract<RuntimeMemoryWriteRequest, { kind: "generic_memory" }>["memory_type"];
   legacyScope: "user_global";
 };
 
-type PlannedRelationshipMemoryWriteTarget = {
+export type PlannedRelationshipMemoryWriteTarget = {
   recordTarget: "memory_record";
   canonicalMemoryType: "relationship";
   legacyScope: "user_agent";

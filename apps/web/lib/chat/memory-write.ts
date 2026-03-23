@@ -36,6 +36,10 @@ import {
   buildSingleSlotMemoryRefreshMetadata,
   buildSingleSlotMemorySupersededMetadata
 } from "@/lib/chat/memory-write-metadata";
+import {
+  buildPlannedGenericMemoryInsertRow,
+  buildPlannedGenericMemoryUpdateRow
+} from "@/lib/chat/memory-write-rows";
 import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 import {
   insertMemoryItem,
@@ -636,36 +640,18 @@ export async function executeMemoryWriteRequests({
     );
 
     if (!matchingExisting) {
-      rowsToInsert.push({
-        workspace_id: workspaceId,
-        user_id: userId,
-        agent_id: agentId,
-        source_message_id: sourceTurnId,
-        memory_type: candidate.memory_type,
-        content: candidate.content,
-        confidence: Number(candidate.confidence.toFixed(2)),
-        importance: 0.5,
-        ...buildMemoryV2Fields({
-          category: candidate.memory_type,
-          key: LEGACY_MEMORY_KEY,
-          value: candidate.content,
-          scope: target.legacyScope,
-          subjectUserId: userId,
-          stability: inferLegacyMemoryStability(candidate.memory_type),
-          status: "active",
-          sourceRefs: sourceTurnId
-            ? [{ kind: "message", source_message_id: sourceTurnId }]
-            : []
-        }),
-        metadata: buildGenericPlannerMemoryInsertMetadata({
-          reason: candidate.reason,
-          dedupeKey: matchingRequest?.dedupe_key ?? null,
-          writeMode: matchingRequest?.write_mode ?? "upsert",
+      rowsToInsert.push(
+        buildPlannedGenericMemoryInsertRow({
+          workspaceId,
+          userId,
+          agentId,
+          candidate,
+          matchingRequest,
+          sourceTurnId,
           threshold: MEMORY_CONFIDENCE_THRESHOLD,
-          recordTarget: target.recordTarget,
-          canonicalMemoryType: target.canonicalMemoryType
+          target
         })
-      });
+      );
       continue;
     }
 
@@ -673,34 +659,18 @@ export async function executeMemoryWriteRequests({
       continue;
     }
 
-    rowsToUpdate.push({
-      id: matchingExisting.id,
-      memory_type: candidate.memory_type,
-      content: candidate.content,
-      confidence: Number(candidate.confidence.toFixed(2)),
-      metadata: buildGenericPlannerMemoryUpdateMetadata({
-        existingMetadata: matchingExisting.metadata ?? {},
-        reason: candidate.reason,
-        dedupeKey: matchingRequest?.dedupe_key ?? null,
-        writeMode: matchingRequest?.write_mode ?? "upsert",
+    rowsToUpdate.push(
+      buildPlannedGenericMemoryUpdateRow({
+        candidate,
+        matchingExisting,
+        matchingRequest,
+        sourceTurnId,
+        userId,
         threshold: MEMORY_CONFIDENCE_THRESHOLD,
-        convergenceUpdatedAt: new Date().toISOString(),
-        recordTarget: target.recordTarget,
-        canonicalMemoryType: target.canonicalMemoryType
-      }),
-      category: candidate.memory_type,
-      key: LEGACY_MEMORY_KEY,
-      value: candidate.content,
-      scope: target.legacyScope,
-      subject_user_id: userId,
-      target_agent_id: null,
-      target_thread_id: null,
-      stability: inferLegacyMemoryStability(candidate.memory_type),
-      status: getMemoryStatus(matchingExisting),
-      source_refs: sourceTurnId
-        ? [{ kind: "message", source_message_id: sourceTurnId }]
-        : []
-    });
+        target,
+        convergenceUpdatedAt: new Date().toISOString()
+      })
+    );
   }
 
   for (const row of rowsToUpdate) {
