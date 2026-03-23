@@ -1,4 +1,4 @@
-import { ensureSmokeRelationshipMemory } from "@/lib/testing/smoke-memory-seeding";
+import { ensureSmokeRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-seeding";
 import type { SmokeRelationshipMemoryKey } from "@/lib/testing/smoke-relationship-memory-types";
 
 export async function writeSmokeRelationshipMemory(args: {

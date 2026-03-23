@@ -1,4 +1,4 @@
-import { upsertSmokeProfileMemory } from "@/lib/testing/smoke-memory-seeding";
+import { upsertSmokeProfileMemory } from "@/lib/testing/smoke-profile-memory-seeding";
 import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 
 export async function applySmokeProfileMemoryUpdates(args: {

@@ -1,4 +1,4 @@
-import { buildSmokeRelationshipSupportiveCoreReply } from "@/lib/testing/smoke-relationship-core-replies";
+import { buildSmokeRelationshipSupportiveCoreReply } from "@/lib/testing/smoke-relationship-supportive-core";
 import { buildSmokeRelationshipSoftCatchReply } from "@/lib/testing/smoke-relationship-soft-catch";
 import type { SmokeRelationshipReplyArgs } from "@/lib/testing/smoke-relationship-reply-types";
 

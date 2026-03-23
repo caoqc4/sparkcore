@@ -4,9 +4,9 @@ import {
   isSmokeRelationshipSupportivePrompt
 } from "@/lib/testing/smoke-answer-strategy";
 import {
-  buildSmokeRelationshipClosingCoreReply,
   buildSmokeRelationshipExplanatoryCoreReply
-} from "@/lib/testing/smoke-relationship-core-replies";
+} from "@/lib/testing/smoke-relationship-explanatory-core";
+import { buildSmokeRelationshipClosingCoreReply } from "@/lib/testing/smoke-relationship-closing-core";
 import { buildSmokeDefaultContinuationReply } from "@/lib/testing/smoke-default-continuation-reply";
 import { buildSmokeRelationshipReplyContext } from "@/lib/testing/smoke-relationship-reply-context";
 import type { SmokeRelationshipReplyInput } from "@/lib/testing/smoke-relationship-reply-types";

@@ -1,4 +1,4 @@
-import { ensureSmokeRelationshipMemory } from "@/lib/testing/smoke-memory-seeding";
+import { ensureSmokeRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-seeding";
 
 export type SmokeRelationshipMemoryUpdatesInput = {
   supabase: Parameters<typeof ensureSmokeRelationshipMemory>[0]["supabase"];
