@@ -1,12 +1,7 @@
-import {
-  buildMemoryV2Fields,
-  inferLegacyMemoryStability,
-  LEGACY_MEMORY_KEY
-} from "@/lib/chat/memory-v2";
 import { loadOwnedMemoryItemByTypeAndContent } from "@/lib/chat/memory-item-read";
 import { insertMemoryItem, updateMemoryItem } from "@/lib/chat/memory-item-persistence";
+import { buildSmokeProfileMemorySeedPayload } from "@/lib/testing/smoke-profile-memory-seed-payload";
 import {
-  buildSmokeSeedMetadata,
   mergeSmokeSeedMetadata
 } from "@/lib/testing/smoke-seed-metadata";
 import type { SmokeProfileMemorySeedingInput } from "@/lib/testing/smoke-profile-memory-seeding-types";
@@ -39,31 +34,7 @@ export async function upsertSmokeProfileMemory(args: SmokeProfileMemorySeedingIn
 
   const { error } = await insertMemoryItem({
     supabase: args.supabase,
-    payload: {
-      workspace_id: args.workspaceId,
-      user_id: args.userId,
-      agent_id: args.agentId,
-      memory_type: args.memoryType,
-      content: args.value,
-      confidence: args.confidence,
-      source_message_id: args.sourceMessageId,
-      ...buildMemoryV2Fields({
-        category: args.memoryType,
-        key: LEGACY_MEMORY_KEY,
-        value: args.value,
-        scope: "user_global",
-        subjectUserId: args.userId,
-        stability: inferLegacyMemoryStability(args.memoryType),
-        status: "active",
-        sourceRefs: [
-          {
-            kind: "message",
-            source_message_id: args.sourceMessageId
-          }
-        ]
-      }),
-      metadata: buildSmokeSeedMetadata()
-    }
+    payload: buildSmokeProfileMemorySeedPayload(args)
   });
 
   if (error) {
