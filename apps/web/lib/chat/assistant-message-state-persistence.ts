@@ -91,3 +91,33 @@ export async function markAssistantMessageRetried(
     .eq("workspace_id", args.workspaceId)
     .eq("user_id", args.userId);
 }
+
+export async function persistCompletedAssistantMessage(
+  args: AssistantMessageStateTarget & {
+    assistantMessageId?: string | null;
+    payload: {
+      role: "assistant";
+      content: string;
+      status: "completed";
+      metadata: Record<string, unknown>;
+    };
+  }
+) {
+  return args.assistantMessageId
+    ? args.supabase
+        .from("messages")
+        .update({
+          ...args.payload,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", args.assistantMessageId)
+        .eq("thread_id", args.threadId)
+        .eq("workspace_id", args.workspaceId)
+        .eq("user_id", args.userId)
+    : args.supabase.from("messages").insert({
+        thread_id: args.threadId,
+        workspace_id: args.workspaceId,
+        user_id: args.userId,
+        ...args.payload
+      });
+}

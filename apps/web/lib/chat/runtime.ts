@@ -12,6 +12,7 @@ import {
 } from "@/lib/chat/memory-v2";
 import { buildRuntimeAssistantPayload } from "@/lib/chat/assistant-message-payload";
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
+import { persistCompletedAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import {
@@ -3593,23 +3594,14 @@ export async function runPreparedRuntimeTurn({
     })
   });
 
-  const { error } = assistant_message_id
-    ? await runtimeSupabase
-        .from("messages")
-        .update({
-          ...assistantPayload,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", assistant_message_id)
-        .eq("thread_id", thread.id)
-        .eq("workspace_id", workspace.id)
-        .eq("user_id", userId)
-    : await runtimeSupabase.from("messages").insert({
-        thread_id: thread.id,
-        workspace_id: workspace.id,
-        user_id: userId,
-        ...assistantPayload
-      });
+  const { error } = await persistCompletedAssistantMessage({
+    supabase: runtimeSupabase,
+    assistantMessageId: assistant_message_id,
+    threadId: thread.id,
+    workspaceId: workspace.id,
+    userId,
+    payload: assistantPayload
+  });
 
   if (error) {
     throw new Error(`Failed to store assistant reply: ${error.message}`);
