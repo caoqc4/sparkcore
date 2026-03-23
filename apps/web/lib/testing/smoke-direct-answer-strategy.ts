@@ -3,10 +3,12 @@ import {
   isSmokeDirectPlanningPreferenceQuestion,
   isSmokeDirectProfessionQuestion,
   isSmokeDirectReplyStyleQuestion,
-  isSmokeDirectUserPreferredNameQuestion,
+  isSmokeDirectUserPreferredNameQuestion
+} from "@/lib/testing/smoke-direct-question-prompts";
+import {
   isSmokeOpenEndedPlanningHelpQuestion,
   isSmokeOpenEndedSummaryQuestion
-} from "@/lib/testing/smoke-question-prompts";
+} from "@/lib/testing/smoke-open-ended-question-prompts";
 import type { SmokeAnswerStrategyDecision } from "@/lib/testing/smoke-answer-strategy-types";
 import {
   buildSmokeDirectFactStrategy,

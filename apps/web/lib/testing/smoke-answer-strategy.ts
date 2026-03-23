@@ -1,12 +1,16 @@
 export {
-  isSmokeBriefGreetingRequest,
   isSmokeDirectNamingQuestion,
   isSmokeDirectPlanningPreferenceQuestion,
   isSmokeDirectProfessionQuestion,
   isSmokeDirectReplyStyleQuestion,
-  isSmokeDirectUserPreferredNameQuestion,
+  isSmokeDirectUserPreferredNameQuestion
+} from "@/lib/testing/smoke-direct-question-prompts";
+export {
   isSmokeOpenEndedPlanningHelpQuestion,
-  isSmokeOpenEndedSummaryQuestion,
+  isSmokeOpenEndedSummaryQuestion
+} from "@/lib/testing/smoke-open-ended-question-prompts";
+export {
+  isSmokeBriefGreetingRequest,
   isSmokeRelationshipAnswerShapePrompt,
   isSmokeRelationshipClosingPrompt,
   isSmokeRelationshipExplanatoryPrompt,
@@ -14,7 +18,7 @@ export {
   isSmokeRelationshipRoughDayPrompt,
   isSmokeRelationshipSupportivePrompt,
   isSmokeSelfIntroGreetingRequest
-} from "@/lib/testing/smoke-question-prompts";
+} from "@/lib/testing/smoke-relationship-prompts";
 
 export {
   isSmokeAntiAdviceFollowUpPrompt,
