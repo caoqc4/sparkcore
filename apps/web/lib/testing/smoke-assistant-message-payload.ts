@@ -1,7 +1,5 @@
 import { buildSmokeAssistantMetadata } from "@/lib/testing/smoke-assistant-builders";
-import type { insertSmokeAssistantReply } from "@/lib/testing/smoke-assistant-persistence";
-
-type SmokeAssistantInsertArgs = Parameters<typeof insertSmokeAssistantReply>[0];
+import type { SmokeAssistantInsertArgs } from "@/lib/testing/smoke-assistant-persistence-types";
 
 export function buildSmokeAssistantMessagePayload(
   args: SmokeAssistantInsertArgs

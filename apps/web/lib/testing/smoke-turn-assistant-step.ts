@@ -1,37 +1,9 @@
 import { insertAnalyzedSmokeAssistantReply } from "@/lib/testing/smoke-turn-assistant";
+import type { SmokeAnalyzedAssistantInsertArgs } from "@/lib/testing/smoke-assistant-persistence-types";
 
-export async function persistSmokeAssistantTurnStep(args: {
-  supabase: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["supabase"];
-  threadId: string;
-  workspaceId: string;
-  userId: string;
-  agentId: string;
-  agentName: string;
-  personaSummary: string | null;
-  styleGuidance: string | null;
-  modelProfileId: string;
-  modelProfileName: string;
-  model: string;
-  assistantContent: string;
-  relationshipStyleValue: string | null;
-  replyLanguage: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["replyLanguage"];
-  replyLanguageSource: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["replyLanguageSource"];
-  questionType: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["questionType"];
-  answerStrategy: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["answerStrategy"];
-  answerStrategyReasonCode: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["answerStrategyReasonCode"];
-  continuationReasonCode: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["continuationReasonCode"];
-  recentRawTurnCount: number;
-  approxContextPressure: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["approxContextPressure"];
-  sameThreadContinuationApplicable: boolean;
-  longChainPressureCandidate: boolean;
-  sameThreadContinuationPreferred: boolean;
-  distantMemoryFallbackAllowed: boolean;
-  recalledMemories: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["recalledMemories"];
-  usedMemoryTypes: string[];
-  hiddenExclusionCount: number;
-  incorrectExclusionCount: number;
-  createdTypes: Array<"profile" | "preference" | "relationship">;
-}) {
+export async function persistSmokeAssistantTurnStep(
+  args: SmokeAnalyzedAssistantInsertArgs
+) {
   return insertAnalyzedSmokeAssistantReply({
     supabase: args.supabase,
     threadId: args.threadId,
