@@ -25,6 +25,7 @@ import {
   getAssistantMemoryScenarioPackAssemblyEmphasis,
   getAssistantMemoryScenarioPackId,
   getAssistantMemoryScenarioPackKnowledgePriorityLayer,
+  getAssistantMemoryScenarioPackRouteInfluenceReason,
   getAssistantMemoryPrimarySemanticLayer
 } from "@/lib/chat/assistant-message-metadata-read";
 import {
@@ -1000,6 +1001,11 @@ function main() {
     "Expected assistant metadata reader to expose knowledge_first assembly emphasis in P4."
   );
   expect(
+    getAssistantMemoryScenarioPackRouteInfluenceReason(assistantMetadata) ===
+      "project_namespace_bias",
+    "Expected assistant metadata reader to expose the pack route influence reason in P4."
+  );
+  expect(
     getAssistantKnowledgeCount(assistantMetadata) === 3,
     "Expected assistant metadata reader to expose the namespace-filtered knowledge count."
   );
@@ -1343,7 +1349,11 @@ function main() {
               assistantMetadata
             ),
           assembly_emphasis:
-            getAssistantMemoryScenarioPackAssemblyEmphasis(assistantMetadata)
+            getAssistantMemoryScenarioPackAssemblyEmphasis(assistantMetadata),
+          route_influence_reason:
+            getAssistantMemoryScenarioPackRouteInfluenceReason(
+              assistantMetadata
+            )
         },
         assistant_metadata_knowledge: {
           count: getAssistantKnowledgeCount(assistantMetadata),
@@ -1362,6 +1372,8 @@ function main() {
             runtimeDebugMetadata.memory.pack?.knowledge_priority_layer ?? null,
           pack_assembly_emphasis:
             runtimeDebugMetadata.memory.pack?.assembly_emphasis ?? null,
+          pack_route_influence_reason:
+            runtimeDebugMetadata.memory.pack?.route_influence_reason ?? null,
           knowledge_count: runtimeDebugMetadata.knowledge.count,
           thread_compaction_summary_id:
             runtimeDebugMetadata.thread_compaction?.summary_id ?? null,
@@ -1374,7 +1386,9 @@ function main() {
           assembly_order: scenarioMemoryPack.assembly_order,
           knowledge_priority_layer:
             scenarioMemoryPack.knowledge_priority_layer,
-          assembly_emphasis: scenarioMemoryPack.assembly_emphasis
+          assembly_emphasis: scenarioMemoryPack.assembly_emphasis,
+          route_influence_reason:
+            scenarioMemoryPack.route_influence_reason
         },
         system_prompt_thread_state: {
           includes_focus_mode: systemPrompt.includes(
@@ -1391,6 +1405,9 @@ function main() {
           ),
           includes_pack_assembly_emphasis: systemPrompt.includes(
             "Current assembly emphasis: project knowledge enters context assembly first."
+          ),
+          includes_pack_route_influence_reason: systemPrompt.includes(
+            "Current route influence reason: project_namespace_bias."
           ),
           includes_knowledge_layer: systemPrompt.includes(
             "Relevant Knowledge Layer:"

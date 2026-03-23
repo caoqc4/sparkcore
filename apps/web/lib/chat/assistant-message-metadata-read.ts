@@ -316,6 +316,14 @@ export function getAssistantMemoryScenarioPackAssemblyEmphasis(
   return getAssistantMetadataString(packMetadata, "assembly_emphasis");
 }
 
+export function getAssistantMemoryScenarioPackRouteInfluenceReason(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return getAssistantMetadataString(packMetadata, "route_influence_reason");
+}
+
 export function getAssistantKnowledgeCount(
   metadata: Record<string, unknown> | null | undefined
 ) {

@@ -230,6 +230,19 @@ P4 首批要把 `Knowledge` 从：
   - `knowledge_first` assembly emphasis
   - prompt 中的 assembly emphasis 文案
 
+当前已成立的第三刀代码事实：
+
+- `ActiveScenarioMemoryPack` 当前已开始显式产出：
+  - `route_influence_reason`
+- 也就是说，knowledge-driven pack routing 当前不再只是“结果可见”，而开始把“为什么这样排 route/order”收成正式 runtime fact
+- 这层输出当前已进入：
+  - scenario pack prompt section
+  - assistant metadata
+  - runtime debug metadata
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - `project_namespace_bias`
+  - prompt 中的 route influence reason 文案
+
 ### 4.4 Scenario pack consumption expansion v2
 
 P4 首批要把 `Scenario pack` 从：

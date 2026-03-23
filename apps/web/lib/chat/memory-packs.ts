@@ -15,6 +15,11 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
     | "world_knowledge_influence";
   knowledge_priority_layer: "project" | "world" | null;
   assembly_emphasis: "default" | "knowledge_first";
+  route_influence_reason:
+    | "default_continuity_bias"
+    | "project_namespace_bias"
+    | "project_knowledge_bias"
+    | "world_knowledge_bias";
 };
 
 function withWorldKnowledgeInfluence(
@@ -40,7 +45,8 @@ function withWorldKnowledgeInfluence(
     assembly_order: assemblyOrder,
     selection_reason: "world_knowledge_influence",
     knowledge_priority_layer: "world",
-    assembly_emphasis: "knowledge_first"
+    assembly_emphasis: "knowledge_first",
+    route_influence_reason: "world_knowledge_bias"
   };
 }
 
@@ -53,7 +59,8 @@ export function resolveActiveScenarioMemoryPack(args?: {
       ...resolveBuiltInScenarioMemoryPack("project_ops"),
       selection_reason: "project_namespace_priority",
       knowledge_priority_layer: "project",
-      assembly_emphasis: "knowledge_first"
+      assembly_emphasis: "knowledge_first",
+      route_influence_reason: "project_namespace_bias"
     };
   }
 
@@ -69,7 +76,8 @@ export function resolveActiveScenarioMemoryPack(args?: {
       ...resolveBuiltInScenarioMemoryPack("project_ops"),
       selection_reason: "project_knowledge_priority",
       knowledge_priority_layer: "project",
-      assembly_emphasis: "knowledge_first"
+      assembly_emphasis: "knowledge_first",
+      route_influence_reason: "project_knowledge_bias"
     };
   }
 
@@ -83,6 +91,7 @@ export function resolveActiveScenarioMemoryPack(args?: {
     ...resolveBuiltInScenarioMemoryPack("companion"),
     knowledge_priority_layer: null,
     assembly_emphasis: "default",
+    route_influence_reason: "default_continuity_bias",
     selection_reason: "default_companion_phase",
   };
 }
@@ -132,6 +141,9 @@ export function buildScenarioMemoryPackPromptSection(args: {
       : args.pack.assembly_emphasis === "knowledge_first"
         ? `Current assembly emphasis: ${args.pack.knowledge_priority_layer ?? "project"} knowledge enters context assembly first.`
         : "Current assembly emphasis: keep the default continuity-first ordering.",
+    isZh
+      ? `当前 route 影响原因：${args.pack.route_influence_reason}。`
+      : `Current route influence reason: ${args.pack.route_influence_reason}.`,
     isZh
       ? args.pack.pack_id === "project_ops"
         ? "如果当前回复缺少直接任务事实，优先保持项目知识 grounding、线程连续性与执行上下文一致。"

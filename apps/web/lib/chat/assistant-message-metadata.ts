@@ -45,6 +45,7 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   scenario_memory_pack_selection_reason?: string | null;
   scenario_memory_pack_knowledge_priority_layer?: string | null;
   scenario_memory_pack_assembly_emphasis?: string | null;
+  scenario_memory_pack_route_influence_reason?: string | null;
   knowledge_count?: number;
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
@@ -113,6 +114,7 @@ export type BuildAssistantMessageMetadataInput = {
   scenario_memory_pack_selection_reason?: string | null;
   scenario_memory_pack_knowledge_priority_layer?: string | null;
   scenario_memory_pack_assembly_emphasis?: string | null;
+  scenario_memory_pack_route_influence_reason?: string | null;
   knowledge_count?: number;
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
@@ -188,7 +190,9 @@ export function buildAssistantMetadataSummaryGroups(
             knowledge_priority_layer:
               input.scenario_memory_pack_knowledge_priority_layer ?? null,
             assembly_emphasis:
-              input.scenario_memory_pack_assembly_emphasis ?? null
+              input.scenario_memory_pack_assembly_emphasis ?? null,
+            route_influence_reason:
+              input.scenario_memory_pack_route_influence_reason ?? null
           }
         : null,
       semantic_summary: buildRuntimeMemorySemanticSummary({

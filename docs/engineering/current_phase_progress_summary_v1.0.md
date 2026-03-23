@@ -311,6 +311,9 @@
     - scenario pack prompt section
     - assistant metadata
     - runtime debug metadata
+  - `ActiveScenarioMemoryPack` 当前也已开始显式产出：
+    - `route_influence_reason`
+  - 也就是说，knowledge-driven pack routing 当前不再只是“结果可见”，而开始把“为什么这样排 route/order”收成正式 runtime fact
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
