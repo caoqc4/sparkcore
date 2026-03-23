@@ -32,6 +32,6 @@ export {
 } from "@/lib/testing/smoke-soft-follow-up-prompts";
 export {
   isSmokeNonJudgingFollowUpPrompt,
-  isSmokeSameSideFollowUpPrompt,
-  isSmokeShortRelationshipSupportivePrompt
-} from "@/lib/testing/smoke-supportive-follow-up-prompts";
+  isSmokeSameSideFollowUpPrompt
+} from "@/lib/testing/smoke-supportive-follow-up-literals";
+export { isSmokeShortRelationshipSupportivePrompt } from "@/lib/testing/smoke-short-supportive-follow-up";
