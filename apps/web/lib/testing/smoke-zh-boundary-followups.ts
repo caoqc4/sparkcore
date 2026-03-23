@@ -11,9 +11,11 @@ import {
   isSmokeAntiTaggingFollowUpPrompt,
   isSmokeNonJudgingFollowUpPrompt
 } from "@/lib/testing/smoke-answer-strategy";
+import { buildSmokeZhBoundaryCareReply } from "@/lib/testing/smoke-zh-boundary-care-replies";
 import { buildSmokeZhBoundaryInterpretationReply } from "@/lib/testing/smoke-zh-boundary-interpretation-replies";
 import { buildSmokeZhBoundaryJudgmentReply } from "@/lib/testing/smoke-zh-boundary-judgment-replies";
-import { buildSmokeZhBoundarySupportReply } from "@/lib/testing/smoke-zh-boundary-support-replies";
+import { buildSmokeZhBoundaryPerspectiveReply } from "@/lib/testing/smoke-zh-boundary-perspective-replies";
+import { buildSmokeZhBoundaryPressureReply } from "@/lib/testing/smoke-zh-boundary-pressure-replies";
 
 export function buildSmokeZhBoundaryFollowUpReply(args: {
   content: string;
@@ -23,6 +25,8 @@ export function buildSmokeZhBoundaryFollowUpReply(args: {
   return (
     buildSmokeZhBoundaryJudgmentReply(args) ??
     buildSmokeZhBoundaryInterpretationReply(args) ??
-    buildSmokeZhBoundarySupportReply(args)
+    buildSmokeZhBoundaryPressureReply(args) ??
+    buildSmokeZhBoundaryCareReply(args) ??
+    buildSmokeZhBoundaryPerspectiveReply(args)
   );
 }
