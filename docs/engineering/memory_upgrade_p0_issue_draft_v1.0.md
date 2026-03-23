@@ -16,6 +16,10 @@
 
 ### P0-1 核心 record 定稿
 
+建议 issue 标题：
+
+- `P0-1 Finalize core memory/profile/thread-state record types`
+
 目标：
 
 - 正式引入 `MemoryRecord`
@@ -26,7 +30,15 @@
 
 当前状态：
 
-- 已开始落代码
+- 进行中
+- 已有：
+  - `packages/core/memory/records.ts`
+  - `apps/web/lib/chat/memory-records.ts`
+  - legacy -> `StaticProfileRecord` / `MemoryRecord` 最小 adapter
+
+依赖：
+
+- 无
 
 候选涉及模块：
 
@@ -42,6 +54,10 @@
 
 ### P0-2 Profile / ThreadState / Memory 边界落地
 
+建议 issue 标题：
+
+- `P0-2 Lock profile, thread-state, and memory boundary mapping`
+
 目标：
 
 - 明确 `StaticProfile` / `DynamicProfile` / `ThreadState` / `MemoryRecord` 的迁移边界
@@ -52,7 +68,21 @@
 
 - `apps/web/lib/chat/thread-state.ts`
 - `apps/web/lib/chat/memory-records.ts`
+- `apps/web/lib/chat/memory-write-targets.ts`
+- `apps/web/lib/chat/memory-write-record-candidates.ts`
 - `docs/engineering/memory_upgrade_execution_plan_v1.0.md`
+
+当前状态：
+
+- 进行中
+- 已有：
+  - `goal -> thread_state_candidate`
+  - `profile / preference -> static_profile`
+  - `relationship -> memory_record`
+
+依赖：
+
+- `P0-1`
 
 验收：
 
@@ -60,6 +90,10 @@
 - 不再出现把当前线程进行态直接塞进 `DynamicProfile` 的实现
 
 ### P0-3 Write Pipeline v1
+
+建议 issue 标题：
+
+- `P0-3 Implement memory write pipeline v1`
 
 目标：
 
@@ -73,8 +107,27 @@
 候选涉及模块：
 
 - `apps/web/lib/chat/memory-write.ts`
+- `apps/web/lib/chat/memory-write-targets.ts`
+- `apps/web/lib/chat/memory-write-record-candidates.ts`
+- `apps/web/lib/chat/memory-write-rows.ts`
 - `apps/web/lib/chat/memory-v2.ts`
 - `apps/web/lib/chat/memory-item-persistence.ts`
+- `apps/web/lib/chat/thread-state-repository.ts`
+
+当前状态：
+
+- 进行中
+- 已有：
+  - `record_target` classification
+  - `StaticProfileRecord` write candidate
+  - `MemoryRecord` relationship candidate
+  - `thread_state_candidate` seam
+  - `goal -> ThreadState.focus_mode` 最小真实 commit
+
+依赖：
+
+- `P0-1`
+- `P0-2`
 
 验收：
 
@@ -82,6 +135,10 @@
 - 支持新增 / 补充 / 覆盖 / 失效的最小闭环
 
 ### P0-4 Retrieval Router v1
+
+建议 issue 标题：
+
+- `P0-4 Implement memory retrieval router v1`
 
 目标：
 
@@ -94,8 +151,23 @@
 候选涉及模块：
 
 - `apps/web/lib/chat/memory-recall.ts`
+- `apps/web/lib/chat/memory-records.ts`
 - `apps/web/lib/chat/session-context.ts`
 - `apps/web/lib/chat/runtime-prepared-turn.ts`
+
+当前状态：
+
+- 进行中
+- 已有：
+  - `MemoryRecallRoute`
+  - `thread_state` route
+  - `profile` 主读路径已开始经过 `StaticProfileRecord`
+  - `relationship recall` 已开始经过 `MemoryRecord`
+
+依赖：
+
+- `P0-1`
+- `P0-2`
 
 验收：
 
@@ -103,6 +175,10 @@
 - 不再只靠单一路径拼凑 recall
 
 ### P0-5 Context Assembly v1
+
+建议 issue 标题：
+
+- `P0-5 Implement memory context assembly v1`
 
 目标：
 
@@ -113,6 +189,20 @@
 - `apps/web/lib/chat/runtime.ts`
 - `apps/web/lib/chat/runtime-debug-metadata.ts`
 - `apps/web/lib/chat/assistant-message-metadata.ts`
+- `apps/web/lib/chat/runtime-assistant-metadata.ts`
+
+当前状态：
+
+- 进行中
+- 已有：
+  - `thread_state` 最小摘要注入
+  - `profile_snapshot` 已进入 runtime / assistant metadata
+  - runtime preview 已暴露 `record_targets`
+
+依赖：
+
+- `P0-3`
+- `P0-4`
 
 验收：
 
@@ -120,6 +210,10 @@
 - debug metadata 能反映最小注入摘要
 
 ### P0-6 `memory_items` 兼容迁移策略
+
+建议 issue 标题：
+
+- `P0-6 Define legacy memory_items migration strategy`
 
 目标：
 
@@ -131,7 +225,19 @@
 
 - `apps/web/lib/chat/memory-item-read.ts`
 - `apps/web/lib/chat/memory-item-persistence.ts`
+- `apps/web/lib/chat/memory-records.ts`
 - `docs/engineering/memory_upgrade_execution_plan_v1.0.md`
+
+当前状态：
+
+- 待开始
+- 当前已有方向，但仍偏执行文档描述，尚未收成明确迁移清单
+
+依赖：
+
+- `P0-1`
+- `P0-3`
+- `P0-4`
 
 验收：
 
@@ -139,6 +245,10 @@
 - 有明确的主读路径迁移顺序
 
 ### P0-7 验收与回归 Gate
+
+建议 issue 标题：
+
+- `P0-7 Define memory upgrade acceptance and regression gate`
 
 目标：
 
@@ -149,6 +259,17 @@
 - `docs/engineering/memory_upgrade_execution_plan_v1.0.md`
 - `docs/engineering/current_phase_progress_summary_v1.0.md`
 - 邻近 smoke / runtime regression 路径
+
+当前状态：
+
+- 待开始
+
+依赖：
+
+- `P0-3`
+- `P0-4`
+- `P0-5`
+- `P0-6`
 
 验收：
 
@@ -171,6 +292,38 @@
 
 ---
 
-## 4. 一句话收口
+## 4. 建 issue 时的最小字段建议
+
+每条正式 issue 建议至少包含：
+
+- 标题
+- 背景
+- 目标
+- 当前状态
+- 依赖
+- 涉及模块
+- 完成定义
+
+如果放进 GitHub / Linear，建议额外补：
+
+- `phase: memory-upgrade`
+- `priority: p0`
+- `track: execution`
+
+---
+
+## 5. 当前一句话状态
+
+- `P0-1` 进行中
+- `P0-2` 进行中
+- `P0-3` 进行中
+- `P0-4` 进行中
+- `P0-5` 进行中
+- `P0-6` 待开始
+- `P0-7` 待开始
+
+---
+
+## 6. 一句话收口
 
 **P0 issue 拆分的目标不是把计划写满，而是保证记忆层升级可以沿着“record -> boundary -> write -> retrieve -> inject -> migrate -> validate”的顺序稳定推进。**
