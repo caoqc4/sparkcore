@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
+import { classifyStoredMemorySemanticTarget } from "@/lib/chat/memory-records";
 import {
   canTransitionMemoryStatus,
   getMemoryStatus,
@@ -600,7 +601,7 @@ export async function hideMemory(formData: FormData) {
     supabase,
     memoryItemId: memoryId,
     userId: user.id,
-    select: "id, metadata, status"
+    select: "id, memory_type, category, scope, metadata, status"
   });
 
   if (!memoryItem) {
@@ -624,6 +625,7 @@ export async function hideMemory(formData: FormData) {
   const nextMetadata = { ...(memoryItem.metadata ?? {}) } as Record<string, unknown>;
   nextMetadata.is_hidden = true;
   nextMetadata.hidden_at = new Date().toISOString();
+  nextMetadata.semantic_target = classifyStoredMemorySemanticTarget(memoryItem);
 
   const { error } = await updateMemoryItem({
     supabase,
@@ -680,7 +682,7 @@ export async function restoreMemory(formData: FormData) {
     memoryItemId: memoryId,
     userId: user.id,
     select:
-      "id, workspace_id, category, key, value, content, scope, target_agent_id, target_thread_id, metadata, status"
+      "id, workspace_id, memory_type, category, key, value, content, scope, target_agent_id, target_thread_id, metadata, status"
   });
 
   if (!memoryItem) {
@@ -781,6 +783,7 @@ export async function restoreMemory(formData: FormData) {
         : "";
   nextMetadata.normalization = normalizeSingleSlotValue(normalizedValueSource);
   nextMetadata.restored_at = new Date().toISOString();
+  nextMetadata.semantic_target = classifyStoredMemorySemanticTarget(memoryItem);
 
   const { error } = await updateMemoryItem({
     supabase,
@@ -836,7 +839,7 @@ export async function markMemoryIncorrect(formData: FormData) {
     supabase,
     memoryItemId: memoryId,
     userId: user.id,
-    select: "id, metadata, status"
+    select: "id, memory_type, category, scope, metadata, status"
   });
 
   if (!memoryItem) {
@@ -862,6 +865,7 @@ export async function markMemoryIncorrect(formData: FormData) {
   delete nextMetadata.hidden_at;
   nextMetadata.is_incorrect = true;
   nextMetadata.incorrect_at = new Date().toISOString();
+  nextMetadata.semantic_target = classifyStoredMemorySemanticTarget(memoryItem);
 
   const { error } = await updateMemoryItem({
     supabase,
