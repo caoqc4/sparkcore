@@ -1269,7 +1269,7 @@ function buildMemoryLayerAssemblyPrompt(args: {
     .slice(0, 1);
   const staticProfileMemories = relationshipFilteredMemories
     .filter((memory) => memory.semantic_layer === "static_profile")
-    .slice(0, 2);
+    .slice(0, args.scenarioPack?.pack_id === "companion" ? 2 : 1);
   const memoryRecordMemories = relationshipFilteredMemories
     .filter((memory) => memory.semantic_layer === "memory_record")
     .slice(0, 2);
@@ -1306,8 +1306,12 @@ function buildMemoryLayerAssemblyPrompt(args: {
   if (staticProfileMemories.length > 0) {
     sections.push(
       isZh
-        ? "3. static_profile：作为稳定长期偏好的回答基线。"
-        : "3. static_profile: use as the stable long-term preference baseline."
+        ? args.scenarioPack?.pack_id === "companion"
+          ? "3. static_profile：作为稳定长期偏好的回答基线。"
+          : "3. static_profile：仅保留最小稳定偏好基线，避免压过执行上下文。"
+        : args.scenarioPack?.pack_id === "companion"
+          ? "3. static_profile: use as the stable long-term preference baseline."
+          : "3. static_profile: keep only a minimal stable-preference baseline so it does not outweigh execution context."
     );
     sections.push(
       ...staticProfileMemories.map((memory, index) =>

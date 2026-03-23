@@ -237,7 +237,8 @@ function main() {
   const promptRecalledProfile = {
     memory_type: "preference" as const,
     content: recalledProfile.content,
-    confidence: recalledProfile.confidence
+    confidence: recalledProfile.confidence,
+    semantic_layer: "static_profile" as const
   };
 
   const recalledRelationship =
@@ -1133,7 +1134,14 @@ function main() {
     },
     "Keep answers grounded.",
     "Help me finish onboarding.",
-    [promptRecalledProfile, recalledRelationship],
+    [
+      promptRecalledProfile,
+      {
+        ...promptRecalledProfile,
+        content: "The user prefers a little more directness when discussing schedules."
+      },
+      recalledRelationship
+    ],
     runtimeKnowledge,
     compactedThreadSummary,
     activeMemoryNamespace,
@@ -1219,6 +1227,14 @@ function main() {
     !systemPrompt.includes("RM2:"),
     "Expected project_ops system prompt assembly to cap relationship-memory consumption at one slot in P4."
   );
+  expect(
+    systemPrompt.includes("SP1:"),
+    "Expected project_ops system prompt assembly to retain one static-profile slot in P4."
+  );
+  expect(
+    !systemPrompt.includes("SP2:"),
+    "Expected project_ops system prompt assembly to cap static-profile consumption at one slot in P4."
+  );
 
   const companionSystemPrompt = buildAgentSystemPrompt(
     {
@@ -1243,6 +1259,10 @@ function main() {
     "Thanks for sticking with me.",
     [
       promptRecalledProfile,
+      {
+        ...promptRecalledProfile,
+        content: "The user prefers a little more directness when discussing schedules."
+      },
       recalledRelationship,
       {
         ...recalledRelationship,
@@ -1287,6 +1307,10 @@ function main() {
   expect(
     companionSystemPrompt.includes("RM2:"),
     "Expected companion system prompt assembly to allow two relationship-memory slots in P4."
+  );
+  expect(
+    companionSystemPrompt.includes("SP2:"),
+    "Expected companion system prompt assembly to allow two static-profile slots in P4."
   );
 
   const routeAwarePrompt = buildAgentSystemPrompt(

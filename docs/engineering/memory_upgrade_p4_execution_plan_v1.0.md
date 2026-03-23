@@ -272,6 +272,16 @@ P4 首批要把 `Scenario pack` 从：
   - `project_ops` 下只有 `RM1`
   - `companion` 下允许出现 `RM2`
 
+当前已成立的第二刀代码事实：
+
+- [runtime.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime.ts) 当前已开始让 `scenario pack` 真实影响 `static_profile` 的消费预算：
+  - `companion` 会保留最多 2 条 static profile
+  - `project_ops` 会收紧到最多 1 条 static profile
+- 也就是说，pack-specific consumption 当前已不只体现在 relationship memory slot 上，也开始进入 stable-preference baseline 的真实 slot 控制
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - `project_ops` 下只有 `SP1`
+  - `companion` 下允许出现 `SP2`
+
 ### 4.5 P4 regression / acceptance expansion
 
 P4 首批要把 gate 继续扩大到：

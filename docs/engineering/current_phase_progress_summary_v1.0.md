@@ -323,6 +323,13 @@
   - `memory-upgrade-harness.ts` 当前也已开始显式校验：
     - `project_ops` 下只有 `RM1`
     - `companion` 下允许出现 `RM2`
+  - `apps/web/lib/chat/runtime.ts` 当前也已开始让 `scenario pack` 真实影响 `static_profile` 的消费预算
+  - 当前最小规则已经成立：
+    - `companion` 最多保留 2 条 static profile
+    - `project_ops` 收紧到最多 1 条 static profile
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验：
+    - `project_ops` 下只有 `SP1`
+    - `companion` 下允许出现 `SP2`
 - `P4-5 regression / acceptance expansion` 当前也已开始进入真实实现：
   - `memory-upgrade-harness.ts` 当前已开始显式产出 `p4_regression_gate`
   - 当前第一版 `P4` gate 已开始锁：
