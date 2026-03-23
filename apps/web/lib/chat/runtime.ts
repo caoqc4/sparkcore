@@ -46,6 +46,7 @@ import {
   getUnderlyingModelLabel
 } from "@/lib/chat/model-profile-metadata";
 import { buildRuntimeDebugMetadata } from "@/lib/chat/runtime-debug-metadata";
+import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 import { loadThreadMessages } from "@/lib/chat/message-read";
 import {
   planMemoryWriteRequests,
@@ -3650,6 +3651,13 @@ export async function runPreparedRuntimeTurn({
           count: memoryWriteRequests.length,
           memory_types: Array.from(
             new Set(memoryWriteRequests.map((request) => request.memory_type))
+          ),
+          record_targets: Array.from(
+            new Set(
+              memoryWriteRequests.map(
+                (request) => resolvePlannedMemoryWriteTarget(request).recordTarget
+              )
+            )
           )
         }
       },

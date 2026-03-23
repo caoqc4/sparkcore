@@ -165,6 +165,9 @@ export type RuntimeMemoryWritePlannedEvent = {
   payload: {
     count: number;
     memory_types: RuntimeMemoryWriteRequest["memory_type"][];
+    record_targets: Array<
+      "static_profile" | "memory_record" | "thread_state_candidate"
+    >;
   };
 };
 

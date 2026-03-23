@@ -60,6 +60,18 @@ function buildRuntimeMemoryWriteRequestPreview(
   });
 }
 
+function buildRuntimeMemoryWriteRecordTargets(
+  requests: RuntimeMemoryWriteRequest[]
+) {
+  return Array.from(
+    new Set(
+      requests.map(
+        (request) => resolvePlannedMemoryWriteTarget(request).recordTarget
+      )
+    )
+  );
+}
+
 function buildRuntimeFollowUpRequestPreview(
   requests: RuntimeFollowUpRequest[]
 ) {
@@ -96,13 +108,16 @@ export function buildRuntimeMemoryWriteRequestMetadata(
   requests: RuntimeMemoryWriteRequest[]
 ) {
   const preview = buildRuntimeMemoryWriteRequestPreview(requests);
+  const recordTargets = buildRuntimeMemoryWriteRecordTargets(requests);
 
   return {
     runtime_memory_writes: {
       request_count: requests.length,
+      record_targets: recordTargets,
       preview
     },
     runtime_memory_write_request_count: requests.length,
+    runtime_memory_write_record_targets: recordTargets,
     runtime_memory_write_requests_preview: preview
   };
 }
