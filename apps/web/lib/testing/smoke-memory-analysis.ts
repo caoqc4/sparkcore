@@ -7,23 +7,9 @@ import {
 import type {
   SmokeMemoryAnalysisInput,
   SmokeMemoryAnalysisResult,
-  SmokeMemoryApplicabilityInput
+  SmokeMemoryApplicabilityInput,
+  SmokeMemoryRow
 } from "@/lib/testing/smoke-memory-analysis-types";
-
-export type SmokeMemoryRow = {
-  id: string;
-  memory_type: "profile" | "preference" | null;
-  content: string;
-  confidence: number;
-  category: string | null;
-  key: string | null;
-  value: string | null;
-  scope: string | null;
-  status: string | null;
-  target_agent_id: string | null;
-  target_thread_id: string | null;
-  metadata: Record<string, unknown> | null;
-};
 
 function isSmokeMemoryApplicableToThread({
   memory,
@@ -71,3 +57,5 @@ export function analyzeSmokeMemoryState(
     incorrectExclusionCount
   };
 }
+
+export type { SmokeMemoryRow };

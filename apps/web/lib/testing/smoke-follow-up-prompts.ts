@@ -1,4 +1,4 @@
-import {
+export {
   isSmokeAntiAdviceFollowUpPrompt,
   isSmokeAntiAnalysisFollowUpPrompt,
   isSmokeAntiCategorizingFollowUpPrompt,
@@ -19,7 +19,7 @@ import {
   isSmokeAntiSolutioningFollowUpPrompt,
   isSmokeAntiTaggingFollowUpPrompt
 } from "@/lib/testing/smoke-anti-follow-up-prompts";
-import {
+export {
   isSmokeBriefSteadyingPrompt,
   isSmokeFriendLikeSoftFollowUpPrompt,
   isSmokeGentleCarryForwardAfterSteadyingPrompt,
@@ -30,43 +30,6 @@ import {
   isSmokePresenceConfirmingFollowUpPrompt,
   isSmokeStayWithMeFollowUpPrompt
 } from "@/lib/testing/smoke-soft-follow-up-prompts";
-import {
-  isSmokeNonJudgingFollowUpPrompt,
-  isSmokeSameSideFollowUpPrompt,
-  isSmokeShortRelationshipSupportivePrompt
-} from "@/lib/testing/smoke-supportive-follow-up-prompts";
-export {
-  isSmokeAntiAdviceFollowUpPrompt,
-  isSmokeAntiAnalysisFollowUpPrompt,
-  isSmokeAntiCategorizingFollowUpPrompt,
-  isSmokeAntiComfortingFollowUpPrompt,
-  isSmokeAntiComparingFollowUpPrompt,
-  isSmokeAntiConclusionFollowUpPrompt,
-  isSmokeAntiCorrectionFollowUpPrompt,
-  isSmokeAntiDefinitionFollowUpPrompt,
-  isSmokeAntiLabelingFollowUpPrompt,
-  isSmokeAntiLecturingFollowUpPrompt,
-  isSmokeAntiMinimizingFollowUpPrompt,
-  isSmokeAntiMischaracterizationFollowUpPrompt,
-  isSmokeAntiNormalizingFollowUpPrompt,
-  isSmokeAntiOverreadingFollowUpPrompt,
-  isSmokeAntiProbingFollowUpPrompt,
-  isSmokeAntiRedirectionFollowUpPrompt,
-  isSmokeAntiRushingFollowUpPrompt,
-  isSmokeAntiSolutioningFollowUpPrompt,
-  isSmokeAntiTaggingFollowUpPrompt
-};
-export {
-  isSmokeBriefSteadyingPrompt,
-  isSmokeFriendLikeSoftFollowUpPrompt,
-  isSmokeGentleCarryForwardAfterSteadyingPrompt,
-  isSmokeGentleResumeRhythmPrompt,
-  isSmokeGuidedNextStepAfterSteadyingPrompt,
-  isSmokeLightSharedPushPrompt,
-  isSmokeOneLineSoftCatchPrompt,
-  isSmokePresenceConfirmingFollowUpPrompt,
-  isSmokeStayWithMeFollowUpPrompt
-};
 export {
   isSmokeNonJudgingFollowUpPrompt,
   isSmokeSameSideFollowUpPrompt,
