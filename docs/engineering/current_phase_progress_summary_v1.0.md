@@ -122,6 +122,7 @@
 - chat runtime summary 当前也已开始消费这层 `memory.semantic_summary`
 - `memory-upgrade-harness.ts` 当前也已开始显式校验这层 `memory.semantic_summary`
 - runtime system prompt 当前也已开始直接承接最小 `thread_state` 摘要，而不只停留在 metadata / summary 层
+- runtime system prompt 当前也已开始直接承接最小 `memory.semantic_summary`
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`
 
@@ -209,6 +210,7 @@
 - assistant metadata 的 `session` 分组当前也已开始进入相同最小 `thread_state` 摘要
 - assistant metadata read helper 与 `chat-thread-view` 当前也已开始消费该最小 `thread_state` 摘要
 - `buildAgentSystemPrompt(...)` 当前也已开始直接消费该最小 `thread_state` 摘要
+- `buildAgentSystemPrompt(...)` 当前也已开始直接消费 `memory.semantic_summary`
 - `assistant_message.metadata` 也已开始进入统一 builder 收口：
   - `apps/web/lib/chat/assistant-message-metadata.ts`
 - `runtime.ts` 已不再直接内联拼接整块 assistant metadata，而是开始通过统一 builder 生成

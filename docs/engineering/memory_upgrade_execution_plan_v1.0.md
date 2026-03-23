@@ -243,6 +243,7 @@ P0 只做一件事：
 - assistant metadata 当前也已开始显式暴露该最小 `thread_state` 摘要
 - assistant metadata read helper 与 chat summary 当前也已开始消费该最小 `thread_state` 摘要
 - `buildAgentSystemPrompt(...)` 当前也已开始把最小 `thread_state` 摘要注入真实 system prompt context assembly，而不只停留在 metadata / summary 层
+- `buildAgentSystemPrompt(...)` 当前也已开始把最小 `memory.semantic_summary` 注入真实 system prompt context assembly，让 route / layer 判断开始参与 prompt 级装配
 
 ### 4.5 兼容迁移策略
 
@@ -669,6 +670,7 @@ P0 至少要验证：
 - `debug_metadata.session.thread_state` 已能显式看到 thread state 最小摘要
 - `assistant metadata.session.thread_state` 已能看到相同最小摘要
 - runtime system prompt 当前也已开始直接承接最小 `thread_state` 摘要
+- runtime system prompt 当前也已开始直接承接最小 `memory.semantic_summary`
 - `goal` 已可在具备 `threadId + repository` 时写入 `ThreadState.focus_mode`
 - `relationship recall` 已开始经过 `MemoryRecord` adapter
 
@@ -680,6 +682,7 @@ P0 功能 gate 通过的最小条件：
 - runtime / assistant metadata 至少有一处能稳定暴露 `profile_snapshot`
 - runtime / assistant metadata 至少有一处能稳定暴露最小 `thread_state` 摘要
 - runtime system prompt 至少有一处能稳定承接最小 `thread_state` 摘要
+- runtime system prompt 至少有一处能稳定承接最小 `memory.semantic_summary`
 
 ### 10.2 结构验收
 

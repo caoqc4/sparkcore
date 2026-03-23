@@ -14,7 +14,10 @@ import { buildRuntimeAssistantPayload } from "@/lib/chat/assistant-message-paylo
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
 import { persistCompletedAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
-import { buildRecalledStaticProfileSnapshot } from "@/lib/chat/memory-records";
+import {
+  buildRecalledStaticProfileSnapshot,
+  buildRuntimeMemorySemanticSummary
+} from "@/lib/chat/memory-records";
 import {
   loadActiveModelProfiles,
   loadActiveModelProfileById,
@@ -2348,6 +2351,11 @@ function buildAgentSystemPromptInternal(
     ),
     threadContinuityPrompt,
     buildThreadStatePrompt(threadState, replyLanguage),
+    buildMemorySemanticSummaryPrompt({
+      recalledMemories,
+      threadState,
+      replyLanguage
+    }),
     agentSystemPrompt,
     buildMemoryRecallPrompt(
       latestUserMessage,
@@ -2415,6 +2423,76 @@ function buildThreadStatePrompt(
       ? "把 thread_state 视为当前线程的即时进行态；当它和远处记忆冲突时，优先保证当前线程的 focus、continuity 与语言提示不被打断。"
       : "Treat thread_state as the live coordination state for this thread; when it conflicts with distant memory, preserve the current thread focus, continuity, and language hint first."
   );
+
+  return sections.join("\n");
+}
+
+function buildMemorySemanticSummaryPrompt(args: {
+  recalledMemories: Array<{
+    memory_type: "profile" | "preference" | "relationship";
+    content: string;
+    confidence: number;
+  }>;
+  threadState: ThreadStateRecord | null | undefined;
+  replyLanguage: RuntimeReplyLanguage;
+}) {
+  const profileSnapshot = args.recalledMemories
+    .filter(
+      (memory) =>
+        memory.memory_type === "profile" || memory.memory_type === "preference"
+    )
+    .map((memory) => memory.content);
+  const semanticSummary = buildRuntimeMemorySemanticSummary({
+    memoryTypesUsed: args.recalledMemories.map((memory) => memory.memory_type),
+    profileSnapshot,
+    hasThreadState: Boolean(args.threadState),
+    threadStateFocusMode: args.threadState?.focus_mode ?? null
+  });
+
+  if (
+    !semanticSummary.primary_layer &&
+    semanticSummary.observed_layers.length === 0
+  ) {
+    return "";
+  }
+
+  const isZh = args.replyLanguage === "zh-Hans";
+  const sections = [
+    isZh
+      ? `本轮记忆语义摘要：primary_layer = ${semanticSummary.primary_layer ?? "none"}；observed_layers = ${semanticSummary.observed_layers.join(", ") || "none"}。`
+      : `Memory semantic summary for this turn: primary_layer = ${semanticSummary.primary_layer ?? "none"}; observed_layers = ${semanticSummary.observed_layers.join(", ") || "none"}.`
+  ];
+
+  if (semanticSummary.primary_layer === "thread_state") {
+    sections.push(
+      isZh
+        ? "优先让当前线程状态决定即时 focus、continuity 和语言延续，再用其它记忆层做补充。"
+        : "Let the current thread state drive immediate focus, continuity, and language carryover first, then use other memory layers as support."
+    );
+  } else if (semanticSummary.primary_layer === "static_profile") {
+    sections.push(
+      isZh
+        ? "优先把稳定 profile / preference 作为回答基线，再按需要补充关系或线程状态。"
+        : "Use stable profile and preference facts as the baseline first, then layer in relationship or thread-state detail only when needed."
+    );
+  } else if (semanticSummary.primary_layer === "memory_record") {
+    sections.push(
+      isZh
+        ? "优先把关系/事件类记忆当作当前问题的直接事实来源，不要被更远的默认 profile 稀释。"
+        : "Treat relationship or event-like memory as the direct fact source for this turn before falling back to more distant profile defaults."
+    );
+  }
+
+  if (
+    semanticSummary.observed_layers.includes("static_profile") &&
+    semanticSummary.observed_layers.includes("memory_record")
+  ) {
+    sections.push(
+      isZh
+        ? "如果同时命中稳定画像和关系记忆，让 stable profile 决定长期偏好，让 relationship memory 决定称呼、关系事实和直接确认信息。"
+        : "When both stable profile and relationship memory are present, let stable profile guide long-lived preferences while relationship memory handles address terms, relationship facts, and direct confirmations."
+    );
+  }
 
   return sections.join("\n");
 }

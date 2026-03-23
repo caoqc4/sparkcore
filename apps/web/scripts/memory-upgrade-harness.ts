@@ -383,6 +383,10 @@ function main() {
     systemPrompt.includes("current_language_hint = en."),
     "Expected system prompt assembly to include thread_state language hint."
   );
+  expect(
+    systemPrompt.includes("primary_layer = thread_state"),
+    "Expected system prompt assembly to include memory semantic summary."
+  );
 
   console.log(
     JSON.stringify(
@@ -417,6 +421,9 @@ function main() {
           ),
           includes_language_hint: systemPrompt.includes(
             "current_language_hint = en."
+          ),
+          includes_primary_layer: systemPrompt.includes(
+            "primary_layer = thread_state"
           )
         }
       },

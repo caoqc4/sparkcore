@@ -278,6 +278,7 @@
     - runtime `memory.semantic_summary`
     - assistant metadata semantic summary reader
     - runtime system prompt `thread_state` 注入
+    - runtime system prompt `memory.semantic_summary` 注入
 
 依赖：
 
