@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadActivePersonaPacksBySlugs } from "@/lib/chat/runtime-turn-context";
 import { resolveSmokeAgentSeedDependencies } from "@/lib/testing/smoke-agent-seed-dependencies";
-import { insertSmokeSeedAgents } from "@/lib/testing/smoke-seed-persistence";
+import { insertSmokeSeedAgents } from "@/lib/testing/smoke-agent-seed-persistence";
 import type {
   SmokeModelProfile,
   SmokeSeedPersonaPack,
