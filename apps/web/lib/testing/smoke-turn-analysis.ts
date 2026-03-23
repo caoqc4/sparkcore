@@ -1,9 +1,4 @@
 import {
-  getSmokeAnswerStrategy,
-  isSmokeRelationshipAnswerShapePrompt,
-  isSmokeRelationshipContinuationEdgePrompt
-} from "@/lib/testing/smoke-answer-strategy";
-import {
   getSmokeUsedMemoryTypes
 } from "@/lib/testing/smoke-relationship-context";
 import {
@@ -16,7 +11,7 @@ import {
 } from "@/lib/testing/smoke-reply-analysis";
 import { getSmokeTurnContinuityContext } from "@/lib/testing/smoke-turn-continuity-context";
 import { selectSmokeRecalledMemories } from "@/lib/testing/smoke-memory-recall-selection";
-import { selectSmokeRelationshipMemories } from "@/lib/testing/smoke-relationship-memory-selection";
+import { getSmokeTurnRelationshipContext } from "@/lib/testing/smoke-turn-relationship-context";
 
 type SmokeRuntimeMessage = {
   role: "user" | "assistant";
@@ -50,30 +45,18 @@ export function analyzeSmokeTurnContext({
     trimmedContent,
     activeMemories
   });
-  const relationshipStylePrompt =
-    isSmokeRelationshipAnswerShapePrompt(trimmedContent);
-  const sameThreadContinuity = recentAssistantReply !== null;
-  const sameThreadContinuationApplicable =
-    sameThreadContinuity &&
-    isSmokeRelationshipContinuationEdgePrompt(trimmedContent);
   const {
     addressStyleMemory,
+    answerStrategyRule,
     nicknameMemory,
     preferredNameMemory,
-    relationshipCarryoverAvailable
-  } = selectSmokeRelationshipMemories({
+    sameThreadContinuationApplicable
+  } = getSmokeTurnRelationshipContext({
     trimmedContent,
     activeMemories,
     agentId,
-    relationshipStylePrompt,
-    sameThreadContinuity,
+    recentAssistantReply,
     recalledMemories
-  });
-  const answerStrategyRule = getSmokeAnswerStrategy({
-    content: trimmedContent,
-    sameThreadContinuity,
-    relationshipStylePrompt,
-    relationshipCarryoverAvailable
   });
   const preferSameThreadContinuation =
     answerStrategyRule.answerStrategy === "same-thread-continuation";
