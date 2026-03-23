@@ -579,6 +579,7 @@ P0 最小要求：
 - `thread_state_candidate` seam 已成立，并已开始进入最小真实 commit
 - `static_profile` 当前已成为三条里第一条进入真实主读路径的分支
 - `static_profile` 当前也已成为三条里第一条进入 runtime 注入层的分支
+- `memory_record` 当前也已开始进入 relationship recall 的真实主读路径
 - 当前 `goal` 不进入 reply recall prompt，而是保守沉淀为 `ThreadState.focus_mode`
 - 下一步应继续把：
   - `canonical type`

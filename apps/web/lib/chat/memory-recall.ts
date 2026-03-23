@@ -19,7 +19,10 @@ import {
   loadRecentOwnedMemoriesByTypes,
   loadRecentOwnedRelationshipMemories
 } from "@/lib/chat/memory-item-read";
-import { buildRecalledProfileMemoryFromStoredMemory } from "@/lib/chat/memory-records";
+import {
+  buildRecalledProfileMemoryFromStoredMemory,
+  buildRecalledRelationshipMemoryFromStoredMemory
+} from "@/lib/chat/memory-records";
 import { createClient } from "@/lib/supabase/server";
 
 function selectMemoryRecallRoutes(args: {
@@ -150,14 +153,8 @@ export async function recallAgentNickname({
 
   return {
     directNamingQuestion: true,
-    nicknameMemory: {
-      memory_type: "relationship",
-      content:
-        typeof nicknameRow.value === "string"
-          ? nicknameRow.value
-          : nicknameRow.content,
-      confidence: nicknameRow.confidence
-    }
+    nicknameMemory:
+      buildRecalledRelationshipMemoryFromStoredMemory(nicknameRow)
   };
 }
 
@@ -223,14 +220,8 @@ export async function recallUserPreferredName({
 
   return {
     directPreferredNameQuestion: true,
-    preferredNameMemory: {
-      memory_type: "relationship",
-      content:
-        typeof preferredNameRow.value === "string"
-          ? preferredNameRow.value
-          : preferredNameRow.content,
-      confidence: preferredNameRow.confidence
-    }
+    preferredNameMemory:
+      buildRecalledRelationshipMemoryFromStoredMemory(preferredNameRow)
   };
 }
 
@@ -280,12 +271,8 @@ export async function recallUserAddressStyle({
   }
 
   return {
-    addressStyleMemory: {
-      memory_type: "relationship",
-      content:
-        typeof styleRow.value === "string" ? styleRow.value : styleRow.content,
-      confidence: styleRow.confidence
-    }
+    addressStyleMemory:
+      buildRecalledRelationshipMemoryFromStoredMemory(styleRow)
   };
 }
 

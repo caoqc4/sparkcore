@@ -101,6 +101,26 @@ export function buildRecalledProfileMemoryFromStoredMemory(
   };
 }
 
+export function buildRecalledRelationshipMemoryFromStoredMemory(
+  memory: StoredMemory
+): {
+  memory_type: "relationship";
+  content: string;
+  confidence: number;
+} | null {
+  if (memory.category !== "relationship") {
+    return null;
+  }
+
+  const relationshipRecord = buildChatMemoryRecord(memory);
+
+  return {
+    memory_type: "relationship",
+    content: relationshipRecord.canonical_text,
+    confidence: relationshipRecord.confidence ?? 0
+  };
+}
+
 export function buildRecalledStaticProfileSnapshot(
   memories: RecalledMemory[]
 ) {
