@@ -43,6 +43,9 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   scenario_memory_pack_preferred_routes?: ScenarioMemoryRoute[];
   scenario_memory_pack_assembly_order?: ScenarioMemoryLayer[];
   scenario_memory_pack_selection_reason?: string | null;
+  knowledge_count?: number;
+  knowledge_titles?: string[];
+  knowledge_source_kinds?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -94,6 +97,9 @@ export type BuildAssistantMessageMetadataInput = {
   scenario_memory_pack_preferred_routes?: ScenarioMemoryRoute[];
   scenario_memory_pack_assembly_order?: ScenarioMemoryLayer[];
   scenario_memory_pack_selection_reason?: string | null;
+  knowledge_count?: number;
+  knowledge_titles?: string[];
+  knowledge_source_kinds?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -167,6 +173,11 @@ export function buildAssistantMetadataSummaryGroups(
       hidden_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_exclusion_count: input.incorrect_memory_exclusion_count
     },
+    knowledge: {
+      count: input.knowledge_count ?? 0,
+      titles: input.knowledge_titles ?? [],
+      source_kinds: input.knowledge_source_kinds ?? []
+    },
     follow_up: {
       request_count: input.follow_up_request_count
     },
@@ -188,6 +199,9 @@ export function buildAssistantMetadataSummaryGroups(
         input.scenario_memory_pack_assembly_order,
       scenario_memory_pack_selection_reason:
         input.scenario_memory_pack_selection_reason,
+      knowledge_count: input.knowledge_count,
+      knowledge_titles: input.knowledge_titles,
+      knowledge_source_kinds: input.knowledge_source_kinds,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_memory_exclusion_count: input.incorrect_memory_exclusion_count
     }

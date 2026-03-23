@@ -57,6 +57,12 @@ export function getAssistantMemoryPackMetadata(
   return getAssistantMetadataGroup(memoryMetadata, "pack");
 }
 
+export function getAssistantKnowledgeMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "knowledge");
+}
+
 export function getAssistantAnswerStrategyMetadata(
   metadata: Record<string, unknown> | null | undefined
 ) {
@@ -279,6 +285,17 @@ export function getAssistantMemoryScenarioPackId(
   return (
     getAssistantMetadataString(packMetadata, "pack_id") ??
     getAssistantMetadataString(metadata, "scenario_memory_pack_id")
+  );
+}
+
+export function getAssistantKnowledgeCount(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataNumber(knowledgeMetadata, "count") ??
+    getAssistantMetadataNumber(metadata, "knowledge_count")
   );
 }
 

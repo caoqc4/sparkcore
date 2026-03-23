@@ -3,6 +3,8 @@ import type { RuntimeThreadStateRecall } from "@/lib/chat/memory-recall";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
 import type { ActiveScenarioMemoryPack } from "@/lib/chat/memory-packs";
+import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
+import { buildKnowledgeSummary } from "@/lib/chat/memory-knowledge";
 
 export type BuildRuntimeDebugMetadataInput = {
   model_profile_id: string;
@@ -21,6 +23,7 @@ export type BuildRuntimeDebugMetadataInput = {
   thread_state_recall?: RuntimeThreadStateRecall | null;
   reply_language: string;
   scenario_memory_pack?: ActiveScenarioMemoryPack | null;
+  relevant_knowledge?: RuntimeKnowledgeSnippet[];
 };
 
 export function buildRuntimeDebugMetadata(
@@ -55,6 +58,9 @@ export function buildRuntimeDebugMetadata(
         : null,
       write_request_count: input.memory_write_request_count
     },
+    knowledge: buildKnowledgeSummary({
+      knowledge: input.relevant_knowledge ?? []
+    }),
     follow_up: {
       request_count: input.follow_up_request_count
     },

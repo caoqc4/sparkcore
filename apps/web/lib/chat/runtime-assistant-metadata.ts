@@ -10,6 +10,7 @@ import type {
 } from "@/lib/chat/role-core";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
 import type { ActiveScenarioMemoryPack } from "@/lib/chat/memory-packs";
+import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
 
 type RecalledMemoryMetadataItem = BuildAssistantMessageMetadataInput["recalled_memories"][number];
 
@@ -72,6 +73,9 @@ export type BuildRuntimeAssistantMetadataInput = {
     scenario_pack: ActiveScenarioMemoryPack | null;
     hidden_exclusion_count: number;
     incorrect_exclusion_count: number;
+  };
+  knowledge: {
+    snippets: RuntimeKnowledgeSnippet[];
   };
   follow_up: {
     request_count: number;
@@ -138,6 +142,11 @@ export function buildRuntimeAssistantMetadataInput(
       input.memory.scenario_pack?.selection_reason ?? null,
     hidden_memory_exclusion_count: input.memory.hidden_exclusion_count,
     incorrect_memory_exclusion_count: input.memory.incorrect_exclusion_count,
+    knowledge_count: input.knowledge.snippets.length,
+    knowledge_titles: input.knowledge.snippets.map((item) => item.title),
+    knowledge_source_kinds: Array.from(
+      new Set(input.knowledge.snippets.map((item) => item.source_kind))
+    ),
     follow_up_request_count: input.follow_up.request_count,
   };
 }

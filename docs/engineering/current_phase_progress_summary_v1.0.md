@@ -138,6 +138,12 @@
   - runtime `buildAgentSystemPrompt(...)` 当前也已开始显式注入 active scenario memory pack guidance
   - assistant metadata / debug metadata 当前也已开始暴露最小 pack 摘要
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 companion pack seam
+- `P2-2 Knowledge Layer minimal separation` 当前也已开始进入真实实现：
+  - `packages/core/memory/knowledge.ts` 已新增首版 `KnowledgeResource / KnowledgeSnapshot / KnowledgeLink` contract
+  - `apps/web/lib/chat/memory-knowledge.ts` 已新增最小 knowledge snapshot / runtime snippet / prompt section builder
+  - runtime `buildAgentSystemPrompt(...)` 当前也已开始显式注入最小 knowledge-layer section
+  - assistant metadata / debug metadata 当前也已开始暴露最小 knowledge summary
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 knowledge seam
 - `P1-1 episode / timeline retrieval` 当前也已开始进入真实实现，而不再只是 contract：
   - `selectMemoryRecallRoutes(...)` 已开始真实激活 `episode / timeline`
   - `buildRecalledEpisodeMemoryFromStoredMemory(...)`

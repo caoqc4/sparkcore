@@ -17,6 +17,7 @@ import { buildAgentSystemPrompt, buildVisibleMemoryRecord } from "@/lib/chat/run
 import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
 import {
   getAssistantMemoryObservedSemanticLayers,
+  getAssistantKnowledgeCount,
   getAssistantMemoryScenarioPackId,
   getAssistantMemoryPrimarySemanticLayer
 } from "@/lib/chat/assistant-message-metadata-read";
@@ -24,6 +25,10 @@ import {
   buildScenarioMemoryPackPromptSection,
   resolveActiveScenarioMemoryPack
 } from "@/lib/chat/memory-packs";
+import {
+  buildKnowledgeSnapshot,
+  buildRuntimeKnowledgeSnippet
+} from "@/lib/chat/memory-knowledge";
 import {
   buildPlannedRelationshipMemoryRecord,
   buildPlannedStaticProfileRecord,
@@ -379,6 +384,19 @@ function main() {
     scenarioMemoryPackPrompt.includes("Active Scenario Memory Pack: companion"),
     "Expected scenario memory pack prompt section to expose the active companion pack."
   );
+  const knowledgeSnapshot = buildKnowledgeSnapshot({
+    snapshotId: "knowledge-snapshot-1",
+    resourceId: "resource-1",
+    scope: {
+      workspace_id: "workspace-1",
+      project_id: "project-1"
+    },
+    title: "Onboarding checklist guide",
+    summary: "The onboarding checklist should be completed in order and signed off by the project owner.",
+    sourceKind: "project_document",
+    capturedAt: "2026-03-23T00:00:00.000Z"
+  });
+  const runtimeKnowledge = [buildRuntimeKnowledgeSnippet(knowledgeSnapshot)];
 
   const assistantMetadata = buildAssistantMessageMetadata(
     buildRuntimeAssistantMetadataInput({
@@ -476,6 +494,9 @@ function main() {
         hidden_exclusion_count: 0,
         incorrect_exclusion_count: 0
       },
+      knowledge: {
+        snippets: runtimeKnowledge
+      },
       follow_up: {
         request_count: 1
       }
@@ -493,6 +514,10 @@ function main() {
   expect(
     getAssistantMemoryScenarioPackId(assistantMetadata) === "companion",
     "Expected assistant metadata reader to expose the active scenario memory pack."
+  );
+  expect(
+    getAssistantKnowledgeCount(assistantMetadata) === 1,
+    "Expected assistant metadata reader to expose the injected knowledge count."
   );
 
   const systemPrompt = buildAgentSystemPrompt(
@@ -517,6 +542,7 @@ function main() {
     "Keep answers grounded.",
     "Help me finish onboarding.",
     [promptRecalledProfile],
+    runtimeKnowledge,
     "en",
     undefined,
     "",
@@ -549,6 +575,14 @@ function main() {
   expect(
     systemPrompt.includes("Active Scenario Memory Pack: companion"),
     "Expected system prompt assembly to include active scenario memory pack guidance."
+  );
+  expect(
+    systemPrompt.includes("Relevant Knowledge Layer:"),
+    "Expected system prompt assembly to include the knowledge-layer section."
+  );
+  expect(
+    systemPrompt.includes("Onboarding checklist guide"),
+    "Expected system prompt assembly to include the injected knowledge title."
   );
 
   const routeAwarePrompt = buildAgentSystemPrompt(
@@ -584,6 +618,7 @@ function main() {
         confidence: 0.84
       }
     ],
+    [],
     "en"
   );
   expect(
@@ -623,6 +658,7 @@ function main() {
         semantic_layer: "dynamic_profile"
       }
     ],
+    [],
     "en"
   );
   expect(
@@ -676,6 +712,9 @@ function main() {
         assistant_metadata_pack: {
           pack_id: getAssistantMemoryScenarioPackId(assistantMetadata)
         },
+        assistant_metadata_knowledge: {
+          count: getAssistantKnowledgeCount(assistantMetadata)
+        },
         scenario_memory_pack: {
           pack_id: scenarioMemoryPack.pack_id,
           preferred_routes: scenarioMemoryPack.preferred_routes,
@@ -693,6 +732,9 @@ function main() {
           ),
           includes_scenario_memory_pack: systemPrompt.includes(
             "Active Scenario Memory Pack: companion"
+          ),
+          includes_knowledge_layer: systemPrompt.includes(
+            "Relevant Knowledge Layer:"
           )
         },
         system_prompt_route_guidance: {

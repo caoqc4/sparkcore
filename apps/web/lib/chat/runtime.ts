@@ -24,6 +24,10 @@ import {
   resolveActiveScenarioMemoryPack
 } from "@/lib/chat/memory-packs";
 import {
+  buildKnowledgePromptSection,
+  type RuntimeKnowledgeSnippet
+} from "@/lib/chat/memory-knowledge";
+import {
   loadActiveModelProfiles,
   loadActiveModelProfileById,
   loadActiveModelProfileBySlug,
@@ -1325,6 +1329,16 @@ function buildScenarioMemoryPackAssemblyPrompt(args: {
   });
 }
 
+function buildKnowledgeLayerPrompt(args: {
+  relevantKnowledge: RuntimeKnowledgeSnippet[];
+  replyLanguage: RuntimeReplyLanguage;
+}) {
+  return buildKnowledgePromptSection({
+    knowledge: args.relevantKnowledge,
+    replyLanguage: args.replyLanguage
+  });
+}
+
 function buildAddressStyleRecallInstructions({
   isZh,
   styleValue
@@ -2422,6 +2436,7 @@ function buildAgentSystemPromptInternal(
   agentSystemPrompt: string,
   latestUserMessage: string,
   recalledMemories: RecalledMemory[] = [],
+  relevantKnowledge: RuntimeKnowledgeSnippet[] = [],
   replyLanguage: RuntimeReplyLanguage = "unknown",
   relationshipRecall: {
     directNamingQuestion: boolean;
@@ -2474,6 +2489,10 @@ function buildAgentSystemPromptInternal(
       replyLanguage
     }),
     buildScenarioMemoryPackAssemblyPrompt({
+      replyLanguage
+    }),
+    buildKnowledgeLayerPrompt({
+      relevantKnowledge,
       replyLanguage
     }),
     buildMemoryLayerAssemblyPrompt({
@@ -2665,6 +2684,7 @@ export function buildAgentSystemPrompt(
   agentSystemPrompt: string,
   latestUserMessage: string,
   recalledMemories: RecalledMemory[] = [],
+  relevantKnowledge: RuntimeKnowledgeSnippet[] = [],
   replyLanguage: RuntimeReplyLanguage = "unknown",
   relationshipRecall: {
     directNamingQuestion: boolean;
@@ -2703,6 +2723,7 @@ export function buildAgentSystemPrompt(
     agentSystemPrompt,
     latestUserMessage,
     recalledMemories,
+    relevantKnowledge,
     replyLanguage,
     relationshipRecall,
     threadContinuityPrompt,
@@ -3755,6 +3776,7 @@ export async function runPreparedRuntimeTurn({
         agent.system_prompt,
         latestUserMessageContent ?? "",
         allRecalledMemories,
+        [],
         replyLanguage,
         relationshipRecall,
         threadContinuityPrompt,
@@ -3903,6 +3925,9 @@ export async function runPreparedRuntimeTurn({
         hidden_exclusion_count: memoryRecall.hiddenExclusionCount,
         incorrect_exclusion_count: memoryRecall.incorrectExclusionCount
       },
+      knowledge: {
+        snippets: []
+      },
       follow_up: {
         request_count: followUpRequests.length
       }
@@ -4031,7 +4056,8 @@ export async function runPreparedRuntimeTurn({
       thread_state_recall:
         preparedRuntimeTurn.memory.runtime_memory_context.threadStateRecall,
       reply_language: replyLanguage,
-      scenario_memory_pack: resolveActiveScenarioMemoryPack()
+      scenario_memory_pack: resolveActiveScenarioMemoryPack(),
+      relevant_knowledge: []
     })
   };
 
