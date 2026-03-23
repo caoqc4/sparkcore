@@ -6,6 +6,11 @@ export const MEMORY_RELEVANCE_THRESHOLD = 0.35;
 
 export type MemoryType = "profile" | "preference" | "goal";
 export type MemoryUsageType = MemoryType | "relationship";
+export type RecalledMemoryType =
+  | MemoryType
+  | "relationship"
+  | "episode"
+  | "timeline";
 
 export type ContextMessage = {
   role: "user" | "assistant";
@@ -44,14 +49,14 @@ export type StoredMemory = {
 };
 
 export type RecalledMemory = {
-  memory_type: MemoryUsageType;
+  memory_type: RecalledMemoryType;
   content: string;
   confidence: number;
 };
 
 export type RecallOutcome = {
   memories: RecalledMemory[];
-  usedMemoryTypes: MemoryUsageType[];
+  usedMemoryTypes: RecalledMemoryType[];
   hiddenExclusionCount: number;
   incorrectExclusionCount: number;
   appliedRoutes: MemoryRecallRoute[];

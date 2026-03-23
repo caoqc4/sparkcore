@@ -1,3 +1,5 @@
+import type { RecalledMemoryType } from "@/lib/chat/memory-shared";
+
 export type RuntimeAssistantMessage = {
   role: "assistant";
   content: string;
@@ -154,7 +156,7 @@ export type RuntimeMemoryRecalledEvent = {
   type: "memory_recalled";
   payload: {
     count: number;
-    memory_types: RuntimeMemoryWriteRequest["memory_type"][];
+    memory_types: RecalledMemoryType[];
     hidden_exclusion_count: number;
     incorrect_exclusion_count: number;
   };

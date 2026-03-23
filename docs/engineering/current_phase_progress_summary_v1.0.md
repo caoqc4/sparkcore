@@ -129,6 +129,12 @@
 - `memory_upgrade_p0_close_readiness_v1.0.md` 当前也已新增，用于对 `P0-1 ~ P0-7` 做整体完成度复盘，避免继续盲推单点
 - `memory_upgrade_p0_close_note_v1.0.md` 当前也已新增，用于正式收口“P0 已达到 close-ready，剩余项转入非阻塞尾项”的阶段判断
 - `memory_upgrade_p1_execution_plan_v1.0.md` 当前也已新增，用于把下一阶段从方向说明推进成正式执行起点
+- `P1-1 episode / timeline retrieval` 当前也已开始进入真实实现，而不再只是 contract：
+  - `selectMemoryRecallRoutes(...)` 已开始真实激活 `episode / timeline`
+  - `buildRecalledEpisodeMemoryFromStoredMemory(...)`
+  - `buildRecalledTimelineMemoryFromStoredMemory(...)`
+    已开始把 legacy `memory_record` 语义转成最小 recalled item
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验这条 `P1-1` retrieval 线
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`
 

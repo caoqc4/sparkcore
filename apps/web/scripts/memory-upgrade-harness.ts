@@ -1,7 +1,9 @@
 import {
+  buildRecalledEpisodeMemoryFromStoredMemory,
   buildRuntimeMemorySemanticSummary,
   buildRecalledProfileMemoryFromStoredMemory,
   buildRecalledRelationshipMemoryFromStoredMemory,
+  buildRecalledTimelineMemoryFromStoredMemory,
   buildStaticProfileRecordFromStoredMemory,
   classifyStoredMemorySemanticTarget
 } from "@/lib/chat/memory-records";
@@ -19,6 +21,7 @@ import {
 import type { StoredMemory } from "@/lib/chat/memory-shared";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
 import { buildRuntimeTurnInput } from "@/lib/chat/runtime-input";
+import { selectMemoryRecallRoutes } from "@/lib/chat/memory-recall";
 
 function expect(condition: unknown, message: string): asserts condition {
   if (!condition) {
@@ -94,6 +97,13 @@ function main() {
     scope: "thread_local",
     target_thread_id: "thread-1"
   });
+  const episodeMemory = createStoredMemory({
+    id: "mem-episode",
+    content: "The user switched from weekly planning to daily check-ins last month.",
+    memory_type: "profile",
+    category: "project_history",
+    scope: "user_global"
+  });
 
   expect(
     classifyStoredMemorySemanticTarget(profileMemory) === "static_profile",
@@ -141,6 +151,27 @@ function main() {
   expect(
     recalledRelationship?.memory_type === "relationship",
     "Expected relationship recall adapter to produce relationship memory."
+  );
+  const recalledEpisode = buildRecalledEpisodeMemoryFromStoredMemory(episodeMemory);
+  expect(
+    recalledEpisode?.memory_type === "episode",
+    "Expected episode recall adapter to produce episode memory."
+  );
+  const recalledTimeline =
+    buildRecalledTimelineMemoryFromStoredMemory(episodeMemory);
+  expect(
+    recalledTimeline?.memory_type === "timeline",
+    "Expected timeline recall adapter to produce timeline memory."
+  );
+
+  const selectedRoutes = selectMemoryRecallRoutes({
+    latestUserMessage: "Can you remind me how this changed over time?",
+    allowDistantFallback: true,
+    hasThreadState: true
+  });
+  expect(
+    selectedRoutes.join(",") === "thread_state,profile,episode,timeline",
+    "Expected recall route selection to activate episode and timeline in P1."
   );
 
   const plannedProfile = buildPlannedStaticProfileRecord({
@@ -225,6 +256,16 @@ function main() {
     semanticSummary.observed_layers.join(",") ===
       "static_profile,memory_record,thread_state",
     "Expected semantic summary to retain all observed layers."
+  );
+  const recordOnlySemanticSummary = buildRuntimeMemorySemanticSummary({
+    memoryTypesUsed: ["episode", "timeline"],
+    profileSnapshot: [],
+    hasThreadState: false,
+    threadStateFocusMode: null
+  });
+  expect(
+    recordOnlySemanticSummary.primary_layer === "memory_record",
+    "Expected episode/timeline memory types to map to memory_record semantic layer."
   );
 
   const assistantMetadata = buildAssistantMessageMetadata(
@@ -404,11 +445,15 @@ function main() {
           static_profile_record: staticProfileRecord.profile_id,
           recalled_profile_type: recalledProfile.memory_type,
           recalled_relationship_type: recalledRelationship?.memory_type ?? null,
+          recalled_episode_type: recalledEpisode?.memory_type ?? null,
+          recalled_timeline_type: recalledTimeline?.memory_type ?? null,
           planned_profile_id: plannedProfile.profile_id,
           planned_relationship_id: plannedRelationship.memory_id,
-          planned_thread_focus: plannedThreadState.focus_mode
+          planned_thread_focus: plannedThreadState.focus_mode,
+          selected_routes: selectedRoutes
         },
         runtime_semantic_summary: semanticSummary,
+        record_only_semantic_summary: recordOnlySemanticSummary,
         assistant_metadata_semantic_summary: {
           primary_layer: getAssistantMemoryPrimarySemanticLayer(assistantMetadata),
           observed_layers: getAssistantMemoryObservedSemanticLayers(

@@ -167,6 +167,45 @@ export function buildRecalledRelationshipMemoryFromStoredMemory(
   };
 }
 
+function isMemoryRecordRecallCandidate(memory: StoredMemory) {
+  return (
+    classifyStoredMemorySemanticTarget(memory) === "memory_record" &&
+    memory.category !== "relationship"
+  );
+}
+
+export function buildRecalledEpisodeMemoryFromStoredMemory(
+  memory: StoredMemory
+): RecalledMemory | null {
+  if (!isMemoryRecordRecallCandidate(memory)) {
+    return null;
+  }
+
+  const record = buildChatMemoryRecord(memory);
+
+  return {
+    memory_type: "episode",
+    content: record.canonical_text,
+    confidence: record.confidence ?? 0
+  };
+}
+
+export function buildRecalledTimelineMemoryFromStoredMemory(
+  memory: StoredMemory
+): RecalledMemory | null {
+  if (!isMemoryRecordRecallCandidate(memory)) {
+    return null;
+  }
+
+  const record = buildChatMemoryRecord(memory);
+
+  return {
+    memory_type: "timeline",
+    content: record.canonical_text,
+    confidence: record.confidence ?? 0
+  };
+}
+
 export function buildRecalledStaticProfileSnapshot(
   memories: RecalledMemory[]
 ) {
@@ -195,7 +234,10 @@ export function buildRuntimeMemorySemanticSummary(args: {
     args.memoryTypesUsed.some(
       (type) => type === "profile" || type === "preference"
     );
-  const usesMemoryRecord = args.memoryTypesUsed.includes("relationship");
+  const usesMemoryRecord = args.memoryTypesUsed.some(
+    (type) =>
+      type === "relationship" || type === "episode" || type === "timeline"
+  );
   const usesThreadState = args.hasThreadState;
 
   if (usesProfile) {

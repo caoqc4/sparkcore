@@ -76,6 +76,20 @@ P1 首批要做的，是把：
 - 至少有最小 adapter / selector
 - `appliedRoutes` 不再只是名义上的四路
 
+当前代码事实：
+
+- `selectMemoryRecallRoutes(...)` 已开始在具备 `allowDistantFallback` 时真实激活：
+  - `thread_state`
+  - `profile`
+  - `episode`
+  - `timeline`
+- `buildRecalledEpisodeMemoryFromStoredMemory(...)`
+- `buildRecalledTimelineMemoryFromStoredMemory(...)`
+  已开始把 legacy `memory_record` 语义转成最小 recalled item
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - `episode / timeline` adapter
+  - `episode / timeline` route selection
+
 ### 4.2 DynamicProfile 最小真实化
 
 P0 内：

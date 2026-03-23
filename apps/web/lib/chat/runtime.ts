@@ -14,6 +14,7 @@ import { buildRuntimeAssistantPayload } from "@/lib/chat/assistant-message-paylo
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
 import { persistCompletedAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
+import type { RecalledMemory } from "@/lib/chat/memory-shared";
 import {
   buildRecalledStaticProfileSnapshot,
   buildRuntimeMemorySemanticSummary
@@ -1002,11 +1003,7 @@ function buildMessagePreview(content: string) {
 
 function buildMemoryRecallPrompt(
   latestUserMessage: string,
-  recalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }>,
+  recalledMemories: RecalledMemory[],
   replyLanguage: RuntimeReplyLanguage,
   relationshipRecall: {
     directNamingQuestion: boolean;
@@ -1485,11 +1482,7 @@ function buildAnswerStrategyInstructions({
   answerStrategyPriority: AnswerStrategyPriority;
   directRecallQuestionKind: DirectRecallQuestionKind;
   isZh: boolean;
-  recalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }>;
+  recalledMemories: RecalledMemory[];
   relationshipRecall: {
     sameThreadContinuity: boolean;
     addressStyleMemory: {
@@ -2012,11 +2005,7 @@ function buildOpenEndedRecallInstructions({
   latestUserMessage: string;
   isZh: boolean;
   questionType: AnswerQuestionType;
-  recalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }>;
+  recalledMemories: RecalledMemory[];
   relationshipRecall: {
     sameThreadContinuity: boolean;
     addressStyleMemory: {
@@ -2300,11 +2289,7 @@ function buildAgentSystemPromptInternal(
   roleCorePacket: RoleCorePacket,
   agentSystemPrompt: string,
   latestUserMessage: string,
-  recalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }> = [],
+  recalledMemories: RecalledMemory[] = [],
   replyLanguage: RuntimeReplyLanguage = "unknown",
   relationshipRecall: {
     directNamingQuestion: boolean;
@@ -2428,11 +2413,7 @@ function buildThreadStatePrompt(
 }
 
 function buildMemorySemanticSummaryPrompt(args: {
-  recalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }>;
+  recalledMemories: RecalledMemory[];
   threadState: ThreadStateRecord | null | undefined;
   replyLanguage: RuntimeReplyLanguage;
 }) {
@@ -2501,11 +2482,7 @@ export function buildAgentSystemPrompt(
   roleCorePacket: RoleCorePacket,
   agentSystemPrompt: string,
   latestUserMessage: string,
-  recalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }> = [],
+  recalledMemories: RecalledMemory[] = [],
   replyLanguage: RuntimeReplyLanguage = "unknown",
   relationshipRecall: {
     directNamingQuestion: boolean;
@@ -3535,13 +3512,7 @@ export async function generateAgentReply({
     answerStrategyPriority = answerStrategyRule.priority;
   }
   const recalledMemories = memoryRecall.memories.filter(
-    (
-      memory
-    ): memory is {
-      memory_type: "profile" | "preference" | "relationship";
-      content: string;
-      confidence: number;
-    } => memory.memory_type !== "goal"
+    (memory): memory is RecalledMemory => memory.memory_type !== "goal"
   );
   const relationshipMemories = [
     relationshipRecall.addressStyleMemory,
@@ -3633,11 +3604,7 @@ export async function runPreparedRuntimeTurn({
   preparedRuntimeTurn: Awaited<ReturnType<typeof prepareRuntimeTurn>>;
   userId: string;
   latestUserMessageContent: string | null;
-  allRecalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }>;
+  allRecalledMemories: RecalledMemory[];
   relationshipMemories: Array<{
     memory_type: "relationship";
     content: string;
