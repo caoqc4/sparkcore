@@ -95,11 +95,12 @@ import {
   detectSmokeUserPreferredNameCandidate
 } from "@/lib/testing/smoke-relationship-detection";
 import {
-  findSmokeRelationshipMemory,
-  getSmokeRelationshipMemoryValue,
-  getSmokeUsedMemoryTypes,
-  prependSmokeRelationshipRecall
+  getSmokeRelationshipMemoryValue
 } from "@/lib/testing/smoke-relationship-context";
+import {
+  analyzeSmokeTurnContext,
+  type SmokeContinuityReply
+} from "@/lib/testing/smoke-turn-analysis";
 import {
   getSmokeConfig,
   isAuthorizedSmokeRequest
@@ -108,18 +109,8 @@ import { createSmokeLoginResponse } from "@/lib/testing/smoke-login";
 import { createSmokeThread } from "@/lib/testing/smoke-threads";
 import {
   detectSmokeReplyLanguage,
-  getSmokeApproxContextPressure,
-  getSmokeRecentAssistantReply,
-  getSmokeRecentRuntimeMessages,
-  resolveSmokeReplyLanguage,
-  type SmokeContinuityReply
+  resolveSmokeReplyLanguage
 } from "@/lib/testing/smoke-reply-analysis";
-import {
-  isMemoryActive,
-  isMemoryHidden,
-  isMemoryIncorrect,
-  isMemoryScopeValid
-} from "@/lib/chat/memory-v2";
 
 const SMOKE_MODEL_PROFILES = getSmokeModelProfiles();
 
@@ -137,34 +128,6 @@ function buildSmokeRelationshipSeedMetadata(relationKind: string) {
   return buildSmokeSeedMetadata({
     relation_kind: relationKind
   });
-}
-
-function isSmokeMemoryApplicableToThread({
-  memory,
-  agentId,
-  threadId
-}: {
-  memory: {
-    scope?: string | null;
-    target_agent_id?: string | null;
-    target_thread_id?: string | null;
-  };
-  agentId: string;
-  threadId: string;
-}) {
-  if (!isMemoryScopeValid(memory)) {
-    return false;
-  }
-
-  if (memory.scope === "user_agent") {
-    return memory.target_agent_id === agentId;
-  }
-
-  if (memory.scope === "thread_local") {
-    return memory.target_thread_id === threadId;
-  }
-
-  return true;
 }
 
 export { resetSmokeState };
@@ -1240,136 +1203,34 @@ export async function createSmokeTurn({
     target_thread_id: string | null;
     metadata: Record<string, unknown> | null;
   }>;
-
-  const recentAssistantReply = getSmokeRecentAssistantReply(
-    (existingMessages ?? []) as Array<{
-      role: "user" | "assistant";
-      content: string;
-      status: string;
-      metadata: Record<string, unknown>;
-    }>
-  );
-
-  const validExistingMemories =
-    smokeExistingMemories.filter((memory) =>
-      isSmokeMemoryApplicableToThread({
-        memory,
-        agentId: ensuredAgent.id,
-        threadId: thread.id
-      })
-    ) ?? [];
-  const activeMemories = validExistingMemories.filter((memory) =>
-    isMemoryActive(memory)
-  );
-  const hiddenExclusionCount = validExistingMemories.filter((memory) =>
-    isMemoryHidden(memory)
-  ).length;
-  const incorrectExclusionCount = validExistingMemories.filter((memory) =>
-    isMemoryIncorrect(memory)
-  ).length;
-
-  const recalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }> = activeMemories
-    .filter((memory) => {
-      const normalizedContent = memory.content.toLowerCase();
-      return (
-        (trimmedContent.toLowerCase().includes("profession") &&
-          normalizedContent.includes("product designer")) ||
-        (isSmokeOpenEndedSummaryQuestion(trimmedContent) &&
-          normalizedContent.includes("product designer")) ||
-        (isSmokeDirectProfessionQuestion(trimmedContent) &&
-          normalizedContent.includes("product designer")) ||
-        ((trimmedContent.toLowerCase().includes("weekly planning") ||
-          isSmokeOpenEndedPlanningHelpQuestion(trimmedContent) ||
-          isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
-          isSmokeDirectPlanningPreferenceQuestion(trimmedContent)) &&
-          normalizedContent.includes("concise weekly planning"))
-      );
-    })
-    .map((memory) => ({
-      memory_type:
-        memory.memory_type === "preference" ? "preference" : "profile",
-      content: memory.content,
-      confidence: memory.confidence
-    }));
-  const relationshipStylePrompt = isSmokeRelationshipAnswerShapePrompt(trimmedContent);
-  const sameThreadContinuity = recentAssistantReply !== null;
-  const sameThreadContinuationApplicable =
-    sameThreadContinuity && isSmokeRelationshipContinuationEdgePrompt(trimmedContent);
-  const relationshipCarryoverAvailable = activeMemories.some(
-    (memory) =>
-      memory.category === "relationship" &&
-      memory.scope === "user_agent" &&
-      memory.target_agent_id === ensuredAgent.id
-  );
-  const answerStrategyRule = getSmokeAnswerStrategy({
-    content: trimmedContent,
-    sameThreadContinuity,
-    relationshipStylePrompt,
-    relationshipCarryoverAvailable
-  });
-  const preferSameThreadContinuation =
-    answerStrategyRule.answerStrategy === "same-thread-continuation";
-  const recentRawTurnCount = getSmokeRecentRuntimeMessages(
-    (existingMessages ?? []) as Array<{
-      role: "user" | "assistant";
-      content: string;
-      status: string;
-      metadata: Record<string, unknown>;
-    }>
-  ).length + 1;
-  const approxContextPressure = getSmokeApproxContextPressure(
-    (existingMessages ?? []) as Array<{
+  const {
+    activeMemories,
+    addressStyleMemory,
+    answerStrategyRule,
+    approxContextPressure,
+    hiddenExclusionCount,
+    incorrectExclusionCount,
+    longChainPressureCandidate,
+    nicknameMemory,
+    preferredNameMemory,
+    preferSameThreadContinuation,
+    recentAssistantReply,
+    recentRawTurnCount,
+    recalledMemories,
+    sameThreadContinuationApplicable,
+    usedMemoryTypes
+  } = analyzeSmokeTurnContext({
+    trimmedContent,
+    existingMemories: smokeExistingMemories,
+    existingMessages: (existingMessages ?? []) as Array<{
       role: "user" | "assistant";
       content: string;
       status: string;
       metadata: Record<string, unknown>;
     }>,
-    trimmedContent
-  );
-  const longChainPressureCandidate =
-    sameThreadContinuationApplicable &&
-    recentRawTurnCount >= 10 &&
-    (approxContextPressure === "elevated" || approxContextPressure === "high");
-  const nicknameMemory =
-    isSmokeDirectNamingQuestion(trimmedContent) ||
-    relationshipStylePrompt ||
-    isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
-    sameThreadContinuity
-      ? findSmokeRelationshipMemory({
-          memories: activeMemories,
-          key: "agent_nickname",
-          agentId: ensuredAgent.id
-        })
-      : null;
-
-  prependSmokeRelationshipRecall(recalledMemories, nicknameMemory);
-  const preferredNameMemory =
-    isSmokeDirectUserPreferredNameQuestion(trimmedContent) ||
-    relationshipStylePrompt ||
-    isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
-    sameThreadContinuity
-      ? findSmokeRelationshipMemory({
-          memories: activeMemories,
-          key: "user_preferred_name",
-          agentId: ensuredAgent.id
-        })
-      : null;
-
-  prependSmokeRelationshipRecall(recalledMemories, preferredNameMemory);
-
-  const addressStyleMemory = findSmokeRelationshipMemory({
-    memories: activeMemories,
-    key: "user_address_style",
-    agentId: ensuredAgent.id
+    agentId: ensuredAgent.id,
+    threadId: thread.id
   });
-
-  prependSmokeRelationshipRecall(recalledMemories, addressStyleMemory);
-
-  const usedMemoryTypes = getSmokeUsedMemoryTypes(recalledMemories);
 
   const ensuredUserMessage = await insertSmokeUserTurn({
     supabase: admin,
