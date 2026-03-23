@@ -212,6 +212,7 @@
   - `thread message` 的单跳 shell 已被裁掉
   - `runtime user message metadata` 小壳已被裁掉
   - `thread title` 已并回 `thread activity patch`
+  - `follow_up claim` 单跳 shell 已被裁掉
 
 另外，作为 runtime 邻近验证 harness 的 `smoke` 线，当前也已完成一轮较大规模拆薄：
 

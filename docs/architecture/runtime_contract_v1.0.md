@@ -179,6 +179,7 @@ runtime 在处理一轮时，至少要消费：
   - builder
   - updater
 - runtime user message metadata 当前也已进一步收口到真实 persistence 入口，而不再额外依赖单独小 builder 壳
+- follow-up claim 当前也已进一步收口为 repository 直接 claim，而不再额外依赖单独 claim wrapper
 - 因此当前 assistant metadata 的状态应理解为：
   - **已开始统一收口**
   - **已开始形成 grouped shape**

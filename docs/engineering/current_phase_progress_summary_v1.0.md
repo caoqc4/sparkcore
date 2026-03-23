@@ -197,6 +197,7 @@
   - `thread message` 单跳 persistence shell 已裁掉
   - `runtime user message` metadata 小壳已裁掉
   - `thread title` 小壳已裁掉
+  - `follow_up claim` 单跳 shell 也已裁掉，worker 与 harness 直接走 repository claim method
 - 当前 runtime 主线的下一阶段优先级也已前移成：
   - 先治理输出层
   - 再决定是否继续细拆 execution
