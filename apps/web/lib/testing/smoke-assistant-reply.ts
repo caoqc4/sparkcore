@@ -4,23 +4,10 @@ import type {
 } from "@/lib/testing/smoke-assistant-builders";
 import { buildSmokeDirectOrGroundedReply } from "@/lib/testing/smoke-direct-replies";
 import {
-  isSmokeRelationshipClosingPrompt,
-  isSmokeRelationshipExplanatoryPrompt,
-  isSmokeRelationshipSupportivePrompt
-} from "@/lib/testing/smoke-answer-strategy";
-import {
-  buildSmokeDefaultContinuationReply,
-  buildSmokeRelationshipClosingReply,
-  buildSmokeRelationshipExplanatoryReply,
-  buildSmokeRelationshipSupportiveReply
-} from "@/lib/testing/smoke-relationship-replies";
+  buildSmokeRelationshipOrContinuationReply,
+  type SmokeRelationshipRecallMemory
+} from "@/lib/testing/smoke-relationship-reply-branch";
 import type { SmokeContinuityReply } from "@/lib/testing/smoke-turn-analysis";
-
-type SmokeRelationshipRecallMemory = {
-  memory_type: "relationship";
-  content: string;
-  confidence: number;
-} | null;
 
 export function buildSmokeAssistantReply({
   content,
@@ -65,39 +52,13 @@ export function buildSmokeAssistantReply({
     return directOrGroundedReply;
   }
 
-  if (isSmokeRelationshipExplanatoryPrompt(content)) {
-    return buildSmokeRelationshipExplanatoryReply({
-      content,
-      replyLanguage,
-      addressStyleValue: addressStyleMemory?.content ?? null,
-      selfName: nicknameMemory?.content ?? agentName,
-      userName: preferredNameMemory?.content ?? null
-    });
-  }
-
-  if (isSmokeRelationshipSupportivePrompt(content)) {
-    return buildSmokeRelationshipSupportiveReply({
-      content,
-      replyLanguage,
-      addressStyleValue: addressStyleMemory?.content ?? null,
-      selfName: nicknameMemory?.content ?? agentName,
-      userName: preferredNameMemory?.content ?? null
-    });
-  }
-
-  if (isSmokeRelationshipClosingPrompt(content)) {
-    return buildSmokeRelationshipClosingReply({
-      replyLanguage,
-      addressStyleValue: addressStyleMemory?.content ?? null,
-      userName: preferredNameMemory?.content ?? null
-    });
-  }
-
-  return buildSmokeDefaultContinuationReply({
+  return buildSmokeRelationshipOrContinuationReply({
     content,
     replyLanguage,
-    addressStyleValue: addressStyleMemory?.content ?? null,
-    userName: preferredNameMemory?.content ?? null,
-    recentAssistantReply
+    recentAssistantReply,
+    agentName,
+    addressStyleMemory,
+    nicknameMemory,
+    preferredNameMemory
   });
 }
