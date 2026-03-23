@@ -12,6 +12,7 @@ import {
   normalizeSingleSlotValue
 } from "@/lib/chat/memory-v2";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
+import { updateMemoryItem } from "@/lib/chat/memory-item-persistence";
 import { buildWebRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import {
   insertAndPersistRuntimeUserMessage
@@ -620,15 +621,15 @@ export async function hideMemory(formData: FormData) {
   nextMetadata.is_hidden = true;
   nextMetadata.hidden_at = new Date().toISOString();
 
-  const { error } = await supabase
-    .from("memory_items")
-    .update({
+  const { error } = await updateMemoryItem({
+    supabase,
+    memoryItemId: memoryItem.id,
+    patch: {
       status: "hidden",
       metadata: nextMetadata,
       updated_at: new Date().toISOString()
-    })
-    .eq("id", memoryItem.id)
-    .eq("user_id", user.id);
+    }
+  }).eq("user_id", user.id);
 
   if (error) {
     redirect(
@@ -756,15 +757,15 @@ export async function restoreMemory(formData: FormData) {
         superseded_by_restore_memory_id: memoryItem.id
       };
 
-      const { error: supersedeError } = await supabase
-        .from("memory_items")
-        .update({
+      const { error: supersedeError } = await updateMemoryItem({
+        supabase,
+        memoryItemId: row.id,
+        patch: {
           status: "superseded",
           metadata: nextSupersededMetadata,
           updated_at: new Date().toISOString()
-        })
-        .eq("id", row.id)
-        .eq("user_id", user.id);
+        }
+      }).eq("user_id", user.id);
 
       if (supersedeError) {
         redirect(
@@ -794,15 +795,15 @@ export async function restoreMemory(formData: FormData) {
   nextMetadata.normalization = normalizeSingleSlotValue(normalizedValueSource);
   nextMetadata.restored_at = new Date().toISOString();
 
-  const { error } = await supabase
-    .from("memory_items")
-    .update({
+  const { error } = await updateMemoryItem({
+    supabase,
+    memoryItemId: memoryItem.id,
+    patch: {
       status: "active",
       metadata: nextMetadata,
       updated_at: new Date().toISOString()
-    })
-    .eq("id", memoryItem.id)
-    .eq("user_id", user.id);
+    }
+  }).eq("user_id", user.id);
 
   if (error) {
     redirect(
@@ -875,15 +876,15 @@ export async function markMemoryIncorrect(formData: FormData) {
   nextMetadata.is_incorrect = true;
   nextMetadata.incorrect_at = new Date().toISOString();
 
-  const { error } = await supabase
-    .from("memory_items")
-    .update({
+  const { error } = await updateMemoryItem({
+    supabase,
+    memoryItemId: memoryItem.id,
+    patch: {
       status: "incorrect",
       metadata: nextMetadata,
       updated_at: new Date().toISOString()
-    })
-    .eq("id", memoryItem.id)
-    .eq("user_id", user.id);
+    }
+  }).eq("user_id", user.id);
 
   if (error) {
     redirect(
