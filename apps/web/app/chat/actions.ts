@@ -26,6 +26,7 @@ import {
   loadOwnedAvailableAgents,
   loadOwnedThread,
   loadPrimaryWorkspace,
+  updateOwnedAgent,
   updateOwnedThread
 } from "@/lib/chat/runtime-turn-context";
 import { loadThreadMessages } from "@/lib/chat/thread-message-persistence";
@@ -365,20 +366,20 @@ export async function renameAgent(
     avatar_emoji: normalizedAvatarEmoji || null
   };
 
-  const { data: updatedAgent, error } = await supabase
-    .from("agents")
-    .update({
+  const { data: updatedAgent, error } = await updateOwnedAgent({
+    supabase,
+    agentId: agent.id,
+    workspaceId: workspace.id,
+    userId: user.id,
+    patch: {
       name: normalizedName,
       persona_summary: normalizedPersonaSummary,
       default_model_profile_id: nextModelProfileId,
       metadata: nextMetadata,
       updated_at: new Date().toISOString()
-    })
-    .eq("id", agent.id)
-    .eq("workspace_id", workspace.id)
-    .eq("owner_user_id", user.id)
-    .select("id, name")
-    .single();
+    },
+    select: "id, name"
+  }).single();
 
   if (error || !updatedAgent) {
     return {
@@ -538,15 +539,16 @@ export async function setDefaultAgent(formData: FormData) {
       delete nextMetadata.is_default_for_workspace;
     }
 
-    const { error } = await supabase
-      .from("agents")
-      .update({
+    const { error } = await updateOwnedAgent({
+      supabase,
+      agentId: activeAgent.id,
+      workspaceId: workspace.id,
+      userId: user.id,
+      patch: {
         metadata: nextMetadata,
         updated_at: new Date().toISOString()
-      })
-      .eq("id", activeAgent.id)
-      .eq("workspace_id", workspace.id)
-      .eq("owner_user_id", user.id);
+      }
+    });
 
     if (error) {
       redirect(

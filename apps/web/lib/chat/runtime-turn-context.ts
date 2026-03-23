@@ -148,6 +148,28 @@ export async function bindOwnedAgentModelProfile(args: {
     .eq("owner_user_id", args.userId);
 }
 
+export function updateOwnedAgent(args: {
+  supabase: any;
+  agentId: string;
+  workspaceId: string;
+  userId: string;
+  patch: Record<string, unknown>;
+  select?: string;
+}) {
+  let query = args.supabase
+    .from("agents")
+    .update(args.patch)
+    .eq("id", args.agentId)
+    .eq("workspace_id", args.workspaceId)
+    .eq("owner_user_id", args.userId);
+
+  if (args.select) {
+    query = query.select(args.select);
+  }
+
+  return query;
+}
+
 export async function createOwnedThread(args: {
   supabase: any;
   workspaceId: string;
