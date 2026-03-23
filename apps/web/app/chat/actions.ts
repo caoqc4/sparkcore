@@ -1524,39 +1524,29 @@ export async function retryAssistantReply(
     }
 
     if (runtimeTurnResult.memory_write_requests.length > 0) {
-      await supabase
-        .from("messages")
-        .update({
-          metadata: {
-            ...failedMessage.metadata,
-            ...buildRuntimeMemoryWriteRequestMetadata(
-              runtimeTurnResult.memory_write_requests
-            )
-          },
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", failedMessage.id)
-        .eq("thread_id", thread.id)
-        .eq("workspace_id", workspace.id)
-        .eq("user_id", user.id);
+      await updateAssistantPreviewMetadata({
+        supabase,
+        assistantMessageId: failedMessage.id,
+        threadId: thread.id,
+        workspaceId: workspace.id,
+        userId: user.id,
+        updates: buildRuntimeMemoryWriteRequestMetadata(
+          runtimeTurnResult.memory_write_requests
+        )
+      });
     }
 
     if (runtimeTurnResult.follow_up_requests.length > 0) {
-      await supabase
-        .from("messages")
-        .update({
-          metadata: {
-            ...failedMessage.metadata,
-            ...buildRuntimeFollowUpRequestMetadata(
-              runtimeTurnResult.follow_up_requests
-            )
-          },
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", failedMessage.id)
-        .eq("thread_id", thread.id)
-        .eq("workspace_id", workspace.id)
-        .eq("user_id", user.id);
+      await updateAssistantPreviewMetadata({
+        supabase,
+        assistantMessageId: failedMessage.id,
+        threadId: thread.id,
+        workspaceId: workspace.id,
+        userId: user.id,
+        updates: buildRuntimeFollowUpRequestMetadata(
+          runtimeTurnResult.follow_up_requests
+        )
+      });
     }
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);
