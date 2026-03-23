@@ -16,6 +16,8 @@ import {
   getAssistantModelProfileTierLabel,
   getAssistantModelProfileUsageNote,
   getAssistantNewMemoryCount,
+  getAssistantThreadStateContinuityStatus,
+  getAssistantThreadStateFocusMode,
   getAssistantUnderlyingModelLabel,
   getAssistantUpdatedMemoryCount,
   getAssistantMemoryWriteTypes,
@@ -230,6 +232,10 @@ function getRuntimeSummary(
     getAssistantHiddenMemoryExclusionCount(fallbackMetadata);
   const incorrectExclusionCount =
     getAssistantIncorrectMemoryExclusionCount(fallbackMetadata);
+  const threadStateFocusMode =
+    getAssistantThreadStateFocusMode(fallbackMetadata);
+  const threadStateContinuityStatus =
+    getAssistantThreadStateContinuityStatus(fallbackMetadata);
   const newMemoryCount = getAssistantNewMemoryCount(fallbackMetadata);
   const updatedMemoryCount = getAssistantUpdatedMemoryCount(fallbackMetadata);
 
@@ -296,6 +302,20 @@ function getRuntimeSummary(
       isZh
         ? `${incorrectExclusionCount} 条已标错记忆被排除在 recall 之外。`
         : `${incorrectExclusionCount} incorrect memor${incorrectExclusionCount === 1 ? "y was" : "ies were"} kept out of recall.`
+    );
+  }
+
+  if (threadStateFocusMode) {
+    outcomeHints.push(
+      isZh
+        ? `线程 focus：${threadStateFocusMode}`
+        : `Thread focus: ${threadStateFocusMode}`
+    );
+  } else if (threadStateContinuityStatus) {
+    outcomeHints.push(
+      isZh
+        ? `线程连续性：${threadStateContinuityStatus}`
+        : `Thread continuity: ${threadStateContinuityStatus}`
     );
   }
 

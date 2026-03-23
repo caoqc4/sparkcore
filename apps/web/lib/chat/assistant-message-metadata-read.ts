@@ -55,6 +55,13 @@ export function getAssistantSessionMetadata(
   return getAssistantMetadataGroup(metadata, "session");
 }
 
+export function getAssistantThreadStateMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const sessionMetadata = getAssistantSessionMetadata(metadata);
+  return getAssistantMetadataGroup(sessionMetadata, "thread_state");
+}
+
 export function getAssistantFollowUpMetadata(
   metadata: Record<string, unknown> | null | undefined
 ) {
@@ -405,6 +412,50 @@ export function getAssistantSessionContextPressure(
 
   const groupedValue = getAssistantMetadataString(sessionMetadata, "context_pressure");
   return groupedValue ?? getAssistantMetadataString(metadata, "approx_context_pressure");
+}
+
+export function getAssistantThreadStateLifecycleStatus(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const threadStateMetadata = getAssistantThreadStateMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(threadStateMetadata, "lifecycle_status") ??
+    getAssistantMetadataString(metadata, "thread_state_lifecycle_status")
+  );
+}
+
+export function getAssistantThreadStateFocusMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const threadStateMetadata = getAssistantThreadStateMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(threadStateMetadata, "focus_mode") ??
+    getAssistantMetadataString(metadata, "thread_state_focus_mode")
+  );
+}
+
+export function getAssistantThreadStateContinuityStatus(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const threadStateMetadata = getAssistantThreadStateMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(threadStateMetadata, "continuity_status") ??
+    getAssistantMetadataString(metadata, "thread_state_continuity_status")
+  );
+}
+
+export function getAssistantThreadStateCurrentLanguageHint(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const threadStateMetadata = getAssistantThreadStateMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(threadStateMetadata, "current_language_hint") ??
+    getAssistantMetadataString(metadata, "thread_state_current_language_hint")
+  );
 }
 
 export function getAssistantFollowUpRequestCount(
