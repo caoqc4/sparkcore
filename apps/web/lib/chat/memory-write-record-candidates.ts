@@ -7,6 +7,10 @@ import type {
   RuntimeGenericMemoryWriteRequest,
   RuntimeRelationshipMemoryWriteRequest
 } from "@/lib/chat/runtime-contract";
+import type {
+  ThreadContinuityStatus,
+  ThreadStateRecord
+} from "@/lib/chat/thread-state";
 
 export function buildPlannedStaticProfileRecord(args: {
   workspaceId: string;
@@ -86,5 +90,53 @@ export function buildPlannedRelationshipMemoryRecord(args: {
         source_message_id: args.request.source_turn_id
       }
     ]
+  };
+}
+
+export type PlannedThreadStateCandidate = Pick<
+  ThreadStateRecord,
+  | "thread_id"
+  | "agent_id"
+  | "focus_mode"
+  | "current_language_hint"
+  | "recent_turn_window_size"
+  | "continuity_status"
+  | "updated_at"
+> & {
+  semantic_source: "goal_memory_candidate";
+  semantic_value: string;
+  source_turn_id?: string | null;
+};
+
+export function buildPlannedThreadStateCandidate(args: {
+  threadId: string;
+  agentId: string;
+  goalText: string;
+  sourceTurnId?: string | null;
+  continuityStatus?: ThreadContinuityStatus | null;
+}): PlannedThreadStateCandidate {
+  return {
+    thread_id: args.threadId,
+    agent_id: args.agentId,
+    focus_mode: args.goalText.trim(),
+    current_language_hint: null,
+    recent_turn_window_size: null,
+    continuity_status: args.continuityStatus ?? null,
+    updated_at: new Date().toISOString(),
+    semantic_source: "goal_memory_candidate",
+    semantic_value: args.goalText.trim(),
+    source_turn_id: args.sourceTurnId ?? null
+  };
+}
+
+export function buildPlannedThreadStateCandidatePreview(args: {
+  goalText: string;
+  sourceTurnId?: string | null;
+}) {
+  return {
+    semantic_source: "goal_memory_candidate" as const,
+    semantic_value: args.goalText.trim(),
+    focus_mode: args.goalText.trim(),
+    source_turn_id: args.sourceTurnId ?? null
   };
 }

@@ -3,6 +3,7 @@ import type {
   RuntimeMemoryWriteRequest
 } from "@/lib/chat/runtime-contract";
 import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
+import { buildPlannedThreadStateCandidatePreview } from "@/lib/chat/memory-write-record-candidates";
 
 type MemoryWriteOutcome = {
   createdCount: number;
@@ -51,6 +52,13 @@ function buildRuntimeMemoryWriteRequestPreview(
       memory_type: request.memory_type,
       record_target: target.recordTarget,
       canonical_memory_type: target.canonicalMemoryType,
+      thread_state_candidate:
+        target.recordTarget === "thread_state_candidate"
+          ? buildPlannedThreadStateCandidatePreview({
+              goalText: request.candidate_content,
+              sourceTurnId: request.source_turn_id
+            })
+          : null,
       relationship_key:
         request.kind === "relationship_memory" ? request.relationship_key : null,
       confidence: request.confidence,
