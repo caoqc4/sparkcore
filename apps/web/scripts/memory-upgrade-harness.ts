@@ -17,8 +17,13 @@ import { buildAgentSystemPrompt, buildVisibleMemoryRecord } from "@/lib/chat/run
 import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
 import {
   getAssistantMemoryObservedSemanticLayers,
+  getAssistantMemoryScenarioPackId,
   getAssistantMemoryPrimarySemanticLayer
 } from "@/lib/chat/assistant-message-metadata-read";
+import {
+  buildScenarioMemoryPackPromptSection,
+  resolveActiveScenarioMemoryPack
+} from "@/lib/chat/memory-packs";
 import {
   buildPlannedRelationshipMemoryRecord,
   buildPlannedStaticProfileRecord,
@@ -356,6 +361,24 @@ function main() {
     dynamicOnlySemanticSummary.primary_layer === "dynamic_profile",
     "Expected dynamic-profile semantic layer to become the primary layer when it is the only active layer."
   );
+  const scenarioMemoryPack = resolveActiveScenarioMemoryPack();
+  expect(
+    scenarioMemoryPack.pack_id === "companion",
+    "Expected companion scenario memory pack to be the default active pack in P2-1."
+  );
+  expect(
+    scenarioMemoryPack.preferred_routes.join(",") ===
+      "thread_state,profile,episode,timeline",
+    "Expected companion scenario memory pack to preserve the P1 retrieval preference order."
+  );
+  const scenarioMemoryPackPrompt = buildScenarioMemoryPackPromptSection({
+    pack: scenarioMemoryPack,
+    replyLanguage: "en"
+  });
+  expect(
+    scenarioMemoryPackPrompt.includes("Active Scenario Memory Pack: companion"),
+    "Expected scenario memory pack prompt section to expose the active companion pack."
+  );
 
   const assistantMetadata = buildAssistantMessageMetadata(
     buildRuntimeAssistantMetadataInput({
@@ -449,6 +472,7 @@ function main() {
         types_used: ["profile", "relationship"],
         semantic_layers: ["static_profile", "memory_record"],
         profile_snapshot: ["User prefers concise technical explanations."],
+        scenario_pack: scenarioMemoryPack,
         hidden_exclusion_count: 0,
         incorrect_exclusion_count: 0
       },
@@ -465,6 +489,10 @@ function main() {
     getAssistantMemoryObservedSemanticLayers(assistantMetadata).join(",") ===
       "static_profile,memory_record,thread_state",
     "Expected assistant metadata reader to expose all observed semantic layers."
+  );
+  expect(
+    getAssistantMemoryScenarioPackId(assistantMetadata) === "companion",
+    "Expected assistant metadata reader to expose the active scenario memory pack."
   );
 
   const systemPrompt = buildAgentSystemPrompt(
@@ -517,6 +545,10 @@ function main() {
   expect(
     systemPrompt.includes("primary_layer = thread_state"),
     "Expected system prompt assembly to include memory semantic summary."
+  );
+  expect(
+    systemPrompt.includes("Active Scenario Memory Pack: companion"),
+    "Expected system prompt assembly to include active scenario memory pack guidance."
   );
 
   const routeAwarePrompt = buildAgentSystemPrompt(
@@ -641,6 +673,14 @@ function main() {
             assistantMetadata
           )
         },
+        assistant_metadata_pack: {
+          pack_id: getAssistantMemoryScenarioPackId(assistantMetadata)
+        },
+        scenario_memory_pack: {
+          pack_id: scenarioMemoryPack.pack_id,
+          preferred_routes: scenarioMemoryPack.preferred_routes,
+          assembly_order: scenarioMemoryPack.assembly_order
+        },
         system_prompt_thread_state: {
           includes_focus_mode: systemPrompt.includes(
             "focus_mode = Finish the onboarding checklist this week."
@@ -650,6 +690,9 @@ function main() {
           ),
           includes_primary_layer: systemPrompt.includes(
             "primary_layer = thread_state"
+          ),
+          includes_scenario_memory_pack: systemPrompt.includes(
+            "Active Scenario Memory Pack: companion"
           )
         },
         system_prompt_route_guidance: {

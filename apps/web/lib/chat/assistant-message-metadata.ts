@@ -3,6 +3,7 @@ import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import type { ReplyLanguageSource, RoleCorePacket, RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
+import type { ScenarioMemoryLayer, ScenarioMemoryRoute } from "../../../../packages/core/memory";
 
 type RecalledMemoryMetadataItem = {
   memory_type: string | null;
@@ -37,6 +38,11 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   memory_types_used: string[];
   memory_semantic_layers: MemorySemanticLayer[];
   profile_snapshot: string[];
+  scenario_memory_pack_id?: string | null;
+  scenario_memory_pack_label?: string | null;
+  scenario_memory_pack_preferred_routes?: ScenarioMemoryRoute[];
+  scenario_memory_pack_assembly_order?: ScenarioMemoryLayer[];
+  scenario_memory_pack_selection_reason?: string | null;
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -83,6 +89,11 @@ export type BuildAssistantMessageMetadataInput = {
   memory_types_used: string[];
   memory_semantic_layers: MemorySemanticLayer[];
   profile_snapshot: string[];
+  scenario_memory_pack_id?: string | null;
+  scenario_memory_pack_label?: string | null;
+  scenario_memory_pack_preferred_routes?: ScenarioMemoryRoute[];
+  scenario_memory_pack_assembly_order?: ScenarioMemoryLayer[];
+  scenario_memory_pack_selection_reason?: string | null;
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -133,6 +144,15 @@ export function buildAssistantMetadataSummaryGroups(
       used: input.memory_used,
       types_used: input.memory_types_used,
       profile_snapshot: input.profile_snapshot,
+      pack: input.scenario_memory_pack_id
+        ? {
+            pack_id: input.scenario_memory_pack_id,
+            label: input.scenario_memory_pack_label ?? null,
+            preferred_routes: input.scenario_memory_pack_preferred_routes ?? [],
+            assembly_order: input.scenario_memory_pack_assembly_order ?? [],
+            selection_reason: input.scenario_memory_pack_selection_reason ?? null
+          }
+        : null,
       semantic_summary: buildRuntimeMemorySemanticSummary({
         memoryTypesUsed: input.memory_types_used,
         profileSnapshot: input.profile_snapshot,
@@ -160,6 +180,14 @@ export function buildAssistantMetadataSummaryGroups(
       memory_types_used: input.memory_types_used,
       memory_semantic_layers: input.memory_semantic_layers,
       profile_snapshot: input.profile_snapshot,
+      scenario_memory_pack_id: input.scenario_memory_pack_id,
+      scenario_memory_pack_label: input.scenario_memory_pack_label,
+      scenario_memory_pack_preferred_routes:
+        input.scenario_memory_pack_preferred_routes,
+      scenario_memory_pack_assembly_order:
+        input.scenario_memory_pack_assembly_order,
+      scenario_memory_pack_selection_reason:
+        input.scenario_memory_pack_selection_reason,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_memory_exclusion_count: input.incorrect_memory_exclusion_count
     }

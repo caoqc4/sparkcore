@@ -50,6 +50,13 @@ export function getAssistantMemorySemanticSummaryMetadata(
   return getAssistantMetadataGroup(memoryMetadata, "semantic_summary");
 }
 
+export function getAssistantMemoryPackMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const memoryMetadata = getAssistantMemoryMetadata(metadata);
+  return getAssistantMetadataGroup(memoryMetadata, "pack");
+}
+
 export function getAssistantAnswerStrategyMetadata(
   metadata: Record<string, unknown> | null | undefined
 ) {
@@ -261,6 +268,17 @@ export function getAssistantMemoryUsed(
     ) ??
     getAssistantMetadataBoolean(memoryMetadata ?? metadata, "used") ??
     (typeof memoryHitCount === "number" ? memoryHitCount > 0 : null)
+  );
+}
+
+export function getAssistantMemoryScenarioPackId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "pack_id") ??
+    getAssistantMetadataString(metadata, "scenario_memory_pack_id")
   );
 }
 

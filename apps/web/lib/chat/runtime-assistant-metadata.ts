@@ -9,6 +9,7 @@ import type {
   RuntimeReplyLanguage,
 } from "@/lib/chat/role-core";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
+import type { ActiveScenarioMemoryPack } from "@/lib/chat/memory-packs";
 
 type RecalledMemoryMetadataItem = BuildAssistantMessageMetadataInput["recalled_memories"][number];
 
@@ -68,6 +69,7 @@ export type BuildRuntimeAssistantMetadataInput = {
     types_used: string[];
     semantic_layers: MemorySemanticLayer[];
     profile_snapshot: string[];
+    scenario_pack: ActiveScenarioMemoryPack | null;
     hidden_exclusion_count: number;
     incorrect_exclusion_count: number;
   };
@@ -126,6 +128,14 @@ export function buildRuntimeAssistantMetadataInput(
     memory_types_used: input.memory.types_used,
     memory_semantic_layers: input.memory.semantic_layers,
     profile_snapshot: input.memory.profile_snapshot,
+    scenario_memory_pack_id: input.memory.scenario_pack?.pack_id ?? null,
+    scenario_memory_pack_label: input.memory.scenario_pack?.label ?? null,
+    scenario_memory_pack_preferred_routes:
+      input.memory.scenario_pack?.preferred_routes ?? [],
+    scenario_memory_pack_assembly_order:
+      input.memory.scenario_pack?.assembly_order ?? [],
+    scenario_memory_pack_selection_reason:
+      input.memory.scenario_pack?.selection_reason ?? null,
     hidden_memory_exclusion_count: input.memory.hidden_exclusion_count,
     incorrect_memory_exclusion_count: input.memory.incorrect_exclusion_count,
     follow_up_request_count: input.follow_up.request_count,

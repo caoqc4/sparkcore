@@ -2,6 +2,7 @@ import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type { RuntimeThreadStateRecall } from "@/lib/chat/memory-recall";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
+import type { ActiveScenarioMemoryPack } from "@/lib/chat/memory-packs";
 
 export type BuildRuntimeDebugMetadataInput = {
   model_profile_id: string;
@@ -19,6 +20,7 @@ export type BuildRuntimeDebugMetadataInput = {
   context_pressure: ApproxContextPressure;
   thread_state_recall?: RuntimeThreadStateRecall | null;
   reply_language: string;
+  scenario_memory_pack?: ActiveScenarioMemoryPack | null;
 };
 
 export function buildRuntimeDebugMetadata(
@@ -42,6 +44,15 @@ export function buildRuntimeDebugMetadata(
         threadStateFocusMode: input.thread_state_recall?.snapshot?.focus_mode ?? null,
         semanticLayersUsed: input.memory_semantic_layers
       }),
+      pack: input.scenario_memory_pack
+        ? {
+            pack_id: input.scenario_memory_pack.pack_id,
+            label: input.scenario_memory_pack.label,
+            preferred_routes: input.scenario_memory_pack.preferred_routes,
+            assembly_order: input.scenario_memory_pack.assembly_order,
+            selection_reason: input.scenario_memory_pack.selection_reason
+          }
+        : null,
       write_request_count: input.memory_write_request_count
     },
     follow_up: {

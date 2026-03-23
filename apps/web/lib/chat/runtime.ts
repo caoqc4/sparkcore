@@ -20,6 +20,10 @@ import {
   buildRuntimeMemorySemanticSummary
 } from "@/lib/chat/memory-records";
 import {
+  buildScenarioMemoryPackPromptSection,
+  resolveActiveScenarioMemoryPack
+} from "@/lib/chat/memory-packs";
+import {
   loadActiveModelProfiles,
   loadActiveModelProfileById,
   loadActiveModelProfileBySlug,
@@ -1312,6 +1316,15 @@ function buildMemoryLayerAssemblyPrompt(args: {
   return sections.length > 1 ? sections.join("\n") : "";
 }
 
+function buildScenarioMemoryPackAssemblyPrompt(args: {
+  replyLanguage: RuntimeReplyLanguage;
+}) {
+  return buildScenarioMemoryPackPromptSection({
+    pack: resolveActiveScenarioMemoryPack(),
+    replyLanguage: args.replyLanguage
+  });
+}
+
 function buildAddressStyleRecallInstructions({
   isZh,
   styleValue
@@ -2458,6 +2471,9 @@ function buildAgentSystemPromptInternal(
     buildMemorySemanticSummaryPrompt({
       recalledMemories,
       threadState,
+      replyLanguage
+    }),
+    buildScenarioMemoryPackAssemblyPrompt({
       replyLanguage
     }),
     buildMemoryLayerAssemblyPrompt({
@@ -3883,6 +3899,7 @@ export async function runPreparedRuntimeTurn({
           )
         ),
         profile_snapshot: recalledProfileSnapshot,
+        scenario_pack: resolveActiveScenarioMemoryPack(),
         hidden_exclusion_count: memoryRecall.hiddenExclusionCount,
         incorrect_exclusion_count: memoryRecall.incorrectExclusionCount
       },
@@ -4013,7 +4030,8 @@ export async function runPreparedRuntimeTurn({
       context_pressure: approxContextPressure,
       thread_state_recall:
         preparedRuntimeTurn.memory.runtime_memory_context.threadStateRecall,
-      reply_language: replyLanguage
+      reply_language: replyLanguage,
+      scenario_memory_pack: resolveActiveScenarioMemoryPack()
     })
   };
 

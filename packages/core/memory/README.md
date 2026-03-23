@@ -4,6 +4,7 @@ This package is the first extraction point for the Phase 1 memory layer.
 
 Current scope:
 - memory contract types
+- scenario memory pack contracts
 - memory request and response shapes
 - memory compatibility helpers for legacy `memory_items` records
 - pure schema-normalization helpers with no runtime or product coupling

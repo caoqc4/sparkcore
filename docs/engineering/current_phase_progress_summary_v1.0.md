@@ -132,6 +132,12 @@
 - `memory_upgrade_p1_close_readiness_v1.0.md` 当前也已新增，用于对 `P1-1 ~ P1-5` 做整体完成度复盘，避免继续无边界扩张 `P1`
 - `memory_upgrade_p1_close_note_v1.0.md` 当前也已新增，用于正式收口“P1 已达到 close-ready，剩余项转入非阻塞尾项”的阶段判断
 - `memory_upgrade_p2_execution_plan_v1.0.md` 当前也已新增，用于把 `P2` 从 v0.2 中的高阶方向推进成正式执行起点
+- `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
+  - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
+  - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
+  - runtime `buildAgentSystemPrompt(...)` 当前也已开始显式注入 active scenario memory pack guidance
+  - assistant metadata / debug metadata 当前也已开始暴露最小 pack 摘要
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 companion pack seam
 - `P1-1 episode / timeline retrieval` 当前也已开始进入真实实现，而不再只是 contract：
   - `selectMemoryRecallRoutes(...)` 已开始真实激活 `episode / timeline`
   - `buildRecalledEpisodeMemoryFromStoredMemory(...)`
