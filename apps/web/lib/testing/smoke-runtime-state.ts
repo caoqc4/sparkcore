@@ -4,23 +4,9 @@ import {
 } from "@supabase/supabase-js";
 import { seedSmokeAgentState } from "@/lib/testing/smoke-agent-seeding";
 import { ensureSmokeModelProfileState } from "@/lib/testing/smoke-model-profiles";
+import type { SmokeConfig, SmokeUser } from "@/lib/testing/smoke-runtime-types";
 import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
 import { resetSmokeWorkspaceStateByUser } from "@/lib/testing/smoke-workspace-reset";
-
-export type SmokeConfig = {
-  secret: string;
-  email: string;
-  password: string;
-  serviceRoleKey: string;
-  url: string;
-  anonKey: string;
-};
-
-export type SmokeUser = {
-  id: string;
-  email: string;
-  workspaceId: string;
-};
 
 export function getSmokeAdminClient(config: SmokeConfig) {
   return createSupabaseClient(config.url, config.serviceRoleKey, {

@@ -1,8 +1,5 @@
 import { getSmokeModelProfiles } from "@/lib/testing/smoke-seed-persistence";
-import {
-  type SmokeConfig,
-  type SmokeUser
-} from "@/lib/testing/smoke-runtime-state";
+import type { SmokeConfig, SmokeUser } from "@/lib/testing/smoke-runtime-types";
 import { resetSmokeState } from "@/lib/testing/smoke-reset";
 import {
   getSmokeConfig,
