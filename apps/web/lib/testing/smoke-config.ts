@@ -1,6 +1,14 @@
 import { type NextRequest } from "next/server";
 import { getSupabaseEnv } from "@/lib/env";
-import type { SmokeConfig } from "@/lib/testing/smoke-runtime-types";
+
+export type SmokeConfig = {
+  secret: string;
+  email: string;
+  password: string;
+  serviceRoleKey: string;
+  url: string;
+  anonKey: string;
+};
 
 const DEV_SMOKE_SECRET = "sparkcore-smoke-local";
 const DEV_SMOKE_EMAIL = "smoke@example.com";
