@@ -1,8 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import {
-  createClient as createSupabaseClient,
-  type SupabaseClient
-} from "@supabase/supabase-js";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
 import { loadThreadMessages } from "@/lib/chat/message-read";
@@ -13,32 +10,34 @@ import {
 } from "@/lib/chat/memory-item-read";
 import { insertMessage } from "@/lib/chat/message-persistence";
 import {
-  deleteOwnedMemoryItems,
   insertMemoryItem,
   updateMemoryItem
 } from "@/lib/chat/memory-item-persistence";
 import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import {
   loadActiveModelProfileById,
-  loadActiveModelProfilesBySlugs,
-  loadActivePersonaPacksBySlugs,
   createOwnedThread,
-  deleteOwnedAgents,
-  deleteOwnedThreads,
   loadOwnedActiveAgent,
   loadOwnedActiveAgentByName,
   loadOwnedThread,
-  loadOwnedWorkspaceBySlug,
   updateOwnedThread
 } from "@/lib/chat/runtime-turn-context";
 import { getSupabaseEnv } from "@/lib/env";
 import { getAssistantDetectedReplyLanguage } from "@/lib/chat/assistant-message-metadata-read";
+import { getSmokeModelProfiles } from "@/lib/testing/smoke-seed-persistence";
 import {
-  getSmokeModelProfiles,
-  insertSmokeSeedAgents,
-  upsertSmokeModelProfiles,
-  upsertSmokeWorkspace
-} from "@/lib/testing/smoke-seed-persistence";
+  ensureSmokeModelProfiles,
+  ensureSmokeUser,
+  getSmokeAdminClient,
+  resetSmokeWorkspaceState,
+  seedSmokeAgents,
+  type SmokeConfig,
+  type SmokeUser
+} from "@/lib/testing/smoke-runtime-state";
+import {
+  buildSmokeSeedMetadata,
+  mergeSmokeSeedMetadata
+} from "@/lib/testing/smoke-seed-metadata";
 import {
   buildMemoryV2Fields,
   inferLegacyMemoryStability,
@@ -55,21 +54,6 @@ const DEV_SMOKE_PASSWORD = "SparkcoreSmoke123!";
 
 const SMOKE_MODEL_PROFILES = getSmokeModelProfiles();
 
-type SmokeConfig = {
-  secret: string;
-  email: string;
-  password: string;
-  serviceRoleKey: string;
-  url: string;
-  anonKey: string;
-};
-
-type SmokeUser = {
-  id: string;
-  email: string;
-  workspaceId: string;
-};
-
 type SmokeThread = {
   id: string;
   workspace_id: string;
@@ -77,23 +61,6 @@ type SmokeThread = {
   agent_id: string | null;
   title: string;
 };
-
-function buildSmokeSeedMetadata(fields?: Record<string, unknown>) {
-  return {
-    smoke_seed: true,
-    ...(fields ?? {})
-  };
-}
-
-function mergeSmokeSeedMetadata(
-  base?: Record<string, unknown> | null,
-  fields?: Record<string, unknown>
-) {
-  return {
-    ...(base ?? {}),
-    ...buildSmokeSeedMetadata(fields)
-  };
-}
 
 function buildSmokeRelationshipSeedMetadata(relationKind: string) {
   return buildSmokeSeedMetadata({
@@ -431,238 +398,6 @@ export function isAuthorizedSmokeRequest(
   return headerSecret === config.secret || querySecret === config.secret;
 }
 
-function getAdminClient(config: SmokeConfig) {
-  return createSupabaseClient(config.url, config.serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
-}
-
-async function ensureSmokeUser(
-  admin: SupabaseClient,
-  config: SmokeConfig,
-  options?: {
-    resetPassword?: boolean;
-  }
-): Promise<SmokeUser> {
-  const { data: listedUsersData, error: listError } =
-    await admin.auth.admin.listUsers({
-      page: 1,
-      perPage: 200
-    });
-
-  if (listError) {
-    throw new Error(`Failed to list auth users: ${listError.message}`);
-  }
-
-  const existingUser =
-    listedUsersData.users.find((user) => user.email === config.email) ?? null;
-
-  let ensuredUser = existingUser;
-
-  if (!ensuredUser) {
-    const { data: createdUserData, error: createUserError } =
-      await admin.auth.admin.createUser({
-        email: config.email,
-        password: config.password,
-        email_confirm: true,
-        user_metadata: buildSmokeSeedMetadata()
-      });
-
-    if (createUserError) {
-      throw new Error(`Failed to create the smoke user: ${createUserError.message}`);
-    }
-
-    ensuredUser = createdUserData.user;
-  }
-
-  if (!ensuredUser?.id) {
-    throw new Error("Failed to create the smoke test user.");
-  }
-
-  if (existingUser && options?.resetPassword) {
-    const { error: updateError } = await admin.auth.admin.updateUserById(
-      existingUser.id,
-      {
-        password: config.password,
-        email_confirm: true,
-        user_metadata: mergeSmokeSeedMetadata(existingUser.user_metadata)
-      }
-    );
-
-    if (updateError) {
-      throw new Error(`Failed to update the smoke user: ${updateError.message}`);
-    }
-  }
-
-  const workspaceSlug = `personal-${ensuredUser.id.replaceAll("-", "")}`;
-  const workspaceName = `${
-    config.email.split("@")[0] || "sparkcore"
-  } workspace`;
-
-  const { error: userUpsertError } = await admin.from("users").upsert(
-    {
-      id: ensuredUser.id,
-      email: config.email
-    },
-    {
-      onConflict: "id"
-    }
-  );
-
-  if (userUpsertError) {
-    throw new Error(`Failed to upsert the smoke profile: ${userUpsertError.message}`);
-  }
-
-  const { error: workspaceUpsertError } = await upsertSmokeWorkspace({
-    admin,
-    userId: ensuredUser.id,
-    workspaceName,
-    workspaceSlug
-  });
-
-  if (workspaceUpsertError) {
-    throw new Error(
-      `Failed to upsert the smoke workspace: ${workspaceUpsertError.message}`
-    );
-  }
-
-  const { data: workspace, error: workspaceError } = await loadOwnedWorkspaceBySlug({
-    supabase: admin,
-    workspaceSlug,
-    userId: ensuredUser.id
-  });
-
-  if (workspaceError || !workspace) {
-    throw new Error(
-      workspaceError?.message ?? "Failed to resolve the smoke workspace."
-    );
-  }
-
-  return {
-    id: ensuredUser.id,
-    email: config.email,
-    workspaceId: workspace.id
-  };
-}
-
-async function ensureSmokeModelProfiles(admin: SupabaseClient) {
-  const { error: upsertError } = await upsertSmokeModelProfiles(admin);
-
-  if (upsertError) {
-    throw new Error(
-      `Failed to seed smoke model profiles: ${upsertError.message}`
-    );
-  }
-
-  const { data: profiles, error: profilesError } = await loadActiveModelProfilesBySlugs({
-    supabase: admin,
-    slugs: SMOKE_MODEL_PROFILES.map((profile) => profile.slug)
-  });
-
-  if (profilesError || !profiles) {
-    throw new Error(
-      profilesError?.message ?? "Failed to load smoke model profiles."
-    );
-  }
-
-  return profiles;
-}
-
-async function resetSmokeWorkspaceState(
-  admin: SupabaseClient,
-  user: SmokeUser
-) {
-  const { error: deleteThreadsError } = await deleteOwnedThreads({
-    supabase: admin,
-    userId: user.id
-  });
-
-  if (deleteThreadsError) {
-    throw new Error(
-      `Failed to clear smoke threads: ${deleteThreadsError.message}`
-    );
-  }
-
-  const { error: deleteMemoryError } = await deleteOwnedMemoryItems({
-    supabase: admin,
-    userId: user.id
-  });
-
-  if (deleteMemoryError) {
-    throw new Error(
-      `Failed to clear smoke memory: ${deleteMemoryError.message}`
-    );
-  }
-
-  const { error: deleteAgentsError } = await deleteOwnedAgents({
-    supabase: admin,
-    userId: user.id
-  });
-
-  if (deleteAgentsError) {
-    throw new Error(
-      `Failed to clear smoke agents: ${deleteAgentsError.message}`
-    );
-  }
-}
-
-async function seedSmokeAgents(
-  admin: SupabaseClient,
-  user: SmokeUser,
-  modelProfiles: Array<{ id: string; slug: string; name: string }>
-) {
-  const { data: personaPacks, error: personaPacksError } = await loadActivePersonaPacksBySlugs({
-    supabase: admin,
-    slugs: ["spark-guide", "memory-coach"]
-  });
-
-  if (personaPacksError || !personaPacks || personaPacks.length < 2) {
-    throw new Error(
-      personaPacksError?.message ??
-        "Expected seeded persona packs for the smoke workspace."
-    );
-  }
-
-  const activePersonaPacks = personaPacks as Array<{
-    id: string;
-    slug: string;
-    name: string;
-    description: string | null;
-    persona_summary: string;
-    style_prompt: string;
-    system_prompt: string;
-  }>;
-
-  const sparkGuidePack = activePersonaPacks.find(
-    (pack) => pack.slug === "spark-guide"
-  );
-  const memoryCoachPack = activePersonaPacks.find(
-    (pack) => pack.slug === "memory-coach"
-  );
-  const defaultProfile = modelProfiles.find((profile) => profile.slug === "spark-default");
-  const altProfile = modelProfiles.find((profile) => profile.slug === "smoke-alt");
-
-  if (!sparkGuidePack || !memoryCoachPack || !defaultProfile || !altProfile) {
-    throw new Error("Smoke seed dependencies are incomplete.");
-  }
-
-  const { error: insertAgentsError } = await insertSmokeSeedAgents({
-    admin,
-    user,
-    sparkGuidePack,
-    memoryCoachPack,
-    defaultProfileId: defaultProfile.id,
-    altProfileId: altProfile.id
-  });
-
-  if (insertAgentsError) {
-    throw new Error(`Failed to seed smoke agents: ${insertAgentsError.message}`);
-  }
-}
-
 export async function resetSmokeState() {
   const config = getSmokeConfig();
 
@@ -672,7 +407,7 @@ export async function resetSmokeState() {
     );
   }
 
-  const admin = getAdminClient(config);
+  const admin = getSmokeAdminClient(config);
   const smokeUser = await ensureSmokeUser(admin, config, {
     resetPassword: true
   });
@@ -700,7 +435,7 @@ export async function createSmokeThread({
     );
   }
 
-  const admin = getAdminClient(config);
+  const admin = getSmokeAdminClient(config);
   const smokeUser = await ensureSmokeUser(admin, config);
 
   const { data: agent, error: agentError } = await loadOwnedActiveAgentByName({
@@ -2718,7 +2453,7 @@ export async function createSmokeTurn({
     );
   }
 
-  const admin = getAdminClient(config);
+  const admin = getSmokeAdminClient(config);
   const smokeUser = await ensureSmokeUser(admin, config);
   const trimmedContent = content.trim();
 
@@ -3329,7 +3064,7 @@ export async function createSmokeLoginResponse(
     );
   }
 
-  const admin = getAdminClient(config);
+  const admin = getSmokeAdminClient(config);
   await ensureSmokeUser(admin, config, {
     resetPassword: true
   });

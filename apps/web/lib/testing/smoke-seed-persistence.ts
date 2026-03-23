@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
+import { buildSmokeSeedMetadata } from "@/lib/testing/smoke-seed-metadata";
 
 const SMOKE_MODEL_PROFILES = [
   {
@@ -24,13 +25,6 @@ type SmokeUser = {
   id: string;
   workspaceId: string;
 };
-
-function buildSmokeSeedMetadata(fields?: Record<string, unknown>) {
-  return {
-    smoke_seed: true,
-    ...(fields ?? {})
-  };
-}
 
 function buildSmokeModelProfileSeedMetadata(args: {
   defaultProfile?: boolean;
