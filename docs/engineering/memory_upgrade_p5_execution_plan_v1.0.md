@@ -369,7 +369,7 @@ P5 首批明确不做：
 - `P5-3 knowledge route weighting v3`
   - 中段
 - `P5-4 scenario pack strategy layer v3`
-  - 前中段
+  - 中段
 - `P5-5 regression / acceptance expansion`
   - 第一版已成立
   - `memory-upgrade-harness` 现在已显式产出 `p5_regression_gate`
@@ -387,7 +387,7 @@ P5 首批明确不做：
 
 整体上，`P5` 当前大约在：
 
-- **`55% - 65%`**
+- **`65% - 75%`**
 
 当前最合理的下一步，不是立即进入 `close-readiness`，而是二选一：
 
@@ -396,9 +396,9 @@ P5 首批明确不做：
 
 当前推荐优先级：
 
-- **先继续补 `P5-5`**
+- **先做一次更明确的 `P5-5` 扩展**
 
 原因：
 
-- `P5-1 ~ P5-4` 已经都有真实代码事实
-- 现在已经有第一版正式 gate，正适合继续把它补成更完整的阶段判断基础
+- `P5-1 ~ P5-4` 现在都已经有比较清晰的真实代码事实
+- `P5-5` 已有第一版 gate，当前最值的是继续把它补成更像阶段级 gate，而不是马上进入 `close-readiness`
