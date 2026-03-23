@@ -1,5 +1,8 @@
 import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
-import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
+import {
+  resolveRuntimeMemoryBoundary,
+  type ActiveRuntimeMemoryNamespace
+} from "@/lib/chat/memory-namespace";
 import type { MemoryScope } from "@/lib/chat/memory-v2";
 
 export type PlannedMemoryRecordTarget =
@@ -58,23 +61,7 @@ export type PlannedRelationshipMemoryWriteTarget = {
 function resolveWriteBoundary(
   namespace: ActiveRuntimeMemoryNamespace | null | undefined
 ): PlannedMemoryWriteBoundary {
-  if (!namespace) {
-    return "default";
-  }
-
-  if (namespace.primary_layer === "world") {
-    return "world";
-  }
-
-  if (namespace.primary_layer === "project") {
-    return "project";
-  }
-
-  if (namespace.primary_layer === "thread") {
-    return "thread";
-  }
-
-  return "default";
+  return resolveRuntimeMemoryBoundary(namespace).write_boundary;
 }
 
 function getNamespaceRefId(

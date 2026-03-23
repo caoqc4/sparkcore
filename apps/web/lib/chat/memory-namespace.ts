@@ -11,6 +11,12 @@ export type ActiveRuntimeMemoryNamespace = ActiveMemoryNamespace & {
   selection_reason: "session_and_knowledge_scope";
 };
 
+export type RuntimeMemoryBoundary = {
+  retrieval_boundary: "default" | "thread" | "project" | "world";
+  write_boundary: "default" | "thread" | "project" | "world";
+  allow_timeline_fallback: boolean;
+};
+
 type NamespaceScopedMemoryLike = {
   metadata?: Record<string, unknown> | null;
   subject_user_id?: string | null;
@@ -98,6 +104,37 @@ export function buildMemoryNamespaceSummary(args: {
   };
 }
 
+export function resolveRuntimeMemoryBoundary(
+  namespace: ActiveRuntimeMemoryNamespace | null | undefined
+): RuntimeMemoryBoundary {
+  switch (namespace?.primary_layer) {
+    case "thread":
+      return {
+        retrieval_boundary: "thread",
+        write_boundary: "thread",
+        allow_timeline_fallback: false
+      };
+    case "project":
+      return {
+        retrieval_boundary: "project",
+        write_boundary: "project",
+        allow_timeline_fallback: true
+      };
+    case "world":
+      return {
+        retrieval_boundary: "world",
+        write_boundary: "world",
+        allow_timeline_fallback: true
+      };
+    default:
+      return {
+        retrieval_boundary: "default",
+        write_boundary: "default",
+        allow_timeline_fallback: true
+      };
+  }
+}
+
 export function buildMemoryNamespaceScopedMetadata(args: {
   namespace: ActiveRuntimeMemoryNamespace | null | undefined;
 }) {
@@ -110,6 +147,10 @@ export function buildMemoryNamespaceScopedMetadata(args: {
     active_memory_namespace_primary_layer: args.namespace.primary_layer,
     active_memory_namespace_layers: args.namespace.active_layers,
     active_memory_namespace_selection_reason: args.namespace.selection_reason,
+    active_memory_retrieval_boundary:
+      resolveRuntimeMemoryBoundary(args.namespace).retrieval_boundary,
+    active_memory_write_boundary:
+      resolveRuntimeMemoryBoundary(args.namespace).write_boundary,
     project_id: getNamespaceRefId(args.namespace, "project"),
     world_id: getNamespaceRefId(args.namespace, "world")
   };

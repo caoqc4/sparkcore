@@ -77,6 +77,24 @@ P4 首批要做的，是把 namespace 从：
 - 至少再补一条 write target / route 决策显式受 namespace 影响
 - namespace boundary 不再只停在单次 helper 判断，而要形成更稳定的主路径事实
 
+当前已成立的第一刀代码事实：
+
+- `apps/web/lib/chat/memory-namespace.ts` 当前已开始提供统一的 `resolveRuntimeMemoryBoundary(...)`
+- 这层 boundary 当前已开始把 namespace 显式收成：
+  - `retrieval_boundary`
+  - `write_boundary`
+  - `allow_timeline_fallback`
+- `apps/web/lib/chat/memory-recall.ts` 当前已开始复用这层 boundary：
+  - thread-primary namespace 下，会主动关闭 `timeline` fallback
+  - recall route 当前会从
+    - `thread_state,profile,episode,timeline`
+    收紧成
+    - `thread_state,profile,episode`
+- `apps/web/lib/chat/memory-write-targets.ts` 当前也已开始复用同一层 boundary helper，使 write boundary 与 retrieval boundary 不再各自手写
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - thread-primary namespace 会解析出 `thread` retrieval/write boundary
+  - thread-primary namespace 会关闭 `timeline` fallback
+
 ### 4.2 Retention budget / pruning v2
 
 P4 首批要把 `Thread retention` 从：

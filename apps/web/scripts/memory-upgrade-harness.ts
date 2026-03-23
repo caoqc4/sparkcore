@@ -39,7 +39,9 @@ import {
 import {
   buildMemoryNamespaceScopedMetadata,
   isMemoryWithinNamespace,
-  resolveActiveMemoryNamespace
+  type ActiveRuntimeMemoryNamespace,
+  resolveActiveMemoryNamespace,
+  resolveRuntimeMemoryBoundary
 } from "@/lib/chat/memory-namespace";
 import {
   buildGenericPlannerMemoryInsertMetadata,
@@ -273,6 +275,42 @@ function main() {
   expect(
     selectedRoutes.join(",") === "thread_state,profile,episode,timeline",
     "Expected recall route selection to activate episode and timeline in P1."
+  );
+  const threadPrimaryNamespace: ActiveRuntimeMemoryNamespace = {
+    namespace_id: "user:user-1|thread:thread-1",
+    primary_layer: "thread",
+    active_layers: ["user", "thread"],
+    refs: [
+      {
+        layer: "user",
+        entity_id: "user-1"
+      },
+      {
+        layer: "thread",
+        entity_id: "thread-1"
+      }
+    ],
+    selection_reason: "session_and_knowledge_scope"
+  };
+  const threadBoundary = resolveRuntimeMemoryBoundary(threadPrimaryNamespace);
+  expect(
+    threadBoundary.retrieval_boundary === "thread" &&
+      threadBoundary.write_boundary === "thread",
+    "Expected thread-primary namespace to resolve a thread retrieval/write boundary in P4."
+  );
+  expect(
+    threadBoundary.allow_timeline_fallback === false,
+    "Expected thread-primary namespace to disable timeline fallback in P4."
+  );
+  const threadScopedRoutes = selectMemoryRecallRoutes({
+    latestUserMessage: "Can you remind me how this changed over time?",
+    allowDistantFallback: true,
+    hasThreadState: true,
+    activeNamespace: threadPrimaryNamespace
+  });
+  expect(
+    threadScopedRoutes.join(",") === "thread_state,profile,episode",
+    "Expected thread-primary namespace to trim timeline fallback from recall routes in P4."
   );
 
   const visibleMemoryRecord = buildVisibleMemoryRecord({
@@ -1159,7 +1197,8 @@ function main() {
           planned_profile_id: plannedProfile.profile_id,
           planned_relationship_id: plannedRelationship.memory_id,
           planned_thread_focus: plannedThreadState.focus_mode,
-          selected_routes: selectedRoutes
+          selected_routes: selectedRoutes,
+          thread_scoped_routes: threadScopedRoutes
         },
         runtime_semantic_summary: semanticSummary,
         record_only_semantic_summary: recordOnlySemanticSummary,

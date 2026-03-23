@@ -249,6 +249,15 @@
   - knowledge route influence v2
   - scenario pack consumption expansion v2
   - `P4` regression / acceptance expansion
+- `P4-1 Namespace retrieval / write boundary v2` 当前也已开始进入真实实现：
+  - `apps/web/lib/chat/memory-namespace.ts` 当前已开始提供统一的 `resolveRuntimeMemoryBoundary(...)`
+  - 这层 boundary 当前已开始把 namespace 显式收成：
+    - `retrieval_boundary`
+    - `write_boundary`
+    - `allow_timeline_fallback`
+  - `apps/web/lib/chat/memory-recall.ts` 当前已开始复用这层 boundary，使 thread-primary namespace 下的 recall route 会主动关闭 `timeline` fallback
+  - `apps/web/lib/chat/memory-write-targets.ts` 当前也已开始复用同一层 boundary helper，使 write boundary 与 retrieval boundary 不再各自手写
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 thread-primary namespace 下的 `thread` retrieval/write boundary 与 timeline fallback 收紧
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

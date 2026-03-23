@@ -33,21 +33,28 @@ import {
   isStoredMemorySemanticTarget
 } from "@/lib/chat/memory-records";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
-import { isMemoryWithinNamespace } from "@/lib/chat/memory-namespace";
+import {
+  isMemoryWithinNamespace,
+  resolveRuntimeMemoryBoundary
+} from "@/lib/chat/memory-namespace";
 import { createClient } from "@/lib/supabase/server";
 
 export function selectMemoryRecallRoutes(args: {
   latestUserMessage: string;
   allowDistantFallback: boolean;
   hasThreadState: boolean;
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null;
 }): MemoryRecallRoute[] {
   void args.latestUserMessage;
 
   const routes: MemoryRecallRoute[] = args.hasThreadState
     ? ["thread_state", "profile", "episode"]
     : ["profile", "episode"];
+  const namespaceBoundary = resolveRuntimeMemoryBoundary(
+    args.activeNamespace ?? null
+  );
 
-  if (args.allowDistantFallback) {
+  if (args.allowDistantFallback && namespaceBoundary.allow_timeline_fallback) {
     routes.push("timeline");
   }
 
@@ -324,7 +331,8 @@ export async function recallRelevantMemories({
   const appliedRoutes = selectMemoryRecallRoutes({
     latestUserMessage,
     allowDistantFallback,
-    hasThreadState
+    hasThreadState,
+    activeNamespace
   });
   const supabase = providedSupabase ?? (await createClient());
   const selectColumns =
