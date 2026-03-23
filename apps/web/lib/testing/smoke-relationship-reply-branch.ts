@@ -1,4 +1,3 @@
-import type { SmokeReplyLanguage } from "@/lib/testing/smoke-assistant-builders";
 import {
   isSmokeRelationshipClosingPrompt,
   isSmokeRelationshipExplanatoryPrompt,
@@ -11,18 +10,11 @@ import {
   buildSmokeRelationshipSupportiveReply
 } from "@/lib/testing/smoke-relationship-replies";
 import { buildSmokeRelationshipReplyContext } from "@/lib/testing/smoke-relationship-reply-context";
-import type { SmokeRelationshipRecallMemory } from "@/lib/testing/smoke-recall-memory-types";
-import type { SmokeContinuityReply } from "@/lib/testing/smoke-turn-analysis";
+import type { SmokeRelationshipReplyInput } from "@/lib/testing/smoke-relationship-reply-types";
 
-export function buildSmokeRelationshipOrContinuationReply(args: {
-  content: string;
-  replyLanguage: SmokeReplyLanguage;
-  recentAssistantReply: SmokeContinuityReply | null;
-  agentName: string;
-  addressStyleMemory: SmokeRelationshipRecallMemory;
-  nicknameMemory: SmokeRelationshipRecallMemory;
-  preferredNameMemory: SmokeRelationshipRecallMemory;
-}) {
+export function buildSmokeRelationshipOrContinuationReply(
+  args: SmokeRelationshipReplyInput
+) {
   const { addressStyleValue, selfName, userName } =
     buildSmokeRelationshipReplyContext(args);
 
