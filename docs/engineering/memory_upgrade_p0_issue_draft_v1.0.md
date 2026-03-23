@@ -30,7 +30,7 @@
 
 当前状态：
 
-- 进行中
+- 基本完成
 - 已有：
   - `packages/core/memory/records.ts`
   - `apps/web/lib/chat/memory-records.ts`
@@ -74,7 +74,7 @@
 
 当前状态：
 
-- 进行中
+- 基本完成
 - 已有：
   - `goal -> thread_state_candidate`
   - `profile / preference -> static_profile`
@@ -116,7 +116,7 @@
 
 当前状态：
 
-- 进行中
+- 大体完成
 - 已有：
   - `record_target` classification
   - `StaticProfileRecord` write candidate
@@ -157,7 +157,7 @@
 
 当前状态：
 
-- 进行中
+- 接近完成
 - 已有：
   - `MemoryRecallRoute`
   - `thread_state` route
@@ -198,7 +198,7 @@
 
 当前状态：
 
-- 进行中
+- 大体完成
 - 已有：
   - `thread_state` 最小摘要注入
   - `profile_snapshot` 已进入 runtime / assistant metadata
@@ -235,7 +235,7 @@
 
 当前状态：
 
-- 进行中
+- 高完成度进行中
 - 当前已具备：
   - legacy semantic target classifier
   - profile / relationship recall 过滤
@@ -271,7 +271,7 @@
 
 当前状态：
 
-- 进行中
+- 第一版已成立
 - 当前已具备：
   - 功能 / 结构 / 回归三类 gate 框架
   - 最小功能 gate 草案
@@ -337,13 +337,13 @@
 
 ## 5. 当前一句话状态
 
-- `P0-1` 进行中
-- `P0-2` 进行中
-- `P0-3` 进行中
-- `P0-4` 进行中
-- `P0-5` 进行中
-- `P0-6` 进行中
-- `P0-7` 进行中
+- `P0-1` 基本完成
+- `P0-2` 基本完成
+- `P0-3` 大体完成
+- `P0-4` 接近完成
+- `P0-5` 大体完成
+- `P0-6` 高完成度进行中
+- `P0-7` 第一版已成立
 
 ---
 

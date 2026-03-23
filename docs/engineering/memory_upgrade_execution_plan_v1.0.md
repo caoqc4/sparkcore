@@ -15,6 +15,10 @@
 - 明确本阶段不做什么
 - 明确模块改动映射、验收标准与回退策略
 
+阶段补充：
+
+- 当 P0 进入后半段后，请结合 [memory_upgrade_p0_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p0_close_readiness_v1.0.md) 做收口判断，而不要继续无限扩张 P0 范围
+
 适用阶段：
 
 - 三层重构已 `Phase Close`
