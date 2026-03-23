@@ -1106,12 +1106,13 @@
 
 整体 `P5` 当前大约：
 
-- **`80%`**
+- **`85%`**
 
 当前更推荐的下一步：
 
-- **直接判断 `P5-4` 是否还值得最后一刀；如果不需要，就进入正式 `P5 close-ready` 判断**
+- **进入正式 `P5 close note`**
 
 当前对应复盘文档：
 
 - [memory_upgrade_p5_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p5_close_readiness_v1.0.md)
+- [memory_upgrade_p5_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p5_close_note_v1.0.md)

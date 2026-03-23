@@ -17,6 +17,7 @@
 
 上层输入：
 
+- [memory_upgrade_p5_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p5_close_note_v1.0.md)
 - [memory_upgrade_p4_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p4_close_note_v1.0.md)
 - [memory_upgrade_p4_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p4_close_readiness_v1.0.md)
 - [memory_upgrade_p4_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p4_execution_plan_v1.0.md)
