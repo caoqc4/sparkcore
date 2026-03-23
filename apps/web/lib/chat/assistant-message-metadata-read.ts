@@ -284,3 +284,43 @@ export function getAssistantIncorrectMemoryExclusionCount(
     0
   );
 }
+
+export function getAssistantMemoryWriteTypes(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+
+  return getPreferredAssistantMetadataStringArray(
+    explanationMetadata,
+    metadata,
+    "memory_write_types"
+  );
+}
+
+export function getAssistantNewMemoryCount(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+
+  return (
+    getPreferredAssistantMetadataNumber(
+      explanationMetadata,
+      metadata,
+      "new_memory_count"
+    ) ?? 0
+  );
+}
+
+export function getAssistantUpdatedMemoryCount(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+
+  return (
+    getPreferredAssistantMetadataNumber(
+      explanationMetadata,
+      metadata,
+      "updated_memory_count"
+    ) ?? 0
+  );
+}

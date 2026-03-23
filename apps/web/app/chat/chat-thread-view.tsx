@@ -9,18 +9,18 @@ import {
   getAssistantExplanationMetadata,
   getAssistantIncorrectMemoryExclusionCount,
   getAssistantMemoryHitCount,
-  getAssistantMemoryMetadata,
   getAssistantMemoryTypesUsed,
   getAssistantMemoryUsed,
   getAssistantMetadataNumber,
   getAssistantModelProfileName,
   getAssistantModelProfileTierLabel,
   getAssistantModelProfileUsageNote,
+  getAssistantNewMemoryCount,
   getAssistantUnderlyingModelLabel,
+  getAssistantUpdatedMemoryCount,
+  getAssistantMemoryWriteTypes,
   getPreferredAssistantMetadataBoolean,
-  getPreferredAssistantMetadataNumber,
-  getPreferredAssistantMetadataStringArray,
-  getAssistantMetadataStringArray
+  getPreferredAssistantMetadataNumber
 } from "@/lib/chat/assistant-message-metadata-read";
 import {
   hideMemory,
@@ -214,9 +214,7 @@ function getRuntimeSummary(
   }
 
   const isZh = locale === "zh-CN";
-  const explanationMetadata = getExplanationMetadata(message);
   const fallbackMetadata = message.metadata;
-  const groupedMemory = getAssistantMemoryMetadata(fallbackMetadata);
 
   const modelProfileName = getAssistantModelProfileName(fallbackMetadata);
   const modelProfileTierLabel =
@@ -227,27 +225,13 @@ function getRuntimeSummary(
   const memoryHitCount = getAssistantMemoryHitCount(fallbackMetadata);
   const memoryUsed = getAssistantMemoryUsed(fallbackMetadata);
   const normalizedMemoryTypesUsed = getAssistantMemoryTypesUsed(fallbackMetadata);
-  const memoryWriteTypes = getPreferredAssistantMetadataStringArray(
-    explanationMetadata,
-    fallbackMetadata,
-    "memory_write_types"
-  );
+  const memoryWriteTypes = getAssistantMemoryWriteTypes(fallbackMetadata);
   const hiddenExclusionCount =
     getAssistantHiddenMemoryExclusionCount(fallbackMetadata);
   const incorrectExclusionCount =
     getAssistantIncorrectMemoryExclusionCount(fallbackMetadata);
-  const newMemoryCount =
-    getPreferredAssistantMetadataNumber(
-      explanationMetadata,
-      fallbackMetadata,
-      "new_memory_count"
-    ) ?? 0;
-  const updatedMemoryCount =
-    getPreferredAssistantMetadataNumber(
-      explanationMetadata,
-      fallbackMetadata,
-      "updated_memory_count"
-    ) ?? 0;
+  const newMemoryCount = getAssistantNewMemoryCount(fallbackMetadata);
+  const updatedMemoryCount = getAssistantUpdatedMemoryCount(fallbackMetadata);
 
   const memoryLabel =
     memoryUsed === null
