@@ -23,6 +23,8 @@ import {
   getAssistantKnowledgeScopeLayers,
   getAssistantMemoryNamespacePrimaryLayer,
   getAssistantMemoryScenarioPackAssemblyEmphasis,
+  getAssistantMemoryScenarioPackKnowledgeBudgetWeight,
+  getAssistantMemoryScenarioPackKnowledgeRouteWeight,
   getAssistantMemoryScenarioPackId,
   getAssistantMemoryScenarioPackKnowledgePriorityLayer,
   getAssistantMemoryScenarioPackRouteInfluenceReason,
@@ -673,6 +675,13 @@ function main() {
     worldKnowledgeDrivenScenarioMemoryPack.assembly_order.join(",") ===
       "thread_state,knowledge,dynamic_profile,static_profile,memory_record",
     "Expected world-scoped knowledge to promote knowledge into the effective assembly order in P4."
+  );
+  expect(
+    scenarioMemoryPack.knowledge_route_weight === 1 &&
+      scenarioMemoryPack.knowledge_budget_weight === 0.9 &&
+      worldKnowledgeDrivenScenarioMemoryPack.knowledge_route_weight === 0.75 &&
+      defaultScenarioMemoryPack.knowledge_route_weight === 0.3,
+    "Expected knowledge-aware scenario packs to expose explicit route/budget weights in P5."
   );
   expect(
     isMemoryWithinNamespace({
@@ -1693,6 +1702,14 @@ function main() {
             ),
           assembly_emphasis:
             getAssistantMemoryScenarioPackAssemblyEmphasis(assistantMetadata),
+          knowledge_route_weight:
+            getAssistantMemoryScenarioPackKnowledgeRouteWeight(
+              assistantMetadata
+            ),
+          knowledge_budget_weight:
+            getAssistantMemoryScenarioPackKnowledgeBudgetWeight(
+              assistantMetadata
+            ),
           route_influence_reason:
             getAssistantMemoryScenarioPackRouteInfluenceReason(
               assistantMetadata
@@ -1715,6 +1732,10 @@ function main() {
             runtimeDebugMetadata.memory.pack?.knowledge_priority_layer ?? null,
           pack_assembly_emphasis:
             runtimeDebugMetadata.memory.pack?.assembly_emphasis ?? null,
+          pack_knowledge_route_weight:
+            runtimeDebugMetadata.memory.pack?.knowledge_route_weight ?? null,
+          pack_knowledge_budget_weight:
+            runtimeDebugMetadata.memory.pack?.knowledge_budget_weight ?? null,
           pack_route_influence_reason:
             runtimeDebugMetadata.memory.pack?.route_influence_reason ?? null,
           knowledge_count: runtimeDebugMetadata.knowledge.count,
@@ -1881,12 +1902,17 @@ function main() {
           knowledge_route_weighting_v3_ok:
             scenarioMemoryPack.knowledge_priority_layer === "project" &&
             scenarioMemoryPack.assembly_emphasis === "knowledge_first" &&
+            scenarioMemoryPack.knowledge_route_weight === 1 &&
+            scenarioMemoryPack.knowledge_budget_weight === 0.9 &&
             scenarioMemoryPack.route_influence_reason ===
               "project_namespace_bias" &&
             projectKnowledgeWeight.total_weight >
               worldKnowledgeWeight.total_weight &&
             worldKnowledgeWeight.total_weight >
-              generalKnowledgeWeight.total_weight,
+              generalKnowledgeWeight.total_weight &&
+            systemPrompt.includes(
+              "Current knowledge route weight = 1; knowledge budget weight = 0.9."
+            ),
           scenario_pack_strategy_v3_ok:
             systemPrompt.includes("RM1:") &&
             !systemPrompt.includes("RM2:") &&

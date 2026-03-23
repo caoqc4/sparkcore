@@ -224,6 +224,23 @@ P5 首批要把 knowledge 从：
   - `projectKnowledgeWeight.total_weight > worldKnowledgeWeight.total_weight`
   - `worldKnowledgeWeight.total_weight > generalKnowledgeWeight.total_weight`
 
+当前已成立的第二刀代码事实：
+
+- [memory-packs.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-packs.ts) 当前已开始把 knowledge influence 从“隐式 route/assembly 改写”推进成显式 weighting 输出：
+  - `knowledge_route_weight`
+  - `knowledge_budget_weight`
+- 当前最小规则已经成立：
+  - `project_namespace_priority / project_ops` 下：
+    - `knowledge_route_weight = 1`
+    - `knowledge_budget_weight = 0.9`
+  - `world_knowledge_influence` 下：
+    - `knowledge_route_weight = 0.75`
+  - `default_companion_phase` 下：
+    - `knowledge_route_weight = 0.3`
+- [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已开始显式校验：
+  - pack 会产出 route/budget weight
+  - prompt 中已能看到 `Current knowledge route weight = 1; knowledge budget weight = 0.9.`
+
 ### 4.4 Scenario pack strategy layer v3
 
 P5 首批要把 scenario pack 从：

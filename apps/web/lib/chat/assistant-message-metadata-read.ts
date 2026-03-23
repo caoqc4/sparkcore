@@ -324,6 +324,34 @@ export function getAssistantMemoryScenarioPackRouteInfluenceReason(
   return getAssistantMetadataString(packMetadata, "route_influence_reason");
 }
 
+export function getAssistantMemoryScenarioPackKnowledgeRouteWeight(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataNumber(packMetadata, "knowledge_route_weight") ??
+    getAssistantMetadataNumber(
+      metadata,
+      "scenario_memory_pack_knowledge_route_weight"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackKnowledgeBudgetWeight(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataNumber(packMetadata, "knowledge_budget_weight") ??
+    getAssistantMetadataNumber(
+      metadata,
+      "scenario_memory_pack_knowledge_budget_weight"
+    )
+  );
+}
+
 export function getAssistantKnowledgeCount(
   metadata: Record<string, unknown> | null | undefined
 ) {

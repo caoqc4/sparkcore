@@ -155,6 +155,10 @@ export function buildRuntimeAssistantMetadataInput(
       input.memory.scenario_pack?.knowledge_priority_layer ?? null,
     scenario_memory_pack_assembly_emphasis:
       input.memory.scenario_pack?.assembly_emphasis ?? null,
+    scenario_memory_pack_knowledge_route_weight:
+      input.memory.scenario_pack?.knowledge_route_weight ?? null,
+    scenario_memory_pack_knowledge_budget_weight:
+      input.memory.scenario_pack?.knowledge_budget_weight ?? null,
     scenario_memory_pack_route_influence_reason:
       input.memory.scenario_pack?.route_influence_reason ?? null,
     hidden_memory_exclusion_count: input.memory.hidden_exclusion_count,

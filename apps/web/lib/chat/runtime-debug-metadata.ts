@@ -62,6 +62,10 @@ export function buildRuntimeDebugMetadata(
             knowledge_priority_layer:
               input.scenario_memory_pack.knowledge_priority_layer,
             assembly_emphasis: input.scenario_memory_pack.assembly_emphasis,
+            knowledge_route_weight:
+              input.scenario_memory_pack.knowledge_route_weight,
+            knowledge_budget_weight:
+              input.scenario_memory_pack.knowledge_budget_weight,
             route_influence_reason:
               input.scenario_memory_pack.route_influence_reason
           }

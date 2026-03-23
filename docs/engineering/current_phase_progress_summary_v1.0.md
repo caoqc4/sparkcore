@@ -47,6 +47,8 @@
   - `namespace_weight`
   - `pack_weight`
   - `total_weight`
+  - `knowledge_route_weight`
+  - `knowledge_budget_weight`
 
 ---
 

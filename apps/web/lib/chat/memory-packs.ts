@@ -15,6 +15,8 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
     | "world_knowledge_influence";
   knowledge_priority_layer: "project" | "world" | null;
   assembly_emphasis: "default" | "knowledge_first";
+  knowledge_route_weight: number;
+  knowledge_budget_weight: number;
   route_influence_reason:
     | "default_continuity_bias"
     | "project_namespace_bias"
@@ -46,6 +48,8 @@ function withWorldKnowledgeInfluence(
     selection_reason: "world_knowledge_influence",
     knowledge_priority_layer: "world",
     assembly_emphasis: "knowledge_first",
+    knowledge_route_weight: 0.75,
+    knowledge_budget_weight: 0.65,
     route_influence_reason: "world_knowledge_bias"
   };
 }
@@ -60,6 +64,8 @@ export function resolveActiveScenarioMemoryPack(args?: {
       selection_reason: "project_namespace_priority",
       knowledge_priority_layer: "project",
       assembly_emphasis: "knowledge_first",
+      knowledge_route_weight: 1,
+      knowledge_budget_weight: 0.9,
       route_influence_reason: "project_namespace_bias"
     };
   }
@@ -77,6 +83,8 @@ export function resolveActiveScenarioMemoryPack(args?: {
       selection_reason: "project_knowledge_priority",
       knowledge_priority_layer: "project",
       assembly_emphasis: "knowledge_first",
+      knowledge_route_weight: 0.9,
+      knowledge_budget_weight: 0.85,
       route_influence_reason: "project_knowledge_bias"
     };
   }
@@ -91,6 +99,8 @@ export function resolveActiveScenarioMemoryPack(args?: {
     ...resolveBuiltInScenarioMemoryPack("companion"),
     knowledge_priority_layer: null,
     assembly_emphasis: "default",
+    knowledge_route_weight: 0.3,
+    knowledge_budget_weight: 0.25,
     route_influence_reason: "default_continuity_bias",
     selection_reason: "default_companion_phase",
   };
@@ -144,6 +154,9 @@ export function buildScenarioMemoryPackPromptSection(args: {
     isZh
       ? `当前 route 影响原因：${args.pack.route_influence_reason}。`
       : `Current route influence reason: ${args.pack.route_influence_reason}.`,
+    isZh
+      ? `当前 knowledge route weight = ${args.pack.knowledge_route_weight}，knowledge budget weight = ${args.pack.knowledge_budget_weight}。`
+      : `Current knowledge route weight = ${args.pack.knowledge_route_weight}; knowledge budget weight = ${args.pack.knowledge_budget_weight}.`,
     isZh
       ? args.pack.pack_id === "project_ops"
         ? "如果当前回复缺少直接任务事实，优先保持项目知识 grounding、线程连续性与执行上下文一致。"
