@@ -4,7 +4,7 @@ import {
   LEGACY_MEMORY_KEY
 } from "@/lib/chat/memory-v2";
 import { buildSmokeSeedMetadata } from "@/lib/testing/smoke-seed-metadata";
-import type { SmokeProfileMemorySeedingInput } from "@/lib/testing/smoke-profile-memory-seeding-types";
+import type { SmokeProfileMemorySeedingInput } from "@/lib/testing/smoke-profile-memory-seeding";
 
 export function buildSmokeProfileMemorySeedPayload(
   args: SmokeProfileMemorySeedingInput
