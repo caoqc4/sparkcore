@@ -1,4 +1,4 @@
-import { buildSmokeTurnAnalysisResult } from "@/lib/testing/smoke-turn-analysis-builders";
+import { getSmokeUsedMemoryTypes } from "@/lib/testing/smoke-relationship-memory-accessors";
 import { prepareSmokeTurnAnalysisContext } from "@/lib/testing/smoke-turn-analysis-context";
 import type { SmokeTurnAnalysisInput } from "@/lib/testing/smoke-turn-analysis-input";
 import type { SmokeTurnAnalysisResult } from "@/lib/testing/smoke-turn-analysis-result";
@@ -15,15 +15,18 @@ export function analyzeSmokeTurnContext({
   agentId,
   threadId
 }: SmokeTurnAnalysisInput): SmokeTurnAnalysisResult {
-  return buildSmokeTurnAnalysisResult(
-    prepareSmokeTurnAnalysisContext({
-      trimmedContent,
-      existingMemories,
-      existingMessages,
-      agentId,
-      threadId
-    })
-  );
+  const analysis = prepareSmokeTurnAnalysisContext({
+    trimmedContent,
+    existingMemories,
+    existingMessages,
+    agentId,
+    threadId
+  });
+
+  return {
+    ...analysis,
+    usedMemoryTypes: getSmokeUsedMemoryTypes(analysis.recalledMemories)
+  };
 }
 
 export type {
