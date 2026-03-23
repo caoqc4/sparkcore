@@ -1715,19 +1715,45 @@ function main() {
       systemPrompt.includes(
         "Current knowledge route weight = 1; knowledge budget weight = 0.9."
       ),
-    scenario_pack_strategy_v3_ok:
-      scenarioMemoryPackStrategy.strategy_bundle_id === "project_execution" &&
-      scenarioMemoryPackStrategy.assembly_layer_order.join(",") ===
-        "memory_record,static_profile,relationship,dynamic_profile" &&
+    strategy_metadata_consistency_v3_ok:
+      getAssistantMemoryScenarioPackId(assistantMetadata) ===
+        scenarioMemoryPack.pack_id &&
+      getAssistantMemoryScenarioPackKnowledgePriorityLayer(
+        assistantMetadata
+      ) === scenarioMemoryPack.knowledge_priority_layer &&
+      getAssistantMemoryScenarioPackAssemblyEmphasis(assistantMetadata) ===
+        scenarioMemoryPack.assembly_emphasis &&
+      getAssistantMemoryScenarioPackKnowledgeRouteWeight(assistantMetadata) ===
+        scenarioMemoryPack.knowledge_route_weight &&
+      getAssistantMemoryScenarioPackKnowledgeBudgetWeight(
+        assistantMetadata
+      ) === scenarioMemoryPack.knowledge_budget_weight &&
+      getAssistantMemoryScenarioPackRouteInfluenceReason(assistantMetadata) ===
+        scenarioMemoryPack.route_influence_reason &&
       getAssistantMemoryScenarioPackStrategyBundleId(assistantMetadata) ===
-        "project_execution" &&
+        scenarioMemoryPackStrategy.strategy_bundle_id &&
       getAssistantMemoryScenarioPackStrategyAssemblyOrder(
         assistantMetadata
       ).join(",") ===
-        "memory_record,static_profile,relationship,dynamic_profile" &&
+        scenarioMemoryPackStrategy.assembly_layer_order.join(",") &&
+      runtimeDebugMetadata.memory.pack?.pack_id === scenarioMemoryPack.pack_id &&
+      runtimeDebugMetadata.memory.pack?.knowledge_priority_layer ===
+        scenarioMemoryPack.knowledge_priority_layer &&
+      runtimeDebugMetadata.memory.pack?.assembly_emphasis ===
+        scenarioMemoryPack.assembly_emphasis &&
+      runtimeDebugMetadata.memory.pack?.knowledge_route_weight ===
+        scenarioMemoryPack.knowledge_route_weight &&
+      runtimeDebugMetadata.memory.pack?.knowledge_budget_weight ===
+        scenarioMemoryPack.knowledge_budget_weight &&
+      runtimeDebugMetadata.memory.pack?.route_influence_reason ===
+        scenarioMemoryPack.route_influence_reason &&
       runtimeDebugMetadata.memory.pack?.strategy_bundle_id ===
-        "project_execution" &&
+        scenarioMemoryPackStrategy.strategy_bundle_id &&
       runtimeDebugMetadata.memory.pack?.strategy_assembly_order?.join(",") ===
+        scenarioMemoryPackStrategy.assembly_layer_order.join(","),
+    scenario_pack_strategy_v3_ok:
+      scenarioMemoryPackStrategy.strategy_bundle_id === "project_execution" &&
+      scenarioMemoryPackStrategy.assembly_layer_order.join(",") ===
         "memory_record,static_profile,relationship,dynamic_profile" &&
       systemPrompt.includes("RM1:") &&
       !systemPrompt.includes("RM2:") &&

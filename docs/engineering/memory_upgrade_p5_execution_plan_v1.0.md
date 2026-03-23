@@ -378,6 +378,7 @@ P5 首批明确不做：
     - `namespace_multi_budget_routing_ok`
     - `retention_layering_v3_ok`
     - `knowledge_route_weighting_v3_ok`
+    - `strategy_metadata_consistency_v3_ok`
     - `scenario_pack_strategy_v3_ok`
   - `scenario_pack_strategy_v3_ok` 当前不只锁 prompt 文案，也已开始锁：
     - assistant metadata 中的 `strategy_bundle_id / strategy_assembly_order`
