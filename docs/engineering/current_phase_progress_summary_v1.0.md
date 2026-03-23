@@ -78,6 +78,7 @@
 - 该 classifier 当前也已开始进入 profile / relationship recall 过滤
 - chat memory preview 当前也已开始暴露 semantic target，可直接观察当前 legacy row 的新语义归属
 - chat memory 卡片当前也已开始显式展示 semantic target，迁移期语义归属已不只停留在 preview
+- chat thread memory visibility 当前也已开始按 semantic target 汇总，可直接看到当前会话里新语义层的大致分布
 - `hide / restore / incorrect` 管理动作当前也已开始写入 `semantic_target`
 - `memory.ts` 已退成兼容入口
 - `P0-6` 当前已不再只是迁移方向说明，而已进入：
@@ -85,6 +86,7 @@
   - recall
   - UI preview
   - memory card UI
+  - memory visibility summary
   - memory 管理动作
 - `P0-7` 当前也已开始形成明确 gate：
   - 功能 gate

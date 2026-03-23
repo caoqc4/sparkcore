@@ -473,11 +473,29 @@ export default async function ChatPage({
     accumulator[memory.category] = (accumulator[memory.category] ?? 0) + 1;
     return accumulator;
   }, {});
+  const activeSemanticTargetCounts = [
+    ...visibleThreadLocalMemories,
+    ...visibleLongTermMemories
+  ].reduce<Record<string, number>>((accumulator, memory) => {
+    const target = classifyStoredMemorySemanticTarget(memory);
+    accumulator[target] = (accumulator[target] ?? 0) + 1;
+    return accumulator;
+  }, {});
   const memoryVisibility = {
     activeByCategory: Object.entries(activeLongTermMemoryCategoryCounts).map(
       ([key, count]) => ({
         key,
         label: getMemoryCategoryLabel(key, locale),
+        count
+      })
+    ),
+    activeBySemanticTarget: Object.entries(activeSemanticTargetCounts).map(
+      ([key, count]) => ({
+        key,
+        label: getMemorySemanticTargetLabel(
+          key as ReturnType<typeof classifyStoredMemorySemanticTarget>,
+          locale
+        ),
         count
       })
     ),

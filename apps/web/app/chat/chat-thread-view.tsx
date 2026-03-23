@@ -79,6 +79,11 @@ type ChatThreadViewProps = {
       label: string;
       count: number;
     }>;
+    activeBySemanticTarget: Array<{
+      key: string;
+      label: string;
+      count: number;
+    }>;
     previewEntries: Array<{
       id: string;
       content: string;
@@ -753,12 +758,26 @@ export function ChatThreadView({
                     </div>
 
                     {memoryVisibility.activeByCategory.length === 0 &&
+                    memoryVisibility.activeBySemanticTarget.length === 0 &&
                     memoryVisibility.threadLocalCount === 0 ? (
                       <p className="helper-copy">{copy.thread.memoryVisibilityEmpty}</p>
                     ) : (
                       <div className="thread-memory-visibility-grid">
                         {memoryVisibility.activeByCategory.map((item) => (
                           <article className="thread-memory-pill" key={item.key}>
+                            <p className="thread-memory-pill-label">{item.label}</p>
+                            <h4>{item.count}</h4>
+                            <p className="helper-copy">
+                              {copy.thread.memoryVisibilityActiveSuffix}
+                            </p>
+                          </article>
+                        ))}
+
+                        {memoryVisibility.activeBySemanticTarget.map((item) => (
+                          <article
+                            className="thread-memory-pill"
+                            key={`semantic-${item.key}`}
+                          >
                             <p className="thread-memory-pill-label">{item.label}</p>
                             <h4>{item.count}</h4>
                             <p className="helper-copy">
