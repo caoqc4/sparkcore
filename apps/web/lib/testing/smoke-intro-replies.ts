@@ -6,12 +6,11 @@ import {
   isSmokeSelfIntroGreetingRequest
 } from "@/lib/testing/smoke-answer-strategy";
 import {
-} from "@/lib/testing/smoke-style-greetings";
-import {
   buildSmokeBriefGreetingReply,
   buildSmokeNamingReply,
   buildSmokePreferredNameReply
 } from "@/lib/testing/smoke-greeting-replies";
+import { isSmokeHelpIntroRequest } from "@/lib/testing/smoke-help-intro-prompts";
 import { getSmokeIntroReplyContext } from "@/lib/testing/smoke-intro-reply-context";
 import {
   buildSmokeHelpIntroReply,
@@ -66,10 +65,7 @@ export function buildSmokeIntroReply(args: {
     });
   }
 
-  if (
-    args.content.includes("请用两句话介绍你自己") ||
-    args.content.includes("你能如何帮助我")
-  ) {
+  if (isSmokeHelpIntroRequest(args.content)) {
     return buildSmokeHelpIntroReply({
       styleValue: introContext.styleValue,
       selfName: introContext.selfName,
