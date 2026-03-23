@@ -172,10 +172,17 @@ runtime 在处理一轮时，至少要消费：
   - `language`
   - `session`
   - `memory`
+- 当前 assistant metadata 这条线也已出现更明确的共用层：
+  - 统一 builder
+  - 统一 grouped/fallback read helper
+- Web / IM 两侧的 runtime preview metadata 当前也已开始共用：
+  - builder
+  - updater
 - 因此当前 assistant metadata 的状态应理解为：
   - **已开始统一收口**
   - **已开始形成 grouped shape**
   - **读写两侧都已开始进入 grouped shape**
+  - **preview metadata 也已开始进入统一 helper**
   - **但仍处在兼容式过渡阶段**
 
 ---

@@ -169,6 +169,25 @@
   - `session`
   - `memory`
 - 但为了兼容 smoke / eval / continuity 邻近读取面，关键平铺字段当前仍然保留
+- `assistant_message.metadata` 当前也不再只是“有 grouped shape”，而是开始具备：
+  - 统一 builder
+  - 统一 read helper
+  - Web / IM 两侧 runtime preview metadata 的统一 builder / updater
+- 也就是说，assistant / runtime metadata 这条线当前已经从“开始收组”前移到了：
+  - 写出面开始共用 builder
+  - 读取面开始共用 grouped + fallback helper
+  - preview metadata 也开始共用更新路径
+- `smoke` 这条测试 harness 线当前也已不再是少数超长文件混合：
+  - turn orchestration
+  - prompt routing
+  - reply routing
+  - assistant metadata
+  - seed / persistence
+  这些层都已拆成更明确 helper
+- 并且在当前这一轮收尾里，`smoke` 里大量 type shell / wrapper / facade 已被继续裁掉
+- 当前更准确的判断是：
+  - `smoke` harness 已进入尾段清扫
+  - 剩余小文件大多已经是稳定公共原语，而不是明显多余的中转层
 - 当前 runtime 主线的下一阶段优先级也已前移成：
   - 先治理输出层
   - 再决定是否继续细拆 execution

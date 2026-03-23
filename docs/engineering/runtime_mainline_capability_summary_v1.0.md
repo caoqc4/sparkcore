@@ -196,6 +196,31 @@
 
 另外，smoke 生成的 assistant metadata 当前也已开始补出兼容式 grouped shape，而不再只产出纯旧平铺结构。
 
+同时，这条 assistant metadata / runtime metadata 线也已经进一步前移成：
+
+- assistant metadata 当前已有：
+  - 统一 builder
+  - 统一 grouped/fallback read helper
+- Web / IM 两侧 runtime preview metadata 当前也已有：
+  - 统一 builder
+  - 统一 updater
+- 因而当前 runtime 输出治理的状态已经不再只是“字段开始收组”，而是：
+  - 写出面开始统一
+  - 读取面开始统一
+  - preview metadata 也开始统一
+
+另外，作为 runtime 邻近验证 harness 的 `smoke` 线，当前也已完成一轮较大规模拆薄：
+
+- turn execution / analysis / context / memory update / assistant persistence 已明显分层
+- reply / prompt / continuation / boundary routing 已明显分层
+- 当前这一轮又持续裁掉了一批 type shell / wrapper / facade
+
+这意味着当前 `smoke` 已更接近：
+
+- 一套模块化的 runtime 行为模拟 harness
+
+而不再是少数大文件里堆叠的测试逻辑实现。
+
 ---
 
 ## 6. 当前仍属于过渡期兼容层的部分
@@ -253,6 +278,12 @@
 - `generateAgentReply(...)` 彻底退薄
 - 更细粒度的 execution 子模块拆分
 - 真正跨 package 的 runtime core API
+
+此外，runtime 邻近的 smoke harness 也已进入尾段清扫阶段：
+
+- 继续清扫仍然有收益
+- 但收益已经明显低于前半段大结构拆分
+- 剩余更多是稳定公共原语，而不是必须继续裁掉的 facade
 
 所以现在的状态不是：
 
