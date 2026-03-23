@@ -277,6 +277,12 @@
     - `minimal = 1`
   - runtime prompt / assistant metadata / debug metadata 当前也已开始承接这层 retention budget
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` 下的 `retention_budget = 2`
+  - `apps/web/lib/chat/thread-compaction.ts` 当前也已开始让 retention budget 真实影响 `retained_fields`
+  - 当前最小规则已经成立：
+    - `focus_anchor` 下的 `retained_fields` 会从 `focus_mode / continuity_status / current_language_hint`
+      收紧成 `focus_mode / continuity_status`
+  - 也就是说，retention budget 当前已不再只是 summary 里的数字，而开始成为真实 pruning 行为
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` 下的 `retained_fields` 收紧
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

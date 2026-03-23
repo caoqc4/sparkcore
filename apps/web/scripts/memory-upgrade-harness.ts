@@ -957,6 +957,12 @@ function main() {
     "Expected focus-anchor compaction summaries to drop latest-user-message from retained sections."
   );
   expect(
+    !getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+      "current_language_hint"
+    ),
+    "Expected focus-anchor compaction summaries to prune current_language_hint once the retention budget is applied in P4."
+  );
+  expect(
     getAssistantMemoryNamespacePrimaryLayer(assistantMetadata) === "project",
     "Expected assistant metadata reader to expose project as the primary namespace layer in P2."
   );
@@ -1006,6 +1012,12 @@ function main() {
   expect(
     runtimeDebugMetadata.thread_compaction?.retention_budget === 2,
     "Expected runtime debug metadata to expose the retention budget in P4."
+  );
+  expect(
+    Array.isArray(runtimeDebugMetadata.thread_compaction?.retained_fields) &&
+      runtimeDebugMetadata.thread_compaction?.retained_fields.join(",") ===
+        "focus_mode,continuity_status",
+    "Expected focus-anchor retention budget to prune retained_fields down to focus_mode and continuity_status in P4."
   );
   expect(
     runtimeDebugMetadata.memory_namespace?.primary_layer === "project",

@@ -157,6 +157,20 @@ P4 首批要把 `Thread retention` 从：
 - `memory-upgrade-harness.ts` 当前也已开始显式校验：
   - `focus_anchor` 下的 `retention_budget = 2`
 
+当前已成立的第二刀代码事实：
+
+- `apps/web/lib/chat/thread-compaction.ts` 当前已开始让 retention budget 真实影响 `retained_fields`
+- 当前最小规则已经成立：
+  - `focus_anchor` 下的 budget 为 `2`
+  - `retained_fields` 会从
+    - `focus_mode / continuity_status / current_language_hint`
+    收紧成
+    - `focus_mode / continuity_status`
+- 也就是说，retention budget 当前已不再只是 summary 里的数字，而开始成为真实 pruning 行为
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - `focus_anchor` 摘要不会再保留第三个字段
+  - runtime debug metadata 中的 `retained_fields` 已收紧成 `focus_mode,continuity_status`
+
 ### 4.3 Knowledge route influence v2
 
 P4 首批要把 `Knowledge` 从：

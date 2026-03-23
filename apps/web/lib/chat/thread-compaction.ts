@@ -29,51 +29,52 @@ function buildRetainedFields(args: {
   threadState: ThreadStateRecord;
   retentionReason: ThreadRetentionReason;
   latestUserMessage: string | null;
+  retentionBudget: number;
 }) {
-  const fields = new Set<string>();
+  const fields: string[] = [];
+
+  const pushField = (field: string, condition: boolean) => {
+    if (condition && !fields.includes(field)) {
+      fields.push(field);
+    }
+  };
 
   switch (args.retentionReason) {
     case "focus_mode_present":
-      if (args.threadState.focus_mode) {
-        fields.add("focus_mode");
-      }
-      if (args.threadState.continuity_status) {
-        fields.add("continuity_status");
-      }
-      if (args.threadState.current_language_hint) {
-        fields.add("current_language_hint");
-      }
+      pushField("focus_mode", Boolean(args.threadState.focus_mode));
+      pushField("continuity_status", Boolean(args.threadState.continuity_status));
+      pushField(
+        "current_language_hint",
+        Boolean(args.threadState.current_language_hint)
+      );
       break;
     case "engaged_continuity":
-      if (args.threadState.continuity_status) {
-        fields.add("continuity_status");
-      }
-      if (args.threadState.current_language_hint) {
-        fields.add("current_language_hint");
-      }
-      if (args.latestUserMessage) {
-        fields.add("latest_user_message");
-      }
+      pushField("continuity_status", Boolean(args.threadState.continuity_status));
+      pushField(
+        "current_language_hint",
+        Boolean(args.threadState.current_language_hint)
+      );
+      pushField("latest_user_message", Boolean(args.latestUserMessage));
       break;
     case "recent_turn_window":
-      if (args.threadState.current_language_hint) {
-        fields.add("current_language_hint");
-      }
-      if (args.latestUserMessage) {
-        fields.add("latest_user_message");
-      }
-      fields.add("recent_turn_window");
+      pushField(
+        "current_language_hint",
+        Boolean(args.threadState.current_language_hint)
+      );
+      pushField("latest_user_message", Boolean(args.latestUserMessage));
+      pushField("recent_turn_window", true);
       break;
     case "minimal_context":
-      if (args.threadState.current_language_hint) {
-        fields.add("current_language_hint");
-      }
+      pushField(
+        "current_language_hint",
+        Boolean(args.threadState.current_language_hint)
+      );
       break;
     case "closed_minimal_pruned":
       break;
   }
 
-  return Array.from(fields);
+  return fields.slice(0, args.retentionBudget);
 }
 
 function resolveThreadRetentionBudget(args: {
@@ -139,14 +140,15 @@ export function buildCompactedThreadSummary(args: {
     recentTurnCount: args.recentTurnCount,
     retentionMode
   });
-  const retainedFields = buildRetainedFields({
-    threadState: args.threadState,
-    retentionReason,
-    latestUserMessage
-  });
   const retentionBudget = resolveThreadRetentionBudget({
     retentionMode,
     retentionReason
+  });
+  const retainedFields = buildRetainedFields({
+    threadState: args.threadState,
+    retentionReason,
+    latestUserMessage,
+    retentionBudget
   });
 
   const summaryParts = [
