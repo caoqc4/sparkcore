@@ -36,6 +36,7 @@ import {
   buildSingleSlotMemoryRefreshMetadata,
   buildSingleSlotMemorySupersededMetadata
 } from "@/lib/chat/memory-write-metadata";
+import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 import {
   insertMemoryItem,
   insertMemoryItems,
@@ -49,25 +50,6 @@ import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
 import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_MODEL = "replicate-llama-3-8b";
-
-type PlannedMemoryRecordTarget =
-  | "static_profile"
-  | "memory_record"
-  | "thread_state_candidate";
-
-function classifyMemoryWriteTarget(
-  request: RuntimeMemoryWriteRequest
-): PlannedMemoryRecordTarget {
-  if (request.kind === "relationship_memory") {
-    return "memory_record";
-  }
-
-  if (request.memory_type === "profile" || request.memory_type === "preference") {
-    return "static_profile";
-  }
-
-  return "memory_record";
-}
 
 function buildExtractionPrompt({
   latestUserMessage,
@@ -560,7 +542,7 @@ export async function executeMemoryWriteRequests({
   const relationshipUpdatedTypes: MemoryUsageType[] = [];
 
   for (const request of relationshipRequests) {
-    const recordTarget = classifyMemoryWriteTarget(request);
+    const target = resolvePlannedMemoryWriteTarget(request);
     const relationshipWrite = await upsertSingleSlotMemory({
       workspaceId,
       userId,
@@ -577,7 +559,7 @@ export async function executeMemoryWriteRequests({
         request.relationship_key === "user_address_style" ? "medium" : "high",
       metadata: {
         ...buildRelationshipPlannerMemoryMetadata(request),
-        record_target: recordTarget
+        record_target: target.recordTarget
       }
     });
 
@@ -640,9 +622,13 @@ export async function executeMemoryWriteRequests({
     );
 
     const sourceTurnId = matchingRequest?.source_turn_id;
-    const recordTarget = matchingRequest
-      ? classifyMemoryWriteTarget(matchingRequest)
-      : "static_profile";
+    const target = matchingRequest
+      ? resolvePlannedMemoryWriteTarget(matchingRequest)
+      : {
+          recordTarget: "static_profile" as const,
+          canonicalMemoryType: candidate.memory_type,
+          legacyScope: "user_global" as const
+        };
     const matchingExisting = activeExistingMemories.find(
       (memory) =>
         memory.memory_type === candidate.memory_type &&
@@ -663,7 +649,7 @@ export async function executeMemoryWriteRequests({
           category: candidate.memory_type,
           key: LEGACY_MEMORY_KEY,
           value: candidate.content,
-          scope: "user_global",
+          scope: target.legacyScope,
           subjectUserId: userId,
           stability: inferLegacyMemoryStability(candidate.memory_type),
           status: "active",
@@ -676,8 +662,8 @@ export async function executeMemoryWriteRequests({
           dedupeKey: matchingRequest?.dedupe_key ?? null,
           writeMode: matchingRequest?.write_mode ?? "upsert",
           threshold: MEMORY_CONFIDENCE_THRESHOLD,
-          recordTarget,
-          canonicalMemoryType: candidate.memory_type
+          recordTarget: target.recordTarget,
+          canonicalMemoryType: target.canonicalMemoryType
         })
       });
       continue;
@@ -699,13 +685,13 @@ export async function executeMemoryWriteRequests({
         writeMode: matchingRequest?.write_mode ?? "upsert",
         threshold: MEMORY_CONFIDENCE_THRESHOLD,
         convergenceUpdatedAt: new Date().toISOString(),
-        recordTarget,
-        canonicalMemoryType: candidate.memory_type
+        recordTarget: target.recordTarget,
+        canonicalMemoryType: target.canonicalMemoryType
       }),
       category: candidate.memory_type,
       key: LEGACY_MEMORY_KEY,
       value: candidate.content,
-      scope: "user_global",
+      scope: target.legacyScope,
       subject_user_id: userId,
       target_agent_id: null,
       target_thread_id: null,

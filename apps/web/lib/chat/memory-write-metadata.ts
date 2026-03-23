@@ -1,4 +1,5 @@
 import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
+import type { PlannedMemoryRecordTarget } from "@/lib/chat/memory-write-targets";
 
 export function buildRelationshipPlannerMemoryMetadata(
   request: Extract<RuntimeMemoryWriteRequest, { kind: "relationship_memory" }>
@@ -20,7 +21,7 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
   dedupeKey?: string | null;
   writeMode?: string | null;
   threshold: number;
-  recordTarget: "static_profile" | "memory_record" | "thread_state_candidate";
+  recordTarget: PlannedMemoryRecordTarget;
   canonicalMemoryType?: string | null;
 }) {
   return {
@@ -41,7 +42,7 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
   writeMode?: string | null;
   threshold: number;
   convergenceUpdatedAt: string;
-  recordTarget: "static_profile" | "memory_record" | "thread_state_candidate";
+  recordTarget: PlannedMemoryRecordTarget;
   canonicalMemoryType?: string | null;
 }) {
   return {
