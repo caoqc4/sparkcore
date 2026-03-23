@@ -5,6 +5,7 @@ import {
   buildStaticProfileRecordFromStoredMemory,
   classifyStoredMemorySemanticTarget
 } from "@/lib/chat/memory-records";
+import { buildAgentSystemPrompt } from "@/lib/chat/runtime";
 import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
 import {
   getAssistantMemoryObservedSemanticLayers,
@@ -129,6 +130,11 @@ function main() {
     recalledProfile.memory_type === "preference",
     "Expected preference recall adapter to preserve preference memory_type."
   );
+  const promptRecalledProfile = {
+    memory_type: "preference" as const,
+    content: recalledProfile.content,
+    confidence: recalledProfile.confidence
+  };
 
   const recalledRelationship =
     buildRecalledRelationshipMemoryFromStoredMemory(relationshipMemory);
@@ -330,6 +336,54 @@ function main() {
     "Expected assistant metadata reader to expose all observed semantic layers."
   );
 
+  const systemPrompt = buildAgentSystemPrompt(
+    {
+      packet_version: "v1",
+      identity: {
+        agent_id: "agent-1",
+        agent_name: "Helper"
+      },
+      persona_summary: "Helpful assistant",
+      style_guidance: "Be concise",
+      relationship_stance: {
+        effective: "friendly",
+        source: "relationship_memory"
+      },
+      language_behavior: {
+        reply_language_target: "en",
+        reply_language_source: "latest-user-message",
+        same_thread_continuation_preferred: true
+      }
+    },
+    "Keep answers grounded.",
+    "Help me finish onboarding.",
+    [promptRecalledProfile],
+    "en",
+    undefined,
+    "",
+    {
+      thread_id: "thread-1",
+      agent_id: "agent-1",
+      state_version: 2,
+      lifecycle_status: "active",
+      focus_mode: plannedThreadState.focus_mode,
+      current_language_hint: "en",
+      recent_turn_window_size: 6,
+      continuity_status: "warm",
+      last_user_message_id: "msg-1",
+      last_assistant_message_id: "msg-2",
+      updated_at: "2026-03-23T00:00:00.000Z"
+    }
+  );
+  expect(
+    systemPrompt.includes("focus_mode = Finish the onboarding checklist this week."),
+    "Expected system prompt assembly to include thread_state focus_mode."
+  );
+  expect(
+    systemPrompt.includes("current_language_hint = en."),
+    "Expected system prompt assembly to include thread_state language hint."
+  );
+
   console.log(
     JSON.stringify(
       {
@@ -355,6 +409,14 @@ function main() {
           primary_layer: getAssistantMemoryPrimarySemanticLayer(assistantMetadata),
           observed_layers: getAssistantMemoryObservedSemanticLayers(
             assistantMetadata
+          )
+        },
+        system_prompt_thread_state: {
+          includes_focus_mode: systemPrompt.includes(
+            "focus_mode = Finish the onboarding checklist this week."
+          ),
+          includes_language_hint: systemPrompt.includes(
+            "current_language_hint = en."
           )
         }
       },

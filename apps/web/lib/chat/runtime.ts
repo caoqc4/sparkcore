@@ -73,6 +73,7 @@ import {
   prepareRuntimeTurn
 } from "@/lib/chat/runtime-prepared-turn";
 import { createAdminThreadStateRepository } from "@/lib/chat/thread-state-admin-repository";
+import type { ThreadStateRecord } from "@/lib/chat/thread-state";
 import {
   buildInternalRuntimeTurnInput,
   buildRuntimeTurnInput,
@@ -2292,7 +2293,7 @@ function buildThreadContinuityPrompt({
   return sections.join("\n");
 }
 
-function buildAgentSystemPrompt(
+function buildAgentSystemPromptInternal(
   roleCorePacket: RoleCorePacket,
   agentSystemPrompt: string,
   latestUserMessage: string,
@@ -2331,7 +2332,8 @@ function buildAgentSystemPrompt(
     nicknameMemory: null,
     preferredNameMemory: null
   },
-  threadContinuityPrompt = ""
+  threadContinuityPrompt = "",
+  threadState: ThreadStateRecord | null = null
 ) {
   const sections = [
     `You are ${roleCorePacket.identity.agent_name}.`,
@@ -2345,6 +2347,7 @@ function buildAgentSystemPrompt(
       roleCorePacket.language_behavior.reply_language_target
     ),
     threadContinuityPrompt,
+    buildThreadStatePrompt(threadState, replyLanguage),
     agentSystemPrompt,
     buildMemoryRecallPrompt(
       latestUserMessage,
@@ -2355,6 +2358,119 @@ function buildAgentSystemPrompt(
   ].filter(Boolean);
 
   return sections.join("\n\n");
+}
+
+function buildThreadStatePrompt(
+  threadState: ThreadStateRecord | null | undefined,
+  replyLanguage: RuntimeReplyLanguage
+) {
+  if (!threadState) {
+    return "";
+  }
+
+  const isZh = replyLanguage === "zh-Hans";
+  const sections: string[] = [];
+
+  if (threadState.lifecycle_status !== "active") {
+    sections.push(
+      isZh
+        ? `线程状态：当前 lifecycle_status = ${threadState.lifecycle_status}。`
+        : `Thread state: current lifecycle_status = ${threadState.lifecycle_status}.`
+    );
+  }
+
+  if (threadState.focus_mode) {
+    sections.push(
+      isZh
+        ? `线程状态：当前 focus_mode = ${threadState.focus_mode}。`
+        : `Thread state: current focus_mode = ${threadState.focus_mode}.`
+    );
+  }
+
+  if (
+    threadState.continuity_status &&
+    threadState.continuity_status !== "cold"
+  ) {
+    sections.push(
+      isZh
+        ? `线程状态：当前 continuity_status = ${threadState.continuity_status}。`
+        : `Thread state: current continuity_status = ${threadState.continuity_status}.`
+    );
+  }
+
+  if (threadState.current_language_hint) {
+    sections.push(
+      isZh
+        ? `线程状态：当前 current_language_hint = ${threadState.current_language_hint}。`
+        : `Thread state: current current_language_hint = ${threadState.current_language_hint}.`
+    );
+  }
+
+  if (sections.length === 0) {
+    return "";
+  }
+
+  sections.push(
+    isZh
+      ? "把 thread_state 视为当前线程的即时进行态；当它和远处记忆冲突时，优先保证当前线程的 focus、continuity 与语言提示不被打断。"
+      : "Treat thread_state as the live coordination state for this thread; when it conflicts with distant memory, preserve the current thread focus, continuity, and language hint first."
+  );
+
+  return sections.join("\n");
+}
+
+export function buildAgentSystemPrompt(
+  roleCorePacket: RoleCorePacket,
+  agentSystemPrompt: string,
+  latestUserMessage: string,
+  recalledMemories: Array<{
+    memory_type: "profile" | "preference" | "relationship";
+    content: string;
+    confidence: number;
+  }> = [],
+  replyLanguage: RuntimeReplyLanguage = "unknown",
+  relationshipRecall: {
+    directNamingQuestion: boolean;
+    directPreferredNameQuestion: boolean;
+    relationshipStylePrompt: boolean;
+    sameThreadContinuity: boolean;
+    addressStyleMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    nicknameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    preferredNameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+  } = {
+    directNamingQuestion: false,
+    directPreferredNameQuestion: false,
+    relationshipStylePrompt: false,
+    sameThreadContinuity: false,
+    addressStyleMemory: null,
+    nicknameMemory: null,
+    preferredNameMemory: null
+  },
+  threadContinuityPrompt = "",
+  threadState: ThreadStateRecord | null = null
+) {
+  return buildAgentSystemPromptInternal(
+    roleCorePacket,
+    agentSystemPrompt,
+    latestUserMessage,
+    recalledMemories,
+    replyLanguage,
+    relationshipRecall,
+    threadContinuityPrompt,
+    threadState
+  );
 }
 
 async function getDefaultPersonaPack(providedSupabase?: any) {
@@ -3486,7 +3602,8 @@ export async function runPreparedRuntimeTurn({
         allRecalledMemories,
         replyLanguage,
         relationshipRecall,
-        threadContinuityPrompt
+        threadContinuityPrompt,
+        preparedRuntimeTurn.session.thread_state
       )
     },
     ...messages

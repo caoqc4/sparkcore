@@ -277,6 +277,7 @@
     - record candidate adapter
     - runtime `memory.semantic_summary`
     - assistant metadata semantic summary reader
+    - runtime system prompt `thread_state` 注入
 
 依赖：
 
