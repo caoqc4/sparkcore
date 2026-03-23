@@ -1,5 +1,4 @@
 import { getSmokeRoleCoreRelationshipStance } from "@/lib/testing/smoke-role-core-relationship";
-import type { SmokeRoleCorePacketInput } from "@/lib/testing/smoke-role-core-packet-types";
 
 export type SmokeReplyLanguage = "zh-Hans" | "en" | "unknown";
 export type SmokeReplyLanguageSource =
@@ -31,6 +30,17 @@ export type SmokeRoleCorePacket = {
     reply_language_source: SmokeReplyLanguageSource;
     same_thread_continuation_preferred: boolean;
   };
+};
+
+export type SmokeRoleCorePacketInput = {
+  agentId: string;
+  agentName: string;
+  personaSummary: string | null;
+  styleGuidance: string | null;
+  relationshipStyleValue: string | null;
+  replyLanguage: SmokeReplyLanguage;
+  replyLanguageSource: SmokeReplyLanguageSource;
+  preferSameThreadContinuation: boolean;
 };
 
 export function buildSmokeRoleCorePacket(
