@@ -1,3 +1,4 @@
+import { getSmokeTurnExecutionContext } from "@/lib/testing/smoke-turn-execution-context";
 import { prepareSmokeTurnExecutionState } from "@/lib/testing/smoke-turn-execution-state";
 import { persistSmokeMemoryTurnStep } from "@/lib/testing/smoke-turn-memory-step";
 import { persistSmokeUserTurnStep } from "@/lib/testing/smoke-turn-user-step";
@@ -12,11 +13,11 @@ export async function executeSmokeTurn(
     admin,
     smokeUser,
     thread,
-    agent: ensuredAgent,
+    ensuredAgent,
     modelProfile,
     existingMemories,
     existingMessages
-  } = args.context;
+  } = getSmokeTurnExecutionContext(args);
   const { analysis } = prepareSmokeTurnExecutionState({
     trimmedContent: args.trimmedContent,
     existingMemories,
