@@ -6,6 +6,7 @@ import {
 import { NextResponse, type NextRequest } from "next/server";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
+import { loadThreadMessages } from "@/lib/chat/message-read";
 import {
   loadRecentOwnedMemories,
   loadOwnedMemoryItemByTypeAndContent,
@@ -2922,12 +2923,12 @@ export async function createSmokeTurn({
     metadata: Record<string, unknown> | null;
   }>;
 
-  const { data: existingMessages, error: messagesError } = await admin
-    .from("messages")
-    .select("role, content, status, metadata")
-    .eq("thread_id", thread.id)
-    .eq("workspace_id", smokeUser.workspaceId)
-    .order("created_at", { ascending: true });
+  const { data: existingMessages, error: messagesError } = await loadThreadMessages({
+    supabase: admin,
+    threadId: thread.id,
+    workspaceId: smokeUser.workspaceId,
+    select: "role, content, status, metadata"
+  });
 
   if (messagesError) {
     throw new Error(`Failed to load smoke messages: ${messagesError.message}`);
