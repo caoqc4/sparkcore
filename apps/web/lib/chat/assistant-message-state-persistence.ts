@@ -3,6 +3,10 @@ import {
   buildPendingAssistantMetadata,
   buildRetriedAssistantMetadata
 } from "@/lib/chat/assistant-message-state-metadata";
+import {
+  insertMessage,
+  updateScopedMessage
+} from "@/lib/chat/message-persistence";
 
 type AssistantMessageStateTarget = {
   supabase: any;
@@ -18,12 +22,12 @@ export async function insertPendingAssistantMessage(
     source?: string | null;
   }
 ) {
-  return args.supabase
-    .from("messages")
-    .insert({
-      thread_id: args.threadId,
-      workspace_id: args.workspaceId,
-      user_id: args.userId,
+  return insertMessage({
+    supabase: args.supabase,
+    threadId: args.threadId,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    payload: {
       role: "assistant",
       content: "",
       status: "pending",
@@ -32,9 +36,9 @@ export async function insertPendingAssistantMessage(
         userMessageId: args.userMessageId,
         source: args.source
       })
-    })
-    .select("id")
-    .single();
+    },
+    select: "id"
+  }).single();
 }
 
 export async function markAssistantMessageFailed(
@@ -48,9 +52,13 @@ export async function markAssistantMessageFailed(
     baseMetadata?: Record<string, unknown> | null;
   }
 ) {
-  return args.supabase
-    .from("messages")
-    .update({
+  return updateScopedMessage({
+    supabase: args.supabase,
+    messageId: args.assistantMessageId,
+    threadId: args.threadId,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    patch: {
       status: "failed",
       content: "",
       metadata: buildFailedAssistantMetadata({
@@ -62,11 +70,8 @@ export async function markAssistantMessageFailed(
         baseMetadata: args.baseMetadata
       }),
       updated_at: new Date().toISOString()
-    })
-    .eq("id", args.assistantMessageId)
-    .eq("thread_id", args.threadId)
-    .eq("workspace_id", args.workspaceId)
-    .eq("user_id", args.userId);
+    }
+  });
 }
 
 export async function markAssistantMessageRetried(
@@ -76,20 +81,21 @@ export async function markAssistantMessageRetried(
     retriedAt?: string;
   }
 ) {
-  return args.supabase
-    .from("messages")
-    .update({
+  return updateScopedMessage({
+    supabase: args.supabase,
+    messageId: args.assistantMessageId,
+    threadId: args.threadId,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    patch: {
       status: "pending",
       metadata: buildRetriedAssistantMetadata({
         baseMetadata: args.baseMetadata,
         retriedAt: args.retriedAt
       }),
       updated_at: new Date().toISOString()
-    })
-    .eq("id", args.assistantMessageId)
-    .eq("thread_id", args.threadId)
-    .eq("workspace_id", args.workspaceId)
-    .eq("user_id", args.userId);
+    }
+  });
 }
 
 export async function persistCompletedAssistantMessage(
@@ -104,20 +110,22 @@ export async function persistCompletedAssistantMessage(
   }
 ) {
   return args.assistantMessageId
-    ? args.supabase
-        .from("messages")
-        .update({
+    ? updateScopedMessage({
+        supabase: args.supabase,
+        messageId: args.assistantMessageId,
+        threadId: args.threadId,
+        workspaceId: args.workspaceId,
+        userId: args.userId,
+        patch: {
           ...args.payload,
           updated_at: new Date().toISOString()
-        })
-        .eq("id", args.assistantMessageId)
-        .eq("thread_id", args.threadId)
-        .eq("workspace_id", args.workspaceId)
-        .eq("user_id", args.userId)
-    : args.supabase.from("messages").insert({
-        thread_id: args.threadId,
-        workspace_id: args.workspaceId,
-        user_id: args.userId,
-        ...args.payload
+        }
+      })
+    : insertMessage({
+        supabase: args.supabase,
+        threadId: args.threadId,
+        workspaceId: args.workspaceId,
+        userId: args.userId,
+        payload: args.payload
       });
 }

@@ -1,4 +1,8 @@
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
+import {
+  insertMessage,
+  updateScopedMessage
+} from "@/lib/chat/message-persistence";
 import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
 
 type UserMessageTarget = {
@@ -14,18 +18,18 @@ export async function insertUserMessage(
     metadata?: Record<string, unknown>;
   }
 ) {
-  return args.supabase
-    .from("messages")
-    .insert({
-      thread_id: args.threadId,
-      workspace_id: args.workspaceId,
-      user_id: args.userId,
+  return insertMessage({
+    supabase: args.supabase,
+    threadId: args.threadId,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    payload: {
       role: "user",
       content: args.content,
       ...(args.metadata ? { metadata: args.metadata } : {})
-    })
-    .select("id")
-    .single();
+    },
+    select: "id"
+  }).single();
 }
 
 export async function persistRuntimeUserMessageMetadata(
@@ -34,16 +38,17 @@ export async function persistRuntimeUserMessageMetadata(
     runtimeTurnInput: RuntimeTurnInput;
   }
 ) {
-  return args.supabase
-    .from("messages")
-    .update({
+  return updateScopedMessage({
+    supabase: args.supabase,
+    messageId: args.messageId,
+    threadId: args.threadId,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    patch: {
       metadata: buildRuntimeUserMessageMetadata(args.runtimeTurnInput),
       updated_at: new Date().toISOString()
-    })
-    .eq("id", args.messageId)
-    .eq("thread_id", args.threadId)
-    .eq("workspace_id", args.workspaceId)
-    .eq("user_id", args.userId);
+    }
+  });
 }
 
 export async function insertRuntimeUserMessage(
