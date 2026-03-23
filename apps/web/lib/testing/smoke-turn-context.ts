@@ -1,6 +1,9 @@
 import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
-import { loadSmokeBoundAgent } from "@/lib/testing/smoke-bound-agent";
-import { loadSmokeBoundModelProfile } from "@/lib/testing/smoke-bound-model-profile";
+import {
+  loadActiveModelProfileById,
+  loadOwnedActiveAgent,
+  loadOwnedThread
+} from "@/lib/chat/runtime-turn-context";
 import { requireSmokeConfig } from "@/lib/testing/smoke-config";
 import { loadSmokeTurnExistingState } from "@/lib/testing/smoke-turn-existing-state";
 import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
@@ -14,16 +17,49 @@ export async function loadSmokeTurnContext(args: {
 
   const admin = getSmokeAdminClient(config);
   const smokeUser = await ensureSmokeUserState(admin, config);
-  const { thread, agent } = await loadSmokeBoundAgent({
+  const { data: thread, error: threadError } = await loadOwnedThread({
     supabase: admin,
     threadId: args.threadId,
     workspaceId: smokeUser.workspaceId,
     userId: smokeUser.id
   });
-  const modelProfile = await loadSmokeBoundModelProfile({
+
+  if (threadError || !thread) {
+    throw new Error(
+      threadError?.message ?? "The requested smoke thread is unavailable."
+    );
+  }
+
+  if (!thread.agent_id) {
+    throw new Error("The smoke thread is not bound to an agent.");
+  }
+
+  const { data: agent, error: agentError } = await loadOwnedActiveAgent({
     supabase: admin,
-    modelProfileId: agent.default_model_profile_id
+    agentId: thread.agent_id,
+    workspaceId: smokeUser.workspaceId,
+    userId: smokeUser.id
   });
+
+  if (agentError || !agent) {
+    throw new Error(
+      agentError?.message ?? "The bound smoke agent is unavailable."
+    );
+  }
+
+  const { data: modelProfile, error: modelProfileError } =
+    await loadActiveModelProfileById({
+      supabase: admin,
+      modelProfileId: agent.default_model_profile_id
+    });
+
+  if (modelProfileError || !modelProfile) {
+    throw new Error(
+      modelProfileError?.message ??
+        "The bound smoke model profile is unavailable."
+    );
+  }
+
   const { existingMemories, existingMessages } =
     await loadSmokeTurnExistingState({
       supabase: admin,
