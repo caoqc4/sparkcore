@@ -1,4 +1,3 @@
-import { claimDuePendingFollowUps } from "@/lib/chat/follow-up-claim";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import { createAdminSupabaseClient, getArgValue } from "./telegram-utils";
 
@@ -99,8 +98,8 @@ async function main() {
 
   const seededRow = await seedPendingFollowUp(threadId);
   const repository = createAdminFollowUpRepository();
-  const claimResult = await claimDuePendingFollowUps({
-    repository,
+  const claimResult = await repository.claimDuePendingFollowUps({
+    now: new Date().toISOString(),
     limit,
     claimed_by: claimedBy
   });

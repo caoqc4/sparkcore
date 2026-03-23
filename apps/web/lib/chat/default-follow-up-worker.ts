@@ -1,4 +1,3 @@
-import { claimDuePendingFollowUps } from "@/lib/chat/follow-up-claim";
 import {
   createAdminFollowUpBindingResolver,
   type FollowUpBindingResolver
@@ -123,8 +122,7 @@ export async function runDefaultFollowUpWorker({
   repository?: FollowUpRepository;
   resolveBinding?: FollowUpBindingResolver;
 } = {}): Promise<DefaultFollowUpWorkerResult> {
-  const claimResult = await claimDuePendingFollowUps({
-    repository,
+  const claimResult = await repository.claimDuePendingFollowUps({
     now,
     limit,
     claimed_by: claimedBy

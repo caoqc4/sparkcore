@@ -1,4 +1,3 @@
-import { claimDuePendingFollowUps } from "@/lib/chat/follow-up-claim";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import { buildProactiveSendRequestFromClaimedFollowUp } from "@/lib/chat/follow-up-proactive-send";
 import {
@@ -158,8 +157,8 @@ async function main() {
   const repository = createAdminFollowUpRepository();
 
   try {
-    const claimResult = await claimDuePendingFollowUps({
-      repository,
+    const claimResult = await repository.claimDuePendingFollowUps({
+      now: new Date().toISOString(),
       limit: 1,
       claimed_by: "follow-up-send-harness"
     });
