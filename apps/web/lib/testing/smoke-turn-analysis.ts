@@ -1,6 +1,4 @@
-import {
-  getSmokeUsedMemoryTypes
-} from "@/lib/testing/smoke-relationship-context";
+import { buildSmokeTurnAnalysisResult } from "@/lib/testing/smoke-turn-analysis-builders";
 import {
   getSmokeRecentAssistantReply,
 } from "@/lib/testing/smoke-reply-analysis";
@@ -52,7 +50,7 @@ export function analyzeSmokeTurnContext({
     recalledMemories
   });
 
-  return {
+  return buildSmokeTurnAnalysisResult({
     activeMemories,
     addressStyleMemory,
     answerStrategyRule,
@@ -66,9 +64,8 @@ export function analyzeSmokeTurnContext({
     recentAssistantReply,
     recentRawTurnCount,
     recalledMemories,
-    sameThreadContinuationApplicable,
-    usedMemoryTypes: getSmokeUsedMemoryTypes(recalledMemories)
-  };
+    sameThreadContinuationApplicable
+  });
 }
 
 export type {
