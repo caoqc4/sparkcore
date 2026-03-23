@@ -1,35 +1,9 @@
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
-import type {
-  SmokeAnswerQuestionType,
-  SmokeAnswerStrategy,
-  SmokeAnswerStrategyReasonCode,
-  SmokeApproxContextPressure,
-  SmokeContinuationReasonCode
-} from "@/lib/testing/smoke-assistant-builders";
-import type {
-  SmokeReplyLanguage,
-  SmokeReplyLanguageSource
-} from "@/lib/testing/smoke-role-core-packet";
+import type { SmokeAssistantMetadataSharedInput } from "@/lib/testing/smoke-assistant-metadata-shared-input";
 
-export function buildSmokeAssistantMetadataSummary(args: {
-  modelProfileId: string;
-  modelProfileName: string;
-  model: string;
-  replyLanguage: SmokeReplyLanguage;
-  replyLanguageDetected: SmokeReplyLanguage;
-  replyLanguageSource: SmokeReplyLanguageSource;
-  questionType: SmokeAnswerQuestionType;
-  answerStrategy: SmokeAnswerStrategy;
-  answerStrategyReasonCode: SmokeAnswerStrategyReasonCode;
-  continuationReasonCode: SmokeContinuationReasonCode | null;
-  recentRawTurnCount: number;
-  approxContextPressure: SmokeApproxContextPressure;
-  recalledMemoryCount: number;
-  memoryUsed: boolean;
-  usedMemoryTypes: string[];
-  hiddenExclusionCount: number;
-  incorrectExclusionCount: number;
-}) {
+export function buildSmokeAssistantMetadataSummary(
+  args: SmokeAssistantMetadataSharedInput
+) {
   return buildAssistantMetadataSummaryGroups({
     model_profile_id: args.modelProfileId,
     model_profile_name: args.modelProfileName,

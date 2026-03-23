@@ -1,42 +1,11 @@
-import type {
-  SmokeAnswerQuestionType,
-  SmokeAnswerStrategy,
-  SmokeAnswerStrategyReasonCode,
-  SmokeApproxContextPressure,
-  SmokeContinuationReasonCode
-} from "@/lib/testing/smoke-assistant-builders";
-import type {
-  SmokeReplyLanguage,
-  SmokeReplyLanguageSource,
-  SmokeRoleCorePacket
-} from "@/lib/testing/smoke-role-core-packet";
+import type { SmokeRoleCorePacket } from "@/lib/testing/smoke-role-core-packet";
+import type { SmokeAssistantMetadataSharedInput } from "@/lib/testing/smoke-assistant-metadata-shared-input";
 
 export function buildSmokeAssistantMetadataBase(args: {
   agentId: string;
   agentName: string;
   roleCorePacket: SmokeRoleCorePacket;
-  modelProfileId: string;
-  modelProfileName: string;
-  model: string;
-  replyLanguage: SmokeReplyLanguage;
-  replyLanguageDetected: SmokeReplyLanguage;
-  replyLanguageSource: SmokeReplyLanguageSource;
-  questionType: SmokeAnswerQuestionType;
-  answerStrategy: SmokeAnswerStrategy;
-  answerStrategyReasonCode: SmokeAnswerStrategyReasonCode;
-  continuationReasonCode: SmokeContinuationReasonCode | null;
-  recentRawTurnCount: number;
-  approxContextPressure: SmokeApproxContextPressure;
-  sameThreadContinuationApplicable: boolean;
-  longChainPressureCandidate: boolean;
-  sameThreadContinuationPreferred: boolean;
-  distantMemoryFallbackAllowed: boolean;
-  recalledMemoryCount: number;
-  memoryUsed: boolean;
-  usedMemoryTypes: string[];
-  hiddenExclusionCount: number;
-  incorrectExclusionCount: number;
-}) {
+} & SmokeAssistantMetadataSharedInput) {
   return {
     agent_id: args.agentId,
     agent_name: args.agentName,
