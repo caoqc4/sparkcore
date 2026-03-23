@@ -19,6 +19,7 @@ import {
   loadRecentOwnedMemoriesByTypes,
   loadRecentOwnedRelationshipMemories
 } from "@/lib/chat/memory-item-read";
+import { buildRecalledProfileMemoryFromStoredMemory } from "@/lib/chat/memory-records";
 import { createClient } from "@/lib/supabase/server";
 
 function selectMemoryRecallRoutes(args: {
@@ -360,14 +361,10 @@ export async function recallRelevantMemories({
 
   const recalledMemories =
     scored.length > 0
-      ? scored.slice(0, MEMORY_RECALL_LIMIT).map((memory) => ({
-          memory_type:
-            memory.memory_type === "preference"
-              ? ("preference" as const)
-              : ("profile" as const),
-          content: memory.content,
-          confidence: memory.confidence
-        }))
+      ? scored
+          .slice(0, MEMORY_RECALL_LIMIT)
+          .map((memory) => buildRecalledProfileMemoryFromStoredMemory(memory))
+          .filter((memory): memory is NonNullable<typeof memory> => memory != null)
       : allowDistantFallback
         ? activeMemories
           .slice()
@@ -382,14 +379,8 @@ export async function recallRelevantMemories({
             );
           })
           .slice(0, 2)
-          .map((memory) => ({
-            memory_type:
-              memory.memory_type === "preference"
-                ? ("preference" as const)
-                : ("profile" as const),
-            content: memory.content,
-            confidence: memory.confidence
-          }))
+          .map((memory) => buildRecalledProfileMemoryFromStoredMemory(memory))
+          .filter((memory): memory is NonNullable<typeof memory> => memory != null)
         : [];
 
   const countRelevantExclusions = (memories: StoredMemory[]) =>

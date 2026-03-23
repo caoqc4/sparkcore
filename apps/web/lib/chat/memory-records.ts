@@ -1,4 +1,7 @@
-import type { StoredMemory } from "@/lib/chat/memory-shared";
+import type {
+  RecalledMemory,
+  StoredMemory
+} from "@/lib/chat/memory-shared";
 import {
   buildMemoryRecordFromLegacy,
   buildMemoryScopeRefFromLegacy,
@@ -76,5 +79,24 @@ export function buildProfileRecordsFromStoredMemory(memory: StoredMemory): {
   return {
     static_profile: buildStaticProfileRecordFromStoredMemory(memory),
     dynamic_profile: buildDynamicProfileRecordFromStoredMemory(memory)
+  };
+}
+
+export function buildRecalledProfileMemoryFromStoredMemory(
+  memory: StoredMemory
+): RecalledMemory | null {
+  const staticProfile = buildStaticProfileRecordFromStoredMemory(memory);
+
+  if (!staticProfile) {
+    return null;
+  }
+
+  return {
+    memory_type: memory.memory_type === "preference" ? "preference" : "profile",
+    content:
+      typeof staticProfile.value === "string"
+        ? staticProfile.value
+        : String(staticProfile.value ?? ""),
+    confidence: staticProfile.confidence ?? 0
   };
 }
