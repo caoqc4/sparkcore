@@ -1,11 +1,12 @@
 import type { SmokeReplyLanguage } from "@/lib/testing/smoke-assistant-builders";
+import { buildSmokeUnknownReply } from "@/lib/testing/smoke-unknown-reply";
 
 export function buildSmokeDirectReplyStyleReply(args: {
   replyLanguage: SmokeReplyLanguage;
   styleValue: string | null;
 }) {
   if (!args.styleValue) {
-    return args.replyLanguage === "zh-Hans" ? "我不知道。" : "I don't know.";
+    return buildSmokeUnknownReply(args.replyLanguage);
   }
 
   if (args.styleValue === "formal") {

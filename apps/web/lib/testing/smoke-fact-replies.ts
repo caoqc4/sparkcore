@@ -6,6 +6,7 @@ import {
 } from "@/lib/testing/smoke-answer-strategy";
 import { buildSmokeRememberedFactReply } from "@/lib/testing/smoke-direct-memory-fact-replies";
 import { buildSmokeDirectReplyStyleReply } from "@/lib/testing/smoke-direct-style-replies";
+import { buildSmokeUnknownReply } from "@/lib/testing/smoke-unknown-reply";
 import type {
   SmokeRecallMemory,
   SmokeRelationshipRecallMemory
@@ -30,7 +31,7 @@ export function buildSmokeFactReply(args: {
 
   if (isSmokeDirectProfessionQuestion(args.content)) {
     if (!rememberedProfession) {
-      return args.replyLanguage === "zh-Hans" ? "我不知道。" : "I don't know.";
+      return buildSmokeUnknownReply(args.replyLanguage);
     }
 
     return args.replyLanguage === "zh-Hans"
@@ -40,7 +41,7 @@ export function buildSmokeFactReply(args: {
 
   if (isSmokeDirectPlanningPreferenceQuestion(args.content)) {
     if (!rememberedPlanningPreference) {
-      return args.replyLanguage === "zh-Hans" ? "我不知道。" : "I don't know.";
+      return buildSmokeUnknownReply(args.replyLanguage);
     }
 
     return args.replyLanguage === "zh-Hans"
