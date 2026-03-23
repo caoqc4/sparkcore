@@ -1,4 +1,12 @@
-import { summarizeThreadTitle } from "@/lib/chat/thread-title";
+function summarizeThreadTitle(content: string) {
+  const normalized = content.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= 48) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, 45).trimEnd()}...`;
+}
 
 export function buildThreadActivityPatch(args: {
   content: string;
