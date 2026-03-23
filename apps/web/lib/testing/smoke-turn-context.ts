@@ -4,8 +4,9 @@ import {
   loadOwnedActiveAgent,
   loadOwnedThread
 } from "@/lib/chat/runtime-turn-context";
+import { loadThreadMessages } from "@/lib/chat/message-read";
+import { loadRecentOwnedMemories } from "@/lib/chat/memory-item-read";
 import { requireSmokeConfig } from "@/lib/testing/smoke-config";
-import { loadSmokeTurnExistingState } from "@/lib/testing/smoke-turn-existing-state";
 import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
 
 export async function loadSmokeTurnContext(args: {
@@ -60,13 +61,31 @@ export async function loadSmokeTurnContext(args: {
     );
   }
 
-  const { existingMemories, existingMessages } =
-    await loadSmokeTurnExistingState({
+  const { data: existingMemories, error: memoriesError } =
+    await loadRecentOwnedMemories({
+      supabase: admin,
+      workspaceId: smokeUser.workspaceId,
+      userId: smokeUser.id,
+      select:
+        "id, memory_type, content, confidence, category, key, value, scope, status, target_agent_id, target_thread_id, metadata",
+      limit: 200
+    });
+
+  if (memoriesError) {
+    throw new Error(`Failed to load smoke memories: ${memoriesError.message}`);
+  }
+
+  const { data: existingMessages, error: messagesError } =
+    await loadThreadMessages({
       supabase: admin,
       threadId: thread.id,
       workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id
+      select: "role, content, status, metadata"
     });
+
+  if (messagesError) {
+    throw new Error(`Failed to load smoke messages: ${messagesError.message}`);
+  }
 
   return {
     admin,
