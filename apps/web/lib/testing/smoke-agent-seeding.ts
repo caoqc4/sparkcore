@@ -1,18 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadActivePersonaPacksBySlugs } from "@/lib/chat/runtime-turn-context";
+import { resolveSmokeAgentSeedDependencies } from "@/lib/testing/smoke-agent-seed-dependencies";
 import { insertSmokeSeedAgents } from "@/lib/testing/smoke-seed-persistence";
-
-type SmokeUserLike = {
-  id: string;
-  email: string;
-  workspaceId: string;
-};
-
-type SmokeModelProfile = {
-  id: string;
-  slug: string;
-  name: string;
-};
+import type {
+  SmokeModelProfile,
+  SmokeSeedPersonaPack,
+  SmokeUserLike
+} from "@/lib/testing/smoke-agent-seeding-types";
 
 export async function seedSmokeAgentState(args: {
   admin: SupabaseClient;
@@ -31,32 +25,12 @@ export async function seedSmokeAgentState(args: {
     );
   }
 
-  const activePersonaPacks = personaPacks as Array<{
-    id: string;
-    slug: string;
-    name: string;
-    description: string | null;
-    persona_summary: string;
-    style_prompt: string;
-    system_prompt: string;
-  }>;
-
-  const sparkGuidePack = activePersonaPacks.find(
-    (pack) => pack.slug === "spark-guide"
-  );
-  const memoryCoachPack = activePersonaPacks.find(
-    (pack) => pack.slug === "memory-coach"
-  );
-  const defaultProfile = args.modelProfiles.find(
-    (profile) => profile.slug === "spark-default"
-  );
-  const altProfile = args.modelProfiles.find(
-    (profile) => profile.slug === "smoke-alt"
-  );
-
-  if (!sparkGuidePack || !memoryCoachPack || !defaultProfile || !altProfile) {
-    throw new Error("Smoke seed dependencies are incomplete.");
-  }
+  const activePersonaPacks = personaPacks as SmokeSeedPersonaPack[];
+  const { sparkGuidePack, memoryCoachPack, defaultProfile, altProfile } =
+    resolveSmokeAgentSeedDependencies({
+      personaPacks: activePersonaPacks,
+      modelProfiles: args.modelProfiles
+    });
 
   const { error: insertAgentsError } = await insertSmokeSeedAgents({
     admin: args.admin,
