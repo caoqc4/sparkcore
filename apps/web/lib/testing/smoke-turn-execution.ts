@@ -1,6 +1,6 @@
 import { applySmokeTurnMemoryUpdates } from "@/lib/testing/smoke-turn-memory-updates";
 import { buildSmokeRelationshipSeedMetadata } from "@/lib/testing/smoke-relationship-seed-metadata";
-import { insertAnalyzedSmokeAssistantReply } from "@/lib/testing/smoke-turn-assistant";
+import { persistSmokeAssistantTurnStep } from "@/lib/testing/smoke-turn-assistant-step";
 import { prepareSmokeTurnExecutionState } from "@/lib/testing/smoke-turn-execution-state";
 import { persistSmokeUserTurnStep } from "@/lib/testing/smoke-turn-user-step";
 import { prepareSmokeAssistantTurn } from "@/lib/testing/smoke-turn-assistant-prep";
@@ -77,7 +77,7 @@ export async function executeSmokeTurn(args: {
     recalledMemories,
     answerStrategyRule
   });
-  const insertedAssistantMessage = await insertAnalyzedSmokeAssistantReply({
+  const insertedAssistantMessage = await persistSmokeAssistantTurnStep({
     supabase: admin,
     threadId: thread.id,
     workspaceId: smokeUser.workspaceId,
