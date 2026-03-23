@@ -6,16 +6,11 @@ import {
 import { buildSmokeSeedMetadata } from "@/lib/testing/smoke-seed-metadata";
 import { insertAnalyzedSmokeAssistantReply } from "@/lib/testing/smoke-turn-assistant";
 import {
-  getSmokeRelationshipMemoryValue,
-  toSmokeRelationshipRecallMemory
-} from "@/lib/testing/smoke-relationship-context";
-import {
   analyzeSmokeTurnContext,
   type SmokeMemoryRow,
   type SmokeRuntimeMessage
 } from "@/lib/testing/smoke-turn-analysis";
-import { buildSmokeAssistantReply } from "@/lib/testing/smoke-assistant-reply";
-import { resolveSmokeReplyLanguage } from "@/lib/testing/smoke-reply-analysis";
+import { prepareSmokeAssistantTurn } from "@/lib/testing/smoke-turn-assistant-prep";
 import type { SmokeTurnContext } from "@/lib/testing/smoke-turn-context";
 
 function buildSmokeRelationshipSeedMetadata(relationKind: string) {
@@ -88,25 +83,21 @@ export async function executeSmokeTurn(args: {
     trimmedContent: args.trimmedContent,
     relationshipSeedMetadataBuilder: buildSmokeRelationshipSeedMetadata
   });
-  const replyLanguageDecision = resolveSmokeReplyLanguage({
-    content: args.trimmedContent,
-    recentAssistantReply
-  });
-  const replyLanguage = replyLanguageDecision.replyLanguage;
-  const effectiveAddressStyleValue =
-    getSmokeRelationshipMemoryValue(addressStyleMemory);
-
-  const assistantContent = buildSmokeAssistantReply({
-    content: args.trimmedContent,
-    answerStrategy: answerStrategyRule.answerStrategy,
-    modelProfileName: modelProfile.name,
+  const {
+    assistantContent,
+    effectiveAddressStyleValue,
     replyLanguage,
-    recentAssistantReply,
+    replyLanguageSource
+  } = prepareSmokeAssistantTurn({
+    trimmedContent: args.trimmedContent,
+    modelProfileName: modelProfile.name,
     agentName: ensuredAgent.name,
-    addressStyleMemory: toSmokeRelationshipRecallMemory(addressStyleMemory),
-    nicknameMemory: toSmokeRelationshipRecallMemory(nicknameMemory),
-    preferredNameMemory: toSmokeRelationshipRecallMemory(preferredNameMemory),
-    recalledMemories
+    recentAssistantReply,
+    addressStyleMemory,
+    nicknameMemory,
+    preferredNameMemory,
+    recalledMemories,
+    answerStrategyRule
   });
   const insertedAssistantMessage = await insertAnalyzedSmokeAssistantReply({
     supabase: admin,
@@ -123,7 +114,7 @@ export async function executeSmokeTurn(args: {
     assistantContent,
     relationshipStyleValue: effectiveAddressStyleValue,
     replyLanguage,
-    replyLanguageSource: replyLanguageDecision.source,
+    replyLanguageSource,
     questionType: answerStrategyRule.questionType,
     answerStrategy: answerStrategyRule.answerStrategy,
     answerStrategyReasonCode: answerStrategyRule.reasonCode,
