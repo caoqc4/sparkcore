@@ -156,6 +156,12 @@
     - `getMemoryCategory(...)`
     - `getMemoryScope(...)`
     而不再直接依赖 raw `memory.category / memory.scope`
+  - `memory-records.ts` / `memory-recall.ts` 当前也已开始把：
+    - `static_profile`
+    - `dynamic_profile`
+    - `relationship memory_record`
+    - generic `memory_record`
+    的判定收成共用 semantic predicate，而不再在 recall 主路径里散落 raw `category / scope` 判断
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`
 

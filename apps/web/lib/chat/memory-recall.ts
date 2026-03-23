@@ -26,6 +26,9 @@ import {
   buildRecalledProfileMemoryFromStoredMemory,
   buildRecalledRelationshipMemoryFromStoredMemory,
   buildRecalledTimelineMemoryFromStoredMemory,
+  isStoredMemoryDynamicProfile,
+  isStoredMemoryGenericMemoryRecord,
+  isStoredMemoryRelationshipMemoryRecord,
   isStoredMemorySemanticTarget
 } from "@/lib/chat/memory-records";
 import { createClient } from "@/lib/supabase/server";
@@ -153,7 +156,7 @@ export async function recallAgentNickname({
   const nicknameRow = ((data ?? []) as StoredMemory[]).find(
     (memory) =>
       isMemoryActive(memory) &&
-      isStoredMemorySemanticTarget(memory, "memory_record")
+      isStoredMemoryRelationshipMemoryRecord(memory)
   );
 
   if (!nicknameRow) {
@@ -222,7 +225,7 @@ export async function recallUserPreferredName({
   const preferredNameRow = ((data ?? []) as StoredMemory[]).find(
     (memory) =>
       isMemoryActive(memory) &&
-      isStoredMemorySemanticTarget(memory, "memory_record")
+      isStoredMemoryRelationshipMemoryRecord(memory)
   );
 
   if (!preferredNameRow) {
@@ -277,7 +280,7 @@ export async function recallUserAddressStyle({
   const styleRow = ((data ?? []) as StoredMemory[]).find(
     (memory) =>
       isMemoryActive(memory) &&
-      isStoredMemorySemanticTarget(memory, "memory_record")
+      isStoredMemoryRelationshipMemoryRecord(memory)
   );
 
   if (!styleRow) {
@@ -351,7 +354,7 @@ export async function recallRelevantMemories({
     isMemoryIncorrect(memory)
   );
   const activeDynamicProfileMemories = activeMemories.filter((memory) =>
-    isStoredMemorySemanticTarget(memory, "dynamic_profile")
+    isStoredMemoryDynamicProfile(memory)
   );
   const activeStaticProfileMemories = activeMemories.filter((memory) =>
     isStoredMemorySemanticTarget(memory, "static_profile")
@@ -382,8 +385,7 @@ export async function recallRelevantMemories({
         threadId
       })
     )
-    .filter((memory) => isStoredMemorySemanticTarget(memory, "memory_record"))
-    .filter((memory) => memory.category !== "relationship");
+    .filter((memory) => isStoredMemoryGenericMemoryRecord(memory));
   const activeMemoryRecordRows = validMemoryRecordRows.filter((memory) =>
     isMemoryActive(memory)
   );

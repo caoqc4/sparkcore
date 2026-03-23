@@ -174,6 +174,12 @@ P1 首批要做的，是把更多 legacy 直接读写点继续收紧成：
   - `getMemoryCategory(...)`
   - `getMemoryScope(...)`
   而不再直接依赖 raw `memory.category / memory.scope`
+- `memory-records.ts` / `memory-recall.ts` 当前也已开始把：
+  - `static_profile`
+  - `dynamic_profile`
+  - `relationship memory_record`
+  - generic `memory_record`
+  的判定收成共用 semantic predicate，而不再在 recall 主路径里散落 raw `category / scope` 判断
 
 ---
 

@@ -3,6 +3,7 @@ import type {
   RecalledMemory,
   StoredMemory
 } from "@/lib/chat/memory-shared";
+import { getMemoryCategory, getMemoryScope } from "@/lib/chat/memory-v2";
 import {
   buildMemoryRecordFromLegacy,
   buildMemoryScopeRefFromLegacy,
@@ -28,7 +29,9 @@ export type RuntimeMemorySemanticLayer = MemorySemanticLayer;
 function buildProfileIdentity(memory: StoredMemory) {
   const userId = memory.subject_user_id ?? "unknown_user";
   const agentId =
-    memory.scope === "user_agent" ? (memory.target_agent_id ?? null) : null;
+    getMemoryScope(memory) === "user_agent"
+      ? (memory.target_agent_id ?? null)
+      : null;
   const scope = buildMemoryScopeRefFromLegacy(memory);
 
   return {
@@ -44,21 +47,28 @@ export function classifyStoredMemorySemanticTarget(
     return "thread_state_candidate";
   }
 
-  if (
-    (memory.category === "profile" || memory.category === "preference") &&
-    memory.scope !== "thread_local"
-  ) {
+  const rawCategory =
+    typeof memory.category === "string" && memory.category.length > 0
+      ? memory.category
+      : null;
+  const rawScope =
+    typeof memory.scope === "string" && memory.scope.length > 0
+      ? memory.scope
+      : null;
+  const inferredCategory = getMemoryCategory(memory);
+  const inferredScope = getMemoryScope(memory);
+  const category = rawCategory ?? inferredCategory;
+  const scope = rawScope ?? inferredScope;
+
+  if ((category === "profile" || category === "preference") && scope !== "thread_local") {
     return "static_profile";
   }
 
-  if (memory.category === "relationship") {
+  if (category === "relationship") {
     return "memory_record";
   }
 
-  if (
-    memory.scope === "thread_local" &&
-    (memory.category === "profile" || memory.category === "preference")
-  ) {
+  if (scope === "thread_local" && (category === "profile" || category === "preference")) {
     return "dynamic_profile";
   }
 
@@ -76,6 +86,28 @@ export function isStoredMemorySemanticTarget(
   return classifyStoredMemorySemanticTarget(memory) === target;
 }
 
+export function isStoredMemoryStaticProfile(memory: StoredMemory) {
+  return isStoredMemorySemanticTarget(memory, "static_profile");
+}
+
+export function isStoredMemoryDynamicProfile(memory: StoredMemory) {
+  return isStoredMemorySemanticTarget(memory, "dynamic_profile");
+}
+
+export function isStoredMemoryRelationshipMemoryRecord(memory: StoredMemory) {
+  return (
+    isStoredMemorySemanticTarget(memory, "memory_record") &&
+    getMemoryCategory(memory) === "relationship"
+  );
+}
+
+export function isStoredMemoryGenericMemoryRecord(memory: StoredMemory) {
+  return (
+    isStoredMemorySemanticTarget(memory, "memory_record") &&
+    getMemoryCategory(memory) !== "relationship"
+  );
+}
+
 export function buildChatMemoryRecord(memory: StoredMemory): ChatMemoryRecord {
   return buildMemoryRecordFromLegacy(memory);
 }
@@ -83,7 +115,7 @@ export function buildChatMemoryRecord(memory: StoredMemory): ChatMemoryRecord {
 export function buildStaticProfileRecordFromStoredMemory(
   memory: StoredMemory
 ): ChatStaticProfileRecord | null {
-  if (classifyStoredMemorySemanticTarget(memory) !== "static_profile") {
+  if (!isStoredMemoryStaticProfile(memory)) {
     return null;
   }
 
@@ -109,7 +141,7 @@ export function buildStaticProfileRecordFromStoredMemory(
 export function buildDynamicProfileRecordFromStoredMemory(
   memory: StoredMemory
 ): ChatDynamicProfileRecord | null {
-  if (classifyStoredMemorySemanticTarget(memory) !== "dynamic_profile") {
+  if (!isStoredMemoryDynamicProfile(memory)) {
     return null;
   }
 
@@ -193,7 +225,7 @@ export function buildRecalledRelationshipMemoryFromStoredMemory(
   confidence: number;
   semantic_layer: "memory_record";
 } | null {
-  if (memory.category !== "relationship") {
+  if (!isStoredMemoryRelationshipMemoryRecord(memory)) {
     return null;
   }
 
@@ -208,10 +240,7 @@ export function buildRecalledRelationshipMemoryFromStoredMemory(
 }
 
 function isMemoryRecordRecallCandidate(memory: StoredMemory) {
-  return (
-    classifyStoredMemorySemanticTarget(memory) === "memory_record" &&
-    memory.category !== "relationship"
-  );
+  return isStoredMemoryGenericMemoryRecord(memory);
 }
 
 export function buildRecalledEpisodeMemoryFromStoredMemory(
