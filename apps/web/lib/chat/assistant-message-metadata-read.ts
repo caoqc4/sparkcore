@@ -19,6 +19,30 @@ export function getAssistantDeveloperDiagnosticsMetadata(
   return getAssistantMetadataGroup(metadata, "developer_diagnostics");
 }
 
+export function getAssistantExplanationMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "user_explanation");
+}
+
+export function getAssistantLanguageMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "language");
+}
+
+export function getAssistantModelProfileMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "model_profile");
+}
+
+export function getAssistantMemoryMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "memory");
+}
+
 export function getAssistantMetadataString(
   metadata: Record<string, unknown> | null | undefined,
   key: string
@@ -97,4 +121,17 @@ export function getPreferredAssistantMetadataStringArray(
   return preferredValue.length > 0
     ? preferredValue
     : getAssistantMetadataStringArray(fallback, key);
+}
+
+export function getAssistantDetectedReplyLanguage(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const languageMetadata = getAssistantLanguageMetadata(metadata);
+  const diagnosticsMetadata = getAssistantDeveloperDiagnosticsMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(languageMetadata, "detected") ??
+    getAssistantMetadataString(diagnosticsMetadata, "reply_language_detected") ??
+    getAssistantMetadataString(metadata, "reply_language_detected")
+  );
 }

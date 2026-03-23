@@ -101,9 +101,6 @@ export async function prepareRuntimeSession(args: {
   messages: PreparedRuntimeMessage[];
   detectReplyLanguageFromText: (content: string) => SessionReplyLanguage;
   isReplyLanguage: (value: unknown) => value is SessionReplyLanguage;
-  getDeveloperDiagnosticsMetadata: (
-    metadata: Record<string, unknown> | null | undefined
-  ) => Record<string, unknown> | null;
 }): Promise<SessionContext> {
   const latestUserMessage = [...args.messages]
     .reverse()
@@ -136,8 +133,7 @@ export async function prepareRuntimeSession(args: {
     messages: args.messages,
     threadState,
     detectReplyLanguageFromText: args.detectReplyLanguageFromText,
-    isReplyLanguage: args.isReplyLanguage,
-    getDeveloperDiagnosticsMetadata: args.getDeveloperDiagnosticsMetadata
+    isReplyLanguage: args.isReplyLanguage
   });
 }
 

@@ -1,5 +1,5 @@
 import {
-  getAssistantMetadataGroup
+  getAssistantDetectedReplyLanguage
 } from "@/lib/chat/assistant-message-metadata-read";
 import type { ThreadStateRecord } from "@/lib/chat/thread-state";
 
@@ -81,15 +81,11 @@ function getApproxContextPressure(
 function getThreadContinuitySignal({
   messages,
   detectReplyLanguageFromText,
-  isReplyLanguage,
-  getDeveloperDiagnosticsMetadata
+  isReplyLanguage
 }: {
   messages: SessionMessageRecord[];
   detectReplyLanguageFromText: (content: string) => SessionReplyLanguage;
   isReplyLanguage: (value: unknown) => value is SessionReplyLanguage;
-  getDeveloperDiagnosticsMetadata: (
-    metadata: Record<string, unknown> | null | undefined
-  ) => Record<string, unknown> | null;
 }): SessionContinuitySignal {
   const previousAssistantMessage = getMostRecentCompletedAssistantMessage(messages);
 
@@ -100,17 +96,9 @@ function getThreadContinuitySignal({
     };
   }
 
-  const diagnosticsMetadata = getDeveloperDiagnosticsMetadata(
+  const metadataLanguage = getAssistantDetectedReplyLanguage(
     previousAssistantMessage.metadata
   );
-  const groupedLanguageMetadata = getAssistantMetadataGroup(
-    previousAssistantMessage.metadata,
-    "language"
-  );
-  const metadataLanguage =
-    groupedLanguageMetadata?.detected ??
-    diagnosticsMetadata?.reply_language_detected ??
-    previousAssistantMessage.metadata?.reply_language_detected;
   const establishedReplyLanguage = isReplyLanguage(metadataLanguage)
     ? metadataLanguage
     : detectReplyLanguageFromText(previousAssistantMessage.content);
@@ -127,8 +115,7 @@ export function buildSessionContext({
   messages,
   threadState,
   detectReplyLanguageFromText,
-  isReplyLanguage,
-  getDeveloperDiagnosticsMetadata
+  isReplyLanguage
 }: {
   threadId: string;
   agentId: string;
@@ -136,9 +123,6 @@ export function buildSessionContext({
   threadState?: ThreadStateRecord | null;
   detectReplyLanguageFromText: (content: string) => SessionReplyLanguage;
   isReplyLanguage: (value: unknown) => value is SessionReplyLanguage;
-  getDeveloperDiagnosticsMetadata: (
-    metadata: Record<string, unknown> | null | undefined
-  ) => Record<string, unknown> | null;
 }): SessionContext {
   const latestUserMessage = [...messages]
     .reverse()
@@ -147,8 +131,7 @@ export function buildSessionContext({
   const continuitySignals = getThreadContinuitySignal({
     messages,
     detectReplyLanguageFromText,
-    isReplyLanguage,
-    getDeveloperDiagnosticsMetadata
+    isReplyLanguage
   });
 
   return {

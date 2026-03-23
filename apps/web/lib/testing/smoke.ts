@@ -6,7 +6,7 @@ import {
 import { NextResponse, type NextRequest } from "next/server";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
 import { getSupabaseEnv } from "@/lib/env";
-import { getAssistantMetadataGroup } from "@/lib/chat/assistant-message-metadata-read";
+import { getAssistantDetectedReplyLanguage } from "@/lib/chat/assistant-message-metadata-read";
 import {
   buildMemoryV2Fields,
   inferLegacyMemoryStability,
@@ -738,13 +738,9 @@ function getSmokeRecentAssistantReply(
     return null;
   }
 
-  const groupedLanguageMetadata = getAssistantMetadataGroup(
-    previousAssistant.metadata,
-    "language"
+  const metadataLanguage = getAssistantDetectedReplyLanguage(
+    previousAssistant.metadata
   );
-  const metadataLanguage =
-    groupedLanguageMetadata?.detected ??
-    previousAssistant.metadata?.reply_language_detected;
   const replyLanguage =
     metadataLanguage === "zh-Hans" || metadataLanguage === "en"
       ? metadataLanguage

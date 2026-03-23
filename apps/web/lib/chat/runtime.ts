@@ -3233,8 +3233,7 @@ export async function generateAgentReply({
     agent,
     messages,
     detectReplyLanguageFromText,
-    isReplyLanguage: isRuntimeReplyLanguage,
-    getDeveloperDiagnosticsMetadata: getAssistantDeveloperDiagnosticsMetadata
+    isReplyLanguage: isRuntimeReplyLanguage
   });
   const latestUserMessageContent = sessionContext.current_user_message;
   const threadContinuity = sessionContext.continuity_signals;

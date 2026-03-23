@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { AgentEditSheet } from "@/app/chat/agent-edit-sheet";
 import {
   getAssistantMetadataBoolean,
-  getAssistantMetadataGroup,
+  getAssistantExplanationMetadata,
+  getAssistantMemoryMetadata,
   getAssistantMetadataNumber,
-  getAssistantMetadataObject,
+  getAssistantModelProfileMetadata,
   getPreferredAssistantMetadataBoolean,
   getPreferredAssistantMetadataNumber,
   getPreferredAssistantMetadataString,
@@ -96,7 +97,7 @@ type RuntimeSummary = {
 };
 
 function getExplanationMetadata(message: ChatMessage) {
-  return getAssistantMetadataObject(message.metadata?.user_explanation);
+  return getAssistantExplanationMetadata(message.metadata);
 }
 
 function formatMemoryTypeLabel(type: string, locale: ChatLocale) {
@@ -209,11 +210,8 @@ function getRuntimeSummary(
   const isZh = locale === "zh-CN";
   const explanationMetadata = getExplanationMetadata(message);
   const fallbackMetadata = message.metadata;
-  const groupedModelProfile = getAssistantMetadataGroup(
-    fallbackMetadata,
-    "model_profile"
-  );
-  const groupedMemory = getAssistantMetadataGroup(fallbackMetadata, "memory");
+  const groupedModelProfile = getAssistantModelProfileMetadata(fallbackMetadata);
+  const groupedMemory = getAssistantMemoryMetadata(fallbackMetadata);
 
   const modelProfileName = getPreferredAssistantMetadataString(
     explanationMetadata,
