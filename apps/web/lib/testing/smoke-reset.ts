@@ -1,7 +1,9 @@
 import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
+import { loadActiveModelProfilesBySlugs } from "@/lib/chat/runtime-turn-context";
 import { requireSmokeConfig } from "@/lib/testing/smoke-config";
 import { seedSmokeAgentState } from "@/lib/testing/smoke-agent-seeding";
-import { ensureSmokeModelProfileState } from "@/lib/testing/smoke-model-profiles";
+import { getSmokeModelProfiles } from "@/lib/testing/smoke-model-profile-seeds";
+import { upsertSmokeModelProfiles } from "@/lib/testing/smoke-seed-persistence";
 import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
 import { resetSmokeWorkspaceStateByUser } from "@/lib/testing/smoke-workspace-reset";
 
@@ -14,7 +16,25 @@ export async function resetSmokeState() {
   const smokeUser = await ensureSmokeUserState(admin, config, {
     resetPassword: true
   });
-  const modelProfiles = await ensureSmokeModelProfileState(admin);
+  const { error: upsertError } = await upsertSmokeModelProfiles(admin);
+
+  if (upsertError) {
+    throw new Error(
+      `Failed to seed smoke model profiles: ${upsertError.message}`
+    );
+  }
+
+  const { data: modelProfiles, error: profilesError } =
+    await loadActiveModelProfilesBySlugs({
+      supabase: admin,
+      slugs: getSmokeModelProfiles().map((profile) => profile.slug)
+    });
+
+  if (profilesError || !modelProfiles) {
+    throw new Error(
+      profilesError?.message ?? "Failed to load smoke model profiles."
+    );
+  }
 
   await resetSmokeWorkspaceStateByUser({
     admin,
