@@ -6,11 +6,14 @@ import {
 } from "@/lib/testing/smoke-answer-strategy";
 import { buildSmokeRememberedFactReply } from "@/lib/testing/smoke-direct-memory-fact-replies";
 import { buildSmokeDirectReplyStyleReply } from "@/lib/testing/smoke-direct-style-replies";
-import { buildSmokeUnknownReply } from "@/lib/testing/smoke-unknown-reply";
 import type {
   SmokeRecallMemory,
   SmokeRelationshipRecallMemory
 } from "@/lib/testing/smoke-recall-memory-types";
+
+function buildSmokeUnknownReply(replyLanguage: SmokeReplyLanguage) {
+  return replyLanguage === "zh-Hans" ? "我不知道。" : "I don't know.";
+}
 
 export function buildSmokeFactReply(args: {
   content: string;
