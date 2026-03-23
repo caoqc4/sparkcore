@@ -171,6 +171,21 @@ P3 首批要把 `Thread Compaction` 再往前推进一层，形成最小 retenti
 - runtime prompt / assistant metadata / debug metadata 当前也已开始承接 retention reason
 - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_mode_present` 这条 retention reason
 
+当前已成立的第四刀代码事实：
+
+- `apps/web/lib/chat/thread-compaction.ts` 当前已开始让 `retention_reason` 真实影响：
+  - `retained_fields`
+  - `summary_text` 中实际保留的 section
+- `focus_mode_present` 当前会保留：
+  - `focus_mode`
+  - `continuity_status`
+  - `current_language_hint`
+  而不会再顺手带入 `latest_user_message`
+- `recent_turn_window` 当前则会显式保留：
+  - `latest_user_message`
+  - `recent_turn_window`
+- `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` 摘要不会错误保留 `Latest user message`
+
 ### 4.3 Knowledge scope materialization
 
 P3 首批要让 `Knowledge Layer` 更明确地区分：

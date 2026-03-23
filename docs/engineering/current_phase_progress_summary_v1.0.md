@@ -163,6 +163,11 @@
   - `apps/web/lib/chat/runtime.ts` 当前也已开始在主路径中先走 retention selection，再决定 compaction summary 是否进入 prompt / metadata / debug
   - 当前最小规则已经成立：`closed + minimal` 的 thread compaction summary 会被主动丢弃
   - `memory-upgrade-harness.ts` 当前也已开始显式校验这条 keep/drop 行为
+  - `packages/core/memory/compaction.ts` 当前也已开始把 `retention_reason` 收成正式 contract
+  - `apps/web/lib/chat/thread-compaction.ts` 当前已开始让 `retention_reason` 真实影响 `retained_fields` 与实际保留的摘要 section
+  - `focus_mode_present` 当前会保留 `focus_mode / continuity_status / current_language_hint`，但不会再顺手带入 `latest_user_message`
+  - `recent_turn_window` 当前会显式保留 `latest_user_message / recent_turn_window`
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` 摘要不会错误保留 `Latest user message`
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

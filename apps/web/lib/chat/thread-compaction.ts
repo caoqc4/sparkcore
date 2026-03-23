@@ -27,29 +27,50 @@ function resolveThreadRetentionMode(args: {
 
 function buildRetainedFields(args: {
   threadState: ThreadStateRecord;
-  retentionMode: ThreadRetentionMode;
+  retentionReason: ThreadRetentionReason;
   latestUserMessage: string | null;
 }) {
   const fields = new Set<string>();
 
-  if (args.threadState.focus_mode) {
-    fields.add("focus_mode");
-  }
-
-  if (args.threadState.continuity_status) {
-    fields.add("continuity_status");
-  }
-
-  if (args.threadState.current_language_hint) {
-    fields.add("current_language_hint");
-  }
-
-  if (args.latestUserMessage) {
-    fields.add("latest_user_message");
-  }
-
-  if (args.retentionMode === "recent_window") {
-    fields.add("recent_turn_window");
+  switch (args.retentionReason) {
+    case "focus_mode_present":
+      if (args.threadState.focus_mode) {
+        fields.add("focus_mode");
+      }
+      if (args.threadState.continuity_status) {
+        fields.add("continuity_status");
+      }
+      if (args.threadState.current_language_hint) {
+        fields.add("current_language_hint");
+      }
+      break;
+    case "engaged_continuity":
+      if (args.threadState.continuity_status) {
+        fields.add("continuity_status");
+      }
+      if (args.threadState.current_language_hint) {
+        fields.add("current_language_hint");
+      }
+      if (args.latestUserMessage) {
+        fields.add("latest_user_message");
+      }
+      break;
+    case "recent_turn_window":
+      if (args.threadState.current_language_hint) {
+        fields.add("current_language_hint");
+      }
+      if (args.latestUserMessage) {
+        fields.add("latest_user_message");
+      }
+      fields.add("recent_turn_window");
+      break;
+    case "minimal_context":
+      if (args.threadState.current_language_hint) {
+        fields.add("current_language_hint");
+      }
+      break;
+    case "closed_minimal_pruned":
+      break;
   }
 
   return Array.from(fields);
@@ -96,23 +117,30 @@ export function buildCompactedThreadSummary(args: {
     threadState: args.threadState,
     recentTurnCount: args.recentTurnCount
   });
-  const retainedFields = buildRetainedFields({
-    threadState: args.threadState,
-    retentionMode,
-    latestUserMessage
-  });
   const retentionReason = resolveThreadRetentionReason({
     threadState: args.threadState,
     recentTurnCount: args.recentTurnCount,
     retentionMode
   });
+  const retainedFields = buildRetainedFields({
+    threadState: args.threadState,
+    retentionReason,
+    latestUserMessage
+  });
 
   const summaryParts = [
-    `Focus: ${focus}.`,
-    `Continuity: ${continuity}.`,
-    `Recent turn window: ${args.recentTurnCount}.`,
+    retainedFields.includes("focus_mode") ? `Focus: ${focus}.` : null,
+    retainedFields.includes("continuity_status")
+      ? `Continuity: ${continuity}.`
+      : null,
+    retainedFields.includes("recent_turn_window")
+      ? `Recent turn window: ${args.recentTurnCount}.`
+      : null,
+    retainedFields.includes("latest_user_message")
+      ? `Latest user message: ${latestUserMessage}.`
+      : null,
     `Retention mode: ${retentionMode}.`,
-    latestUserMessage ? `Latest user message: ${latestUserMessage}.` : null,
+    `Retention reason: ${retentionReason}.`,
   ].filter((part): part is string => Boolean(part));
 
   return {
@@ -181,7 +209,7 @@ export function buildThreadCompactionPromptSection(args: {
   return [
     isZh ? "线程压缩摘要：" : "Compacted thread summary:",
     isZh
-      ? `${args.compactedThreadSummary.summary_text} 当前 retention mode = ${args.compactedThreadSummary.retention_mode}，保留字段：${args.compactedThreadSummary.retained_fields.join("、") || "无"}。把这段摘要当作线程历史压缩结果，而不是新的长期画像或外部知识。`
+      ? `${args.compactedThreadSummary.summary_text} 当前 retention mode = ${args.compactedThreadSummary.retention_mode}，retention reason = ${args.compactedThreadSummary.retention_reason}，保留字段：${args.compactedThreadSummary.retained_fields.join("、") || "无"}。把这段摘要当作线程历史压缩结果，而不是新的长期画像或外部知识。`
       : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
   ].join("\n");
 }

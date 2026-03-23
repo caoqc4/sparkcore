@@ -770,6 +770,12 @@ function main() {
     "Expected assistant metadata reader to expose the retention mode inside the compacted summary text."
   );
   expect(
+    !getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+      "Latest user message:"
+    ),
+    "Expected focus-anchor compaction summaries to drop latest-user-message from retained sections."
+  );
+  expect(
     getAssistantMemoryNamespacePrimaryLayer(assistantMetadata) === "project",
     "Expected assistant metadata reader to expose project as the primary namespace layer in P2."
   );
