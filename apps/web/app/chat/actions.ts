@@ -12,7 +12,10 @@ import {
 } from "@/lib/chat/memory-v2";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildWebRuntimeTurnInput } from "@/lib/chat/runtime-input";
-import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
+import {
+  insertUserMessage,
+  persistRuntimeUserMessageMetadata
+} from "@/lib/chat/runtime-user-message-persistence";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
   executeMemoryWriteRequests
@@ -1040,17 +1043,13 @@ export async function sendMessage(
 
   const trimmedContent = content.trim();
 
-  const { data: insertedMessage, error: insertError } = await supabase
-    .from("messages")
-    .insert({
-      thread_id: thread.id,
-      workspace_id: workspace.id,
-      user_id: user.id,
-      role: "user",
-      content: trimmedContent
-    })
-    .select("id")
-    .single();
+  const { data: insertedMessage, error: insertError } = await insertUserMessage({
+    supabase,
+    threadId: thread.id,
+    workspaceId: workspace.id,
+    userId: user.id,
+    content: trimmedContent
+  });
 
   if (insertError || !insertedMessage) {
     return {
@@ -1135,16 +1134,14 @@ export async function sendMessage(
     });
 
     try {
-      await supabase
-        .from("messages")
-        .update({
-          metadata: buildRuntimeUserMessageMetadata(runtimeTurnInput),
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", insertedMessage.id)
-        .eq("thread_id", thread.id)
-        .eq("workspace_id", workspace.id)
-        .eq("user_id", user.id);
+      await persistRuntimeUserMessageMetadata({
+        supabase,
+        threadId: thread.id,
+        workspaceId: workspace.id,
+        userId: user.id,
+        messageId: insertedMessage.id,
+        runtimeTurnInput
+      });
     } catch (metadataError) {
       console.warn("Failed to persist runtime user message metadata:", metadataError);
     }

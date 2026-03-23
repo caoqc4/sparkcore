@@ -18,7 +18,7 @@ import {
   updateAssistantMemoryWriteRequestPreview
 } from "@/lib/chat/assistant-preview-metadata";
 import { buildImRuntimeTurnInput } from "@/lib/chat/runtime-input";
-import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
+import { insertRuntimeUserMessage } from "@/lib/chat/runtime-user-message-persistence";
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
 import { resolveRoleProfile } from "@/lib/chat/role-service";
 import { runAgentTurn } from "@/lib/chat/runtime";
@@ -125,18 +125,14 @@ async function runImRuntimeTurnWithSupabase(args: {
     workspaceId: workspace.id
   });
   const trimmedContent = runtimeTurnInput.message.content.trim();
-  const { data: insertedMessage, error: insertError } = await supabase
-    .from("messages")
-    .insert({
-      thread_id: thread.id,
-      workspace_id: workspace.id,
-      user_id: input.user_id,
-      role: "user",
-      content: trimmedContent,
-      metadata: buildRuntimeUserMessageMetadata(runtimeTurnInput)
-    })
-    .select("id")
-    .single();
+  const { data: insertedMessage, error: insertError } = await insertRuntimeUserMessage({
+    supabase,
+    threadId: thread.id,
+    workspaceId: workspace.id,
+    userId: input.user_id,
+    content: trimmedContent,
+    runtimeTurnInput
+  });
 
   if (insertError || !insertedMessage) {
     throw new Error(insertError?.message ?? "Failed to store inbound IM user message.");
