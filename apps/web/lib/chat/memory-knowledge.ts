@@ -4,6 +4,7 @@ import type {
   KnowledgeSnapshot,
   KnowledgeScopeLayer,
   KnowledgeSourceKind,
+  ScenarioMemoryPackId,
 } from "../../../../packages/core/memory";
 import type { MemoryScopeRef } from "../../../../packages/core/memory/records";
 
@@ -162,13 +163,16 @@ function getKnowledgeScopePriorityForNamespace(args: {
 export function selectKnowledgeForPrompt(args: {
   knowledge: RuntimeKnowledgeSnippet[];
   activeNamespace?: ActiveMemoryNamespace | null;
+  activePackId?: ScenarioMemoryPackId | null;
   limit?: number;
 }) {
   const applicableKnowledge = filterKnowledgeByActiveNamespace({
     knowledge: args.knowledge,
     namespace: args.activeNamespace
   });
-  const limit = args.limit ?? 2;
+  const limit =
+    args.limit ??
+    (args.activePackId === "project_ops" ? 3 : 2);
 
   return [...applicableKnowledge]
     .sort((left, right) => {
@@ -193,12 +197,14 @@ export function selectKnowledgeForPrompt(args: {
 export function buildKnowledgePromptSection(args: {
   knowledge: RuntimeKnowledgeSnippet[];
   activeNamespace?: ActiveMemoryNamespace | null;
+  activePackId?: ScenarioMemoryPackId | null;
   replyLanguage: RuntimeReplyLanguage;
 }) {
   const selectedKnowledge = selectKnowledgeForPrompt({
     knowledge: args.knowledge,
     activeNamespace: args.activeNamespace,
-    limit: 2
+    activePackId: args.activePackId,
+    limit: args.activePackId === "project_ops" ? 3 : 2
   });
 
   if (selectedKnowledge.length === 0) {
@@ -225,8 +231,12 @@ export function buildKnowledgePromptSection(args: {
       }
     ),
     isZh
-      ? "把这些内容当作按 project/world/general 分层的外部知识来源；当前 prompt budget 会优先保留 project/world，再考虑 general。不要把它们误写成用户长期偏好或线程即时状态。"
-      : "Treat these items as project/world/general knowledge inputs; this prompt budget prefers project/world before general. Do not rewrite them as user preference memory or live thread-state.",
+      ? args.activePackId === "project_ops"
+        ? "把这些内容当作按 project/world/general 分层的外部知识来源；当前 project_ops prompt budget 会优先保留 project/world，并允许在预算内带入一条 general knowledge。不要把它们误写成用户长期偏好或线程即时状态。"
+        : "把这些内容当作按 project/world/general 分层的外部知识来源；当前 prompt budget 会优先保留 project/world，再考虑 general。不要把它们误写成用户长期偏好或线程即时状态。"
+      : args.activePackId === "project_ops"
+        ? "Treat these items as project/world/general knowledge inputs; the project_ops prompt budget prioritizes project/world and may carry one general item when budget permits. Do not rewrite them as user preference memory or live thread-state."
+        : "Treat these items as project/world/general knowledge inputs; this prompt budget prefers project/world before general. Do not rewrite them as user preference memory or live thread-state.",
   ];
 
   return lines.join("\n");

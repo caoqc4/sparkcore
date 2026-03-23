@@ -643,6 +643,13 @@ function main() {
   const selectedKnowledgeForPrompt = selectKnowledgeForPrompt({
     knowledge: runtimeKnowledge,
     activeNamespace: activeMemoryNamespace,
+    activePackId: scenarioMemoryPack.pack_id,
+    limit: 3
+  });
+  const companionSelection = selectKnowledgeForPrompt({
+    knowledge: runtimeKnowledge,
+    activeNamespace: activeMemoryNamespace,
+    activePackId: defaultScenarioMemoryPack.pack_id,
     limit: 2
   });
   const worldPrimarySelection = selectKnowledgeForPrompt({
@@ -907,8 +914,13 @@ function main() {
   );
   expect(
     selectedKnowledgeForPrompt.map((item) => item.title).join(",") ===
+      "Onboarding checklist guide,Workspace operating norms,General reply policy",
+    "Expected project_ops knowledge prompt selection to keep project/world first and then admit one general knowledge item in P3."
+  );
+  expect(
+    companionSelection.map((item) => item.title).join(",") ===
       "Onboarding checklist guide,Workspace operating norms",
-    "Expected knowledge prompt selection to prioritize project/world snippets before general knowledge in P3."
+    "Expected companion knowledge prompt selection to keep a tighter budget than project_ops in P3."
   );
   expect(
     worldPrimarySelection.map((item) => item.title).join(",") ===
@@ -1006,12 +1018,16 @@ function main() {
     "Expected system prompt assembly to distinguish project/world knowledge scopes in P3."
   );
   expect(
-    !systemPrompt.includes("General reply policy"),
-    "Expected system prompt assembly to leave general knowledge out when project/world consume the prompt budget in P3."
+    !defaultScenarioMemoryPackPrompt.includes("General reply policy"),
+    "Expected companion scenario memory pack prompt guidance to remain free of general-knowledge payloads in P3."
   );
   expect(
     !systemPrompt.includes("Other project brief"),
     "Expected system prompt assembly to filter knowledge outside the active namespace in P2."
+  );
+  expect(
+    systemPrompt.includes("General reply policy"),
+    "Expected project_ops system prompt assembly to admit one general knowledge item when the knowledge budget allows it in P3."
   );
   expect(
     systemPrompt.includes("Compacted thread summary:"),
@@ -1232,9 +1248,13 @@ function main() {
             knowledgeSummary.scope_layers.join(",") ===
               "project,world,general" &&
             selectedKnowledgeForPrompt.map((item) => item.title).join(",") ===
+              "Onboarding checklist guide,Workspace operating norms,General reply policy" &&
+            companionSelection.map((item) => item.title).join(",") ===
               "Onboarding checklist guide,Workspace operating norms" &&
             worldPrimarySelection.map((item) => item.title).join(",") ===
-              "Workspace operating norms,Onboarding checklist guide",
+              "Workspace operating norms,Onboarding checklist guide" &&
+            systemPrompt.includes("General reply policy") &&
+            !defaultScenarioMemoryPackPrompt.includes("General reply policy"),
           scenario_pack_ok:
             runtimeDebugMetadata.memory.pack?.pack_id === "project_ops" &&
             getAssistantMemoryScenarioPackId(assistantMetadata) ===

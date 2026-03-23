@@ -1350,9 +1350,15 @@ function buildKnowledgeLayerPrompt(args: {
   activeMemoryNamespace: ActiveRuntimeMemoryNamespace | null | undefined;
   replyLanguage: RuntimeReplyLanguage;
 }) {
+  const activePack = resolveActiveScenarioMemoryPack({
+    activeNamespace: args.activeMemoryNamespace ?? null,
+    relevantKnowledge: args.relevantKnowledge
+  });
+
   return buildKnowledgePromptSection({
     knowledge: args.relevantKnowledge,
     activeNamespace: args.activeMemoryNamespace ?? null,
+    activePackId: activePack.pack_id,
     replyLanguage: args.replyLanguage
   });
 }

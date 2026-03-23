@@ -217,6 +217,14 @@
     - active pack 也可以切到 `project_ops`
   - 也就是说，pack selection 当前已经不只受 namespace 影响，而开始变成 `namespace + knowledge` 的联合判断
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 world-primary namespace 下的 `project_knowledge_priority`
+  - `apps/web/lib/chat/memory-knowledge.ts` 当前也已开始让 knowledge prompt budget 受 `activePackId` 影响
+  - 当前最小规则已经成立：
+    - `companion` 继续使用更紧的 knowledge budget，只保留 `project / world`
+    - `project_ops` 在 `project / world` 优先的前提下，可在预算允许时额外带入一条 `general` knowledge
+  - `apps/web/lib/chat/runtime.ts` 当前也已开始把 active scenario pack 传入 knowledge prompt section，使 pack 选择开始真实影响 knowledge 消费预算
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验：
+    - `project_ops` prompt 会带入 `General reply policy`
+    - `companion` prompt 仍不会带入 `General reply policy`
 - `P3-5 regression / acceptance expansion` 当前也已开始进入真实实现：
   - `memory-upgrade-harness.ts` 当前已开始显式产出 `p3_regression_gate`
   - 第一版 `P3` gate 当前已开始锁：
