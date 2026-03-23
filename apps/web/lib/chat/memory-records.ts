@@ -65,6 +65,13 @@ export function classifyStoredMemorySemanticTarget(
   return "legacy_unsupported";
 }
 
+export function isStoredMemorySemanticTarget(
+  memory: StoredMemory,
+  target: LegacyMemorySemanticTarget
+) {
+  return classifyStoredMemorySemanticTarget(memory) === target;
+}
+
 export function buildChatMemoryRecord(memory: StoredMemory): ChatMemoryRecord {
   return buildMemoryRecordFromLegacy(memory);
 }

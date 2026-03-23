@@ -21,7 +21,8 @@ import {
 } from "@/lib/chat/memory-item-read";
 import {
   buildRecalledProfileMemoryFromStoredMemory,
-  buildRecalledRelationshipMemoryFromStoredMemory
+  buildRecalledRelationshipMemoryFromStoredMemory,
+  isStoredMemorySemanticTarget
 } from "@/lib/chat/memory-records";
 import { createClient } from "@/lib/supabase/server";
 
@@ -140,8 +141,10 @@ export async function recallAgentNickname({
     throw new Error(`Failed to load relationship memory: ${error.message}`);
   }
 
-  const nicknameRow = ((data ?? []) as StoredMemory[]).find((memory) =>
-    isMemoryActive(memory)
+  const nicknameRow = ((data ?? []) as StoredMemory[]).find(
+    (memory) =>
+      isMemoryActive(memory) &&
+      isStoredMemorySemanticTarget(memory, "memory_record")
   );
 
   if (!nicknameRow) {
@@ -207,8 +210,10 @@ export async function recallUserPreferredName({
     );
   }
 
-  const preferredNameRow = ((data ?? []) as StoredMemory[]).find((memory) =>
-    isMemoryActive(memory)
+  const preferredNameRow = ((data ?? []) as StoredMemory[]).find(
+    (memory) =>
+      isMemoryActive(memory) &&
+      isStoredMemorySemanticTarget(memory, "memory_record")
   );
 
   if (!preferredNameRow) {
@@ -260,8 +265,10 @@ export async function recallUserAddressStyle({
     );
   }
 
-  const styleRow = ((data ?? []) as StoredMemory[]).find((memory) =>
-    isMemoryActive(memory)
+  const styleRow = ((data ?? []) as StoredMemory[]).find(
+    (memory) =>
+      isMemoryActive(memory) &&
+      isStoredMemorySemanticTarget(memory, "memory_record")
   );
 
   if (!styleRow) {
@@ -315,13 +322,15 @@ export async function recallRelevantMemories({
     throw new Error(`Failed to load memory items: ${error.message}`);
   }
 
-  const validMemories = ((data ?? []) as StoredMemory[]).filter((memory) =>
-    isMemoryApplicableToRecall({
-      memory,
-      agentId,
-      threadId
-    })
-  );
+  const validMemories = ((data ?? []) as StoredMemory[])
+    .filter((memory) =>
+      isMemoryApplicableToRecall({
+        memory,
+        agentId,
+        threadId
+      })
+    )
+    .filter((memory) => isStoredMemorySemanticTarget(memory, "static_profile"));
   const activeMemories = validMemories.filter((memory) => isMemoryActive(memory));
   const hiddenCandidates = validMemories.filter((memory) => isMemoryHidden(memory));
   const incorrectCandidates = validMemories.filter((memory) =>

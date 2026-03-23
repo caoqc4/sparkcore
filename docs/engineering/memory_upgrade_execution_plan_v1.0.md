@@ -160,6 +160,7 @@ P0 只做一件事：
 - `apps/web/lib/chat/memory-records.ts` 当前也已开始承接统一的 legacy semantic target classifier
 - `StaticProfileRecord` 已开始接住 legacy `profile / preference` 语义
 - `DynamicProfileRecord` 当前仍保持克制，不直接承接 legacy `goal`
+- 该 classifier 当前也已开始进入 profile / relationship recall 过滤，而不再只停留在 adapter 层
 
 ### 4.2 最小写入闭环
 
