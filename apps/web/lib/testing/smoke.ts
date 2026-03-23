@@ -3,11 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { loadThreadMessages } from "@/lib/chat/message-read";
 import { loadRecentOwnedMemories } from "@/lib/chat/memory-item-read";
 import { insertMessage } from "@/lib/chat/message-persistence";
-import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import {
   createOwnedThread,
   loadOwnedActiveAgentByName,
-  updateOwnedThread
 } from "@/lib/chat/runtime-turn-context";
 import { getSmokeModelProfiles } from "@/lib/testing/smoke-seed-persistence";
 import {
@@ -24,6 +22,10 @@ import {
   ensureSmokeRelationshipMemory,
   upsertSmokeProfileMemory
 } from "@/lib/testing/smoke-memory-seeding";
+import {
+  insertSmokeUserTurn,
+  patchSmokeThreadAfterUserTurn
+} from "@/lib/testing/smoke-turn-persistence";
 import {
   buildSmokeSeedMetadata,
 } from "@/lib/testing/smoke-seed-metadata";
@@ -2131,44 +2133,21 @@ export async function createSmokeTurn({
     new Set(recalledMemories.map((memory) => memory.memory_type))
   );
 
-  const { data: insertedUserMessage, error: insertedUserMessageError } =
-    await insertMessage({
-      supabase: admin,
-      threadId: thread.id,
-      workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id,
-      payload: {
-        role: "user",
-        content: trimmedContent
-      },
-      select: "id"
-    }).single();
-
-  if (insertedUserMessageError || !insertedUserMessage) {
-    throw new Error(
-      insertedUserMessageError?.message ?? "Failed to insert the smoke user message."
-    );
-  }
-
-  const ensuredUserMessage = insertedUserMessage;
-
-  const threadPatch = buildThreadActivityPatch({
-    content: trimmedContent,
-    shouldSummarizeTitle: thread.title === "New chat"
+  const ensuredUserMessage = await insertSmokeUserTurn({
+    supabase: admin,
+    threadId: thread.id,
+    workspaceId: smokeUser.workspaceId,
+    userId: smokeUser.id,
+    content: trimmedContent
   });
 
-  const { error: threadUpdateError } = await updateOwnedThread({
+  await patchSmokeThreadAfterUserTurn({
     supabase: admin,
     threadId: thread.id,
     userId: smokeUser.id,
-    patch: threadPatch
+    title: thread.title,
+    content: trimmedContent
   });
-
-  if (threadUpdateError) {
-    throw new Error(
-      `Failed to update the smoke thread: ${threadUpdateError.message}`
-    );
-  }
 
   const createdTypes: Array<"profile" | "preference" | "relationship"> = [];
   const loweredContent = trimmedContent.toLowerCase();
