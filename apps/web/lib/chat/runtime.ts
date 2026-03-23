@@ -28,6 +28,10 @@ import {
   type RuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
 import {
+  buildCompactedThreadSummary,
+  buildThreadCompactionPromptSection
+} from "@/lib/chat/thread-compaction";
+import {
   loadActiveModelProfiles,
   loadActiveModelProfileById,
   loadActiveModelProfileBySlug,
@@ -1339,6 +1343,19 @@ function buildKnowledgeLayerPrompt(args: {
   });
 }
 
+function buildThreadCompactionLayerPrompt(args: {
+  compactedThreadSummary:
+    | ReturnType<typeof buildCompactedThreadSummary>
+    | null
+    | undefined;
+  replyLanguage: RuntimeReplyLanguage;
+}) {
+  return buildThreadCompactionPromptSection({
+    compactedThreadSummary: args.compactedThreadSummary ?? null,
+    replyLanguage: args.replyLanguage
+  });
+}
+
 function buildAddressStyleRecallInstructions({
   isZh,
   styleValue
@@ -2437,6 +2454,7 @@ function buildAgentSystemPromptInternal(
   latestUserMessage: string,
   recalledMemories: RecalledMemory[] = [],
   relevantKnowledge: RuntimeKnowledgeSnippet[] = [],
+  compactedThreadSummary: ReturnType<typeof buildCompactedThreadSummary> = null,
   replyLanguage: RuntimeReplyLanguage = "unknown",
   relationshipRecall: {
     directNamingQuestion: boolean;
@@ -2493,6 +2511,10 @@ function buildAgentSystemPromptInternal(
     }),
     buildKnowledgeLayerPrompt({
       relevantKnowledge,
+      replyLanguage
+    }),
+    buildThreadCompactionLayerPrompt({
+      compactedThreadSummary,
       replyLanguage
     }),
     buildMemoryLayerAssemblyPrompt({
@@ -2685,6 +2707,7 @@ export function buildAgentSystemPrompt(
   latestUserMessage: string,
   recalledMemories: RecalledMemory[] = [],
   relevantKnowledge: RuntimeKnowledgeSnippet[] = [],
+  compactedThreadSummary: ReturnType<typeof buildCompactedThreadSummary> = null,
   replyLanguage: RuntimeReplyLanguage = "unknown",
   relationshipRecall: {
     directNamingQuestion: boolean;
@@ -2724,6 +2747,7 @@ export function buildAgentSystemPrompt(
     latestUserMessage,
     recalledMemories,
     relevantKnowledge,
+    compactedThreadSummary,
     replyLanguage,
     relationshipRecall,
     threadContinuityPrompt,
@@ -3765,6 +3789,11 @@ export async function runPreparedRuntimeTurn({
   const memoryRecall = preparedRuntimeTurn.memory.runtime_memory_context.memoryRecall;
   const recalledProfileSnapshot =
     buildRecalledStaticProfileSnapshot(memoryRecall.memories);
+  const compactedThreadSummary = buildCompactedThreadSummary({
+    threadState: preparedRuntimeTurn.session.thread_state,
+    recentTurnCount: recentRawTurnCount,
+    latestUserMessage: latestUserMessageContent
+  });
   const { workspace, thread, messages, assistant_message_id, supabase } =
     preparedRuntimeTurn.resources;
   const runtimeSupabase = supabase as any;
@@ -3777,6 +3806,7 @@ export async function runPreparedRuntimeTurn({
         latestUserMessageContent ?? "",
         allRecalledMemories,
         [],
+        compactedThreadSummary,
         replyLanguage,
         relationshipRecall,
         threadContinuityPrompt,
@@ -3928,6 +3958,9 @@ export async function runPreparedRuntimeTurn({
       knowledge: {
         snippets: []
       },
+      compaction: {
+        summary: compactedThreadSummary
+      },
       follow_up: {
         request_count: followUpRequests.length
       }
@@ -4057,7 +4090,8 @@ export async function runPreparedRuntimeTurn({
         preparedRuntimeTurn.memory.runtime_memory_context.threadStateRecall,
       reply_language: replyLanguage,
       scenario_memory_pack: resolveActiveScenarioMemoryPack(),
-      relevant_knowledge: []
+      relevant_knowledge: [],
+      compacted_thread_summary: compactedThreadSummary
     })
   };
 

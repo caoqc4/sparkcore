@@ -63,6 +63,12 @@ export function getAssistantKnowledgeMetadata(
   return getAssistantMetadataGroup(metadata, "knowledge");
 }
 
+export function getAssistantThreadCompactionMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "thread_compaction");
+}
+
 export function getAssistantAnswerStrategyMetadata(
   metadata: Record<string, unknown> | null | undefined
 ) {
@@ -296,6 +302,17 @@ export function getAssistantKnowledgeCount(
   return (
     getAssistantMetadataNumber(knowledgeMetadata, "count") ??
     getAssistantMetadataNumber(metadata, "knowledge_count")
+  );
+}
+
+export function getAssistantCompactedThreadSummaryText(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(compactionMetadata, "summary_text") ??
+    getAssistantMetadataString(metadata, "compacted_thread_summary_text")
   );
 }
 

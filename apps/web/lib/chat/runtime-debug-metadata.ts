@@ -5,6 +5,8 @@ import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
 import type { ActiveScenarioMemoryPack } from "@/lib/chat/memory-packs";
 import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
 import { buildKnowledgeSummary } from "@/lib/chat/memory-knowledge";
+import type { CompactedThreadSummary } from "../../../../packages/core/memory";
+import { buildThreadCompactionSummary } from "@/lib/chat/thread-compaction";
 
 export type BuildRuntimeDebugMetadataInput = {
   model_profile_id: string;
@@ -24,6 +26,7 @@ export type BuildRuntimeDebugMetadataInput = {
   reply_language: string;
   scenario_memory_pack?: ActiveScenarioMemoryPack | null;
   relevant_knowledge?: RuntimeKnowledgeSnippet[];
+  compacted_thread_summary?: CompactedThreadSummary | null;
 };
 
 export function buildRuntimeDebugMetadata(
@@ -60,6 +63,9 @@ export function buildRuntimeDebugMetadata(
     },
     knowledge: buildKnowledgeSummary({
       knowledge: input.relevant_knowledge ?? []
+    }),
+    thread_compaction: buildThreadCompactionSummary({
+      compactedThreadSummary: input.compacted_thread_summary ?? null
     }),
     follow_up: {
       request_count: input.follow_up_request_count

@@ -46,6 +46,10 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   knowledge_count?: number;
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
+  compacted_thread_summary_id?: string | null;
+  compacted_thread_summary_text?: string | null;
+  compacted_thread_summary_lifecycle_status?: string | null;
+  compacted_thread_summary_continuity_status?: string | null;
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -100,6 +104,10 @@ export type BuildAssistantMessageMetadataInput = {
   knowledge_count?: number;
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
+  compacted_thread_summary_id?: string | null;
+  compacted_thread_summary_text?: string | null;
+  compacted_thread_summary_lifecycle_status?: string | null;
+  compacted_thread_summary_continuity_status?: string | null;
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -178,6 +186,16 @@ export function buildAssistantMetadataSummaryGroups(
       titles: input.knowledge_titles ?? [],
       source_kinds: input.knowledge_source_kinds ?? []
     },
+    thread_compaction: input.compacted_thread_summary_id
+      ? {
+          summary_id: input.compacted_thread_summary_id,
+          summary_text: input.compacted_thread_summary_text ?? null,
+          lifecycle_status:
+            input.compacted_thread_summary_lifecycle_status ?? null,
+          continuity_status:
+            input.compacted_thread_summary_continuity_status ?? null
+        }
+      : null,
     follow_up: {
       request_count: input.follow_up_request_count
     },
@@ -202,6 +220,12 @@ export function buildAssistantMetadataSummaryGroups(
       knowledge_count: input.knowledge_count,
       knowledge_titles: input.knowledge_titles,
       knowledge_source_kinds: input.knowledge_source_kinds,
+      compacted_thread_summary_id: input.compacted_thread_summary_id,
+      compacted_thread_summary_text: input.compacted_thread_summary_text,
+      compacted_thread_summary_lifecycle_status:
+        input.compacted_thread_summary_lifecycle_status,
+      compacted_thread_summary_continuity_status:
+        input.compacted_thread_summary_continuity_status,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_memory_exclusion_count: input.incorrect_memory_exclusion_count
     }

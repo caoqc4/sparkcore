@@ -17,6 +17,7 @@ import { buildAgentSystemPrompt, buildVisibleMemoryRecord } from "@/lib/chat/run
 import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
 import {
   getAssistantMemoryObservedSemanticLayers,
+  getAssistantCompactedThreadSummaryText,
   getAssistantKnowledgeCount,
   getAssistantMemoryScenarioPackId,
   getAssistantMemoryPrimarySemanticLayer
@@ -29,6 +30,7 @@ import {
   buildKnowledgeSnapshot,
   buildRuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
+import { buildCompactedThreadSummary } from "@/lib/chat/thread-compaction";
 import {
   buildPlannedRelationshipMemoryRecord,
   buildPlannedStaticProfileRecord,
@@ -397,6 +399,23 @@ function main() {
     capturedAt: "2026-03-23T00:00:00.000Z"
   });
   const runtimeKnowledge = [buildRuntimeKnowledgeSnippet(knowledgeSnapshot)];
+  const compactedThreadSummary = buildCompactedThreadSummary({
+    threadState: {
+      thread_id: "thread-1",
+      agent_id: "agent-1",
+      state_version: 2,
+      lifecycle_status: "active",
+      focus_mode: plannedThreadState.focus_mode,
+      current_language_hint: "en",
+      recent_turn_window_size: 6,
+      continuity_status: "warm",
+      last_user_message_id: "msg-1",
+      last_assistant_message_id: "msg-2",
+      updated_at: "2026-03-23T00:00:00.000Z"
+    },
+    recentTurnCount: 4,
+    latestUserMessage: "Help me finish onboarding."
+  });
 
   const assistantMetadata = buildAssistantMessageMetadata(
     buildRuntimeAssistantMetadataInput({
@@ -497,6 +516,9 @@ function main() {
       knowledge: {
         snippets: runtimeKnowledge
       },
+      compaction: {
+        summary: compactedThreadSummary
+      },
       follow_up: {
         request_count: 1
       }
@@ -518,6 +540,12 @@ function main() {
   expect(
     getAssistantKnowledgeCount(assistantMetadata) === 1,
     "Expected assistant metadata reader to expose the injected knowledge count."
+  );
+  expect(
+    getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+      "Focus: Finish the onboarding checklist this week."
+    ),
+    "Expected assistant metadata reader to expose the compacted thread summary text in P2."
   );
 
   const systemPrompt = buildAgentSystemPrompt(
@@ -543,6 +571,7 @@ function main() {
     "Help me finish onboarding.",
     [promptRecalledProfile],
     runtimeKnowledge,
+    compactedThreadSummary,
     "en",
     undefined,
     "",
@@ -584,6 +613,14 @@ function main() {
     systemPrompt.includes("Onboarding checklist guide"),
     "Expected system prompt assembly to include the injected knowledge title."
   );
+  expect(
+    systemPrompt.includes("Compacted thread summary:"),
+    "Expected system prompt assembly to include compacted thread summary guidance in P2."
+  );
+  expect(
+    systemPrompt.includes("Focus: Finish the onboarding checklist this week."),
+    "Expected system prompt assembly to include compacted thread focus context in P2."
+  );
 
   const routeAwarePrompt = buildAgentSystemPrompt(
     {
@@ -619,6 +656,7 @@ function main() {
       }
     ],
     [],
+    null,
     "en"
   );
   expect(
@@ -659,6 +697,7 @@ function main() {
       }
     ],
     [],
+    null,
     "en"
   );
   expect(
@@ -715,6 +754,9 @@ function main() {
         assistant_metadata_knowledge: {
           count: getAssistantKnowledgeCount(assistantMetadata)
         },
+        assistant_metadata_thread_compaction: {
+          summary_text: getAssistantCompactedThreadSummaryText(assistantMetadata)
+        },
         scenario_memory_pack: {
           pack_id: scenarioMemoryPack.pack_id,
           preferred_routes: scenarioMemoryPack.preferred_routes,
@@ -735,6 +777,12 @@ function main() {
           ),
           includes_knowledge_layer: systemPrompt.includes(
             "Relevant Knowledge Layer:"
+          ),
+          includes_thread_compaction: systemPrompt.includes(
+            "Compacted thread summary:"
+          ),
+          includes_thread_compaction_focus: systemPrompt.includes(
+            "Focus: Finish the onboarding checklist this week."
           )
         },
         system_prompt_route_guidance: {

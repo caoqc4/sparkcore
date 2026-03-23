@@ -3,6 +3,7 @@
 This package is the first extraction point for the Phase 1 memory layer.
 
 Current scope:
+- thread compaction contracts
 - memory contract types
 - knowledge contracts
 - scenario memory pack contracts
