@@ -2,7 +2,7 @@ import {
   buildSmokeRelationshipClosingCoreReply,
   buildSmokeRelationshipExplanatoryCoreReply
 } from "@/lib/testing/smoke-relationship-core-replies";
-import { buildSmokeRelationshipContinuationReply } from "@/lib/testing/smoke-relationship-continuation-reply";
+import { buildSmokeDefaultContinuationReply as buildSmokeDefaultContinuationReplyByLanguage } from "@/lib/testing/smoke-default-continuation-reply";
 import { buildSmokeRelationshipSupportiveReply as buildSmokeRelationshipSupportiveReplyByHelper } from "@/lib/testing/smoke-relationship-supportive-reply";
 import type {
   SmokeContinuationReplyArgs,
@@ -46,5 +46,5 @@ export function buildSmokeRelationshipClosingReply({
 export function buildSmokeDefaultContinuationReply({
   ...args
 }: SmokeContinuationReplyArgs) {
-  return buildSmokeRelationshipContinuationReply(args);
+  return buildSmokeDefaultContinuationReplyByLanguage(args);
 }
