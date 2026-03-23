@@ -11,6 +11,7 @@ import type {
   SmokeReplyLanguageSource,
   SmokeRoleCorePacket
 } from "@/lib/testing/smoke-role-core-packet";
+import { buildSmokeAssistantMemoryOutcome } from "@/lib/testing/smoke-assistant-memory-outcome";
 
 export function buildSmokeAssistantMetadata(args: {
   agentId: string;
@@ -89,14 +90,9 @@ export function buildSmokeAssistantMetadata(args: {
       hiddenExclusionCount: args.hiddenExclusionCount,
       incorrectExclusionCount: args.incorrectExclusionCount
     }),
-    recalled_memories: args.recalledMemories.map((memory) => ({
-      memory_type: memory.memory_type,
-      content: memory.content,
-      confidence: memory.confidence
-    })),
-    memory_write_count: args.createdTypes.length,
-    memory_write_types: args.createdTypes,
-    new_memory_count: args.createdTypes.length,
-    updated_memory_count: 0
+    ...buildSmokeAssistantMemoryOutcome({
+      recalledMemories: args.recalledMemories,
+      createdTypes: args.createdTypes
+    })
   };
 }
