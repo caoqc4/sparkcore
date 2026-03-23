@@ -14,6 +14,7 @@ import {
   buildGenericPlannerMemoryInsertMetadata,
   buildGenericPlannerMemoryUpdateMetadata
 } from "@/lib/chat/memory-write-metadata";
+import { buildPlannedStaticProfileRecord } from "@/lib/chat/memory-write-record-candidates";
 import type { RuntimeGenericMemoryWriteRequest } from "@/lib/chat/runtime-contract";
 import type { PlannedGenericMemoryWriteTarget as GenericWriteTarget } from "@/lib/chat/memory-write-targets";
 
@@ -27,6 +28,14 @@ export function buildPlannedGenericMemoryInsertRow(args: {
   threshold: number;
   target: GenericWriteTarget;
 }): Record<string, unknown> {
+  const staticProfile = buildPlannedStaticProfileRecord({
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    candidate: args.candidate,
+    request: args.matchingRequest,
+    sourceTurnId: args.sourceTurnId
+  });
+
   return {
     workspace_id: args.workspaceId,
     user_id: args.userId,
@@ -38,15 +47,13 @@ export function buildPlannedGenericMemoryInsertRow(args: {
     importance: 0.5,
     ...buildMemoryV2Fields({
       category: args.candidate.memory_type,
-      key: LEGACY_MEMORY_KEY,
-      value: args.candidate.content,
+      key: staticProfile.key ?? LEGACY_MEMORY_KEY,
+      value: String(staticProfile.value),
       scope: args.target.legacyScope,
       subjectUserId: args.userId,
       stability: inferLegacyMemoryStability(args.candidate.memory_type),
       status: "active",
-      sourceRefs: args.sourceTurnId
-        ? [{ kind: "message", source_message_id: args.sourceTurnId }]
-        : []
+      sourceRefs: staticProfile.source_refs
     }),
     metadata: buildGenericPlannerMemoryInsertMetadata({
       reason: args.candidate.reason,
@@ -60,6 +67,7 @@ export function buildPlannedGenericMemoryInsertRow(args: {
 }
 
 export function buildPlannedGenericMemoryUpdateRow(args: {
+  workspaceId: string;
   candidate: MemoryCandidate & { normalized_content?: string };
   matchingExisting: StoredMemory;
   matchingRequest?: RuntimeGenericMemoryWriteRequest;
@@ -69,6 +77,14 @@ export function buildPlannedGenericMemoryUpdateRow(args: {
   target: GenericWriteTarget;
   convergenceUpdatedAt: string;
 }): MemoryUpsertRow {
+  const staticProfile = buildPlannedStaticProfileRecord({
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    candidate: args.candidate,
+    request: args.matchingRequest,
+    sourceTurnId: args.sourceTurnId
+  });
+
   return {
     id: args.matchingExisting.id,
     memory_type: args.candidate.memory_type as MemoryType,
@@ -85,16 +101,14 @@ export function buildPlannedGenericMemoryUpdateRow(args: {
       canonicalMemoryType: args.target.canonicalMemoryType
     }),
     category: args.candidate.memory_type as MemoryType,
-    key: LEGACY_MEMORY_KEY,
-    value: args.candidate.content,
+    key: staticProfile.key ?? LEGACY_MEMORY_KEY,
+    value: String(staticProfile.value),
     scope: args.target.legacyScope,
     subject_user_id: args.userId,
     target_agent_id: null,
     target_thread_id: null,
     stability: inferLegacyMemoryStability(args.candidate.memory_type),
     status: getMemoryStatus(args.matchingExisting),
-    source_refs: args.sourceTurnId
-      ? [{ kind: "message", source_message_id: args.sourceTurnId }]
-      : []
+    source_refs: staticProfile.source_refs as Array<Record<string, string>>
   };
 }

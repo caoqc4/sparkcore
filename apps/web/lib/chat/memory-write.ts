@@ -661,6 +661,7 @@ export async function executeMemoryWriteRequests({
 
     rowsToUpdate.push(
       buildPlannedGenericMemoryUpdateRow({
+        workspaceId,
         candidate,
         matchingExisting,
         matchingRequest,
