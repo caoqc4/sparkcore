@@ -18,6 +18,12 @@ import {
 import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
+import {
+  buildRuntimeFollowUpExecutionMetadata,
+  buildRuntimeFollowUpRequestMetadata,
+  buildRuntimeMemoryWriteOutcomeMetadata,
+  buildRuntimeMemoryWriteRequestMetadata
+} from "@/lib/chat/runtime-preview-metadata";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 import {
   CHAT_UI_LANGUAGE_COOKIE,
@@ -1178,34 +1184,9 @@ export async function sendMessage(
         .update({
           metadata: {
             ...(assistantMessage?.metadata ?? {}),
-            runtime_memory_writes: {
-              request_count: runtimeTurnResult.memory_write_requests.length,
-              preview: runtimeTurnResult.memory_write_requests.map((request) => ({
-                kind: request.kind,
-                memory_type: request.memory_type,
-                relationship_key:
-                  request.kind === "relationship_memory"
-                    ? request.relationship_key
-                    : null,
-                confidence: request.confidence,
-                source_turn_id: request.source_turn_id,
-                dedupe_key: request.dedupe_key
-              }))
-            },
-            runtime_memory_write_request_count:
-              runtimeTurnResult.memory_write_requests.length,
-            runtime_memory_write_requests_preview:
-              runtimeTurnResult.memory_write_requests.map((request) => ({
-                kind: request.kind,
-                memory_type: request.memory_type,
-                relationship_key:
-                  request.kind === "relationship_memory"
-                    ? request.relationship_key
-                    : null,
-                confidence: request.confidence,
-                source_turn_id: request.source_turn_id,
-                dedupe_key: request.dedupe_key
-              }))
+            ...buildRuntimeMemoryWriteRequestMetadata(
+              runtimeTurnResult.memory_write_requests
+            )
           },
           updated_at: new Date().toISOString()
         })
@@ -1230,22 +1211,9 @@ export async function sendMessage(
         .update({
           metadata: {
             ...(assistantMessage?.metadata ?? {}),
-            runtime_follow_up: {
-              request_count: runtimeTurnResult.follow_up_requests.length,
-              preview: runtimeTurnResult.follow_up_requests.map((request) => ({
-                kind: request.kind,
-                trigger_at: request.trigger_at,
-                reason: request.reason
-              }))
-            },
-            runtime_follow_up_request_count:
-              runtimeTurnResult.follow_up_requests.length,
-            runtime_follow_up_requests_preview:
-              runtimeTurnResult.follow_up_requests.map((request) => ({
-                kind: request.kind,
-                trigger_at: request.trigger_at,
-                reason: request.reason
-              }))
+            ...buildRuntimeFollowUpRequestMetadata(
+              runtimeTurnResult.follow_up_requests
+            )
           },
           updated_at: new Date().toISOString()
         })
@@ -1292,33 +1260,17 @@ export async function sendMessage(
 
         const nextMetadata = {
           ...(assistantMessage?.metadata ?? {}),
-          runtime_memory_writes: {
-            ...((assistantMessage?.metadata?.runtime_memory_writes &&
-            typeof assistantMessage.metadata.runtime_memory_writes === "object" &&
-            !Array.isArray(assistantMessage.metadata.runtime_memory_writes)
-              ? assistantMessage.metadata.runtime_memory_writes
-              : {}) as Record<string, unknown>),
-            write_count:
-              memoryWriteOutcome.createdCount + memoryWriteOutcome.updatedCount,
-            write_types: Array.from(
-              new Set([
-                ...memoryWriteOutcome.createdTypes,
-                ...memoryWriteOutcome.updatedTypes
-              ])
-            ),
-            new_count: memoryWriteOutcome.createdCount,
-            updated_count: memoryWriteOutcome.updatedCount
-          },
-          memory_write_count:
-            memoryWriteOutcome.createdCount + memoryWriteOutcome.updatedCount,
-          memory_write_types: Array.from(
-            new Set([
-              ...memoryWriteOutcome.createdTypes,
-              ...memoryWriteOutcome.updatedTypes
-            ])
-          ),
-          new_memory_count: memoryWriteOutcome.createdCount,
-          updated_memory_count: memoryWriteOutcome.updatedCount
+          ...buildRuntimeMemoryWriteOutcomeMetadata(
+            memoryWriteOutcome,
+            assistantMessage?.metadata?.runtime_memory_writes &&
+              typeof assistantMessage.metadata.runtime_memory_writes === "object" &&
+              !Array.isArray(assistantMessage.metadata.runtime_memory_writes)
+              ? (assistantMessage.metadata.runtime_memory_writes as Record<
+                  string,
+                  unknown
+                >)
+              : null
+          )
         };
 
         await supabase
@@ -1348,42 +1300,11 @@ export async function sendMessage(
           .update({
             metadata: {
               ...(assistantMessage?.metadata ?? {}),
-              runtime_follow_up_execution: {
-                result_count: followUpExecutionResults.length,
-                results_preview: followUpExecutionResults.map((result) => ({
-                  kind: result.kind,
-                  status: result.status,
-                  reason: result.reason,
-                  trigger_at: result.trigger_at ?? null
-                })),
-                enqueued_count: followUpEnqueueResult.inserted_count,
-                enqueued_records_preview: followUpEnqueueResult.records.map(
-                  (record) => ({
-                    id: record.id,
-                    kind: record.kind,
-                    status: record.status,
-                    trigger_at: record.trigger_at
-                  })
-                )
-              },
-              follow_up_execution_result_count: followUpExecutionResults.length,
-              follow_up_execution_results_preview: followUpExecutionResults.map(
-                (result) => ({
-                  kind: result.kind,
-                  status: result.status,
-                  reason: result.reason,
-                  trigger_at: result.trigger_at ?? null
-                })
-              ),
-              follow_up_enqueued_count: followUpEnqueueResult.inserted_count,
-              follow_up_enqueued_records_preview: followUpEnqueueResult.records.map(
-                (record) => ({
-                  id: record.id,
-                  kind: record.kind,
-                  status: record.status,
-                  trigger_at: record.trigger_at
-                })
-              )
+              ...buildRuntimeFollowUpExecutionMetadata({
+                followUpExecutionResults,
+                followUpEnqueueInsertedCount: followUpEnqueueResult.inserted_count,
+                followUpEnqueueRecords: followUpEnqueueResult.records
+              })
             },
             updated_at: new Date().toISOString()
           })
