@@ -14,10 +14,8 @@ import {
 } from "@/lib/testing/smoke-runtime-state";
 import { loadSmokeTurnContext } from "@/lib/testing/smoke-turn-context";
 import { resetSmokeState } from "@/lib/testing/smoke-reset";
-import {
-  ensureSmokeRelationshipMemory,
-  upsertSmokeProfileMemory
-} from "@/lib/testing/smoke-memory-seeding";
+import { detectSmokeUserAddressStyleCandidate } from "@/lib/testing/smoke-relationship-detection";
+import { applySmokeTurnMemoryUpdates } from "@/lib/testing/smoke-turn-memory-updates";
 import {
   insertSmokeUserTurn,
   patchSmokeThreadAfterUserTurn
@@ -89,11 +87,6 @@ import {
   isSmokeStayWithMeFollowUpPrompt
 } from "@/lib/testing/smoke-answer-strategy";
 import { insertSmokeAssistantReply } from "@/lib/testing/smoke-assistant-persistence";
-import {
-  detectSmokeNicknameCandidate,
-  detectSmokeUserAddressStyleCandidate,
-  detectSmokeUserPreferredNameCandidate
-} from "@/lib/testing/smoke-relationship-detection";
 import {
   getSmokeRelationshipMemoryValue
 } from "@/lib/testing/smoke-relationship-context";
@@ -1248,47 +1241,20 @@ export async function createSmokeTurn({
     content: trimmedContent
   });
 
-  const createdTypes: Array<"profile" | "preference" | "relationship"> = [];
-  const loweredContent = trimmedContent.toLowerCase();
-
-  if (loweredContent.includes("product designer")) {
-    const result = await upsertSmokeProfileMemory({
-      supabase: admin,
-      workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id,
-      agentId: ensuredAgent.id,
-      sourceMessageId: ensuredUserMessage.id,
-      memoryType: "profile",
-      value: "product designer",
-      confidence: 0.95
-    });
-
-    if (result.created) {
-      createdTypes.push("profile");
-    }
-  }
-
-  if (loweredContent.includes("concise weekly planning")) {
-    const result = await upsertSmokeProfileMemory({
-      supabase: admin,
-      workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id,
-      agentId: ensuredAgent.id,
-      sourceMessageId: ensuredUserMessage.id,
-      memoryType: "preference",
-      value: "concise weekly planning",
-      confidence: 0.93
-    });
-
-    if (result.created) {
-      createdTypes.push("preference");
-    }
-  }
-
-  const smokeNickname = detectSmokeNicknameCandidate(trimmedContent);
-  const smokePreferredName = detectSmokeUserPreferredNameCandidate(trimmedContent);
-  const smokeUserAddressStyle =
-    detectSmokeUserAddressStyleCandidate(trimmedContent);
+  const {
+    createdTypes,
+    smokeNickname,
+    smokePreferredName,
+    smokeUserAddressStyle
+  } = await applySmokeTurnMemoryUpdates({
+    supabase: admin,
+    workspaceId: smokeUser.workspaceId,
+    userId: smokeUser.id,
+    agentId: ensuredAgent.id,
+    sourceMessageId: ensuredUserMessage.id,
+    trimmedContent,
+    relationshipSeedMetadataBuilder: buildSmokeRelationshipSeedMetadata
+  });
   const replyLanguageDecision = resolveSmokeReplyLanguage({
     content: trimmedContent,
     recentAssistantReply
@@ -1296,66 +1262,6 @@ export async function createSmokeTurn({
   const replyLanguage = replyLanguageDecision.replyLanguage;
   const effectiveAddressStyleValue =
     getSmokeRelationshipMemoryValue(addressStyleMemory);
-
-  if (smokeNickname) {
-    const result = await ensureSmokeRelationshipMemory({
-      supabase: admin,
-      workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id,
-      agentId: ensuredAgent.id,
-      sourceMessageId: ensuredUserMessage.id,
-      key: "agent_nickname",
-      value: smokeNickname,
-      confidence: 0.96,
-      stability: "high",
-      errorLabel: "nickname",
-      metadataBuilder: buildSmokeRelationshipSeedMetadata
-    });
-
-    if (result.created) {
-      createdTypes.push("relationship");
-    }
-  }
-
-  if (smokePreferredName) {
-    const result = await ensureSmokeRelationshipMemory({
-      supabase: admin,
-      workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id,
-      agentId: ensuredAgent.id,
-      sourceMessageId: ensuredUserMessage.id,
-      key: "user_preferred_name",
-      value: smokePreferredName,
-      confidence: 0.94,
-      stability: "high",
-      errorLabel: "preferred-name",
-      metadataBuilder: buildSmokeRelationshipSeedMetadata
-    });
-
-    if (result.created) {
-      createdTypes.push("relationship");
-    }
-  }
-
-  if (smokeUserAddressStyle) {
-    const result = await ensureSmokeRelationshipMemory({
-      supabase: admin,
-      workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id,
-      agentId: ensuredAgent.id,
-      sourceMessageId: ensuredUserMessage.id,
-      key: "user_address_style",
-      value: smokeUserAddressStyle,
-      confidence: 0.9,
-      stability: "medium",
-      errorLabel: "address-style",
-      metadataBuilder: buildSmokeRelationshipSeedMetadata
-    });
-
-    if (result.created) {
-      createdTypes.push("relationship");
-    }
-  }
 
   const assistantContent = buildSmokeAssistantReply({
     content: trimmedContent,
