@@ -9,9 +9,7 @@ export {
   isSmokeRelationshipContinuationEdgePrompt,
   isSmokeShortRelationshipSummaryFollowUpPrompt
 } from "@/lib/testing/smoke-continuation-prompts";
-import {
-  isSmokeRelationshipContinuationEdgePrompt,
-} from "@/lib/testing/smoke-continuation-prompts";
+import { isSmokeRelationshipContinuationEdgePrompt } from "@/lib/testing/smoke-continuation-prompts";
 export { getSmokeContinuationReasonCode } from "@/lib/testing/smoke-continuation-reason";
 
 export function getSmokeAnswerStrategy({
@@ -48,7 +46,7 @@ export function getSmokeAnswerStrategy({
       questionType: "open-ended-summary",
       answerStrategy: "grounded-open-ended-summary",
       reasonCode: "relationship-answer-shape-prompt",
-      continuationReasonCode: null as SmokeContinuationReasonCode | null
+      continuationReasonCode: null
     };
   }
 
@@ -56,6 +54,6 @@ export function getSmokeAnswerStrategy({
     questionType: "other",
     answerStrategy: "default-grounded",
     reasonCode: "default-grounded-fallback",
-    continuationReasonCode: null as SmokeContinuationReasonCode | null
+    continuationReasonCode: null
   };
 }
