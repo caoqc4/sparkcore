@@ -1,4 +1,9 @@
 import type { RuntimeEvent } from "@/lib/chat/runtime-contract";
+import {
+  buildBindingNotFoundMetadata,
+  buildProactiveOutboundMetadata,
+  buildReplyOutboundMetadata
+} from "@/lib/chat/follow-up-proactive-metadata";
 
 export type ChannelMessageType = "text" | "image" | "attachment";
 
@@ -371,10 +376,10 @@ export function buildReplyOutboundMessage(args: {
       message_type: assistantMessage.message_type,
       content: assistantMessage.content,
       send_mode: "reply",
-      metadata: {
-        runtime_message_language: assistantMessage.language ?? null,
-        runtime_message_metadata: assistantMessage.metadata ?? {}
-      }
+      metadata: buildReplyOutboundMetadata({
+        language: assistantMessage.language ?? null,
+        messageMetadata: assistantMessage.metadata ?? {}
+      })
     }
   ];
 }
@@ -390,12 +395,12 @@ export function buildProactiveOutboundMessages(args: {
     message_type: "text",
     content: "",
     send_mode: "proactive",
-    metadata: {
-      follow_up_kind: request.kind,
-      follow_up_trigger_at: request.trigger_at,
-      follow_up_reason: request.reason,
-      follow_up_payload: request.payload ?? {}
-    }
+    metadata: buildProactiveOutboundMetadata({
+      kind: request.kind,
+      triggerAt: request.trigger_at,
+      reason: request.reason,
+      payload: request.payload ?? {}
+    })
   }));
 }
 
@@ -412,10 +417,9 @@ export function buildBindingNotFoundOutboundMessage(args: {
       content:
         "This channel is not bound to a SparkCore role yet. Complete the binding flow first, then try again.",
       send_mode: "reply",
-      metadata: {
-        binding_status: "not_found",
-        binding_reason: args.reason ?? null
-      }
+      metadata: buildBindingNotFoundMetadata({
+        reason: args.reason ?? null
+      })
     }
   ];
 }
