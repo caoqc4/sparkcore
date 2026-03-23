@@ -20,6 +20,7 @@ import {
   loadActiveModelProfileBySlug,
   loadActivePersonaPackBySlug,
   loadActivePersonaPacks,
+  bindOwnedAgentModelProfile,
   bindOwnedThreadAgent,
   createOwnedAgent,
   createOwnedThread,
@@ -2425,15 +2426,13 @@ async function resolveModelProfileForAgent({
 
   const defaultProfile = await getDefaultModelProfile(supabase);
 
-  const { error } = await supabase
-    .from("agents")
-    .update({
-      default_model_profile_id: defaultProfile.id,
-      updated_at: new Date().toISOString()
-    })
-    .eq("id", agent.id)
-    .eq("workspace_id", workspaceId)
-    .eq("owner_user_id", userId);
+  const { error } = await bindOwnedAgentModelProfile({
+    supabase,
+    agentId: agent.id,
+    workspaceId,
+    userId,
+    modelProfileId: defaultProfile.id
+  });
 
   if (error) {
     throw new Error(
