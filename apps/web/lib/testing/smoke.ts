@@ -266,6 +266,97 @@ function buildSmokeRoleCorePacket({
   };
 }
 
+function buildSmokeAssistantMetadata(args: {
+  agentId: string;
+  agentName: string;
+  roleCorePacket: SmokeRoleCorePacket;
+  modelProfileId: string;
+  modelProfileName: string;
+  model: string;
+  replyLanguage: SmokeReplyLanguage;
+  replyLanguageDetected: SmokeReplyLanguage;
+  replyLanguageSource: SmokeReplyLanguageSource;
+  questionType: SmokeAnswerQuestionType;
+  answerStrategy: SmokeAnswerStrategy;
+  answerStrategyReasonCode: SmokeAnswerStrategyReasonCode;
+  continuationReasonCode: SmokeContinuationReasonCode | null;
+  recentRawTurnCount: number;
+  approxContextPressure: SmokeApproxContextPressure;
+  sameThreadContinuationApplicable: boolean;
+  longChainPressureCandidate: boolean;
+  sameThreadContinuationPreferred: boolean;
+  distantMemoryFallbackAllowed: boolean;
+  recalledMemories: Array<{
+    memory_type: string | null;
+    content: string;
+    confidence: number | null;
+  }>;
+  usedMemoryTypes: string[];
+  hiddenExclusionCount: number;
+  incorrectExclusionCount: number;
+  createdTypes: string[];
+}) {
+  return {
+    agent_id: args.agentId,
+    agent_name: args.agentName,
+    role_core_packet: args.roleCorePacket,
+    model: args.model,
+    model_profile_id: args.modelProfileId,
+    model_profile_name: args.modelProfileName,
+    reply_language_target: args.replyLanguage,
+    reply_language_detected: args.replyLanguageDetected,
+    question_type: args.questionType,
+    answer_strategy: args.answerStrategy,
+    answer_strategy_reason_code: args.answerStrategyReasonCode,
+    continuation_reason_code: args.continuationReasonCode,
+    recent_raw_turn_count: args.recentRawTurnCount,
+    approx_context_pressure: args.approxContextPressure,
+    same_thread_continuation_applicable: args.sameThreadContinuationApplicable,
+    long_chain_pressure_candidate: args.longChainPressureCandidate,
+    same_thread_continuation_preferred: args.sameThreadContinuationPreferred,
+    distant_memory_fallback_allowed: args.distantMemoryFallbackAllowed,
+    reply_language_source: args.replyLanguageSource,
+    memory_hit_count: args.recalledMemories.length,
+    memory_used: args.recalledMemories.length > 0,
+    memory_types_used: args.usedMemoryTypes,
+    hidden_memory_exclusion_count: args.hiddenExclusionCount,
+    incorrect_memory_exclusion_count: args.incorrectExclusionCount,
+    ...buildAssistantMetadataSummaryGroups({
+      model_profile_id: args.modelProfileId,
+      model_profile_name: args.modelProfileName,
+      model_profile_tier_label: null,
+      model_profile_usage_note: null,
+      underlying_model_label: args.model,
+      reply_language_target: args.replyLanguage,
+      reply_language_detected: args.replyLanguageDetected,
+      reply_language_source: args.replyLanguageSource,
+      question_type: args.questionType,
+      answer_strategy: args.answerStrategy,
+      answer_strategy_reason_code: args.answerStrategyReasonCode,
+      answer_strategy_priority: null,
+      answer_strategy_priority_label: null,
+      continuation_reason_code: args.continuationReasonCode,
+      recent_raw_turn_count: args.recentRawTurnCount,
+      approx_context_pressure: args.approxContextPressure,
+      memory_hit_count: args.recalledMemories.length,
+      memory_used: args.recalledMemories.length > 0,
+      memory_types_used: args.usedMemoryTypes,
+      hidden_memory_exclusion_count: args.hiddenExclusionCount,
+      incorrect_memory_exclusion_count: args.incorrectExclusionCount,
+      follow_up_request_count: 0
+    }),
+    recalled_memories: args.recalledMemories.map((memory) => ({
+      memory_type: memory.memory_type,
+      content: memory.content,
+      confidence: memory.confidence
+    })),
+    memory_write_count: args.createdTypes.length,
+    memory_write_types: args.createdTypes,
+    new_memory_count: args.createdTypes.length,
+    updated_memory_count: 0
+  };
+}
+
 function getFallbackValue(envKey: "secret" | "email" | "password") {
   if (process.env.NODE_ENV !== "development") {
     return undefined;
@@ -3254,66 +3345,32 @@ export async function createSmokeTurn({
         role: "assistant",
         content: assistantContent,
         status: "completed",
-        metadata: {
-          agent_id: ensuredAgent.id,
-          agent_name: ensuredAgent.name,
-          role_core_packet: roleCorePacket,
+        metadata: buildSmokeAssistantMetadata({
+          agentId: ensuredAgent.id,
+          agentName: ensuredAgent.name,
+          roleCorePacket,
+          modelProfileId: modelProfile.id,
+          modelProfileName: modelProfile.name,
           model: modelProfile.model,
-          model_profile_id: modelProfile.id,
-          model_profile_name: modelProfile.name,
-          reply_language_target: replyLanguage,
-          reply_language_detected: detectSmokeReplyLanguage(assistantContent),
-          question_type: answerStrategyRule.questionType,
-          answer_strategy: answerStrategyRule.answerStrategy,
-          answer_strategy_reason_code: answerStrategyRule.reasonCode,
-          continuation_reason_code: answerStrategyRule.continuationReasonCode,
-          recent_raw_turn_count: recentRawTurnCount,
-          approx_context_pressure: approxContextPressure,
-          same_thread_continuation_applicable: sameThreadContinuationApplicable,
-          long_chain_pressure_candidate: longChainPressureCandidate,
-          same_thread_continuation_preferred: preferSameThreadContinuation,
-          distant_memory_fallback_allowed: !preferSameThreadContinuation,
-          reply_language_source: replyLanguageDecision.source,
-          memory_hit_count: recalledMemories.length,
-          memory_used: recalledMemories.length > 0,
-          memory_types_used: usedMemoryTypes,
-          hidden_memory_exclusion_count: hiddenExclusionCount,
-          incorrect_memory_exclusion_count: incorrectExclusionCount,
-          ...buildAssistantMetadataSummaryGroups({
-            model_profile_id: modelProfile.id,
-            model_profile_name: modelProfile.name,
-            model_profile_tier_label: null,
-            model_profile_usage_note: null,
-            underlying_model_label: modelProfile.model,
-            reply_language_target: replyLanguage,
-            reply_language_detected: detectSmokeReplyLanguage(assistantContent),
-            reply_language_source: replyLanguageDecision.source,
-            question_type: answerStrategyRule.questionType,
-            answer_strategy: answerStrategyRule.answerStrategy,
-            answer_strategy_reason_code: answerStrategyRule.reasonCode,
-            answer_strategy_priority: null,
-            answer_strategy_priority_label: null,
-            continuation_reason_code:
-              answerStrategyRule.continuationReasonCode,
-            recent_raw_turn_count: recentRawTurnCount,
-            approx_context_pressure: approxContextPressure,
-            memory_hit_count: recalledMemories.length,
-            memory_used: recalledMemories.length > 0,
-            memory_types_used: usedMemoryTypes,
-            hidden_memory_exclusion_count: hiddenExclusionCount,
-            incorrect_memory_exclusion_count: incorrectExclusionCount,
-            follow_up_request_count: 0
-          }),
-          recalled_memories: recalledMemories.map((memory) => ({
-            memory_type: memory.memory_type,
-            content: memory.content,
-            confidence: memory.confidence
-          })),
-          memory_write_count: createdTypes.length,
-          memory_write_types: createdTypes,
-          new_memory_count: createdTypes.length,
-          updated_memory_count: 0
-        }
+          replyLanguage,
+          replyLanguageDetected: detectSmokeReplyLanguage(assistantContent),
+          replyLanguageSource: replyLanguageDecision.source,
+          questionType: answerStrategyRule.questionType,
+          answerStrategy: answerStrategyRule.answerStrategy,
+          answerStrategyReasonCode: answerStrategyRule.reasonCode,
+          continuationReasonCode: answerStrategyRule.continuationReasonCode,
+          recentRawTurnCount,
+          approxContextPressure,
+          sameThreadContinuationApplicable,
+          longChainPressureCandidate,
+          sameThreadContinuationPreferred: preferSameThreadContinuation,
+          distantMemoryFallbackAllowed: !preferSameThreadContinuation,
+          recalledMemories,
+          usedMemoryTypes,
+          hiddenExclusionCount,
+          incorrectExclusionCount,
+          createdTypes
+        })
       })
       .select("id")
       .single();
