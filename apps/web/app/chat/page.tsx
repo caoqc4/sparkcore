@@ -18,6 +18,7 @@ import { LanguageSwitch } from "@/app/chat/language-switch";
 import { ThreadUrlSync } from "@/app/chat/thread-url-sync";
 import { classifyStoredMemorySemanticTarget } from "@/lib/chat/memory-records";
 import type { StoredMemory } from "@/lib/chat/memory-shared";
+import { getMemoryCategory, getMemoryScope } from "@/lib/chat/memory-v2";
 import { getChatPageState } from "@/lib/chat/runtime";
 import {
   CHAT_UI_LANGUAGE_COOKIE,
@@ -109,8 +110,8 @@ function getMemoryStatusLabel(status: string, locale: "en" | "zh-CN") {
   }
 }
 
-function isThreadLocalMemory(scope: string) {
-  return scope === "thread_local";
+function isThreadLocalMemory(memory: StoredMemory) {
+  return getMemoryScope(memory) === "thread_local";
 }
 
 function getMemorySemanticTargetLabel(
@@ -446,33 +447,34 @@ export default async function ChatPage({
     ? `/chat?thread=${encodeURIComponent(params.thread)}`
     : "/chat";
   const visibleLongTermMemories = visibleMemories.filter(
-    (memory) => !isThreadLocalMemory(memory.scope)
+    (memory) => !isThreadLocalMemory(memory)
   );
   const visibleThreadLocalMemories = visibleMemories.filter((memory) =>
-    isThreadLocalMemory(memory.scope)
+    isThreadLocalMemory(memory)
   );
   const hiddenLongTermMemories = hiddenMemories.filter(
-    (memory) => !isThreadLocalMemory(memory.scope)
+    (memory) => !isThreadLocalMemory(memory)
   );
   const hiddenThreadLocalMemories = hiddenMemories.filter((memory) =>
-    isThreadLocalMemory(memory.scope)
+    isThreadLocalMemory(memory)
   );
   const incorrectLongTermMemories = incorrectMemories.filter(
-    (memory) => !isThreadLocalMemory(memory.scope)
+    (memory) => !isThreadLocalMemory(memory)
   );
   const incorrectThreadLocalMemories = incorrectMemories.filter((memory) =>
-    isThreadLocalMemory(memory.scope)
+    isThreadLocalMemory(memory)
   );
   const supersededLongTermMemories = supersededMemories.filter(
-    (memory) => !isThreadLocalMemory(memory.scope)
+    (memory) => !isThreadLocalMemory(memory)
   );
   const supersededThreadLocalMemories = supersededMemories.filter((memory) =>
-    isThreadLocalMemory(memory.scope)
+    isThreadLocalMemory(memory)
   );
   const activeLongTermMemoryCategoryCounts = visibleLongTermMemories.reduce<
     Record<string, number>
   >((accumulator, memory) => {
-    accumulator[memory.category] = (accumulator[memory.category] ?? 0) + 1;
+    const category = getMemoryCategory(memory);
+    accumulator[category] = (accumulator[category] ?? 0) + 1;
     return accumulator;
   }, {});
   const activeSemanticTargetCounts = [
@@ -506,8 +508,8 @@ export default async function ChatPage({
       .map((memory) => ({
         id: memory.id,
         content: memory.content,
-        categoryLabel: getMemoryCategoryLabel(memory.category, locale),
-        scopeLabel: getMemoryScopeLabel(memory.scope, locale),
+        categoryLabel: getMemoryCategoryLabel(getMemoryCategory(memory), locale),
+        scopeLabel: getMemoryScopeLabel(getMemoryScope(memory), locale),
         semanticTargetLabel: getStoredMemorySemanticTargetLabel(memory, locale)
       })),
     threadLocalCount: visibleThreadLocalMemories.length,
@@ -849,7 +851,7 @@ export default async function ChatPage({
                               locale
                             });
                             const effectHint = getMemoryEffectHint({
-                              scope: memory.scope,
+                              scope: getMemoryScope(memory),
                               status: memory.status,
                               targetAgentId: memory.target_agent_id,
                               currentThreadAgentId: thread?.agent_id ?? null,
@@ -868,10 +870,10 @@ export default async function ChatPage({
                                 <div className="memory-card-row">
                                   <div className="memory-badges">
                                     <span className="thread-badge">
-                                      {getMemoryCategoryLabel(memory.category, locale)}
+                                      {getMemoryCategoryLabel(getMemoryCategory(memory), locale)}
                                     </span>
                                     <span className="thread-badge thread-badge-muted">
-                                      {getMemoryScopeLabel(memory.scope, locale)}
+                                      {getMemoryScopeLabel(getMemoryScope(memory), locale)}
                                     </span>
                                     <span className="thread-badge thread-badge-muted">
                                       {getMemoryStatusLabel(memory.status, locale)}
@@ -895,8 +897,8 @@ export default async function ChatPage({
                                 <p className="memory-content">{memory.content}</p>
                                 <p className="memory-trust-copy">{trustHint}</p>
                                 <p className="memory-effect-copy">{effectHint}</p>
-                                {memory.scope === "user_agent" &&
-                                memory.target_agent_name ? (
+                                {getMemoryScope(memory) === "user_agent" &&
+                                  memory.target_agent_name ? (
                                   <p className="thread-link-meta">
                                     {copy.memory.appliesToAgentPrefix}
                                     {memory.target_agent_name}
@@ -985,7 +987,7 @@ export default async function ChatPage({
                               locale
                             });
                             const effectHint = getMemoryEffectHint({
-                              scope: memory.scope,
+                              scope: getMemoryScope(memory),
                               status: memory.status,
                               targetAgentId: memory.target_agent_id,
                               currentThreadAgentId: thread?.agent_id ?? null,
@@ -1004,10 +1006,10 @@ export default async function ChatPage({
                                 <div className="memory-card-row">
                                   <div className="memory-badges">
                                     <span className="thread-badge">
-                                      {getMemoryCategoryLabel(memory.category, locale)}
+                                      {getMemoryCategoryLabel(getMemoryCategory(memory), locale)}
                                     </span>
                                     <span className="thread-badge thread-badge-muted">
-                                      {getMemoryScopeLabel(memory.scope, locale)}
+                                      {getMemoryScopeLabel(getMemoryScope(memory), locale)}
                                     </span>
                                     <span className="thread-badge thread-badge-muted">
                                       {getMemoryStatusLabel(memory.status, locale)}
@@ -1028,8 +1030,8 @@ export default async function ChatPage({
                                 <p className="memory-content">{memory.content}</p>
                                 <p className="memory-trust-copy">{trustHint}</p>
                                 <p className="memory-effect-copy">{effectHint}</p>
-                                {memory.scope === "user_agent" &&
-                                memory.target_agent_name ? (
+                                {getMemoryScope(memory) === "user_agent" &&
+                                  memory.target_agent_name ? (
                                   <p className="thread-link-meta">
                                     {copy.memory.appliesToAgentPrefix}
                                     {memory.target_agent_name}
@@ -1117,10 +1119,10 @@ export default async function ChatPage({
                           <div className="memory-card-row">
                             <div className="memory-badges">
                               <span className="thread-badge">
-                                {getMemoryCategoryLabel(memory.category, locale)}
+                                {getMemoryCategoryLabel(getMemoryCategory(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
-                                {getMemoryScopeLabel(memory.scope, locale)}
+                                {getMemoryScopeLabel(getMemoryScope(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
                                 {getMemoryStatusLabel(memory.status, locale)}
@@ -1137,14 +1139,14 @@ export default async function ChatPage({
                           <p className="memory-trust-copy">{copy.memory.hiddenHint}</p>
                           <p className="memory-effect-copy">
                             {getMemoryEffectHint({
-                              scope: memory.scope,
+                              scope: getMemoryScope(memory),
                               status: memory.status,
                               targetAgentId: memory.target_agent_id,
                               currentThreadAgentId: thread?.agent_id ?? null,
                               locale
                             })}
                           </p>
-                          {memory.scope === "user_agent" && memory.target_agent_name ? (
+                          {getMemoryScope(memory) === "user_agent" && memory.target_agent_name ? (
                             <p className="thread-link-meta">
                               {copy.memory.appliesToAgentPrefix}
                               {memory.target_agent_name}
@@ -1192,10 +1194,10 @@ export default async function ChatPage({
                           <div className="memory-card-row">
                             <div className="memory-badges">
                               <span className="thread-badge">
-                                {getMemoryCategoryLabel(memory.category, locale)}
+                                {getMemoryCategoryLabel(getMemoryCategory(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
-                                {getMemoryScopeLabel(memory.scope, locale)}
+                                {getMemoryScopeLabel(getMemoryScope(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
                                 {getMemoryStatusLabel(memory.status, locale)}
@@ -1212,14 +1214,14 @@ export default async function ChatPage({
                           <p className="memory-trust-copy">{copy.memory.hiddenHint}</p>
                           <p className="memory-effect-copy">
                             {getMemoryEffectHint({
-                              scope: memory.scope,
+                              scope: getMemoryScope(memory),
                               status: memory.status,
                               targetAgentId: memory.target_agent_id,
                               currentThreadAgentId: thread?.agent_id ?? null,
                               locale
                             })}
                           </p>
-                          {memory.scope === "user_agent" && memory.target_agent_name ? (
+                          {getMemoryScope(memory) === "user_agent" && memory.target_agent_name ? (
                             <p className="thread-link-meta">
                               {copy.memory.appliesToAgentPrefix}
                               {memory.target_agent_name}
@@ -1266,10 +1268,10 @@ export default async function ChatPage({
                           <div className="memory-card-row">
                             <div className="memory-badges">
                               <span className="thread-badge">
-                                {getMemoryCategoryLabel(memory.category, locale)}
+                                {getMemoryCategoryLabel(getMemoryCategory(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
-                                {getMemoryScopeLabel(memory.scope, locale)}
+                                {getMemoryScopeLabel(getMemoryScope(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
                                 {getMemoryStatusLabel(memory.status, locale)}
@@ -1289,14 +1291,14 @@ export default async function ChatPage({
                           <p className="memory-trust-copy">{copy.memory.incorrectHint}</p>
                           <p className="memory-effect-copy">
                             {getMemoryEffectHint({
-                              scope: memory.scope,
+                              scope: getMemoryScope(memory),
                               status: memory.status,
                               targetAgentId: memory.target_agent_id,
                               currentThreadAgentId: thread?.agent_id ?? null,
                               locale
                             })}
                           </p>
-                          {memory.scope === "user_agent" && memory.target_agent_name ? (
+                          {getMemoryScope(memory) === "user_agent" && memory.target_agent_name ? (
                             <p className="thread-link-meta">
                               {copy.memory.appliesToAgentPrefix}
                               {memory.target_agent_name}
@@ -1344,10 +1346,10 @@ export default async function ChatPage({
                           <div className="memory-card-row">
                             <div className="memory-badges">
                               <span className="thread-badge">
-                                {getMemoryCategoryLabel(memory.category, locale)}
+                                {getMemoryCategoryLabel(getMemoryCategory(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
-                                {getMemoryScopeLabel(memory.scope, locale)}
+                                {getMemoryScopeLabel(getMemoryScope(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
                                 {getMemoryStatusLabel(memory.status, locale)}
@@ -1367,14 +1369,14 @@ export default async function ChatPage({
                           <p className="memory-trust-copy">{copy.memory.incorrectHint}</p>
                           <p className="memory-effect-copy">
                             {getMemoryEffectHint({
-                              scope: memory.scope,
+                              scope: getMemoryScope(memory),
                               status: memory.status,
                               targetAgentId: memory.target_agent_id,
                               currentThreadAgentId: thread?.agent_id ?? null,
                               locale
                             })}
                           </p>
-                          {memory.scope === "user_agent" && memory.target_agent_name ? (
+                          {getMemoryScope(memory) === "user_agent" && memory.target_agent_name ? (
                             <p className="thread-link-meta">
                               {copy.memory.appliesToAgentPrefix}
                               {memory.target_agent_name}
@@ -1421,10 +1423,10 @@ export default async function ChatPage({
                           <div className="memory-card-row">
                             <div className="memory-badges">
                               <span className="thread-badge">
-                                {getMemoryCategoryLabel(memory.category, locale)}
+                                {getMemoryCategoryLabel(getMemoryCategory(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
-                                {getMemoryScopeLabel(memory.scope, locale)}
+                                {getMemoryScopeLabel(getMemoryScope(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
                                 {getMemoryStatusLabel(memory.status, locale)}
@@ -1437,14 +1439,14 @@ export default async function ChatPage({
                           <p className="memory-content">{memory.content}</p>
                           <p className="memory-effect-copy">
                             {getMemoryEffectHint({
-                              scope: memory.scope,
+                              scope: getMemoryScope(memory),
                               status: memory.status,
                               targetAgentId: memory.target_agent_id,
                               currentThreadAgentId: thread?.agent_id ?? null,
                               locale
                             })}
                           </p>
-                          {memory.scope === "user_agent" && memory.target_agent_name ? (
+                          {getMemoryScope(memory) === "user_agent" && memory.target_agent_name ? (
                             <p className="thread-link-meta">
                               {copy.memory.appliesToAgentPrefix}
                               {memory.target_agent_name}
@@ -1476,10 +1478,10 @@ export default async function ChatPage({
                           <div className="memory-card-row">
                             <div className="memory-badges">
                               <span className="thread-badge">
-                                {getMemoryCategoryLabel(memory.category, locale)}
+                                {getMemoryCategoryLabel(getMemoryCategory(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
-                                {getMemoryScopeLabel(memory.scope, locale)}
+                                {getMemoryScopeLabel(getMemoryScope(memory), locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
                                 {getMemoryStatusLabel(memory.status, locale)}
@@ -1492,7 +1494,7 @@ export default async function ChatPage({
                           <p className="memory-content">{memory.content}</p>
                           <p className="memory-effect-copy">
                             {getMemoryEffectHint({
-                              scope: memory.scope,
+                              scope: getMemoryScope(memory),
                               status: memory.status,
                               targetAgentId: memory.target_agent_id,
                               currentThreadAgentId: thread?.agent_id ?? null,

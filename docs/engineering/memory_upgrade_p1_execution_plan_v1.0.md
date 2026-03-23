@@ -170,6 +170,10 @@ P1 首批要做的，是把更多 legacy 直接读写点继续收紧成：
 - `restoreMemory(...)` 当前已不再本地手写 `category / key / scope -> single-slot` 判定
 - `resolveSupportedSingleSlotTarget(...)` 已开始承接这层 legacy single-slot restore target 解析
 - memory 管理链路当前也已开始把 legacy row 的冲突查询前提收成共用 helper，而不再散落在 action 内联逻辑里
+- chat page 的 memory 展示读路径当前也已开始优先走：
+  - `getMemoryCategory(...)`
+  - `getMemoryScope(...)`
+  而不再直接依赖 raw `memory.category / memory.scope`
 
 ---
 

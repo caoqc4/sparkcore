@@ -152,6 +152,10 @@
   - `restoreMemory(...)` 当前已不再本地手写 `category / key / scope -> single-slot` 判定
   - `resolveSupportedSingleSlotTarget(...)` 当前已开始承接 legacy single-slot restore target 解析
   - memory 管理链路当前也已开始把冲突查询前提收成共用 helper，而不再散落在 action 内联逻辑里
+  - chat page 的 memory 展示读路径当前也已开始优先走 canonical getter：
+    - `getMemoryCategory(...)`
+    - `getMemoryScope(...)`
+    而不再直接依赖 raw `memory.category / memory.scope`
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`
 
