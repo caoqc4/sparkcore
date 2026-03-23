@@ -88,6 +88,16 @@ function buildSmokeSeedMetadata(fields?: Record<string, unknown>) {
   };
 }
 
+function mergeSmokeSeedMetadata(
+  base?: Record<string, unknown> | null,
+  fields?: Record<string, unknown>
+) {
+  return {
+    ...(base ?? {}),
+    ...buildSmokeSeedMetadata(fields)
+  };
+}
+
 function buildSmokeRelationshipSeedMetadata(relationKind: string) {
   return buildSmokeSeedMetadata({
     relation_kind: relationKind
@@ -461,9 +471,7 @@ async function ensureSmokeUser(
         email: config.email,
         password: config.password,
         email_confirm: true,
-        user_metadata: {
-          smoke_seed: true
-        }
+        user_metadata: buildSmokeSeedMetadata()
       });
 
     if (createUserError) {
@@ -483,10 +491,7 @@ async function ensureSmokeUser(
       {
         password: config.password,
         email_confirm: true,
-        user_metadata: {
-          ...(existingUser.user_metadata ?? {}),
-          smoke_seed: true
-        }
+        user_metadata: mergeSmokeSeedMetadata(existingUser.user_metadata)
       }
     );
 
@@ -3071,10 +3076,9 @@ export async function createSmokeTurn({
         .from("memory_items")
         .update({
           status: "active",
-          metadata: {
-            ...((existingMemory.metadata ?? {}) as Record<string, unknown>),
-            smoke_seed: true
-          },
+          metadata: mergeSmokeSeedMetadata(
+            (existingMemory.metadata ?? {}) as Record<string, unknown>
+          ),
           updated_at: new Date().toISOString()
         })
         .eq("id", existingMemory.id)
