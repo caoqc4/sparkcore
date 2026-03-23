@@ -30,6 +30,21 @@ type FollowUpEnqueueRecord = {
   trigger_at: string;
 };
 
+export function getRuntimePreviewMetadataObject(
+  value: unknown
+): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+export function getRuntimePreviewMetadataGroup(
+  metadata: Record<string, unknown> | null | undefined,
+  key: string
+) {
+  return getRuntimePreviewMetadataObject(metadata?.[key]);
+}
+
 function buildRuntimeMemoryWriteRequestPreview(
   requests: RuntimeMemoryWriteRequest[]
 ) {

@@ -22,7 +22,8 @@ import {
   buildRuntimeFollowUpExecutionMetadata,
   buildRuntimeFollowUpRequestMetadata,
   buildRuntimeMemoryWriteOutcomeMetadata,
-  buildRuntimeMemoryWriteRequestMetadata
+  buildRuntimeMemoryWriteRequestMetadata,
+  getRuntimePreviewMetadataGroup
 } from "@/lib/chat/runtime-preview-metadata";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 import {
@@ -1262,14 +1263,10 @@ export async function sendMessage(
           ...(assistantMessage?.metadata ?? {}),
           ...buildRuntimeMemoryWriteOutcomeMetadata(
             memoryWriteOutcome,
-            assistantMessage?.metadata?.runtime_memory_writes &&
-              typeof assistantMessage.metadata.runtime_memory_writes === "object" &&
-              !Array.isArray(assistantMessage.metadata.runtime_memory_writes)
-              ? (assistantMessage.metadata.runtime_memory_writes as Record<
-                  string,
-                  unknown
-                >)
-              : null
+            getRuntimePreviewMetadataGroup(
+              assistantMessage?.metadata,
+              "runtime_memory_writes"
+            )
           )
         };
 
@@ -1580,34 +1577,9 @@ export async function retryAssistantReply(
         .update({
           metadata: {
             ...failedMessage.metadata,
-            runtime_memory_writes: {
-              request_count: runtimeTurnResult.memory_write_requests.length,
-              preview: runtimeTurnResult.memory_write_requests.map((request) => ({
-                kind: request.kind,
-                memory_type: request.memory_type,
-                relationship_key:
-                  request.kind === "relationship_memory"
-                    ? request.relationship_key
-                    : null,
-                confidence: request.confidence,
-                source_turn_id: request.source_turn_id,
-                dedupe_key: request.dedupe_key
-              }))
-            },
-            runtime_memory_write_request_count:
-              runtimeTurnResult.memory_write_requests.length,
-            runtime_memory_write_requests_preview:
-              runtimeTurnResult.memory_write_requests.map((request) => ({
-                kind: request.kind,
-                memory_type: request.memory_type,
-                relationship_key:
-                  request.kind === "relationship_memory"
-                    ? request.relationship_key
-                    : null,
-                confidence: request.confidence,
-                source_turn_id: request.source_turn_id,
-                dedupe_key: request.dedupe_key
-              }))
+            ...buildRuntimeMemoryWriteRequestMetadata(
+              runtimeTurnResult.memory_write_requests
+            )
           },
           updated_at: new Date().toISOString()
         })
@@ -1623,22 +1595,9 @@ export async function retryAssistantReply(
         .update({
           metadata: {
             ...failedMessage.metadata,
-            runtime_follow_up: {
-              request_count: runtimeTurnResult.follow_up_requests.length,
-              preview: runtimeTurnResult.follow_up_requests.map((request) => ({
-                kind: request.kind,
-                trigger_at: request.trigger_at,
-                reason: request.reason
-              }))
-            },
-            runtime_follow_up_request_count:
-              runtimeTurnResult.follow_up_requests.length,
-            runtime_follow_up_requests_preview:
-              runtimeTurnResult.follow_up_requests.map((request) => ({
-                kind: request.kind,
-                trigger_at: request.trigger_at,
-                reason: request.reason
-              }))
+            ...buildRuntimeFollowUpRequestMetadata(
+              runtimeTurnResult.follow_up_requests
+            )
           },
           updated_at: new Date().toISOString()
         })
