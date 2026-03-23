@@ -36,4 +36,4 @@ export {
   isSmokeNonJudgingFollowUpPrompt,
   isSmokeSameSideFollowUpPrompt
 } from "@/lib/testing/smoke-supportive-follow-up-literals";
-export { isSmokeShortRelationshipSupportivePrompt } from "@/lib/testing/smoke-short-supportive-follow-up";
+export { matchesSmokeShortSupportivePredicate as isSmokeShortRelationshipSupportivePrompt } from "@/lib/testing/smoke-short-supportive-predicate-groups";

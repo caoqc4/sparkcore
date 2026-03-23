@@ -4,10 +4,13 @@ import {
   isSmokeRelationshipSupportivePrompt
 } from "@/lib/testing/smoke-answer-strategy";
 import {
+  buildSmokeEnDefaultContinuationReply,
+  buildSmokeZhDefaultContinuationReply
+} from "@/lib/testing/smoke-continuation-replies";
+import {
   buildSmokeRelationshipExplanatoryCoreReply
 } from "@/lib/testing/smoke-relationship-explanatory-core";
 import { buildSmokeRelationshipClosingCoreReply } from "@/lib/testing/smoke-relationship-closing-core";
-import { buildSmokeDefaultContinuationReply } from "@/lib/testing/smoke-default-continuation-reply";
 import { buildSmokeRelationshipReplyContext } from "@/lib/testing/smoke-relationship-reply-context";
 import type { SmokeRelationshipReplyInput } from "@/lib/testing/smoke-relationship-reply-types";
 import { buildSmokeRelationshipSupportiveReply } from "@/lib/testing/smoke-relationship-supportive-reply";
@@ -46,9 +49,17 @@ export function buildSmokeRelationshipOrContinuationReply(
     });
   }
 
-  return buildSmokeDefaultContinuationReply({
+  if (args.replyLanguage === "zh-Hans") {
+    return buildSmokeZhDefaultContinuationReply({
+      content: args.content,
+      addressStyleValue,
+      userName,
+      recentAssistantReply: args.recentAssistantReply
+    });
+  }
+
+  return buildSmokeEnDefaultContinuationReply({
     content: args.content,
-    replyLanguage: args.replyLanguage,
     addressStyleValue,
     userName,
     recentAssistantReply: args.recentAssistantReply
