@@ -241,6 +241,12 @@ P0 允许预留边界，但不提前施工。
 
 写进 `DynamicProfile`。
 
+当前已有 legacy `goal` 语义，P0 默认按以下策略处理：
+
+- 不把现有 `goal` 直接升格成 `DynamicProfile`
+- 先把它视为向 `ThreadState` 迁移的候选来源
+- 等 `ThreadState` 首批字段升级后，再决定哪些阶段性状态值得进入 `DynamicProfile`
+
 ### 6.3 `memory_items` 是迁移过渡层，不是立刻废弃层
 
 本阶段不直接删除 `memory_items`。
@@ -344,7 +350,8 @@ P0 不做一次性重建，而做三段式迁移：
 先定义现有记录如何映射：
 
 - `profile` / `preference` -> `StaticProfileRecord` 或 `DynamicProfileRecord`
-- `relationship` / `goal` -> `MemoryRecord`
+- `relationship` -> `MemoryRecord`
+- `goal` -> 先作为 `ThreadState` 迁移候选，不在 P0 直接进入 `DynamicProfile`
 - `thread_local` scope -> 重新审查是否应转入 `ThreadState`
 
 #### 阶段 B：新写入走新语义

@@ -61,30 +61,12 @@ export function buildStaticProfileRecordFromStoredMemory(
 export function buildDynamicProfileRecordFromStoredMemory(
   memory: StoredMemory
 ): ChatDynamicProfileRecord | null {
-  if (memory.category !== "goal" || memory.scope === "thread_local") {
-    return null;
-  }
-
-  const { subjectId, scope } = buildProfileIdentity(memory);
-  const key =
-    typeof memory.key === "string" && memory.key.length > 0
-      ? memory.key
-      : "dynamic.goal";
-  const effectiveAt = memory.created_at ?? memory.updated_at;
-
-  return {
-    profile_id: `prof_dynamic:${memory.id}`,
-    subject_type: "user",
-    subject_id: subjectId,
-    scope,
-    key,
-    value: memory.value ?? memory.content,
-    confidence: memory.confidence,
-    effective_at: effectiveAt,
-    expires_at: null,
-    source_refs: buildMemoryRecordFromLegacy(memory).source_refs,
-    updated_at: memory.updated_at ?? effectiveAt
-  };
+  // P0 keeps legacy goal-like rows out of DynamicProfile.
+  // Existing goal semantics are closer to thread/run execution state and will
+  // be migrated toward ThreadState before DynamicProfile is allowed to absorb
+  // any long-lived phase-level state.
+  void memory;
+  return null;
 }
 
 export function buildProfileRecordsFromStoredMemory(memory: StoredMemory): {
