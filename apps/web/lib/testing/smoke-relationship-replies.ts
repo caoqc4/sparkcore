@@ -5,6 +5,10 @@ import {
   buildSmokeRelationshipSupportiveCoreReply
 } from "@/lib/testing/smoke-relationship-core-replies";
 import {
+  buildSmokeEnSoftCatchReply,
+  buildSmokeZhSoftCatchReply
+} from "@/lib/testing/smoke-soft-catch-replies";
+import {
   buildSmokeEnDefaultContinuationReply,
   buildSmokeZhDefaultContinuationReply
 } from "@/lib/testing/smoke-continuation-replies";
@@ -46,16 +50,12 @@ export function buildSmokeRelationshipSupportiveReply({
 }: Args) {
   if (replyLanguage === "zh-Hans") {
     if (isSmokeOneLineSoftCatchPrompt(content)) {
-      return userName
-        ? `${userName}，我在，先别一个人扛着。`
-        : "我在，先别一个人扛着。";
+      return buildSmokeZhSoftCatchReply(userName);
     }
   }
 
   if (isSmokeOneLineSoftCatchPrompt(content)) {
-    return userName
-      ? `${userName}, I am here, and you do not have to carry this alone.`
-      : "I am here, and you do not have to carry this alone.";
+    return buildSmokeEnSoftCatchReply(userName);
   }
 
   return buildSmokeRelationshipSupportiveCoreReply({

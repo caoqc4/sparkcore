@@ -1,35 +1,14 @@
 import {
-  isSmokeAntiAdviceFollowUpPrompt,
-  isSmokeAntiAnalysisFollowUpPrompt,
-  isSmokeAntiCategorizingFollowUpPrompt,
-  isSmokeAntiComfortingFollowUpPrompt,
-  isSmokeAntiComparingFollowUpPrompt,
-  isSmokeAntiConclusionFollowUpPrompt,
-  isSmokeAntiCorrectionFollowUpPrompt,
-  isSmokeAntiDefinitionFollowUpPrompt,
-  isSmokeAntiLabelingFollowUpPrompt,
-  isSmokeAntiLecturingFollowUpPrompt,
-  isSmokeAntiMinimizingFollowUpPrompt,
-  isSmokeAntiMischaracterizationFollowUpPrompt,
-  isSmokeAntiNormalizingFollowUpPrompt,
-  isSmokeAntiOverreadingFollowUpPrompt,
-  isSmokeAntiProbingFollowUpPrompt,
-  isSmokeAntiRedirectionFollowUpPrompt,
-  isSmokeAntiRushingFollowUpPrompt,
-  isSmokeAntiSolutioningFollowUpPrompt,
-  isSmokeAntiTaggingFollowUpPrompt,
   isSmokeBriefSteadyingPrompt,
-  isSmokeCompanionStyleExplanationCarryoverPrompt,
   isSmokeGentleCarryForwardAfterSteadyingPrompt,
   isSmokeGuidedNextStepAfterSteadyingPrompt,
   isSmokeLightSharedPushPrompt,
-  isSmokeLightStyleSofteningPrompt,
-  isSmokeNonJudgingFollowUpPrompt,
   isSmokeOneLineSoftCatchPrompt,
-  isSmokeSameSideFollowUpPrompt,
-} from "@/lib/testing/smoke-answer-strategy";
+} from "@/lib/testing/smoke-follow-up-prompts";
+import { isSmokeLightStyleSofteningPrompt } from "@/lib/testing/smoke-continuation-prompts";
 import { detectSmokeUserAddressStyleCandidate } from "@/lib/testing/smoke-relationship-detection";
 import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
+import { buildSmokeZhSoftCatchReply } from "@/lib/testing/smoke-soft-catch-replies";
 import { buildSmokeZhBoundaryFollowUpReply } from "@/lib/testing/smoke-zh-boundary-followups";
 import { buildSmokeZhContinuationTail } from "@/lib/testing/smoke-zh-continuation-tail";
 import type { SmokeReplyLanguage } from "@/lib/testing/smoke-assistant-builders";
@@ -46,9 +25,7 @@ export function buildSmokeZhDefaultContinuationReply(args: {
     args.addressStyleValue ?? detectSmokeUserAddressStyleCandidate(args.content);
 
   if (isSmokeOneLineSoftCatchPrompt(args.content)) {
-    return args.userName
-      ? `${args.userName}，我在，先别一个人扛着。`
-      : "我在，先别一个人扛着。";
+    return buildSmokeZhSoftCatchReply(args.userName);
   }
 
   if (isSmokeBriefSteadyingPrompt(args.content)) {
