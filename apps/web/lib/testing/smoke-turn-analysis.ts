@@ -2,13 +2,10 @@ import {
   getSmokeUsedMemoryTypes
 } from "@/lib/testing/smoke-relationship-context";
 import {
-  analyzeSmokeMemoryState,
-} from "@/lib/testing/smoke-memory-analysis";
-import {
   getSmokeRecentAssistantReply,
 } from "@/lib/testing/smoke-reply-analysis";
 import { getSmokeTurnContinuityContext } from "@/lib/testing/smoke-turn-continuity-context";
-import { selectSmokeRecalledMemories } from "@/lib/testing/smoke-memory-recall-selection";
+import { getSmokeTurnMemoryContext } from "@/lib/testing/smoke-turn-memory-context";
 import { getSmokeTurnRelationshipContext } from "@/lib/testing/smoke-turn-relationship-context";
 import type { SmokeTurnAnalysisInput } from "@/lib/testing/smoke-turn-analysis-input";
 import type { SmokeApproxContextPressure } from "@/lib/testing/smoke-assistant-builders";
@@ -36,7 +33,7 @@ export type SmokeTurnAnalysisResult = {
   preferSameThreadContinuation: boolean;
   recentAssistantReply: SmokeContinuityReply | null;
   recentRawTurnCount: number;
-  recalledMemories: ReturnType<typeof selectSmokeRecalledMemories>;
+  recalledMemories: ReturnType<typeof getSmokeTurnMemoryContext>["recalledMemories"];
   sameThreadContinuationApplicable: boolean;
   usedMemoryTypes: string[];
 };
@@ -49,16 +46,16 @@ export function analyzeSmokeTurnContext({
   threadId
 }: SmokeTurnAnalysisInput): SmokeTurnAnalysisResult {
   const recentAssistantReply = getSmokeRecentAssistantReply(existingMessages);
-  const { activeMemories, hiddenExclusionCount, incorrectExclusionCount } =
-    analyzeSmokeMemoryState({
-      existingMemories,
-      agentId,
-      threadId
-    });
-
-  const recalledMemories = selectSmokeRecalledMemories({
+  const {
+    activeMemories,
+    recalledMemories,
+    hiddenExclusionCount,
+    incorrectExclusionCount
+  } = getSmokeTurnMemoryContext({
     trimmedContent,
-    activeMemories
+    existingMemories,
+    agentId,
+    threadId
   });
   const {
     addressStyleMemory,
