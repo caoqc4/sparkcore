@@ -157,6 +157,20 @@ P3 首批要把 `Thread Compaction` 再往前推进一层，形成最小 retenti
     的 thread compaction summary 会被主动丢弃
 - `memory-upgrade-harness.ts` 当前也已开始显式校验这条 keep/drop 行为
 
+当前已成立的第三刀代码事实：
+
+- `packages/core/memory/compaction.ts` 当前也已开始把 retention reason 收成正式 contract：
+  - `retention_reason`
+- `apps/web/lib/chat/thread-compaction.ts` 当前也已开始显式产出：
+  - `focus_mode_present`
+  - `engaged_continuity`
+  - `recent_turn_window`
+  - `minimal_context`
+  - `closed_minimal_pruned`
+  这层选择依据
+- runtime prompt / assistant metadata / debug metadata 当前也已开始承接 retention reason
+- `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_mode_present` 这条 retention reason
+
 ### 4.3 Knowledge scope materialization
 
 P3 首批要让 `Knowledge Layer` 更明确地区分：

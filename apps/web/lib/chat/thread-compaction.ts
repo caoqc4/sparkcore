@@ -2,7 +2,8 @@ import type { ThreadStateRecord } from "@/lib/chat/thread-state";
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type {
   CompactedThreadSummary,
-  ThreadRetentionMode
+  ThreadRetentionMode,
+  ThreadRetentionReason
 } from "../../../../packages/core/memory";
 
 function resolveThreadRetentionMode(args: {
@@ -54,6 +55,26 @@ function buildRetainedFields(args: {
   return Array.from(fields);
 }
 
+function resolveThreadRetentionReason(args: {
+  threadState: ThreadStateRecord;
+  recentTurnCount: number;
+  retentionMode: ThreadRetentionMode;
+}) : ThreadRetentionReason {
+  if (args.retentionMode === "focus_anchor") {
+    return "focus_mode_present";
+  }
+
+  if (args.retentionMode === "continuity_anchor") {
+    return "engaged_continuity";
+  }
+
+  if (args.retentionMode === "recent_window") {
+    return "recent_turn_window";
+  }
+
+  return "minimal_context";
+}
+
 export function buildCompactedThreadSummary(args: {
   threadState: ThreadStateRecord | null | undefined;
   recentTurnCount: number;
@@ -80,6 +101,11 @@ export function buildCompactedThreadSummary(args: {
     retentionMode,
     latestUserMessage
   });
+  const retentionReason = resolveThreadRetentionReason({
+    threadState: args.threadState,
+    recentTurnCount: args.recentTurnCount,
+    retentionMode
+  });
 
   const summaryParts = [
     `Focus: ${focus}.`,
@@ -98,6 +124,7 @@ export function buildCompactedThreadSummary(args: {
     focus_mode: args.threadState.focus_mode ?? null,
     current_language_hint: args.threadState.current_language_hint ?? null,
     retention_mode: retentionMode,
+    retention_reason: retentionReason,
     retained_fields: retainedFields,
     summary_text: summaryParts.join(" "),
     generated_at: args.generatedAt ?? new Date().toISOString()
@@ -107,24 +134,30 @@ export function buildCompactedThreadSummary(args: {
 export function shouldRetainCompactedThreadSummary(args: {
   compactedThreadSummary: CompactedThreadSummary | null | undefined;
 }) {
+  return getThreadCompactionRetentionDecision(args).retain;
+}
+
+export function getThreadCompactionRetentionDecision(args: {
+  compactedThreadSummary: CompactedThreadSummary | null | undefined;
+}) {
   const summary = args.compactedThreadSummary;
 
   if (!summary) {
-    return false;
+    return { retain: false, reason: null as ThreadRetentionReason | null };
   }
 
   if (summary.retained_fields.length === 0) {
-    return false;
+    return { retain: false, reason: "minimal_context" as const };
   }
 
   if (
     summary.lifecycle_status === "closed" &&
     summary.retention_mode === "minimal"
   ) {
-    return false;
+    return { retain: false, reason: "closed_minimal_pruned" as const };
   }
 
-  return true;
+  return { retain: true, reason: summary.retention_reason };
 }
 
 export function selectRetainedThreadCompactionSummary(args: {
@@ -149,7 +182,7 @@ export function buildThreadCompactionPromptSection(args: {
     isZh ? "线程压缩摘要：" : "Compacted thread summary:",
     isZh
       ? `${args.compactedThreadSummary.summary_text} 当前 retention mode = ${args.compactedThreadSummary.retention_mode}，保留字段：${args.compactedThreadSummary.retained_fields.join("、") || "无"}。把这段摘要当作线程历史压缩结果，而不是新的长期画像或外部知识。`
-      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
+      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
   ].join("\n");
 }
 
@@ -165,6 +198,7 @@ export function buildThreadCompactionSummary(args: {
           current_language_hint:
             args.compactedThreadSummary.current_language_hint,
           retention_mode: args.compactedThreadSummary.retention_mode,
+          retention_reason: args.compactedThreadSummary.retention_reason,
           retained_fields: args.compactedThreadSummary.retained_fields,
       }
     : null;

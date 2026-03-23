@@ -55,6 +55,7 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   compacted_thread_summary_lifecycle_status?: string | null;
   compacted_thread_summary_continuity_status?: string | null;
   compacted_thread_retention_mode?: string | null;
+  compacted_thread_retention_reason?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -119,6 +120,7 @@ export type BuildAssistantMessageMetadataInput = {
   compacted_thread_summary_lifecycle_status?: string | null;
   compacted_thread_summary_continuity_status?: string | null;
   compacted_thread_retention_mode?: string | null;
+  compacted_thread_retention_reason?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -217,6 +219,8 @@ export function buildAssistantMetadataSummaryGroups(
             input.compacted_thread_summary_continuity_status ?? null,
           retention_mode:
             input.compacted_thread_retention_mode ?? null,
+          retention_reason:
+            input.compacted_thread_retention_reason ?? null,
           retained_fields:
             input.compacted_thread_retained_fields ?? []
         }
@@ -259,6 +263,8 @@ export function buildAssistantMetadataSummaryGroups(
         input.compacted_thread_summary_continuity_status,
       compacted_thread_retention_mode:
         input.compacted_thread_retention_mode,
+      compacted_thread_retention_reason:
+        input.compacted_thread_retention_reason,
       compacted_thread_retained_fields:
         input.compacted_thread_retained_fields,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,

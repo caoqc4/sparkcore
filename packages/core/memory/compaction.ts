@@ -8,6 +8,13 @@ export type ThreadRetentionMode =
   | "recent_window"
   | "minimal";
 
+export type ThreadRetentionReason =
+  | "focus_mode_present"
+  | "engaged_continuity"
+  | "recent_turn_window"
+  | "minimal_context"
+  | "closed_minimal_pruned";
+
 export type CompactedThreadSummary = {
   summary_id: string;
   thread_id: string;
@@ -17,6 +24,7 @@ export type CompactedThreadSummary = {
   focus_mode: string | null;
   current_language_hint: string | null;
   retention_mode: ThreadRetentionMode;
+  retention_reason: ThreadRetentionReason;
   retained_fields: string[];
   summary_text: string;
   generated_at: string;

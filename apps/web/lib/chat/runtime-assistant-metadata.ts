@@ -171,6 +171,8 @@ export function buildRuntimeAssistantMetadataInput(
       input.compaction.summary?.continuity_status ?? null,
     compacted_thread_retention_mode:
       input.compaction.summary?.retention_mode ?? null,
+    compacted_thread_retention_reason:
+      input.compaction.summary?.retention_reason ?? null,
     compacted_thread_retained_fields:
       input.compaction.summary?.retained_fields ?? [],
     follow_up_request_count: input.follow_up.request_count,

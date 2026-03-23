@@ -791,6 +791,11 @@ function main() {
     "Expected runtime debug metadata to expose the retention mode in P3."
   );
   expect(
+    runtimeDebugMetadata.thread_compaction?.retention_reason ===
+      "focus_mode_present",
+    "Expected runtime debug metadata to expose the retention reason in P3."
+  );
+  expect(
     runtimeDebugMetadata.memory_namespace?.primary_layer === "project",
     "Expected runtime debug metadata to expose project as the primary namespace layer in P2."
   );
