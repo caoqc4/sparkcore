@@ -20,6 +20,8 @@
 - [memory_upgrade_p3_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p3_close_note_v1.0.md)
 - [memory_upgrade_p3_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p3_close_readiness_v1.0.md)
 - [memory_upgrade_p3_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p3_execution_plan_v1.0.md)
+- [memory_upgrade_p4_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p4_close_readiness_v1.0.md)
+- [memory_upgrade_p4_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p4_close_note_v1.0.md)
 - `doc_private/SparkCore_记忆层升级方案_v0.2.md`
 - [memory_upgrade_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_execution_plan_v1.0.md)
 
@@ -437,5 +439,6 @@ P4 首批明确不做：
 
 因此，下一步建议仍然是：
 
-- 判断是否还需要最后 1-2 刀收口
-- 或直接准备 `P4 close note`
+- [memory_upgrade_p4_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p4_close_note_v1.0.md)
+  当前也已新增，用于正式收口“P4 已达到 close-ready，剩余项转入非阻塞尾项”的阶段判断
+- 可以从 `P4` 主施工切到下一阶段规划或少量 tail cleanup

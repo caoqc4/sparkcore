@@ -372,6 +372,8 @@
     - `P4-3 / P4-4`：中后段
     - `P4-5`：第一版已成立
   - 整体 `P4` 当前约在 `80%`，并已进入更清晰的 close-readiness 前置区间
+  - [memory_upgrade_p4_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p4_close_note_v1.0.md)
+    当前也已新增，用于正式收口“P4 已达到 close-ready，剩余项转入非阻塞尾项”的阶段判断
 
 当前 `P4` 的阶段判断：
 
@@ -387,7 +389,8 @@
 - `P4` 已经从前中段推进到更明确的中后段
 - 并且已经开始接近 `close-readiness` 前的最后区间
 - 当前不再有明显落后的单项，`P4-1 / P4-2` 仍是相对更浅的两条线
-- 下一步更合理的是判断是否还需要最后 1-2 刀收口，或直接准备 `P4 close note`
+- `P4` 当前已达到 `close-ready / 可收官`
+- 下一步更合理的是切到下一阶段规划，或只做少量 tail cleanup
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
