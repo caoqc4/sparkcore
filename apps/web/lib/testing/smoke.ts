@@ -3144,6 +3144,48 @@ export async function createSmokeTurn({
       : addressStyleMemory.content
     : null;
 
+  async function insertRelationshipMemory(args: {
+    key: "agent_nickname" | "user_preferred_name" | "user_address_style";
+    value: string;
+    confidence: number;
+    stability: "high" | "medium";
+    errorLabel: string;
+  }) {
+    const { error } = await admin.from("memory_items").insert({
+      workspace_id: smokeUser.workspaceId,
+      user_id: smokeUser.id,
+      agent_id: ensuredAgent.id,
+      source_message_id: ensuredUserMessage.id,
+      memory_type: null,
+      content: args.value,
+      confidence: args.confidence,
+      importance: 0.5,
+      ...buildMemoryV2Fields({
+        category: "relationship",
+        key: args.key,
+        value: args.value,
+        scope: "user_agent",
+        subjectUserId: smokeUser.id,
+        targetAgentId: ensuredAgent.id,
+        stability: args.stability,
+        status: "active",
+        sourceRefs: [
+          {
+            kind: "message",
+            source_message_id: ensuredUserMessage.id
+          }
+        ]
+      }),
+      metadata: buildSmokeRelationshipSeedMetadata(args.key)
+    });
+
+    if (error) {
+      throw new Error(`Failed to seed ${args.errorLabel} memory: ${error.message}`);
+    }
+
+    createdTypes.push("relationship");
+  }
+
   if (smokeNickname) {
     const { data: existingNickname } = await admin
       .from("memory_items")
@@ -3158,41 +3200,13 @@ export async function createSmokeTurn({
       .maybeSingle();
 
     if (!existingNickname) {
-      const { error } = await admin.from("memory_items").insert({
-        workspace_id: smokeUser.workspaceId,
-        user_id: smokeUser.id,
-        agent_id: ensuredAgent.id,
-        source_message_id: ensuredUserMessage.id,
-        memory_type: null,
-        content: smokeNickname,
+      await insertRelationshipMemory({
+        key: "agent_nickname",
+        value: smokeNickname,
         confidence: 0.96,
-        importance: 0.5,
-        ...buildMemoryV2Fields({
-          category: "relationship",
-          key: "agent_nickname",
-          value: smokeNickname,
-          scope: "user_agent",
-          subjectUserId: smokeUser.id,
-          targetAgentId: ensuredAgent.id,
-          stability: "high",
-          status: "active",
-          sourceRefs: [
-            {
-              kind: "message",
-              source_message_id: ensuredUserMessage.id
-            }
-          ]
-        }),
-        metadata: {
-          ...buildSmokeRelationshipSeedMetadata("agent_nickname")
-        }
+        stability: "high",
+        errorLabel: "nickname"
       });
-
-      if (error) {
-        throw new Error(`Failed to seed nickname memory: ${error.message}`);
-      }
-
-      createdTypes.push("relationship");
     }
   }
 
@@ -3210,41 +3224,13 @@ export async function createSmokeTurn({
       .maybeSingle();
 
     if (!existingPreferredName) {
-      const { error } = await admin.from("memory_items").insert({
-        workspace_id: smokeUser.workspaceId,
-        user_id: smokeUser.id,
-        agent_id: ensuredAgent.id,
-        source_message_id: ensuredUserMessage.id,
-        memory_type: null,
-        content: smokePreferredName,
+      await insertRelationshipMemory({
+        key: "user_preferred_name",
+        value: smokePreferredName,
         confidence: 0.94,
-        importance: 0.5,
-        ...buildMemoryV2Fields({
-          category: "relationship",
-          key: "user_preferred_name",
-          value: smokePreferredName,
-          scope: "user_agent",
-          subjectUserId: smokeUser.id,
-          targetAgentId: ensuredAgent.id,
-          stability: "high",
-          status: "active",
-          sourceRefs: [
-            {
-              kind: "message",
-              source_message_id: ensuredUserMessage.id
-            }
-          ]
-        }),
-        metadata: {
-          ...buildSmokeRelationshipSeedMetadata("user_preferred_name")
-        }
+        stability: "high",
+        errorLabel: "preferred-name"
       });
-
-      if (error) {
-        throw new Error(`Failed to seed preferred-name memory: ${error.message}`);
-      }
-
-      createdTypes.push("relationship");
     }
   }
 
@@ -3262,41 +3248,13 @@ export async function createSmokeTurn({
       .maybeSingle();
 
     if (!existingAddressStyle) {
-      const { error } = await admin.from("memory_items").insert({
-        workspace_id: smokeUser.workspaceId,
-        user_id: smokeUser.id,
-        agent_id: ensuredAgent.id,
-        source_message_id: ensuredUserMessage.id,
-        memory_type: null,
-        content: smokeUserAddressStyle,
+      await insertRelationshipMemory({
+        key: "user_address_style",
+        value: smokeUserAddressStyle,
         confidence: 0.9,
-        importance: 0.5,
-        ...buildMemoryV2Fields({
-          category: "relationship",
-          key: "user_address_style",
-          value: smokeUserAddressStyle,
-          scope: "user_agent",
-          subjectUserId: smokeUser.id,
-          targetAgentId: ensuredAgent.id,
-          stability: "medium",
-          status: "active",
-          sourceRefs: [
-            {
-              kind: "message",
-              source_message_id: ensuredUserMessage.id
-            }
-          ]
-        }),
-        metadata: {
-          ...buildSmokeRelationshipSeedMetadata("user_address_style")
-        }
+        stability: "medium",
+        errorLabel: "address-style"
       });
-
-      if (error) {
-        throw new Error(`Failed to seed address-style memory: ${error.message}`);
-      }
-
-      createdTypes.push("relationship");
     }
   }
 
