@@ -1,8 +1,26 @@
-import type {
-  SmokeZhBoundaryReplyInput,
-  SmokeZhBoundaryReplyRule,
-} from "@/lib/testing/smoke-zh-boundary-reply-types";
-import { withSmokeZhBoundaryUserPrefix } from "@/lib/testing/smoke-zh-boundary-reply-prefix";
+export type SmokeZhBoundaryReplyInput = {
+  content: string;
+  normalized: string;
+  userName: string | null;
+};
+
+export type SmokeZhBoundaryVariant = {
+  fragment: string;
+  reply: string;
+};
+
+export type SmokeZhBoundaryReplyRule = {
+  matches: (content: string) => boolean;
+  defaultReply: string;
+  variants?: SmokeZhBoundaryVariant[];
+};
+
+function withSmokeZhBoundaryUserPrefix(
+  userName: string | null,
+  content: string
+) {
+  return userName ? `${userName}，${content}` : content;
+}
 
 export function buildSmokeZhBoundaryVariantReply(args: {
   userName: string | null;

@@ -5,11 +5,11 @@ import {
   isSmokeCompanionStyleExplanationCarryoverPrompt,
   isSmokeSameSideFollowUpPrompt,
 } from "@/lib/testing/smoke-answer-strategy";
-import type {
-  SmokeZhBoundaryReplyInput,
-  SmokeZhBoundaryReplyRule,
-} from "@/lib/testing/smoke-zh-boundary-reply-types";
-import { buildSmokeZhBoundaryReplyFromRules } from "@/lib/testing/smoke-zh-boundary-variant-reply";
+import {
+  buildSmokeZhBoundaryReplyFromRules,
+  type SmokeZhBoundaryReplyInput,
+  type SmokeZhBoundaryReplyRule
+} from "@/lib/testing/smoke-zh-boundary-variant-reply";
 
 const SMOKE_ZH_BOUNDARY_PERSPECTIVE_RULES: SmokeZhBoundaryReplyRule[] = [
   {

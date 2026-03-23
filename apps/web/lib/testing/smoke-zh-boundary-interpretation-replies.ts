@@ -7,11 +7,11 @@ import {
   isSmokeAntiOverreadingFollowUpPrompt,
   isSmokeAntiTaggingFollowUpPrompt,
 } from "@/lib/testing/smoke-answer-strategy";
-import type {
-  SmokeZhBoundaryReplyInput,
-  SmokeZhBoundaryReplyRule,
-} from "@/lib/testing/smoke-zh-boundary-reply-types";
-import { buildSmokeZhBoundaryReplyFromRules } from "@/lib/testing/smoke-zh-boundary-variant-reply";
+import {
+  buildSmokeZhBoundaryReplyFromRules,
+  type SmokeZhBoundaryReplyInput,
+  type SmokeZhBoundaryReplyRule
+} from "@/lib/testing/smoke-zh-boundary-variant-reply";
 
 const SMOKE_ZH_BOUNDARY_INTERPRETATION_RULES: SmokeZhBoundaryReplyRule[] = [
   {

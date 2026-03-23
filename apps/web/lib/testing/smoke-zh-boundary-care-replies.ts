@@ -2,8 +2,10 @@ import {
   isSmokeAntiAdviceFollowUpPrompt,
   isSmokeAntiComfortingFollowUpPrompt,
 } from "@/lib/testing/smoke-answer-strategy";
-import { buildSmokeZhBoundaryVariantReply } from "@/lib/testing/smoke-zh-boundary-variant-reply";
-import type { SmokeZhBoundaryReplyInput } from "@/lib/testing/smoke-zh-boundary-reply-types";
+import {
+  buildSmokeZhBoundaryVariantReply,
+  type SmokeZhBoundaryReplyInput
+} from "@/lib/testing/smoke-zh-boundary-variant-reply";
 
 export function buildSmokeZhBoundaryCareReply(args: SmokeZhBoundaryReplyInput) {
   if (isSmokeAntiComfortingFollowUpPrompt(args.content)) {
