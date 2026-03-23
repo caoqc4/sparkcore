@@ -13,6 +13,7 @@ import {
   type SmokeUser
 } from "@/lib/testing/smoke-runtime-state";
 import { loadSmokeTurnContext } from "@/lib/testing/smoke-turn-context";
+import { resetSmokeState } from "@/lib/testing/smoke-reset";
 import {
   ensureSmokeRelationshipMemory,
   upsertSmokeProfileMemory
@@ -112,29 +113,7 @@ function isSmokeMemoryApplicableToThread({
   return true;
 }
 
-export async function resetSmokeState() {
-  const config = getSmokeConfig();
-
-  if (!config) {
-    throw new Error(
-      "Smoke test helpers require NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, PLAYWRIGHT_SMOKE_SECRET, PLAYWRIGHT_SMOKE_EMAIL, and PLAYWRIGHT_SMOKE_PASSWORD."
-    );
-  }
-
-  const admin = getSmokeAdminClient(config);
-  const smokeUser = await ensureSmokeUser(admin, config, {
-    resetPassword: true
-  });
-  const modelProfiles = await ensureSmokeModelProfiles(admin);
-
-  await resetSmokeWorkspaceState(admin, smokeUser);
-  await seedSmokeAgents(admin, smokeUser, modelProfiles);
-
-  return {
-    workspaceId: smokeUser.workspaceId,
-    smokeEmail: smokeUser.email
-  };
-}
+export { resetSmokeState };
 
 export { createSmokeThread };
 
