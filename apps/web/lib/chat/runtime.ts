@@ -14,6 +14,7 @@ import { buildRuntimeAssistantPayload } from "@/lib/chat/assistant-message-paylo
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
 import { persistCompletedAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
+import { loadPrimaryWorkspace } from "@/lib/chat/runtime-turn-context";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import {
   getModelProfileTierLabel,
@@ -2509,13 +2510,10 @@ export async function getChatState() {
     return null;
   }
 
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("id, name, kind")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data: workspace } = await loadPrimaryWorkspace({
+    supabase,
+    userId: user.id
+  });
 
   if (!workspace) {
     return {
@@ -2636,13 +2634,10 @@ export async function getChatPageState({
     return null;
   }
 
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("id, name, kind")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data: workspace } = await loadPrimaryWorkspace({
+    supabase,
+    userId: user.id
+  });
 
   if (!workspace) {
     return {
