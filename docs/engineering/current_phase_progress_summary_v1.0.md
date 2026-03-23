@@ -330,6 +330,13 @@
   - `memory-upgrade-harness.ts` 当前也已开始显式校验：
     - `project_ops` 下只有 `SP1`
     - `companion` 下允许出现 `SP2`
+  - `apps/web/lib/chat/runtime.ts` 当前也已开始让 `scenario pack` 真实影响 `memory_record` 的消费预算
+  - 当前最小规则已经成立：
+    - `project_ops` 最多保留 2 条 memory record
+    - `companion` 收紧到最多 1 条 memory record
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验：
+    - `project_ops` 下允许出现 `MR2`
+    - `companion` 下不会出现 `MR2`
 - `P4-5 regression / acceptance expansion` 当前也已开始进入真实实现：
   - `memory-upgrade-harness.ts` 当前已开始显式产出 `p4_regression_gate`
   - 当前第一版 `P4` gate 已开始锁：

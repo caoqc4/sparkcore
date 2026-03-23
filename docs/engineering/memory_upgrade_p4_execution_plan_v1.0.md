@@ -282,6 +282,16 @@ P4 首批要把 `Scenario pack` 从：
   - `project_ops` 下只有 `SP1`
   - `companion` 下允许出现 `SP2`
 
+当前已成立的第三刀代码事实：
+
+- [runtime.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime.ts) 当前已开始让 `scenario pack` 真实影响 `memory_record` 的消费预算：
+  - `project_ops` 会保留最多 2 条 memory record
+  - `companion` 会收紧到最多 1 条 memory record
+- 也就是说，pack-specific consumption 当前已从 relationship / static_profile 扩展到事件事实层本身，开始形成更完整的 memory-layer assembly 差异
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - `project_ops` 下允许出现 `MR2`
+  - `companion` 下不会出现 `MR2`
+
 ### 4.5 P4 regression / acceptance expansion
 
 P4 首批要把 gate 继续扩大到：

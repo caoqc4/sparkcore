@@ -240,6 +240,18 @@ function main() {
     confidence: recalledProfile.confidence,
     semantic_layer: "static_profile" as const
   };
+  const promptRecalledEpisode = {
+    memory_type: "episode" as const,
+    content: "The onboarding checklist already started with the workspace setup step.",
+    confidence: 0.93,
+    semantic_layer: "memory_record" as const
+  };
+  const promptRecalledTimeline = {
+    memory_type: "timeline" as const,
+    content: "The next execution milestone is to finish the checklist review tomorrow.",
+    confidence: 0.9,
+    semantic_layer: "memory_record" as const
+  };
 
   const recalledRelationship =
     buildRecalledRelationshipMemoryFromStoredMemory(relationshipMemory);
@@ -1140,6 +1152,8 @@ function main() {
         ...promptRecalledProfile,
         content: "The user prefers a little more directness when discussing schedules."
       },
+      promptRecalledEpisode,
+      promptRecalledTimeline,
       recalledRelationship
     ],
     runtimeKnowledge,
@@ -1235,6 +1249,16 @@ function main() {
     !systemPrompt.includes("SP2:"),
     "Expected project_ops system prompt assembly to cap static-profile consumption at one slot in P4."
   );
+  expect(
+    systemPrompt.includes(
+      "4. memory_record: prioritize event facts, progress traces, and execution context."
+    ),
+    "Expected project_ops system prompt assembly to upshift memory-record consumption in P4."
+  );
+  expect(
+    systemPrompt.includes("MR2 [timeline]:"),
+    "Expected project_ops system prompt assembly to allow two memory-record slots in P4."
+  );
 
   const companionSystemPrompt = buildAgentSystemPrompt(
     {
@@ -1263,6 +1287,8 @@ function main() {
         ...promptRecalledProfile,
         content: "The user prefers a little more directness when discussing schedules."
       },
+      promptRecalledEpisode,
+      promptRecalledTimeline,
       recalledRelationship,
       {
         ...recalledRelationship,
@@ -1311,6 +1337,16 @@ function main() {
   expect(
     companionSystemPrompt.includes("SP2:"),
     "Expected companion system prompt assembly to allow two static-profile slots in P4."
+  );
+  expect(
+    companionSystemPrompt.includes(
+      "4. memory_record: keep only a minimal event-facts support layer."
+    ),
+    "Expected companion system prompt assembly to downshift memory-record consumption in P4."
+  );
+  expect(
+    !companionSystemPrompt.includes("MR2 [timeline]:"),
+    "Expected companion system prompt assembly to cap memory-record consumption at one slot in P4."
   );
 
   const routeAwarePrompt = buildAgentSystemPrompt(

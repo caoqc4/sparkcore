@@ -1272,7 +1272,7 @@ function buildMemoryLayerAssemblyPrompt(args: {
     .slice(0, args.scenarioPack?.pack_id === "companion" ? 2 : 1);
   const memoryRecordMemories = relationshipFilteredMemories
     .filter((memory) => memory.semantic_layer === "memory_record")
-    .slice(0, 2);
+    .slice(0, args.scenarioPack?.pack_id === "project_ops" ? 2 : 1);
 
   const sections: string[] = [
     isZh
@@ -1325,8 +1325,12 @@ function buildMemoryLayerAssemblyPrompt(args: {
   if (memoryRecordMemories.length > 0) {
     sections.push(
       isZh
-        ? "4. memory_record：用作事件事实或变化轨迹的直接支撑。"
-        : "4. memory_record: use as the direct support layer for events and change-over-time facts."
+        ? args.scenarioPack?.pack_id === "project_ops"
+          ? "4. memory_record：优先承接事件事实、进展轨迹与执行上下文。"
+          : "4. memory_record：仅保留最小事件事实支撑。"
+        : args.scenarioPack?.pack_id === "project_ops"
+          ? "4. memory_record: prioritize event facts, progress traces, and execution context."
+          : "4. memory_record: keep only a minimal event-facts support layer."
     );
     sections.push(
       ...memoryRecordMemories.map((memory, index) =>
