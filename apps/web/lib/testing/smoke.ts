@@ -41,6 +41,12 @@ import {
   detectSmokeUserPreferredNameCandidate
 } from "@/lib/testing/smoke-relationship-detection";
 import {
+  findSmokeRelationshipMemory,
+  getSmokeRelationshipMemoryValue,
+  getSmokeUsedMemoryTypes,
+  prependSmokeRelationshipRecall
+} from "@/lib/testing/smoke-relationship-context";
+import {
   getSmokeConfig,
   isAuthorizedSmokeRequest
 } from "@/lib/testing/smoke-config";
@@ -2060,72 +2066,37 @@ export async function createSmokeTurn({
     relationshipStylePrompt ||
     isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
     sameThreadContinuity
-    ? activeMemories.find(
-        (memory) =>
-          memory.category === "relationship" &&
-          memory.key === "agent_nickname" &&
-          memory.scope === "user_agent" &&
-          memory.target_agent_id === ensuredAgent.id
-      )
-    : null;
+      ? findSmokeRelationshipMemory({
+          memories: activeMemories,
+          key: "agent_nickname",
+          agentId: ensuredAgent.id
+        })
+      : null;
 
-  if (nicknameMemory) {
-    recalledMemories.unshift({
-      memory_type: "relationship",
-      content:
-        typeof nicknameMemory.value === "string"
-          ? nicknameMemory.value
-          : nicknameMemory.content,
-      confidence: nicknameMemory.confidence
-    });
-  }
+  prependSmokeRelationshipRecall(recalledMemories, nicknameMemory);
   const preferredNameMemory =
     isSmokeDirectUserPreferredNameQuestion(trimmedContent) ||
     relationshipStylePrompt ||
     isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
     sameThreadContinuity
-    ? activeMemories.find(
-        (memory) =>
-          memory.category === "relationship" &&
-          memory.key === "user_preferred_name" &&
-          memory.scope === "user_agent" &&
-          memory.target_agent_id === ensuredAgent.id
-      )
-    : null;
+      ? findSmokeRelationshipMemory({
+          memories: activeMemories,
+          key: "user_preferred_name",
+          agentId: ensuredAgent.id
+        })
+      : null;
 
-  if (preferredNameMemory) {
-    recalledMemories.unshift({
-      memory_type: "relationship",
-      content:
-        typeof preferredNameMemory.value === "string"
-          ? preferredNameMemory.value
-          : preferredNameMemory.content,
-      confidence: preferredNameMemory.confidence
-    });
-  }
+  prependSmokeRelationshipRecall(recalledMemories, preferredNameMemory);
 
-  const addressStyleMemory = activeMemories.find(
-    (memory) =>
-      memory.category === "relationship" &&
-      memory.key === "user_address_style" &&
-      memory.scope === "user_agent" &&
-      memory.target_agent_id === ensuredAgent.id
-  );
+  const addressStyleMemory = findSmokeRelationshipMemory({
+    memories: activeMemories,
+    key: "user_address_style",
+    agentId: ensuredAgent.id
+  });
 
-  if (addressStyleMemory) {
-    recalledMemories.unshift({
-      memory_type: "relationship",
-      content:
-        typeof addressStyleMemory.value === "string"
-          ? addressStyleMemory.value
-          : addressStyleMemory.content,
-      confidence: addressStyleMemory.confidence
-    });
-  }
+  prependSmokeRelationshipRecall(recalledMemories, addressStyleMemory);
 
-  const usedMemoryTypes = Array.from(
-    new Set(recalledMemories.map((memory) => memory.memory_type))
-  );
+  const usedMemoryTypes = getSmokeUsedMemoryTypes(recalledMemories);
 
   const ensuredUserMessage = await insertSmokeUserTurn({
     supabase: admin,
@@ -2189,11 +2160,8 @@ export async function createSmokeTurn({
     recentAssistantReply
   });
   const replyLanguage = replyLanguageDecision.replyLanguage;
-  const effectiveAddressStyleValue = addressStyleMemory
-    ? typeof addressStyleMemory.value === "string"
-      ? addressStyleMemory.value
-      : addressStyleMemory.content
-    : null;
+  const effectiveAddressStyleValue =
+    getSmokeRelationshipMemoryValue(addressStyleMemory);
 
   if (smokeNickname) {
     const result = await ensureSmokeRelationshipMemory({
