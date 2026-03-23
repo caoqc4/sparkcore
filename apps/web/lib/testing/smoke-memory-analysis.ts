@@ -4,6 +4,11 @@ import {
   isMemoryIncorrect,
   isMemoryScopeValid
 } from "@/lib/chat/memory-v2";
+import type {
+  SmokeMemoryAnalysisInput,
+  SmokeMemoryAnalysisResult,
+  SmokeMemoryApplicabilityInput
+} from "@/lib/testing/smoke-memory-analysis-types";
 
 export type SmokeMemoryRow = {
   id: string;
@@ -24,15 +29,7 @@ function isSmokeMemoryApplicableToThread({
   memory,
   agentId,
   threadId
-}: {
-  memory: {
-    scope?: string | null;
-    target_agent_id?: string | null;
-    target_thread_id?: string | null;
-  };
-  agentId: string;
-  threadId: string;
-}) {
+}: SmokeMemoryApplicabilityInput) {
   if (!isMemoryScopeValid(memory)) {
     return false;
   }
@@ -48,11 +45,9 @@ function isSmokeMemoryApplicableToThread({
   return true;
 }
 
-export function analyzeSmokeMemoryState(args: {
-  existingMemories: SmokeMemoryRow[];
-  agentId: string;
-  threadId: string;
-}) {
+export function analyzeSmokeMemoryState(
+  args: SmokeMemoryAnalysisInput
+): SmokeMemoryAnalysisResult {
   const validExistingMemories = args.existingMemories.filter((memory) =>
     isSmokeMemoryApplicableToThread({
       memory,

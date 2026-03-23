@@ -1,4 +1,3 @@
-import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 import {
   isSmokeAntiAdviceFollowUpPrompt,
   isSmokeAntiAnalysisFollowUpPrompt,

@@ -3,8 +3,11 @@ import { persistSmokeMemoryTurnStep } from "@/lib/testing/smoke-turn-memory-step
 import { persistSmokeUserTurnStep } from "@/lib/testing/smoke-turn-user-step";
 import { runSmokeAssistantTurnStep } from "@/lib/testing/smoke-turn-assistant-run";
 import type { SmokeTurnExecutionInput } from "@/lib/testing/smoke-turn-execution-types";
+import type { SmokeTurnExecutionResult } from "@/lib/testing/smoke-turn-execution-result";
 
-export async function executeSmokeTurn(args: SmokeTurnExecutionInput) {
+export async function executeSmokeTurn(
+  args: SmokeTurnExecutionInput
+): Promise<SmokeTurnExecutionResult> {
   const {
     admin,
     smokeUser,
