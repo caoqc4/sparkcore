@@ -1,5 +1,6 @@
 import type { SmokeAssistantReplyInput } from "@/lib/testing/smoke-assistant-reply-types";
-import { buildSmokeDirectOrGroundedReply } from "@/lib/testing/smoke-direct-replies";
+import { buildSmokeDirectFactOrGroundedReply } from "@/lib/testing/smoke-direct-fact-grounded-replies";
+import { buildSmokeDirectIntroReply } from "@/lib/testing/smoke-direct-intro-replies";
 import { buildSmokeRelationshipOrContinuationReply } from "@/lib/testing/smoke-relationship-reply-branch";
 
 export function buildSmokeAssistantReply({
@@ -14,7 +15,23 @@ export function buildSmokeAssistantReply({
   nicknameMemory,
   preferredNameMemory
 }: SmokeAssistantReplyInput) {
-  const directOrGroundedReply = buildSmokeDirectOrGroundedReply({
+  const directIntroReply = buildSmokeDirectIntroReply({
+    content,
+    answerStrategy,
+    modelProfileName,
+    replyLanguage,
+    recalledMemories,
+    agentName,
+    addressStyleMemory,
+    nicknameMemory,
+    preferredNameMemory
+  });
+
+  if (directIntroReply) {
+    return directIntroReply;
+  }
+
+  const directOrGroundedReply = buildSmokeDirectFactOrGroundedReply({
     content,
     answerStrategy,
     modelProfileName,
