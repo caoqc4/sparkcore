@@ -1,4 +1,4 @@
-import { getSmokeUsedMemoryTypes } from "@/lib/testing/smoke-relationship-context";
+import { getSmokeUsedMemoryTypes } from "@/lib/testing/smoke-relationship-memory-accessors";
 import type { SmokeTurnAnalysisResult } from "@/lib/testing/smoke-turn-analysis-result";
 
 export function buildSmokeTurnAnalysisResult(args: Omit<SmokeTurnAnalysisResult, "usedMemoryTypes">) {

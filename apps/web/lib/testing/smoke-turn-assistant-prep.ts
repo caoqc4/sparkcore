@@ -1,7 +1,7 @@
 import {
   getSmokeRelationshipMemoryValue,
   toSmokeRelationshipRecallMemory
-} from "@/lib/testing/smoke-relationship-context";
+} from "@/lib/testing/smoke-relationship-memory-accessors";
 import { buildSmokeAssistantReply } from "@/lib/testing/smoke-assistant-reply";
 import { resolveSmokeReplyLanguage } from "@/lib/testing/smoke-reply-analysis";
 import type { SmokeAssistantTurnPrepInput } from "@/lib/testing/smoke-turn-assistant-types";
