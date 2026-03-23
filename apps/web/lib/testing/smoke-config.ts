@@ -45,6 +45,16 @@ export function getSmokeConfig() {
   } satisfies SmokeConfig;
 }
 
+export function requireSmokeConfig(message: string) {
+  const config = getSmokeConfig();
+
+  if (!config) {
+    throw new Error(message);
+  }
+
+  return config;
+}
+
 export function isAuthorizedSmokeRequest(
   request: NextRequest,
   config: SmokeConfig | null

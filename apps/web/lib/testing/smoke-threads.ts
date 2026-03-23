@@ -1,18 +1,14 @@
 import { createOwnedThread, loadOwnedActiveAgentByName } from "@/lib/chat/runtime-turn-context";
 import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
-import { getSmokeConfig } from "@/lib/testing/smoke-config";
+import { requireSmokeConfig } from "@/lib/testing/smoke-config";
 import { ensureSmokeUser } from "@/lib/testing/smoke-runtime-state";
 
 export async function createSmokeThread(args: {
   agentName: string;
 }) {
-  const config = getSmokeConfig();
-
-  if (!config) {
-    throw new Error(
-      "Smoke thread creation requires the smoke env vars and service role key."
-    );
-  }
+  const config = requireSmokeConfig(
+    "Smoke thread creation requires the smoke env vars and service role key."
+  );
 
   const admin = getSmokeAdminClient(config);
   const smokeUser = await ensureSmokeUser(admin, config);

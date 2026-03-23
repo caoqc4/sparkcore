@@ -1,19 +1,15 @@
 import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
 import { loadSmokeBoundThreadContext } from "@/lib/testing/smoke-turn-bound-context";
-import { getSmokeConfig } from "@/lib/testing/smoke-config";
+import { requireSmokeConfig } from "@/lib/testing/smoke-config";
 import { loadSmokeTurnExistingState } from "@/lib/testing/smoke-turn-existing-state";
 import { ensureSmokeUser } from "@/lib/testing/smoke-runtime-state";
 
 export async function loadSmokeTurnContext(args: {
   threadId: string;
 }) {
-  const config = getSmokeConfig();
-
-  if (!config) {
-    throw new Error(
-      "Smoke message creation requires the smoke env vars and service role key."
-    );
-  }
+  const config = requireSmokeConfig(
+    "Smoke message creation requires the smoke env vars and service role key."
+  );
 
   const admin = getSmokeAdminClient(config);
   const smokeUser = await ensureSmokeUser(admin, config);
