@@ -3,19 +3,14 @@ import {
   type SmokeMemoryRow,
   type SmokeRuntimeMessage
 } from "@/lib/testing/smoke-turn-analysis";
+import type {
+  SmokeTurnExecutionState,
+  SmokeTurnExecutionStateInput
+} from "@/lib/testing/smoke-turn-execution-state-types";
 
-export function prepareSmokeTurnExecutionState(args: {
-  trimmedContent: string;
-  existingMemories: unknown[] | null | undefined;
-  existingMessages: Array<{
-    role: "user" | "assistant";
-    content: string;
-    status: string;
-    metadata: Record<string, unknown>;
-  }> | null | undefined;
-  agentId: string;
-  threadId: string;
-}) {
+export function prepareSmokeTurnExecutionState(
+  args: SmokeTurnExecutionStateInput
+): SmokeTurnExecutionState {
   const smokeExistingMemories = (args.existingMemories ?? []) as SmokeMemoryRow[];
   const smokeExistingMessages =
     (args.existingMessages ?? []) as SmokeRuntimeMessage[];
