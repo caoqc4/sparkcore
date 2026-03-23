@@ -31,7 +31,10 @@ import {
 import {
   buildGenericPlannerMemoryInsertMetadata,
   buildGenericPlannerMemoryUpdateMetadata,
-  buildRelationshipPlannerMemoryMetadata
+  buildRelationshipPlannerMemoryMetadata,
+  buildSingleSlotMemoryInsertMetadata,
+  buildSingleSlotMemoryRefreshMetadata,
+  buildSingleSlotMemorySupersededMetadata
 } from "@/lib/chat/memory-write-metadata";
 import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
 import { createClient } from "@/lib/supabase/server";
@@ -409,11 +412,11 @@ export async function upsertSingleSlotMemory({
   const nextSourceRefs = [{ kind: "message", source_message_id: sourceMessageId }];
 
   if (sameValueRow) {
-    const nextMetadata = {
-      ...(sameValueRow.metadata ?? {}),
-      ...metadata,
-      normalization: normalizedValue
-    } as Record<string, unknown>;
+    const nextMetadata = buildSingleSlotMemoryRefreshMetadata({
+      existingMetadata: sameValueRow.metadata ?? {},
+      incomingMetadata: metadata,
+      normalizedValue
+    });
 
     const { error: updateError } = await supabase
       .from("memory_items")
@@ -445,11 +448,11 @@ export async function upsertSingleSlotMemory({
       continue;
     }
 
-    const nextMetadata = {
-      ...(row.metadata ?? {}),
-      superseded_at: new Date().toISOString(),
-      superseded_by_source_message_id: sourceMessageId
-    } as Record<string, unknown>;
+    const nextMetadata = buildSingleSlotMemorySupersededMetadata({
+      existingMetadata: row.metadata ?? {},
+      supersededAt: new Date().toISOString(),
+      sourceMessageId
+    });
 
     const { error: supersedeError } = await supabase
       .from("memory_items")
@@ -489,10 +492,10 @@ export async function upsertSingleSlotMemory({
       sourceRefs: nextSourceRefs,
       lastConfirmedAt: new Date().toISOString()
     }),
-    metadata: {
-      ...metadata,
-      normalization: normalizedValue
-    }
+    metadata: buildSingleSlotMemoryInsertMetadata({
+      incomingMetadata: metadata,
+      normalizedValue
+    })
   });
 
   if (insertError) {

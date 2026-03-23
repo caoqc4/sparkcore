@@ -46,3 +46,37 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
     write_mode: args.writeMode ?? "upsert"
   };
 }
+
+export function buildSingleSlotMemoryRefreshMetadata(args: {
+  existingMetadata?: Record<string, unknown> | null;
+  incomingMetadata?: Record<string, unknown> | null;
+  normalizedValue: string;
+}) {
+  return {
+    ...(args.existingMetadata ?? {}),
+    ...(args.incomingMetadata ?? {}),
+    normalization: args.normalizedValue
+  };
+}
+
+export function buildSingleSlotMemorySupersededMetadata(args: {
+  existingMetadata?: Record<string, unknown> | null;
+  supersededAt: string;
+  sourceMessageId: string;
+}) {
+  return {
+    ...(args.existingMetadata ?? {}),
+    superseded_at: args.supersededAt,
+    superseded_by_source_message_id: args.sourceMessageId
+  };
+}
+
+export function buildSingleSlotMemoryInsertMetadata(args: {
+  incomingMetadata?: Record<string, unknown> | null;
+  normalizedValue: string;
+}) {
+  return {
+    ...(args.incomingMetadata ?? {}),
+    normalization: args.normalizedValue
+  };
+}
