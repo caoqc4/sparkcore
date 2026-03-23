@@ -4,11 +4,17 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AgentEditSheet } from "@/app/chat/agent-edit-sheet";
 import {
+  getAssistantHiddenMemoryExclusionCount,
   getAssistantMetadataBoolean,
   getAssistantExplanationMetadata,
+  getAssistantIncorrectMemoryExclusionCount,
+  getAssistantMemoryHitCount,
   getAssistantMemoryMetadata,
+  getAssistantMemoryTypesUsed,
+  getAssistantMemoryUsed,
   getAssistantMetadataNumber,
   getAssistantModelProfileMetadata,
+  getAssistantUnderlyingModelLabel,
   getPreferredAssistantMetadataBoolean,
   getPreferredAssistantMetadataNumber,
   getPreferredAssistantMetadataString,
@@ -228,71 +234,19 @@ function getRuntimeSummary(
     fallbackMetadata,
     "model_profile_usage_note"
   ) ?? getAssistantMetadataString(groupedModelProfile, "usage_note");
-  const underlyingModelLabel =
-    getPreferredAssistantMetadataString(
-      explanationMetadata,
-      fallbackMetadata,
-      "underlying_model_label"
-    ) ??
-    (typeof fallbackMetadata?.model === "string" && fallbackMetadata.model.trim().length > 0
-      ? fallbackMetadata.model
-      : null);
-  const memoryHitCount =
-    getPreferredAssistantMetadataNumber(
-      explanationMetadata,
-      fallbackMetadata,
-      "memory_hit_count"
-    ) ??
-    getAssistantMetadataNumber(groupedMemory ?? fallbackMetadata, "hit_count") ??
-    (Array.isArray(fallbackMetadata?.recalled_memories)
-      ? fallbackMetadata.recalled_memories.length
-      : null);
-  const memoryUsed =
-    getPreferredAssistantMetadataBoolean(
-      explanationMetadata,
-      fallbackMetadata,
-      "memory_used"
-    ) ??
-    getAssistantMetadataBoolean(groupedMemory ?? fallbackMetadata, "used") ??
-    (typeof memoryHitCount === "number"
-      ? memoryHitCount > 0
-      : null);
-  const memoryTypesUsed = getPreferredAssistantMetadataStringArray(
-    explanationMetadata,
-    fallbackMetadata,
-    "memory_types_used"
-  );
-  const normalizedMemoryTypesUsed =
-    memoryTypesUsed.length > 0
-      ? memoryTypesUsed
-      : getAssistantMetadataStringArray(groupedMemory ?? fallbackMetadata, "types_used");
+  const underlyingModelLabel = getAssistantUnderlyingModelLabel(fallbackMetadata);
+  const memoryHitCount = getAssistantMemoryHitCount(fallbackMetadata);
+  const memoryUsed = getAssistantMemoryUsed(fallbackMetadata);
+  const normalizedMemoryTypesUsed = getAssistantMemoryTypesUsed(fallbackMetadata);
   const memoryWriteTypes = getPreferredAssistantMetadataStringArray(
     explanationMetadata,
     fallbackMetadata,
     "memory_write_types"
   );
   const hiddenExclusionCount =
-    getPreferredAssistantMetadataNumber(
-      explanationMetadata,
-      fallbackMetadata,
-      "hidden_memory_exclusion_count"
-    ) ??
-    getAssistantMetadataNumber(
-      groupedMemory ?? fallbackMetadata,
-      "hidden_exclusion_count"
-    ) ??
-    0;
+    getAssistantHiddenMemoryExclusionCount(fallbackMetadata);
   const incorrectExclusionCount =
-    getPreferredAssistantMetadataNumber(
-      explanationMetadata,
-      fallbackMetadata,
-      "incorrect_memory_exclusion_count"
-    ) ??
-    getAssistantMetadataNumber(
-      groupedMemory ?? fallbackMetadata,
-      "incorrect_exclusion_count"
-    ) ??
-    0;
+    getAssistantIncorrectMemoryExclusionCount(fallbackMetadata);
   const newMemoryCount =
     getPreferredAssistantMetadataNumber(
       explanationMetadata,

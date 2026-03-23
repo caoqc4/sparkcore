@@ -135,3 +135,107 @@ export function getAssistantDetectedReplyLanguage(
     getAssistantMetadataString(metadata, "reply_language_detected")
   );
 }
+
+export function getAssistantUnderlyingModelLabel(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+
+  return (
+    getPreferredAssistantMetadataString(
+      explanationMetadata,
+      metadata,
+      "underlying_model_label"
+    ) ?? getAssistantMetadataString(metadata, "model")
+  );
+}
+
+export function getAssistantMemoryHitCount(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+  const memoryMetadata = getAssistantMemoryMetadata(metadata);
+
+  return (
+    getPreferredAssistantMetadataNumber(
+      explanationMetadata,
+      metadata,
+      "memory_hit_count"
+    ) ??
+    getAssistantMetadataNumber(memoryMetadata ?? metadata, "hit_count") ??
+    (Array.isArray(metadata?.recalled_memories)
+      ? metadata.recalled_memories.length
+      : null)
+  );
+}
+
+export function getAssistantMemoryUsed(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+  const memoryMetadata = getAssistantMemoryMetadata(metadata);
+  const memoryHitCount = getAssistantMemoryHitCount(metadata);
+
+  return (
+    getPreferredAssistantMetadataBoolean(
+      explanationMetadata,
+      metadata,
+      "memory_used"
+    ) ??
+    getAssistantMetadataBoolean(memoryMetadata ?? metadata, "used") ??
+    (typeof memoryHitCount === "number" ? memoryHitCount > 0 : null)
+  );
+}
+
+export function getAssistantMemoryTypesUsed(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+  const memoryMetadata = getAssistantMemoryMetadata(metadata);
+  const preferredTypes = getPreferredAssistantMetadataStringArray(
+    explanationMetadata,
+    metadata,
+    "memory_types_used"
+  );
+
+  return preferredTypes.length > 0
+    ? preferredTypes
+    : getAssistantMetadataStringArray(memoryMetadata ?? metadata, "types_used");
+}
+
+export function getAssistantHiddenMemoryExclusionCount(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+  const memoryMetadata = getAssistantMemoryMetadata(metadata);
+
+  return (
+    getPreferredAssistantMetadataNumber(
+      explanationMetadata,
+      metadata,
+      "hidden_memory_exclusion_count"
+    ) ??
+    getAssistantMetadataNumber(memoryMetadata ?? metadata, "hidden_exclusion_count") ??
+    0
+  );
+}
+
+export function getAssistantIncorrectMemoryExclusionCount(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+  const memoryMetadata = getAssistantMemoryMetadata(metadata);
+
+  return (
+    getPreferredAssistantMetadataNumber(
+      explanationMetadata,
+      metadata,
+      "incorrect_memory_exclusion_count"
+    ) ??
+    getAssistantMetadataNumber(
+      memoryMetadata ?? metadata,
+      "incorrect_exclusion_count"
+    ) ??
+    0
+  );
+}
