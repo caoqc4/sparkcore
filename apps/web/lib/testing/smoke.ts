@@ -2,11 +2,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { loadThreadMessages } from "@/lib/chat/message-read";
 import { loadRecentOwnedMemories } from "@/lib/chat/memory-item-read";
-import { insertMessage } from "@/lib/chat/message-persistence";
-import {
-  createOwnedThread,
-  loadOwnedActiveAgentByName,
-} from "@/lib/chat/runtime-turn-context";
+import { createOwnedThread, loadOwnedActiveAgentByName } from "@/lib/chat/runtime-turn-context";
 import { getSmokeModelProfiles } from "@/lib/testing/smoke-seed-persistence";
 import {
   ensureSmokeModelProfiles,
@@ -26,11 +22,8 @@ import {
   insertSmokeUserTurn,
   patchSmokeThreadAfterUserTurn
 } from "@/lib/testing/smoke-turn-persistence";
+import { buildSmokeSeedMetadata } from "@/lib/testing/smoke-seed-metadata";
 import {
-  buildSmokeSeedMetadata,
-} from "@/lib/testing/smoke-seed-metadata";
-import {
-  buildSmokeAssistantMetadata,
   buildSmokeRoleCorePacket,
   type SmokeAnswerQuestionType,
   type SmokeAnswerStrategy,
@@ -41,6 +34,7 @@ import {
   type SmokeReplyLanguageSource,
   type SmokeRoleCorePacket
 } from "@/lib/testing/smoke-assistant-builders";
+import { insertSmokeAssistantReply } from "@/lib/testing/smoke-assistant-persistence";
 import {
   detectSmokeNicknameCandidate,
   detectSmokeUserAddressStyleCandidate,
@@ -63,7 +57,7 @@ import {
   isMemoryActive,
   isMemoryHidden,
   isMemoryIncorrect,
-  isMemoryScopeValid,
+  isMemoryScopeValid
 } from "@/lib/chat/memory-v2";
 
 const SMOKE_MODEL_PROFILES = getSmokeModelProfiles();
@@ -2311,52 +2305,37 @@ export async function createSmokeTurn({
     preferSameThreadContinuation
   });
 
-  const { data: insertedAssistantMessage, error: insertedAssistantMessageError } =
-    await insertMessage({
-      supabase: admin,
-      threadId: thread.id,
-      workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id,
-      payload: {
-        role: "assistant",
-        content: assistantContent,
-        status: "completed",
-        metadata: buildSmokeAssistantMetadata({
-          agentId: ensuredAgent.id,
-          agentName: ensuredAgent.name,
-          roleCorePacket,
-          modelProfileId: modelProfile.id,
-          modelProfileName: modelProfile.name,
-          model: modelProfile.model,
-          replyLanguage,
-          replyLanguageDetected: detectSmokeReplyLanguage(assistantContent),
-          replyLanguageSource: replyLanguageDecision.source,
-          questionType: answerStrategyRule.questionType,
-          answerStrategy: answerStrategyRule.answerStrategy,
-          answerStrategyReasonCode: answerStrategyRule.reasonCode,
-          continuationReasonCode: answerStrategyRule.continuationReasonCode,
-          recentRawTurnCount,
-          approxContextPressure,
-          sameThreadContinuationApplicable,
-          longChainPressureCandidate,
-          sameThreadContinuationPreferred: preferSameThreadContinuation,
-          distantMemoryFallbackAllowed: !preferSameThreadContinuation,
-          recalledMemories,
-          usedMemoryTypes,
-          hiddenExclusionCount,
-          incorrectExclusionCount,
-          createdTypes
-        })
-      },
-      select: "id"
-    }).single();
-
-  if (insertedAssistantMessageError || !insertedAssistantMessage) {
-    throw new Error(
-      insertedAssistantMessageError?.message ??
-        "Failed to insert the smoke assistant reply."
-    );
-  }
+  const insertedAssistantMessage = await insertSmokeAssistantReply({
+    supabase: admin,
+    threadId: thread.id,
+    workspaceId: smokeUser.workspaceId,
+    userId: smokeUser.id,
+    agentId: ensuredAgent.id,
+    agentName: ensuredAgent.name,
+    roleCorePacket,
+    modelProfileId: modelProfile.id,
+    modelProfileName: modelProfile.name,
+    model: modelProfile.model,
+    assistantContent,
+    replyLanguage,
+    replyLanguageDetected: detectSmokeReplyLanguage(assistantContent),
+    replyLanguageSource: replyLanguageDecision.source,
+    questionType: answerStrategyRule.questionType,
+    answerStrategy: answerStrategyRule.answerStrategy,
+    answerStrategyReasonCode: answerStrategyRule.reasonCode,
+    continuationReasonCode: answerStrategyRule.continuationReasonCode,
+    recentRawTurnCount,
+    approxContextPressure,
+    sameThreadContinuationApplicable,
+    longChainPressureCandidate,
+    sameThreadContinuationPreferred: preferSameThreadContinuation,
+    distantMemoryFallbackAllowed: !preferSameThreadContinuation,
+    recalledMemories,
+    usedMemoryTypes,
+    hiddenExclusionCount,
+    incorrectExclusionCount,
+    createdTypes
+  });
 
   return {
     userMessageId: ensuredUserMessage.id,
