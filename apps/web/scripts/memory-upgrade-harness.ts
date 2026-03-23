@@ -45,7 +45,10 @@ import {
 } from "@/lib/chat/memory-write-metadata";
 import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 import { buildRuntimeMemoryWriteRequestMetadata } from "@/lib/chat/runtime-preview-metadata";
-import { buildCompactedThreadSummary } from "@/lib/chat/thread-compaction";
+import {
+  buildCompactedThreadSummary,
+  selectRetainedThreadCompactionSummary
+} from "@/lib/chat/thread-compaction";
 import {
   buildPlannedRelationshipMemoryRecord,
   buildPlannedStaticProfileRecord,
@@ -575,6 +578,28 @@ function main() {
     recentTurnCount: 4,
     latestUserMessage: "Help me finish onboarding."
   });
+  const droppedCompactedThreadSummary = selectRetainedThreadCompactionSummary({
+    compactedThreadSummary: buildCompactedThreadSummary({
+      threadState: {
+        thread_id: "thread-closed",
+        agent_id: "agent-1",
+        state_version: 1,
+        lifecycle_status: "closed",
+        continuity_status: null,
+        focus_mode: null,
+        current_language_hint: null,
+        recent_turn_window_size: null,
+        last_user_message_id: null,
+        updated_at: "2026-03-23T00:00:00.000Z"
+      },
+      recentTurnCount: 1,
+      latestUserMessage: null
+    })
+  });
+  expect(
+    droppedCompactedThreadSummary === null,
+    "Expected closed minimal thread compaction summary to be dropped by retention selection."
+  );
 
   const assistantMetadata = buildAssistantMessageMetadata(
     buildRuntimeAssistantMetadataInput({

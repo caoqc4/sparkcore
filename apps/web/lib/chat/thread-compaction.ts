@@ -104,6 +104,37 @@ export function buildCompactedThreadSummary(args: {
   };
 }
 
+export function shouldRetainCompactedThreadSummary(args: {
+  compactedThreadSummary: CompactedThreadSummary | null | undefined;
+}) {
+  const summary = args.compactedThreadSummary;
+
+  if (!summary) {
+    return false;
+  }
+
+  if (summary.retained_fields.length === 0) {
+    return false;
+  }
+
+  if (
+    summary.lifecycle_status === "closed" &&
+    summary.retention_mode === "minimal"
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+export function selectRetainedThreadCompactionSummary(args: {
+  compactedThreadSummary: CompactedThreadSummary | null | undefined;
+}) {
+  return shouldRetainCompactedThreadSummary(args)
+    ? (args.compactedThreadSummary ?? null)
+    : null;
+}
+
 export function buildThreadCompactionPromptSection(args: {
   compactedThreadSummary: CompactedThreadSummary | null;
   replyLanguage: RuntimeReplyLanguage;

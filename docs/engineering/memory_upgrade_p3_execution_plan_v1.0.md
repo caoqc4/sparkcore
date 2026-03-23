@@ -145,6 +145,18 @@ P3 首批要把 `Thread Compaction` 再往前推进一层，形成最小 retenti
 - runtime prompt / assistant metadata / debug metadata 当前也已开始承接这层 retention 结果，而不再只暴露一个压缩摘要文本
 - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` retention mode
 
+当前已成立的第二刀代码事实：
+
+- `apps/web/lib/chat/thread-compaction.ts` 当前已开始提供：
+  - `shouldRetainCompactedThreadSummary(...)`
+  - `selectRetainedThreadCompactionSummary(...)`
+  这层 keep/drop decision helper
+- `apps/web/lib/chat/runtime.ts` 当前也已开始在主路径里先走 retention selection，再决定 compaction summary 是否进入 prompt / metadata / debug
+- 当前最小规则已经成立：
+  - `closed + minimal`
+    的 thread compaction summary 会被主动丢弃
+- `memory-upgrade-harness.ts` 当前也已开始显式校验这条 keep/drop 行为
+
 ### 4.3 Knowledge scope materialization
 
 P3 首批要让 `Knowledge Layer` 更明确地区分：

@@ -35,6 +35,7 @@ import {
 } from "@/lib/chat/memory-namespace";
 import {
   buildCompactedThreadSummary,
+  selectRetainedThreadCompactionSummary,
   buildThreadCompactionPromptSection
 } from "@/lib/chat/thread-compaction";
 import {
@@ -3822,10 +3823,12 @@ export async function runPreparedRuntimeTurn({
   const memoryRecall = preparedRuntimeTurn.memory.runtime_memory_context.memoryRecall;
   const recalledProfileSnapshot =
     buildRecalledStaticProfileSnapshot(memoryRecall.memories);
-  const compactedThreadSummary = buildCompactedThreadSummary({
-    threadState: preparedRuntimeTurn.session.thread_state,
-    recentTurnCount: recentRawTurnCount,
-    latestUserMessage: latestUserMessageContent
+  const compactedThreadSummary = selectRetainedThreadCompactionSummary({
+    compactedThreadSummary: buildCompactedThreadSummary({
+      threadState: preparedRuntimeTurn.session.thread_state,
+      recentTurnCount: recentRawTurnCount,
+      latestUserMessage: latestUserMessageContent
+    })
   });
   const activeMemoryNamespace = resolveActiveMemoryNamespace({
     userId,

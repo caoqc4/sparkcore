@@ -159,6 +159,10 @@
   - `apps/web/lib/chat/thread-compaction.ts` 当前也已开始提供最小 retention strategy helper，并根据 `focus_mode / continuity_status / recent_turn_count` 推导最小 retention mode
   - runtime prompt / assistant metadata / debug metadata 当前也已开始承接这层 retention 结果，而不再只暴露压缩摘要文本
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` retention mode
+  - `apps/web/lib/chat/thread-compaction.ts` 当前也已开始提供 `shouldRetainCompactedThreadSummary(...) / selectRetainedThreadCompactionSummary(...)` 这层 keep/drop decision helper
+  - `apps/web/lib/chat/runtime.ts` 当前也已开始在主路径中先走 retention selection，再决定 compaction summary 是否进入 prompt / metadata / debug
+  - 当前最小规则已经成立：`closed + minimal` 的 thread compaction summary 会被主动丢弃
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验这条 keep/drop 行为
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
