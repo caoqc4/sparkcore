@@ -698,9 +698,10 @@ export async function executeMemoryWriteRequests({
   }
 
   for (const row of rowsToUpdate) {
-    const { error: updateError } = await supabase
-      .from("memory_items")
-      .update({
+    const { error: updateError } = await updateMemoryItem({
+      supabase,
+      memoryItemId: row.id,
+      patch: {
         content: row.content,
         confidence: row.confidence,
         agent_id: agentId,
@@ -716,8 +717,8 @@ export async function executeMemoryWriteRequests({
         source_refs: row.source_refs,
         metadata: row.metadata,
         updated_at: new Date().toISOString()
-      })
-      .eq("id", row.id);
+      }
+    });
 
     if (updateError) {
       throw new Error(`Failed to execute memory write requests: ${updateError.message}`);

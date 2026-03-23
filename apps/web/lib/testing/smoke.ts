@@ -6,7 +6,10 @@ import {
 import { NextResponse, type NextRequest } from "next/server";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
-import { insertMemoryItem } from "@/lib/chat/memory-item-persistence";
+import {
+  insertMemoryItem,
+  updateMemoryItem
+} from "@/lib/chat/memory-item-persistence";
 import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import {
   loadActiveModelProfileById,
@@ -3126,17 +3129,17 @@ export async function createSmokeTurn({
       .maybeSingle();
 
     if (existingMemory) {
-      await admin
-        .from("memory_items")
-        .update({
+      await updateMemoryItem({
+        supabase: admin,
+        memoryItemId: existingMemory.id,
+        patch: {
           status: "active",
           metadata: mergeSmokeSeedMetadata(
             (existingMemory.metadata ?? {}) as Record<string, unknown>
           ),
           updated_at: new Date().toISOString()
-        })
-        .eq("id", existingMemory.id)
-        .eq("user_id", smokeUser.id);
+        }
+      }).eq("user_id", smokeUser.id);
       return;
     }
 
