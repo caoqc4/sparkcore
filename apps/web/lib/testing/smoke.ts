@@ -89,6 +89,92 @@ type SmokeThread = {
   title: string;
 };
 
+async function upsertSmokeWorkspace(args: {
+  admin: SupabaseClient;
+  userId: string;
+  workspaceName: string;
+  workspaceSlug: string;
+}) {
+  return args.admin.from("workspaces").upsert(
+    {
+      owner_user_id: args.userId,
+      name: args.workspaceName,
+      slug: args.workspaceSlug,
+      kind: "personal"
+    },
+    {
+      onConflict: "slug"
+    }
+  );
+}
+
+async function upsertSmokeModelProfiles(admin: SupabaseClient) {
+  return admin.from("model_profiles").upsert([...SMOKE_MODEL_PROFILES], {
+    onConflict: "slug"
+  });
+}
+
+async function insertSmokeSeedAgents(args: {
+  admin: SupabaseClient;
+  user: SmokeUser;
+  sparkGuidePack: {
+    id: string;
+    slug: string;
+    description: string | null;
+    persona_summary: string;
+    style_prompt: string;
+    system_prompt: string;
+  };
+  memoryCoachPack: {
+    id: string;
+    slug: string;
+    description: string | null;
+    persona_summary: string;
+    style_prompt: string;
+    system_prompt: string;
+  };
+  defaultProfileId: string;
+  altProfileId: string;
+}) {
+  return args.admin.from("agents").insert([
+    {
+      workspace_id: args.user.workspaceId,
+      owner_user_id: args.user.id,
+      source_persona_pack_id: args.sparkGuidePack.id,
+      name: "Smoke Guide",
+      persona_summary: args.sparkGuidePack.persona_summary,
+      style_prompt: args.sparkGuidePack.style_prompt,
+      system_prompt: args.sparkGuidePack.system_prompt,
+      default_model_profile_id: args.defaultProfileId,
+      is_custom: false,
+      status: "active",
+      metadata: buildAgentSourceMetadata({
+        smokeSeed: true,
+        sourceSlug: args.sparkGuidePack.slug,
+        sourceDescription: args.sparkGuidePack.description,
+        isDefaultForWorkspace: true
+      })
+    },
+    {
+      workspace_id: args.user.workspaceId,
+      owner_user_id: args.user.id,
+      source_persona_pack_id: args.memoryCoachPack.id,
+      name: "Smoke Memory Coach",
+      persona_summary: args.memoryCoachPack.persona_summary,
+      style_prompt: args.memoryCoachPack.style_prompt,
+      system_prompt: args.memoryCoachPack.system_prompt,
+      default_model_profile_id: args.altProfileId,
+      is_custom: false,
+      status: "active",
+      metadata: buildAgentSourceMetadata({
+        smokeSeed: true,
+        sourceSlug: args.memoryCoachPack.slug,
+        sourceDescription: args.memoryCoachPack.description
+      })
+    }
+  ]);
+}
+
 function buildSmokeSeedMetadata(fields?: Record<string, unknown>) {
   return {
     smoke_seed: true,
@@ -542,17 +628,12 @@ async function ensureSmokeUser(
     throw new Error(`Failed to upsert the smoke profile: ${userUpsertError.message}`);
   }
 
-  const { error: workspaceUpsertError } = await admin.from("workspaces").upsert(
-    {
-      owner_user_id: ensuredUser.id,
-      name: workspaceName,
-      slug: workspaceSlug,
-      kind: "personal"
-    },
-    {
-      onConflict: "slug"
-    }
-  );
+  const { error: workspaceUpsertError } = await upsertSmokeWorkspace({
+    admin,
+    userId: ensuredUser.id,
+    workspaceName,
+    workspaceSlug
+  });
 
   if (workspaceUpsertError) {
     throw new Error(
@@ -580,11 +661,7 @@ async function ensureSmokeUser(
 }
 
 async function ensureSmokeModelProfiles(admin: SupabaseClient) {
-  const { error: upsertError } = await admin
-    .from("model_profiles")
-    .upsert([...SMOKE_MODEL_PROFILES], {
-      onConflict: "slug"
-    });
+  const { error: upsertError } = await upsertSmokeModelProfiles(admin);
 
   if (upsertError) {
     throw new Error(
@@ -684,43 +761,14 @@ async function seedSmokeAgents(
     throw new Error("Smoke seed dependencies are incomplete.");
   }
 
-  const { error: insertAgentsError } = await admin.from("agents").insert([
-    {
-      workspace_id: user.workspaceId,
-      owner_user_id: user.id,
-      source_persona_pack_id: sparkGuidePack.id,
-      name: "Smoke Guide",
-      persona_summary: sparkGuidePack.persona_summary,
-      style_prompt: sparkGuidePack.style_prompt,
-      system_prompt: sparkGuidePack.system_prompt,
-      default_model_profile_id: defaultProfile.id,
-      is_custom: false,
-      status: "active",
-      metadata: buildAgentSourceMetadata({
-        smokeSeed: true,
-        sourceSlug: sparkGuidePack.slug,
-        sourceDescription: sparkGuidePack.description,
-        isDefaultForWorkspace: true
-      })
-    },
-    {
-      workspace_id: user.workspaceId,
-      owner_user_id: user.id,
-      source_persona_pack_id: memoryCoachPack.id,
-      name: "Smoke Memory Coach",
-      persona_summary: memoryCoachPack.persona_summary,
-      style_prompt: memoryCoachPack.style_prompt,
-      system_prompt: memoryCoachPack.system_prompt,
-      default_model_profile_id: altProfile.id,
-      is_custom: false,
-      status: "active",
-      metadata: buildAgentSourceMetadata({
-        smokeSeed: true,
-        sourceSlug: memoryCoachPack.slug,
-        sourceDescription: memoryCoachPack.description
-      })
-    }
-  ]);
+  const { error: insertAgentsError } = await insertSmokeSeedAgents({
+    admin,
+    user,
+    sparkGuidePack,
+    memoryCoachPack,
+    defaultProfileId: defaultProfile.id,
+    altProfileId: altProfile.id
+  });
 
   if (insertAgentsError) {
     throw new Error(`Failed to seed smoke agents: ${insertAgentsError.message}`);
