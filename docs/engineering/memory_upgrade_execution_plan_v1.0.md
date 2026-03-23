@@ -173,6 +173,8 @@ P0 只做一件事：
 当前代码事实：
 
 - `apps/web/lib/chat/memory-write.ts` 已开始对 planner request 做首版 `record_target` 分类
+- `apps/web/lib/chat/memory-write-targets.ts` 已开始承接统一 target resolution
+- `apps/web/lib/chat/memory-write-rows.ts` 已开始承接 generic memory 的 insert / update row 组装
 - 当前最小分类为：
   - `static_profile`
   - `memory_record`
@@ -194,6 +196,7 @@ P0 只做一件事：
 
 - `apps/web/lib/chat/memory-recall.ts` 已新增 `MemoryRecallRoute`
 - `RecallOutcome` 已开始显式暴露 `appliedRoutes`
+- `memory_write_planned` runtime event 当前也已开始显式暴露 `record_targets`
 - 当前已正式收口的 route name 包括：
   - `profile`
   - `episode`
@@ -211,6 +214,7 @@ P0 只做一件事：
 
 - `prepareRuntimeMemory(...)` 已开始接收 `threadState`
 - runtime memory context 已开始携带最小 `threadStateRecall`
+- runtime preview metadata 当前也已开始显式暴露 memory write `record_targets`
 - 当前已注入的最小 thread state 摘要包括：
   - `lifecycle_status`
   - `focus_mode`
@@ -486,6 +490,7 @@ P0 允许有限双写，但要克制：
 当前代码事实：
 
 - 写入链已开始显式暴露 `record_target`
+- 写入链当前也已开始把 generic memory row 组装收成共用 builder
 - 首批分类已覆盖：
   - `static_profile`
   - `memory_record`
@@ -505,6 +510,7 @@ P0 允许有限双写，但要克制：
 
 - 检索链已开始显式暴露 `appliedRoutes`
 - `thread_state` 已进入 runtime memory preparation
+- `memory_write_planned` 已能同步暴露最小 `record_targets`
 
 #### 注入与输出层
 
@@ -519,6 +525,7 @@ P0 允许有限双写，但要克制：
 当前代码事实：
 
 - `debug_metadata.session.thread_state` 已能看到最小 thread state recall 摘要
+- runtime preview metadata 已能看到 memory write `record_targets`
 
 ### 8.2 首批暂不直接改的大模块
 
@@ -559,6 +566,7 @@ P0 最小要求：
 当前代码现实已经进入步骤 2：
 
 - planner request -> `record_target` classification 已成立
+- generic memory insert / update row builder 已成立
 - 下一步应继续把：
   - `canonical type`
   - `scope`

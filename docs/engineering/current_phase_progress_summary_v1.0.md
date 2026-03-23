@@ -82,6 +82,8 @@
   - `static_profile`
   - `memory_record`
   - `thread_state_candidate`
+- `memory-write-targets.ts` 已开始承接统一 target resolution
+- `memory-write-rows.ts` 已开始承接 generic memory insert / update row 组装
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 
 这意味着：
@@ -127,6 +129,7 @@
 - `follow_up_requests` 已有最小 planner output
 - `runtime_events` 已有第一版标准事件类型
 - `memory recall` 当前也已开始显式暴露 `appliedRoutes`
+- `memory_write_planned` 当前也已开始显式暴露 `record_targets`
 - `runtime` 输出治理也已开始进入文档收口阶段，当前已开始明确：
   - `runtime_events` 负责“本轮发生了什么标准过程”
   - `debug_metadata` 负责“这轮为什么这样、有哪些最小调试摘要”
@@ -199,6 +202,7 @@
   - 写出面开始共用 builder
   - 读取面开始共用 grouped + fallback helper
   - preview metadata 也开始共用更新路径
+- `runtime preview metadata` 当前也已开始显式暴露 memory write `record_targets`
 - `smoke` 这条测试 harness 线当前也已不再是少数超长文件混合：
   - turn orchestration
   - prompt routing
@@ -220,6 +224,11 @@
   - chat 侧 `StoredMemory -> record` adapter 已出现
   - recall route 已开始从单 helper 走向 `profile / thread_state` 的显式分流
   - `thread_state` 已不只存在于 session 读取链，也已进入 runtime memory preparation 与 debug 可见性
+  - write target 语义已开始同时进入：
+    - planner classification
+    - commit 前 row builder
+    - runtime preview metadata
+    - `memory_write_planned` runtime event
 - 当前 runtime 主线的下一阶段优先级也已前移成：
   - 先治理输出层
   - 再决定是否继续细拆 execution
