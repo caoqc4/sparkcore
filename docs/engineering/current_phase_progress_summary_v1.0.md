@@ -76,6 +76,7 @@
 - `StoredMemory -> MemoryRecord / StaticProfileRecord` 的最小 adapter 已出现
 - `StoredMemory -> semantic target` 的最小 classifier 也已开始进入 `apps/web/lib/chat/memory-records.ts`
 - 该 classifier 当前也已开始进入 profile / relationship recall 过滤
+- chat memory preview 当前也已开始暴露 semantic target，可直接观察当前 legacy row 的新语义归属
 - `memory.ts` 已退成兼容入口
 - `profile / preference` 已形成 planner -> executor 最小闭环
 - `relationship memory` 已收进 `memory_write_requests` 的显式 subtype

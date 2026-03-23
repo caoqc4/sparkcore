@@ -161,6 +161,7 @@ P0 只做一件事：
 - `StaticProfileRecord` 已开始接住 legacy `profile / preference` 语义
 - `DynamicProfileRecord` 当前仍保持克制，不直接承接 legacy `goal`
 - 该 classifier 当前也已开始进入 profile / relationship recall 过滤，而不再只停留在 adapter 层
+- chat memory preview 当前也已开始暴露 legacy semantic target，可直接观察每条 memory 当前被映射到哪一层
 
 ### 4.2 最小写入闭环
 

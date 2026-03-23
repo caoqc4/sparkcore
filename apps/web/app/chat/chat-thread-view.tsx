@@ -84,6 +84,7 @@ type ChatThreadViewProps = {
       content: string;
       categoryLabel: string;
       scopeLabel: string;
+      semanticTargetLabel: string;
     }>;
     threadLocalCount: number;
     hiddenCount: number;
@@ -799,6 +800,9 @@ export function ChatThreadView({
                               <span className="thread-badge">{memory.categoryLabel}</span>
                               <span className="thread-badge thread-badge-muted">
                                 {memory.scopeLabel}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {memory.semanticTargetLabel}
                               </span>
                             </div>
                             <p className="thread-memory-preview-content">

@@ -16,6 +16,7 @@ import { CreateAgentSheet } from "@/app/chat/create-agent-sheet";
 import { AgentEditSheet } from "@/app/chat/agent-edit-sheet";
 import { LanguageSwitch } from "@/app/chat/language-switch";
 import { ThreadUrlSync } from "@/app/chat/thread-url-sync";
+import { classifyStoredMemorySemanticTarget } from "@/lib/chat/memory-records";
 import { getChatPageState } from "@/lib/chat/runtime";
 import {
   CHAT_UI_LANGUAGE_COOKIE,
@@ -109,6 +110,24 @@ function getMemoryStatusLabel(status: string, locale: "en" | "zh-CN") {
 
 function isThreadLocalMemory(scope: string) {
   return scope === "thread_local";
+}
+
+function getMemorySemanticTargetLabel(
+  target: ReturnType<typeof classifyStoredMemorySemanticTarget>,
+  locale: "en" | "zh-CN"
+) {
+  const isZh = locale === "zh-CN";
+
+  switch (target) {
+    case "static_profile":
+      return isZh ? "静态画像" : "static profile";
+    case "memory_record":
+      return isZh ? "记忆记录" : "memory record";
+    case "thread_state_candidate":
+      return isZh ? "线程状态候选" : "thread state";
+    default:
+      return isZh ? "未分类" : "unclassified";
+  }
 }
 
 function getMemoryTrustHint({
@@ -457,7 +476,11 @@ export default async function ChatPage({
         id: memory.id,
         content: memory.content,
         categoryLabel: getMemoryCategoryLabel(memory.category, locale),
-        scopeLabel: getMemoryScopeLabel(memory.scope, locale)
+        scopeLabel: getMemoryScopeLabel(memory.scope, locale),
+        semanticTargetLabel: getMemorySemanticTargetLabel(
+          classifyStoredMemorySemanticTarget(memory),
+          locale
+        )
       })),
     threadLocalCount: visibleThreadLocalMemories.length,
     hiddenCount: hiddenMemories.length,
