@@ -12,6 +12,7 @@ import {
 } from "@/lib/chat/memory-v2";
 import { buildRuntimeAssistantPayload } from "@/lib/chat/assistant-message-payload";
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
+import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildRuntimeDebugMetadata } from "@/lib/chat/runtime-debug-metadata";
 import {
@@ -3532,64 +3533,83 @@ export async function runPreparedRuntimeTurn({
 
   const assistantPayload = buildRuntimeAssistantPayload({
     content: result.content,
-    metadata: {
-      agent_id: agent.id,
-      agent_name: agent.name,
-      model: result.model ?? null,
-      model_provider: modelProfile.provider,
-      model_requested: modelProfile.model,
-      model_profile_id: modelProfile.id,
-      model_profile_name: modelProfile.name,
-      model_profile_tier_label:
-        typeof modelProfile.metadata?.tier_label === "string"
-          ? modelProfile.metadata.tier_label
-          : null,
-      model_profile_usage_note:
-        typeof modelProfile.metadata?.usage_note === "string"
-          ? modelProfile.metadata.usage_note
-          : null,
-      underlying_model_label:
-        getUnderlyingModelFromMetadata(modelProfile.metadata) ??
-        `${modelProfile.provider}/${result.model ?? modelProfile.model}`,
-      role_core_packet: preparedRuntimeTurn.role.role_core,
-      runtime_input: preparedRuntimeTurn.input,
-      session_thread_id: preparedRuntimeTurn.session.thread_id,
-      session_agent_id: preparedRuntimeTurn.session.agent_id,
-      current_message_id: preparedRuntimeTurn.session.current_message_id,
-      recent_raw_turn_count: preparedRuntimeTurn.session.recent_raw_turn_count,
-      approx_context_pressure: preparedRuntimeTurn.session.approx_context_pressure,
-      reply_language_target: replyLanguage,
-      reply_language_detected: detectReplyLanguageFromText(result.content),
-      reply_language_source: replyLanguageDecision.source,
-      question_type: answerQuestionType,
-      answer_strategy: answerStrategy,
-      answer_strategy_reason_code: answerStrategyReasonCode,
-      answer_strategy_priority: answerStrategyPriority,
-      answer_strategy_priority_label: getAnswerStrategyPriorityLabel(
-        answerStrategyPriority,
-        replyLanguage === "zh-Hans"
-      ),
-      continuation_reason_code: continuationReasonCode,
-      same_thread_continuation_applicable: sameThreadContinuationApplicable,
-      long_chain_pressure_candidate: longChainPressureCandidate,
-      same_thread_continuation_preferred: preferSameThreadContinuation,
-      distant_memory_fallback_allowed: !preferSameThreadContinuation,
-      recalled_memories: allRecalledMemories.map((memory) => ({
-        memory_type: memory.memory_type,
-        content: memory.content,
-        confidence: memory.confidence
-      })),
-      memory_hit_count: allRecalledMemories.length,
-      memory_used: allRecalledMemories.length > 0,
-      memory_types_used: relationshipMemories.length > 0
-        ? Array.from(
-            new Set([...memoryRecall.usedMemoryTypes, "relationship" as const])
-          )
-        : memoryRecall.usedMemoryTypes,
-      hidden_memory_exclusion_count: memoryRecall.hiddenExclusionCount,
-      incorrect_memory_exclusion_count: memoryRecall.incorrectExclusionCount,
-      follow_up_request_count: followUpRequests.length
-    }
+    metadata: buildRuntimeAssistantMetadataInput({
+      agent: {
+        id: agent.id,
+        name: agent.name
+      },
+      model: {
+        result_model: result.model ?? null,
+        provider: modelProfile.provider,
+        requested: modelProfile.model,
+        profile_id: modelProfile.id,
+        profile_name: modelProfile.name,
+        profile_tier_label:
+          typeof modelProfile.metadata?.tier_label === "string"
+            ? modelProfile.metadata.tier_label
+            : null,
+        profile_usage_note:
+          typeof modelProfile.metadata?.usage_note === "string"
+            ? modelProfile.metadata.usage_note
+            : null,
+        underlying_label:
+          getUnderlyingModelFromMetadata(modelProfile.metadata) ??
+          `${modelProfile.provider}/${result.model ?? modelProfile.model}`
+      },
+      runtime: {
+        role_core_packet: preparedRuntimeTurn.role.role_core,
+        runtime_input: preparedRuntimeTurn.input,
+        session_thread_id: preparedRuntimeTurn.session.thread_id,
+        session_agent_id: preparedRuntimeTurn.session.agent_id,
+        current_message_id: preparedRuntimeTurn.session.current_message_id,
+        recent_raw_turn_count: preparedRuntimeTurn.session.recent_raw_turn_count,
+        approx_context_pressure:
+          preparedRuntimeTurn.session.approx_context_pressure
+      },
+      reply_language: {
+        target: replyLanguage,
+        detected: detectReplyLanguageFromText(result.content),
+        source: replyLanguageDecision.source
+      },
+      answer: {
+        question_type: answerQuestionType,
+        strategy: answerStrategy,
+        strategy_reason_code: answerStrategyReasonCode,
+        strategy_priority: answerStrategyPriority,
+        strategy_priority_label: getAnswerStrategyPriorityLabel(
+          answerStrategyPriority,
+          replyLanguage === "zh-Hans"
+        )
+      },
+      session: {
+        continuation_reason_code: continuationReasonCode,
+        same_thread_continuation_applicable:
+          sameThreadContinuationApplicable,
+        long_chain_pressure_candidate: longChainPressureCandidate,
+        same_thread_continuation_preferred: preferSameThreadContinuation,
+        distant_memory_fallback_allowed: !preferSameThreadContinuation
+      },
+      memory: {
+        recalled_memories: allRecalledMemories.map((memory) => ({
+          memory_type: memory.memory_type,
+          content: memory.content,
+          confidence: memory.confidence
+        })),
+        hit_count: allRecalledMemories.length,
+        used: allRecalledMemories.length > 0,
+        types_used:
+          relationshipMemories.length > 0
+            ? Array.from(
+                new Set([...memoryRecall.usedMemoryTypes, "relationship" as const])
+              )
+            : memoryRecall.usedMemoryTypes,
+        hidden_exclusion_count: memoryRecall.hiddenExclusionCount,
+        incorrect_exclusion_count: memoryRecall.incorrectExclusionCount
+      },
+      follow_up: {
+        request_count: followUpRequests.length
+      }
+    })
   });
 
   const { error } = assistant_message_id
