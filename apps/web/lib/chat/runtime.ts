@@ -21,6 +21,7 @@ import {
   loadActivePersonaPackBySlug,
   loadActivePersonaPacks,
   bindOwnedThreadAgent,
+  createOwnedAgent,
   createOwnedThread,
   loadFirstActiveModelProfile,
   loadFirstActivePersonaPack,
@@ -2468,25 +2469,23 @@ export async function resolveAgentForWorkspace({
   const personaPack = await getDefaultPersonaPack(supabase);
   const defaultModelProfile = await getDefaultModelProfile(supabase);
 
-  const { data: createdAgent, error } = await supabase
-    .from("agents")
-    .insert({
-      workspace_id: workspaceId,
-      owner_user_id: userId,
-      source_persona_pack_id: personaPack.id,
-      name: personaPack.name,
-      persona_summary: personaPack.persona_summary,
-      style_prompt: personaPack.style_prompt,
-      system_prompt: personaPack.system_prompt,
-      default_model_profile_id: defaultModelProfile.id,
-      is_custom: false,
-      metadata: buildAgentSourceMetadata({
-        autoCreated: true,
-        sourceSlug: personaPack.slug
-      })
-    })
-    .select(ROLE_PROFILE_SELECT)
-    .single();
+  const { data: createdAgent, error } = await createOwnedAgent({
+    supabase,
+    workspaceId,
+    userId,
+    sourcePersonaPackId: personaPack.id,
+    name: personaPack.name,
+    personaSummary: personaPack.persona_summary,
+    stylePrompt: personaPack.style_prompt,
+    systemPrompt: personaPack.system_prompt,
+    defaultModelProfileId: defaultModelProfile.id,
+    isCustom: false,
+    metadata: buildAgentSourceMetadata({
+      autoCreated: true,
+      sourceSlug: personaPack.slug
+    }),
+    select: ROLE_PROFILE_SELECT
+  });
 
   if (error || !createdAgent) {
     throw new Error(

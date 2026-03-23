@@ -98,6 +98,38 @@ export async function loadOwnedActiveAgent(args: {
     .maybeSingle();
 }
 
+export async function createOwnedAgent(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+  sourcePersonaPackId: string;
+  name: string;
+  personaSummary: string;
+  stylePrompt: string;
+  systemPrompt: string;
+  defaultModelProfileId: string;
+  isCustom?: boolean;
+  metadata?: Record<string, unknown>;
+  select?: string;
+}) {
+  return args.supabase
+    .from("agents")
+    .insert({
+      workspace_id: args.workspaceId,
+      owner_user_id: args.userId,
+      source_persona_pack_id: args.sourcePersonaPackId,
+      name: args.name,
+      persona_summary: args.personaSummary,
+      style_prompt: args.stylePrompt,
+      system_prompt: args.systemPrompt,
+      default_model_profile_id: args.defaultModelProfileId,
+      is_custom: args.isCustom ?? false,
+      ...(args.metadata ? { metadata: args.metadata } : {})
+    })
+    .select(args.select ?? AGENT_SELECT)
+    .single();
+}
+
 export async function createOwnedThread(args: {
   supabase: any;
   workspaceId: string;
