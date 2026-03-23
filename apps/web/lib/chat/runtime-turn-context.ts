@@ -266,6 +266,19 @@ export async function loadActivePersonaPacks(args: {
     .order("created_at", { ascending: true });
 }
 
+export async function loadActivePersonaPacksBySlugs(args: {
+  supabase: any;
+  slugs: string[];
+}) {
+  return args.supabase
+    .from("persona_packs")
+    .select(
+      "id, slug, name, description, persona_summary, style_prompt, system_prompt, metadata"
+    )
+    .in("slug", args.slugs)
+    .eq("is_active", true);
+}
+
 export async function loadActivePersonaPackBySlug(args: {
   supabase: any;
   slug: string;
@@ -339,6 +352,17 @@ export async function loadActiveModelProfiles(args: {
     .select("id, name, provider, model, metadata")
     .eq("is_active", true)
     .order("created_at", { ascending: true });
+}
+
+export async function loadActiveModelProfilesBySlugs(args: {
+  supabase: any;
+  slugs: string[];
+}) {
+  return args.supabase
+    .from("model_profiles")
+    .select("id, slug, name, provider, model, metadata")
+    .in("slug", args.slugs)
+    .eq("is_active", true);
 }
 
 export async function loadActiveModelProfileBySlug(args: {

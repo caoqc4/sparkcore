@@ -8,6 +8,9 @@ import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
 import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import {
+  loadActiveModelProfileById,
+  loadActiveModelProfilesBySlugs,
+  loadActivePersonaPacksBySlugs,
   createOwnedThread,
   loadOwnedActiveAgent,
   loadOwnedActiveAgentByName,
@@ -589,14 +592,10 @@ async function ensureSmokeModelProfiles(admin: SupabaseClient) {
     );
   }
 
-  const { data: profiles, error: profilesError } = await admin
-    .from("model_profiles")
-    .select("id, slug, name")
-    .in(
-      "slug",
-      SMOKE_MODEL_PROFILES.map((profile) => profile.slug)
-    )
-    .eq("is_active", true);
+  const { data: profiles, error: profilesError } = await loadActiveModelProfilesBySlugs({
+    supabase: admin,
+    slugs: SMOKE_MODEL_PROFILES.map((profile) => profile.slug)
+  });
 
   if (profilesError || !profiles) {
     throw new Error(
@@ -650,13 +649,10 @@ async function seedSmokeAgents(
   user: SmokeUser,
   modelProfiles: Array<{ id: string; slug: string; name: string }>
 ) {
-  const { data: personaPacks, error: personaPacksError } = await admin
-    .from("persona_packs")
-    .select(
-      "id, slug, name, persona_summary, style_prompt, system_prompt, description"
-    )
-    .in("slug", ["spark-guide", "memory-coach"])
-    .eq("is_active", true);
+  const { data: personaPacks, error: personaPacksError } = await loadActivePersonaPacksBySlugs({
+    supabase: admin,
+    slugs: ["spark-guide", "memory-coach"]
+  });
 
   if (personaPacksError || !personaPacks || personaPacks.length < 2) {
     throw new Error(
@@ -665,8 +661,20 @@ async function seedSmokeAgents(
     );
   }
 
-  const sparkGuidePack = personaPacks.find((pack) => pack.slug === "spark-guide");
-  const memoryCoachPack = personaPacks.find(
+  const activePersonaPacks = personaPacks as Array<{
+    id: string;
+    slug: string;
+    name: string;
+    description: string | null;
+    persona_summary: string;
+    style_prompt: string;
+    system_prompt: string;
+  }>;
+
+  const sparkGuidePack = activePersonaPacks.find(
+    (pack) => pack.slug === "spark-guide"
+  );
+  const memoryCoachPack = activePersonaPacks.find(
     (pack) => pack.slug === "memory-coach"
   );
   const defaultProfile = modelProfiles.find((profile) => profile.slug === "spark-default");
@@ -2814,12 +2822,11 @@ export async function createSmokeTurn({
 
   const ensuredAgent = agent;
 
-  const { data: modelProfile, error: modelProfileError } = await admin
-    .from("model_profiles")
-    .select("id, name, model")
-    .eq("id", ensuredAgent.default_model_profile_id)
-    .eq("is_active", true)
-    .maybeSingle();
+  const { data: modelProfile, error: modelProfileError } =
+    await loadActiveModelProfileById({
+      supabase: admin,
+      modelProfileId: ensuredAgent.default_model_profile_id
+    });
 
   if (modelProfileError || !modelProfile) {
     throw new Error(
