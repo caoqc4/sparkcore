@@ -56,6 +56,38 @@ export function buildRuntimeTurnInput(args: {
   };
 }
 
+export function buildWebRuntimeTurnInput(args: {
+  userId: string;
+  agentId: string;
+  threadId: string;
+  workspaceId?: string | null;
+  content: string;
+  messageId?: string | null;
+  timestamp?: string;
+  baseMetadata?: Record<string, unknown> | null;
+  trigger: "chat_send" | "retry_assistant_reply";
+  triggerKind?: string | null;
+}): RuntimeTurnInput {
+  return buildRuntimeTurnInput({
+    userId: args.userId,
+    agentId: args.agentId,
+    threadId: args.threadId,
+    workspaceId: args.workspaceId,
+    content: args.content,
+    source: "web",
+    timestamp: args.timestamp,
+    messageId: args.messageId ?? null,
+    metadata: {
+      ...(args.baseMetadata ?? {}),
+      trigger: args.trigger
+    },
+    context: {
+      source_platform: "web",
+      ...(args.triggerKind ? { trigger_kind: args.triggerKind } : {})
+    }
+  });
+}
+
 export function buildRuntimeTurnInputFromAdapterInput(args: {
   input: AdapterRuntimeInput;
   workspaceId?: string | null;

@@ -11,7 +11,10 @@ import {
   normalizeSingleSlotValue
 } from "@/lib/chat/memory-v2";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
-import { buildRuntimeTurnInput } from "@/lib/chat/runtime-input";
+import {
+  buildRuntimeTurnInput,
+  buildWebRuntimeTurnInput
+} from "@/lib/chat/runtime-input";
 import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
@@ -1134,20 +1137,14 @@ export async function sendMessage(
   }
 
   try {
-    const runtimeTurnInput = buildRuntimeTurnInput({
+    const runtimeTurnInput = buildWebRuntimeTurnInput({
       userId: user.id,
       agentId: thread.agent_id,
       threadId: thread.id,
       workspaceId: workspace.id,
       content: trimmedContent,
-      source: "web",
       messageId: insertedMessage.id,
-      metadata: {
-        trigger: "chat_send"
-      },
-      context: {
-        source_platform: "web"
-      }
+      trigger: "chat_send"
     });
 
     try {
@@ -1497,23 +1494,17 @@ export async function retryAssistantReply(
     .eq("user_id", user.id);
 
   try {
-    const runtimeTurnInput = buildRuntimeTurnInput({
+    const runtimeTurnInput = buildWebRuntimeTurnInput({
       userId: user.id,
       agentId: thread.agent_id,
       threadId: thread.id,
       workspaceId: workspace.id,
       content: latestUserMessage.content,
-      source: "web",
       timestamp: latestUserMessage.created_at,
       messageId: latestUserMessage.id,
-      metadata: {
-        ...(latestUserMessage.metadata ?? {}),
-        trigger: "retry_assistant_reply"
-      },
-      context: {
-        source_platform: "web",
-        trigger_kind: "retry"
-      }
+      baseMetadata: latestUserMessage.metadata,
+      trigger: "retry_assistant_reply",
+      triggerKind: "retry"
     });
 
     const runtimeTurnResult = await runAgentTurn({
