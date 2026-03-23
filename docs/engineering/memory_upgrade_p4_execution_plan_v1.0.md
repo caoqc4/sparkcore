@@ -287,6 +287,16 @@ P4 首批要把 gate 继续扩大到：
 - 只存在于 metadata
 - 只存在于文档
 
+当前已成立的第一版 gate：
+
+- `memory-upgrade-harness.ts` 当前已开始显式产出 `p4_regression_gate`
+- 当前第一版 `P4` gate 已开始锁：
+  - `namespace_boundary_v2_ok`
+  - `retention_budget_v2_ok`
+  - `knowledge_route_influence_v2_ok`
+  - `scenario_pack_consumption_v2_ok`
+- 也就是说，`P4-1 ~ P4-4` 当前已不再只是分散断言，而开始有一组阶段级聚合 gate
+
 ---
 
 ## 5. P4 明确不做的事项

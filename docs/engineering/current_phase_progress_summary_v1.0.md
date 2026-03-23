@@ -323,6 +323,14 @@
   - `memory-upgrade-harness.ts` 当前也已开始显式校验：
     - `project_ops` 下只有 `RM1`
     - `companion` 下允许出现 `RM2`
+- `P4-5 regression / acceptance expansion` 当前也已开始进入真实实现：
+  - `memory-upgrade-harness.ts` 当前已开始显式产出 `p4_regression_gate`
+  - 当前第一版 `P4` gate 已开始锁：
+    - `namespace_boundary_v2_ok`
+    - `retention_budget_v2_ok`
+    - `knowledge_route_influence_v2_ok`
+    - `scenario_pack_consumption_v2_ok`
+  - 也就是说，`P4-1 ~ P4-4` 当前已不再只是分散断言，而开始有一组阶段级聚合 gate
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

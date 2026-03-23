@@ -1541,6 +1541,36 @@ function main() {
               "project_ops" &&
             systemPrompt.includes("Active Scenario Memory Pack: project_ops")
         },
+        p4_regression_gate: {
+          namespace_boundary_v2_ok:
+            threadBoundary.timeline_budget === 0 &&
+            Array.isArray(threadScopedRoutes) &&
+            threadScopedRoutes.join(",") ===
+              "thread_state,profile,episode" &&
+            runtimeWritePreview.runtime_memory_write_boundaries?.includes(
+              "project"
+            ) === true,
+          retention_budget_v2_ok:
+            runtimeDebugMetadata.thread_compaction?.retention_budget === 2 &&
+            runtimeDebugMetadata.thread_compaction?.retained_fields?.join(
+              ","
+            ) === "focus_mode,continuity_status" &&
+            !getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+              "Language hint: en."
+            ),
+          knowledge_route_influence_v2_ok:
+            scenarioMemoryPack.knowledge_priority_layer === "project" &&
+            scenarioMemoryPack.assembly_emphasis === "knowledge_first" &&
+            scenarioMemoryPack.route_influence_reason ===
+              "project_namespace_bias" &&
+            systemPrompt.includes(
+              "Current route influence reason: project_namespace_bias."
+            ),
+          scenario_pack_consumption_v2_ok:
+            systemPrompt.includes("RM1:") &&
+            !systemPrompt.includes("RM2:") &&
+            companionSystemPrompt.includes("RM2:")
+        },
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
             "When episode memory is present"
