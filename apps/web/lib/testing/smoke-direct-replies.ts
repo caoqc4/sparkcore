@@ -2,17 +2,14 @@ import type {
   SmokeAnswerStrategy,
   SmokeReplyLanguage
 } from "@/lib/testing/smoke-assistant-builders";
+import { buildSmokeIntroReply } from "@/lib/testing/smoke-intro-replies";
 import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 import {
-  isSmokeBriefGreetingRequest,
-  isSmokeDirectNamingQuestion,
   isSmokeDirectPlanningPreferenceQuestion,
   isSmokeDirectProfessionQuestion,
   isSmokeDirectReplyStyleQuestion,
-  isSmokeDirectUserPreferredNameQuestion,
   isSmokeOpenEndedPlanningHelpQuestion,
-  isSmokeOpenEndedSummaryQuestion,
-  isSmokeSelfIntroGreetingRequest
+  isSmokeOpenEndedSummaryQuestion
 } from "@/lib/testing/smoke-answer-strategy";
 
 type SmokeRelationshipRecallMemory = {
@@ -66,86 +63,17 @@ export function buildSmokeDirectOrGroundedReply({
       : `Hello from SparkCore via ${modelProfileName}.`;
   }
 
-  if (isSmokeSelfIntroGreetingRequest(content)) {
-    const styleValue = addressStyleMemory?.content ?? null;
-    const selfName = nicknameMemory?.content ?? agentName;
-    const userName = preferredNameMemory?.content ?? null;
+  const introReply = buildSmokeIntroReply({
+    content,
+    replyLanguage,
+    agentName,
+    addressStyleMemory,
+    nicknameMemory,
+    preferredNameMemory
+  });
 
-    if (replyLanguage === "zh-Hans") {
-      const greeting =
-        styleValue === "formal"
-          ? userName
-            ? `您好，${userName}。`
-            : "您好。"
-          : styleValue === "friendly"
-            ? userName
-              ? `嗨，${userName}。`
-              : "嗨，朋友。"
-            : styleValue === "casual"
-              ? userName
-                ? `嗨，${userName}。`
-                : "嗨。"
-              : userName
-                ? `你好，${userName}。`
-                : "你好。";
-
-      const intro =
-        nicknameMemory || styleValue === "friendly"
-          ? `我是${selfName}，很高兴继续和你聊。`
-          : `我是${selfName}，很高兴继续为你提供帮助。`;
-
-      return `${greeting} ${intro}`;
-    }
-
-    const greeting =
-      styleValue === "formal"
-        ? userName
-          ? `Hello, ${userName}.`
-          : "Hello."
-        : styleValue === "friendly"
-          ? userName
-            ? `Hey, ${userName}.`
-            : "Hey, friend."
-          : styleValue === "casual"
-            ? userName
-              ? `Hey, ${userName}.`
-              : "Hey."
-            : userName
-              ? `Hello, ${userName}.`
-              : "Hello.";
-
-    const intro =
-      nicknameMemory || styleValue === "friendly"
-        ? `I am ${selfName}, and it is good to keep chatting with you.`
-        : `I am ${selfName}, and I am glad to keep helping you.`;
-
-    return `${greeting} ${intro}`;
-  }
-
-  if (isSmokeBriefGreetingRequest(content)) {
-    const styleValue = addressStyleMemory?.content ?? null;
-
-    if (styleValue === "formal") {
-      return replyLanguage === "zh-Hans"
-        ? "您好，很高兴继续为您提供帮助。"
-        : "Hello, I am glad to continue assisting you.";
-    }
-
-    if (styleValue === "friendly") {
-      return replyLanguage === "zh-Hans"
-        ? "嗨，朋友，很高兴又见到你。"
-        : "Hey friend, it is good to see you again.";
-    }
-
-    if (styleValue === "casual") {
-      return replyLanguage === "zh-Hans"
-        ? "嗨，很高兴继续和你聊。"
-        : "Hey, good to keep chatting with you.";
-    }
-
-    return replyLanguage === "zh-Hans"
-      ? "你好，很高兴见到你。"
-      : "Hello, it is good to see you.";
+  if (introReply) {
+    return introReply;
   }
 
   if (
@@ -278,57 +206,6 @@ export function buildSmokeDirectOrGroundedReply({
     }
 
     return `${selfName} can keep helping you move things forward from here with the context already remembered.`;
-  }
-
-  if (isSmokeDirectNamingQuestion(content)) {
-    if (nicknameMemory) {
-      return replyLanguage === "zh-Hans"
-        ? `哈哈，我叫${nicknameMemory.content}！`
-        : `You can call me ${nicknameMemory.content}.`;
-    }
-
-    return replyLanguage === "zh-Hans"
-      ? `我叫${agentName}。`
-      : `My name is ${agentName}.`;
-  }
-
-  if (isSmokeDirectUserPreferredNameQuestion(content)) {
-    if (preferredNameMemory) {
-      return replyLanguage === "zh-Hans"
-        ? `我应该叫你${preferredNameMemory.content}。`
-        : `I should call you ${preferredNameMemory.content}.`;
-    }
-
-    return replyLanguage === "zh-Hans"
-      ? "我还没有记住你偏好的称呼。"
-      : "I have not stored your preferred name yet.";
-  }
-
-  if (
-    content.includes("请用两句话介绍你自己") ||
-    content.includes("你能如何帮助我")
-  ) {
-    const styleValue = addressStyleMemory?.content ?? null;
-    const selfName = nicknameMemory?.content ?? "SparkCore";
-    const userName = preferredNameMemory?.content ?? null;
-    const opening =
-      styleValue === "formal"
-        ? userName
-          ? `您好，${userName}。`
-          : "您好。"
-        : styleValue === "friendly"
-          ? userName
-            ? `嗨，${userName}。`
-            : "嗨，朋友。"
-          : styleValue === "casual"
-            ? userName
-              ? `嗨，${userName}。`
-              : "嗨。"
-            : userName
-              ? `你好，${userName}。`
-              : "你好。";
-
-    return `${opening} 我是${selfName}，可以用中文帮助你梳理计划、整理记忆，并继续当前线程里的对话。`;
   }
 
   return null;
