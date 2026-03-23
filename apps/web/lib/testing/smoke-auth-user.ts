@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { findSmokeAuthUser } from "@/lib/testing/smoke-auth-user-list";
 import type { SmokeConfigLike } from "@/lib/testing/smoke-auth-user-types";
 import {
   buildSmokeSeedMetadata,
@@ -13,7 +12,18 @@ export async function ensureSmokeAuthUser(
     resetPassword?: boolean;
   }
 ) {
-  const existingUser = await findSmokeAuthUser(admin, config);
+  const { data: listedUsersData, error: listError } =
+    await admin.auth.admin.listUsers({
+      page: 1,
+      perPage: 200
+    });
+
+  if (listError) {
+    throw new Error(`Failed to list auth users: ${listError.message}`);
+  }
+
+  const existingUser =
+    listedUsersData.users.find((user) => user.email === config.email) ?? null;
 
   let ensuredUser = existingUser;
 
