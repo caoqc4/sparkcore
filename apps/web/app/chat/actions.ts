@@ -1521,22 +1521,16 @@ export async function retryAssistantReply(
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);
 
-    await supabase
-    .from("messages")
-    .update({
-      status: "failed",
-      content: "",
-      metadata: buildFailedAssistantMetadata({
-        baseMetadata: failedMessage.metadata,
-        errorType: assistantFailure.errorType,
-        errorMessage: assistantFailure.message
-      }),
-      updated_at: new Date().toISOString()
-    })
-      .eq("id", failedMessage.id)
-      .eq("thread_id", thread.id)
-      .eq("workspace_id", workspace.id)
-      .eq("user_id", user.id);
+    await markAssistantMessageFailed({
+      supabase,
+      assistantMessageId: failedMessage.id,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      userId: user.id,
+      baseMetadata: failedMessage.metadata,
+      errorType: assistantFailure.errorType,
+      errorMessage: assistantFailure.message
+    });
 
     return {
       ok: false,
