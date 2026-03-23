@@ -90,3 +90,59 @@ export function loadOwnedRelationshipMemoryByValue(args: {
     .eq("value", args.value)
     .maybeSingle();
 }
+
+export function loadRecentOwnedMemories(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+  select: string;
+  limit?: number;
+}) {
+  return args.supabase
+    .from("memory_items")
+    .select(args.select)
+    .eq("workspace_id", args.workspaceId)
+    .eq("user_id", args.userId)
+    .order("created_at", { ascending: false })
+    .limit(args.limit ?? 50);
+}
+
+export function loadRecentOwnedRelationshipMemories(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+  targetAgentId: string;
+  key: string;
+  select: string;
+  limit?: number;
+}) {
+  return args.supabase
+    .from("memory_items")
+    .select(args.select)
+    .eq("workspace_id", args.workspaceId)
+    .eq("user_id", args.userId)
+    .eq("category", "relationship")
+    .eq("key", args.key)
+    .eq("scope", "user_agent")
+    .eq("target_agent_id", args.targetAgentId)
+    .order("created_at", { ascending: false })
+    .limit(args.limit ?? 10);
+}
+
+export function loadRecentOwnedMemoriesByTypes(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+  memoryTypes: string[];
+  select: string;
+  limit?: number;
+}) {
+  return args.supabase
+    .from("memory_items")
+    .select(args.select)
+    .eq("workspace_id", args.workspaceId)
+    .eq("user_id", args.userId)
+    .in("memory_type", args.memoryTypes)
+    .order("created_at", { ascending: false })
+    .limit(args.limit ?? 50);
+}

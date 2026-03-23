@@ -413,9 +413,10 @@ export async function upsertSingleSlotMemory({
       normalizedValue
     });
 
-    const { error: updateError } = await supabase
-      .from("memory_items")
-      .update({
+    const { error: updateError } = await updateMemoryItem({
+      supabase,
+      memoryItemId: sameValueRow.id,
+      patch: {
         content: value,
         confidence: Number(confidence.toFixed(2)),
         source_message_id: sourceMessageId,
@@ -427,8 +428,8 @@ export async function upsertSingleSlotMemory({
         last_confirmed_at: new Date().toISOString(),
         metadata: nextMetadata,
         updated_at: new Date().toISOString()
-      })
-      .eq("id", sameValueRow.id);
+      }
+    });
 
     if (updateError) {
       throw new Error(`Failed to refresh single-slot memory: ${updateError.message}`);
