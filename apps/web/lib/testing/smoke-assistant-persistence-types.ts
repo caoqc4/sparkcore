@@ -5,8 +5,10 @@ import type {
   SmokeRoleCorePacket
 } from "@/lib/testing/smoke-assistant-builders";
 import type { SmokeAssistantMetadataRecall } from "@/lib/testing/smoke-assistant-metadata-types";
-import type { SmokeAssistantPersistenceSharedFields } from "@/lib/testing/smoke-assistant-persistence-shared-types";
-import type { SmokeCreatedMemoryType } from "@/lib/testing/smoke-memory-write-types";
+import type {
+  SmokeAssistantPersistenceSharedFields,
+  SmokeCreatedMemoryType
+} from "@/lib/testing/smoke-assistant-persistence-shared-types";
 import type { SmokeRecallMemory } from "@/lib/testing/smoke-recall-memory-types";
 
 export type SmokeAssistantInsertArgs = {

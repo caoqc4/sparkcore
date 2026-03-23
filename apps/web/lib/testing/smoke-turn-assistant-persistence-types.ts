@@ -1,5 +1,5 @@
 import type { insertAnalyzedSmokeAssistantReply } from "@/lib/testing/smoke-turn-assistant";
-import type { SmokeCreatedMemoryType } from "@/lib/testing/smoke-memory-write-types";
+import type { SmokeCreatedMemoryType } from "@/lib/testing/smoke-assistant-persistence-shared-types";
 
 export type SmokeAssistantTurnAnalysisSummary = {
   answerStrategyRule: {

@@ -7,7 +7,8 @@ import type {
   SmokeReplyLanguage,
   SmokeReplyLanguageSource,
 } from "@/lib/testing/smoke-assistant-builders";
-import type { SmokeCreatedMemoryType } from "@/lib/testing/smoke-memory-write-types";
+
+export type SmokeCreatedMemoryType = "profile" | "preference" | "relationship";
 
 export type SmokeAssistantPersistenceSharedFields = {
   modelProfileId: string;
