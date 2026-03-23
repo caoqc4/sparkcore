@@ -1,5 +1,5 @@
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createOwnedThread, loadOwnedActiveAgentByName } from "@/lib/chat/runtime-turn-context";
-import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
 import { requireSmokeConfig } from "@/lib/testing/smoke-config";
 import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
 
@@ -10,7 +10,12 @@ export async function createSmokeThread(args: {
     "Smoke thread creation requires the smoke env vars and service role key."
   );
 
-  const admin = getSmokeAdminClient(config);
+  const admin = createSupabaseClient(config.url, config.serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
   const smokeUser = await ensureSmokeUserState(admin, config);
 
   const { data: agent, error: agentError } = await loadOwnedActiveAgentByName({

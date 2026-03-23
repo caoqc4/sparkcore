@@ -1,6 +1,6 @@
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
 import { getSmokeConfig } from "@/lib/testing/smoke-config";
 import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
 
@@ -21,7 +21,12 @@ export async function createSmokeLoginResponse(
     );
   }
 
-  const admin = getSmokeAdminClient(config);
+  const admin = createSupabaseClient(config.url, config.serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
   await ensureSmokeUserState(admin, config, {
     resetPassword: true
   });

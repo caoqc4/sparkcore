@@ -1,4 +1,4 @@
-import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { loadActiveModelProfilesBySlugs } from "@/lib/chat/runtime-turn-context";
 import { requireSmokeConfig } from "@/lib/testing/smoke-config";
 import { seedSmokeAgentState } from "@/lib/testing/smoke-agent-seeding";
@@ -12,7 +12,12 @@ export async function resetSmokeState() {
     "Smoke test helpers require NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, PLAYWRIGHT_SMOKE_SECRET, PLAYWRIGHT_SMOKE_EMAIL, and PLAYWRIGHT_SMOKE_PASSWORD."
   );
 
-  const admin = getSmokeAdminClient(config);
+  const admin = createSupabaseClient(config.url, config.serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
   const smokeUser = await ensureSmokeUserState(admin, config, {
     resetPassword: true
   });

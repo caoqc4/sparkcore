@@ -1,4 +1,4 @@
-import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import {
   loadActiveModelProfileById,
   loadOwnedActiveAgent,
@@ -16,7 +16,12 @@ export async function loadSmokeTurnContext(args: {
     "Smoke message creation requires the smoke env vars and service role key."
   );
 
-  const admin = getSmokeAdminClient(config);
+  const admin = createSupabaseClient(config.url, config.serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
   const smokeUser = await ensureSmokeUserState(admin, config);
   const { data: thread, error: threadError } = await loadOwnedThread({
     supabase: admin,
