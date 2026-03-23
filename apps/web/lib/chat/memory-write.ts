@@ -40,6 +40,7 @@ import {
   buildPlannedGenericMemoryInsertRow,
   buildPlannedGenericMemoryUpdateRow
 } from "@/lib/chat/memory-write-rows";
+import { buildPlannedRelationshipMemoryRecord } from "@/lib/chat/memory-write-record-candidates";
 import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 import {
   insertMemoryItem,
@@ -547,6 +548,11 @@ export async function executeMemoryWriteRequests({
 
   for (const request of relationshipRequests) {
     const target = resolvePlannedMemoryWriteTarget(request);
+    const relationshipRecord = buildPlannedRelationshipMemoryRecord({
+      workspaceId,
+      userId,
+      request
+    });
     const relationshipWrite = await upsertSingleSlotMemory({
       workspaceId,
       userId,
@@ -554,7 +560,7 @@ export async function executeMemoryWriteRequests({
       sourceMessageId: request.source_turn_id,
       category: "relationship",
       key: request.relationship_key,
-      value: request.candidate_content,
+      value: relationshipRecord.canonical_text,
       scope: request.relationship_scope,
       targetAgentId: request.target_agent_id,
       targetThreadId: request.target_thread_id ?? null,
@@ -563,7 +569,8 @@ export async function executeMemoryWriteRequests({
         request.relationship_key === "user_address_style" ? "medium" : "high",
       metadata: {
         ...buildRelationshipPlannerMemoryMetadata(request),
-        record_target: target.recordTarget
+        record_target: target.recordTarget,
+        semantic_subject_id: relationshipRecord.subject.entity_id
       }
     });
 
