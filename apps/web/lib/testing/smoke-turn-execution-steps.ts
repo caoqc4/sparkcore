@@ -1,7 +1,7 @@
 import { runSmokeAssistantTurnStep } from "@/lib/testing/smoke-turn-assistant-run";
 import type { SmokeTurnAnalysis } from "@/lib/testing/smoke-turn-assistant-run-types";
+import type { SmokeTurnStepContext } from "@/lib/testing/smoke-turn-execution";
 import { persistSmokeMemoryTurnStep } from "@/lib/testing/smoke-turn-memory-step";
-import type { SmokeTurnStepContext } from "@/lib/testing/smoke-turn-step-context";
 import { persistSmokeUserTurnStep } from "@/lib/testing/smoke-turn-user-step";
 
 export async function executeSmokeTurnSteps(args: {
