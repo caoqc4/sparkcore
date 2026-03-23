@@ -15,6 +15,14 @@ export type ThreadRetentionReason =
   | "minimal_context"
   | "closed_minimal_pruned";
 
+export type ThreadRetentionLayer = "anchor" | "context" | "window";
+
+export type ThreadRetentionLayerBudget = {
+  anchor: number;
+  context: number;
+  window: number;
+};
+
 export type CompactedThreadSummary = {
   summary_id: string;
   thread_id: string;
@@ -26,6 +34,8 @@ export type CompactedThreadSummary = {
   retention_mode: ThreadRetentionMode;
   retention_reason: ThreadRetentionReason;
   retention_budget: number;
+  retention_layers: ThreadRetentionLayer[];
+  retention_layer_budget: ThreadRetentionLayerBudget;
   retained_fields: string[];
   summary_text: string;
   generated_at: string;

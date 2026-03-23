@@ -28,6 +28,19 @@
 
 **SparkCore 当前已经从“重定位后的规划阶段”进入“最小底座开始落代码”的阶段，memory、runtime、session、role、im-adapter 五条主线都已出现第一版工程落点；Telegram 单通道 PoC 也已完成一次真实闭环验证，但整体仍处于收口和沉淀阶段。**
 
+补充进展：
+
+- `P5-1 namespace multi-budget routing` 已把 namespace boundary 从单层 recall budget 推进到了：
+  - `parallel_timeline_budget`
+  - `write_priority_layer`
+  - `fallback_write_boundary`
+  - `retrieval_route_order`
+  - `write_fallback_order`
+- `P5-2 retention layering / pruning strategy v3` 已开始把 thread compaction retention 推进成 layered budget：
+  - `retention_layers`
+  - `retention_layer_budget`
+  - `anchor / context / window` section class
+
 ---
 
 ## 3. 当前已经完成的事情

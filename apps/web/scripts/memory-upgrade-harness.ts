@@ -1163,6 +1163,19 @@ function main() {
     "Expected runtime debug metadata to expose the retention budget in P4."
   );
   expect(
+    runtimeDebugMetadata.thread_compaction?.retention_layers?.join(",") ===
+      "anchor",
+    "Expected focus-anchor retention layering to keep only the anchor layer active in P5."
+  );
+  expect(
+    runtimeDebugMetadata.thread_compaction?.retention_layer_budget?.anchor === 2 &&
+      runtimeDebugMetadata.thread_compaction?.retention_layer_budget?.context ===
+        0 &&
+      runtimeDebugMetadata.thread_compaction?.retention_layer_budget?.window ===
+        0,
+    "Expected focus-anchor retention layer budget to allocate 2/0/0 across anchor/context/window in P5."
+  );
+  expect(
     Array.isArray(runtimeDebugMetadata.thread_compaction?.retained_fields) &&
       runtimeDebugMetadata.thread_compaction?.retained_fields.join(",") ===
         "focus_mode,continuity_status",
@@ -1788,6 +1801,40 @@ function main() {
             companionSystemPrompt.includes("MR1 [episode]:") &&
             !projectOpsDynamicVsRecordPrompt.includes("2. dynamic_profile:") &&
             companionDynamicVsRecordPrompt.includes("2. dynamic_profile:"),
+        },
+        p5_regression_gate: {
+          namespace_multi_budget_routing_ok:
+            threadBoundary.parallel_timeline_budget === 0 &&
+            projectBoundary.parallel_timeline_budget === 1 &&
+            Array.isArray(threadBoundary.retrieval_route_order) &&
+            threadBoundary.retrieval_route_order.join(",") ===
+              "thread_state,profile,episode" &&
+            Array.isArray(projectBoundary.write_fallback_order) &&
+            projectBoundary.write_fallback_order.join(",") ===
+              "project,world,default",
+          retention_layering_v3_ok:
+            runtimeDebugMetadata.thread_compaction?.retention_layers?.join(
+              ","
+            ) === "anchor" &&
+            runtimeDebugMetadata.thread_compaction?.retention_layer_budget
+              ?.anchor === 2 &&
+            runtimeDebugMetadata.thread_compaction?.retention_layer_budget
+              ?.context === 0 &&
+            runtimeDebugMetadata.thread_compaction?.retention_layer_budget
+              ?.window === 0 &&
+            getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+              "Retention layers: anchor."
+            ),
+          knowledge_route_weighting_v3_ok:
+            scenarioMemoryPack.knowledge_priority_layer === "project" &&
+            scenarioMemoryPack.assembly_emphasis === "knowledge_first" &&
+            scenarioMemoryPack.route_influence_reason ===
+              "project_namespace_bias",
+          scenario_pack_strategy_v3_ok:
+            systemPrompt.includes("RM1:") &&
+            !systemPrompt.includes("RM2:") &&
+            systemPrompt.includes("SP1:") &&
+            !systemPrompt.includes("SP2:")
         },
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(

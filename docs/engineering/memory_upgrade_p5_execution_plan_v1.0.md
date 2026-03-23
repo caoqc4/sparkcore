@@ -144,6 +144,25 @@ P5 首批要把 retention 从：
 - 至少一条 pruning decision 开始同时受 `retention_mode + retention_budget + section class` 影响
 - retention 不再只决定保留字段，还开始决定哪类 compacted context 更优先存活
 
+当前已成立的第一刀代码事实：
+
+- [compaction.ts](/Users/caoq/git/sparkcore/packages/core/memory/compaction.ts) 当前已开始把 retention 从单 budget 推进成 layered budget contract：
+  - `retention_layers`
+  - `retention_layer_budget`
+- [thread-compaction.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-compaction.ts) 当前已开始把 compacted section 分成：
+  - `anchor`
+  - `context`
+  - `window`
+- 当前最小规则已经成立：
+  - `focus_anchor` 下：
+    - `retention_layers = anchor`
+    - `retention_layer_budget = { anchor: 2, context: 0, window: 0 }`
+  - 也就是说，`focus_mode / continuity_status` 当前已成为 anchor layer 的真实存活内容，而 `current_language_hint` 不再能越过 layer budget 自动留下
+- [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已开始显式校验：
+  - `retention_layers = anchor`
+  - `retention_layer_budget.anchor = 2`
+  - prompt / assistant summary 中已能看到 `Retention layers: anchor`
+
 ### 4.3 Knowledge route weighting v3
 
 P5 首批要把 knowledge 从：
