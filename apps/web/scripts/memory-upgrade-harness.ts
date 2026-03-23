@@ -739,6 +739,12 @@ function main() {
     "Expected assistant metadata reader to expose the compacted thread summary text in P2."
   );
   expect(
+    getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+      "Retention mode: focus_anchor."
+    ),
+    "Expected assistant metadata reader to expose the retention mode inside the compacted summary text."
+  );
+  expect(
     getAssistantMemoryNamespacePrimaryLayer(assistantMetadata) === "project",
     "Expected assistant metadata reader to expose project as the primary namespace layer in P2."
   );
@@ -754,6 +760,10 @@ function main() {
     runtimeDebugMetadata.thread_compaction?.summary_id ===
       compactedThreadSummary?.summary_id,
     "Expected runtime debug metadata to expose the compacted thread summary in P2."
+  );
+  expect(
+    runtimeDebugMetadata.thread_compaction?.retention_mode === "focus_anchor",
+    "Expected runtime debug metadata to expose the retention mode in P3."
   );
   expect(
     runtimeDebugMetadata.memory_namespace?.primary_layer === "project",

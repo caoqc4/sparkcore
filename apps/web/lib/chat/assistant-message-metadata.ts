@@ -54,6 +54,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   compacted_thread_summary_text?: string | null;
   compacted_thread_summary_lifecycle_status?: string | null;
   compacted_thread_summary_continuity_status?: string | null;
+  compacted_thread_retention_mode?: string | null;
+  compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -116,6 +118,8 @@ export type BuildAssistantMessageMetadataInput = {
   compacted_thread_summary_text?: string | null;
   compacted_thread_summary_lifecycle_status?: string | null;
   compacted_thread_summary_continuity_status?: string | null;
+  compacted_thread_retention_mode?: string | null;
+  compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -210,7 +214,11 @@ export function buildAssistantMetadataSummaryGroups(
           lifecycle_status:
             input.compacted_thread_summary_lifecycle_status ?? null,
           continuity_status:
-            input.compacted_thread_summary_continuity_status ?? null
+            input.compacted_thread_summary_continuity_status ?? null,
+          retention_mode:
+            input.compacted_thread_retention_mode ?? null,
+          retained_fields:
+            input.compacted_thread_retained_fields ?? []
         }
       : null,
     follow_up: {
@@ -249,6 +257,10 @@ export function buildAssistantMetadataSummaryGroups(
         input.compacted_thread_summary_lifecycle_status,
       compacted_thread_summary_continuity_status:
         input.compacted_thread_summary_continuity_status,
+      compacted_thread_retention_mode:
+        input.compacted_thread_retention_mode,
+      compacted_thread_retained_fields:
+        input.compacted_thread_retained_fields,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_memory_exclusion_count: input.incorrect_memory_exclusion_count
     }

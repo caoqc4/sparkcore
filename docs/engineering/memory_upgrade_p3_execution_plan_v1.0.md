@@ -128,6 +128,23 @@ P3 首批要把 `Thread Compaction` 再往前推进一层，形成最小 retenti
 - 复杂自动过期治理
 - 大规模后台批处理系统
 
+当前已成立的第一刀代码事实：
+
+- `packages/core/memory/compaction.ts` 当前已开始把 retention 明确成正式 contract：
+  - `retention_mode`
+  - `retained_fields`
+- `apps/web/lib/chat/thread-compaction.ts` 当前已开始提供最小 retention strategy helper，并根据：
+  - `focus_mode`
+  - `continuity_status`
+  - `recent_turn_count`
+  推导：
+  - `focus_anchor`
+  - `continuity_anchor`
+  - `recent_window`
+  - `minimal`
+- runtime prompt / assistant metadata / debug metadata 当前也已开始承接这层 retention 结果，而不再只暴露一个压缩摘要文本
+- `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` retention mode
+
 ### 4.3 Knowledge scope materialization
 
 P3 首批要让 `Knowledge Layer` 更明确地区分：

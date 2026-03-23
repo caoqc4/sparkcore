@@ -152,6 +152,13 @@
   - 在 thread namespace 下，generic `profile / preference` 写入当前也已开始走真实 `thread_local` routed scope，而不再只停在 `write_boundary = thread` 的元信息层
   - `apps/web/lib/chat/memory-write-rows.ts` 当前也已开始把这层 routed scope / routed target ids 真正写进 generic insert / update row
   - `apps/web/lib/chat/runtime-preview-metadata.ts` 当前也已开始把这层 routed scope 暴露到 memory write preview
+- `P3-2 Thread retention strategy v1` 当前也已开始进入真实实现：
+  - `packages/core/memory/compaction.ts` 当前已开始把 retention 明确成正式 contract：
+    - `retention_mode`
+    - `retained_fields`
+  - `apps/web/lib/chat/thread-compaction.ts` 当前也已开始提供最小 retention strategy helper，并根据 `focus_mode / continuity_status / recent_turn_count` 推导最小 retention mode
+  - runtime prompt / assistant metadata / debug metadata 当前也已开始承接这层 retention 结果，而不再只暴露压缩摘要文本
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` retention mode
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
