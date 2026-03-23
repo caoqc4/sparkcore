@@ -5,7 +5,17 @@ import {
 import { detectSmokeUserAddressStyleCandidate } from "@/lib/testing/smoke-address-style-detection";
 import { buildSmokeRelationshipMemoryUpdateDefinitions } from "@/lib/testing/smoke-relationship-memory-update-definitions";
 import { applySmokeRelationshipMemoryUpdate } from "@/lib/testing/smoke-relationship-memory-update-step";
-import type { SmokeRelationshipMemoryUpdatesInput } from "@/lib/testing/smoke-relationship-memory-update-types";
+import { ensureSmokeRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-seeding";
+
+export type SmokeRelationshipMemoryUpdatesInput = {
+  supabase: Parameters<typeof ensureSmokeRelationshipMemory>[0]["supabase"];
+  workspaceId: string;
+  userId: string;
+  agentId: string;
+  sourceMessageId: string;
+  trimmedContent: string;
+  relationshipSeedMetadataBuilder: (relationKind: string) => Record<string, unknown>;
+};
 
 export async function applySmokeRelationshipMemoryUpdates(
   args: SmokeRelationshipMemoryUpdatesInput
