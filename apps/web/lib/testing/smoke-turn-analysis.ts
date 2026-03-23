@@ -1,10 +1,7 @@
 import {
   getSmokeAnswerStrategy,
   isSmokeDirectNamingQuestion,
-  isSmokeDirectPlanningPreferenceQuestion,
-  isSmokeDirectProfessionQuestion,
   isSmokeDirectUserPreferredNameQuestion,
-  isSmokeOpenEndedPlanningHelpQuestion,
   isSmokeOpenEndedSummaryQuestion,
   isSmokeRelationshipAnswerShapePrompt,
   isSmokeRelationshipContinuationEdgePrompt
@@ -20,7 +17,7 @@ import {
   getSmokeRecentRuntimeMessages,
   type SmokeContinuityReply
 } from "@/lib/testing/smoke-reply-analysis";
-import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
+import { selectSmokeRecalledMemories } from "@/lib/testing/smoke-memory-recall-selection";
 import {
   isMemoryActive,
   isMemoryHidden,
@@ -91,7 +88,6 @@ export function analyzeSmokeTurnContext({
   agentId: string;
   threadId: string;
 }) {
-  const normalizedContent = normalizeSmokePrompt(trimmedContent);
   const recentAssistantReply = getSmokeRecentAssistantReply(existingMessages);
   const validExistingMemories = existingMemories.filter((memory) =>
     isSmokeMemoryApplicableToThread({
@@ -110,33 +106,10 @@ export function analyzeSmokeTurnContext({
     isMemoryIncorrect(memory)
   ).length;
 
-  const recalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }> = activeMemories
-    .filter((memory) => {
-      const normalizedMemoryContent = memory.content.toLowerCase();
-      return (
-        (normalizedContent.includes("profession") &&
-          normalizedMemoryContent.includes("product designer")) ||
-        (isSmokeOpenEndedSummaryQuestion(trimmedContent) &&
-          normalizedMemoryContent.includes("product designer")) ||
-        (isSmokeDirectProfessionQuestion(trimmedContent) &&
-          normalizedMemoryContent.includes("product designer")) ||
-        ((normalizedContent.includes("weekly planning") ||
-          isSmokeOpenEndedPlanningHelpQuestion(trimmedContent) ||
-          isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
-          isSmokeDirectPlanningPreferenceQuestion(trimmedContent)) &&
-          normalizedMemoryContent.includes("concise weekly planning"))
-      );
-    })
-    .map((memory) => ({
-      memory_type:
-        memory.memory_type === "preference" ? "preference" : "profile",
-      content: memory.content,
-      confidence: memory.confidence
-    }));
+  const recalledMemories = selectSmokeRecalledMemories({
+    trimmedContent,
+    activeMemories
+  });
   const relationshipStylePrompt =
     isSmokeRelationshipAnswerShapePrompt(trimmedContent);
   const sameThreadContinuity = recentAssistantReply !== null;
