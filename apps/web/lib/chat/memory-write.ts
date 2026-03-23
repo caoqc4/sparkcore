@@ -36,6 +36,11 @@ import {
   buildSingleSlotMemoryRefreshMetadata,
   buildSingleSlotMemorySupersededMetadata
 } from "@/lib/chat/memory-write-metadata";
+import {
+  insertMemoryItem,
+  insertMemoryItems,
+  updateMemoryItem
+} from "@/lib/chat/memory-item-persistence";
 import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
 import { createClient } from "@/lib/supabase/server";
 
@@ -454,14 +459,15 @@ export async function upsertSingleSlotMemory({
       sourceMessageId
     });
 
-    const { error: supersedeError } = await supabase
-      .from("memory_items")
-      .update({
+    const { error: supersedeError } = await updateMemoryItem({
+      supabase,
+      memoryItemId: row.id,
+      patch: {
         status: "superseded",
         metadata: nextMetadata,
         updated_at: new Date().toISOString()
-      })
-      .eq("id", row.id);
+      }
+    });
 
     if (supersedeError) {
       throw new Error(`Failed to supersede single-slot memory: ${supersedeError.message}`);
@@ -470,7 +476,9 @@ export async function upsertSingleSlotMemory({
     supersededIds.push(row.id);
   }
 
-  const { error: insertError } = await supabase.from("memory_items").insert({
+  const { error: insertError } = await insertMemoryItem({
+    supabase,
+    payload: {
     workspace_id: workspaceId,
     user_id: userId,
     agent_id: agentId ?? targetAgentId,
@@ -496,6 +504,7 @@ export async function upsertSingleSlotMemory({
       incomingMetadata: metadata,
       normalizedValue
     })
+    }
   });
 
   if (insertError) {
@@ -716,7 +725,10 @@ export async function executeMemoryWriteRequests({
   }
 
   if (rowsToInsert.length > 0) {
-    const { error } = await supabase.from("memory_items").insert(rowsToInsert);
+    const { error } = await insertMemoryItems({
+      supabase,
+      rows: rowsToInsert as Array<Record<string, unknown>>
+    });
     if (error) {
       throw new Error(`Failed to insert planned memory writes: ${error.message}`);
     }

@@ -6,6 +6,7 @@ import {
 import { NextResponse, type NextRequest } from "next/server";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
+import { insertMemoryItem } from "@/lib/chat/memory-item-persistence";
 import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import {
   loadActiveModelProfileById,
@@ -3139,7 +3140,9 @@ export async function createSmokeTurn({
       return;
     }
 
-    const { error } = await admin.from("memory_items").insert({
+    const { error } = await insertMemoryItem({
+      supabase: admin,
+      payload: {
       workspace_id: smokeUser.workspaceId,
       user_id: smokeUser.id,
       agent_id: ensuredAgent.id,
@@ -3163,6 +3166,7 @@ export async function createSmokeTurn({
         ]
       }),
       metadata: buildSmokeSeedMetadata()
+      }
     });
 
     if (error) {
@@ -3202,7 +3206,9 @@ export async function createSmokeTurn({
     stability: "high" | "medium";
     errorLabel: string;
   }) {
-    const { error } = await admin.from("memory_items").insert({
+    const { error } = await insertMemoryItem({
+      supabase: admin,
+      payload: {
       workspace_id: smokeUser.workspaceId,
       user_id: smokeUser.id,
       agent_id: ensuredAgent.id,
@@ -3228,6 +3234,7 @@ export async function createSmokeTurn({
         ]
       }),
       metadata: buildSmokeRelationshipSeedMetadata(args.key)
+      }
     });
 
     if (error) {
