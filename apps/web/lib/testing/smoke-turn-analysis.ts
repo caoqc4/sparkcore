@@ -20,6 +20,7 @@ import {
   getSmokeRecentRuntimeMessages,
   type SmokeContinuityReply
 } from "@/lib/testing/smoke-reply-analysis";
+import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 import {
   isMemoryActive,
   isMemoryHidden,
@@ -90,6 +91,7 @@ export function analyzeSmokeTurnContext({
   agentId: string;
   threadId: string;
 }) {
+  const normalizedContent = normalizeSmokePrompt(trimmedContent);
   const recentAssistantReply = getSmokeRecentAssistantReply(existingMessages);
   const validExistingMemories = existingMemories.filter((memory) =>
     isSmokeMemoryApplicableToThread({
@@ -114,19 +116,19 @@ export function analyzeSmokeTurnContext({
     confidence: number;
   }> = activeMemories
     .filter((memory) => {
-      const normalizedContent = memory.content.toLowerCase();
+      const normalizedMemoryContent = memory.content.toLowerCase();
       return (
-        (trimmedContent.toLowerCase().includes("profession") &&
-          normalizedContent.includes("product designer")) ||
+        (normalizedContent.includes("profession") &&
+          normalizedMemoryContent.includes("product designer")) ||
         (isSmokeOpenEndedSummaryQuestion(trimmedContent) &&
-          normalizedContent.includes("product designer")) ||
+          normalizedMemoryContent.includes("product designer")) ||
         (isSmokeDirectProfessionQuestion(trimmedContent) &&
-          normalizedContent.includes("product designer")) ||
-        ((trimmedContent.toLowerCase().includes("weekly planning") ||
+          normalizedMemoryContent.includes("product designer")) ||
+        ((normalizedContent.includes("weekly planning") ||
           isSmokeOpenEndedPlanningHelpQuestion(trimmedContent) ||
           isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
           isSmokeDirectPlanningPreferenceQuestion(trimmedContent)) &&
-          normalizedContent.includes("concise weekly planning"))
+          normalizedMemoryContent.includes("concise weekly planning"))
       );
     })
     .map((memory) => ({

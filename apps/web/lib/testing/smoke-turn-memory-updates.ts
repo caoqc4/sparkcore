@@ -7,6 +7,7 @@ import {
   ensureSmokeRelationshipMemory,
   upsertSmokeProfileMemory
 } from "@/lib/testing/smoke-memory-seeding";
+import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 
 export async function applySmokeTurnMemoryUpdates({
   supabase,
@@ -26,7 +27,7 @@ export async function applySmokeTurnMemoryUpdates({
   relationshipSeedMetadataBuilder: (relationKind: string) => Record<string, unknown>;
 }) {
   const createdTypes: Array<"profile" | "preference" | "relationship"> = [];
-  const loweredContent = trimmedContent.toLowerCase();
+  const loweredContent = normalizeSmokePrompt(trimmedContent);
 
   if (loweredContent.includes("product designer")) {
     const result = await upsertSmokeProfileMemory({

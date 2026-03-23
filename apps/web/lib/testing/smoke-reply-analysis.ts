@@ -4,6 +4,7 @@ import type {
   SmokeReplyLanguage,
   SmokeReplyLanguageSource
 } from "@/lib/testing/smoke-assistant-builders";
+import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 
 export type SmokeContinuityReply = {
   content: string;
@@ -13,7 +14,7 @@ export type SmokeContinuityReply = {
 export function detectSmokeExplicitLanguageOverride(
   content: string
 ): SmokeReplyLanguage {
-  const normalized = content.normalize("NFKC").toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   const englishHints = [
     "reply in english",
