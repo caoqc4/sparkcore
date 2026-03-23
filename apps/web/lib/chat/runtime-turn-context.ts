@@ -91,3 +91,40 @@ export async function loadOwnedActiveAgent(args: {
     .eq("status", "active")
     .maybeSingle();
 }
+
+export async function createOwnedThread(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+  agentId: string;
+  title?: string;
+}) {
+  return args.supabase
+    .from("threads")
+    .insert({
+      workspace_id: args.workspaceId,
+      owner_user_id: args.userId,
+      agent_id: args.agentId,
+      title: args.title ?? "New chat"
+    })
+    .select("id, title, status, agent_id, created_at, updated_at")
+    .single();
+}
+
+export async function bindOwnedThreadAgent(args: {
+  supabase: any;
+  threadId: string;
+  userId: string;
+  agentId: string;
+}) {
+  return args.supabase
+    .from("threads")
+    .update({
+      agent_id: args.agentId,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", args.threadId)
+    .eq("owner_user_id", args.userId)
+    .select("id, title, status, agent_id, created_at, updated_at")
+    .single();
+}

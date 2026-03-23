@@ -15,6 +15,8 @@ import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-m
 import { persistCompletedAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
 import {
+  bindOwnedThreadAgent,
+  createOwnedThread,
   loadLatestOwnedThread,
   loadOwnedThreads,
   loadPrimaryWorkspace
@@ -2557,16 +2559,13 @@ export async function getChatState() {
     });
 
     if (!thread) {
-      const { data: createdThread, error } = await supabase
-        .from("threads")
-        .insert({
-          workspace_id: workspace.id,
-          owner_user_id: user.id,
-          agent_id: agent.id,
-          title: "New chat"
-        })
-        .select("id, title, status, agent_id, created_at, updated_at")
-        .single();
+      const { data: createdThread, error } = await createOwnedThread({
+        supabase,
+        workspaceId: workspace.id,
+        userId: user.id,
+        agentId: agent.id,
+        title: "New chat"
+      });
 
       if (error || !createdThread) {
         throw new Error(
@@ -2576,16 +2575,12 @@ export async function getChatState() {
 
       thread = createdThread;
     } else {
-      const { data: updatedThread, error } = await supabase
-        .from("threads")
-        .update({
-          agent_id: agent.id,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", thread.id)
-        .eq("owner_user_id", user.id)
-        .select("id, title, status, agent_id, created_at, updated_at")
-        .single();
+      const { data: updatedThread, error } = await bindOwnedThreadAgent({
+        supabase,
+        threadId: thread.id,
+        userId: user.id,
+        agentId: agent.id
+      });
 
       if (error || !updatedThread) {
         throw new Error(
