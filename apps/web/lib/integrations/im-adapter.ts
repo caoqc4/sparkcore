@@ -4,6 +4,7 @@ import {
   buildProactiveOutboundMetadata,
   buildReplyOutboundMetadata
 } from "@/lib/chat/follow-up-proactive-metadata";
+import { buildInboundRuntimeMetadata } from "@/lib/integrations/im-adapter-metadata";
 
 export type ChannelMessageType = "text" | "image" | "attachment";
 
@@ -335,15 +336,7 @@ export function buildRuntimeInputFromInbound(args: {
     message_type: inbound.message_type,
     source: "im",
     timestamp: inbound.timestamp,
-    metadata: {
-      platform: inbound.platform,
-      channel_id: inbound.channel_id,
-      peer_id: inbound.peer_id,
-      platform_user_id: inbound.platform_user_id,
-      message_id: inbound.message_id,
-      event_id: inbound.event_id,
-      inbound_metadata: inbound.metadata ?? {}
-    }
+    metadata: buildInboundRuntimeMetadata(inbound)
   };
 }
 
