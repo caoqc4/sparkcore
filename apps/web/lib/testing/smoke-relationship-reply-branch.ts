@@ -4,13 +4,13 @@ import {
   isSmokeRelationshipSupportivePrompt
 } from "@/lib/testing/smoke-answer-strategy";
 import {
-  buildSmokeDefaultContinuationReply,
-  buildSmokeRelationshipClosingReply,
-  buildSmokeRelationshipExplanatoryReply,
-  buildSmokeRelationshipSupportiveReply
-} from "@/lib/testing/smoke-relationship-replies";
+  buildSmokeRelationshipClosingCoreReply,
+  buildSmokeRelationshipExplanatoryCoreReply
+} from "@/lib/testing/smoke-relationship-core-replies";
+import { buildSmokeDefaultContinuationReply } from "@/lib/testing/smoke-default-continuation-reply";
 import { buildSmokeRelationshipReplyContext } from "@/lib/testing/smoke-relationship-reply-context";
 import type { SmokeRelationshipReplyInput } from "@/lib/testing/smoke-relationship-reply-types";
+import { buildSmokeRelationshipSupportiveReply } from "@/lib/testing/smoke-relationship-supportive-reply";
 
 export function buildSmokeRelationshipOrContinuationReply(
   args: SmokeRelationshipReplyInput
@@ -19,7 +19,7 @@ export function buildSmokeRelationshipOrContinuationReply(
     buildSmokeRelationshipReplyContext(args);
 
   if (isSmokeRelationshipExplanatoryPrompt(args.content)) {
-    return buildSmokeRelationshipExplanatoryReply({
+    return buildSmokeRelationshipExplanatoryCoreReply({
       content: args.content,
       replyLanguage: args.replyLanguage,
       addressStyleValue,
@@ -39,7 +39,7 @@ export function buildSmokeRelationshipOrContinuationReply(
   }
 
   if (isSmokeRelationshipClosingPrompt(args.content)) {
-    return buildSmokeRelationshipClosingReply({
+    return buildSmokeRelationshipClosingCoreReply({
       replyLanguage: args.replyLanguage,
       addressStyleValue,
       userName
