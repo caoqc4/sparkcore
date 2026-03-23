@@ -40,6 +40,7 @@ import {
 } from "@/lib/chat/runtime-prepared-turn";
 import { createAdminThreadStateRepository } from "@/lib/chat/thread-state-admin-repository";
 import {
+  buildInternalRuntimeTurnInput,
   buildRuntimeTurnInput,
   type RuntimeTurnInput,
 } from "@/lib/chat/runtime-input";
@@ -3261,17 +3262,13 @@ export async function generateAgentReply({
     isRelationshipAnswerShapePrompt(latestUserMessageContent);
   const input =
     runtimeTurnInput ??
-    buildRuntimeTurnInput({
+    buildInternalRuntimeTurnInput({
       userId,
       agentId: agent.id,
       threadId: thread.id,
       workspaceId: workspace.id,
       content: latestUserMessageContent ?? "",
-      source: "internal",
       messageId: sessionContext.current_message_id,
-      context: {
-        source_platform: "internal"
-      }
     });
   const sameThreadContinuity = threadContinuity.hasPriorAssistantTurn;
   const runtimeMemoryContext = await prepareRuntimeMemory({

@@ -88,6 +88,28 @@ export function buildWebRuntimeTurnInput(args: {
   });
 }
 
+export function buildInternalRuntimeTurnInput(args: {
+  userId: string;
+  agentId: string;
+  threadId: string;
+  workspaceId?: string | null;
+  content: string;
+  messageId?: string | null;
+}): RuntimeTurnInput {
+  return buildRuntimeTurnInput({
+    userId: args.userId,
+    agentId: args.agentId,
+    threadId: args.threadId,
+    workspaceId: args.workspaceId,
+    content: args.content,
+    source: "internal",
+    messageId: args.messageId ?? null,
+    context: {
+      source_platform: "internal"
+    }
+  });
+}
+
 export function buildRuntimeTurnInputFromAdapterInput(args: {
   input: AdapterRuntimeInput;
   workspaceId?: string | null;
