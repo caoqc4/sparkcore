@@ -77,12 +77,14 @@
 - `StoredMemory -> semantic target` 的最小 classifier 也已开始进入 `apps/web/lib/chat/memory-records.ts`
 - 该 classifier 当前也已开始进入 profile / relationship recall 过滤
 - chat memory preview 当前也已开始暴露 semantic target，可直接观察当前 legacy row 的新语义归属
+- chat memory 卡片当前也已开始显式展示 semantic target，迁移期语义归属已不只停留在 preview
 - `hide / restore / incorrect` 管理动作当前也已开始写入 `semantic_target`
 - `memory.ts` 已退成兼容入口
 - `P0-6` 当前已不再只是迁移方向说明，而已进入：
   - classifier
   - recall
   - UI preview
+  - memory card UI
   - memory 管理动作
 - `P0-7` 当前也已开始形成明确 gate：
   - 功能 gate

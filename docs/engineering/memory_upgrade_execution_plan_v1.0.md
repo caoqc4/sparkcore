@@ -162,6 +162,7 @@ P0 只做一件事：
 - `DynamicProfileRecord` 当前仍保持克制，不直接承接 legacy `goal`
 - 该 classifier 当前也已开始进入 profile / relationship recall 过滤，而不再只停留在 adapter 层
 - chat memory preview 当前也已开始暴露 legacy semantic target，可直接观察每条 memory 当前被映射到哪一层
+- chat memory 卡片当前也已开始显式展示 semantic target，迁移期语义归属已不只停留在 preview
 - `hide / restore / incorrect` 管理动作当前也已开始把 `semantic_target` 写入 metadata
 
 ### 4.2 最小写入闭环

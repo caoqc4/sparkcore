@@ -17,6 +17,7 @@ import { AgentEditSheet } from "@/app/chat/agent-edit-sheet";
 import { LanguageSwitch } from "@/app/chat/language-switch";
 import { ThreadUrlSync } from "@/app/chat/thread-url-sync";
 import { classifyStoredMemorySemanticTarget } from "@/lib/chat/memory-records";
+import type { StoredMemory } from "@/lib/chat/memory-shared";
 import { getChatPageState } from "@/lib/chat/runtime";
 import {
   CHAT_UI_LANGUAGE_COOKIE,
@@ -128,6 +129,16 @@ function getMemorySemanticTargetLabel(
     default:
       return isZh ? "未分类" : "unclassified";
   }
+}
+
+function getStoredMemorySemanticTargetLabel(
+  memory: StoredMemory,
+  locale: "en" | "zh-CN"
+) {
+  return getMemorySemanticTargetLabel(
+    classifyStoredMemorySemanticTarget(memory),
+    locale
+  );
 }
 
 function getMemoryTrustHint({
@@ -477,10 +488,7 @@ export default async function ChatPage({
         content: memory.content,
         categoryLabel: getMemoryCategoryLabel(memory.category, locale),
         scopeLabel: getMemoryScopeLabel(memory.scope, locale),
-        semanticTargetLabel: getMemorySemanticTargetLabel(
-          classifyStoredMemorySemanticTarget(memory),
-          locale
-        )
+        semanticTargetLabel: getStoredMemorySemanticTargetLabel(memory, locale)
       })),
     threadLocalCount: visibleThreadLocalMemories.length,
     hiddenCount: hiddenMemories.length,
@@ -848,6 +856,9 @@ export default async function ChatPage({
                                     <span className="thread-badge thread-badge-muted">
                                       {getMemoryStatusLabel(memory.status, locale)}
                                     </span>
+                                    <span className="thread-badge thread-badge-muted">
+                                      {getStoredMemorySemanticTargetLabel(memory, locale)}
+                                    </span>
                                     {isRestored ? (
                                       <span className="thread-badge thread-badge-muted">
                                         {copy.memory.restoredBadge}
@@ -1094,6 +1105,9 @@ export default async function ChatPage({
                               <span className="thread-badge thread-badge-muted">
                                 {getMemoryStatusLabel(memory.status, locale)}
                               </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getStoredMemorySemanticTargetLabel(memory, locale)}
+                              </span>
                             </div>
                             <span className="memory-confidence memory-confidence-low">
                               {copy.memory.hiddenStatus}
@@ -1166,6 +1180,9 @@ export default async function ChatPage({
                               <span className="thread-badge thread-badge-muted">
                                 {getMemoryStatusLabel(memory.status, locale)}
                               </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getStoredMemorySemanticTargetLabel(memory, locale)}
+                              </span>
                             </div>
                             <span className="memory-confidence memory-confidence-low">
                               {copy.memory.hiddenStatus}
@@ -1236,6 +1253,9 @@ export default async function ChatPage({
                               </span>
                               <span className="thread-badge thread-badge-muted">
                                 {getMemoryStatusLabel(memory.status, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getStoredMemorySemanticTargetLabel(memory, locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
                                 {copy.memory.incorrectBadge}
@@ -1313,6 +1333,9 @@ export default async function ChatPage({
                                 {getMemoryStatusLabel(memory.status, locale)}
                               </span>
                               <span className="thread-badge thread-badge-muted">
+                                {getStoredMemorySemanticTargetLabel(memory, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
                                 {copy.memory.incorrectBadge}
                               </span>
                             </div>
@@ -1386,6 +1409,9 @@ export default async function ChatPage({
                               <span className="thread-badge thread-badge-muted">
                                 {getMemoryStatusLabel(memory.status, locale)}
                               </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getStoredMemorySemanticTargetLabel(memory, locale)}
+                              </span>
                             </div>
                           </div>
                           <p className="memory-content">{memory.content}</p>
@@ -1437,6 +1463,9 @@ export default async function ChatPage({
                               </span>
                               <span className="thread-badge thread-badge-muted">
                                 {getMemoryStatusLabel(memory.status, locale)}
+                              </span>
+                              <span className="thread-badge thread-badge-muted">
+                                {getStoredMemorySemanticTargetLabel(memory, locale)}
                               </span>
                             </div>
                           </div>
