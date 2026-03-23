@@ -22,15 +22,13 @@ import {
 } from "@/lib/testing/smoke-turn-persistence";
 import { buildSmokeSeedMetadata } from "@/lib/testing/smoke-seed-metadata";
 import {
-  buildSmokeRoleCorePacket,
   type SmokeAnswerQuestionType,
   type SmokeAnswerStrategy,
   type SmokeAnswerStrategyReasonCode,
   type SmokeApproxContextPressure,
   type SmokeContinuationReasonCode,
   type SmokeReplyLanguage,
-  type SmokeReplyLanguageSource,
-  type SmokeRoleCorePacket
+  type SmokeReplyLanguageSource
 } from "@/lib/testing/smoke-assistant-builders";
 import {
   getSmokeAnswerStrategy,
@@ -86,7 +84,7 @@ import {
   isSmokeShortRelationshipSupportivePrompt,
   isSmokeStayWithMeFollowUpPrompt
 } from "@/lib/testing/smoke-answer-strategy";
-import { insertSmokeAssistantReply } from "@/lib/testing/smoke-assistant-persistence";
+import { insertAnalyzedSmokeAssistantReply } from "@/lib/testing/smoke-turn-assistant";
 import {
   getSmokeRelationshipMemoryValue
 } from "@/lib/testing/smoke-relationship-context";
@@ -101,7 +99,6 @@ import {
 import { createSmokeLoginResponse } from "@/lib/testing/smoke-login";
 import { createSmokeThread } from "@/lib/testing/smoke-threads";
 import {
-  detectSmokeReplyLanguage,
   resolveSmokeReplyLanguage
 } from "@/lib/testing/smoke-reply-analysis";
 
@@ -1302,31 +1299,21 @@ export async function createSmokeTurn({
       : null,
     recalledMemories
   });
-  const roleCorePacket = buildSmokeRoleCorePacket({
-    agentId: ensuredAgent.id,
-    agentName: ensuredAgent.name,
-    personaSummary: ensuredAgent.persona_summary ?? null,
-    styleGuidance: ensuredAgent.style_prompt ?? null,
-    relationshipStyleValue: effectiveAddressStyleValue,
-    replyLanguage,
-    replyLanguageSource: replyLanguageDecision.source,
-    preferSameThreadContinuation
-  });
-
-  const insertedAssistantMessage = await insertSmokeAssistantReply({
+  const insertedAssistantMessage = await insertAnalyzedSmokeAssistantReply({
     supabase: admin,
     threadId: thread.id,
     workspaceId: smokeUser.workspaceId,
     userId: smokeUser.id,
     agentId: ensuredAgent.id,
     agentName: ensuredAgent.name,
-    roleCorePacket,
+    personaSummary: ensuredAgent.persona_summary ?? null,
+    styleGuidance: ensuredAgent.style_prompt ?? null,
     modelProfileId: modelProfile.id,
     modelProfileName: modelProfile.name,
     model: modelProfile.model,
     assistantContent,
+    relationshipStyleValue: effectiveAddressStyleValue,
     replyLanguage,
-    replyLanguageDetected: detectSmokeReplyLanguage(assistantContent),
     replyLanguageSource: replyLanguageDecision.source,
     questionType: answerStrategyRule.questionType,
     answerStrategy: answerStrategyRule.answerStrategy,
