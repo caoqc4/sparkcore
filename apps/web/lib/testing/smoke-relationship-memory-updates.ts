@@ -1,8 +1,8 @@
 import {
   detectSmokeNicknameCandidate,
-  detectSmokeUserAddressStyleCandidate,
   detectSmokeUserPreferredNameCandidate
-} from "@/lib/testing/smoke-relationship-detection";
+} from "@/lib/testing/smoke-relationship-name-detection";
+import { detectSmokeUserAddressStyleCandidate } from "@/lib/testing/smoke-address-style-detection";
 import { buildSmokeRelationshipMemoryUpdateDefinitions } from "@/lib/testing/smoke-relationship-memory-update-definitions";
 import { applySmokeRelationshipMemoryUpdate } from "@/lib/testing/smoke-relationship-memory-update-step";
 import type { SmokeRelationshipMemoryUpdatesInput } from "@/lib/testing/smoke-relationship-memory-update-types";

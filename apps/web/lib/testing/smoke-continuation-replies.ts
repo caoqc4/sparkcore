@@ -1,4 +1,4 @@
-import { detectSmokeUserAddressStyleCandidate } from "@/lib/testing/smoke-relationship-detection";
+import { detectSmokeUserAddressStyleCandidate } from "@/lib/testing/smoke-address-style-detection";
 import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 import { buildSmokeEnDefaultContinuationReply as buildSmokeEnDefaultContinuationReplyByStyle } from "@/lib/testing/smoke-en-continuation-replies";
 import { buildSmokeZhSteadyContinuationReply } from "@/lib/testing/smoke-zh-continuation-steady-replies";
