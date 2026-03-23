@@ -20,7 +20,8 @@ import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import {
   buildFailedAssistantMetadata,
-  buildPendingAssistantMetadata
+  buildPendingAssistantMetadata,
+  buildRetriedAssistantMetadata
 } from "@/lib/chat/assistant-message-state-metadata";
 import { updateAssistantPreviewMetadata } from "@/lib/chat/assistant-preview-metadata";
 import {
@@ -1468,10 +1469,9 @@ export async function retryAssistantReply(
     .from("messages")
     .update({
       status: "pending",
-      metadata: {
-        ...failedMessage.metadata,
-        retried_at: new Date().toISOString()
-      },
+      metadata: buildRetriedAssistantMetadata({
+        baseMetadata: failedMessage.metadata
+      }),
       updated_at: new Date().toISOString()
     })
     .eq("id", failedMessage.id)

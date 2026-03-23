@@ -27,3 +27,13 @@ export function buildFailedAssistantMetadata(args: {
     ...(args.source ? { source: args.source } : {})
   };
 }
+
+export function buildRetriedAssistantMetadata(args: {
+  baseMetadata?: Record<string, unknown> | null;
+  retriedAt?: string;
+}) {
+  return {
+    ...(args.baseMetadata ?? {}),
+    retried_at: args.retriedAt ?? new Date().toISOString()
+  };
+}
