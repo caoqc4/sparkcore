@@ -1,12 +1,19 @@
 import { getSmokeUsedMemoryTypes } from "@/lib/testing/smoke-relationship-memory-accessors";
 import { prepareSmokeTurnAnalysisContext } from "@/lib/testing/smoke-turn-analysis-context";
-import type { SmokeTurnAnalysisInput } from "@/lib/testing/smoke-turn-analysis-input";
 import type { SmokeTurnAnalysisResult } from "@/lib/testing/smoke-turn-analysis-result";
 import type {
   SmokeContinuityReply,
   SmokeMemoryRow,
   SmokeRuntimeMessage
 } from "@/lib/testing/smoke-turn-analysis-types";
+
+export type SmokeTurnAnalysisInput = {
+  trimmedContent: string;
+  existingMemories: SmokeMemoryRow[];
+  existingMessages: SmokeRuntimeMessage[];
+  agentId: string;
+  threadId: string;
+};
 
 export function analyzeSmokeTurnContext({
   trimmedContent,
