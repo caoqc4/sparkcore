@@ -2,7 +2,11 @@ import { analyzeSmokeTurnContext } from "@/lib/testing/smoke-turn-analysis";
 import { executeSmokeTurnSteps } from "@/lib/testing/smoke-turn-execution-steps";
 import { getSmokeTurnStepContext } from "@/lib/testing/smoke-turn-step-context";
 import type { SmokeTurnExecutionInput } from "@/lib/testing/smoke-turn-execution-types";
-import type { SmokeTurnExecutionResult } from "@/lib/testing/smoke-turn-execution-result";
+
+export type SmokeTurnExecutionResult = {
+  userMessageId: string;
+  assistantMessageId: string;
+};
 
 export async function executeSmokeTurn(
   args: SmokeTurnExecutionInput
