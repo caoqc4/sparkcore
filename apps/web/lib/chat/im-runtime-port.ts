@@ -18,7 +18,7 @@ import {
   buildRuntimeMemoryWriteOutcomeMetadata,
   buildRuntimeMemoryWriteRequestMetadata
 } from "@/lib/chat/runtime-preview-metadata";
-import { buildRuntimeTurnInputFromAdapterInput } from "@/lib/chat/runtime-input";
+import { buildImRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
 import { resolveRoleProfile } from "@/lib/chat/role-service";
@@ -121,12 +121,9 @@ async function runImRuntimeTurnWithSupabase(args: {
   }
   const agent = roleResolution.role;
 
-  const runtimeTurnInput = buildRuntimeTurnInputFromAdapterInput({
+  const runtimeTurnInput = buildImRuntimeTurnInput({
     input,
-    workspaceId: workspace.id,
-    context: {
-      source_platform: "im"
-    }
+    workspaceId: workspace.id
   });
   const trimmedContent = runtimeTurnInput.message.content.trim();
   const { data: insertedMessage, error: insertError } = await supabase

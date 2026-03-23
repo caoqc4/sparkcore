@@ -110,6 +110,21 @@ export function buildInternalRuntimeTurnInput(args: {
   });
 }
 
+export function buildImRuntimeTurnInput(args: {
+  input: AdapterRuntimeInput;
+  workspaceId?: string | null;
+  messageId?: string | null;
+}): RuntimeTurnInput {
+  return buildRuntimeTurnInputFromAdapterInput({
+    input: args.input,
+    workspaceId: args.workspaceId,
+    messageId: args.messageId,
+    context: {
+      source_platform: "im"
+    }
+  });
+}
+
 export function buildRuntimeTurnInputFromAdapterInput(args: {
   input: AdapterRuntimeInput;
   workspaceId?: string | null;
