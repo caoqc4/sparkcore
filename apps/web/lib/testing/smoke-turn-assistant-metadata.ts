@@ -1,21 +1,12 @@
 import {
   buildSmokeRoleCorePacket,
-  type SmokeReplyLanguage,
-  type SmokeReplyLanguageSource
 } from "@/lib/testing/smoke-assistant-builders";
 import { detectSmokeReplyLanguage } from "@/lib/testing/smoke-reply-analysis";
+import type { SmokeAssistantTurnMetadataInput } from "@/lib/testing/smoke-turn-assistant-types";
 
-export function buildSmokeAssistantTurnMetadata(args: {
-  agentId: string;
-  agentName: string;
-  personaSummary: string | null;
-  styleGuidance: string | null;
-  relationshipStyleValue: string | null;
-  replyLanguage: SmokeReplyLanguage;
-  replyLanguageSource: SmokeReplyLanguageSource;
-  sameThreadContinuationPreferred: boolean;
-  assistantContent: string;
-}) {
+export function buildSmokeAssistantTurnMetadata(
+  args: SmokeAssistantTurnMetadataInput
+) {
   const roleCorePacket = buildSmokeRoleCorePacket({
     agentId: args.agentId,
     agentName: args.agentName,

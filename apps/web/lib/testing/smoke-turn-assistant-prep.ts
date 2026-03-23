@@ -3,34 +3,10 @@ import {
   toSmokeRelationshipRecallMemory
 } from "@/lib/testing/smoke-relationship-context";
 import { buildSmokeAssistantReply } from "@/lib/testing/smoke-assistant-reply";
-import { resolveSmokeReplyLanguage, type SmokeContinuityReply } from "@/lib/testing/smoke-reply-analysis";
-import type {
-  SmokeAnswerQuestionType,
-  SmokeAnswerStrategy,
-  SmokeAnswerStrategyReasonCode,
-  SmokeContinuationReasonCode
-} from "@/lib/testing/smoke-assistant-builders";
+import { resolveSmokeReplyLanguage } from "@/lib/testing/smoke-reply-analysis";
+import type { SmokeAssistantTurnPrepInput } from "@/lib/testing/smoke-turn-assistant-types";
 
-export function prepareSmokeAssistantTurn(args: {
-  trimmedContent: string;
-  modelProfileName: string;
-  agentName: string;
-  recentAssistantReply: SmokeContinuityReply | null;
-  addressStyleMemory: unknown;
-  nicknameMemory: unknown;
-  preferredNameMemory: unknown;
-  recalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }>;
-  answerStrategyRule: {
-    questionType: SmokeAnswerQuestionType;
-    answerStrategy: SmokeAnswerStrategy;
-    reasonCode: SmokeAnswerStrategyReasonCode;
-    continuationReasonCode: SmokeContinuationReasonCode | null;
-  };
-}) {
+export function prepareSmokeAssistantTurn(args: SmokeAssistantTurnPrepInput) {
   const replyLanguageDecision = resolveSmokeReplyLanguage({
     content: args.trimmedContent,
     recentAssistantReply: args.recentAssistantReply
