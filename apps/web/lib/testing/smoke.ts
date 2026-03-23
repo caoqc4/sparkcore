@@ -88,6 +88,7 @@ import { insertAnalyzedSmokeAssistantReply } from "@/lib/testing/smoke-turn-assi
 import {
   getSmokeRelationshipMemoryValue
 } from "@/lib/testing/smoke-relationship-context";
+import { toSmokeRelationshipRecallMemory } from "@/lib/testing/smoke-relationship-context";
 import {
   analyzeSmokeTurnContext,
   type SmokeContinuityReply
@@ -1267,36 +1268,9 @@ export async function createSmokeTurn({
     replyLanguage,
     recentAssistantReply,
     agentName: ensuredAgent.name,
-    addressStyleMemory: addressStyleMemory
-      ? {
-          memory_type: "relationship",
-          content:
-            typeof addressStyleMemory.value === "string"
-              ? addressStyleMemory.value
-              : addressStyleMemory.content,
-          confidence: addressStyleMemory.confidence
-        }
-      : null,
-    nicknameMemory: nicknameMemory
-      ? {
-          memory_type: "relationship",
-          content:
-            typeof nicknameMemory.value === "string"
-              ? nicknameMemory.value
-              : nicknameMemory.content,
-          confidence: nicknameMemory.confidence
-        }
-      : null,
-    preferredNameMemory: preferredNameMemory
-      ? {
-          memory_type: "relationship",
-          content:
-            typeof preferredNameMemory.value === "string"
-              ? preferredNameMemory.value
-              : preferredNameMemory.content,
-          confidence: preferredNameMemory.confidence
-        }
-      : null,
+    addressStyleMemory: toSmokeRelationshipRecallMemory(addressStyleMemory),
+    nicknameMemory: toSmokeRelationshipRecallMemory(nicknameMemory),
+    preferredNameMemory: toSmokeRelationshipRecallMemory(preferredNameMemory),
     recalledMemories
   });
   const insertedAssistantMessage = await insertAnalyzedSmokeAssistantReply({

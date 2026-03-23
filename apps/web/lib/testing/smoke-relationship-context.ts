@@ -14,7 +14,7 @@ type RelationshipRecallMemory = {
   confidence: number;
 };
 
-function toRelationshipRecallMemory(
+export function toSmokeRelationshipRecallMemory(
   memory: RelationshipMemoryRow | null
 ): RelationshipRecallMemory | null {
   if (!memory) {
@@ -53,7 +53,7 @@ export function prependSmokeRelationshipRecall(
   }>,
   memory: RelationshipMemoryRow | null
 ) {
-  const recallMemory = toRelationshipRecallMemory(memory);
+  const recallMemory = toSmokeRelationshipRecallMemory(memory);
 
   if (recallMemory) {
     recalledMemories.unshift(recallMemory);
