@@ -9,6 +9,12 @@ import { isSmokeLightStyleSofteningPrompt } from "@/lib/testing/smoke-continuati
 import { detectSmokeUserAddressStyleCandidate } from "@/lib/testing/smoke-relationship-detection";
 import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 import { buildSmokeZhSoftCatchReply } from "@/lib/testing/smoke-soft-catch-replies";
+import {
+  buildSmokeZhBriefSteadyingReply,
+  buildSmokeZhCarryForwardReply,
+  buildSmokeZhGuidedNextStepReply,
+  buildSmokeZhSharedPushReply
+} from "@/lib/testing/smoke-zh-soft-steady-replies";
 import { buildSmokeZhBoundaryFollowUpReply } from "@/lib/testing/smoke-zh-boundary-followups";
 import { buildSmokeZhContinuationTail } from "@/lib/testing/smoke-zh-continuation-tail";
 import type { SmokeReplyLanguage } from "@/lib/testing/smoke-assistant-builders";
@@ -29,33 +35,22 @@ export function buildSmokeZhDefaultContinuationReply(args: {
   }
 
   if (isSmokeBriefSteadyingPrompt(args.content)) {
-    return args.userName
-      ? `${args.userName}，先缓一下，我陪着你。`
-      : "先缓一下，我陪着你。";
+    return buildSmokeZhBriefSteadyingReply(args.userName);
   }
 
   if (isSmokeGuidedNextStepAfterSteadyingPrompt(args.content)) {
-    return args.userName
-      ? `${args.userName}，我们先只理眼前这一小步，我陪你慢慢顺。`
-      : "我们先只理眼前这一小步，我陪你慢慢顺。";
+    return buildSmokeZhGuidedNextStepReply(args.userName);
   }
 
   if (isSmokeGentleCarryForwardAfterSteadyingPrompt(args.content)) {
-    return args.userName
-      ? `${args.userName}，先缓一下，我陪你往下顺一点。`
-      : "先缓一下，我陪你往下顺一点。";
+    return buildSmokeZhCarryForwardReply(args.userName);
   }
 
   if (isSmokeLightSharedPushPrompt(args.content)) {
-    if (normalized.includes("陪我把眼前这一下弄过去")) {
-      return args.userName
-        ? `${args.userName}，好，我先陪你把眼前这一下弄过去。`
-        : "好，我先陪你把眼前这一下弄过去。";
-    }
-
-    return args.userName
-      ? `${args.userName}，好，我们先一起把这一点弄过去。`
-      : "好，我们先一起把这一点弄过去。";
+    return buildSmokeZhSharedPushReply({
+      userName: args.userName,
+      isImmediatePush: normalized.includes("陪我把眼前这一下弄过去")
+    });
   }
 
   const boundaryReply = buildSmokeZhBoundaryFollowUpReply({
