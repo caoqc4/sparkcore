@@ -13,6 +13,12 @@ export function getAssistantMetadataGroup(
   return getAssistantMetadataObject(metadata?.[key]);
 }
 
+export function getAssistantDeveloperDiagnosticsMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "developer_diagnostics");
+}
+
 export function getAssistantMetadataString(
   metadata: Record<string, unknown> | null | undefined,
   key: string
@@ -47,4 +53,48 @@ export function getAssistantMetadataStringArray(
         (item): item is string => typeof item === "string" && item.length > 0
       )
     : [];
+}
+
+export function getPreferredAssistantMetadataString(
+  preferred: Record<string, unknown> | null | undefined,
+  fallback: Record<string, unknown> | null | undefined,
+  key: string
+) {
+  return (
+    getAssistantMetadataString(preferred, key) ??
+    getAssistantMetadataString(fallback, key)
+  );
+}
+
+export function getPreferredAssistantMetadataNumber(
+  preferred: Record<string, unknown> | null | undefined,
+  fallback: Record<string, unknown> | null | undefined,
+  key: string
+) {
+  return (
+    getAssistantMetadataNumber(preferred, key) ??
+    getAssistantMetadataNumber(fallback, key)
+  );
+}
+
+export function getPreferredAssistantMetadataBoolean(
+  preferred: Record<string, unknown> | null | undefined,
+  fallback: Record<string, unknown> | null | undefined,
+  key: string
+) {
+  return (
+    getAssistantMetadataBoolean(preferred, key) ??
+    getAssistantMetadataBoolean(fallback, key)
+  );
+}
+
+export function getPreferredAssistantMetadataStringArray(
+  preferred: Record<string, unknown> | null | undefined,
+  fallback: Record<string, unknown> | null | undefined,
+  key: string
+) {
+  const preferredValue = getAssistantMetadataStringArray(preferred, key);
+  return preferredValue.length > 0
+    ? preferredValue
+    : getAssistantMetadataStringArray(fallback, key);
 }

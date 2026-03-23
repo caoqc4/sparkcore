@@ -8,6 +8,10 @@ import {
   getAssistantMetadataGroup,
   getAssistantMetadataNumber,
   getAssistantMetadataObject,
+  getPreferredAssistantMetadataBoolean,
+  getPreferredAssistantMetadataNumber,
+  getPreferredAssistantMetadataString,
+  getPreferredAssistantMetadataStringArray,
   getAssistantMetadataString,
   getAssistantMetadataStringArray
 } from "@/lib/chat/assistant-message-metadata-read";
@@ -93,72 +97,6 @@ type RuntimeSummary = {
 
 function getExplanationMetadata(message: ChatMessage) {
   return getAssistantMetadataObject(message.metadata?.user_explanation);
-}
-
-function getMetadataString(
-  preferred: Record<string, unknown> | null,
-  fallback: Record<string, unknown>,
-  key: string
-) {
-  const preferredValue = preferred?.[key];
-
-  if (typeof preferredValue === "string" && preferredValue.trim().length > 0) {
-    return preferredValue;
-  }
-
-  const fallbackValue = fallback[key];
-
-  return typeof fallbackValue === "string" && fallbackValue.trim().length > 0
-    ? fallbackValue
-    : null;
-}
-
-function getMetadataNumber(
-  preferred: Record<string, unknown> | null,
-  fallback: Record<string, unknown>,
-  key: string
-) {
-  const preferredValue = preferred?.[key];
-
-  if (typeof preferredValue === "number") {
-    return preferredValue;
-  }
-
-  const fallbackValue = fallback[key];
-
-  return typeof fallbackValue === "number" ? fallbackValue : null;
-}
-
-function getMetadataBoolean(
-  preferred: Record<string, unknown> | null,
-  fallback: Record<string, unknown>,
-  key: string
-) {
-  const preferredValue = preferred?.[key];
-
-  if (typeof preferredValue === "boolean") {
-    return preferredValue;
-  }
-
-  const fallbackValue = fallback[key];
-
-  return typeof fallbackValue === "boolean" ? fallbackValue : null;
-}
-
-function getMetadataStringArray(
-  preferred: Record<string, unknown> | null,
-  fallback: Record<string, unknown>,
-  key: string
-) {
-  const value = Array.isArray(preferred?.[key])
-    ? preferred?.[key]
-    : Array.isArray(fallback[key])
-      ? fallback[key]
-      : [];
-
-  return value.filter(
-    (item): item is string => typeof item === "string" && item.length > 0
-  );
 }
 
 function formatMemoryTypeLabel(type: string, locale: ChatLocale) {
@@ -277,54 +215,66 @@ function getRuntimeSummary(
   );
   const groupedMemory = getAssistantMetadataGroup(fallbackMetadata, "memory");
 
-  const modelProfileName = getMetadataString(
+  const modelProfileName = getPreferredAssistantMetadataString(
     explanationMetadata,
     fallbackMetadata,
     "model_profile_name"
   ) ?? getAssistantMetadataString(groupedModelProfile, "name");
-  const modelProfileTierLabel = getMetadataString(
+  const modelProfileTierLabel = getPreferredAssistantMetadataString(
     explanationMetadata,
     fallbackMetadata,
     "model_profile_tier_label"
   ) ?? getAssistantMetadataString(groupedModelProfile, "tier_label");
-  const modelProfileUsageNote = getMetadataString(
+  const modelProfileUsageNote = getPreferredAssistantMetadataString(
     explanationMetadata,
     fallbackMetadata,
     "model_profile_usage_note"
   ) ?? getAssistantMetadataString(groupedModelProfile, "usage_note");
   const underlyingModelLabel =
-    getMetadataString(explanationMetadata, fallbackMetadata, "underlying_model_label") ??
+    getPreferredAssistantMetadataString(
+      explanationMetadata,
+      fallbackMetadata,
+      "underlying_model_label"
+    ) ??
     (typeof fallbackMetadata?.model === "string" && fallbackMetadata.model.trim().length > 0
       ? fallbackMetadata.model
       : null);
   const memoryHitCount =
-    getMetadataNumber(explanationMetadata, fallbackMetadata, "memory_hit_count") ??
+    getPreferredAssistantMetadataNumber(
+      explanationMetadata,
+      fallbackMetadata,
+      "memory_hit_count"
+    ) ??
     getAssistantMetadataNumber(groupedMemory ?? fallbackMetadata, "hit_count") ??
     (Array.isArray(fallbackMetadata?.recalled_memories)
       ? fallbackMetadata.recalled_memories.length
       : null);
   const memoryUsed =
-    getMetadataBoolean(explanationMetadata, fallbackMetadata, "memory_used") ??
+    getPreferredAssistantMetadataBoolean(
+      explanationMetadata,
+      fallbackMetadata,
+      "memory_used"
+    ) ??
     getAssistantMetadataBoolean(groupedMemory ?? fallbackMetadata, "used") ??
     (typeof memoryHitCount === "number"
       ? memoryHitCount > 0
       : null);
-  const memoryTypesUsed = getMetadataStringArray(
+  const memoryTypesUsed = getPreferredAssistantMetadataStringArray(
     explanationMetadata,
-    groupedMemory ?? fallbackMetadata,
+    fallbackMetadata,
     "memory_types_used"
   );
   const normalizedMemoryTypesUsed =
     memoryTypesUsed.length > 0
       ? memoryTypesUsed
       : getAssistantMetadataStringArray(groupedMemory ?? fallbackMetadata, "types_used");
-  const memoryWriteTypes = getMetadataStringArray(
+  const memoryWriteTypes = getPreferredAssistantMetadataStringArray(
     explanationMetadata,
     fallbackMetadata,
     "memory_write_types"
   );
   const hiddenExclusionCount =
-    getMetadataNumber(
+    getPreferredAssistantMetadataNumber(
       explanationMetadata,
       fallbackMetadata,
       "hidden_memory_exclusion_count"
@@ -335,7 +285,7 @@ function getRuntimeSummary(
     ) ??
     0;
   const incorrectExclusionCount =
-    getMetadataNumber(
+    getPreferredAssistantMetadataNumber(
       explanationMetadata,
       fallbackMetadata,
       "incorrect_memory_exclusion_count"
@@ -346,9 +296,13 @@ function getRuntimeSummary(
     ) ??
     0;
   const newMemoryCount =
-    getMetadataNumber(explanationMetadata, fallbackMetadata, "new_memory_count") ?? 0;
+    getPreferredAssistantMetadataNumber(
+      explanationMetadata,
+      fallbackMetadata,
+      "new_memory_count"
+    ) ?? 0;
   const updatedMemoryCount =
-    getMetadataNumber(
+    getPreferredAssistantMetadataNumber(
       explanationMetadata,
       fallbackMetadata,
       "updated_memory_count"

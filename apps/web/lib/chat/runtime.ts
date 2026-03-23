@@ -11,6 +11,7 @@ import {
   isMemoryScopeValid
 } from "@/lib/chat/memory-v2";
 import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
+import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
 import {
   planMemoryWriteRequests,
   planRelationshipMemoryWriteRequests
@@ -2155,18 +2156,6 @@ function isRuntimeReplyLanguage(value: unknown): value is RuntimeReplyLanguage {
   return value === "zh-Hans" || value === "en" || value === "unknown";
 }
 
-function getDeveloperDiagnosticsMetadata(
-  metadata: Record<string, unknown> | null | undefined
-) {
-  const diagnostics = metadata?.developer_diagnostics;
-
-  return diagnostics &&
-    typeof diagnostics === "object" &&
-    !Array.isArray(diagnostics)
-    ? (diagnostics as Record<string, unknown>)
-    : null;
-}
-
 function resolveReplyLanguageForTurn({
   latestUserMessage,
   threadContinuity
@@ -3245,7 +3234,7 @@ export async function generateAgentReply({
     messages,
     detectReplyLanguageFromText,
     isReplyLanguage: isRuntimeReplyLanguage,
-    getDeveloperDiagnosticsMetadata
+    getDeveloperDiagnosticsMetadata: getAssistantDeveloperDiagnosticsMetadata
   });
   const latestUserMessageContent = sessionContext.current_user_message;
   const threadContinuity = sessionContext.continuity_signals;
