@@ -1,3 +1,6 @@
+import { getSmokeRoleCoreRelationshipStance } from "@/lib/testing/smoke-role-core-relationship";
+import type { SmokeRoleCorePacketInput } from "@/lib/testing/smoke-role-core-packet-types";
+
 export type SmokeReplyLanguage = "zh-Hans" | "en" | "unknown";
 export type SmokeReplyLanguageSource =
   | "latest-user-message"
@@ -30,37 +33,9 @@ export type SmokeRoleCorePacket = {
   };
 };
 
-function getSmokeRoleCoreRelationshipStance(
-  styleValue: string | null
-): SmokeRoleCorePacket["relationship_stance"] {
-  if (
-    styleValue === "formal" ||
-    styleValue === "friendly" ||
-    styleValue === "casual" ||
-    styleValue === "no_full_name"
-  ) {
-    return {
-      effective: styleValue,
-      source: "relationship_memory"
-    };
-  }
-
-  return {
-    effective: "default-agent-profile",
-    source: "agent_profile_default"
-  };
-}
-
-export function buildSmokeRoleCorePacket(args: {
-  agentId: string;
-  agentName: string;
-  personaSummary: string | null;
-  styleGuidance: string | null;
-  relationshipStyleValue: string | null;
-  replyLanguage: SmokeReplyLanguage;
-  replyLanguageSource: SmokeReplyLanguageSource;
-  preferSameThreadContinuation: boolean;
-}): SmokeRoleCorePacket {
+export function buildSmokeRoleCorePacket(
+  args: SmokeRoleCorePacketInput
+): SmokeRoleCorePacket {
   return {
     packet_version: "v1",
     identity: {
