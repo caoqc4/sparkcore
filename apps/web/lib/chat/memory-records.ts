@@ -15,6 +15,11 @@ export type ChatMemoryRecord = MemoryRecord;
 export type ChatStaticProfileRecord = StaticProfileRecord;
 export type ChatDynamicProfileRecord = DynamicProfileRecord;
 export type ChatMemoryScopeRef = MemoryScopeRef;
+export type LegacyMemorySemanticTarget =
+  | "static_profile"
+  | "memory_record"
+  | "thread_state_candidate"
+  | "legacy_unsupported";
 
 function buildProfileIdentity(memory: StoredMemory) {
   const userId = memory.subject_user_id ?? "unknown_user";
@@ -28,6 +33,38 @@ function buildProfileIdentity(memory: StoredMemory) {
   };
 }
 
+export function classifyStoredMemorySemanticTarget(
+  memory: StoredMemory
+): LegacyMemorySemanticTarget {
+  if (memory.memory_type === "goal") {
+    return "thread_state_candidate";
+  }
+
+  if (
+    (memory.category === "profile" || memory.category === "preference") &&
+    memory.scope !== "thread_local"
+  ) {
+    return "static_profile";
+  }
+
+  if (memory.category === "relationship") {
+    return "memory_record";
+  }
+
+  if (
+    memory.scope === "thread_local" &&
+    (memory.category === "profile" || memory.category === "preference")
+  ) {
+    return "thread_state_candidate";
+  }
+
+  if (memory.memory_type || memory.category) {
+    return "memory_record";
+  }
+
+  return "legacy_unsupported";
+}
+
 export function buildChatMemoryRecord(memory: StoredMemory): ChatMemoryRecord {
   return buildMemoryRecordFromLegacy(memory);
 }
@@ -35,10 +72,7 @@ export function buildChatMemoryRecord(memory: StoredMemory): ChatMemoryRecord {
 export function buildStaticProfileRecordFromStoredMemory(
   memory: StoredMemory
 ): ChatStaticProfileRecord | null {
-  if (
-    (memory.category !== "profile" && memory.category !== "preference") ||
-    memory.scope === "thread_local"
-  ) {
+  if (classifyStoredMemorySemanticTarget(memory) !== "static_profile") {
     return null;
   }
 

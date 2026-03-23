@@ -74,6 +74,7 @@
 - core record types 也已开始进入 `packages/core/memory`
 - recall / write / shared 已在 `apps/web/lib/chat` 内部分层
 - `StoredMemory -> MemoryRecord / StaticProfileRecord` 的最小 adapter 已出现
+- `StoredMemory -> semantic target` 的最小 classifier 也已开始进入 `apps/web/lib/chat/memory-records.ts`
 - `memory.ts` 已退成兼容入口
 - `profile / preference` 已形成 planner -> executor 最小闭环
 - `relationship memory` 已收进 `memory_write_requests` 的显式 subtype

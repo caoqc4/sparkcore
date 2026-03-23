@@ -157,6 +157,7 @@ P0 只做一件事：
 
 - `packages/core/memory/records.ts` 已新增首版 core record types
 - `apps/web/lib/chat/memory-records.ts` 已新增从 `StoredMemory` 到新 record 的最小 adapter
+- `apps/web/lib/chat/memory-records.ts` 当前也已开始承接统一的 legacy semantic target classifier
 - `StaticProfileRecord` 已开始接住 legacy `profile / preference` 语义
 - `DynamicProfileRecord` 当前仍保持克制，不直接承接 legacy `goal`
 
