@@ -200,6 +200,7 @@ P0 只做一件事：
 - `apps/web/lib/chat/memory-recall.ts` 已新增 `MemoryRecallRoute`
 - `RecallOutcome` 已开始显式暴露 `appliedRoutes`
 - `memory_write_planned` runtime event 当前也已开始显式暴露 `record_targets`
+- `static_profile` 当前也已开始进入真实 profile recall 主路径，而不再只是停留在 write candidate seam
 - 当前已正式收口的 route name 包括：
   - `profile`
   - `episode`
@@ -574,6 +575,7 @@ P0 最小要求：
 - generic `StaticProfileRecord` candidate adapter 已成立
 - relationship `MemoryRecord` candidate adapter 已成立
 - `thread_state_candidate` seam 已成立，但仍未进入真实 commit
+- `static_profile` 当前已成为三条里第一条进入真实主读路径的分支
 - 下一步应继续把：
   - `canonical type`
   - `scope`
