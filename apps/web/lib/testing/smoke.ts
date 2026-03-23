@@ -4,6 +4,7 @@ import {
   type SupabaseClient
 } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
 import { getSupabaseEnv } from "@/lib/env";
 import { getAssistantDetectedReplyLanguage } from "@/lib/chat/assistant-message-metadata-read";
@@ -663,10 +664,11 @@ async function seedSmokeAgents(
       default_model_profile_id: defaultProfile.id,
       is_custom: false,
       status: "active",
-      metadata: buildSmokeSeedMetadata({
-        source_slug: sparkGuidePack.slug,
-        source_description: sparkGuidePack.description,
-        is_default_for_workspace: true
+      metadata: buildAgentSourceMetadata({
+        smokeSeed: true,
+        sourceSlug: sparkGuidePack.slug,
+        sourceDescription: sparkGuidePack.description,
+        isDefaultForWorkspace: true
       })
     },
     {
@@ -680,9 +682,10 @@ async function seedSmokeAgents(
       default_model_profile_id: altProfile.id,
       is_custom: false,
       status: "active",
-      metadata: buildSmokeSeedMetadata({
-        source_slug: memoryCoachPack.slug,
-        source_description: memoryCoachPack.description
+      metadata: buildAgentSourceMetadata({
+        smokeSeed: true,
+        sourceSlug: memoryCoachPack.slug,
+        sourceDescription: memoryCoachPack.description
       })
     }
   ]);

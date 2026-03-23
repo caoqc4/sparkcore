@@ -12,6 +12,7 @@ import {
 } from "@/lib/chat/memory-v2";
 import { buildRuntimeAssistantPayload } from "@/lib/chat/assistant-message-payload";
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
+import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildRuntimeDebugMetadata } from "@/lib/chat/runtime-debug-metadata";
 import {
   planMemoryWriteRequests,
@@ -2479,10 +2480,10 @@ export async function resolveAgentForWorkspace({
       system_prompt: personaPack.system_prompt,
       default_model_profile_id: defaultModelProfile.id,
       is_custom: false,
-      metadata: {
-        auto_created: true,
-        source_slug: personaPack.slug
-      }
+      metadata: buildAgentSourceMetadata({
+        autoCreated: true,
+        sourceSlug: personaPack.slug
+      })
     })
     .select(ROLE_PROFILE_SELECT)
     .single();

@@ -10,6 +10,7 @@ import {
   isSupportedSingleSlotPath,
   normalizeSingleSlotValue
 } from "@/lib/chat/memory-v2";
+import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { buildRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
@@ -275,11 +276,11 @@ export async function createAgentFromPersonaPack(
       system_prompt: personaPack.system_prompt,
       default_model_profile_id: defaultModelProfile.id,
       is_custom: false,
-      metadata: {
-        created_from_chat: true,
-        source_slug: personaPack.slug,
-        source_description: personaPack.description
-      }
+      metadata: buildAgentSourceMetadata({
+        createdFromChat: true,
+        sourceSlug: personaPack.slug,
+        sourceDescription: personaPack.description
+      })
     })
     .select("id, name")
     .single();
