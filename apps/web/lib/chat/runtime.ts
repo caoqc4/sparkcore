@@ -10,7 +10,7 @@ import {
   isMemoryIncorrect,
   isMemoryScopeValid
 } from "@/lib/chat/memory-v2";
-import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
+import { buildRuntimeAssistantPayload } from "@/lib/chat/assistant-message-payload";
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
 import { buildRuntimeDebugMetadata } from "@/lib/chat/runtime-debug-metadata";
 import {
@@ -3529,11 +3529,9 @@ export async function runPreparedRuntimeTurn({
     replyLanguage
   });
 
-  const assistantPayload = {
-    role: "assistant",
+  const assistantPayload = buildRuntimeAssistantPayload({
     content: result.content,
-    status: "completed",
-    metadata: buildAssistantMessageMetadata({
+    metadata: {
       agent_id: agent.id,
       agent_name: agent.name,
       model: result.model ?? null,
@@ -3590,8 +3588,8 @@ export async function runPreparedRuntimeTurn({
       hidden_memory_exclusion_count: memoryRecall.hiddenExclusionCount,
       incorrect_memory_exclusion_count: memoryRecall.incorrectExclusionCount,
       follow_up_request_count: followUpRequests.length
-    })
-  };
+    }
+  });
 
   const { error } = assistant_message_id
     ? await runtimeSupabase
