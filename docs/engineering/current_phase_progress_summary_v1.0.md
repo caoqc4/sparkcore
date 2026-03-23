@@ -365,16 +365,16 @@
 - `P4-1`：中段
 - `P4-2`：中段
 - `P4-3`：中后段
-- `P4-4`：中段
+- `P4-4`：中后段
 - `P4-5`：第一版已成立
 
-整体上，`P4` 当前大约在 `75% - 80%`。
+整体上，`P4` 当前大约在 `80%` 左右。
 这意味着：
 
 - `P4` 已经从前中段推进到更明确的中后段
-- 还没有进入 `close-readiness`
-- 当前最弱的一项仍然是 `P4-4`
-- 下一步更合理的是继续补 `P4-4`，而不是现在进入 `P4 close-readiness`
+- 并且已经开始接近 `close-readiness` 前的最后区间
+- 当前不再有明显落后的单项，`P4-1 / P4-2` 仍是相对更浅的两条线
+- 下一步更合理的是先做一次新的 `P4` 小复盘，再判断是否进入 `P4 close-readiness` 前置区间
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

@@ -405,7 +405,7 @@ P4 首批明确不做：
   - selection priority / pack-level route influence / decision visibility / route rationale 都已经成立
 
 - `P4-4 Scenario pack consumption expansion v2`
-  - 当前处于中段
+  - 当前处于中后段
   - 现在已成立多条真实 pack-specific consumption 差异：
     - relationship memory slot budget 随 pack 变化
     - static_profile slot budget 随 pack 变化
@@ -423,12 +423,12 @@ P4 首批明确不做：
 
 整体判断：
 
-- 当前 `P4` 大约在 `75% - 80%`
+- 当前 `P4` 大约在 `80%` 左右
 - 已经不是起步阶段
-- 但还没进入 `close-readiness`
-- 当前最弱的一项仍是 `P4-4`
+- 并且已经开始接近 `close-readiness` 前的最后区间
+- 当前不再有明显落后的单项，`P4-1 / P4-2` 仍是相对更浅的两条线
 
 因此，下一步建议仍然是：
 
-- 继续补 `P4-4`
-- 先不进入 `P4 close-readiness`
+- 先做一次新的 `P4` 小复盘
+- 再判断是否进入 `P4 close-readiness` 前置区间
