@@ -1,23 +1,5 @@
 import { buildSmokeSeedMetadata } from "@/lib/testing/smoke-seed-metadata";
-
-const SMOKE_MODEL_PROFILES = [
-  {
-    slug: "spark-default",
-    name: "Spark Default",
-    provider: "replicate",
-    model: "replicate-llama-3-8b",
-    temperature: 0.7,
-    max_output_tokens: null
-  },
-  {
-    slug: "smoke-alt",
-    name: "Smoke Alt",
-    provider: "replicate",
-    model: "replicate-llama-3-8b",
-    temperature: 0.3,
-    max_output_tokens: null
-  }
-] as const;
+import { SMOKE_MODEL_PROFILE_SEED_DEFINITIONS } from "@/lib/testing/smoke-model-profile-seed-definitions";
 
 function buildSmokeModelProfileSeedMetadata(args: {
   defaultProfile?: boolean;
@@ -35,25 +17,13 @@ function buildSmokeModelProfileSeedMetadata(args: {
 }
 
 export function getSmokeModelProfiles() {
-  return [
-    {
-      ...SMOKE_MODEL_PROFILES[0],
-      metadata: buildSmokeModelProfileSeedMetadata({
-        defaultProfile: true,
-        tier: "stable-conversation",
-        tierLabel: "Stable conversation",
-        usageNote:
-          "Balanced baseline for everyday chat and stage-1 comparison runs."
-      })
-    },
-    {
-      ...SMOKE_MODEL_PROFILES[1],
-      metadata: buildSmokeModelProfileSeedMetadata({
-        tier: "low-cost-testing",
-        tierLabel: "Low-cost testing",
-        usageNote:
-          "Lighter comparison profile for smoke checks and quick runtime verification."
-      })
-    }
-  ] as const;
+  return SMOKE_MODEL_PROFILE_SEED_DEFINITIONS.map((definition) => ({
+    slug: definition.slug,
+    name: definition.name,
+    provider: definition.provider,
+    model: definition.model,
+    temperature: definition.temperature,
+    max_output_tokens: definition.max_output_tokens,
+    metadata: buildSmokeModelProfileSeedMetadata(definition.metadata)
+  }));
 }
