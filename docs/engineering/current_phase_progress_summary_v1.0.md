@@ -1089,7 +1089,7 @@
 - `P5-4`
   - 中段
 - `P5-5`
-  - 第一版已成立
+  - 第一版已成立，并已开始进入更像阶段 gate 的形态
   - `p5_regression_gate` 已开始锁：
     - namespace multi-budget routing
     - retention layering v3
@@ -1105,8 +1105,8 @@
 
 整体 `P5` 当前大约：
 
-- **`65% - 75%`**
+- **`70% - 80%`**
 
 当前更推荐的下一步：
 
-- **继续补 `P5-5 regression / acceptance expansion`**
+- **先做一次 `P5 close-readiness` 前置评估**

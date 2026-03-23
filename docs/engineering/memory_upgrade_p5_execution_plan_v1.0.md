@@ -371,7 +371,7 @@ P5 首批明确不做：
 - `P5-4 scenario pack strategy layer v3`
   - 中段
 - `P5-5 regression / acceptance expansion`
-  - 第一版已成立
+  - 第一版已成立，并已开始进入更像阶段 gate 的形态
   - `memory-upgrade-harness` 现在已显式产出 `p5_regression_gate`
   - 当前 gate 已开始锁：
     - `namespace_multi_budget_routing_ok`
@@ -390,7 +390,7 @@ P5 首批明确不做：
 
 整体上，`P5` 当前大约在：
 
-- **`65% - 75%`**
+- **`70% - 80%`**
 
 当前最合理的下一步，不是立即进入 `close-readiness`，而是二选一：
 
@@ -399,9 +399,10 @@ P5 首批明确不做：
 
 当前推荐优先级：
 
-- **先做一次更明确的 `P5-5` 扩展**
+- **先做一次 `P5 close-readiness` 前置评估**
 
 原因：
 
 - `P5-1 ~ P5-4` 现在都已经有比较清晰的真实代码事实
-- `P5-5` 已有第一版 gate，当前最值的是继续把它补成更像阶段级 gate，而不是马上进入 `close-readiness`
+- `P5-5` 也已经从第一版 gate 继续推进到了更稳定的 metadata/prompt/debug 三面一致
+- 现在更值的是先判断 `P5` 是否已进入 close-readiness 前置区间，而不是继续盲补单点
