@@ -4,6 +4,10 @@ const AGENT_SELECT =
   "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata";
 const ACTIVE_AGENT_LIST_SELECT =
   "id, name, is_custom, persona_summary, system_prompt, source_persona_pack_id, default_model_profile_id, metadata";
+const ACTIVE_PERSONA_PACK_SELECT =
+  "id, slug, name, persona_summary, style_prompt, system_prompt, metadata";
+const ACTIVE_MODEL_PROFILE_SELECT =
+  "id, slug, name, provider, model, temperature, max_output_tokens, metadata";
 
 export async function loadPrimaryWorkspace(args: {
   supabase: any;
@@ -141,6 +145,30 @@ export async function loadActivePersonaPacks(args: {
     .order("created_at", { ascending: true });
 }
 
+export async function loadActivePersonaPackBySlug(args: {
+  supabase: any;
+  slug: string;
+}) {
+  return args.supabase
+    .from("persona_packs")
+    .select(ACTIVE_PERSONA_PACK_SELECT)
+    .eq("slug", args.slug)
+    .eq("is_active", true)
+    .maybeSingle();
+}
+
+export async function loadFirstActivePersonaPack(args: {
+  supabase: any;
+}) {
+  return args.supabase
+    .from("persona_packs")
+    .select(ACTIVE_PERSONA_PACK_SELECT)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+}
+
 export async function loadOwnedAvailableAgents(args: {
   supabase: any;
   workspaceId: string;
@@ -163,6 +191,42 @@ export async function loadActiveModelProfiles(args: {
     .select("id, name, provider, model, metadata")
     .eq("is_active", true)
     .order("created_at", { ascending: true });
+}
+
+export async function loadActiveModelProfileBySlug(args: {
+  supabase: any;
+  slug: string;
+}) {
+  return args.supabase
+    .from("model_profiles")
+    .select(ACTIVE_MODEL_PROFILE_SELECT)
+    .eq("slug", args.slug)
+    .eq("is_active", true)
+    .maybeSingle();
+}
+
+export async function loadFirstActiveModelProfile(args: {
+  supabase: any;
+}) {
+  return args.supabase
+    .from("model_profiles")
+    .select(ACTIVE_MODEL_PROFILE_SELECT)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+}
+
+export async function loadActiveModelProfileById(args: {
+  supabase: any;
+  modelProfileId: string;
+}) {
+  return args.supabase
+    .from("model_profiles")
+    .select(ACTIVE_MODEL_PROFILE_SELECT)
+    .eq("id", args.modelProfileId)
+    .eq("is_active", true)
+    .maybeSingle();
 }
 
 export async function loadRecentOwnedMemories(args: {

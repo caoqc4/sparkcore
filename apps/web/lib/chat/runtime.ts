@@ -16,9 +16,14 @@ import { persistCompletedAssistantMessage } from "@/lib/chat/assistant-message-s
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
 import {
   loadActiveModelProfiles,
+  loadActiveModelProfileById,
+  loadActiveModelProfileBySlug,
+  loadActivePersonaPackBySlug,
   loadActivePersonaPacks,
   bindOwnedThreadAgent,
   createOwnedThread,
+  loadFirstActiveModelProfile,
+  loadFirstActivePersonaPack,
   loadLatestOwnedThread,
   loadOwnedAvailableAgents,
   loadRecentOwnedMemories,
@@ -2345,29 +2350,19 @@ async function getDefaultPersonaPack(providedSupabase?: any) {
   const supabase = providedSupabase ?? (await createClient());
 
   for (const slug of DEFAULT_PERSONA_SLUGS) {
-    const { data: personaPack } = await supabase
-      .from("persona_packs")
-      .select(
-        "id, slug, name, persona_summary, style_prompt, system_prompt, metadata"
-      )
-      .eq("slug", slug)
-      .eq("is_active", true)
-      .maybeSingle();
+    const { data: personaPack } = await loadActivePersonaPackBySlug({
+      supabase,
+      slug
+    });
 
     if (personaPack) {
       return personaPack;
     }
   }
 
-  const { data: personaPack } = await supabase
-    .from("persona_packs")
-    .select(
-      "id, slug, name, persona_summary, style_prompt, system_prompt, metadata"
-    )
-    .eq("is_active", true)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data: personaPack } = await loadFirstActivePersonaPack({
+    supabase
+  });
 
   if (!personaPack) {
     throw new Error(
@@ -2381,24 +2376,18 @@ async function getDefaultPersonaPack(providedSupabase?: any) {
 export async function getDefaultModelProfile(providedSupabase?: any) {
   const supabase = providedSupabase ?? (await createClient());
 
-  const { data: defaultProfile } = await supabase
-    .from("model_profiles")
-    .select("id, slug, name, provider, model, temperature, max_output_tokens, metadata")
-    .eq("slug", DEFAULT_MODEL_PROFILE_SLUG)
-    .eq("is_active", true)
-    .maybeSingle();
+  const { data: defaultProfile } = await loadActiveModelProfileBySlug({
+    supabase,
+    slug: DEFAULT_MODEL_PROFILE_SLUG
+  });
 
   if (defaultProfile) {
     return defaultProfile as ModelProfileRecord;
   }
 
-  const { data: fallbackProfile } = await supabase
-    .from("model_profiles")
-    .select("id, slug, name, provider, model, temperature, max_output_tokens, metadata")
-    .eq("is_active", true)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data: fallbackProfile } = await loadFirstActiveModelProfile({
+    supabase
+  });
 
   if (!fallbackProfile) {
     throw new Error(
@@ -2423,12 +2412,10 @@ async function resolveModelProfileForAgent({
   const supabase = providedSupabase ?? (await createClient());
 
   if (agent.default_model_profile_id) {
-    const { data: boundProfile } = await supabase
-      .from("model_profiles")
-      .select("id, slug, name, provider, model, temperature, max_output_tokens, metadata")
-      .eq("id", agent.default_model_profile_id)
-      .eq("is_active", true)
-      .maybeSingle();
+    const { data: boundProfile } = await loadActiveModelProfileById({
+      supabase,
+      modelProfileId: agent.default_model_profile_id
+    });
 
     if (boundProfile) {
       return boundProfile as ModelProfileRecord;
