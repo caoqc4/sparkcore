@@ -13,13 +13,13 @@ import {
   getAssistantMemoryTypesUsed,
   getAssistantMemoryUsed,
   getAssistantMetadataNumber,
-  getAssistantModelProfileMetadata,
+  getAssistantModelProfileName,
+  getAssistantModelProfileTierLabel,
+  getAssistantModelProfileUsageNote,
   getAssistantUnderlyingModelLabel,
   getPreferredAssistantMetadataBoolean,
   getPreferredAssistantMetadataNumber,
-  getPreferredAssistantMetadataString,
   getPreferredAssistantMetadataStringArray,
-  getAssistantMetadataString,
   getAssistantMetadataStringArray
 } from "@/lib/chat/assistant-message-metadata-read";
 import {
@@ -216,24 +216,13 @@ function getRuntimeSummary(
   const isZh = locale === "zh-CN";
   const explanationMetadata = getExplanationMetadata(message);
   const fallbackMetadata = message.metadata;
-  const groupedModelProfile = getAssistantModelProfileMetadata(fallbackMetadata);
   const groupedMemory = getAssistantMemoryMetadata(fallbackMetadata);
 
-  const modelProfileName = getPreferredAssistantMetadataString(
-    explanationMetadata,
-    fallbackMetadata,
-    "model_profile_name"
-  ) ?? getAssistantMetadataString(groupedModelProfile, "name");
-  const modelProfileTierLabel = getPreferredAssistantMetadataString(
-    explanationMetadata,
-    fallbackMetadata,
-    "model_profile_tier_label"
-  ) ?? getAssistantMetadataString(groupedModelProfile, "tier_label");
-  const modelProfileUsageNote = getPreferredAssistantMetadataString(
-    explanationMetadata,
-    fallbackMetadata,
-    "model_profile_usage_note"
-  ) ?? getAssistantMetadataString(groupedModelProfile, "usage_note");
+  const modelProfileName = getAssistantModelProfileName(fallbackMetadata);
+  const modelProfileTierLabel =
+    getAssistantModelProfileTierLabel(fallbackMetadata);
+  const modelProfileUsageNote =
+    getAssistantModelProfileUsageNote(fallbackMetadata);
   const underlyingModelLabel = getAssistantUnderlyingModelLabel(fallbackMetadata);
   const memoryHitCount = getAssistantMemoryHitCount(fallbackMetadata);
   const memoryUsed = getAssistantMemoryUsed(fallbackMetadata);

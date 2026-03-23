@@ -150,6 +150,51 @@ export function getAssistantUnderlyingModelLabel(
   );
 }
 
+export function getAssistantModelProfileName(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+  const modelProfileMetadata = getAssistantModelProfileMetadata(metadata);
+
+  return (
+    getPreferredAssistantMetadataString(
+      explanationMetadata,
+      metadata,
+      "model_profile_name"
+    ) ?? getAssistantMetadataString(modelProfileMetadata, "name")
+  );
+}
+
+export function getAssistantModelProfileTierLabel(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+  const modelProfileMetadata = getAssistantModelProfileMetadata(metadata);
+
+  return (
+    getPreferredAssistantMetadataString(
+      explanationMetadata,
+      metadata,
+      "model_profile_tier_label"
+    ) ?? getAssistantMetadataString(modelProfileMetadata, "tier_label")
+  );
+}
+
+export function getAssistantModelProfileUsageNote(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+  const modelProfileMetadata = getAssistantModelProfileMetadata(metadata);
+
+  return (
+    getPreferredAssistantMetadataString(
+      explanationMetadata,
+      metadata,
+      "model_profile_usage_note"
+    ) ?? getAssistantMetadataString(modelProfileMetadata, "usage_note")
+  );
+}
+
 export function getAssistantMemoryHitCount(
   metadata: Record<string, unknown> | null | undefined
 ) {
