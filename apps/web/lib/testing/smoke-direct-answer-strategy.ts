@@ -1,9 +1,3 @@
-import type {
-  SmokeAnswerQuestionType,
-  SmokeAnswerStrategy,
-  SmokeAnswerStrategyReasonCode,
-  SmokeContinuationReasonCode
-} from "@/lib/testing/smoke-assistant-builders";
 import {
   isSmokeDirectNamingQuestion,
   isSmokeDirectPlanningPreferenceQuestion,
@@ -13,13 +7,7 @@ import {
   isSmokeOpenEndedPlanningHelpQuestion,
   isSmokeOpenEndedSummaryQuestion
 } from "@/lib/testing/smoke-question-prompts";
-
-type SmokeAnswerStrategyDecision = {
-  questionType: SmokeAnswerQuestionType;
-  answerStrategy: SmokeAnswerStrategy;
-  reasonCode: SmokeAnswerStrategyReasonCode;
-  continuationReasonCode: SmokeContinuationReasonCode | null;
-};
+import type { SmokeAnswerStrategyDecision } from "@/lib/testing/smoke-answer-strategy-types";
 
 export function getSmokeDirectOrOpenEndedAnswerStrategy(
   content: string
