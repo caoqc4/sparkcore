@@ -6,6 +6,8 @@ export function buildRelationshipPlannerMemoryMetadata(
   namespaceMetadata?: Record<string, unknown>,
   targetMetadata?: {
     writeBoundary?: string | null;
+    writePriorityLayer?: string | null;
+    fallbackWriteBoundary?: string | null;
     routedProjectId?: string | null;
     routedWorldId?: string | null;
     namespacePrimaryLayer?: string | null;
@@ -19,6 +21,8 @@ export function buildRelationshipPlannerMemoryMetadata(
     semantic_target: "memory_record",
     canonical_memory_type: "relationship",
     write_boundary: targetMetadata?.writeBoundary ?? null,
+    write_priority_layer: targetMetadata?.writePriorityLayer ?? null,
+    fallback_write_boundary: targetMetadata?.fallbackWriteBoundary ?? null,
     routed_scope: "user_agent",
     routed_target_agent_id: request.target_agent_id,
     routed_target_thread_id: request.target_thread_id ?? null,
@@ -43,6 +47,8 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
   canonicalMemoryType?: string | null;
   namespaceMetadata?: Record<string, unknown>;
   writeBoundary?: string | null;
+  writePriorityLayer?: string | null;
+  fallbackWriteBoundary?: string | null;
   routedScope?: string | null;
   routedTargetAgentId?: string | null;
   routedTargetThreadId?: string | null;
@@ -59,6 +65,8 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
     semantic_target: args.recordTarget,
     canonical_memory_type: args.canonicalMemoryType ?? null,
     write_boundary: args.writeBoundary ?? null,
+    write_priority_layer: args.writePriorityLayer ?? null,
+    fallback_write_boundary: args.fallbackWriteBoundary ?? null,
     routed_scope: args.routedScope ?? null,
     routed_target_agent_id: args.routedTargetAgentId ?? null,
     routed_target_thread_id: args.routedTargetThreadId ?? null,
@@ -83,6 +91,8 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
   canonicalMemoryType?: string | null;
   namespaceMetadata?: Record<string, unknown>;
   writeBoundary?: string | null;
+  writePriorityLayer?: string | null;
+  fallbackWriteBoundary?: string | null;
   routedScope?: string | null;
   routedTargetAgentId?: string | null;
   routedTargetThreadId?: string | null;
@@ -100,6 +110,8 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
     semantic_target: args.recordTarget,
     canonical_memory_type: args.canonicalMemoryType ?? null,
     write_boundary: args.writeBoundary ?? null,
+    write_priority_layer: args.writePriorityLayer ?? null,
+    fallback_write_boundary: args.fallbackWriteBoundary ?? null,
     routed_scope: args.routedScope ?? null,
     routed_target_agent_id: args.routedTargetAgentId ?? null,
     routed_target_thread_id: args.routedTargetThreadId ?? null,

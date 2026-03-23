@@ -26,6 +26,8 @@ export type PlannedMemoryWriteTarget = {
   routedProjectId: string | null;
   routedWorldId: string | null;
   writeBoundary: PlannedMemoryWriteBoundary;
+  writePriorityLayer: PlannedMemoryWriteBoundary;
+  fallbackWriteBoundary: PlannedMemoryWriteBoundary | null;
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
     | null;
@@ -42,6 +44,8 @@ export type PlannedGenericMemoryWriteTarget = {
   routedProjectId: string | null;
   routedWorldId: string | null;
   writeBoundary: PlannedMemoryWriteBoundary;
+  writePriorityLayer: PlannedMemoryWriteBoundary;
+  fallbackWriteBoundary: PlannedMemoryWriteBoundary | null;
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
     | null;
@@ -58,6 +62,8 @@ export type PlannedRelationshipMemoryWriteTarget = {
   routedProjectId: string | null;
   routedWorldId: string | null;
   writeBoundary: PlannedMemoryWriteBoundary;
+  writePriorityLayer: PlannedMemoryWriteBoundary;
+  fallbackWriteBoundary: PlannedMemoryWriteBoundary | null;
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
     | null;
@@ -75,6 +81,49 @@ function getNamespaceRefId(
   layer: ActiveRuntimeMemoryNamespace["active_layers"][number]
 ) {
   return namespace?.refs.find((ref) => ref.layer === layer)?.entity_id ?? null;
+}
+
+function resolveNamespaceWriteRouting(
+  namespace: ActiveRuntimeMemoryNamespace | null | undefined
+) {
+  const writeBoundary = resolveWriteBoundary(namespace);
+  const projectId = getNamespaceRefId(namespace, "project");
+  const worldId = getNamespaceRefId(namespace, "world");
+
+  switch (writeBoundary) {
+    case "project":
+      return {
+        routedProjectId: projectId,
+        routedWorldId: null,
+        writePriorityLayer: "project" as const,
+        fallbackWriteBoundary: worldId ? ("world" as const) : ("default" as const)
+      };
+    case "world":
+      return {
+        routedProjectId: null,
+        routedWorldId: worldId,
+        writePriorityLayer: "world" as const,
+        fallbackWriteBoundary: "default" as const
+      };
+    case "thread":
+      return {
+        routedProjectId: null,
+        routedWorldId: null,
+        writePriorityLayer: "thread" as const,
+        fallbackWriteBoundary: projectId
+          ? ("project" as const)
+          : worldId
+            ? ("world" as const)
+            : ("default" as const)
+      };
+    default:
+      return {
+        routedProjectId: projectId,
+        routedWorldId: worldId,
+        writePriorityLayer: "default" as const,
+        fallbackWriteBoundary: null
+      };
+  }
 }
 
 export function resolvePlannedMemoryWriteTarget(
@@ -96,8 +145,12 @@ export function resolvePlannedMemoryWriteTarget(
   const writeBoundary = resolveWriteBoundary(namespace);
   const namespacePrimaryLayer = namespace?.primary_layer ?? null;
   const targetNamespaceId = namespace?.namespace_id ?? null;
-  const routedProjectId = getNamespaceRefId(namespace, "project");
-  const routedWorldId = getNamespaceRefId(namespace, "world");
+  const {
+    routedProjectId,
+    routedWorldId,
+    writePriorityLayer,
+    fallbackWriteBoundary
+  } = resolveNamespaceWriteRouting(namespace);
 
   if (request.kind === "relationship_memory") {
     return {
@@ -110,6 +163,8 @@ export function resolvePlannedMemoryWriteTarget(
       routedProjectId,
       routedWorldId,
       writeBoundary,
+      writePriorityLayer,
+      fallbackWriteBoundary,
       namespacePrimaryLayer,
       targetNamespaceId
     };
@@ -129,6 +184,8 @@ export function resolvePlannedMemoryWriteTarget(
       routedProjectId,
       routedWorldId,
       writeBoundary,
+      writePriorityLayer,
+      fallbackWriteBoundary,
       namespacePrimaryLayer,
       targetNamespaceId
     };
@@ -145,6 +202,8 @@ export function resolvePlannedMemoryWriteTarget(
       routedProjectId,
       routedWorldId,
       writeBoundary,
+      writePriorityLayer,
+      fallbackWriteBoundary,
       namespacePrimaryLayer,
       targetNamespaceId
     };
@@ -164,6 +223,8 @@ export function resolvePlannedMemoryWriteTarget(
     routedProjectId,
     routedWorldId,
     writeBoundary,
+    writePriorityLayer,
+    fallbackWriteBoundary,
     namespacePrimaryLayer,
     targetNamespaceId
   };

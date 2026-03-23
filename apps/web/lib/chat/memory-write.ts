@@ -611,6 +611,8 @@ export async function executeMemoryWriteRequests({
       metadata: {
         ...buildRelationshipPlannerMemoryMetadata(request, namespaceMetadata, {
           writeBoundary: target.writeBoundary,
+          writePriorityLayer: target.writePriorityLayer,
+          fallbackWriteBoundary: target.fallbackWriteBoundary,
           namespacePrimaryLayer: target.namespacePrimaryLayer,
           targetNamespaceId: target.targetNamespaceId
         }),
@@ -801,6 +803,8 @@ export async function executeMemoryWriteRequests({
             activeNamespace?.refs.find((ref) => ref.layer === "world")
               ?.entity_id ?? null,
           writeBoundary: fallbackWriteBoundary,
+          writePriorityLayer: fallbackWriteBoundary,
+          fallbackWriteBoundary: null,
           namespacePrimaryLayer: activeNamespace?.primary_layer ?? null,
           targetNamespaceId: activeNamespace?.namespace_id ?? null
         };

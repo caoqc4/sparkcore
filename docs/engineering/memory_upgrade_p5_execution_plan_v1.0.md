@@ -92,6 +92,22 @@ P5 首批要把 namespace 从：
   - `thread` boundary 下 `parallel_timeline_budget = 0`
   - `project` boundary 下 `parallel_timeline_budget = 1`
 
+当前已成立的第二刀代码事实：
+
+- [memory-write-targets.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-write-targets.ts) 当前已开始把 namespace write routing 从“只给出 boundary”推进成更明确的 priority / fallback 结构：
+  - `write_priority_layer`
+  - `fallback_write_boundary`
+- 当前最小规则已经成立：
+  - `project` boundary 下：
+    - `write_priority_layer = project`
+    - `fallback_write_boundary = world`
+    - primary routed target 只保留 `routed_project_id`
+  - 也就是说，project namespace 写入当前已不再同时平权挂着 `world`，而开始显式收成 `project first, world fallback`
+- [runtime-preview-metadata.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime-preview-metadata.ts) 当前也已开始把这层 write priority / fallback 暴露到 preview
+- [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已开始显式校验：
+  - `write_priority_layer = project`
+  - `fallback_write_boundary = world`
+
 ### 4.2 Retention layering / pruning strategy v3
 
 P5 首批要把 retention 从：

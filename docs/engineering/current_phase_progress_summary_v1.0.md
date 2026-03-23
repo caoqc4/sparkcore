@@ -414,6 +414,18 @@
   - `memory-upgrade-harness.ts` 当前也已开始显式校验：
     - thread boundary 下 `parallel_timeline_budget = 0`
     - project boundary 下 `parallel_timeline_budget = 1`
+  - `apps/web/lib/chat/memory-write-targets.ts` 当前也已开始把 namespace write routing 从“只给出 boundary”推进成更明确的 priority / fallback 结构：
+    - `write_priority_layer`
+    - `fallback_write_boundary`
+  - 当前最小规则已经成立：
+    - `project` boundary 下：
+      - `write_priority_layer = project`
+      - `fallback_write_boundary = world`
+      - primary routed target 只保留 `routed_project_id`
+  - `apps/web/lib/chat/runtime-preview-metadata.ts` 当前也已开始把这层 write priority / fallback 暴露到 preview
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验：
+    - `write_priority_layer = project`
+    - `fallback_write_boundary = world`
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

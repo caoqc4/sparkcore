@@ -740,8 +740,10 @@ function main() {
   );
   expect(
     namespaceAwareWriteTarget.routedProjectId === "project-1" &&
-      namespaceAwareWriteTarget.routedWorldId === "world-1",
-    "Expected namespace-aware write target resolution to expose routed project/world ids in P4."
+      namespaceAwareWriteTarget.routedWorldId === null &&
+      namespaceAwareWriteTarget.writePriorityLayer === "project" &&
+      namespaceAwareWriteTarget.fallbackWriteBoundary === "world",
+    "Expected namespace-aware write target resolution to prefer project writes first and keep world as fallback in P5."
   );
   const runtimeWritePreview = buildRuntimeMemoryWriteRequestMetadata(
     [
@@ -771,8 +773,12 @@ function main() {
     runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
       ?.routed_project_id === "project-1" &&
       runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
-        ?.routed_world_id === "world-1",
-    "Expected runtime memory write preview metadata to expose routed project/world ids in P4."
+        ?.routed_world_id === null &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.write_priority_layer === "project" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.fallback_write_boundary === "world",
+    "Expected runtime memory write preview metadata to expose project-first write routing in P5."
   );
   const applicableKnowledge = filterKnowledgeByActiveNamespace({
     knowledge: runtimeKnowledge,
