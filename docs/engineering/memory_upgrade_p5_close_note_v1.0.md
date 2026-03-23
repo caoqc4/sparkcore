@@ -170,6 +170,10 @@
 - `gate strengthening`
 - 后续 phase 吸收项
 
+统一归档入口：
+
+- [memory_upgrade_tail_cleanup_backlog_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_tail_cleanup_backlog_v1.0.md)
+
 它们不再作为 `P5` 主施工阻塞条件。
 
 ---

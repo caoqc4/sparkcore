@@ -2,7 +2,7 @@
 
 ## 1. 文档定位
 
-本文档用于把 `Memory Upgrade P0 ~ P4` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
+本文档用于把 `Memory Upgrade P0 ~ P5` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
 
 - 这些尾项属于什么性质
 - 为什么它们当前不阻塞阶段切换
@@ -12,13 +12,14 @@
 本文档不是新的执行方案，也不是新的 close note，而是：
 
 - 对 `P0 ~ P4` 已收官阶段中遗留尾项的统一归档
+- 对 `P5` 已收官阶段中遗留尾项的统一归档
 - 对后续 tail cleanup batch 的最小执行入口
 
 ---
 
 ## 2. 当前总判断
 
-`P0 ~ P4` 当前确实都还存在少量剩余尾项。  
+`P0 ~ P5` 当前确实都还存在少量剩余尾项。  
 但这些尾项的性质已经从：
 
 - 主目标未成立
@@ -79,7 +80,7 @@
 
 ---
 
-## 4. P0 ~ P4 当前典型尾项
+## 4. P0 ~ P5 当前典型尾项
 
 ### 4.1 P0 尾项
 
@@ -149,6 +150,21 @@
 - 非阻塞
 - 更偏 v2 深化与回归增强
 
+### 4.6 P5 尾项
+
+典型尾项包括：
+
+- namespace multi-budget routing 还可继续向更复杂的 multi-layer fallback / budget 组合深化
+- retention layering / pruning v3 还可继续向更完整的 section weighting / aggregation rule 深化
+- knowledge route weighting v3 还可继续向更细的 route / budget weighting 深化
+- scenario pack strategy layer v3 还可继续向更复杂的 strategy bundle / assembly rule 深化
+- `P5-5` gate 还可继续补更强的阶段级聚合判断与一致性校验
+
+当前性质：
+
+- 非阻塞
+- 更偏 v3 深化与阶段 gate 增强
+
 ---
 
 ## 5. 处理原则
@@ -202,7 +218,7 @@
 
 ## 7. 最终结论
 
-`P0 ~ P4` 当前确实都还存在少量尾项。  
+`P0 ~ P5` 当前确实都还存在少量尾项。  
 但这些尾项已经被明确识别为：
 
 - **非阻塞尾项**
