@@ -1,30 +1,30 @@
-import type { persistSmokeAssistantTurnStep } from "@/lib/testing/smoke-turn-assistant-step";
+import type { insertAnalyzedSmokeAssistantReply } from "@/lib/testing/smoke-turn-assistant";
 import type { SmokeCreatedMemoryType } from "@/lib/testing/smoke-memory-write-types";
 
 export type SmokeAssistantTurnAnalysisSummary = {
   answerStrategyRule: {
-    questionType: Parameters<typeof persistSmokeAssistantTurnStep>[0]["questionType"];
-    answerStrategy: Parameters<typeof persistSmokeAssistantTurnStep>[0]["answerStrategy"];
-    reasonCode: Parameters<typeof persistSmokeAssistantTurnStep>[0]["answerStrategyReasonCode"];
+    questionType: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["questionType"];
+    answerStrategy: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["answerStrategy"];
+    reasonCode: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["answerStrategyReasonCode"];
     continuationReasonCode: Parameters<
-      typeof persistSmokeAssistantTurnStep
+      typeof insertAnalyzedSmokeAssistantReply
     >[0]["continuationReasonCode"];
   };
   recentRawTurnCount: number;
   approxContextPressure: Parameters<
-    typeof persistSmokeAssistantTurnStep
+    typeof insertAnalyzedSmokeAssistantReply
   >[0]["approxContextPressure"];
   sameThreadContinuationApplicable: boolean;
   longChainPressureCandidate: boolean;
   preferSameThreadContinuation: boolean;
-  recalledMemories: Parameters<typeof persistSmokeAssistantTurnStep>[0]["recalledMemories"];
+  recalledMemories: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["recalledMemories"];
   usedMemoryTypes: string[];
   hiddenExclusionCount: number;
   incorrectExclusionCount: number;
 };
 
 export type SmokePreparedAssistantTurnPersistenceArgs = {
-  supabase: Parameters<typeof persistSmokeAssistantTurnStep>[0]["supabase"];
+  supabase: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["supabase"];
   threadId: string;
   workspaceId: string;
   userId: string;
@@ -37,9 +37,9 @@ export type SmokePreparedAssistantTurnPersistenceArgs = {
   model: string;
   assistantContent: string;
   relationshipStyleValue: string | null;
-  replyLanguage: Parameters<typeof persistSmokeAssistantTurnStep>[0]["replyLanguage"];
+  replyLanguage: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["replyLanguage"];
   replyLanguageSource: Parameters<
-    typeof persistSmokeAssistantTurnStep
+    typeof insertAnalyzedSmokeAssistantReply
   >[0]["replyLanguageSource"];
   analysis: SmokeAssistantTurnAnalysisSummary;
   createdTypes: SmokeCreatedMemoryType[];

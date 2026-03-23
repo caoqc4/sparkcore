@@ -1,4 +1,4 @@
-import { persistSmokeAssistantTurnStep } from "@/lib/testing/smoke-turn-assistant-step";
+import { insertAnalyzedSmokeAssistantReply } from "@/lib/testing/smoke-turn-assistant";
 import type { SmokePreparedAssistantTurnPersistenceArgs } from "@/lib/testing/smoke-turn-assistant-persistence-types";
 
 export async function persistPreparedSmokeAssistantTurn(
@@ -6,7 +6,7 @@ export async function persistPreparedSmokeAssistantTurn(
 ) {
   const { answerStrategyRule } = args.analysis;
 
-  return persistSmokeAssistantTurnStep({
+  return insertAnalyzedSmokeAssistantReply({
     supabase: args.supabase,
     threadId: args.threadId,
     workspaceId: args.workspaceId,
