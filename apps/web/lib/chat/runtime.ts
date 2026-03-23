@@ -3580,6 +3580,24 @@ export async function runPreparedRuntimeTurn({
       },
       session: {
         continuation_reason_code: continuationReasonCode,
+        thread_state:
+          preparedRuntimeTurn.memory.runtime_memory_context.threadStateRecall
+            .snapshot
+            ? {
+                lifecycle_status:
+                  preparedRuntimeTurn.memory.runtime_memory_context
+                    .threadStateRecall.snapshot.lifecycle_status,
+                focus_mode:
+                  preparedRuntimeTurn.memory.runtime_memory_context
+                    .threadStateRecall.snapshot.focus_mode ?? null,
+                continuity_status:
+                  preparedRuntimeTurn.memory.runtime_memory_context
+                    .threadStateRecall.snapshot.continuity_status ?? null,
+                current_language_hint:
+                  preparedRuntimeTurn.memory.runtime_memory_context
+                    .threadStateRecall.snapshot.current_language_hint ?? null
+              }
+            : null,
         same_thread_continuation_applicable:
           sameThreadContinuationApplicable,
         long_chain_pressure_candidate: longChainPressureCandidate,

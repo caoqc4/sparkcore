@@ -23,6 +23,10 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   answer_strategy_priority: string | null;
   answer_strategy_priority_label: string | null;
   continuation_reason_code: string | null;
+  thread_state_lifecycle_status?: string | null;
+  thread_state_focus_mode?: string | null;
+  thread_state_continuity_status?: string | null;
+  thread_state_current_language_hint?: string | null;
   recent_raw_turn_count: number;
   approx_context_pressure: ApproxContextPressure;
   memory_hit_count: number;
@@ -61,6 +65,10 @@ export type BuildAssistantMessageMetadataInput = {
   answer_strategy_priority: string;
   answer_strategy_priority_label: string;
   continuation_reason_code: string | null;
+  thread_state_lifecycle_status?: string | null;
+  thread_state_focus_mode?: string | null;
+  thread_state_continuity_status?: string | null;
+  thread_state_current_language_hint?: string | null;
   same_thread_continuation_applicable: boolean;
   long_chain_pressure_candidate: boolean;
   same_thread_continuation_preferred: boolean;
@@ -99,6 +107,19 @@ export function buildAssistantMetadataSummaryGroups(
     },
     session: {
       continuation_reason_code: input.continuation_reason_code,
+      thread_state:
+        input.thread_state_lifecycle_status ||
+        input.thread_state_focus_mode ||
+        input.thread_state_continuity_status ||
+        input.thread_state_current_language_hint
+          ? {
+              lifecycle_status: input.thread_state_lifecycle_status ?? null,
+              focus_mode: input.thread_state_focus_mode ?? null,
+              continuity_status: input.thread_state_continuity_status ?? null,
+              current_language_hint:
+                input.thread_state_current_language_hint ?? null
+            }
+          : null,
       recent_turn_count: input.recent_raw_turn_count,
       context_pressure: input.approx_context_pressure
     },
@@ -143,6 +164,10 @@ export function buildAssistantMessageMetadata(
     answer_strategy: input.answer_strategy,
     answer_strategy_reason_code: input.answer_strategy_reason_code,
     continuation_reason_code: input.continuation_reason_code,
+    thread_state_lifecycle_status: input.thread_state_lifecycle_status,
+    thread_state_focus_mode: input.thread_state_focus_mode,
+    thread_state_continuity_status: input.thread_state_continuity_status,
+    thread_state_current_language_hint: input.thread_state_current_language_hint,
     recent_raw_turn_count: input.recent_raw_turn_count,
     approx_context_pressure: input.approx_context_pressure,
     same_thread_continuation_applicable:

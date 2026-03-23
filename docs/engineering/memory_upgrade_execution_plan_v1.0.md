@@ -226,6 +226,7 @@ P0 只做一件事：
   - `continuity_status`
   - `current_language_hint`
 - `debug_metadata.session.thread_state` 已开始显式暴露该最小摘要
+- assistant metadata 当前也已开始显式暴露该最小 `thread_state` 摘要
 
 ### 4.5 兼容迁移策略
 

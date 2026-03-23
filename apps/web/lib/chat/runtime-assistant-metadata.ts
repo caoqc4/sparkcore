@@ -49,6 +49,12 @@ export type BuildRuntimeAssistantMetadataInput = {
   };
   session: {
     continuation_reason_code: string | null;
+    thread_state: {
+      lifecycle_status: string | null;
+      focus_mode: string | null;
+      continuity_status: string | null;
+      current_language_hint: string | null;
+    } | null;
     same_thread_continuation_applicable: boolean;
     long_chain_pressure_candidate: boolean;
     same_thread_continuation_preferred: boolean;
@@ -98,6 +104,13 @@ export function buildRuntimeAssistantMetadataInput(
     answer_strategy_priority: input.answer.strategy_priority,
     answer_strategy_priority_label: input.answer.strategy_priority_label,
     continuation_reason_code: input.session.continuation_reason_code,
+    thread_state_lifecycle_status:
+      input.session.thread_state?.lifecycle_status ?? null,
+    thread_state_focus_mode: input.session.thread_state?.focus_mode ?? null,
+    thread_state_continuity_status:
+      input.session.thread_state?.continuity_status ?? null,
+    thread_state_current_language_hint:
+      input.session.thread_state?.current_language_hint ?? null,
     same_thread_continuation_applicable:
       input.session.same_thread_continuation_applicable,
     long_chain_pressure_candidate: input.session.long_chain_pressure_candidate,

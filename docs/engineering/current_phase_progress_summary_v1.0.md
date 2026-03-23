@@ -173,6 +173,7 @@
   - `focus_mode`
   - `continuity_status`
   - `current_language_hint`
+- assistant metadata 的 `session` 分组当前也已开始进入相同最小 `thread_state` 摘要
 - `assistant_message.metadata` 也已开始进入统一 builder 收口：
   - `apps/web/lib/chat/assistant-message-metadata.ts`
 - `runtime.ts` 已不再直接内联拼接整块 assistant metadata，而是开始通过统一 builder 生成
