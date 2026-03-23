@@ -1,11 +1,13 @@
 import { buildSmokeAssistantMetadataSummary } from "@/lib/testing/smoke-assistant-metadata-summary";
 import { buildSmokeAssistantMetadataBase } from "@/lib/testing/smoke-assistant-metadata-base";
 import { buildSmokeAssistantMemoryOutcome } from "@/lib/testing/smoke-assistant-memory-outcome";
+import { buildSmokeAssistantMemorySummary } from "@/lib/testing/smoke-assistant-memory-summary";
 import type { SmokeAssistantMetadataInput } from "@/lib/testing/smoke-assistant-metadata-types";
 
 export function buildSmokeAssistantMetadata(args: SmokeAssistantMetadataInput) {
-  const recalledMemoryCount = args.recalledMemories.length;
-  const memoryUsed = recalledMemoryCount > 0;
+  const { recalledMemoryCount, memoryUsed } = buildSmokeAssistantMemorySummary({
+    recalledMemories: args.recalledMemories
+  });
 
   return {
     ...buildSmokeAssistantMetadataBase({

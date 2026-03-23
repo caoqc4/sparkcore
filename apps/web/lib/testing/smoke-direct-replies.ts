@@ -7,10 +7,7 @@ import { buildSmokeGroundedReply } from "@/lib/testing/smoke-grounded-replies";
 import { buildSmokeIntroReply } from "@/lib/testing/smoke-intro-replies";
 import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 import { buildSmokeQuickHelloReply } from "@/lib/testing/smoke-quick-hello-replies";
-import type {
-  SmokeRecallMemory,
-  SmokeRelationshipRecallMemory
-} from "@/lib/testing/smoke-recall-memory-types";
+import type { SmokeDirectOrGroundedReplyArgs } from "@/lib/testing/smoke-direct-reply-types";
 
 export function buildSmokeDirectOrGroundedReply({
   content,
@@ -22,17 +19,7 @@ export function buildSmokeDirectOrGroundedReply({
   addressStyleMemory,
   nicknameMemory,
   preferredNameMemory
-}: {
-  content: string;
-  answerStrategy: SmokeAnswerStrategy;
-  modelProfileName: string;
-  replyLanguage: SmokeReplyLanguage;
-  agentName: string;
-  addressStyleMemory: SmokeRelationshipRecallMemory;
-  nicknameMemory: SmokeRelationshipRecallMemory;
-  preferredNameMemory: SmokeRelationshipRecallMemory;
-  recalledMemories: SmokeRecallMemory[];
-}) {
+}: SmokeDirectOrGroundedReplyArgs) {
   const normalized = normalizeSmokePrompt(content);
   const quickHelloReply = buildSmokeQuickHelloReply({
     normalizedContent: normalized,
