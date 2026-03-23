@@ -88,6 +88,7 @@
 - relationship 写入当前也已开始先构造正式 `MemoryRecord` candidate，再进入 single-slot upsert
 - `thread_state_candidate` 当前也已开始具备正式 candidate seam 与 preview 摘要入口
 - `static_profile` 当前也已开始进入真实 profile recall 主路径
+- `static_profile` 当前也已开始进入 runtime metadata 注入层，最小 `profile_snapshot` 已可见
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 
 这意味着：
@@ -237,6 +238,7 @@
   - relationship 写入当前也已开始先构造正式 `MemoryRecord` candidate，再进入 single-slot upsert
   - `thread_state_candidate` seam 也已成立，但仍停留在适配边界，尚未进入真实 commit
   - `static_profile` 当前已成为三条里第一条进入真实主读路径的分支
+  - `static_profile` 当前也已成为三条里第一条进入 runtime 注入层的分支
 - 当前 runtime 主线的下一阶段优先级也已前移成：
   - 先治理输出层
   - 再决定是否继续细拆 execution
