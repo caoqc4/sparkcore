@@ -6,7 +6,8 @@ import {
   isAuthorizedSmokeRequest
 } from "@/lib/testing/smoke-config";
 import { createSmokeLoginResponse } from "@/lib/testing/smoke-login";
-import { createSmokeTurn } from "@/lib/testing/smoke-turn";
+import { loadSmokeTurnContext } from "@/lib/testing/smoke-turn-context";
+import { executeSmokeTurn } from "@/lib/testing/smoke-turn-execution";
 import { createSmokeThread } from "@/lib/testing/smoke-threads";
 
 const SMOKE_MODEL_PROFILES = getSmokeModelProfiles();
@@ -15,7 +16,26 @@ export { getSmokeConfig, isAuthorizedSmokeRequest };
 
 export { resetSmokeState };
 
-export { createSmokeTurn };
+export async function createSmokeTurn({
+  threadId,
+  content
+}: {
+  threadId: string;
+  content: string;
+}) {
+  const trimmedContent = content.trim();
+
+  if (!trimmedContent) {
+    throw new Error("Smoke turn content is required.");
+  }
+
+  const context = await loadSmokeTurnContext({ threadId });
+
+  return executeSmokeTurn({
+    context,
+    trimmedContent
+  });
+}
 
 export { createSmokeThread };
 
