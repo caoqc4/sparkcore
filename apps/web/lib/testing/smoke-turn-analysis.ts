@@ -4,9 +4,8 @@ import {
 import {
   getSmokeRecentAssistantReply,
 } from "@/lib/testing/smoke-reply-analysis";
-import { getSmokeTurnContinuityContext } from "@/lib/testing/smoke-turn-continuity-context";
 import { getSmokeTurnMemoryContext } from "@/lib/testing/smoke-turn-memory-context";
-import { getSmokeTurnRelationshipContext } from "@/lib/testing/smoke-turn-relationship-context";
+import { getSmokeTurnStrategyContext } from "@/lib/testing/smoke-turn-strategy-context";
 import type { SmokeTurnAnalysisInput } from "@/lib/testing/smoke-turn-analysis-input";
 import type { SmokeApproxContextPressure } from "@/lib/testing/smoke-assistant-builders";
 import type {
@@ -19,16 +18,16 @@ import type {
 export type SmokeTurnAnalysisResult = {
   activeMemories: SmokeMemoryRow[];
   addressStyleMemory: ReturnType<
-    typeof getSmokeTurnRelationshipContext
+    typeof getSmokeTurnStrategyContext
   >["addressStyleMemory"];
   answerStrategyRule: SmokeAnswerStrategyRule;
   approxContextPressure: SmokeApproxContextPressure;
   hiddenExclusionCount: number;
   incorrectExclusionCount: number;
   longChainPressureCandidate: boolean;
-  nicknameMemory: ReturnType<typeof getSmokeTurnRelationshipContext>["nicknameMemory"];
+  nicknameMemory: ReturnType<typeof getSmokeTurnStrategyContext>["nicknameMemory"];
   preferredNameMemory: ReturnType<
-    typeof getSmokeTurnRelationshipContext
+    typeof getSmokeTurnStrategyContext
   >["preferredNameMemory"];
   preferSameThreadContinuation: boolean;
   recentAssistantReply: SmokeContinuityReply | null;
@@ -60,26 +59,20 @@ export function analyzeSmokeTurnContext({
   const {
     addressStyleMemory,
     answerStrategyRule,
+    approxContextPressure,
+    longChainPressureCandidate,
     nicknameMemory,
+    preferSameThreadContinuation,
     preferredNameMemory,
+    recentRawTurnCount,
     sameThreadContinuationApplicable
-  } = getSmokeTurnRelationshipContext({
+  } = getSmokeTurnStrategyContext({
     trimmedContent,
     activeMemories,
     agentId,
     recentAssistantReply,
-    recalledMemories
-  });
-  const preferSameThreadContinuation =
-    answerStrategyRule.answerStrategy === "same-thread-continuation";
-  const {
-    recentRawTurnCount,
-    approxContextPressure,
-    longChainPressureCandidate
-  } = getSmokeTurnContinuityContext({
-    trimmedContent,
     existingMessages,
-    sameThreadContinuationApplicable
+    recalledMemories
   });
 
   return {
