@@ -8,8 +8,6 @@ import {
   buildSmokeEnSoftCatchReply,
   buildSmokeZhSoftCatchReply
 } from "@/lib/testing/smoke-soft-catch-replies";
-import {
-} from "@/lib/testing/smoke-continuation-replies";
 import { buildSmokeDefaultContinuationReply as buildSmokeDefaultContinuationReplyByLanguage } from "@/lib/testing/smoke-default-continuation-reply";
 import type {
   SmokeReplyLanguage
