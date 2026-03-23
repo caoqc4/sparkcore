@@ -123,6 +123,9 @@
 - `memory-upgrade-harness.ts` 当前也已开始显式校验这层 `memory.semantic_summary`
 - runtime system prompt 当前也已开始直接承接最小 `thread_state` 摘要，而不只停留在 metadata / summary 层
 - runtime system prompt 当前也已开始直接承接最小 `memory.semantic_summary`
+- `P0-4` 的阶段边界当前也已更清楚：
+  - `profile / thread_state` 是 P0 内的真实 retrieval routes
+  - `episode / timeline` 在 P0 内保留为正式 route contract，真实实现后移到 P1
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`
 

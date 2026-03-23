@@ -163,6 +163,7 @@
   - `thread_state` route
   - `profile` 主读路径已开始经过 `StaticProfileRecord`
   - `relationship recall` 已开始经过 `MemoryRecord`
+  - `episode / timeline` 当前保持正式 route contract，但不在 P0 内硬扩真实 recall 实现
 
 依赖：
 
@@ -171,7 +172,11 @@
 
 验收：
 
-- runtime 准备阶段能拿到四路最小结果
+- runtime 准备阶段至少能稳定拿到：
+  - `profile`
+  - `thread_state`
+  两路真实 retrieval 结果
+- `episode / timeline` 已正式保留 route contract，且不再被误写成 P0 内必须完成的真实 recall
 - 不再只靠单一路径拼凑 recall
 
 ### P0-5 Context Assembly v1

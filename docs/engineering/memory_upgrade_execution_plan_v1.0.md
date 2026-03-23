@@ -203,6 +203,18 @@ P0 只做一件事：
 - `timeline`
 - `thread_state`
 
+P0 收口定义：
+
+- `profile`
+- `thread_state`
+
+以上两路是 **P0 内必须成为真实读路径** 的 retrieval routes。
+
+- `episode`
+- `timeline`
+
+以上两路在 P0 内保留为 **正式 contract / route name**，但不要求在 P0 内成为真实 recall 实现；其真实分流与读取实现转入 P1。
+
 当前代码事实：
 
 - `apps/web/lib/chat/memory-recall.ts` 已新增 `MemoryRecallRoute`
@@ -224,6 +236,9 @@ P0 只做一件事：
 - 当前实际已接入的最小 route 为：
   - `profile`
   - `thread_state`
+- 因此，`P0-4` 当前的完成标准不是“四路都做成真实 recall”，而是：
+  - `profile / thread_state` 成为真实 retrieval routes
+  - `episode / timeline` 保持正式 contract，不在 P0 内硬扩实现
 
 ### 4.4 最小 context assembly
 
