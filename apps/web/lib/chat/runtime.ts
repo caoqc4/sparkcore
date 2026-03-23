@@ -14,6 +14,11 @@ import { buildRuntimeAssistantPayload } from "@/lib/chat/assistant-message-paylo
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
+import {
+  getModelProfileTierLabel,
+  getModelProfileUsageNote,
+  getUnderlyingModelLabel
+} from "@/lib/chat/model-profile-metadata";
 import { buildRuntimeDebugMetadata } from "@/lib/chat/runtime-debug-metadata";
 import {
   planMemoryWriteRequests,
@@ -946,13 +951,6 @@ function summarizeAgentPrompt(prompt: string) {
   }
 
   return `${normalized.slice(0, 177).trimEnd()}...`;
-}
-
-function getUnderlyingModelFromMetadata(metadata: Record<string, unknown> | null | undefined) {
-  return typeof metadata?.underlying_model === "string" &&
-    metadata.underlying_model.trim().length > 0
-    ? metadata.underlying_model
-    : null;
 }
 
 function buildMessagePreview(content: string) {
@@ -2859,11 +2857,9 @@ export async function getChatPageState({
     modelProfileTierLabelById = new Map();
 
     for (const modelProfile of modelProfiles ?? []) {
-      if (typeof modelProfile.metadata?.tier_label === "string") {
-        modelProfileTierLabelById.set(
-          modelProfile.id,
-          modelProfile.metadata.tier_label
-        );
+      const tierLabel = getModelProfileTierLabel(modelProfile.metadata);
+      if (tierLabel !== null) {
+        modelProfileTierLabelById.set(modelProfile.id, tierLabel);
       }
     }
   }
@@ -2956,15 +2952,9 @@ export async function getChatPageState({
   }>).map((modelProfile) => ({
     ...modelProfile,
     metadata: modelProfile.metadata ?? {},
-    tier_label:
-      typeof modelProfile.metadata?.tier_label === "string"
-        ? modelProfile.metadata.tier_label
-        : null,
-    usage_note:
-      typeof modelProfile.metadata?.usage_note === "string"
-        ? modelProfile.metadata.usage_note
-        : null,
-    underlying_model: getUnderlyingModelFromMetadata(modelProfile.metadata)
+    tier_label: getModelProfileTierLabel(modelProfile.metadata),
+    usage_note: getModelProfileUsageNote(modelProfile.metadata),
+    underlying_model: getUnderlyingModelLabel(modelProfile.metadata)
   })) as AvailableModelProfileRecord[];
   const visibleMemories = filteredVisibleMemories.map((memory) => {
     const sourceMessage = memory.source_message_id
@@ -3541,16 +3531,10 @@ export async function runPreparedRuntimeTurn({
         requested: modelProfile.model,
         profile_id: modelProfile.id,
         profile_name: modelProfile.name,
-        profile_tier_label:
-          typeof modelProfile.metadata?.tier_label === "string"
-            ? modelProfile.metadata.tier_label
-            : null,
-        profile_usage_note:
-          typeof modelProfile.metadata?.usage_note === "string"
-            ? modelProfile.metadata.usage_note
-            : null,
+        profile_tier_label: getModelProfileTierLabel(modelProfile.metadata),
+        profile_usage_note: getModelProfileUsageNote(modelProfile.metadata),
         underlying_label:
-          getUnderlyingModelFromMetadata(modelProfile.metadata) ??
+          getUnderlyingModelLabel(modelProfile.metadata) ??
           `${modelProfile.provider}/${result.model ?? modelProfile.model}`
       },
       runtime: {
