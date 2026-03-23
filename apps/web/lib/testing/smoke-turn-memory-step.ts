@@ -1,5 +1,5 @@
 import { applySmokeTurnMemoryUpdates } from "@/lib/testing/smoke-turn-memory-updates";
-import { buildSmokeRelationshipSeedMetadata } from "@/lib/testing/smoke-relationship-seed-metadata";
+import { buildSmokeSeedMetadata } from "@/lib/testing/smoke-seed-metadata";
 
 export async function persistSmokeMemoryTurnStep(args: {
   supabase: Parameters<typeof applySmokeTurnMemoryUpdates>[0]["supabase"];
@@ -16,6 +16,9 @@ export async function persistSmokeMemoryTurnStep(args: {
     agentId: args.agentId,
     sourceMessageId: args.sourceMessageId,
     trimmedContent: args.trimmedContent,
-    relationshipSeedMetadataBuilder: buildSmokeRelationshipSeedMetadata
+    relationshipSeedMetadataBuilder: (relationKind) =>
+      buildSmokeSeedMetadata({
+        relation_kind: relationKind
+      })
   });
 }
