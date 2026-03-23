@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
 import { getSmokeConfig } from "@/lib/testing/smoke-config";
-import { ensureSmokeUser } from "@/lib/testing/smoke-runtime-state";
+import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
 
 export async function createSmokeLoginResponse(
   request: NextRequest,
@@ -22,7 +22,7 @@ export async function createSmokeLoginResponse(
   }
 
   const admin = getSmokeAdminClient(config);
-  await ensureSmokeUser(admin, config, {
+  await ensureSmokeUserState(admin, config, {
     resetPassword: true
   });
 

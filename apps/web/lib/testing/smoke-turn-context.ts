@@ -3,7 +3,7 @@ import { loadSmokeBoundAgent } from "@/lib/testing/smoke-bound-agent";
 import { loadSmokeBoundModelProfile } from "@/lib/testing/smoke-bound-model-profile";
 import { requireSmokeConfig } from "@/lib/testing/smoke-config";
 import { loadSmokeTurnExistingState } from "@/lib/testing/smoke-turn-existing-state";
-import { ensureSmokeUser } from "@/lib/testing/smoke-runtime-state";
+import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
 
 export async function loadSmokeTurnContext(args: {
   threadId: string;
@@ -13,7 +13,7 @@ export async function loadSmokeTurnContext(args: {
   );
 
   const admin = getSmokeAdminClient(config);
-  const smokeUser = await ensureSmokeUser(admin, config);
+  const smokeUser = await ensureSmokeUserState(admin, config);
   const { thread, agent } = await loadSmokeBoundAgent({
     supabase: admin,
     threadId: args.threadId,

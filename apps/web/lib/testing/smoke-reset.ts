@@ -1,11 +1,9 @@
 import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
 import { requireSmokeConfig } from "@/lib/testing/smoke-config";
-import {
-  ensureSmokeModelProfiles,
-  ensureSmokeUser,
-  resetSmokeWorkspaceState,
-  seedSmokeAgents
-} from "@/lib/testing/smoke-runtime-state";
+import { seedSmokeAgentState } from "@/lib/testing/smoke-agent-seeding";
+import { ensureSmokeModelProfileState } from "@/lib/testing/smoke-model-profiles";
+import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
+import { resetSmokeWorkspaceStateByUser } from "@/lib/testing/smoke-workspace-reset";
 
 export async function resetSmokeState() {
   const config = requireSmokeConfig(
@@ -13,13 +11,20 @@ export async function resetSmokeState() {
   );
 
   const admin = getSmokeAdminClient(config);
-  const smokeUser = await ensureSmokeUser(admin, config, {
+  const smokeUser = await ensureSmokeUserState(admin, config, {
     resetPassword: true
   });
-  const modelProfiles = await ensureSmokeModelProfiles(admin);
+  const modelProfiles = await ensureSmokeModelProfileState(admin);
 
-  await resetSmokeWorkspaceState(admin, smokeUser);
-  await seedSmokeAgents(admin, smokeUser, modelProfiles);
+  await resetSmokeWorkspaceStateByUser({
+    admin,
+    userId: smokeUser.id
+  });
+  await seedSmokeAgentState({
+    admin,
+    user: smokeUser,
+    modelProfiles
+  });
 
   return {
     workspaceId: smokeUser.workspaceId,

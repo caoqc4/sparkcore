@@ -1,7 +1,7 @@
 import { createOwnedThread, loadOwnedActiveAgentByName } from "@/lib/chat/runtime-turn-context";
 import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
 import { requireSmokeConfig } from "@/lib/testing/smoke-config";
-import { ensureSmokeUser } from "@/lib/testing/smoke-runtime-state";
+import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
 
 export async function createSmokeThread(args: {
   agentName: string;
@@ -11,7 +11,7 @@ export async function createSmokeThread(args: {
   );
 
   const admin = getSmokeAdminClient(config);
-  const smokeUser = await ensureSmokeUser(admin, config);
+  const smokeUser = await ensureSmokeUserState(admin, config);
 
   const { data: agent, error: agentError } = await loadOwnedActiveAgentByName({
     supabase: admin,
