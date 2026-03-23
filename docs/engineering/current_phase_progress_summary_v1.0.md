@@ -1116,3 +1116,28 @@
 
 - [memory_upgrade_p5_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p5_close_readiness_v1.0.md)
 - [memory_upgrade_p5_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p5_close_note_v1.0.md)
+
+---
+
+## Memory Upgrade P6 Snapshot
+
+当前 `P6` 的阶段判断：
+
+- `P6-1`
+  - 待开始
+- `P6-2`
+  - 待开始
+- `P6-3`
+  - 待开始
+- `P6-4`
+  - 待开始
+- `P6-5`
+  - 待开始
+
+整体 `P6` 当前大约：
+
+- **`0% - 5%`**
+
+当前更推荐的下一步：
+
+- **从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 开始，直接落 `P6-1 Namespace policy orchestration` 的第一刀代码事实**
