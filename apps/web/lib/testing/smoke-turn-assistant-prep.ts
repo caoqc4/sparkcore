@@ -3,7 +3,7 @@ import {
   toSmokeRelationshipRecallMemory
 } from "@/lib/testing/smoke-relationship-memory-accessors";
 import { buildSmokeAssistantReply } from "@/lib/testing/smoke-assistant-reply";
-import { resolveSmokeReplyLanguage } from "@/lib/testing/smoke-reply-language";
+import { resolveSmokeReplyLanguage } from "@/lib/testing/smoke-reply-language-resolution";
 import type { SmokeAssistantTurnPrepInput } from "@/lib/testing/smoke-turn-assistant-types";
 
 export function prepareSmokeAssistantTurn(args: SmokeAssistantTurnPrepInput) {

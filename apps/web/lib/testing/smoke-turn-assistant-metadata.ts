@@ -1,5 +1,5 @@
 import { buildSmokeRoleCorePacket } from "@/lib/testing/smoke-role-core-packet";
-import { detectSmokeReplyLanguage } from "@/lib/testing/smoke-reply-language";
+import { detectSmokeReplyLanguage } from "@/lib/testing/smoke-language-detection";
 import type { SmokeAssistantTurnMetadataInput } from "@/lib/testing/smoke-turn-assistant-types";
 
 export function buildSmokeAssistantTurnMetadata(

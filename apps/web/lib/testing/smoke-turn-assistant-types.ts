@@ -6,7 +6,7 @@ import type {
   SmokeReplyLanguage,
   SmokeReplyLanguageSource,
 } from "@/lib/testing/smoke-assistant-builders";
-import type { SmokeContinuityReply } from "@/lib/testing/smoke-reply-language";
+import type { SmokeContinuityReply } from "@/lib/testing/smoke-assistant-continuity";
 
 export type SmokeAssistantTurnStrategyRule = {
   questionType: SmokeAnswerQuestionType;

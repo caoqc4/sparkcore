@@ -1,4 +1,4 @@
-import { getSmokeRecentAssistantReply } from "@/lib/testing/smoke-reply-language";
+import { getSmokeRecentAssistantReply } from "@/lib/testing/smoke-assistant-continuity";
 import { getSmokeTurnMemoryContext } from "@/lib/testing/smoke-turn-memory-context";
 import { getSmokeTurnStrategyContext } from "@/lib/testing/smoke-turn-strategy-context";
 import type { SmokeTurnAnalysisInput } from "@/lib/testing/smoke-turn-analysis-input";
