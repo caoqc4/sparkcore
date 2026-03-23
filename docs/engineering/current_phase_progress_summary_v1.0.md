@@ -84,6 +84,7 @@
   - `thread_state_candidate`
 - `memory-write-targets.ts` 已开始承接统一 target resolution
 - `memory-write-rows.ts` 已开始承接 generic memory insert / update row 组装
+- `memory-write-record-candidates.ts` 已开始承接 generic `StaticProfileRecord` candidate adapter
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 
 这意味着：
@@ -229,6 +230,7 @@
     - commit 前 row builder
     - runtime preview metadata
     - `memory_write_planned` runtime event
+  - generic `profile / preference` 写入当前也已开始先构造 `StaticProfileRecord` candidate，再进入 legacy row 组装
 - 当前 runtime 主线的下一阶段优先级也已前移成：
   - 先治理输出层
   - 再决定是否继续细拆 execution
