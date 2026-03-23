@@ -79,6 +79,15 @@
 - chat memory preview 当前也已开始暴露 semantic target，可直接观察当前 legacy row 的新语义归属
 - `hide / restore / incorrect` 管理动作当前也已开始写入 `semantic_target`
 - `memory.ts` 已退成兼容入口
+- `P0-6` 当前已不再只是迁移方向说明，而已进入：
+  - classifier
+  - recall
+  - UI preview
+  - memory 管理动作
+- `P0-7` 当前也已开始形成明确 gate：
+  - 功能 gate
+  - 结构 gate
+  - 回归 gate
 - `profile / preference` 已形成 planner -> executor 最小闭环
 - `relationship memory` 已收进 `memory_write_requests` 的显式 subtype
 - relationship 写入已不再走额外旁路，而是回到统一 write pipeline

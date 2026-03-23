@@ -657,6 +657,17 @@ P0 至少要验证：
 
 - runtime 已能显式区分 `profile / thread_state` 两路
 - `debug_metadata.session.thread_state` 已能显式看到 thread state 最小摘要
+- `assistant metadata.session.thread_state` 已能看到相同最小摘要
+- `goal` 已可在具备 `threadId + repository` 时写入 `ThreadState.focus_mode`
+- `relationship recall` 已开始经过 `MemoryRecord` adapter
+
+P0 功能 gate 通过的最小条件：
+
+- `profile / preference -> static_profile` 写入与主读路径都已成立
+- `relationship -> memory_record` 写入与 recall 主读路径都已成立
+- `goal -> thread_state_candidate -> ThreadState.focus_mode` 已成立
+- runtime / assistant metadata 至少有一处能稳定暴露 `profile_snapshot`
+- runtime / assistant metadata 至少有一处能稳定暴露最小 `thread_state` 摘要
 
 ### 10.2 结构验收
 
@@ -667,6 +678,16 @@ P0 完成后应满足：
 - `memory_items` 已被纳入兼容迁移方案
 - 新旧语义不会在主要路径里长期并行漂移
 
+P0 结构 gate 通过的最小条件：
+
+- `packages/core/memory/records.ts` 已成为正式 record 定义入口
+- `apps/web/lib/chat/memory-records.ts` 已承接 legacy -> 新语义 adapter 与 semantic target classifier
+- `record_target` 与 `semantic_target` 不是只留在文档中，而是至少进入：
+  - 写入链
+  - recall 链
+  - 一处管理或可视化链路
+- `DynamicProfileRecord` 仍保持克制，不提前吸收 legacy `goal`
+
 ### 10.3 回归验收
 
 至少要覆盖：
@@ -676,6 +697,19 @@ P0 完成后应满足：
 - thread state 读写不回退
 - memory write / recall 不引入明显行为倒退
 - `tsc --noEmit -p apps/web/tsconfig.json` 持续通过
+
+P0 回归 gate 通过的最小条件：
+
+- `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json` 通过
+- Web chat 主路径仍可：
+  - 发消息
+  - 写 assistant reply
+  - 展示 runtime summary
+- memory 管理动作仍可：
+  - hide
+  - restore
+  - incorrect
+- `thread_state` 读取、写回、assistant metadata 注入没有被新语义层打断
 
 ---
 
