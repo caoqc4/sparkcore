@@ -6,11 +6,20 @@ import {
   isSmokeSelfIntroGreetingRequest
 } from "@/lib/testing/smoke-answer-strategy";
 import { getSmokeIntroReplyContext } from "@/lib/testing/smoke-intro-reply-context";
-import type { SmokeIntroReplyInput } from "@/lib/testing/smoke-intro-reply-types";
+import type { SmokeRelationshipRecallMemory } from "@/lib/testing/smoke-recall-memory-types";
 import {
   buildSmokeEnStyleGreeting,
   buildSmokeZhStyleGreeting
 } from "@/lib/testing/smoke-style-greetings";
+
+export type SmokeIntroReplyInput = {
+  content: string;
+  replyLanguage: SmokeReplyLanguage;
+  agentName: string;
+  addressStyleMemory: SmokeRelationshipRecallMemory;
+  nicknameMemory: SmokeRelationshipRecallMemory;
+  preferredNameMemory: SmokeRelationshipRecallMemory;
+};
 
 function buildSmokeBriefGreetingReply(args: {
   replyLanguage: SmokeReplyLanguage;
