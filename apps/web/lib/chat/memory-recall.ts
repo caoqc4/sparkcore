@@ -14,6 +14,7 @@ import {
   type MemoryUsageType,
   scoreMemoryRelevance
 } from "@/lib/chat/memory-shared";
+import type { ThreadStateRecord } from "@/lib/chat/thread-state";
 import {
   loadRecentOwnedMemoriesByTypes,
   loadRecentOwnedRelationshipMemories
@@ -23,13 +24,14 @@ import { createClient } from "@/lib/supabase/server";
 function selectMemoryRecallRoutes(args: {
   latestUserMessage: string;
   allowDistantFallback: boolean;
+  hasThreadState: boolean;
 }): MemoryRecallRoute[] {
   void args.latestUserMessage;
   void args.allowDistantFallback;
 
   // P0 starts with a single explicit route so later expansion to
   // profile/episode/timeline/thread_state can reuse the same shape.
-  return ["profile"];
+  return args.hasThreadState ? ["thread_state", "profile"] : ["profile"];
 }
 
 function isMemoryApplicableToRecall({
@@ -305,7 +307,8 @@ export async function recallRelevantMemories({
 }): Promise<RecallOutcome> {
   const appliedRoutes = selectMemoryRecallRoutes({
     latestUserMessage,
-    allowDistantFallback
+    allowDistantFallback,
+    hasThreadState: false
   });
   const supabase = providedSupabase ?? (await createClient());
   const { data, error } = await loadRecentOwnedMemoriesByTypes({
@@ -429,9 +432,20 @@ export type RuntimeRelationshipRecall = {
   } | null;
 };
 
+export type RuntimeThreadStateRecall = {
+  applied: boolean;
+  snapshot: {
+    lifecycle_status: ThreadStateRecord["lifecycle_status"];
+    focus_mode: ThreadStateRecord["focus_mode"];
+    continuity_status: ThreadStateRecord["continuity_status"];
+    current_language_hint: ThreadStateRecord["current_language_hint"];
+  } | null;
+};
+
 export type RuntimeMemoryContext = {
   memoryRecall: RecallOutcome;
   relationshipRecall: RuntimeRelationshipRecall;
+  threadStateRecall: RuntimeThreadStateRecall;
 };
 
 export async function loadRuntimeMemoryContext({
@@ -443,6 +457,7 @@ export async function loadRuntimeMemoryContext({
   preferSameThreadContinuation,
   sameThreadContinuity,
   relationshipStylePrompt,
+  threadState,
   supabase: providedSupabase
 }: {
   workspaceId: string;
@@ -453,6 +468,7 @@ export async function loadRuntimeMemoryContext({
   preferSameThreadContinuation: boolean;
   sameThreadContinuity: boolean;
   relationshipStylePrompt: boolean;
+  threadState?: ThreadStateRecord | null;
   supabase?: any;
 }): Promise<RuntimeMemoryContext> {
   const emptyMemoryRecall: RecallOutcome = {
@@ -472,11 +488,23 @@ export async function loadRuntimeMemoryContext({
     nicknameMemory: null,
     preferredNameMemory: null
   };
+  const threadStateRecall: RuntimeThreadStateRecall = {
+    applied: threadState != null,
+    snapshot: threadState
+      ? {
+          lifecycle_status: threadState.lifecycle_status,
+          focus_mode: threadState.focus_mode ?? null,
+          continuity_status: threadState.continuity_status ?? null,
+          current_language_hint: threadState.current_language_hint ?? null
+        }
+      : null
+  };
 
   if (!latestUserMessage) {
     return {
       memoryRecall: emptyMemoryRecall,
-      relationshipRecall: emptyRelationshipRecall
+      relationshipRecall: emptyRelationshipRecall,
+      threadStateRecall
     };
   }
 
@@ -489,6 +517,9 @@ export async function loadRuntimeMemoryContext({
     allowDistantFallback: !preferSameThreadContinuation,
     supabase: providedSupabase
   });
+  if (threadStateRecall.applied && !memoryRecall.appliedRoutes.includes("thread_state")) {
+    memoryRecall.appliedRoutes = ["thread_state", ...memoryRecall.appliedRoutes];
+  }
 
   const directNamingQuestion = isDirectAgentNamingQuestion(latestUserMessage);
   const directPreferredNameQuestion =
@@ -538,6 +569,7 @@ export async function loadRuntimeMemoryContext({
       ...addressStyleRecall,
       ...nicknameRecall,
       ...preferredNameRecall
-    }
+    },
+    threadStateRecall
   };
 }

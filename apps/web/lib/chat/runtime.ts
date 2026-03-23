@@ -3273,6 +3273,7 @@ export async function generateAgentReply({
     preferSameThreadContinuation,
     sameThreadContinuity,
     relationshipStylePrompt,
+    threadState: sessionContext.thread_state,
     supabase
   });
   const memoryRecall = runtimeMemoryContext.memoryRecall;

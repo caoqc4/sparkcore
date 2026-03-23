@@ -168,6 +168,7 @@ export async function prepareRuntimeMemory(args: {
   preferSameThreadContinuation: boolean;
   sameThreadContinuity: boolean;
   relationshipStylePrompt: boolean;
+  threadState?: SessionContext["thread_state"];
   supabase?: any;
 }): Promise<RuntimeMemoryContext> {
   return loadRuntimeMemoryContext({
@@ -179,6 +180,7 @@ export async function prepareRuntimeMemory(args: {
     preferSameThreadContinuation: args.preferSameThreadContinuation,
     sameThreadContinuity: args.sameThreadContinuity,
     relationshipStylePrompt: args.relationshipStylePrompt,
+    threadState: args.threadState,
     supabase: args.supabase
   });
 }
