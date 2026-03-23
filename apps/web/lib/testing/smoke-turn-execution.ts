@@ -1,4 +1,4 @@
-import { persistSmokeAssistantTurnStep } from "@/lib/testing/smoke-turn-assistant-step";
+import { persistPreparedSmokeAssistantTurn } from "@/lib/testing/smoke-turn-assistant-persistence";
 import { prepareSmokeTurnExecutionState } from "@/lib/testing/smoke-turn-execution-state";
 import { persistSmokeMemoryTurnStep } from "@/lib/testing/smoke-turn-memory-step";
 import { persistSmokeUserTurnStep } from "@/lib/testing/smoke-turn-user-step";
@@ -75,7 +75,7 @@ export async function executeSmokeTurn(args: {
     recalledMemories,
     answerStrategyRule
   });
-  const insertedAssistantMessage = await persistSmokeAssistantTurnStep({
+  const insertedAssistantMessage = await persistPreparedSmokeAssistantTurn({
     supabase: admin,
     threadId: thread.id,
     workspaceId: smokeUser.workspaceId,
@@ -91,20 +91,7 @@ export async function executeSmokeTurn(args: {
     relationshipStyleValue: effectiveAddressStyleValue,
     replyLanguage,
     replyLanguageSource,
-    questionType: answerStrategyRule.questionType,
-    answerStrategy: answerStrategyRule.answerStrategy,
-    answerStrategyReasonCode: answerStrategyRule.reasonCode,
-    continuationReasonCode: answerStrategyRule.continuationReasonCode,
-    recentRawTurnCount,
-    approxContextPressure,
-    sameThreadContinuationApplicable,
-    longChainPressureCandidate,
-    sameThreadContinuationPreferred: preferSameThreadContinuation,
-    distantMemoryFallbackAllowed: !preferSameThreadContinuation,
-    recalledMemories,
-    usedMemoryTypes,
-    hiddenExclusionCount,
-    incorrectExclusionCount,
+    analysis,
     createdTypes
   });
 
