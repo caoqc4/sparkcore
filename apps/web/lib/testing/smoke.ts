@@ -21,7 +21,6 @@ import {
   loadOwnedThread,
   updateOwnedThread
 } from "@/lib/chat/runtime-turn-context";
-import { getSupabaseEnv } from "@/lib/env";
 import { getSmokeModelProfiles } from "@/lib/testing/smoke-seed-persistence";
 import {
   ensureSmokeModelProfiles,
@@ -49,6 +48,10 @@ import {
   type SmokeRoleCorePacket
 } from "@/lib/testing/smoke-assistant-builders";
 import {
+  getSmokeConfig,
+  isAuthorizedSmokeRequest
+} from "@/lib/testing/smoke-config";
+import {
   detectSmokeReplyLanguage,
   getSmokeApproxContextPressure,
   getSmokeRecentAssistantReply,
@@ -66,11 +69,9 @@ import {
   LEGACY_MEMORY_KEY
 } from "@/lib/chat/memory-v2";
 
-const DEV_SMOKE_SECRET = "sparkcore-smoke-local";
-const DEV_SMOKE_EMAIL = "smoke@example.com";
-const DEV_SMOKE_PASSWORD = "SparkcoreSmoke123!";
-
 const SMOKE_MODEL_PROFILES = getSmokeModelProfiles();
+
+export { getSmokeConfig, isAuthorizedSmokeRequest };
 
 type SmokeThread = {
   id: string;
@@ -112,59 +113,6 @@ function isSmokeMemoryApplicableToThread({
   }
 
   return true;
-}
-
-function getFallbackValue(envKey: "secret" | "email" | "password") {
-  if (process.env.NODE_ENV !== "development") {
-    return undefined;
-  }
-
-  switch (envKey) {
-    case "secret":
-      return DEV_SMOKE_SECRET;
-    case "email":
-      return DEV_SMOKE_EMAIL;
-    case "password":
-      return DEV_SMOKE_PASSWORD;
-  }
-}
-
-export function getSmokeConfig() {
-  const { url, anonKey } = getSupabaseEnv();
-  const secret =
-    process.env.PLAYWRIGHT_SMOKE_SECRET ?? getFallbackValue("secret");
-  const email =
-    process.env.PLAYWRIGHT_SMOKE_EMAIL ?? getFallbackValue("email");
-  const password =
-    process.env.PLAYWRIGHT_SMOKE_PASSWORD ?? getFallbackValue("password");
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!secret || !email || !password || !serviceRoleKey) {
-    return null;
-  }
-
-  return {
-    secret,
-    email,
-    password,
-    serviceRoleKey,
-    url,
-    anonKey
-  } satisfies SmokeConfig;
-}
-
-export function isAuthorizedSmokeRequest(
-  request: NextRequest,
-  config: SmokeConfig | null
-) {
-  if (!config) {
-    return false;
-  }
-
-  const headerSecret = request.headers.get("x-smoke-secret");
-  const querySecret = request.nextUrl.searchParams.get("secret");
-
-  return headerSecret === config.secret || querySecret === config.secret;
 }
 
 export async function resetSmokeState() {
