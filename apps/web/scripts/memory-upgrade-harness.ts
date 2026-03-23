@@ -482,7 +482,8 @@ function main() {
     relevantKnowledge: runtimeKnowledge
   });
   const scenarioMemoryPack = resolveActiveScenarioMemoryPack({
-    activeNamespace: activeMemoryNamespace
+    activeNamespace: activeMemoryNamespace,
+    relevantKnowledge: runtimeKnowledge
   });
   expect(
     scenarioMemoryPack.pack_id === "project_ops",
@@ -500,6 +501,34 @@ function main() {
   expect(
     scenarioMemoryPackPrompt.includes("Active Scenario Memory Pack: project_ops"),
     "Expected project namespace scenario memory pack prompt section to expose project_ops in P3."
+  );
+  const knowledgeDrivenScenarioMemoryPack = resolveActiveScenarioMemoryPack({
+    activeNamespace: {
+      namespace_id: "user:user-1|world:world-1",
+      primary_layer: "world",
+      active_layers: ["user", "world"],
+      refs: [
+        {
+          layer: "user",
+          entity_id: "user-1"
+        },
+        {
+          layer: "world",
+          entity_id: "world-1"
+        }
+      ],
+      selection_reason: "session_and_knowledge_scope"
+    },
+    relevantKnowledge: runtimeKnowledge
+  });
+  expect(
+    knowledgeDrivenScenarioMemoryPack.pack_id === "project_ops",
+    "Expected project-scoped knowledge to switch the active scenario memory pack to project_ops even under a world-primary namespace in P3."
+  );
+  expect(
+    knowledgeDrivenScenarioMemoryPack.selection_reason ===
+      "project_knowledge_priority",
+    "Expected project-scoped knowledge to surface a project_knowledge_priority pack selection reason in P3."
   );
   expect(
     isMemoryWithinNamespace({

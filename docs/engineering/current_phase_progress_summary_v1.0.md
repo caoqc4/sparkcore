@@ -210,6 +210,13 @@
     - prompt guidance
   - runtime prompt / assistant metadata / debug metadata 当前也已开始承接这层 pack 切换
   - `memory-upgrade-harness.ts` 当前也已开始显式校验默认 `companion` 路径与 project namespace 下的 `project_ops` 切换
+  - `apps/web/lib/chat/memory-packs.ts` 当前也已开始让 `resolveActiveScenarioMemoryPack(...)` 同时考虑 `activeNamespace.primary_layer` 与 `relevantKnowledge`
+  - 当前最小规则已经成立：
+    - 即使 `activeNamespace.primary_layer = world`
+    - 只要当前上下文里的 `project` knowledge 开始占主导
+    - active pack 也可以切到 `project_ops`
+  - 也就是说，pack selection 当前已经不只受 namespace 影响，而开始变成 `namespace + knowledge` 的联合判断
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 world-primary namespace 下的 `project_knowledge_priority`
 - `P3-5 regression / acceptance expansion` 当前也已开始进入真实实现：
   - `memory-upgrade-harness.ts` 当前已开始显式产出 `p3_regression_gate`
   - 第一版 `P3` gate 当前已开始锁：

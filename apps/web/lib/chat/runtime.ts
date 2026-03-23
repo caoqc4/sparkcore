@@ -1333,11 +1333,13 @@ function buildMemoryLayerAssemblyPrompt(args: {
 
 function buildScenarioMemoryPackAssemblyPrompt(args: {
   activeMemoryNamespace: ActiveRuntimeMemoryNamespace | null | undefined;
+  relevantKnowledge: RuntimeKnowledgeSnippet[];
   replyLanguage: RuntimeReplyLanguage;
 }) {
   return buildScenarioMemoryPackPromptSection({
     pack: resolveActiveScenarioMemoryPack({
-      activeNamespace: args.activeMemoryNamespace ?? null
+      activeNamespace: args.activeMemoryNamespace ?? null,
+      relevantKnowledge: args.relevantKnowledge
     }),
     replyLanguage: args.replyLanguage
   });
@@ -2531,6 +2533,7 @@ function buildAgentSystemPromptInternal(
     }),
     buildScenarioMemoryPackAssemblyPrompt({
       activeMemoryNamespace,
+      relevantKnowledge,
       replyLanguage
     }),
     buildKnowledgeLayerPrompt({
@@ -4003,7 +4006,8 @@ export async function runPreparedRuntimeTurn({
         ),
         profile_snapshot: recalledProfileSnapshot,
         scenario_pack: resolveActiveScenarioMemoryPack({
-          activeNamespace: activeMemoryNamespace
+          activeNamespace: activeMemoryNamespace,
+          relevantKnowledge: applicableKnowledge
         }),
         hidden_exclusion_count: memoryRecall.hiddenExclusionCount,
         incorrect_exclusion_count: memoryRecall.incorrectExclusionCount
@@ -4161,7 +4165,8 @@ export async function runPreparedRuntimeTurn({
         preparedRuntimeTurn.memory.runtime_memory_context.threadStateRecall,
       reply_language: replyLanguage,
       scenario_memory_pack: resolveActiveScenarioMemoryPack({
-        activeNamespace: activeMemoryNamespace
+        activeNamespace: activeMemoryNamespace,
+        relevantKnowledge: applicableKnowledge
       }),
       relevant_knowledge: applicableKnowledge,
       active_memory_namespace: activeMemoryNamespace,

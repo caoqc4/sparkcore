@@ -5,20 +5,37 @@ import {
 } from "../../../../packages/core/memory";
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
+import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
 
 export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
   selection_reason:
     | "default_companion_phase"
-    | "project_namespace_priority";
+    | "project_namespace_priority"
+    | "project_knowledge_priority";
 };
 
 export function resolveActiveScenarioMemoryPack(args?: {
   activeNamespace?: ActiveRuntimeMemoryNamespace | null;
+  relevantKnowledge?: RuntimeKnowledgeSnippet[];
 }): ActiveScenarioMemoryPack {
   if (args?.activeNamespace?.primary_layer === "project") {
     return {
       ...resolveBuiltInScenarioMemoryPack("project_ops"),
       selection_reason: "project_namespace_priority"
+    };
+  }
+
+  const projectKnowledgeCount =
+    args?.relevantKnowledge?.filter((item) => Boolean(item.scope.project_id))
+      .length ?? 0;
+  const worldKnowledgeCount =
+    args?.relevantKnowledge?.filter((item) => Boolean(item.scope.world_id))
+      .length ?? 0;
+
+  if (projectKnowledgeCount > 0 && projectKnowledgeCount >= worldKnowledgeCount) {
+    return {
+      ...resolveBuiltInScenarioMemoryPack("project_ops"),
+      selection_reason: "project_knowledge_priority"
     };
   }
 
