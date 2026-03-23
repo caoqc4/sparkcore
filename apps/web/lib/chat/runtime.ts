@@ -36,7 +36,8 @@ import {
   loadRecentOwnedMemories,
   loadSourceMessagesByIds,
   loadOwnedThreads,
-  loadPrimaryWorkspace
+  loadPrimaryWorkspace,
+  updateOwnedThread
 } from "@/lib/chat/runtime-turn-context";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import {
@@ -2591,12 +2592,11 @@ export async function getChatState() {
     throw new Error("Thread resolution failed for the current workspace.");
   }
 
-  const { data: messages, error: messagesError } = await supabase
-    .from("messages")
-    .select("id, role, content, created_at")
-    .eq("thread_id", thread.id)
-    .eq("workspace_id", workspace.id)
-    .order("created_at", { ascending: true });
+  const { data: messages, error: messagesError } = await loadThreadMessages({
+    supabase,
+    threadId: thread.id,
+    workspaceId: workspace.id
+  });
 
   if (messagesError) {
     throw new Error(`Failed to load messages: ${messagesError.message}`);
@@ -3609,14 +3609,15 @@ export async function runPreparedRuntimeTurn({
     throw new Error(`Failed to store assistant reply: ${error.message}`);
   }
 
-  await runtimeSupabase
-    .from("threads")
-    .update({
+  await updateOwnedThread({
+    supabase: runtimeSupabase,
+    threadId: thread.id,
+    userId,
+    patch: {
       agent_id: agent.id,
       updated_at: new Date().toISOString()
-    })
-    .eq("id", thread.id)
-    .eq("owner_user_id", userId);
+    }
+  });
 
   const runtimeTurnResult: RuntimeTurnResult = {
     assistant_message: {

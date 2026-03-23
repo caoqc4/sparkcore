@@ -185,6 +185,26 @@ export async function bindOwnedThreadAgent(args: {
     .single();
 }
 
+export async function updateOwnedThread(args: {
+  supabase: any;
+  threadId: string;
+  userId: string;
+  patch: Record<string, unknown>;
+  select?: string;
+}) {
+  let query = args.supabase
+    .from("threads")
+    .update(args.patch)
+    .eq("id", args.threadId)
+    .eq("owner_user_id", args.userId);
+
+  if (args.select) {
+    query = query.select(args.select);
+  }
+
+  return query;
+}
+
 export async function loadActivePersonaPacks(args: {
   supabase: any;
 }) {

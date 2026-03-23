@@ -1,4 +1,5 @@
 import { insertPendingAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
+import { updateOwnedThread } from "@/lib/chat/runtime-turn-context";
 import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import { loadThreadMessages } from "@/lib/chat/thread-message-persistence";
 
@@ -27,11 +28,12 @@ export async function bootstrapRuntimeAssistantTurn(
     shouldSummarizeTitle: args.thread.title === "New chat"
   });
 
-  await args.supabase
-    .from("threads")
-    .update(threadPatch)
-    .eq("id", args.thread.id)
-    .eq("owner_user_id", args.userId);
+  await updateOwnedThread({
+    supabase: args.supabase,
+    threadId: args.thread.id,
+    userId: args.userId,
+    patch: threadPatch
+  });
 
   const { data: persistedMessages, error: persistedMessagesError } =
     await loadThreadMessages({
