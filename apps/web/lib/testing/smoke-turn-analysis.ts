@@ -10,6 +10,10 @@ import {
   getSmokeUsedMemoryTypes
 } from "@/lib/testing/smoke-relationship-context";
 import {
+  analyzeSmokeMemoryState,
+  type SmokeMemoryRow
+} from "@/lib/testing/smoke-memory-analysis";
+import {
   getSmokeApproxContextPressure,
   getSmokeRecentAssistantReply,
   getSmokeRecentRuntimeMessages,
@@ -17,27 +21,6 @@ import {
 } from "@/lib/testing/smoke-reply-analysis";
 import { selectSmokeRecalledMemories } from "@/lib/testing/smoke-memory-recall-selection";
 import { selectSmokeRelationshipMemories } from "@/lib/testing/smoke-relationship-memory-selection";
-import {
-  isMemoryActive,
-  isMemoryHidden,
-  isMemoryIncorrect,
-  isMemoryScopeValid
-} from "@/lib/chat/memory-v2";
-
-type SmokeMemoryRow = {
-  id: string;
-  memory_type: "profile" | "preference" | null;
-  content: string;
-  confidence: number;
-  category: string | null;
-  key: string | null;
-  value: string | null;
-  scope: string | null;
-  status: string | null;
-  target_agent_id: string | null;
-  target_thread_id: string | null;
-  metadata: Record<string, unknown> | null;
-};
 
 type SmokeRuntimeMessage = {
   role: "user" | "assistant";
@@ -45,34 +28,6 @@ type SmokeRuntimeMessage = {
   status: string;
   metadata: Record<string, unknown>;
 };
-
-function isSmokeMemoryApplicableToThread({
-  memory,
-  agentId,
-  threadId
-}: {
-  memory: {
-    scope?: string | null;
-    target_agent_id?: string | null;
-    target_thread_id?: string | null;
-  };
-  agentId: string;
-  threadId: string;
-}) {
-  if (!isMemoryScopeValid(memory)) {
-    return false;
-  }
-
-  if (memory.scope === "user_agent") {
-    return memory.target_agent_id === agentId;
-  }
-
-  if (memory.scope === "thread_local") {
-    return memory.target_thread_id === threadId;
-  }
-
-  return true;
-}
 
 export function analyzeSmokeTurnContext({
   trimmedContent,
@@ -88,22 +43,12 @@ export function analyzeSmokeTurnContext({
   threadId: string;
 }) {
   const recentAssistantReply = getSmokeRecentAssistantReply(existingMessages);
-  const validExistingMemories = existingMemories.filter((memory) =>
-    isSmokeMemoryApplicableToThread({
-      memory,
+  const { activeMemories, hiddenExclusionCount, incorrectExclusionCount } =
+    analyzeSmokeMemoryState({
+      existingMemories,
       agentId,
       threadId
-    })
-  );
-  const activeMemories = validExistingMemories.filter((memory) =>
-    isMemoryActive(memory)
-  );
-  const hiddenExclusionCount = validExistingMemories.filter((memory) =>
-    isMemoryHidden(memory)
-  ).length;
-  const incorrectExclusionCount = validExistingMemories.filter((memory) =>
-    isMemoryIncorrect(memory)
-  ).length;
+    });
 
   const recalledMemories = selectSmokeRecalledMemories({
     trimmedContent,
