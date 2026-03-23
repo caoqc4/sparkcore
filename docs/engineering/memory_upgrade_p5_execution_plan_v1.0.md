@@ -359,22 +359,34 @@ P5 首批明确不做：
 - `P5-4 scenario pack strategy layer v3`
   - 前中段
 - `P5-5 regression / acceptance expansion`
-  - 第一版雏形已存在，但还未正式收成阶段 gate
+  - 第一版已成立
+  - `memory-upgrade-harness` 现在已显式产出 `p5_regression_gate`
+  - 当前 gate 已开始锁：
+    - `namespace_multi_budget_routing_ok`
+    - `retention_layering_v3_ok`
+    - `knowledge_route_weighting_v3_ok`
+    - `scenario_pack_strategy_v3_ok`
+  - 同时也开始提供：
+    - `checks_passed`
+    - `checks_total`
+    - `failed_checks`
+    - `all_green`
+    - `close_candidate`
 
 整体上，`P5` 当前大约在：
 
 - **`55% - 65%`**
 
-当前最合理的下一步，不是进入 `close-readiness`，而是二选一：
+当前最合理的下一步，不是立即进入 `close-readiness`，而是二选一：
 
 1. 继续补 `P5-4`
-2. 开始把 `P5-5` 正式收成第一版阶段 gate
+2. 在 `P5-5` 已成立第一版 gate 的基础上，继续增强阶段级回归面
 
 当前推荐优先级：
 
-- **先补 `P5-5`**
+- **先继续补 `P5-5`**
 
 原因：
 
 - `P5-1 ~ P5-4` 已经都有真实代码事实
-- 如果 gate 不尽快跟上，后面继续推进会重新进入“代码在长、阶段判断滞后”的状态
+- 现在已经有第一版正式 gate，正适合继续把它补成更完整的阶段判断基础

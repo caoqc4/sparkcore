@@ -1086,7 +1086,16 @@
 - `P5-4`
   - 前中段
 - `P5-5`
-  - 第一版雏形已存在
+  - 第一版已成立
+  - `p5_regression_gate` 已开始锁：
+    - namespace multi-budget routing
+    - retention layering v3
+    - knowledge route weighting v3
+    - scenario pack strategy v3
+  - 同时开始提供：
+    - `checks_passed / checks_total`
+    - `failed_checks`
+    - `all_green / close_candidate`
 
 整体 `P5` 当前大约：
 
@@ -1094,4 +1103,4 @@
 
 当前更推荐的下一步：
 
-- **先补 `P5-5 regression / acceptance expansion`**
+- **继续补 `P5-5 regression / acceptance expansion`**

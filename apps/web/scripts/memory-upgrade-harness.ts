@@ -1650,6 +1650,79 @@ function main() {
     "Expected companion system prompt assembly to preserve dynamic_profile alongside memory_record in P4."
   );
 
+  const p5RegressionGateChecks = {
+    namespace_multi_budget_routing_ok:
+      threadBoundary.parallel_timeline_budget === 0 &&
+      projectBoundary.parallel_timeline_budget === 1 &&
+      Array.isArray(threadBoundary.retrieval_route_order) &&
+      threadBoundary.retrieval_route_order.join(",") ===
+        "thread_state,profile,episode" &&
+      Array.isArray(projectBoundary.write_fallback_order) &&
+      projectBoundary.write_fallback_order.join(",") ===
+        "project,world,default",
+    retention_layering_v3_ok:
+      runtimeDebugMetadata.thread_compaction?.retention_layers?.join(",") ===
+        "anchor" &&
+      runtimeDebugMetadata.thread_compaction?.retention_layer_budget?.anchor ===
+        2 &&
+      runtimeDebugMetadata.thread_compaction?.retention_layer_budget?.context ===
+        0 &&
+      runtimeDebugMetadata.thread_compaction?.retention_layer_budget?.window ===
+        0 &&
+      runtimeDebugMetadata.thread_compaction?.retention_section_order?.join(
+        ","
+      ) === "focus_mode,continuity_status,current_language_hint" &&
+      runtimeDebugMetadata.thread_compaction?.retention_section_weights
+        ?.focus_mode === 120 &&
+      runtimeDebugMetadata.thread_compaction?.retention_section_weights
+        ?.continuity_status === 110 &&
+      runtimeDebugMetadata.thread_compaction?.retention_section_weights
+        ?.current_language_hint === 30 &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Retention layers: anchor."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Retention section order: focus_mode,continuity_status,current_language_hint."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Retention section weights: focus_mode=120,continuity_status=110,current_language_hint=30."
+      ),
+    knowledge_route_weighting_v3_ok:
+      scenarioMemoryPack.knowledge_priority_layer === "project" &&
+      scenarioMemoryPack.assembly_emphasis === "knowledge_first" &&
+      scenarioMemoryPack.knowledge_route_weight === 1 &&
+      scenarioMemoryPack.knowledge_budget_weight === 0.9 &&
+      scenarioMemoryPack.route_influence_reason ===
+        "project_namespace_bias" &&
+      projectKnowledgeWeight.total_weight > worldKnowledgeWeight.total_weight &&
+      worldKnowledgeWeight.total_weight > generalKnowledgeWeight.total_weight &&
+      systemPrompt.includes(
+        "Current knowledge route weight = 1; knowledge budget weight = 0.9."
+      ),
+    scenario_pack_strategy_v3_ok:
+      scenarioMemoryPackStrategy.strategy_bundle_id === "project_execution" &&
+      systemPrompt.includes("RM1:") &&
+      !systemPrompt.includes("RM2:") &&
+      systemPrompt.includes("SP1:") &&
+      !systemPrompt.includes("SP2:") &&
+      systemPrompt.includes(
+        "Current strategy bundle = project_execution; relationship/static_profile/memory_record budget = 1/1/2."
+      )
+  } as const;
+  const p5RegressionGateFailedChecks = Object.entries(
+    p5RegressionGateChecks
+  ).flatMap(([check, passed]) => (passed ? [] : [check]));
+  const p5RegressionGate = {
+    ...p5RegressionGateChecks,
+    checks_passed:
+      Object.keys(p5RegressionGateChecks).length -
+      p5RegressionGateFailedChecks.length,
+    checks_total: Object.keys(p5RegressionGateChecks).length,
+    failed_checks: p5RegressionGateFailedChecks,
+    all_green: p5RegressionGateFailedChecks.length === 0,
+    close_candidate: p5RegressionGateFailedChecks.length === 0
+  } as const;
+
   console.log(
     JSON.stringify(
       {
@@ -1874,69 +1947,7 @@ function main() {
             !projectOpsDynamicVsRecordPrompt.includes("2. dynamic_profile:") &&
             companionDynamicVsRecordPrompt.includes("2. dynamic_profile:"),
         },
-        p5_regression_gate: {
-          namespace_multi_budget_routing_ok:
-            threadBoundary.parallel_timeline_budget === 0 &&
-            projectBoundary.parallel_timeline_budget === 1 &&
-            Array.isArray(threadBoundary.retrieval_route_order) &&
-            threadBoundary.retrieval_route_order.join(",") ===
-              "thread_state,profile,episode" &&
-            Array.isArray(projectBoundary.write_fallback_order) &&
-            projectBoundary.write_fallback_order.join(",") ===
-              "project,world,default",
-          retention_layering_v3_ok:
-            runtimeDebugMetadata.thread_compaction?.retention_layers?.join(
-              ","
-            ) === "anchor" &&
-            runtimeDebugMetadata.thread_compaction?.retention_layer_budget
-              ?.anchor === 2 &&
-            runtimeDebugMetadata.thread_compaction?.retention_layer_budget
-              ?.context === 0 &&
-            runtimeDebugMetadata.thread_compaction?.retention_layer_budget
-              ?.window === 0 &&
-            runtimeDebugMetadata.thread_compaction?.retention_section_order?.join(
-              ","
-            ) === "focus_mode,continuity_status,current_language_hint" &&
-            runtimeDebugMetadata.thread_compaction?.retention_section_weights
-              ?.focus_mode === 120 &&
-            runtimeDebugMetadata.thread_compaction?.retention_section_weights
-              ?.continuity_status === 110 &&
-            runtimeDebugMetadata.thread_compaction?.retention_section_weights
-              ?.current_language_hint === 30 &&
-            getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
-              "Retention layers: anchor."
-            ) &&
-            getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
-              "Retention section order: focus_mode,continuity_status,current_language_hint."
-            ) &&
-            getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
-              "Retention section weights: focus_mode=120,continuity_status=110,current_language_hint=30."
-            ),
-          knowledge_route_weighting_v3_ok:
-            scenarioMemoryPack.knowledge_priority_layer === "project" &&
-            scenarioMemoryPack.assembly_emphasis === "knowledge_first" &&
-            scenarioMemoryPack.knowledge_route_weight === 1 &&
-            scenarioMemoryPack.knowledge_budget_weight === 0.9 &&
-            scenarioMemoryPack.route_influence_reason ===
-              "project_namespace_bias" &&
-            projectKnowledgeWeight.total_weight >
-              worldKnowledgeWeight.total_weight &&
-            worldKnowledgeWeight.total_weight >
-              generalKnowledgeWeight.total_weight &&
-            systemPrompt.includes(
-              "Current knowledge route weight = 1; knowledge budget weight = 0.9."
-            ),
-          scenario_pack_strategy_v3_ok:
-            scenarioMemoryPackStrategy.strategy_bundle_id ===
-              "project_execution" &&
-            systemPrompt.includes("RM1:") &&
-            !systemPrompt.includes("RM2:") &&
-            systemPrompt.includes("SP1:") &&
-            !systemPrompt.includes("SP2:") &&
-            systemPrompt.includes(
-              "Current strategy bundle = project_execution; relationship/static_profile/memory_record budget = 1/1/2."
-            )
-        },
+        p5_regression_gate: p5RegressionGate,
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
             "When episode memory is present"
