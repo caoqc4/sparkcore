@@ -173,6 +173,7 @@
     - `isStoredMemoryRelationshipMemoryRecord(...)`
     - `isStoredMemoryGenericMemoryRecord(...)`
     - `resolveSupportedSingleSlotTarget(...)`
+    - `buildVisibleMemoryRecord(...)`
     这些 `P1-4` 相关 gate
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`

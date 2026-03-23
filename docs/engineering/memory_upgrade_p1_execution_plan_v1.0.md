@@ -271,6 +271,7 @@ P1 仍然保持：
   - `isStoredMemoryRelationshipMemoryRecord(...)`
   - `isStoredMemoryGenericMemoryRecord(...)`
   - `resolveSupportedSingleSlotTarget(...)`
+  - `buildVisibleMemoryRecord(...)`
   这些 `P1-4` 相关 gate
 
 ---
@@ -286,6 +287,7 @@ P1 首批至少应满足：
 - `memory-upgrade-harness` 增强后仍稳定通过
 - `tsc --noEmit -p apps/web/tsconfig.json` 持续通过
 - `P1-4` 新增的 semantic predicate / restore target resolver 也被回归脚手架锁住
+- runtime memory display normalizer 当前也已进入 `P1-5` gate
 
 ---
 

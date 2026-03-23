@@ -13,7 +13,7 @@ import {
   isStoredMemoryRelationshipMemoryRecord,
   isStoredMemoryStaticProfile
 } from "@/lib/chat/memory-records";
-import { buildAgentSystemPrompt } from "@/lib/chat/runtime";
+import { buildAgentSystemPrompt, buildVisibleMemoryRecord } from "@/lib/chat/runtime";
 import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
 import {
   getAssistantMemoryObservedSemanticLayers,
@@ -112,6 +112,15 @@ function main() {
     memory_type: "profile",
     category: "project_history",
     scope: "user_global"
+  });
+  const legacyDisplayMemory = createStoredMemory({
+    id: "mem-legacy-display",
+    content: "User prefers practical examples.",
+    memory_type: "profile",
+    category: null,
+    scope: null,
+    metadata: undefined,
+    source_message_id: null
   });
 
   expect(
@@ -219,6 +228,26 @@ function main() {
   expect(
     selectedRoutes.join(",") === "thread_state,profile,episode,timeline",
     "Expected recall route selection to activate episode and timeline in P1."
+  );
+
+  const visibleMemoryRecord = buildVisibleMemoryRecord({
+    memory: legacyDisplayMemory,
+    agentNameById: new Map([["agent-1", "Helper"]]),
+    sourceMessageById: new Map(),
+    sourceThreadTitleById: new Map()
+  });
+  expect(
+    visibleMemoryRecord.category === "profile",
+    "Expected runtime memory display normalizer to infer canonical category."
+  );
+  expect(
+    visibleMemoryRecord.scope === "user_global",
+    "Expected runtime memory display normalizer to infer canonical scope."
+  );
+  expect(
+    visibleMemoryRecord.metadata &&
+      Object.keys(visibleMemoryRecord.metadata).length === 0,
+    "Expected runtime memory display normalizer to default metadata to an empty object."
   );
 
   const plannedProfile = buildPlannedStaticProfileRecord({

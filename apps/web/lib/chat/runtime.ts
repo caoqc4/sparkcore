@@ -848,7 +848,7 @@ type HiddenMemoryRecord = VisibleMemoryRecord;
 type IncorrectMemoryRecord = VisibleMemoryRecord;
 type SupersededMemoryRecord = VisibleMemoryRecord;
 
-function buildVisibleMemoryRecord(args: {
+export function buildVisibleMemoryRecord(args: {
   memory: StoredMemory;
   agentNameById: Map<string, string>;
   sourceMessageById: Map<string, { thread_id: string | null; created_at: string }>;
