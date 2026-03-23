@@ -343,3 +343,38 @@ P5 首批明确不做：
 - `P4` 已把 namespace 推到 boundary + routed target + recall budget
 - 再往前一刀，最容易形成 `P5` 的第一条真实主路径事实
 - 这也最能决定后续 retention / knowledge / pack strategy 是否能站在更稳定的预算边界上继续做深
+
+---
+
+## 8. 当前阶段判断
+
+当前 `P5` 的状态可先压成：
+
+- `P5-1 namespace multi-budget routing`
+  - 中段
+- `P5-2 retention layering / pruning strategy v3`
+  - 中后段
+- `P5-3 knowledge route weighting v3`
+  - 中段
+- `P5-4 scenario pack strategy layer v3`
+  - 前中段
+- `P5-5 regression / acceptance expansion`
+  - 第一版雏形已存在，但还未正式收成阶段 gate
+
+整体上，`P5` 当前大约在：
+
+- **`55% - 65%`**
+
+当前最合理的下一步，不是进入 `close-readiness`，而是二选一：
+
+1. 继续补 `P5-4`
+2. 开始把 `P5-5` 正式收成第一版阶段 gate
+
+当前推荐优先级：
+
+- **先补 `P5-5`**
+
+原因：
+
+- `P5-1 ~ P5-4` 已经都有真实代码事实
+- 如果 gate 不尽快跟上，后面继续推进会重新进入“代码在长、阶段判断滞后”的状态
