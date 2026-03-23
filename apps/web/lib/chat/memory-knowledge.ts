@@ -135,6 +135,30 @@ function getKnowledgeScopePriority(layer: KnowledgeScopeLayer) {
   }
 }
 
+function buildKnowledgeScopeOrder(
+  namespace: ActiveMemoryNamespace | null | undefined
+): KnowledgeScopeLayer[] {
+  if (namespace?.primary_layer === "world") {
+    return ["world", "project", "general"];
+  }
+
+  if (namespace?.primary_layer === "project") {
+    return ["project", "world", "general"];
+  }
+
+  return ["project", "world", "general"];
+}
+
+function getKnowledgeScopePriorityForNamespace(args: {
+  layer: KnowledgeScopeLayer;
+  namespace: ActiveMemoryNamespace | null | undefined;
+}) {
+  const scopeOrder = buildKnowledgeScopeOrder(args.namespace);
+  const priority = scopeOrder.indexOf(args.layer);
+
+  return priority >= 0 ? priority : getKnowledgeScopePriority(args.layer);
+}
+
 export function selectKnowledgeForPrompt(args: {
   knowledge: RuntimeKnowledgeSnippet[];
   activeNamespace?: ActiveMemoryNamespace | null;
@@ -148,12 +172,14 @@ export function selectKnowledgeForPrompt(args: {
 
   return [...applicableKnowledge]
     .sort((left, right) => {
-      const leftPriority = getKnowledgeScopePriority(
-        resolveKnowledgeScopeLayer(left)
-      );
-      const rightPriority = getKnowledgeScopePriority(
-        resolveKnowledgeScopeLayer(right)
-      );
+      const leftPriority = getKnowledgeScopePriorityForNamespace({
+        layer: resolveKnowledgeScopeLayer(left),
+        namespace: args.activeNamespace
+      });
+      const rightPriority = getKnowledgeScopePriorityForNamespace({
+        layer: resolveKnowledgeScopeLayer(right),
+        namespace: args.activeNamespace
+      });
 
       if (leftPriority !== rightPriority) {
         return leftPriority - rightPriority;

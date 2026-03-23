@@ -191,6 +191,12 @@
     但 prompt budget 当前已开始按 `project -> world -> general` 的优先级选择注入项
   - `general` knowledge 当前不会再自动与 `project/world` 平权进入 prompt
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 summary 中会保留 `project / world / general`，但 prompt 会优先选择 `project / world`
+  - `apps/web/lib/chat/memory-knowledge.ts` 当前也已开始让 knowledge prompt selection priority 受 `activeNamespace.primary_layer` 影响
+  - 当前最小规则已经成立：
+    - `project` primary 时，prompt 优先 `project -> world -> general`
+    - `world` primary 时，prompt 优先 `world -> project -> general`
+  - 也就是说，knowledge scope 当前已经不只影响“是否可见”，还开始影响“谁先吃到 prompt budget”
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 world-primary namespace 下的排序切换
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

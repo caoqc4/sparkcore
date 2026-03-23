@@ -594,6 +594,29 @@ function main() {
     activeNamespace: activeMemoryNamespace,
     limit: 2
   });
+  const worldPrimarySelection = selectKnowledgeForPrompt({
+    knowledge: runtimeKnowledge,
+    activeNamespace: {
+      namespace_id: "user:user-1|world:world-1|project:project-1",
+      primary_layer: "world",
+      active_layers: ["user", "world", "project"],
+      refs: [
+        {
+          layer: "user",
+          entity_id: "user-1"
+        },
+        {
+          layer: "world",
+          entity_id: "world-1"
+        },
+        {
+          layer: "project",
+          entity_id: "project-1"
+        }
+      ]
+    },
+    limit: 2
+  });
   const compactedThreadSummary = buildCompactedThreadSummary({
     threadState: {
       thread_id: "thread-1",
@@ -835,6 +858,11 @@ function main() {
     selectedKnowledgeForPrompt.map((item) => item.title).join(",") ===
       "Onboarding checklist guide,Workspace operating norms",
     "Expected knowledge prompt selection to prioritize project/world snippets before general knowledge in P3."
+  );
+  expect(
+    worldPrimarySelection.map((item) => item.title).join(",") ===
+      "Workspace operating norms,Onboarding checklist guide",
+    "Expected knowledge prompt selection to prioritize world-scoped knowledge first when the active namespace primary layer is world in P3."
   );
   expect(
     runtimeDebugMetadata.thread_compaction?.summary_id ===

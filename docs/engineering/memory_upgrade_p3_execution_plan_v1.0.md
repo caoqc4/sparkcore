@@ -234,6 +234,22 @@ P3 首批要让 `Knowledge Layer` 更明确地区分：
   - namespace 过滤后的 `project / world / general` 会完整保留在 summary
   - 但 prompt 会优先选择 `project / world`
 
+当前已成立的第三刀代码事实：
+
+- `apps/web/lib/chat/memory-knowledge.ts` 当前已开始让 knowledge prompt selection priority 受 `activeNamespace.primary_layer` 影响
+- 当前最小规则已经成立：
+  - `project` primary 时，prompt 仍优先：
+    - `project`
+    - `world`
+    - `general`
+  - `world` primary 时，prompt 会改为优先：
+    - `world`
+    - `project`
+    - `general`
+- 也就是说，knowledge scope 当前已经不只是影响“是否能进 prompt”，还开始影响“谁先吃到 prompt budget”
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - world-primary namespace 下，`world` knowledge 会先于 `project` knowledge 被选入 prompt
+
 ### 4.4 Scenario pack expansion point v1
 
 P3 首批要把 `Scenario Memory Pack` 从“一个默认 companion pack”推进到“更明确的扩展位”。
