@@ -1,6 +1,9 @@
 import type { SmokeAssistantReplyInput } from "@/lib/testing/smoke-assistant-reply-types";
-import { buildSmokeDirectFactOrGroundedReply } from "@/lib/testing/smoke-direct-fact-grounded-replies";
-import { buildSmokeDirectIntroReply } from "@/lib/testing/smoke-direct-intro-replies";
+import { buildSmokeFactReply } from "@/lib/testing/smoke-fact-replies";
+import { buildSmokeGroundedReply } from "@/lib/testing/smoke-grounded-replies";
+import { buildSmokeIntroReply } from "@/lib/testing/smoke-intro-replies";
+import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
+import { buildSmokeQuickHelloReply } from "@/lib/testing/smoke-quick-hello-replies";
 import { buildSmokeRelationshipOrContinuationReply } from "@/lib/testing/smoke-relationship-reply-branch";
 
 export function buildSmokeAssistantReply({
@@ -15,12 +18,20 @@ export function buildSmokeAssistantReply({
   nicknameMemory,
   preferredNameMemory
 }: SmokeAssistantReplyInput) {
-  const directIntroReply = buildSmokeDirectIntroReply({
-    content,
-    answerStrategy,
-    modelProfileName,
+  const normalizedContent = normalizeSmokePrompt(content);
+  const quickHelloReply = buildSmokeQuickHelloReply({
+    normalizedContent,
     replyLanguage,
-    recalledMemories,
+    modelProfileName
+  });
+
+  if (quickHelloReply) {
+    return quickHelloReply;
+  }
+
+  const directIntroReply = buildSmokeIntroReply({
+    content,
+    replyLanguage,
     agentName,
     addressStyleMemory,
     nicknameMemory,
@@ -31,16 +42,27 @@ export function buildSmokeAssistantReply({
     return directIntroReply;
   }
 
-  const directOrGroundedReply = buildSmokeDirectFactOrGroundedReply({
+  const factReply = buildSmokeFactReply({
+    content,
+    replyLanguage,
+    normalizedContent,
+    recalledMemories,
+    addressStyleMemory
+  });
+
+  if (factReply) {
+    return factReply;
+  }
+
+  const directOrGroundedReply = buildSmokeGroundedReply({
     content,
     answerStrategy,
-    modelProfileName,
     replyLanguage,
-    recalledMemories,
     agentName,
     addressStyleMemory,
     nicknameMemory,
-    preferredNameMemory
+    preferredNameMemory,
+    recalledMemories
   });
 
   if (directOrGroundedReply) {
