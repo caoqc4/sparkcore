@@ -7,35 +7,12 @@ import {
 import { getSmokeTurnMemoryContext } from "@/lib/testing/smoke-turn-memory-context";
 import { getSmokeTurnStrategyContext } from "@/lib/testing/smoke-turn-strategy-context";
 import type { SmokeTurnAnalysisInput } from "@/lib/testing/smoke-turn-analysis-input";
-import type { SmokeApproxContextPressure } from "@/lib/testing/smoke-assistant-builders";
+import type { SmokeTurnAnalysisResult } from "@/lib/testing/smoke-turn-analysis-result";
 import type {
-  SmokeAnswerStrategyRule,
   SmokeContinuityReply,
   SmokeMemoryRow,
   SmokeRuntimeMessage
 } from "@/lib/testing/smoke-turn-analysis-types";
-
-export type SmokeTurnAnalysisResult = {
-  activeMemories: SmokeMemoryRow[];
-  addressStyleMemory: ReturnType<
-    typeof getSmokeTurnStrategyContext
-  >["addressStyleMemory"];
-  answerStrategyRule: SmokeAnswerStrategyRule;
-  approxContextPressure: SmokeApproxContextPressure;
-  hiddenExclusionCount: number;
-  incorrectExclusionCount: number;
-  longChainPressureCandidate: boolean;
-  nicknameMemory: ReturnType<typeof getSmokeTurnStrategyContext>["nicknameMemory"];
-  preferredNameMemory: ReturnType<
-    typeof getSmokeTurnStrategyContext
-  >["preferredNameMemory"];
-  preferSameThreadContinuation: boolean;
-  recentAssistantReply: SmokeContinuityReply | null;
-  recentRawTurnCount: number;
-  recalledMemories: ReturnType<typeof getSmokeTurnMemoryContext>["recalledMemories"];
-  sameThreadContinuationApplicable: boolean;
-  usedMemoryTypes: string[];
-};
 
 export function analyzeSmokeTurnContext({
   trimmedContent,
@@ -99,3 +76,4 @@ export type {
   SmokeMemoryRow,
   SmokeRuntimeMessage
 };
+export type { SmokeTurnAnalysisResult };
