@@ -14,11 +14,10 @@ import {
   type SmokeMemoryRow
 } from "@/lib/testing/smoke-memory-analysis";
 import {
-  getSmokeApproxContextPressure,
   getSmokeRecentAssistantReply,
-  getSmokeRecentRuntimeMessages,
   type SmokeContinuityReply
 } from "@/lib/testing/smoke-reply-analysis";
+import { getSmokeTurnContinuityContext } from "@/lib/testing/smoke-turn-continuity-context";
 import { selectSmokeRecalledMemories } from "@/lib/testing/smoke-memory-recall-selection";
 import { selectSmokeRelationshipMemories } from "@/lib/testing/smoke-relationship-memory-selection";
 
@@ -81,16 +80,15 @@ export function analyzeSmokeTurnContext({
   });
   const preferSameThreadContinuation =
     answerStrategyRule.answerStrategy === "same-thread-continuation";
-  const recentRawTurnCount =
-    getSmokeRecentRuntimeMessages(existingMessages).length + 1;
-  const approxContextPressure = getSmokeApproxContextPressure(
+  const {
+    recentRawTurnCount,
+    approxContextPressure,
+    longChainPressureCandidate
+  } = getSmokeTurnContinuityContext({
+    trimmedContent,
     existingMessages,
-    trimmedContent
-  );
-  const longChainPressureCandidate =
-    sameThreadContinuationApplicable &&
-    recentRawTurnCount >= 10 &&
-    (approxContextPressure === "elevated" || approxContextPressure === "high");
+    sameThreadContinuationApplicable
+  });
 
   return {
     activeMemories,
