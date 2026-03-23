@@ -10,6 +10,7 @@ import {
   buildSmokeRelationshipExplanatoryReply,
   buildSmokeRelationshipSupportiveReply
 } from "@/lib/testing/smoke-relationship-replies";
+import { buildSmokeRelationshipReplyContext } from "@/lib/testing/smoke-relationship-reply-context";
 import type { SmokeRelationshipRecallMemory } from "@/lib/testing/smoke-recall-memory-types";
 import type { SmokeContinuityReply } from "@/lib/testing/smoke-turn-analysis";
 
@@ -22,9 +23,8 @@ export function buildSmokeRelationshipOrContinuationReply(args: {
   nicknameMemory: SmokeRelationshipRecallMemory;
   preferredNameMemory: SmokeRelationshipRecallMemory;
 }) {
-  const addressStyleValue = args.addressStyleMemory?.content ?? null;
-  const selfName = args.nicknameMemory?.content ?? args.agentName;
-  const userName = args.preferredNameMemory?.content ?? null;
+  const { addressStyleValue, selfName, userName } =
+    buildSmokeRelationshipReplyContext(args);
 
   if (isSmokeRelationshipExplanatoryPrompt(args.content)) {
     return buildSmokeRelationshipExplanatoryReply({
