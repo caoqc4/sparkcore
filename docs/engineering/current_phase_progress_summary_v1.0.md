@@ -40,6 +40,7 @@
   - `retention_layers`
   - `retention_layer_budget`
   - `anchor / context / window` section class
+  - `retention_section_order`
 
 ---
 

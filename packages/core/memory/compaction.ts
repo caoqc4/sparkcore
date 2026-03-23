@@ -23,6 +23,13 @@ export type ThreadRetentionLayerBudget = {
   window: number;
 };
 
+export type ThreadRetentionSection =
+  | "focus_mode"
+  | "continuity_status"
+  | "current_language_hint"
+  | "recent_turn_window"
+  | "latest_user_message";
+
 export type CompactedThreadSummary = {
   summary_id: string;
   thread_id: string;
@@ -36,6 +43,7 @@ export type CompactedThreadSummary = {
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;
+  retention_section_order: ThreadRetentionSection[];
   retained_fields: string[];
   summary_text: string;
   generated_at: string;

@@ -163,6 +163,18 @@ P5 首批要把 retention 从：
   - `retention_layer_budget.anchor = 2`
   - prompt / assistant summary 中已能看到 `Retention layers: anchor`
 
+当前已成立的第二刀代码事实：
+
+- [thread-compaction.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-compaction.ts) 当前已开始把 layered retention 从“layer budget”继续推进成“section priority”：
+  - `retention_section_order`
+- 当前最小规则已经成立：
+  - `focus_anchor` 下：
+    - `retention_section_order = focus_mode -> continuity_status -> current_language_hint`
+  - 也就是说，layer budget 现在不只是在数量上裁剪字段，还开始明确决定 summary/retained fields 的 section 生存顺序
+- [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已开始显式校验：
+  - `retention_section_order = focus_mode,continuity_status,current_language_hint`
+  - assistant summary 中已能看到 `Retention section order: focus_mode,continuity_status,current_language_hint`
+
 ### 4.3 Knowledge route weighting v3
 
 P5 首批要把 knowledge 从：

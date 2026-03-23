@@ -4,6 +4,7 @@ import type {
   CompactedThreadSummary,
   ThreadRetentionLayer,
   ThreadRetentionLayerBudget,
+  ThreadRetentionSection,
   ThreadRetentionMode,
   ThreadRetentionReason
 } from "../../../../packages/core/memory";
@@ -27,11 +28,37 @@ function resolveThreadRetentionMode(args: {
   return "minimal";
 }
 
+function resolveThreadRetentionSectionOrder(args: {
+  retentionReason: ThreadRetentionReason;
+}): ThreadRetentionSection[] {
+  switch (args.retentionReason) {
+    case "focus_mode_present":
+      return ["focus_mode", "continuity_status", "current_language_hint"];
+    case "engaged_continuity":
+      return [
+        "continuity_status",
+        "current_language_hint",
+        "latest_user_message"
+      ];
+    case "recent_turn_window":
+      return [
+        "recent_turn_window",
+        "latest_user_message",
+        "current_language_hint"
+      ];
+    case "minimal_context":
+      return ["current_language_hint"];
+    case "closed_minimal_pruned":
+      return [];
+  }
+}
+
 function buildRetainedFields(args: {
   threadState: ThreadStateRecord;
   retentionReason: ThreadRetentionReason;
   latestUserMessage: string | null;
   retentionLayerBudget: ThreadRetentionLayerBudget;
+  retentionSectionOrder: ThreadRetentionSection[];
 }) {
   const fields: string[] = [];
   const remainingBudget: ThreadRetentionLayerBudget = {
@@ -49,51 +76,32 @@ function buildRetainedFields(args: {
     }
   };
 
-  switch (args.retentionReason) {
-    case "focus_mode_present":
-      pushField("focus_mode", "anchor", Boolean(args.threadState.focus_mode));
-      pushField(
-        "continuity_status",
-        "anchor",
-        Boolean(args.threadState.continuity_status)
-      );
-      pushField(
-        "current_language_hint",
-        "context",
-        Boolean(args.threadState.current_language_hint)
-      );
-      break;
-    case "engaged_continuity":
-      pushField(
-        "continuity_status",
-        "anchor",
-        Boolean(args.threadState.continuity_status)
-      );
-      pushField(
-        "current_language_hint",
-        "context",
-        Boolean(args.threadState.current_language_hint)
-      );
-      pushField("latest_user_message", "window", Boolean(args.latestUserMessage));
-      break;
-    case "recent_turn_window":
-      pushField(
-        "current_language_hint",
-        "context",
-        Boolean(args.threadState.current_language_hint)
-      );
-      pushField("latest_user_message", "window", Boolean(args.latestUserMessage));
-      pushField("recent_turn_window", "window", true);
-      break;
-    case "minimal_context":
-      pushField(
-        "current_language_hint",
-        "context",
-        Boolean(args.threadState.current_language_hint)
-      );
-      break;
-    case "closed_minimal_pruned":
-      break;
+  for (const section of args.retentionSectionOrder) {
+    switch (section) {
+      case "focus_mode":
+        pushField("focus_mode", "anchor", Boolean(args.threadState.focus_mode));
+        break;
+      case "continuity_status":
+        pushField(
+          "continuity_status",
+          "anchor",
+          Boolean(args.threadState.continuity_status)
+        );
+        break;
+      case "current_language_hint":
+        pushField(
+          "current_language_hint",
+          "context",
+          Boolean(args.threadState.current_language_hint)
+        );
+        break;
+      case "recent_turn_window":
+        pushField("recent_turn_window", "window", true);
+        break;
+      case "latest_user_message":
+        pushField("latest_user_message", "window", Boolean(args.latestUserMessage));
+        break;
+    }
   }
 
   return fields;
@@ -216,6 +224,9 @@ export function buildCompactedThreadSummary(args: {
     retentionReason,
     retentionBudget
   });
+  const retentionSectionOrder = resolveThreadRetentionSectionOrder({
+    retentionReason
+  });
   const retentionLayers = resolveThreadRetentionLayers({
     retentionLayerBudget
   });
@@ -223,7 +234,8 @@ export function buildCompactedThreadSummary(args: {
     threadState: args.threadState,
     retentionReason,
     latestUserMessage,
-    retentionLayerBudget
+    retentionLayerBudget,
+    retentionSectionOrder
   });
 
   const summaryParts = [
@@ -242,6 +254,7 @@ export function buildCompactedThreadSummary(args: {
       : null,
     `Retention budget: ${retentionBudget}.`,
     `Retention layers: ${retentionLayers.join(",") || "none"}.`,
+    `Retention section order: ${retentionSectionOrder.join(",") || "none"}.`,
     `Retention mode: ${retentionMode}.`,
     `Retention reason: ${retentionReason}.`,
   ].filter((part): part is string => Boolean(part));
@@ -259,6 +272,7 @@ export function buildCompactedThreadSummary(args: {
     retention_budget: retentionBudget,
     retention_layers: retentionLayers,
     retention_layer_budget: retentionLayerBudget,
+    retention_section_order: retentionSectionOrder,
     retained_fields: retainedFields,
     summary_text: summaryParts.join(" "),
     generated_at: args.generatedAt ?? new Date().toISOString()
@@ -323,8 +337,8 @@ export function buildThreadCompactionPromptSection(args: {
   return [
     isZh ? "线程压缩摘要：" : "Compacted thread summary:",
     isZh
-      ? `${args.compactedThreadSummary.summary_text} 当前 retention mode = ${args.compactedThreadSummary.retention_mode}，retention reason = ${args.compactedThreadSummary.retention_reason}，保留字段：${args.compactedThreadSummary.retained_fields.join("、") || "无"}。把这段摘要当作线程历史压缩结果，而不是新的长期画像或外部知识。`
-      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; retention layers: ${args.compactedThreadSummary.retention_layers.join(", ") || "none"}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
+      ? `${args.compactedThreadSummary.summary_text} 当前 retention mode = ${args.compactedThreadSummary.retention_mode}，retention reason = ${args.compactedThreadSummary.retention_reason}，section 顺序：${args.compactedThreadSummary.retention_section_order.join("、") || "无"}，保留字段：${args.compactedThreadSummary.retained_fields.join("、") || "无"}。把这段摘要当作线程历史压缩结果，而不是新的长期画像或外部知识。`
+      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; section order: ${args.compactedThreadSummary.retention_section_order.join(", ") || "none"}; retention layers: ${args.compactedThreadSummary.retention_layers.join(", ") || "none"}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
   ].join("\n");
 }
 
@@ -345,6 +359,8 @@ export function buildThreadCompactionSummary(args: {
           retention_layers: args.compactedThreadSummary.retention_layers,
           retention_layer_budget:
             args.compactedThreadSummary.retention_layer_budget,
+          retention_section_order:
+            args.compactedThreadSummary.retention_section_order,
           retained_fields: args.compactedThreadSummary.retained_fields,
       }
     : null;

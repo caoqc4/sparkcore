@@ -1106,10 +1106,13 @@ function main() {
     "Expected focus-anchor compaction summaries to drop latest-user-message from retained sections."
   );
   expect(
-    !getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
-      "current_language_hint"
-    ),
-    "Expected focus-anchor compaction summaries to prune current_language_hint once the retention budget is applied in P4."
+    getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+      "Retention section order: focus_mode,continuity_status,current_language_hint."
+    ) &&
+      !getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "retained fields: focus_mode, continuity_status, current_language_hint"
+      ),
+    "Expected focus-anchor compaction summaries to expose current_language_hint only as a lower-priority section candidate, not as a retained field, in P5."
   );
   expect(
     getAssistantMemoryNamespacePrimaryLayer(assistantMetadata) === "project",
@@ -1174,6 +1177,11 @@ function main() {
       runtimeDebugMetadata.thread_compaction?.retention_layer_budget?.window ===
         0,
     "Expected focus-anchor retention layer budget to allocate 2/0/0 across anchor/context/window in P5."
+  );
+  expect(
+    runtimeDebugMetadata.thread_compaction?.retention_section_order?.join(",") ===
+      "focus_mode,continuity_status,current_language_hint",
+    "Expected focus-anchor retention section order to prioritize focus_mode, continuity_status, then current_language_hint in P5."
   );
   expect(
     Array.isArray(runtimeDebugMetadata.thread_compaction?.retained_fields) &&
@@ -1822,8 +1830,14 @@ function main() {
               ?.context === 0 &&
             runtimeDebugMetadata.thread_compaction?.retention_layer_budget
               ?.window === 0 &&
+            runtimeDebugMetadata.thread_compaction?.retention_section_order?.join(
+              ","
+            ) === "focus_mode,continuity_status,current_language_hint" &&
             getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
               "Retention layers: anchor."
+            ) &&
+            getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+              "Retention section order: focus_mode,continuity_status,current_language_hint."
             ),
           knowledge_route_weighting_v3_ok:
             scenarioMemoryPack.knowledge_priority_layer === "project" &&
