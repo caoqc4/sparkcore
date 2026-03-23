@@ -31,5 +31,3 @@ export type SmokeReplyLanguageSource =
   | "no-latest-user-message";
 export type SmokeApproxContextPressure = "low" | "medium" | "elevated" | "high";
 export type { SmokeRoleCorePacket } from "@/lib/testing/smoke-role-core-packet";
-export { buildSmokeRoleCorePacket } from "@/lib/testing/smoke-role-core-packet";
-export { buildSmokeAssistantMetadata } from "@/lib/testing/smoke-assistant-metadata";

@@ -1,4 +1,4 @@
-import { buildSmokeAssistantMetadata } from "@/lib/testing/smoke-assistant-builders";
+import { buildSmokeAssistantMetadata } from "@/lib/testing/smoke-assistant-metadata";
 import type { SmokeAssistantInsertArgs } from "@/lib/testing/smoke-assistant-persistence-types";
 
 export function buildSmokeAssistantMessagePayload(

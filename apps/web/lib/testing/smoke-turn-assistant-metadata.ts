@@ -1,6 +1,4 @@
-import {
-  buildSmokeRoleCorePacket,
-} from "@/lib/testing/smoke-assistant-builders";
+import { buildSmokeRoleCorePacket } from "@/lib/testing/smoke-role-core-packet";
 import { detectSmokeReplyLanguage } from "@/lib/testing/smoke-reply-language";
 import type { SmokeAssistantTurnMetadataInput } from "@/lib/testing/smoke-turn-assistant-types";
 
