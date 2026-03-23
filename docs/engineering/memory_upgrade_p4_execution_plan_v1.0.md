@@ -427,8 +427,10 @@ P4 首批明确不做：
 - 已经不是起步阶段
 - 并且已经开始接近 `close-readiness` 前的最后区间
 - 当前不再有明显落后的单项，`P4-1 / P4-2` 仍是相对更浅的两条线
+- [memory_upgrade_p4_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p4_close_readiness_v1.0.md)
+  当前也已新增，用于集中判断 `P4-1 ~ P4-5` 的收口状态
 
 因此，下一步建议仍然是：
 
-- 先做一次新的 `P4` 小复盘
-- 再判断是否进入 `P4 close-readiness` 前置区间
+- 判断是否还需要最后 1-2 刀收口
+- 或直接准备 `P4 close note`

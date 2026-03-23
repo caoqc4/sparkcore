@@ -359,6 +359,14 @@
     - `knowledge_route_influence_v2_ok`
     - `scenario_pack_consumption_v2_ok`
   - 也就是说，`P4-1 ~ P4-4` 当前已不再只是分散断言，而开始有一组阶段级聚合 gate
+- `P4` 当前也已进入 close-readiness 复盘阶段：
+  - [memory_upgrade_p4_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p4_close_readiness_v1.0.md)
+    已开始对 `P4-1 ~ P4-5` 的阶段状态做集中判断
+  - 当前最新判断已经推进到：
+    - `P4-1 / P4-2`：中段
+    - `P4-3 / P4-4`：中后段
+    - `P4-5`：第一版已成立
+  - 整体 `P4` 当前约在 `80%`，并已进入更清晰的 close-readiness 前置区间
 
 当前 `P4` 的阶段判断：
 
@@ -374,7 +382,7 @@
 - `P4` 已经从前中段推进到更明确的中后段
 - 并且已经开始接近 `close-readiness` 前的最后区间
 - 当前不再有明显落后的单项，`P4-1 / P4-2` 仍是相对更浅的两条线
-- 下一步更合理的是先做一次新的 `P4` 小复盘，再判断是否进入 `P4 close-readiness` 前置区间
+- 下一步更合理的是判断是否还需要最后 1-2 刀收口，或直接准备 `P4 close note`
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
