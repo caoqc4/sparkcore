@@ -11,10 +11,7 @@ import {
   normalizeSingleSlotValue
 } from "@/lib/chat/memory-v2";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
-import {
-  buildRuntimeTurnInput,
-  buildWebRuntimeTurnInput
-} from "@/lib/chat/runtime-input";
+import { buildWebRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
@@ -28,14 +25,12 @@ import {
   buildPendingAssistantMetadata,
   buildRetriedAssistantMetadata
 } from "@/lib/chat/assistant-message-state-metadata";
-import { updateAssistantPreviewMetadata } from "@/lib/chat/assistant-preview-metadata";
 import {
-  buildRuntimeFollowUpExecutionMetadata,
-  buildRuntimeFollowUpRequestMetadata,
-  buildRuntimeMemoryWriteOutcomeMetadata,
-  buildRuntimeMemoryWriteRequestMetadata,
-  getRuntimePreviewMetadataGroup
-} from "@/lib/chat/runtime-preview-metadata";
+  updateAssistantFollowUpExecutionPreview,
+  updateAssistantFollowUpRequestPreview,
+  updateAssistantMemoryWriteOutcomePreview,
+  updateAssistantMemoryWriteRequestPreview
+} from "@/lib/chat/assistant-preview-metadata";
 import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 import {
   CHAT_UI_LANGUAGE_COOKIE,
@@ -1191,28 +1186,24 @@ export async function sendMessage(
     }
 
     if (runtimeTurnResult.memory_write_requests.length > 0) {
-      await updateAssistantPreviewMetadata({
+      await updateAssistantMemoryWriteRequestPreview({
         supabase,
         assistantMessageId: assistantPlaceholder.id,
         threadId: thread.id,
         workspaceId: workspace.id,
         userId: user.id,
-        updates: buildRuntimeMemoryWriteRequestMetadata(
-          runtimeTurnResult.memory_write_requests
-        )
+        requests: runtimeTurnResult.memory_write_requests
       });
     }
 
     if (runtimeTurnResult.follow_up_requests.length > 0) {
-      await updateAssistantPreviewMetadata({
+      await updateAssistantFollowUpRequestPreview({
         supabase,
         assistantMessageId: assistantPlaceholder.id,
         threadId: thread.id,
         workspaceId: workspace.id,
         userId: user.id,
-        updates: buildRuntimeFollowUpRequestMetadata(
-          runtimeTurnResult.follow_up_requests
-        )
+        requests: runtimeTurnResult.follow_up_requests
       });
     }
 
@@ -1242,35 +1233,28 @@ export async function sendMessage(
         memoryWriteOutcome.createdCount > 0 ||
         memoryWriteOutcome.updatedCount > 0
       ) {
-        await updateAssistantPreviewMetadata({
+        await updateAssistantMemoryWriteOutcomePreview({
           supabase,
           assistantMessageId: assistantPlaceholder.id,
           threadId: thread.id,
           workspaceId: workspace.id,
           userId: user.id,
-          updates: (currentMetadata) =>
-            buildRuntimeMemoryWriteOutcomeMetadata(
-              memoryWriteOutcome,
-              getRuntimePreviewMetadataGroup(
-                currentMetadata,
-                "runtime_memory_writes"
-              )
-            )
+          outcome: memoryWriteOutcome
         });
       }
 
       if (followUpExecutionResults.length > 0) {
-        await updateAssistantPreviewMetadata({
+        await updateAssistantFollowUpExecutionPreview({
           supabase,
           assistantMessageId: assistantPlaceholder.id,
           threadId: thread.id,
           workspaceId: workspace.id,
           userId: user.id,
-          updates: buildRuntimeFollowUpExecutionMetadata({
+          execution: {
             followUpExecutionResults,
             followUpEnqueueInsertedCount: followUpEnqueueResult.inserted_count,
             followUpEnqueueRecords: followUpEnqueueResult.records
-          })
+          }
         });
       }
     } catch (memoryError) {
@@ -1528,28 +1512,24 @@ export async function retryAssistantReply(
     }
 
     if (runtimeTurnResult.memory_write_requests.length > 0) {
-      await updateAssistantPreviewMetadata({
+      await updateAssistantMemoryWriteRequestPreview({
         supabase,
         assistantMessageId: failedMessage.id,
         threadId: thread.id,
         workspaceId: workspace.id,
         userId: user.id,
-        updates: buildRuntimeMemoryWriteRequestMetadata(
-          runtimeTurnResult.memory_write_requests
-        )
+        requests: runtimeTurnResult.memory_write_requests
       });
     }
 
     if (runtimeTurnResult.follow_up_requests.length > 0) {
-      await updateAssistantPreviewMetadata({
+      await updateAssistantFollowUpRequestPreview({
         supabase,
         assistantMessageId: failedMessage.id,
         threadId: thread.id,
         workspaceId: workspace.id,
         userId: user.id,
-        updates: buildRuntimeFollowUpRequestMetadata(
-          runtimeTurnResult.follow_up_requests
-        )
+        requests: runtimeTurnResult.follow_up_requests
       });
     }
   } catch (error) {

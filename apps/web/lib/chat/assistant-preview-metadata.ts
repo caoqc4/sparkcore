@@ -1,3 +1,19 @@
+import {
+  buildRuntimeFollowUpExecutionMetadata,
+  buildRuntimeFollowUpRequestMetadata,
+  buildRuntimeMemoryWriteOutcomeMetadata,
+  buildRuntimeMemoryWriteRequestMetadata,
+  getRuntimePreviewMetadataGroup
+} from "@/lib/chat/runtime-preview-metadata";
+
+type AssistantPreviewTarget = {
+  supabase: any;
+  assistantMessageId: string;
+  threadId: string;
+  workspaceId: string;
+  userId: string;
+};
+
 export async function updateAssistantPreviewMetadata(args: {
   supabase: any;
   assistantMessageId: string;
@@ -41,4 +57,52 @@ export async function updateAssistantPreviewMetadata(args: {
     .eq("thread_id", args.threadId)
     .eq("workspace_id", args.workspaceId)
     .eq("user_id", args.userId);
+}
+
+export async function updateAssistantMemoryWriteRequestPreview(
+  args: AssistantPreviewTarget & {
+    requests: Parameters<typeof buildRuntimeMemoryWriteRequestMetadata>[0];
+  }
+) {
+  return updateAssistantPreviewMetadata({
+    ...args,
+    updates: buildRuntimeMemoryWriteRequestMetadata(args.requests)
+  });
+}
+
+export async function updateAssistantFollowUpRequestPreview(
+  args: AssistantPreviewTarget & {
+    requests: Parameters<typeof buildRuntimeFollowUpRequestMetadata>[0];
+  }
+) {
+  return updateAssistantPreviewMetadata({
+    ...args,
+    updates: buildRuntimeFollowUpRequestMetadata(args.requests)
+  });
+}
+
+export async function updateAssistantMemoryWriteOutcomePreview(
+  args: AssistantPreviewTarget & {
+    outcome: Parameters<typeof buildRuntimeMemoryWriteOutcomeMetadata>[0];
+  }
+) {
+  return updateAssistantPreviewMetadata({
+    ...args,
+    updates: (currentMetadata) =>
+      buildRuntimeMemoryWriteOutcomeMetadata(
+        args.outcome,
+        getRuntimePreviewMetadataGroup(currentMetadata, "runtime_memory_writes")
+      )
+  });
+}
+
+export async function updateAssistantFollowUpExecutionPreview(
+  args: AssistantPreviewTarget & {
+    execution: Parameters<typeof buildRuntimeFollowUpExecutionMetadata>[0];
+  }
+) {
+  return updateAssistantPreviewMetadata({
+    ...args,
+    updates: buildRuntimeFollowUpExecutionMetadata(args.execution)
+  });
 }

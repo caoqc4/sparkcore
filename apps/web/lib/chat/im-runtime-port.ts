@@ -11,14 +11,12 @@ import {
   buildFailedAssistantMetadata,
   buildPendingAssistantMetadata
 } from "@/lib/chat/assistant-message-state-metadata";
-import { updateAssistantPreviewMetadata } from "@/lib/chat/assistant-preview-metadata";
 import {
-  buildRuntimeFollowUpExecutionMetadata,
-  buildRuntimeFollowUpRequestMetadata,
-  buildRuntimeMemoryWriteOutcomeMetadata,
-  buildRuntimeMemoryWriteRequestMetadata,
-  getRuntimePreviewMetadataGroup
-} from "@/lib/chat/runtime-preview-metadata";
+  updateAssistantFollowUpExecutionPreview,
+  updateAssistantFollowUpRequestPreview,
+  updateAssistantMemoryWriteOutcomePreview,
+  updateAssistantMemoryWriteRequestPreview
+} from "@/lib/chat/assistant-preview-metadata";
 import { buildImRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
@@ -228,28 +226,24 @@ async function runImRuntimeTurnWithSupabase(args: {
     }
 
     if (runtimeTurnResult.memory_write_requests.length > 0) {
-      await updateAssistantPreviewMetadata({
+      await updateAssistantMemoryWriteRequestPreview({
         supabase,
         assistantMessageId: assistantPlaceholder.id,
         threadId: thread.id,
         workspaceId: workspace.id,
         userId: input.user_id,
-        updates: buildRuntimeMemoryWriteRequestMetadata(
-          runtimeTurnResult.memory_write_requests
-        )
+        requests: runtimeTurnResult.memory_write_requests
       });
     }
 
     if (runtimeTurnResult.follow_up_requests.length > 0) {
-      await updateAssistantPreviewMetadata({
+      await updateAssistantFollowUpRequestPreview({
         supabase,
         assistantMessageId: assistantPlaceholder.id,
         threadId: thread.id,
         workspaceId: workspace.id,
         userId: input.user_id,
-        updates: buildRuntimeFollowUpRequestMetadata(
-          runtimeTurnResult.follow_up_requests
-        )
+        requests: runtimeTurnResult.follow_up_requests
       });
     }
 
@@ -279,34 +273,30 @@ async function runImRuntimeTurnWithSupabase(args: {
         memoryWriteOutcome.createdCount > 0 ||
         memoryWriteOutcome.updatedCount > 0
       ) {
-        await updateAssistantPreviewMetadata({
+        await updateAssistantMemoryWriteOutcomePreview({
           supabase,
           assistantMessageId: assistantPlaceholder.id,
           threadId: thread.id,
           workspaceId: workspace.id,
           userId: input.user_id,
-          updates: (currentMetadata) =>
-            buildRuntimeMemoryWriteOutcomeMetadata(
-              memoryWriteOutcome,
-              getRuntimePreviewMetadataGroup(currentMetadata, "runtime_memory_writes")
-            )
+          outcome: memoryWriteOutcome
         });
       }
 
       if (followUpExecutionResults.length > 0) {
-        await updateAssistantPreviewMetadata({
+        await updateAssistantFollowUpExecutionPreview({
           supabase,
-        assistantMessageId: assistantPlaceholder.id,
-        threadId: thread.id,
-        workspaceId: workspace.id,
-        userId: input.user_id,
-        updates: buildRuntimeFollowUpExecutionMetadata({
-          followUpExecutionResults,
-          followUpEnqueueInsertedCount: followUpEnqueueResult.inserted_count,
-          followUpEnqueueRecords: followUpEnqueueResult.records
-        })
-      });
-    }
+          assistantMessageId: assistantPlaceholder.id,
+          threadId: thread.id,
+          workspaceId: workspace.id,
+          userId: input.user_id,
+          execution: {
+            followUpExecutionResults,
+            followUpEnqueueInsertedCount: followUpEnqueueResult.inserted_count,
+            followUpEnqueueRecords: followUpEnqueueResult.records
+          }
+        });
+      }
     } catch (memoryError) {
       console.error("IM runtime post-processing failed:", memoryError);
     }
