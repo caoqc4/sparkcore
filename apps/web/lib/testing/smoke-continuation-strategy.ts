@@ -4,6 +4,8 @@ import type {
   SmokeAnswerStrategyReasonCode,
   SmokeContinuationReasonCode
 } from "@/lib/testing/smoke-assistant-builders";
+import { getSmokeContinuationReasonCode } from "@/lib/testing/smoke-continuation-reason";
+import { getSmokeDirectOrOpenEndedAnswerStrategy } from "@/lib/testing/smoke-direct-answer-strategy";
 export {
   isSmokeCompanionStyleExplanationCarryoverPrompt,
   isSmokeFuzzyFollowUpQuestion,
@@ -24,49 +26,20 @@ import {
   isSmokeSelfIntroGreetingRequest
 } from "@/lib/testing/smoke-question-prompts";
 import {
-  isSmokeBriefSteadyingPrompt,
   isSmokeFriendLikeSoftFollowUpPrompt,
-  isSmokeGentleCarryForwardAfterSteadyingPrompt,
   isSmokeGentleResumeRhythmPrompt,
-  isSmokeGuidedNextStepAfterSteadyingPrompt,
   isSmokeLightSharedPushPrompt,
   isSmokeNonJudgingFollowUpPrompt,
   isSmokeOneLineSoftCatchPrompt,
   isSmokePresenceConfirmingFollowUpPrompt,
   isSmokeSameSideFollowUpPrompt,
-  isSmokeShortRelationshipSupportivePrompt,
   isSmokeStayWithMeFollowUpPrompt
 } from "@/lib/testing/smoke-follow-up-prompts";
 import {
-  isSmokeCompanionStyleExplanationCarryoverPrompt,
-  isSmokeFuzzyFollowUpQuestion,
   isSmokeRelationshipContinuationEdgePrompt,
   isSmokeShortRelationshipSummaryFollowUpPrompt
 } from "@/lib/testing/smoke-continuation-prompts";
-
-export function getSmokeContinuationReasonCode(
-  content: string
-): SmokeContinuationReasonCode | null {
-  if (
-    isSmokeShortRelationshipSupportivePrompt(content) ||
-    isSmokeCompanionStyleExplanationCarryoverPrompt(content) ||
-    isSmokeBriefSteadyingPrompt(content) ||
-    isSmokeGentleCarryForwardAfterSteadyingPrompt(content) ||
-    isSmokeGuidedNextStepAfterSteadyingPrompt(content)
-  ) {
-    return "brief-supportive-carryover";
-  }
-
-  if (isSmokeShortRelationshipSummaryFollowUpPrompt(content)) {
-    return "brief-summary-carryover";
-  }
-
-  if (isSmokeFuzzyFollowUpQuestion(content)) {
-    return "short-fuzzy-follow-up";
-  }
-
-  return null;
-}
+export { getSmokeContinuationReasonCode } from "@/lib/testing/smoke-continuation-reason";
 
 export function getSmokeAnswerStrategy({
   content,
@@ -79,30 +52,10 @@ export function getSmokeAnswerStrategy({
   relationshipStylePrompt: boolean;
   relationshipCarryoverAvailable: boolean;
 }) {
-  const directNamingQuestion = isSmokeDirectNamingQuestion(content);
-  const directPreferredNameQuestion =
-    isSmokeDirectUserPreferredNameQuestion(content);
-  const directFactQuestion =
-    isSmokeDirectProfessionQuestion(content) ||
-    isSmokeDirectPlanningPreferenceQuestion(content) ||
-    isSmokeDirectReplyStyleQuestion(content);
-
-  if (directNamingQuestion || directPreferredNameQuestion) {
-    return {
-      questionType: "direct-relationship-confirmation" as SmokeAnswerQuestionType,
-      answerStrategy: "relationship-recall-first" as SmokeAnswerStrategy,
-      reasonCode: "direct-relationship-question" as SmokeAnswerStrategyReasonCode,
-      continuationReasonCode: null as SmokeContinuationReasonCode | null
-    };
-  }
-
-  if (directFactQuestion) {
-    return {
-      questionType: "direct-fact" as SmokeAnswerQuestionType,
-      answerStrategy: "structured-recall-first" as SmokeAnswerStrategy,
-      reasonCode: "direct-memory-question" as SmokeAnswerStrategyReasonCode,
-      continuationReasonCode: null as SmokeContinuationReasonCode | null
-    };
+  const directOrOpenEndedStrategy =
+    getSmokeDirectOrOpenEndedAnswerStrategy(content);
+  if (directOrOpenEndedStrategy) {
+    return directOrOpenEndedStrategy;
   }
 
   if (
@@ -122,24 +75,6 @@ export function getSmokeAnswerStrategy({
       questionType: "open-ended-summary" as SmokeAnswerQuestionType,
       answerStrategy: "grounded-open-ended-summary" as SmokeAnswerStrategy,
       reasonCode: "relationship-answer-shape-prompt" as SmokeAnswerStrategyReasonCode,
-      continuationReasonCode: null as SmokeContinuationReasonCode | null
-    };
-  }
-
-  if (isSmokeOpenEndedPlanningHelpQuestion(content)) {
-    return {
-      questionType: "open-ended-advice" as SmokeAnswerQuestionType,
-      answerStrategy: "grounded-open-ended-advice" as SmokeAnswerStrategy,
-      reasonCode: "open-ended-advice-prompt" as SmokeAnswerStrategyReasonCode,
-      continuationReasonCode: null as SmokeContinuationReasonCode | null
-    };
-  }
-
-  if (isSmokeOpenEndedSummaryQuestion(content)) {
-    return {
-      questionType: "open-ended-summary" as SmokeAnswerQuestionType,
-      answerStrategy: "grounded-open-ended-summary" as SmokeAnswerStrategy,
-      reasonCode: "open-ended-summary-prompt" as SmokeAnswerStrategyReasonCode,
       continuationReasonCode: null as SmokeContinuationReasonCode | null
     };
   }
