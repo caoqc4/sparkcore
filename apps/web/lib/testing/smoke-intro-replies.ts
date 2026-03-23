@@ -1,9 +1,16 @@
 import {
+  buildSmokeBriefGreetingReply,
+  buildSmokeNamingReply,
+  buildSmokePreferredNameReply
+} from "@/lib/testing/smoke-greeting-replies";
+import {
+  isSmokeBriefGreetingRequest,
+  isSmokeDirectNamingQuestion,
+  isSmokeDirectUserPreferredNameQuestion,
   isSmokeSelfIntroGreetingRequest
 } from "@/lib/testing/smoke-answer-strategy";
 import { isSmokeHelpIntroRequest } from "@/lib/testing/smoke-help-intro-prompts";
 import { getSmokeIntroReplyContext } from "@/lib/testing/smoke-intro-reply-context";
-import { buildSmokeIntroPromptReply } from "@/lib/testing/smoke-intro-prompt-replies";
 import type { SmokeIntroReplyInput } from "@/lib/testing/smoke-intro-reply-types";
 import {
   buildSmokeHelpIntroReply,
@@ -28,14 +35,26 @@ export function buildSmokeIntroReply(args: SmokeIntroReplyInput) {
     });
   }
 
-  const promptReply = buildSmokeIntroPromptReply({
-    content: args.content,
-    replyLanguage: args.replyLanguage,
-    agentName: args.agentName,
-    styleValue: introContext.styleValue,
-    nickname: introContext.nickname,
-    preferredName: introContext.preferredName
-  });
+  let promptReply: string | null = null;
+
+  if (isSmokeBriefGreetingRequest(args.content)) {
+    promptReply = buildSmokeBriefGreetingReply({
+      replyLanguage: args.replyLanguage,
+      styleValue: introContext.styleValue
+    });
+  } else if (isSmokeDirectNamingQuestion(args.content)) {
+    promptReply = buildSmokeNamingReply({
+      replyLanguage: args.replyLanguage,
+      agentName: args.agentName,
+      nickname: introContext.nickname
+    });
+  } else if (isSmokeDirectUserPreferredNameQuestion(args.content)) {
+    promptReply = buildSmokePreferredNameReply({
+      replyLanguage: args.replyLanguage,
+      preferredName: introContext.preferredName
+    });
+  }
+
   if (promptReply) {
     return promptReply;
   }
