@@ -1184,6 +1184,15 @@ function main() {
     "Expected focus-anchor retention section order to prioritize focus_mode, continuity_status, then current_language_hint in P5."
   );
   expect(
+    runtimeDebugMetadata.thread_compaction?.retention_section_weights
+      ?.focus_mode === 120 &&
+      runtimeDebugMetadata.thread_compaction?.retention_section_weights
+        ?.continuity_status === 110 &&
+      runtimeDebugMetadata.thread_compaction?.retention_section_weights
+        ?.current_language_hint === 30,
+    "Expected focus-anchor retention section weights to prioritize focus_mode and continuity_status above current_language_hint in P5."
+  );
+  expect(
     Array.isArray(runtimeDebugMetadata.thread_compaction?.retained_fields) &&
       runtimeDebugMetadata.thread_compaction?.retained_fields.join(",") ===
         "focus_mode,continuity_status",
@@ -1833,11 +1842,20 @@ function main() {
             runtimeDebugMetadata.thread_compaction?.retention_section_order?.join(
               ","
             ) === "focus_mode,continuity_status,current_language_hint" &&
+            runtimeDebugMetadata.thread_compaction?.retention_section_weights
+              ?.focus_mode === 120 &&
+            runtimeDebugMetadata.thread_compaction?.retention_section_weights
+              ?.continuity_status === 110 &&
+            runtimeDebugMetadata.thread_compaction?.retention_section_weights
+              ?.current_language_hint === 30 &&
             getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
               "Retention layers: anchor."
             ) &&
             getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
               "Retention section order: focus_mode,continuity_status,current_language_hint."
+            ) &&
+            getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+              "Retention section weights: focus_mode=120,continuity_status=110,current_language_hint=30."
             ),
           knowledge_route_weighting_v3_ok:
             scenarioMemoryPack.knowledge_priority_layer === "project" &&

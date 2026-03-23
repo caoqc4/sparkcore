@@ -175,6 +175,21 @@ P5 首批要把 retention 从：
   - `retention_section_order = focus_mode,continuity_status,current_language_hint`
   - assistant summary 中已能看到 `Retention section order: focus_mode,continuity_status,current_language_hint`
 
+当前已成立的第三刀代码事实：
+
+- [thread-compaction.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-compaction.ts) 当前已开始把 retention 从“section priority”继续推进成“section weighting”：
+  - `retention_section_weights`
+- 当前最小规则已经成立：
+  - `focus_anchor` 下：
+    - `focus_mode = 120`
+    - `continuity_status = 110`
+    - `current_language_hint = 30`
+  - 也就是说，当前 retained fields 的保留不只受 layer budget + order 影响，还开始受显式 section weight 影响
+- [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已开始显式校验：
+  - `retention_section_weights.focus_mode = 120`
+  - `retention_section_weights.continuity_status = 110`
+  - assistant summary 中已能看到 `Retention section weights: focus_mode=120,continuity_status=110,current_language_hint=30`
+
 ### 4.3 Knowledge route weighting v3
 
 P5 首批要把 knowledge 从：

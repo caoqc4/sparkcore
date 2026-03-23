@@ -5,6 +5,7 @@ import type {
   ThreadRetentionLayer,
   ThreadRetentionLayerBudget,
   ThreadRetentionSection,
+  ThreadRetentionSectionWeights,
   ThreadRetentionMode,
   ThreadRetentionReason
 } from "../../../../packages/core/memory";
@@ -59,11 +60,25 @@ function buildRetainedFields(args: {
   latestUserMessage: string | null;
   retentionLayerBudget: ThreadRetentionLayerBudget;
   retentionSectionOrder: ThreadRetentionSection[];
+  retentionSectionWeights: ThreadRetentionSectionWeights;
 }) {
   const fields: string[] = [];
   const remainingBudget: ThreadRetentionLayerBudget = {
     ...args.retentionLayerBudget
   };
+  const orderedSections = [...args.retentionSectionOrder].sort((a, b) => {
+    const weightDiff =
+      (args.retentionSectionWeights[b] ?? 0) -
+      (args.retentionSectionWeights[a] ?? 0);
+
+    if (weightDiff !== 0) {
+      return weightDiff;
+    }
+
+    return (
+      args.retentionSectionOrder.indexOf(a) - args.retentionSectionOrder.indexOf(b)
+    );
+  });
 
   const pushField = (
     field: string,
@@ -76,7 +91,7 @@ function buildRetainedFields(args: {
     }
   };
 
-  for (const section of args.retentionSectionOrder) {
+  for (const section of orderedSections) {
     switch (section) {
       case "focus_mode":
         pushField("focus_mode", "anchor", Boolean(args.threadState.focus_mode));
@@ -105,6 +120,38 @@ function buildRetainedFields(args: {
   }
 
   return fields;
+}
+
+function resolveThreadRetentionSectionWeights(args: {
+  retentionReason: ThreadRetentionReason;
+  retentionLayerBudget: ThreadRetentionLayerBudget;
+}): ThreadRetentionSectionWeights {
+  switch (args.retentionReason) {
+    case "focus_mode_present":
+      return {
+        focus_mode: 100 + args.retentionLayerBudget.anchor * 10,
+        continuity_status: 90 + args.retentionLayerBudget.anchor * 10,
+        current_language_hint: 30 + args.retentionLayerBudget.context * 10
+      };
+    case "engaged_continuity":
+      return {
+        continuity_status: 90 + args.retentionLayerBudget.anchor * 10,
+        current_language_hint: 50 + args.retentionLayerBudget.context * 10,
+        latest_user_message: 40 + args.retentionLayerBudget.window * 10
+      };
+    case "recent_turn_window":
+      return {
+        recent_turn_window: 90 + args.retentionLayerBudget.window * 10,
+        latest_user_message: 80 + args.retentionLayerBudget.window * 10,
+        current_language_hint: 40 + args.retentionLayerBudget.context * 10
+      };
+    case "minimal_context":
+      return {
+        current_language_hint: 20 + args.retentionLayerBudget.context * 10
+      };
+    case "closed_minimal_pruned":
+      return {};
+  }
 }
 
 function resolveThreadRetentionBudget(args: {
@@ -227,6 +274,10 @@ export function buildCompactedThreadSummary(args: {
   const retentionSectionOrder = resolveThreadRetentionSectionOrder({
     retentionReason
   });
+  const retentionSectionWeights = resolveThreadRetentionSectionWeights({
+    retentionReason,
+    retentionLayerBudget
+  });
   const retentionLayers = resolveThreadRetentionLayers({
     retentionLayerBudget
   });
@@ -235,7 +286,8 @@ export function buildCompactedThreadSummary(args: {
     retentionReason,
     latestUserMessage,
     retentionLayerBudget,
-    retentionSectionOrder
+    retentionSectionOrder,
+    retentionSectionWeights
   });
 
   const summaryParts = [
@@ -255,6 +307,12 @@ export function buildCompactedThreadSummary(args: {
     `Retention budget: ${retentionBudget}.`,
     `Retention layers: ${retentionLayers.join(",") || "none"}.`,
     `Retention section order: ${retentionSectionOrder.join(",") || "none"}.`,
+    `Retention section weights: ${retentionSectionOrder
+      .map(
+        (section) =>
+          `${section}=${retentionSectionWeights[section] ?? 0}`
+      )
+      .join(",") || "none"}.`,
     `Retention mode: ${retentionMode}.`,
     `Retention reason: ${retentionReason}.`,
   ].filter((part): part is string => Boolean(part));
@@ -273,6 +331,7 @@ export function buildCompactedThreadSummary(args: {
     retention_layers: retentionLayers,
     retention_layer_budget: retentionLayerBudget,
     retention_section_order: retentionSectionOrder,
+    retention_section_weights: retentionSectionWeights,
     retained_fields: retainedFields,
     summary_text: summaryParts.join(" "),
     generated_at: args.generatedAt ?? new Date().toISOString()
@@ -361,6 +420,8 @@ export function buildThreadCompactionSummary(args: {
             args.compactedThreadSummary.retention_layer_budget,
           retention_section_order:
             args.compactedThreadSummary.retention_section_order,
+          retention_section_weights:
+            args.compactedThreadSummary.retention_section_weights,
           retained_fields: args.compactedThreadSummary.retained_fields,
       }
     : null;

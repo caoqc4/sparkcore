@@ -30,6 +30,10 @@ export type ThreadRetentionSection =
   | "recent_turn_window"
   | "latest_user_message";
 
+export type ThreadRetentionSectionWeights = Partial<
+  Record<ThreadRetentionSection, number>
+>;
+
 export type CompactedThreadSummary = {
   summary_id: string;
   thread_id: string;
@@ -44,6 +48,7 @@ export type CompactedThreadSummary = {
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;
   retention_section_order: ThreadRetentionSection[];
+  retention_section_weights: ThreadRetentionSectionWeights;
   retained_fields: string[];
   summary_text: string;
   generated_at: string;
