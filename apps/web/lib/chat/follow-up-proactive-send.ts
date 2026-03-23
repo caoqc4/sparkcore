@@ -1,4 +1,5 @@
 import type { PendingFollowUpRecord } from "@/lib/chat/runtime-contract";
+import { buildProactiveMessageMetadata } from "@/lib/chat/follow-up-proactive-metadata";
 import {
   buildProactiveSendTargetFromBinding,
   type ChannelBinding,
@@ -20,20 +21,20 @@ function buildGentleCheckInMessage(
     return {
       message_type: "text",
       content: "Just checking in on you a little. How are you holding up right now?",
-      metadata: {
-        reply_language: replyLanguage,
-        message_template: "gentle_check_in_v1"
-      }
+      metadata: buildProactiveMessageMetadata({
+        replyLanguage,
+        messageTemplate: "gentle_check_in_v1"
+      })
     };
   }
 
   return {
     message_type: "text",
     content: "我来轻轻问一句，你这会儿还好吗？",
-    metadata: {
-      reply_language: replyLanguage,
-      message_template: "gentle_check_in_v1"
-    }
+    metadata: buildProactiveMessageMetadata({
+      replyLanguage,
+      messageTemplate: "gentle_check_in_v1"
+    })
   };
 }
 

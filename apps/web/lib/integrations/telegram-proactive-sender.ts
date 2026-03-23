@@ -3,6 +3,7 @@ import type {
   ProactiveSendResult,
   ProactiveSender
 } from "@/lib/integrations/im-adapter";
+import { buildProactiveSendResultMetadata } from "@/lib/chat/follow-up-proactive-metadata";
 import { callTelegramApi } from "@/scripts/telegram-utils";
 
 export class TelegramProactiveSender implements ProactiveSender {
@@ -44,10 +45,12 @@ export class TelegramProactiveSender implements ProactiveSender {
           typeof body?.description === "string"
             ? body.description
             : "telegram proactive send failed",
-        metadata: {
+        metadata: buildProactiveSendResultMetadata({
           sender: "telegram",
-          response: body ?? null
-        }
+          fields: {
+            response: body ?? null
+          }
+        })
       };
     }
 
@@ -58,11 +61,13 @@ export class TelegramProactiveSender implements ProactiveSender {
         typeof body?.result?.message_id === "number"
           ? String(body.result.message_id)
           : undefined,
-      metadata: {
+      metadata: buildProactiveSendResultMetadata({
         sender: "telegram",
-        chat_id: request.target.channel_id,
-        response: body ?? null
-      }
+        fields: {
+          chat_id: request.target.channel_id,
+          response: body ?? null
+        }
+      })
     };
   }
 }
