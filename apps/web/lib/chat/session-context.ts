@@ -1,3 +1,6 @@
+import {
+  getAssistantMetadataGroup
+} from "@/lib/chat/assistant-message-metadata-read";
 import type { ThreadStateRecord } from "@/lib/chat/thread-state";
 
 export type SessionReplyLanguage = "zh-Hans" | "en" | "unknown";
@@ -75,16 +78,6 @@ function getApproxContextPressure(
   return "low";
 }
 
-function getRecordField(
-  record: Record<string, unknown> | null | undefined,
-  key: string
-): Record<string, unknown> | null {
-  const value = record?.[key];
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
-}
-
 function getThreadContinuitySignal({
   messages,
   detectReplyLanguageFromText,
@@ -110,7 +103,7 @@ function getThreadContinuitySignal({
   const diagnosticsMetadata = getDeveloperDiagnosticsMetadata(
     previousAssistantMessage.metadata
   );
-  const groupedLanguageMetadata = getRecordField(
+  const groupedLanguageMetadata = getAssistantMetadataGroup(
     previousAssistantMessage.metadata,
     "language"
   );

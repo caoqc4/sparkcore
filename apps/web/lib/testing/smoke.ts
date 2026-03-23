@@ -5,6 +5,7 @@ import {
 } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv } from "@/lib/env";
+import { getAssistantMetadataGroup } from "@/lib/chat/assistant-message-metadata-read";
 import {
   buildMemoryV2Fields,
   inferLegacyMemoryStability,
@@ -134,16 +135,6 @@ type SmokeRoleCorePacket = {
     same_thread_continuation_preferred: boolean;
   };
 };
-
-function getSmokeMetadataRecord(
-  metadata: Record<string, unknown> | null | undefined,
-  key: string
-): Record<string, unknown> | null {
-  const value = metadata?.[key];
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
-}
 
 type SmokeContinuityReply = {
   content: string;
@@ -746,7 +737,7 @@ function getSmokeRecentAssistantReply(
     return null;
   }
 
-  const groupedLanguageMetadata = getSmokeMetadataRecord(
+  const groupedLanguageMetadata = getAssistantMetadataGroup(
     previousAssistant.metadata,
     "language"
   );
