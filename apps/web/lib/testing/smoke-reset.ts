@@ -1,8 +1,8 @@
+import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
 import { getSmokeConfig } from "@/lib/testing/smoke-config";
 import {
   ensureSmokeModelProfiles,
   ensureSmokeUser,
-  getSmokeAdminClient,
   resetSmokeWorkspaceState,
   seedSmokeAgents
 } from "@/lib/testing/smoke-runtime-state";

@@ -1,21 +1,10 @@
-import {
-  createClient as createSupabaseClient,
-  type SupabaseClient
-} from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+export { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
 import { seedSmokeAgentState } from "@/lib/testing/smoke-agent-seeding";
 import { ensureSmokeModelProfileState } from "@/lib/testing/smoke-model-profiles";
 import type { SmokeConfig, SmokeUser } from "@/lib/testing/smoke-runtime-types";
 import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
 import { resetSmokeWorkspaceStateByUser } from "@/lib/testing/smoke-workspace-reset";
-
-export function getSmokeAdminClient(config: SmokeConfig) {
-  return createSupabaseClient(config.url, config.serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
-}
 
 export async function ensureSmokeUser(
   admin: SupabaseClient,

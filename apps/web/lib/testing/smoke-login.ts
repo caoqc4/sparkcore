@@ -1,10 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
 import { getSmokeConfig } from "@/lib/testing/smoke-config";
-import {
-  ensureSmokeUser,
-  getSmokeAdminClient
-} from "@/lib/testing/smoke-runtime-state";
+import { ensureSmokeUser } from "@/lib/testing/smoke-runtime-state";
 
 export async function createSmokeLoginResponse(
   request: NextRequest,

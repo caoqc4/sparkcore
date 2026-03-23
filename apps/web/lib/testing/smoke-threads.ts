@@ -1,9 +1,7 @@
 import { createOwnedThread, loadOwnedActiveAgentByName } from "@/lib/chat/runtime-turn-context";
+import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
 import { getSmokeConfig } from "@/lib/testing/smoke-config";
-import {
-  ensureSmokeUser,
-  getSmokeAdminClient
-} from "@/lib/testing/smoke-runtime-state";
+import { ensureSmokeUser } from "@/lib/testing/smoke-runtime-state";
 
 export async function createSmokeThread(args: {
   agentName: string;

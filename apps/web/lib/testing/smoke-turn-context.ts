@@ -1,10 +1,8 @@
+import { getSmokeAdminClient } from "@/lib/testing/smoke-admin-client";
 import { loadSmokeBoundThreadContext } from "@/lib/testing/smoke-turn-bound-context";
 import { getSmokeConfig } from "@/lib/testing/smoke-config";
 import { loadSmokeTurnExistingState } from "@/lib/testing/smoke-turn-existing-state";
-import {
-  ensureSmokeUser,
-  getSmokeAdminClient
-} from "@/lib/testing/smoke-runtime-state";
+import { ensureSmokeUser } from "@/lib/testing/smoke-runtime-state";
 
 export async function loadSmokeTurnContext(args: {
   threadId: string;
