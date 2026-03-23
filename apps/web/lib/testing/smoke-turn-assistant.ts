@@ -1,5 +1,5 @@
 import { insertSmokeAssistantReply } from "@/lib/testing/smoke-assistant-persistence";
-import type { SmokeAnalyzedAssistantInsertArgs } from "@/lib/testing/smoke-assistant-persistence-types";
+import type { SmokeAnalyzedAssistantInsertArgs } from "@/lib/testing/smoke-assistant-persistence";
 import { detectSmokeReplyLanguage } from "@/lib/testing/smoke-language-detection";
 import { buildSmokeRoleCorePacket } from "@/lib/testing/smoke-role-core-packet";
 
