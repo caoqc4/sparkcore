@@ -8,6 +8,7 @@ import {
   MEMORY_CONFIDENCE_THRESHOLD,
   MEMORY_RECALL_LIMIT,
   MEMORY_RELEVANCE_THRESHOLD,
+  type MemoryRecallRoute,
   type RecallOutcome,
   type StoredMemory,
   type MemoryUsageType,
@@ -18,6 +19,18 @@ import {
   loadRecentOwnedRelationshipMemories
 } from "@/lib/chat/memory-item-read";
 import { createClient } from "@/lib/supabase/server";
+
+function selectMemoryRecallRoutes(args: {
+  latestUserMessage: string;
+  allowDistantFallback: boolean;
+}): MemoryRecallRoute[] {
+  void args.latestUserMessage;
+  void args.allowDistantFallback;
+
+  // P0 starts with a single explicit route so later expansion to
+  // profile/episode/timeline/thread_state can reuse the same shape.
+  return ["profile"];
+}
 
 function isMemoryApplicableToRecall({
   memory,
@@ -290,6 +303,10 @@ export async function recallRelevantMemories({
   allowDistantFallback?: boolean;
   supabase?: any;
 }): Promise<RecallOutcome> {
+  const appliedRoutes = selectMemoryRecallRoutes({
+    latestUserMessage,
+    allowDistantFallback
+  });
   const supabase = providedSupabase ?? (await createClient());
   const { data, error } = await loadRecentOwnedMemoriesByTypes({
     supabase,
@@ -324,7 +341,7 @@ export async function recallRelevantMemories({
       usedMemoryTypes: [],
       hiddenExclusionCount: hiddenCandidates.length > 0 ? 1 : 0,
       incorrectExclusionCount: incorrectCandidates.length > 0 ? 1 : 0,
-      appliedRoutes: ["profile"]
+      appliedRoutes
     };
   }
 
@@ -386,7 +403,7 @@ export async function recallRelevantMemories({
     ),
     hiddenExclusionCount: countRelevantExclusions(hiddenCandidates),
     incorrectExclusionCount: countRelevantExclusions(incorrectCandidates),
-    appliedRoutes: ["profile"]
+    appliedRoutes
   };
 }
 
