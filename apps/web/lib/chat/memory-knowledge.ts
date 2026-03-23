@@ -16,6 +16,13 @@ export type RuntimeKnowledgeSnippet = {
   scope: MemoryScopeRef;
 };
 
+export type KnowledgeRouteWeighting = {
+  scope_weight: number;
+  namespace_weight: number;
+  pack_weight: number;
+  total_weight: number;
+};
+
 export function resolveKnowledgeScopeLayer(
   snippet: RuntimeKnowledgeSnippet
 ): KnowledgeScopeLayer {
@@ -160,6 +167,46 @@ function getKnowledgeScopePriorityForNamespace(args: {
   return priority >= 0 ? priority : getKnowledgeScopePriority(args.layer);
 }
 
+export function buildKnowledgeRouteWeighting(args: {
+  snippet: RuntimeKnowledgeSnippet;
+  activeNamespace?: ActiveMemoryNamespace | null;
+  activePackId?: ScenarioMemoryPackId | null;
+}): KnowledgeRouteWeighting {
+  const layer = resolveKnowledgeScopeLayer(args.snippet);
+  const namespacePriority = getKnowledgeScopePriorityForNamespace({
+    layer,
+    namespace: args.activeNamespace
+  });
+  const scopeWeight = 100 - namespacePriority * 20;
+  const namespaceWeight =
+    args.activeNamespace?.primary_layer === layer
+      ? 25
+      : args.activeNamespace?.primary_layer === "project" && layer === "world"
+        ? 10
+        : args.activeNamespace?.primary_layer === "world" && layer === "project"
+          ? 10
+          : 0;
+  const packWeight =
+    args.activePackId === "project_ops"
+      ? layer === "project"
+        ? 20
+        : layer === "world"
+          ? 12
+          : 4
+      : layer === "world"
+        ? 16
+        : layer === "project"
+          ? 12
+          : 2;
+
+  return {
+    scope_weight: scopeWeight,
+    namespace_weight: namespaceWeight,
+    pack_weight: packWeight,
+    total_weight: scopeWeight + namespaceWeight + packWeight
+  };
+}
+
 export function selectKnowledgeForPrompt(args: {
   knowledge: RuntimeKnowledgeSnippet[];
   activeNamespace?: ActiveMemoryNamespace | null;
@@ -176,17 +223,19 @@ export function selectKnowledgeForPrompt(args: {
 
   return [...applicableKnowledge]
     .sort((left, right) => {
-      const leftPriority = getKnowledgeScopePriorityForNamespace({
-        layer: resolveKnowledgeScopeLayer(left),
-        namespace: args.activeNamespace
+      const leftWeighting = buildKnowledgeRouteWeighting({
+        snippet: left,
+        activeNamespace: args.activeNamespace,
+        activePackId: args.activePackId
       });
-      const rightPriority = getKnowledgeScopePriorityForNamespace({
-        layer: resolveKnowledgeScopeLayer(right),
-        namespace: args.activeNamespace
+      const rightWeighting = buildKnowledgeRouteWeighting({
+        snippet: right,
+        activeNamespace: args.activeNamespace,
+        activePackId: args.activePackId
       });
 
-      if (leftPriority !== rightPriority) {
-        return leftPriority - rightPriority;
+      if (leftWeighting.total_weight !== rightWeighting.total_weight) {
+        return rightWeighting.total_weight - leftWeighting.total_weight;
       }
 
       return left.title.localeCompare(right.title);

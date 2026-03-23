@@ -34,6 +34,7 @@ import {
 } from "@/lib/chat/memory-packs";
 import {
   buildKnowledgeSnapshot,
+  buildKnowledgeRouteWeighting,
   buildKnowledgeSummary,
   filterKnowledgeByActiveNamespace,
   buildRuntimeKnowledgeSnippet,
@@ -1147,6 +1148,26 @@ function main() {
       "Workspace operating norms,Onboarding checklist guide",
     "Expected knowledge prompt selection to prioritize world-scoped knowledge first when the active namespace primary layer is world in P3."
   );
+  const projectKnowledgeWeight = buildKnowledgeRouteWeighting({
+    snippet: buildRuntimeKnowledgeSnippet(knowledgeSnapshot),
+    activeNamespace: activeMemoryNamespace,
+    activePackId: scenarioMemoryPack.pack_id
+  });
+  const worldKnowledgeWeight = buildKnowledgeRouteWeighting({
+    snippet: buildRuntimeKnowledgeSnippet(worldKnowledgeSnapshot),
+    activeNamespace: activeMemoryNamespace,
+    activePackId: scenarioMemoryPack.pack_id
+  });
+  const generalKnowledgeWeight = buildKnowledgeRouteWeighting({
+    snippet: buildRuntimeKnowledgeSnippet(generalKnowledgeSnapshot),
+    activeNamespace: activeMemoryNamespace,
+    activePackId: scenarioMemoryPack.pack_id
+  });
+  expect(
+    projectKnowledgeWeight.total_weight > worldKnowledgeWeight.total_weight &&
+      worldKnowledgeWeight.total_weight > generalKnowledgeWeight.total_weight,
+    "Expected knowledge route weighting to rank project > world > general under a project_ops context in P5."
+  );
   expect(
     runtimeDebugMetadata.thread_compaction?.summary_id ===
       compactedThreadSummary?.summary_id,
@@ -1861,7 +1882,11 @@ function main() {
             scenarioMemoryPack.knowledge_priority_layer === "project" &&
             scenarioMemoryPack.assembly_emphasis === "knowledge_first" &&
             scenarioMemoryPack.route_influence_reason ===
-              "project_namespace_bias",
+              "project_namespace_bias" &&
+            projectKnowledgeWeight.total_weight >
+              worldKnowledgeWeight.total_weight &&
+            worldKnowledgeWeight.total_weight >
+              generalKnowledgeWeight.total_weight,
           scenario_pack_strategy_v3_ok:
             systemPrompt.includes("RM1:") &&
             !systemPrompt.includes("RM2:") &&

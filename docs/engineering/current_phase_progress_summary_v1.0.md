@@ -42,6 +42,11 @@
   - `anchor / context / window` section class
   - `retention_section_order`
   - `retention_section_weights`
+- `P5-3 knowledge route weighting v3` 已开始把 knowledge selection 从隐式排序推进成显式 weighting：
+  - `scope_weight`
+  - `namespace_weight`
+  - `pack_weight`
+  - `total_weight`
 
 ---
 

@@ -208,6 +208,22 @@ P5 首批要把 knowledge 从：
 - 至少一条 route 决策开始从“开/关或排序”推进到“显式 weighting”
 - 至少一条 knowledge budget 决策开始受 scope + namespace + pack 联合影响
 
+当前已成立的第一刀代码事实：
+
+- [memory-knowledge.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-knowledge.ts) 当前已开始把 knowledge prompt selection 从“隐式排序”推进成显式 weighting：
+  - `buildKnowledgeRouteWeighting(...)`
+  - `scope_weight`
+  - `namespace_weight`
+  - `pack_weight`
+  - `total_weight`
+- 当前最小规则已经成立：
+  - 在 `project_ops + project primary namespace` 下：
+    - `project > world > general`
+  - 也就是说，knowledge 当前已不再只是按固定 scope 顺序选 prompt，而开始按 `scope + namespace + pack` 联合 weight 决定进入顺序
+- [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已开始显式校验：
+  - `projectKnowledgeWeight.total_weight > worldKnowledgeWeight.total_weight`
+  - `worldKnowledgeWeight.total_weight > generalKnowledgeWeight.total_weight`
+
 ### 4.4 Scenario pack strategy layer v3
 
 P5 首批要把 scenario pack 从：
