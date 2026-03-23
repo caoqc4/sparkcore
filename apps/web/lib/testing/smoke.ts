@@ -30,6 +30,7 @@ import {
   type SmokeConfig,
   type SmokeUser
 } from "@/lib/testing/smoke-runtime-state";
+import { loadSmokeTurnContext } from "@/lib/testing/smoke-turn-context";
 import {
   buildSmokeSeedMetadata,
   mergeSmokeSeedMetadata
@@ -1943,79 +1944,23 @@ export async function createSmokeTurn({
   threadId: string;
   content: string;
 }) {
-  const config = getSmokeConfig();
-
-  if (!config) {
-    throw new Error(
-      "Smoke message creation requires the smoke env vars and service role key."
-    );
-  }
-
-  const admin = getSmokeAdminClient(config);
-  const smokeUser = await ensureSmokeUser(admin, config);
   const trimmedContent = content.trim();
 
   if (!trimmedContent) {
     throw new Error("Smoke turn content is required.");
   }
 
-  const { data: thread, error: threadError } = await loadOwnedThread({
-    supabase: admin,
-    threadId,
-    workspaceId: smokeUser.workspaceId,
-    userId: smokeUser.id
+  const {
+    admin,
+    smokeUser,
+    thread,
+    agent: ensuredAgent,
+    modelProfile,
+    existingMemories,
+    existingMessages
+  } = await loadSmokeTurnContext({
+    threadId
   });
-
-  if (threadError || !thread) {
-    throw new Error(
-      threadError?.message ?? "The requested smoke thread is unavailable."
-    );
-  }
-
-  if (!thread.agent_id) {
-    throw new Error("The smoke thread is not bound to an agent.");
-  }
-
-  const { data: agent, error: agentError } = await loadOwnedActiveAgent({
-    supabase: admin,
-    agentId: thread.agent_id,
-    workspaceId: smokeUser.workspaceId,
-    userId: smokeUser.id
-  });
-
-  if (agentError || !agent) {
-    throw new Error(
-      agentError?.message ?? "The bound smoke agent is unavailable."
-    );
-  }
-
-  const ensuredAgent = agent;
-
-  const { data: modelProfile, error: modelProfileError } =
-    await loadActiveModelProfileById({
-      supabase: admin,
-      modelProfileId: ensuredAgent.default_model_profile_id
-    });
-
-  if (modelProfileError || !modelProfile) {
-    throw new Error(
-      modelProfileError?.message ??
-        "The bound smoke model profile is unavailable."
-    );
-  }
-
-  const { data: existingMemories, error: memoriesError } = await loadRecentOwnedMemories({
-    supabase: admin,
-    workspaceId: smokeUser.workspaceId,
-    userId: smokeUser.id,
-    select:
-      "id, memory_type, content, confidence, category, key, value, scope, status, target_agent_id, target_thread_id, metadata",
-    limit: 200
-  });
-
-  if (memoriesError) {
-    throw new Error(`Failed to load smoke memories: ${memoriesError.message}`);
-  }
 
   const smokeExistingMemories = (existingMemories ?? []) as Array<{
     id: string;
@@ -2031,17 +1976,6 @@ export async function createSmokeTurn({
     target_thread_id: string | null;
     metadata: Record<string, unknown> | null;
   }>;
-
-  const { data: existingMessages, error: messagesError } = await loadThreadMessages({
-    supabase: admin,
-    threadId: thread.id,
-    workspaceId: smokeUser.workspaceId,
-    select: "role, content, status, metadata"
-  });
-
-  if (messagesError) {
-    throw new Error(`Failed to load smoke messages: ${messagesError.message}`);
-  }
 
   const recentAssistantReply = getSmokeRecentAssistantReply(
     (existingMessages ?? []) as Array<{
