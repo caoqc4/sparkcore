@@ -1,5 +1,6 @@
 import { insertPendingAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
 import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
+import { loadThreadMessages } from "@/lib/chat/thread-message-persistence";
 
 type RuntimeTurnBootstrapTarget = {
   supabase: any;
@@ -33,12 +34,11 @@ export async function bootstrapRuntimeAssistantTurn(
     .eq("owner_user_id", args.userId);
 
   const { data: persistedMessages, error: persistedMessagesError } =
-    await args.supabase
-      .from("messages")
-      .select("id, role, content, status, metadata, created_at")
-      .eq("thread_id", args.thread.id)
-      .eq("workspace_id", args.workspaceId)
-      .order("created_at", { ascending: true });
+    await loadThreadMessages({
+      supabase: args.supabase,
+      threadId: args.thread.id,
+      workspaceId: args.workspaceId
+    });
 
   if (persistedMessagesError) {
     throw new Error(persistedMessagesError.message);

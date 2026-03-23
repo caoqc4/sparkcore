@@ -22,6 +22,7 @@ import {
   loadOwnedThread,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
+import { loadThreadMessages } from "@/lib/chat/thread-message-persistence";
 import { recoverRetryRuntimeTurn } from "@/lib/chat/runtime-turn-retry";
 import {
   insertPendingAssistantMessage,
@@ -1222,12 +1223,11 @@ export async function retryAssistantReply(
     };
   }
 
-  const { data: messages, error: messagesError } = await supabase
-    .from("messages")
-    .select("id, role, content, status, metadata, created_at")
-    .eq("thread_id", thread.id)
-    .eq("workspace_id", workspace.id)
-    .order("created_at", { ascending: true });
+  const { data: messages, error: messagesError } = await loadThreadMessages({
+    supabase,
+    threadId: thread.id,
+    workspaceId: workspace.id
+  });
 
   if (messagesError || !messages) {
     return {

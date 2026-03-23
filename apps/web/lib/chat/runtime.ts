@@ -21,6 +21,7 @@ import {
   getUnderlyingModelLabel
 } from "@/lib/chat/model-profile-metadata";
 import { buildRuntimeDebugMetadata } from "@/lib/chat/runtime-debug-metadata";
+import { loadThreadMessages } from "@/lib/chat/thread-message-persistence";
 import {
   planMemoryWriteRequests,
   planRelationshipMemoryWriteRequests
@@ -3171,12 +3172,11 @@ export async function getChatPageState({
   const activeAgent =
     activeThread?.agent_id ? agentById.get(activeThread.agent_id) ?? null : null;
 
-  const { data: messages, error: messagesError } = await supabase
-    .from("messages")
-    .select("id, role, content, status, metadata, created_at")
-    .eq("thread_id", activeThread.id)
-    .eq("workspace_id", workspace.id)
-    .order("created_at", { ascending: true });
+  const { data: messages, error: messagesError } = await loadThreadMessages({
+    supabase,
+    threadId: activeThread.id,
+    workspaceId: workspace.id
+  });
 
   if (messagesError) {
     throw new Error(`Failed to load messages: ${messagesError.message}`);
