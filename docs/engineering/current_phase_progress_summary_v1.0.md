@@ -120,6 +120,7 @@
   - `primary_layer`
   - `observed_layers`
 - chat runtime summary 当前也已开始消费这层 `memory.semantic_summary`
+- `memory-upgrade-harness.ts` 当前也已开始显式校验这层 `memory.semantic_summary`
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`
 

@@ -215,6 +215,7 @@ P0 只做一件事：
   - `primary_layer`
   - `observed_layers`
 - chat runtime summary 当前也已开始消费这层 `memory.semantic_summary`
+- `memory-upgrade-harness` 当前也已开始显式校验这层 `memory.semantic_summary`
 - 当前已正式收口的 route name 包括：
   - `profile`
   - `episode`
