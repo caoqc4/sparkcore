@@ -1,22 +1,11 @@
-type RelationshipMemoryRow = {
-  category: string | null;
-  key: string | null;
-  scope: string | null;
-  target_agent_id: string | null;
-  value: string | null;
-  content: string;
-  confidence: number;
-};
-
-type RelationshipRecallMemory = {
-  memory_type: "relationship";
-  content: string;
-  confidence: number;
-};
+import type {
+  SmokeRelationshipMemoryRow,
+  SmokeRelationshipRecallMemory
+} from "@/lib/testing/smoke-relationship-context-types";
 
 export function toSmokeRelationshipRecallMemory(
-  memory: RelationshipMemoryRow | null
-): RelationshipRecallMemory | null {
+  memory: SmokeRelationshipMemoryRow | null
+): SmokeRelationshipRecallMemory | null {
   if (!memory) {
     return null;
   }
@@ -30,7 +19,7 @@ export function toSmokeRelationshipRecallMemory(
 }
 
 export function findSmokeRelationshipMemory(args: {
-  memories: RelationshipMemoryRow[];
+  memories: SmokeRelationshipMemoryRow[];
   key: "agent_nickname" | "user_preferred_name" | "user_address_style";
   agentId: string;
 }) {
@@ -51,7 +40,7 @@ export function prependSmokeRelationshipRecall(
     content: string;
     confidence: number;
   }>,
-  memory: RelationshipMemoryRow | null
+  memory: SmokeRelationshipMemoryRow | null
 ) {
   const recallMemory = toSmokeRelationshipRecallMemory(memory);
 
@@ -61,7 +50,7 @@ export function prependSmokeRelationshipRecall(
 }
 
 export function getSmokeRelationshipMemoryValue(
-  memory: RelationshipMemoryRow | null
+  memory: SmokeRelationshipMemoryRow | null
 ) {
   return memory
     ? typeof memory.value === "string"

@@ -1,15 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
-  SmokeApproxContextPressure,
-  SmokeAnswerQuestionType,
-  SmokeAnswerStrategy,
-  SmokeAnswerStrategyReasonCode,
-  SmokeContinuationReasonCode,
   SmokeReplyLanguage,
   SmokeReplyLanguageSource,
   SmokeRoleCorePacket
 } from "@/lib/testing/smoke-assistant-builders";
 import type { SmokeAssistantMetadataRecall } from "@/lib/testing/smoke-assistant-metadata-types";
+import type { SmokeAssistantPersistenceSharedFields } from "@/lib/testing/smoke-assistant-persistence-shared-types";
 import type { SmokeCreatedMemoryType } from "@/lib/testing/smoke-memory-write-types";
 import type { SmokeRecallMemory } from "@/lib/testing/smoke-recall-memory-types";
 
@@ -21,29 +17,10 @@ export type SmokeAssistantInsertArgs = {
   agentId: string;
   agentName: string;
   roleCorePacket: SmokeRoleCorePacket;
-  modelProfileId: string;
-  modelProfileName: string;
-  model: string;
-  assistantContent: string;
   replyLanguage: SmokeReplyLanguage;
   replyLanguageDetected: SmokeReplyLanguage;
-  replyLanguageSource: SmokeReplyLanguageSource;
-  questionType: SmokeAnswerQuestionType;
-  answerStrategy: SmokeAnswerStrategy;
-  answerStrategyReasonCode: SmokeAnswerStrategyReasonCode;
-  continuationReasonCode: SmokeContinuationReasonCode | null;
-  recentRawTurnCount: number;
-  approxContextPressure: SmokeApproxContextPressure;
-  sameThreadContinuationApplicable: boolean;
-  longChainPressureCandidate: boolean;
-  sameThreadContinuationPreferred: boolean;
-  distantMemoryFallbackAllowed: boolean;
   recalledMemories: SmokeAssistantMetadataRecall[];
-  usedMemoryTypes: string[];
-  hiddenExclusionCount: number;
-  incorrectExclusionCount: number;
-  createdTypes: SmokeCreatedMemoryType[];
-};
+} & SmokeAssistantPersistenceSharedFields;
 
 export type SmokeAnalyzedAssistantInsertArgs = {
   supabase: SmokeAssistantInsertArgs["supabase"];
@@ -54,26 +31,6 @@ export type SmokeAnalyzedAssistantInsertArgs = {
   agentName: string;
   personaSummary: string | null;
   styleGuidance: string | null;
-  modelProfileId: string;
-  modelProfileName: string;
-  model: string;
-  assistantContent: string;
   relationshipStyleValue: string | null;
-  replyLanguage: SmokeReplyLanguage;
-  replyLanguageSource: SmokeReplyLanguageSource;
-  questionType: SmokeAnswerQuestionType;
-  answerStrategy: SmokeAnswerStrategy;
-  answerStrategyReasonCode: SmokeAnswerStrategyReasonCode;
-  continuationReasonCode: SmokeContinuationReasonCode | null;
-  recentRawTurnCount: number;
-  approxContextPressure: SmokeApproxContextPressure;
-  sameThreadContinuationApplicable: boolean;
-  longChainPressureCandidate: boolean;
-  sameThreadContinuationPreferred: boolean;
-  distantMemoryFallbackAllowed: boolean;
   recalledMemories: SmokeRecallMemory[];
-  usedMemoryTypes: string[];
-  hiddenExclusionCount: number;
-  incorrectExclusionCount: number;
-  createdTypes: SmokeCreatedMemoryType[];
-};
+} & SmokeAssistantPersistenceSharedFields;
