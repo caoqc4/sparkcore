@@ -4,6 +4,8 @@ import {
   isSmokeDirectProfessionQuestion,
   isSmokeDirectReplyStyleQuestion
 } from "@/lib/testing/smoke-answer-strategy";
+import { buildSmokeRememberedFactReply } from "@/lib/testing/smoke-direct-memory-fact-replies";
+import { buildSmokeDirectReplyStyleReply } from "@/lib/testing/smoke-direct-style-replies";
 
 type SmokeRelationshipRecallMemory = {
   memory_type: "relationship";
@@ -24,25 +26,15 @@ export function buildSmokeFactReply(args: {
   recalledMemories: SmokeRecallMemory[];
   addressStyleMemory: SmokeRelationshipRecallMemory;
 }) {
-  const rememberedProfession = args.recalledMemories.find(
-    (memory) =>
-      memory.memory_type === "profile" &&
-      memory.content.toLowerCase().includes("product designer")
-  );
-  const rememberedPlanningPreference = args.recalledMemories.find(
-    (memory) =>
-      memory.memory_type === "preference" &&
-      memory.content.toLowerCase().includes("concise weekly planning")
-  );
-
-  if (
-    args.normalizedContent.includes("product designer") &&
-    args.normalizedContent.includes("concise weekly planning")
-  ) {
-    return args.replyLanguage === "zh-Hans"
-      ? "谢谢，我知道你是一名产品设计师，并且偏好简洁的每周规划方式。"
-      : "Thanks. I understand that you work as a product designer and prefer concise weekly planning.";
+  const rememberedFactReply = buildSmokeRememberedFactReply({
+    replyLanguage: args.replyLanguage,
+    normalizedContent: args.normalizedContent,
+    recalledMemories: args.recalledMemories
+  });
+  if (typeof rememberedFactReply === "string") {
+    return rememberedFactReply;
   }
+  const { rememberedPlanningPreference, rememberedProfession } = rememberedFactReply;
 
   if (isSmokeDirectProfessionQuestion(args.content)) {
     if (!rememberedProfession) {
@@ -65,33 +57,10 @@ export function buildSmokeFactReply(args: {
   }
 
   if (isSmokeDirectReplyStyleQuestion(args.content)) {
-    const styleValue = args.addressStyleMemory?.content ?? null;
-
-    if (!styleValue) {
-      return args.replyLanguage === "zh-Hans" ? "我不知道。" : "I don't know.";
-    }
-
-    if (styleValue === "formal") {
-      return args.replyLanguage === "zh-Hans"
-        ? "你偏好我用更正式、更礼貌的方式回复你。"
-        : "You prefer that I reply in a more formal, respectful way.";
-    }
-
-    if (styleValue === "friendly") {
-      return args.replyLanguage === "zh-Hans"
-        ? "你偏好我更像朋友一样和你说话。"
-        : "You prefer that I speak to you in a more friendly, companion-like way.";
-    }
-
-    if (styleValue === "no_full_name") {
-      return args.replyLanguage === "zh-Hans"
-        ? "你偏好我不要用你的全名来称呼你。"
-        : "You prefer that I avoid addressing you by your full name.";
-    }
-
-    return args.replyLanguage === "zh-Hans"
-      ? "你偏好我用更轻松、不那么正式的方式回复你。"
-      : "You prefer that I reply in a more casual, less formal way.";
+    return buildSmokeDirectReplyStyleReply({
+      replyLanguage: args.replyLanguage,
+      styleValue: args.addressStyleMemory?.content ?? null
+    });
   }
 
   return null;
