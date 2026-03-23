@@ -156,6 +156,9 @@ export function buildCompactedThreadSummary(args: {
     retainedFields.includes("continuity_status")
       ? `Continuity: ${continuity}.`
       : null,
+    retainedFields.includes("current_language_hint")
+      ? `Language hint: ${args.threadState.current_language_hint}.`
+      : null,
     retainedFields.includes("recent_turn_window")
       ? `Recent turn window: ${args.recentTurnCount}.`
       : null,
@@ -208,6 +211,14 @@ export function getThreadCompactionRetentionDecision(args: {
     summary.retention_mode === "minimal"
   ) {
     return { retain: false, reason: "closed_minimal_pruned" as const };
+  }
+
+  if (
+    summary.lifecycle_status === "paused" &&
+    summary.retention_reason === "minimal_context" &&
+    summary.retention_budget <= 1
+  ) {
+    return { retain: false, reason: "minimal_context" as const };
   }
 
   return { retain: true, reason: summary.retention_reason };

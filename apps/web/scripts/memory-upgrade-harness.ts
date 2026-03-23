@@ -770,6 +770,29 @@ function main() {
     droppedCompactedThreadSummary === null,
     "Expected closed minimal thread compaction summary to be dropped by retention selection."
   );
+  const pausedMinimalCompactedThreadSummary =
+    selectRetainedThreadCompactionSummary({
+      compactedThreadSummary: buildCompactedThreadSummary({
+        threadState: {
+          thread_id: "thread-paused",
+          agent_id: "agent-1",
+          state_version: 1,
+          lifecycle_status: "paused",
+          continuity_status: null,
+          focus_mode: null,
+          current_language_hint: "en",
+          recent_turn_window_size: null,
+          last_user_message_id: null,
+          updated_at: "2026-03-23T00:00:00.000Z"
+        },
+        recentTurnCount: 1,
+        latestUserMessage: null
+      })
+    });
+  expect(
+    pausedMinimalCompactedThreadSummary === null,
+    "Expected paused minimal thread compaction summary to be dropped once retention budget leaves only a language hint in P4."
+  );
 
   const assistantMetadata = buildAssistantMessageMetadata(
     buildRuntimeAssistantMetadataInput({
@@ -943,6 +966,12 @@ function main() {
       "Retention budget: 2."
     ),
     "Expected assistant metadata reader to expose the retention budget inside the compacted summary text in P4."
+  );
+  expect(
+    !getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+      "Language hint: en."
+    ),
+    "Expected focus-anchor compaction summaries to prune current_language_hint from summary text once the retention budget is applied in P4."
   );
   expect(
     getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(

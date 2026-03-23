@@ -283,6 +283,13 @@
       收紧成 `focus_mode / continuity_status`
   - 也就是说，retention budget 当前已不再只是 summary 里的数字，而开始成为真实 pruning 行为
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` 下的 `retained_fields` 收紧
+  - `apps/web/lib/chat/thread-compaction.ts` 当前也已开始让 `current_language_hint` 在存活时进入真实 summary section：
+    - `Language hint: ...`
+  - 也就是说，retention budget 当前不仅影响 `retained_fields`，也开始真实影响 summary section composition
+  - keep/drop decision 当前也已开始进一步收紧：
+    - `paused + minimal_context + retention_budget <= 1`
+      的 compaction summary 会被主动丢弃
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 `focus_anchor` 下不会错误保留 `Language hint: en.`，以及 paused-minimal pruning
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

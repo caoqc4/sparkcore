@@ -171,6 +171,18 @@ P4 首批要把 `Thread retention` 从：
   - `focus_anchor` 摘要不会再保留第三个字段
   - runtime debug metadata 中的 `retained_fields` 已收紧成 `focus_mode,continuity_status`
 
+当前已成立的第三刀代码事实：
+
+- `apps/web/lib/chat/thread-compaction.ts` 当前已开始让 `current_language_hint` 在存活时进入真实 summary section：
+  - `Language hint: ...`
+- 也就是说，retention budget 当前不仅影响 `retained_fields`，也开始真实影响 summary section composition
+- 同时 keep/drop decision 当前也已开始进一步收紧：
+  - `paused + minimal_context + retention_budget <= 1`
+    的 compaction summary 会被主动丢弃
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - `focus_anchor` 摘要里不会再保留 `Language hint: en.`
+  - paused minimal summary 会被主动丢弃
+
 ### 4.3 Knowledge route influence v2
 
 P4 首批要把 `Knowledge` 从：
