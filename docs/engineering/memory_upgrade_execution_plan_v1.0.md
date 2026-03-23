@@ -22,6 +22,8 @@
 - 进入下一阶段时，请以 [memory_upgrade_p1_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p1_execution_plan_v1.0.md) 作为执行起点
 - 当前 P1 收官结论，请以 [memory_upgrade_p1_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p1_close_note_v1.0.md) 为准
 - 进入下一阶段时，请以 [memory_upgrade_p2_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p2_execution_plan_v1.0.md) 作为执行起点
+- 当前 P2 收官结论，请以 [memory_upgrade_p2_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p2_close_note_v1.0.md) 为准
+- 进入下一阶段时，请以 [memory_upgrade_p3_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p3_execution_plan_v1.0.md) 作为执行起点
 
 适用阶段：
 
