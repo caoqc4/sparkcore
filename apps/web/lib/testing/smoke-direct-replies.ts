@@ -2,6 +2,7 @@ import type {
   SmokeAnswerStrategy,
   SmokeReplyLanguage
 } from "@/lib/testing/smoke-assistant-builders";
+import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 import {
   isSmokeBriefGreetingRequest,
   isSmokeDirectNamingQuestion,
@@ -47,7 +48,7 @@ export function buildSmokeDirectOrGroundedReply({
   preferredNameMemory: SmokeRelationshipRecallMemory;
   recalledMemories: SmokeRecallMemory[];
 }) {
-  const normalized = content.toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
   const rememberedProfession = recalledMemories.find(
     (memory) =>
       memory.memory_type === "profile" &&

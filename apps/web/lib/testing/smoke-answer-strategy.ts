@@ -4,9 +4,10 @@ import type {
   SmokeAnswerStrategyReasonCode,
   SmokeContinuationReasonCode
 } from "@/lib/testing/smoke-assistant-builders";
+import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 
 export function isSmokeLightStyleSofteningPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     (normalized.includes("别太正式") &&
@@ -17,7 +18,7 @@ export function isSmokeLightStyleSofteningPrompt(content: string) {
 }
 
 export function isSmokeDirectNamingQuestion(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("你叫什么") ||
@@ -31,7 +32,7 @@ export function isSmokeDirectNamingQuestion(content: string) {
 }
 
 export function isSmokeDirectUserPreferredNameQuestion(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("你该怎么叫我") ||
@@ -49,7 +50,7 @@ export function isSmokeDirectUserPreferredNameQuestion(content: string) {
 }
 
 export function isSmokeBriefGreetingRequest(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("请简单和我打个招呼") ||
@@ -61,7 +62,7 @@ export function isSmokeBriefGreetingRequest(content: string) {
 }
 
 export function isSmokeSelfIntroGreetingRequest(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("请简单介绍一下你自己") ||
@@ -86,7 +87,7 @@ export function isSmokeRelationshipExplanatoryPrompt(content: string) {
 }
 
 export function isSmokeRelationshipHelpNextPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("接下来你会怎么帮助我") ||
@@ -103,7 +104,7 @@ export function isSmokeRelationshipHelpNextPrompt(content: string) {
 }
 
 export function isSmokeRelationshipRoughDayPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("如果我今天状态不太好") ||
@@ -117,7 +118,7 @@ export function isSmokeRelationshipRoughDayPrompt(content: string) {
 }
 
 export function isSmokeRelationshipSupportivePrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("鼓励我一句") ||
@@ -139,7 +140,7 @@ export function isSmokeRelationshipSupportivePrompt(content: string) {
 }
 
 export function isSmokeShortRelationshipSupportivePrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("鼓励我一句") ||
@@ -185,19 +186,19 @@ export function isSmokeShortRelationshipSupportivePrompt(content: string) {
 }
 
 export function isSmokeOneLineSoftCatchPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return normalized.includes("回我一句就好");
 }
 
 export function isSmokeBriefSteadyingPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return normalized.includes("缓一下") && normalized.includes("再说");
 }
 
 export function isSmokeGentleCarryForwardAfterSteadyingPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("缓一下") &&
@@ -206,13 +207,13 @@ export function isSmokeGentleCarryForwardAfterSteadyingPrompt(content: string) {
 }
 
 export function isSmokeGuidedNextStepAfterSteadyingPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return normalized.includes("陪我理一步");
 }
 
 export function isSmokeLightSharedPushPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("一起把这一点弄过去") ||
@@ -221,13 +222,13 @@ export function isSmokeLightSharedPushPrompt(content: string) {
 }
 
 export function isSmokeNonJudgingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return normalized.includes("别评判我") || normalized.includes("别数落我");
 }
 
 export function isSmokeAntiLecturingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别教育我") ||
@@ -237,7 +238,7 @@ export function isSmokeAntiLecturingFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiCorrectionFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别急着纠正我") ||
@@ -246,7 +247,7 @@ export function isSmokeAntiCorrectionFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiConclusionFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别给我下结论") ||
@@ -255,7 +256,7 @@ export function isSmokeAntiConclusionFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiLabelingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别给我定性") ||
@@ -264,7 +265,7 @@ export function isSmokeAntiLabelingFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiTaggingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别给我贴标签") ||
@@ -273,7 +274,7 @@ export function isSmokeAntiTaggingFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiMischaracterizationFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别把我说成那样") ||
@@ -282,13 +283,13 @@ export function isSmokeAntiMischaracterizationFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiOverreadingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return normalized.includes("别替我解读") || normalized.includes("别脑补我");
 }
 
 export function isSmokeAntiAnalysisFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别急着分析我") ||
@@ -297,7 +298,7 @@ export function isSmokeAntiAnalysisFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiProbingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别问我为什么") ||
@@ -307,13 +308,13 @@ export function isSmokeAntiProbingFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiRushingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return normalized.includes("别催我") || normalized.includes("别逼我");
 }
 
 export function isSmokeAntiSolutioningFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别急着帮我解决") ||
@@ -322,7 +323,7 @@ export function isSmokeAntiSolutioningFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiComfortingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别急着安慰我") ||
@@ -331,7 +332,7 @@ export function isSmokeAntiComfortingFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiAdviceFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别急着给我建议") ||
@@ -340,7 +341,7 @@ export function isSmokeAntiAdviceFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiMinimizingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别跟我说这没什么") ||
@@ -349,7 +350,7 @@ export function isSmokeAntiMinimizingFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiNormalizingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别跟我说大家都这样") ||
@@ -358,7 +359,7 @@ export function isSmokeAntiNormalizingFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiComparingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别拿别人跟我比") ||
@@ -367,7 +368,7 @@ export function isSmokeAntiComparingFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiRedirectionFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别转移话题") ||
@@ -376,7 +377,7 @@ export function isSmokeAntiRedirectionFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiDefinitionFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("别替我定义") ||
@@ -385,13 +386,13 @@ export function isSmokeAntiDefinitionFollowUpPrompt(content: string) {
 }
 
 export function isSmokeAntiCategorizingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return normalized.includes("别替我归类");
 }
 
 export function isSmokeSameSideFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("站我这边") ||
@@ -400,19 +401,19 @@ export function isSmokeSameSideFollowUpPrompt(content: string) {
 }
 
 export function isSmokeFriendLikeSoftFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return normalized.includes("继续陪我说一句");
 }
 
 export function isSmokeStayWithMeFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return normalized.includes("继续陪着我说就行");
 }
 
 export function isSmokeGentleResumeRhythmPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("慢慢继续和我说") ||
@@ -421,7 +422,7 @@ export function isSmokeGentleResumeRhythmPrompt(content: string) {
 }
 
 export function isSmokePresenceConfirmingFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("还在这儿陪我") ||
@@ -430,7 +431,7 @@ export function isSmokePresenceConfirmingFollowUpPrompt(content: string) {
 }
 
 export function isSmokeRelationshipClosingPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("最后你会怎么陪我把事情推进下去") ||
@@ -441,7 +442,7 @@ export function isSmokeRelationshipClosingPrompt(content: string) {
 }
 
 export function isSmokeShortRelationshipSummaryFollowUpPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("收一句就行") ||
@@ -464,7 +465,7 @@ export function isSmokeShortRelationshipSummaryFollowUpPrompt(content: string) {
 }
 
 export function isSmokeCompanionStyleExplanationCarryoverPrompt(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("简单陪我理一下") ||
@@ -483,7 +484,7 @@ export function isSmokeRelationshipAnswerShapePrompt(content: string) {
 }
 
 export function isSmokeDirectPlanningPreferenceQuestion(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("what planning style do i prefer") ||
@@ -495,7 +496,7 @@ export function isSmokeDirectPlanningPreferenceQuestion(content: string) {
 }
 
 export function isSmokeDirectProfessionQuestion(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("what profession do you remember") ||
@@ -509,7 +510,7 @@ export function isSmokeDirectProfessionQuestion(content: string) {
 }
 
 export function isSmokeDirectReplyStyleQuestion(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("what kind of reply style do i prefer") ||
@@ -523,7 +524,7 @@ export function isSmokeDirectReplyStyleQuestion(content: string) {
 }
 
 export function isSmokeOpenEndedPlanningHelpQuestion(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("how should we plan my week") ||
@@ -541,7 +542,7 @@ export function isSmokeOpenEndedPlanningHelpQuestion(content: string) {
 }
 
 export function isSmokeOpenEndedSummaryQuestion(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   return (
     normalized.includes("summarize what you know about me") ||
@@ -552,7 +553,7 @@ export function isSmokeOpenEndedSummaryQuestion(content: string) {
 }
 
 export function isSmokeFuzzyFollowUpQuestion(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
   const normalizedWithoutSpaces = normalized.replace(/\s+/g, "");
   const isShortKeepGoingPrompt = /^好[,，]?继续[。.!！?？]*$/u.test(
     normalizedWithoutSpaces

@@ -1,5 +1,10 @@
+import {
+  normalizeSmokePrompt,
+  normalizeSmokePromptText
+} from "@/lib/testing/smoke-prompt-normalization";
+
 export function detectSmokeNicknameCandidate(content: string) {
-  const normalized = content.normalize("NFKC").trim();
+  const normalized = normalizeSmokePromptText(content);
   const match = normalized.match(
     /以后(?:我)?叫你([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})可以吗/u
   );
@@ -8,7 +13,7 @@ export function detectSmokeNicknameCandidate(content: string) {
 }
 
 export function detectSmokeUserPreferredNameCandidate(content: string) {
-  const normalized = content.normalize("NFKC").trim();
+  const normalized = normalizeSmokePromptText(content);
   const patterns = [
     /以后你(?:可以)?叫我([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})可以吗/u,
     /你以后(?:可以)?叫我([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})/u,
@@ -31,7 +36,7 @@ export function detectSmokeUserPreferredNameCandidate(content: string) {
 }
 
 export function detectSmokeUserAddressStyleCandidate(content: string) {
-  const normalized = content.normalize("NFKC").trim().toLowerCase();
+  const normalized = normalizeSmokePrompt(content);
 
   if (
     normalized.includes("别叫我全名") ||

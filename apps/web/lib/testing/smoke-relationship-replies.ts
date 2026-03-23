@@ -35,6 +35,7 @@ import {
   isSmokeStayWithMeFollowUpPrompt
 } from "@/lib/testing/smoke-answer-strategy";
 import { detectSmokeUserAddressStyleCandidate } from "@/lib/testing/smoke-relationship-detection";
+import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
 import type {
   SmokeReplyLanguage
 } from "@/lib/testing/smoke-assistant-builders";
@@ -235,6 +236,8 @@ export function buildSmokeDefaultContinuationReply({
   userName: string | null;
   recentAssistantReply: SmokeContinuityReply | null;
 }) {
+  const normalized = normalizeSmokePrompt(content);
+
   if (replyLanguage === "zh-Hans") {
     const styleValue =
       addressStyleValue ?? detectSmokeUserAddressStyleCandidate(content);
@@ -264,7 +267,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeLightSharedPushPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("陪我把眼前这一下弄过去")) {
+      if (normalized.includes("陪我把眼前这一下弄过去")) {
         return userName
           ? `${userName}，好，我先陪你把眼前这一下弄过去。`
           : "好，我先陪你把眼前这一下弄过去。";
@@ -276,7 +279,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeNonJudgingFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别数落我")) {
+      if (normalized.includes("别数落我")) {
         return userName
           ? `${userName}，好，我先不数落你，就在这儿陪着你。`
           : "好，我先不数落你，就在这儿陪着你。";
@@ -288,13 +291,13 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiLecturingFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别给我上课")) {
+      if (normalized.includes("别给我上课")) {
         return userName
           ? `${userName}，好，我先不给你上课，就在这儿陪着你。`
           : "好，我先不给你上课，就在这儿陪着你。";
       }
 
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别跟我说教")) {
+      if (normalized.includes("别跟我说教")) {
         return userName
           ? `${userName}，好，我先不跟你说教，就在这儿陪着你。`
           : "好，我先不跟你说教，就在这儿陪着你。";
@@ -306,7 +309,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiCorrectionFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别老纠正我")) {
+      if (normalized.includes("别老纠正我")) {
         return userName
           ? `${userName}，好，我先不老纠正你，就在这儿陪着你。`
           : "好，我先不老纠正你，就在这儿陪着你。";
@@ -318,7 +321,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiConclusionFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别这么快下结论")) {
+      if (normalized.includes("别这么快下结论")) {
         return userName
           ? `${userName}，好，我先不这么快给你下结论，就在这儿陪着你。`
           : "好，我先不这么快给你下结论，就在这儿陪着你。";
@@ -342,7 +345,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiMischaracterizationFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别把我想成那样")) {
+      if (normalized.includes("别把我想成那样")) {
         return userName
           ? `${userName}，好，我先不急着把你想成那样，就在这儿陪着你。`
           : "好，我先不急着把你想成那样，就在这儿陪着你。";
@@ -354,7 +357,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiOverreadingFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别脑补我")) {
+      if (normalized.includes("别脑补我")) {
         return userName
           ? `${userName}，好，我先不急着脑补你，就在这儿陪着你。`
           : "好，我先不急着脑补你，就在这儿陪着你。";
@@ -372,7 +375,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiProbingFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别盘问我")) {
+      if (normalized.includes("别盘问我")) {
         return userName
           ? `${userName}，好，我先不盘问你，就在这儿陪着你。`
           : "好，我先不盘问你，就在这儿陪着你。";
@@ -384,7 +387,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiRushingFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别逼我")) {
+      if (normalized.includes("别逼我")) {
         return userName
           ? `${userName}，好，我先不逼你，就在这儿陪着你。`
           : "好，我先不逼你，就在这儿陪着你。";
@@ -396,7 +399,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiSolutioningFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别上来就帮我解决")) {
+      if (normalized.includes("别上来就帮我解决")) {
         return userName
           ? `${userName}，好，我先不上来就帮你解决，就在这儿陪着你。`
           : "好，我先不上来就帮你解决，就在这儿陪着你。";
@@ -408,7 +411,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiComfortingFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别给我打气")) {
+      if (normalized.includes("别给我打气")) {
         return userName
           ? `${userName}，好，我先不给你打气，就在这儿陪着你。`
           : "好，我先不给你打气，就在这儿陪着你。";
@@ -420,7 +423,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiAdviceFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别上来就给我建议")) {
+      if (normalized.includes("别上来就给我建议")) {
         return userName
           ? `${userName}，好，我先不上来就给你建议，就在这儿陪着你。`
           : "好，我先不上来就给你建议，就在这儿陪着你。";
@@ -432,7 +435,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiMinimizingFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别跟我说没什么大不了")) {
+      if (normalized.includes("别跟我说没什么大不了")) {
         return userName
           ? `${userName}，好，我先不跟你说没什么大不了，就在这儿陪着你。`
           : "好，我先不跟你说没什么大不了，就在这儿陪着你。";
@@ -444,7 +447,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiNormalizingFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别跟我说谁都会这样")) {
+      if (normalized.includes("别跟我说谁都会这样")) {
         return userName
           ? `${userName}，好，我先不跟你说谁都会这样，就在这儿陪着你。`
           : "好，我先不跟你说谁都会这样，就在这儿陪着你。";
@@ -456,7 +459,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiComparingFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别老拿别人跟我比")) {
+      if (normalized.includes("别老拿别人跟我比")) {
         return userName
           ? `${userName}，好，我先不老拿别人跟你比，就在这儿陪着你。`
           : "好，我先不老拿别人跟你比，就在这儿陪着你。";
@@ -468,7 +471,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeAntiRedirectionFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别岔开话题")) {
+      if (normalized.includes("别岔开话题")) {
         return userName
           ? `${userName}，好，我先不岔开话题，就在这儿陪着你。`
           : "好，我先不岔开话题，就在这儿陪着你。";
@@ -498,7 +501,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeSameSideFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("别跟我讲道理")) {
+      if (normalized.includes("别跟我讲道理")) {
         return userName
           ? `${userName}，好，我先站你这边陪着你，不跟你讲道理。`
           : "好，我先站你这边陪着你，不跟你讲道理。";
@@ -522,7 +525,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokeGentleResumeRhythmPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("顺着刚才那样继续说")) {
+      if (normalized.includes("顺着刚才那样继续说")) {
         return userName
           ? `${userName}，好，我就顺着刚才那样接着说。`
           : "好，我就顺着刚才那样接着说。";
@@ -534,7 +537,7 @@ export function buildSmokeDefaultContinuationReply({
     }
 
     if (isSmokePresenceConfirmingFollowUpPrompt(content)) {
-      if (content.normalize("NFKC").trim().toLowerCase().includes("先别走开")) {
+      if (normalized.includes("先别走开")) {
         return userName
           ? `${userName}，好，我先不走开，就在这儿陪着你。`
           : "好，我先不走开，就在这儿陪着你。";
