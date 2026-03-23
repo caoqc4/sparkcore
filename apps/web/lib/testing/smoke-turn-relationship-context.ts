@@ -4,27 +4,9 @@ import {
   isSmokeRelationshipContinuationEdgePrompt
 } from "@/lib/testing/smoke-answer-strategy";
 import { selectSmokeRelationshipMemories } from "@/lib/testing/smoke-relationship-memory-selection";
-import type { SmokeContinuityReply } from "@/lib/testing/smoke-reply-analysis";
+import type { SmokeTurnRelationshipContextInput } from "@/lib/testing/smoke-turn-relationship-context-types";
 
-export function getSmokeTurnRelationshipContext(args: {
-  trimmedContent: string;
-  activeMemories: Array<{
-    category: string | null;
-    scope: string | null;
-    target_agent_id: string | null;
-    content: string;
-    confidence: number;
-    key: string | null;
-    value: string | null;
-  }>;
-  agentId: string;
-  recentAssistantReply: SmokeContinuityReply | null;
-  recalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }>;
-}) {
+export function getSmokeTurnRelationshipContext(args: SmokeTurnRelationshipContextInput) {
   const relationshipStylePrompt =
     isSmokeRelationshipAnswerShapePrompt(args.trimmedContent);
   const sameThreadContinuity = args.recentAssistantReply !== null;

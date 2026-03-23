@@ -4,7 +4,7 @@ import {
   detectSmokeUserPreferredNameCandidate
 } from "@/lib/testing/smoke-relationship-detection";
 import { ensureSmokeRelationshipMemory } from "@/lib/testing/smoke-memory-seeding";
-import { writeSmokeRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-write";
+import { applySmokeRelationshipMemoryUpdate } from "@/lib/testing/smoke-relationship-memory-update-step";
 
 export async function applySmokeRelationshipMemoryUpdates(args: {
   supabase: Parameters<typeof ensureSmokeRelationshipMemory>[0]["supabase"];
@@ -24,65 +24,50 @@ export async function applySmokeRelationshipMemoryUpdates(args: {
     args.trimmedContent
   );
 
-  if (smokeNickname) {
-    const result = await writeSmokeRelationshipMemory({
-      supabase: args.supabase,
-      workspaceId: args.workspaceId,
-      userId: args.userId,
-      agentId: args.agentId,
-      sourceMessageId: args.sourceMessageId,
-      key: "agent_nickname",
-      value: smokeNickname,
-      confidence: 0.96,
-      stability: "high",
-      errorLabel: "nickname",
-      metadataBuilder: args.relationshipSeedMetadataBuilder
-    });
+  await applySmokeRelationshipMemoryUpdate({
+    supabase: args.supabase,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    agentId: args.agentId,
+    sourceMessageId: args.sourceMessageId,
+    key: "agent_nickname",
+    value: smokeNickname,
+    confidence: 0.96,
+    stability: "high",
+    errorLabel: "nickname",
+    relationshipSeedMetadataBuilder: args.relationshipSeedMetadataBuilder,
+    createdTypes
+  });
 
-    if (result.created) {
-      createdTypes.push("relationship");
-    }
-  }
+  await applySmokeRelationshipMemoryUpdate({
+    supabase: args.supabase,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    agentId: args.agentId,
+    sourceMessageId: args.sourceMessageId,
+    key: "user_preferred_name",
+    value: smokePreferredName,
+    confidence: 0.94,
+    stability: "high",
+    errorLabel: "preferred-name",
+    relationshipSeedMetadataBuilder: args.relationshipSeedMetadataBuilder,
+    createdTypes
+  });
 
-  if (smokePreferredName) {
-    const result = await writeSmokeRelationshipMemory({
-      supabase: args.supabase,
-      workspaceId: args.workspaceId,
-      userId: args.userId,
-      agentId: args.agentId,
-      sourceMessageId: args.sourceMessageId,
-      key: "user_preferred_name",
-      value: smokePreferredName,
-      confidence: 0.94,
-      stability: "high",
-      errorLabel: "preferred-name",
-      metadataBuilder: args.relationshipSeedMetadataBuilder
-    });
-
-    if (result.created) {
-      createdTypes.push("relationship");
-    }
-  }
-
-  if (smokeUserAddressStyle) {
-    const result = await writeSmokeRelationshipMemory({
-      supabase: args.supabase,
-      workspaceId: args.workspaceId,
-      userId: args.userId,
-      agentId: args.agentId,
-      sourceMessageId: args.sourceMessageId,
-      key: "user_address_style",
-      value: smokeUserAddressStyle,
-      confidence: 0.9,
-      stability: "medium",
-      errorLabel: "address-style",
-      metadataBuilder: args.relationshipSeedMetadataBuilder
-    });
-
-    if (result.created) {
-      createdTypes.push("relationship");
-    }
-  }
+  await applySmokeRelationshipMemoryUpdate({
+    supabase: args.supabase,
+    workspaceId: args.workspaceId,
+    userId: args.userId,
+    agentId: args.agentId,
+    sourceMessageId: args.sourceMessageId,
+    key: "user_address_style",
+    value: smokeUserAddressStyle,
+    confidence: 0.9,
+    stability: "medium",
+    errorLabel: "address-style",
+    relationshipSeedMetadataBuilder: args.relationshipSeedMetadataBuilder,
+    createdTypes
+  });
 
   return {
     createdTypes,
