@@ -1,11 +1,6 @@
-import { loadThreadMessages } from "@/lib/chat/message-read";
-import { loadRecentOwnedMemories } from "@/lib/chat/memory-item-read";
-import {
-  loadActiveModelProfileById,
-  loadOwnedActiveAgent,
-  loadOwnedThread
-} from "@/lib/chat/runtime-turn-context";
+import { loadSmokeBoundThreadContext } from "@/lib/testing/smoke-turn-bound-context";
 import { getSmokeConfig } from "@/lib/testing/smoke-config";
+import { loadSmokeTurnExistingState } from "@/lib/testing/smoke-turn-existing-state";
 import {
   ensureSmokeUser,
   getSmokeAdminClient
@@ -24,74 +19,19 @@ export async function loadSmokeTurnContext(args: {
 
   const admin = getSmokeAdminClient(config);
   const smokeUser = await ensureSmokeUser(admin, config);
-
-  const { data: thread, error: threadError } = await loadOwnedThread({
+  const { thread, agent, modelProfile } = await loadSmokeBoundThreadContext({
     supabase: admin,
     threadId: args.threadId,
     workspaceId: smokeUser.workspaceId,
     userId: smokeUser.id
   });
-
-  if (threadError || !thread) {
-    throw new Error(
-      threadError?.message ?? "The requested smoke thread is unavailable."
-    );
-  }
-
-  if (!thread.agent_id) {
-    throw new Error("The smoke thread is not bound to an agent.");
-  }
-
-  const { data: agent, error: agentError } = await loadOwnedActiveAgent({
-    supabase: admin,
-    agentId: thread.agent_id,
-    workspaceId: smokeUser.workspaceId,
-    userId: smokeUser.id
-  });
-
-  if (agentError || !agent) {
-    throw new Error(
-      agentError?.message ?? "The bound smoke agent is unavailable."
-    );
-  }
-
-  const { data: modelProfile, error: modelProfileError } =
-    await loadActiveModelProfileById({
+  const { existingMemories, existingMessages } =
+    await loadSmokeTurnExistingState({
       supabase: admin,
-      modelProfileId: agent.default_model_profile_id
-    });
-
-  if (modelProfileError || !modelProfile) {
-    throw new Error(
-      modelProfileError?.message ??
-        "The bound smoke model profile is unavailable."
-    );
-  }
-
-  const { data: existingMemories, error: memoriesError } =
-    await loadRecentOwnedMemories({
-      supabase: admin,
+      threadId: thread.id,
       workspaceId: smokeUser.workspaceId,
-      userId: smokeUser.id,
-      select:
-        "id, memory_type, content, confidence, category, key, value, scope, status, target_agent_id, target_thread_id, metadata",
-      limit: 200
+      userId: smokeUser.id
     });
-
-  if (memoriesError) {
-    throw new Error(`Failed to load smoke memories: ${memoriesError.message}`);
-  }
-
-  const { data: existingMessages, error: messagesError } = await loadThreadMessages({
-    supabase: admin,
-    threadId: thread.id,
-    workspaceId: smokeUser.workspaceId,
-    select: "role, content, status, metadata"
-  });
-
-  if (messagesError) {
-    throw new Error(`Failed to load smoke messages: ${messagesError.message}`);
-  }
 
   return {
     admin,
