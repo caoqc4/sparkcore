@@ -9,6 +9,8 @@ import {
   getAssistantExplanationMetadata,
   getAssistantIncorrectMemoryExclusionCount,
   getAssistantMemoryHitCount,
+  getAssistantMemoryObservedSemanticLayers,
+  getAssistantMemoryPrimarySemanticLayer,
   getAssistantMemoryTypesUsed,
   getAssistantMemoryUsed,
   getAssistantMetadataNumber,
@@ -232,6 +234,10 @@ function getRuntimeSummary(
   const underlyingModelLabel = getAssistantUnderlyingModelLabel(fallbackMetadata);
   const memoryHitCount = getAssistantMemoryHitCount(fallbackMetadata);
   const memoryUsed = getAssistantMemoryUsed(fallbackMetadata);
+  const memoryPrimarySemanticLayer =
+    getAssistantMemoryPrimarySemanticLayer(fallbackMetadata);
+  const memoryObservedSemanticLayers =
+    getAssistantMemoryObservedSemanticLayers(fallbackMetadata);
   const normalizedMemoryTypesUsed = getAssistantMemoryTypesUsed(fallbackMetadata);
   const memoryWriteTypes = getAssistantMemoryWriteTypes(fallbackMetadata);
   const hiddenExclusionCount =
@@ -260,6 +266,20 @@ function getRuntimeSummary(
           ? "否"
           : "No";
   const outcomeHints: string[] = [];
+  const semanticLayerLabel =
+    memoryPrimarySemanticLayer === "static_profile"
+      ? isZh
+        ? "主要依赖静态画像。"
+        : "Primarily relied on static profile memory."
+      : memoryPrimarySemanticLayer === "memory_record"
+        ? isZh
+          ? "主要依赖记忆记录。"
+          : "Primarily relied on memory records."
+        : memoryPrimarySemanticLayer === "thread_state"
+          ? isZh
+            ? "主要依赖线程状态。"
+            : "Primarily relied on thread-state context."
+          : null;
   const memoryActivityLabel =
     newMemoryCount > 0
       ? isZh
@@ -322,6 +342,18 @@ function getRuntimeSummary(
       isZh
         ? `线程连续性：${threadStateContinuityStatus}`
         : `Thread continuity: ${threadStateContinuityStatus}`
+    );
+  }
+
+  if (semanticLayerLabel) {
+    outcomeHints.push(semanticLayerLabel);
+  }
+
+  if (memoryObservedSemanticLayers.length > 1) {
+    outcomeHints.push(
+      isZh
+        ? `注入层：${memoryObservedSemanticLayers.join(" + ")}`
+        : `Injected layers: ${memoryObservedSemanticLayers.join(" + ")}`
     );
   }
 

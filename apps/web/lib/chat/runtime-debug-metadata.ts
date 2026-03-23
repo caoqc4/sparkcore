@@ -1,11 +1,13 @@
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type { RuntimeThreadStateRecall } from "@/lib/chat/memory-recall";
+import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
 
 export type BuildRuntimeDebugMetadataInput = {
   model_profile_id: string;
   answer_strategy: string;
   answer_strategy_reason_code: string | null;
   recalled_memory_count: number;
+  memory_types_used: string[];
   memory_recall_routes: Array<"profile" | "episode" | "timeline" | "thread_state">;
   profile_snapshot: string[];
   memory_write_request_count: number;
@@ -28,8 +30,15 @@ export function buildRuntimeDebugMetadata(
     },
     memory: {
       recalled_count: input.recalled_memory_count,
+      types_used: input.memory_types_used,
       routes: input.memory_recall_routes,
       profile_snapshot: input.profile_snapshot,
+      semantic_summary: buildRuntimeMemorySemanticSummary({
+        memoryTypesUsed: input.memory_types_used,
+        profileSnapshot: input.profile_snapshot,
+        hasThreadState: Boolean(input.thread_state_recall?.applied),
+        threadStateFocusMode: input.thread_state_recall?.snapshot?.focus_mode ?? null
+      }),
       write_request_count: input.memory_write_request_count
     },
     follow_up: {

@@ -3727,6 +3727,12 @@ export async function runPreparedRuntimeTurn({
       answer_strategy: answerStrategy,
       answer_strategy_reason_code: answerStrategyReasonCode,
       recalled_memory_count: allRecalledMemories.length,
+      memory_types_used:
+        relationshipMemories.length > 0
+          ? Array.from(
+              new Set([...memoryRecall.usedMemoryTypes, "relationship" as const])
+            )
+          : memoryRecall.usedMemoryTypes,
       memory_recall_routes: memoryRecall.appliedRoutes,
       profile_snapshot: recalledProfileSnapshot,
       memory_write_request_count: memoryWriteRequests.length,

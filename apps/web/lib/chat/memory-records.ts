@@ -21,6 +21,11 @@ export type LegacyMemorySemanticTarget =
   | "thread_state_candidate"
   | "legacy_unsupported";
 
+export type RuntimeMemorySemanticLayer =
+  | "static_profile"
+  | "memory_record"
+  | "thread_state";
+
 function buildProfileIdentity(memory: StoredMemory) {
   const userId = memory.subject_user_id ?? "unknown_user";
   const agentId =
@@ -176,4 +181,53 @@ export function buildRecalledStaticProfileSnapshot(
         .filter((content) => content.length > 0)
     )
   ).slice(0, 5);
+}
+
+export function buildRuntimeMemorySemanticSummary(args: {
+  memoryTypesUsed: string[];
+  profileSnapshot: string[];
+  hasThreadState: boolean;
+  threadStateFocusMode?: string | null;
+}) {
+  const observedLayers: RuntimeMemorySemanticLayer[] = [];
+  const usesProfile =
+    args.profileSnapshot.length > 0 ||
+    args.memoryTypesUsed.some(
+      (type) => type === "profile" || type === "preference"
+    );
+  const usesMemoryRecord = args.memoryTypesUsed.includes("relationship");
+  const usesThreadState = args.hasThreadState;
+
+  if (usesProfile) {
+    observedLayers.push("static_profile");
+  }
+
+  if (usesMemoryRecord) {
+    observedLayers.push("memory_record");
+  }
+
+  if (usesThreadState) {
+    observedLayers.push("thread_state");
+  }
+
+  let primaryLayer: RuntimeMemorySemanticLayer | null = null;
+
+  if (args.threadStateFocusMode && args.threadStateFocusMode.trim().length > 0) {
+    primaryLayer = "thread_state";
+  } else if (usesProfile && !usesMemoryRecord) {
+    primaryLayer = "static_profile";
+  } else if (usesMemoryRecord && !usesProfile) {
+    primaryLayer = "memory_record";
+  } else if (usesProfile) {
+    primaryLayer = "static_profile";
+  } else if (usesMemoryRecord) {
+    primaryLayer = "memory_record";
+  } else if (usesThreadState) {
+    primaryLayer = "thread_state";
+  }
+
+  return {
+    primary_layer: primaryLayer,
+    observed_layers: observedLayers
+  };
 }

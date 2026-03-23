@@ -211,6 +211,10 @@ P0 只做一件事：
 - `static_profile` 当前也已开始进入真实 profile recall 主路径，而不再只是停留在 write candidate seam
 - `thread_state` route 当前也已开始通过正式 route selection 输入，而不再只在 recall 后补入 `appliedRoutes`
 - `static_profile` 当前也已开始进入 runtime metadata 注入层，最小 `profile_snapshot` 已可见
+- runtime / assistant metadata 当前也已开始显式暴露最小 `memory.semantic_summary`：
+  - `primary_layer`
+  - `observed_layers`
+- chat runtime summary 当前也已开始消费这层 `memory.semantic_summary`
 - 当前已正式收口的 route name 包括：
   - `profile`
   - `episode`

@@ -43,6 +43,13 @@ export function getAssistantMemoryMetadata(
   return getAssistantMetadataGroup(metadata, "memory");
 }
 
+export function getAssistantMemorySemanticSummaryMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const memoryMetadata = getAssistantMemoryMetadata(metadata);
+  return getAssistantMetadataGroup(memoryMetadata, "semantic_summary");
+}
+
 export function getAssistantAnswerStrategyMetadata(
   metadata: Record<string, unknown> | null | undefined
 ) {
@@ -320,6 +327,24 @@ export function getAssistantMemoryWriteTypes(
     metadata,
     "memory_write_types"
   );
+}
+
+export function getAssistantMemoryPrimarySemanticLayer(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const semanticSummaryMetadata =
+    getAssistantMemorySemanticSummaryMetadata(metadata);
+
+  return getAssistantMetadataString(semanticSummaryMetadata, "primary_layer");
+}
+
+export function getAssistantMemoryObservedSemanticLayers(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const semanticSummaryMetadata =
+    getAssistantMemorySemanticSummaryMetadata(metadata);
+
+  return getAssistantMetadataStringArray(semanticSummaryMetadata, "observed_layers");
 }
 
 export function getAssistantNewMemoryCount(

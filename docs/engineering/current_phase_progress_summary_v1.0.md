@@ -112,6 +112,10 @@
 - `static_profile` 当前也已开始进入真实 profile recall 主路径
 - `thread_state` route 当前也已开始通过正式 route selection 输入，而不再只在 recall 后补入 `appliedRoutes`
 - `static_profile` 当前也已开始进入 runtime metadata 注入层，最小 `profile_snapshot` 已可见
+- runtime / assistant metadata 当前也已开始显式暴露最小 `memory.semantic_summary`：
+  - `primary_layer`
+  - `observed_layers`
+- chat runtime summary 当前也已开始消费这层 `memory.semantic_summary`
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`
 

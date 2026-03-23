@@ -1,6 +1,7 @@
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type { ReplyLanguageSource, RoleCorePacket, RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
+import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
 
 type RecalledMemoryMetadataItem = {
   memory_type: string | null;
@@ -128,6 +129,16 @@ export function buildAssistantMetadataSummaryGroups(
       used: input.memory_used,
       types_used: input.memory_types_used,
       profile_snapshot: input.profile_snapshot,
+      semantic_summary: buildRuntimeMemorySemanticSummary({
+        memoryTypesUsed: input.memory_types_used,
+        profileSnapshot: input.profile_snapshot,
+        hasThreadState:
+          Boolean(input.thread_state_lifecycle_status) ||
+          Boolean(input.thread_state_focus_mode) ||
+          Boolean(input.thread_state_continuity_status) ||
+          Boolean(input.thread_state_current_language_hint),
+        threadStateFocusMode: input.thread_state_focus_mode ?? null
+      }),
       hidden_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_exclusion_count: input.incorrect_memory_exclusion_count
     },
