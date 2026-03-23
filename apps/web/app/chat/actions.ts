@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { classifyAssistantError } from "@/lib/chat/assistant-error";
 import {
   canTransitionMemoryStatus,
   getMemoryStatus,
@@ -26,7 +27,6 @@ import {
   persistAssistantRequestPreviews,
   processAssistantRuntimePostProcessing
 } from "@/lib/chat/runtime-turn-post-processing";
-import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 import {
   CHAT_UI_LANGUAGE_COOKIE,
   resolveChatLocale
@@ -52,7 +52,6 @@ export type RenameAgentResult =
   | { ok: true; agentId: string; agentName: string }
   | { ok: false; agentId: string | null; message: string };
 
-type AssistantErrorType = "timeout" | "provider_error" | "generation_failed";
 type ChatFeedbackTone = "success" | "error";
 
 function summarizeThreadTitle(content: string) {
@@ -112,38 +111,6 @@ function normalizeAvatarEmoji(value: string) {
   }
 
   return normalized.slice(0, 8).trim();
-}
-
-function classifyAssistantError(error: unknown): {
-  errorType: AssistantErrorType;
-  message: string;
-} {
-  if (error instanceof LiteLLMTimeoutError) {
-    return {
-      errorType: "timeout",
-      message:
-        "Assistant reply timed out. You can retry this turn without resending your message."
-    };
-  }
-
-  if (error instanceof LiteLLMError) {
-    return {
-      errorType: "provider_error",
-      message: `Provider error: ${error.message}`
-    };
-  }
-
-  if (error instanceof Error) {
-    return {
-      errorType: "generation_failed",
-      message: error.message
-    };
-  }
-
-  return {
-    errorType: "generation_failed",
-    message: "Failed to generate an assistant reply."
-  };
 }
 
 function buildChatRedirectTarget(threadId: FormDataEntryValue | null) {

@@ -3,6 +3,7 @@ import {
   type AdapterRuntimeOutput,
   type AdapterRuntimePort
 } from "@/lib/integrations/im-adapter";
+import { classifyAssistantError } from "@/lib/chat/assistant-error";
 import {
   insertPendingAssistantMessage,
   markAssistantMessageFailed
@@ -16,10 +17,7 @@ import { insertRuntimeUserMessage } from "@/lib/chat/runtime-user-message-persis
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
 import { resolveRoleProfile } from "@/lib/chat/role-service";
 import { runAgentTurn } from "@/lib/chat/runtime";
-import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-type AssistantErrorType = "timeout" | "provider_error" | "generation_failed";
 
 function summarizeThreadTitle(content: string) {
   const normalized = content.replace(/\s+/g, " ").trim();
@@ -29,38 +27,6 @@ function summarizeThreadTitle(content: string) {
   }
 
   return `${normalized.slice(0, 45).trimEnd()}...`;
-}
-
-function classifyAssistantError(error: unknown): {
-  errorType: AssistantErrorType;
-  message: string;
-} {
-  if (error instanceof LiteLLMTimeoutError) {
-    return {
-      errorType: "timeout",
-      message:
-        "Assistant reply timed out. You can retry this turn without resending your message."
-    };
-  }
-
-  if (error instanceof LiteLLMError) {
-    return {
-      errorType: "provider_error",
-      message: `Provider error: ${error.message}`
-    };
-  }
-
-  if (error instanceof Error) {
-    return {
-      errorType: "generation_failed",
-      message: error.message
-    };
-  }
-
-  return {
-    errorType: "generation_failed",
-    message: "Failed to generate an assistant reply."
-  };
 }
 
 async function runImRuntimeTurnWithSupabase(args: {
