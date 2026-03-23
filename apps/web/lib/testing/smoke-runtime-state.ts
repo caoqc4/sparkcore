@@ -6,14 +6,12 @@ import { deleteOwnedMemoryItems } from "@/lib/chat/memory-item-persistence";
 import {
   deleteOwnedAgents,
   deleteOwnedThreads,
-  loadActiveModelProfilesBySlugs,
-  loadActivePersonaPacksBySlugs
+  loadActiveModelProfilesBySlugs
 } from "@/lib/chat/runtime-turn-context";
+import { seedSmokeAgentState } from "@/lib/testing/smoke-agent-seeding";
 import {
   getSmokeModelProfiles,
-  insertSmokeSeedAgents,
-  upsertSmokeModelProfiles,
-  upsertSmokeWorkspace
+  upsertSmokeModelProfiles
 } from "@/lib/testing/smoke-seed-persistence";
 import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
 
@@ -117,51 +115,9 @@ export async function seedSmokeAgents(
   user: SmokeUser,
   modelProfiles: Array<{ id: string; slug: string; name: string }>
 ) {
-  const { data: personaPacks, error: personaPacksError } = await loadActivePersonaPacksBySlugs({
-    supabase: admin,
-    slugs: ["spark-guide", "memory-coach"]
-  });
-
-  if (personaPacksError || !personaPacks || personaPacks.length < 2) {
-    throw new Error(
-      personaPacksError?.message ??
-        "Expected seeded persona packs for the smoke workspace."
-    );
-  }
-
-  const activePersonaPacks = personaPacks as Array<{
-    id: string;
-    slug: string;
-    name: string;
-    description: string | null;
-    persona_summary: string;
-    style_prompt: string;
-    system_prompt: string;
-  }>;
-
-  const sparkGuidePack = activePersonaPacks.find(
-    (pack) => pack.slug === "spark-guide"
-  );
-  const memoryCoachPack = activePersonaPacks.find(
-    (pack) => pack.slug === "memory-coach"
-  );
-  const defaultProfile = modelProfiles.find((profile) => profile.slug === "spark-default");
-  const altProfile = modelProfiles.find((profile) => profile.slug === "smoke-alt");
-
-  if (!sparkGuidePack || !memoryCoachPack || !defaultProfile || !altProfile) {
-    throw new Error("Smoke seed dependencies are incomplete.");
-  }
-
-  const { error: insertAgentsError } = await insertSmokeSeedAgents({
+  await seedSmokeAgentState({
     admin,
     user,
-    sparkGuidePack,
-    memoryCoachPack,
-    defaultProfileId: defaultProfile.id,
-    altProfileId: altProfile.id
+    modelProfiles
   });
-
-  if (insertAgentsError) {
-    throw new Error(`Failed to seed smoke agents: ${insertAgentsError.message}`);
-  }
 }
