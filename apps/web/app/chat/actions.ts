@@ -18,8 +18,10 @@ import {
 } from "@/lib/chat/runtime-user-message-persistence";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
+  createOwnedAgent,
   createOwnedThread,
   loadOwnedActiveAgent,
+  loadOwnedAvailableAgents,
   loadOwnedThread,
   loadPrimaryWorkspace,
   updateOwnedThread
@@ -223,26 +225,24 @@ export async function createAgentFromPersonaPack(
     personaPack.name
   );
 
-  const { data: createdAgent, error } = await supabase
-    .from("agents")
-    .insert({
-      workspace_id: workspace.id,
-      owner_user_id: user.id,
-      source_persona_pack_id: personaPack.id,
-      name: agentName,
-      persona_summary: personaPack.persona_summary,
-      style_prompt: personaPack.style_prompt,
-      system_prompt: personaPack.system_prompt,
-      default_model_profile_id: defaultModelProfile.id,
-      is_custom: false,
-      metadata: buildAgentSourceMetadata({
-        createdFromChat: true,
-        sourceSlug: personaPack.slug,
-        sourceDescription: personaPack.description
-      })
-    })
-    .select("id, name")
-    .single();
+  const { data: createdAgent, error } = await createOwnedAgent({
+    supabase,
+    workspaceId: workspace.id,
+    userId: user.id,
+    sourcePersonaPackId: personaPack.id,
+    name: agentName,
+    personaSummary: personaPack.persona_summary,
+    stylePrompt: personaPack.style_prompt,
+    systemPrompt: personaPack.system_prompt,
+    defaultModelProfileId: defaultModelProfile.id,
+    isCustom: false,
+    metadata: buildAgentSourceMetadata({
+      createdFromChat: true,
+      sourceSlug: personaPack.slug,
+      sourceDescription: personaPack.description
+    }),
+    select: "id, name"
+  });
 
   if (error || !createdAgent) {
     return {
@@ -486,25 +486,20 @@ export async function setDefaultAgent(formData: FormData) {
     redirect("/login");
   }
 
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("id")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data: workspace } = await loadPrimaryWorkspace({
+    supabase,
+    userId: user.id
+  });
 
   if (!workspace) {
     redirect("/workspace");
   }
 
-  const { data: activeAgents, error: activeAgentsError } = await supabase
-    .from("agents")
-    .select("id, metadata")
-    .eq("workspace_id", workspace.id)
-    .eq("owner_user_id", user.id)
-    .eq("status", "active")
-    .order("updated_at", { ascending: false });
+  const { data: activeAgents, error: activeAgentsError } = await loadOwnedAvailableAgents({
+    supabase,
+    workspaceId: workspace.id,
+    userId: user.id
+  });
 
   if (activeAgentsError || !activeAgents) {
     redirect(
@@ -515,7 +510,12 @@ export async function setDefaultAgent(formData: FormData) {
     );
   }
 
-  if (!activeAgents.some((agent) => agent.id === agentId)) {
+  const activeAgentList = activeAgents as Array<{
+    id: string;
+    metadata: Record<string, unknown> | null;
+  }>;
+
+  if (!activeAgentList.some((agent) => agent.id === agentId)) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
@@ -524,7 +524,7 @@ export async function setDefaultAgent(formData: FormData) {
     );
   }
 
-  for (const activeAgent of activeAgents) {
+  for (const activeAgent of activeAgentList) {
     const nextMetadata = { ...(activeAgent.metadata ?? {}) } as Record<string, unknown>;
 
     if (activeAgent.id === agentId) {
