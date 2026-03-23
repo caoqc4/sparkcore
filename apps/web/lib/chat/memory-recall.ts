@@ -47,18 +47,20 @@ export function selectMemoryRecallRoutes(args: {
 }): MemoryRecallRoute[] {
   void args.latestUserMessage;
 
-  const routes: MemoryRecallRoute[] = args.hasThreadState
-    ? ["thread_state", "profile", "episode"]
-    : ["profile", "episode"];
   const namespaceBoundary = resolveRuntimeMemoryBoundary(
     args.activeNamespace ?? null
   );
+  return namespaceBoundary.retrieval_route_order.filter((route) => {
+    if (route === "thread_state") {
+      return args.hasThreadState;
+    }
 
-  if (args.allowDistantFallback && namespaceBoundary.allow_timeline_fallback) {
-    routes.push("timeline");
-  }
+    if (route === "timeline") {
+      return args.allowDistantFallback && namespaceBoundary.allow_timeline_fallback;
+    }
 
-  return routes;
+    return true;
+  });
 }
 
 function isMemoryApplicableToRecall({

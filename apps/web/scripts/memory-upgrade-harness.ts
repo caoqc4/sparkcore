@@ -315,6 +315,13 @@ function main() {
     "Expected thread-primary namespace to resolve a thread retrieval/write boundary in P4."
   );
   expect(
+    threadBoundary.retrieval_route_order.join(",") ===
+      "thread_state,profile,episode" &&
+      threadBoundary.write_fallback_order.join(",") ===
+        "thread,project,world,default",
+    "Expected thread-primary namespace to expose explicit retrieval/write order in P5."
+  );
+  expect(
     threadBoundary.allow_timeline_fallback === false,
     "Expected thread-primary namespace to disable timeline fallback in P4."
   );
@@ -362,6 +369,12 @@ function main() {
       projectBoundary.timeline_budget === 1 &&
       projectBoundary.parallel_timeline_budget === 1,
     "Expected project-primary namespace to expose a multi-budget route profile in P5."
+  );
+  expect(
+    projectBoundary.retrieval_route_order.join(",") ===
+      "thread_state,profile,episode,timeline" &&
+      projectBoundary.write_fallback_order.join(",") === "project,world,default",
+    "Expected project-primary namespace to expose explicit retrieval/write order in P5."
   );
 
   const visibleMemoryRecord = buildVisibleMemoryRecord({
@@ -1604,6 +1617,12 @@ function main() {
             episode: projectBoundary.episode_budget,
             timeline: projectBoundary.timeline_budget,
             parallel_timeline: projectBoundary.parallel_timeline_budget
+          },
+          namespace_route_orders: {
+            thread_retrieval: threadBoundary.retrieval_route_order,
+            thread_write: threadBoundary.write_fallback_order,
+            project_retrieval: projectBoundary.retrieval_route_order,
+            project_write: projectBoundary.write_fallback_order
           }
         },
         runtime_semantic_summary: semanticSummary,

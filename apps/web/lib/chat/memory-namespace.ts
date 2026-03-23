@@ -1,6 +1,7 @@
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
 import { getMemoryScope } from "@/lib/chat/memory-v2";
+import type { MemoryRecallRoute } from "@/lib/chat/memory-shared";
 import {
   buildActiveMemoryNamespace,
   type ActiveMemoryNamespace,
@@ -14,6 +15,8 @@ export type ActiveRuntimeMemoryNamespace = ActiveMemoryNamespace & {
 export type RuntimeMemoryBoundary = {
   retrieval_boundary: "default" | "thread" | "project" | "world";
   write_boundary: "default" | "thread" | "project" | "world";
+  retrieval_route_order: MemoryRecallRoute[];
+  write_fallback_order: Array<"thread" | "project" | "world" | "default">;
   allow_timeline_fallback: boolean;
   profile_budget: number;
   episode_budget: number;
@@ -116,6 +119,8 @@ export function resolveRuntimeMemoryBoundary(
       return {
         retrieval_boundary: "thread",
         write_boundary: "thread",
+        retrieval_route_order: ["thread_state", "profile", "episode"],
+        write_fallback_order: ["thread", "project", "world", "default"],
         allow_timeline_fallback: false,
         profile_budget: 1,
         episode_budget: 1,
@@ -126,6 +131,8 @@ export function resolveRuntimeMemoryBoundary(
       return {
         retrieval_boundary: "project",
         write_boundary: "project",
+        retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
+        write_fallback_order: ["project", "world", "default"],
         allow_timeline_fallback: true,
         profile_budget: 2,
         episode_budget: 2,
@@ -136,6 +143,8 @@ export function resolveRuntimeMemoryBoundary(
       return {
         retrieval_boundary: "world",
         write_boundary: "world",
+        retrieval_route_order: ["thread_state", "profile", "timeline", "episode"],
+        write_fallback_order: ["world", "default"],
         allow_timeline_fallback: true,
         profile_budget: 2,
         episode_budget: 1,
@@ -146,6 +155,8 @@ export function resolveRuntimeMemoryBoundary(
       return {
         retrieval_boundary: "default",
         write_boundary: "default",
+        retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
+        write_fallback_order: ["default"],
         allow_timeline_fallback: true,
         profile_budget: 2,
         episode_budget: 1,
@@ -171,6 +182,10 @@ export function buildMemoryNamespaceScopedMetadata(args: {
       resolveRuntimeMemoryBoundary(args.namespace).retrieval_boundary,
     active_memory_write_boundary:
       resolveRuntimeMemoryBoundary(args.namespace).write_boundary,
+    active_memory_retrieval_route_order:
+      resolveRuntimeMemoryBoundary(args.namespace).retrieval_route_order,
+    active_memory_write_fallback_order:
+      resolveRuntimeMemoryBoundary(args.namespace).write_fallback_order,
     active_memory_profile_budget:
       resolveRuntimeMemoryBoundary(args.namespace).profile_budget,
     active_memory_episode_budget:

@@ -108,6 +108,23 @@ P5 首批要把 namespace 从：
   - `write_priority_layer = project`
   - `fallback_write_boundary = world`
 
+当前已成立的第三刀代码事实：
+
+- [memory-namespace.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-namespace.ts) 当前已开始把 namespace 的 retrieval / write 顺序收成正式 contract：
+  - `retrieval_route_order`
+  - `write_fallback_order`
+- 当前最小规则已经成立：
+  - `thread` primary namespace 下：
+    - `retrieval_route_order = thread_state -> profile -> episode`
+    - `write_fallback_order = thread -> project -> world -> default`
+  - `project` primary namespace 下：
+    - `retrieval_route_order = thread_state -> profile -> episode -> timeline`
+    - `write_fallback_order = project -> world -> default`
+- [memory-recall.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-recall.ts) 当前也已开始直接复用这层 `retrieval_route_order`，不再本地手写 route 顺序
+- [memory-write-targets.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-write-targets.ts) 当前也已开始通过 `write_fallback_order` 解析 fallback 边界
+- [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已开始显式校验：
+  - `thread` / `project` namespace 下的 retrieval/write 顺序
+
 ### 4.2 Retention layering / pruning strategy v3
 
 P5 首批要把 retention 从：

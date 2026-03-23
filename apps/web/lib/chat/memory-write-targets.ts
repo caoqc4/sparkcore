@@ -86,9 +86,12 @@ function getNamespaceRefId(
 function resolveNamespaceWriteRouting(
   namespace: ActiveRuntimeMemoryNamespace | null | undefined
 ) {
-  const writeBoundary = resolveWriteBoundary(namespace);
+  const boundary = resolveRuntimeMemoryBoundary(namespace);
+  const writeBoundary = boundary.write_boundary;
   const projectId = getNamespaceRefId(namespace, "project");
   const worldId = getNamespaceRefId(namespace, "world");
+  const fallbackWriteBoundary =
+    boundary.write_fallback_order.find((item) => item !== writeBoundary) ?? null;
 
   switch (writeBoundary) {
     case "project":
@@ -96,32 +99,28 @@ function resolveNamespaceWriteRouting(
         routedProjectId: projectId,
         routedWorldId: null,
         writePriorityLayer: "project" as const,
-        fallbackWriteBoundary: worldId ? ("world" as const) : ("default" as const)
+        fallbackWriteBoundary
       };
     case "world":
       return {
         routedProjectId: null,
         routedWorldId: worldId,
         writePriorityLayer: "world" as const,
-        fallbackWriteBoundary: "default" as const
+        fallbackWriteBoundary
       };
     case "thread":
       return {
         routedProjectId: null,
         routedWorldId: null,
         writePriorityLayer: "thread" as const,
-        fallbackWriteBoundary: projectId
-          ? ("project" as const)
-          : worldId
-            ? ("world" as const)
-            : ("default" as const)
+        fallbackWriteBoundary
       };
     default:
       return {
         routedProjectId: projectId,
         routedWorldId: worldId,
         writePriorityLayer: "default" as const,
-        fallbackWriteBoundary: null
+        fallbackWriteBoundary
       };
   }
 }

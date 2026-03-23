@@ -426,6 +426,20 @@
   - `memory-upgrade-harness.ts` 当前也已开始显式校验：
     - `write_priority_layer = project`
     - `fallback_write_boundary = world`
+  - `apps/web/lib/chat/memory-namespace.ts` 当前也已开始把 namespace 的 retrieval / write 顺序收成正式 contract：
+    - `retrieval_route_order`
+    - `write_fallback_order`
+  - 当前最小规则已经成立：
+    - `thread` primary namespace 下：
+      - `retrieval_route_order = thread_state -> profile -> episode`
+      - `write_fallback_order = thread -> project -> world -> default`
+    - `project` primary namespace 下：
+      - `retrieval_route_order = thread_state -> profile -> episode -> timeline`
+      - `write_fallback_order = project -> world -> default`
+  - `apps/web/lib/chat/memory-recall.ts` 当前也已开始直接复用 `retrieval_route_order`
+  - `apps/web/lib/chat/memory-write-targets.ts` 当前也已开始通过 `write_fallback_order` 解析 fallback 边界
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验：
+    - `thread` / `project` namespace 下的 retrieval/write 顺序
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
