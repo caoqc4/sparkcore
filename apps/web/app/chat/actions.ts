@@ -18,6 +18,8 @@ import {
 } from "@/lib/chat/runtime-user-message-persistence";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
+  loadActiveModelProfileById,
+  loadActivePersonaPackById,
   createOwnedAgent,
   createOwnedThread,
   loadOwnedActiveAgent,
@@ -186,13 +188,10 @@ export async function createAgentFromPersonaPack(
     };
   }
 
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("id")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data: workspace } = await loadPrimaryWorkspace({
+    supabase,
+    userId: user.id
+  });
 
   if (!workspace) {
     return {
@@ -202,14 +201,10 @@ export async function createAgentFromPersonaPack(
     };
   }
 
-  const { data: personaPack } = await supabase
-    .from("persona_packs")
-    .select(
-      "id, slug, name, description, persona_summary, style_prompt, system_prompt"
-    )
-    .eq("id", personaPackId)
-    .eq("is_active", true)
-    .maybeSingle();
+  const { data: personaPack } = await loadActivePersonaPackById({
+    supabase,
+    personaPackId
+  });
 
   if (!personaPack) {
     return {
@@ -300,13 +295,25 @@ export async function renameAgent(
     };
   }
 
-  const { data: agent } = await supabase
-    .from("agents")
-    .select("id, name, workspace_id, default_model_profile_id, persona_summary, metadata")
-    .eq("id", agentId)
-    .eq("owner_user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle();
+  const { data: workspace } = await loadPrimaryWorkspace({
+    supabase,
+    userId: user.id
+  });
+
+  if (!workspace) {
+    return {
+      ok: false,
+      agentId,
+      message: "No workspace is available for this account."
+    };
+  }
+
+  const { data: agent } = await loadOwnedActiveAgent({
+    supabase,
+    agentId,
+    workspaceId: workspace.id,
+    userId: user.id
+  });
 
   if (!agent) {
     return {
@@ -336,12 +343,10 @@ export async function renameAgent(
   let nextModelProfileId = agent.default_model_profile_id ?? null;
 
   if (typeof modelProfileId === "string" && modelProfileId.trim().length > 0) {
-    const { data: modelProfile } = await supabase
-      .from("model_profiles")
-      .select("id")
-      .eq("id", modelProfileId)
-      .eq("is_active", true)
-      .maybeSingle();
+    const { data: modelProfile } = await loadActiveModelProfileById({
+      supabase,
+      modelProfileId
+    });
 
     if (!modelProfile) {
       return {
@@ -370,7 +375,7 @@ export async function renameAgent(
       updated_at: new Date().toISOString()
     })
     .eq("id", agent.id)
-    .eq("workspace_id", agent.workspace_id)
+    .eq("workspace_id", workspace.id)
     .eq("owner_user_id", user.id)
     .select("id, name")
     .single();

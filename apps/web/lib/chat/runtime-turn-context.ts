@@ -227,6 +227,18 @@ export async function loadActivePersonaPackBySlug(args: {
     .maybeSingle();
 }
 
+export async function loadActivePersonaPackById(args: {
+  supabase: any;
+  personaPackId: string;
+}) {
+  return args.supabase
+    .from("persona_packs")
+    .select(ACTIVE_PERSONA_PACK_SELECT)
+    .eq("id", args.personaPackId)
+    .eq("is_active", true)
+    .maybeSingle();
+}
+
 export async function loadFirstActivePersonaPack(args: {
   supabase: any;
 }) {
