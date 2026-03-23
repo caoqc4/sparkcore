@@ -148,6 +148,10 @@
     3. `static_profile`
     4. `memory_record`
   - 每层当前也已开始带最小片段注入，而不再只停留在语义摘要层
+- `P1-4 legacy read-path tightening` 当前也已开始进入真实实现：
+  - `restoreMemory(...)` 当前已不再本地手写 `category / key / scope -> single-slot` 判定
+  - `resolveSupportedSingleSlotTarget(...)` 当前已开始承接 legacy single-slot restore target 解析
+  - memory 管理链路当前也已开始把冲突查询前提收成共用 helper，而不再散落在 action 内联逻辑里
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`
 

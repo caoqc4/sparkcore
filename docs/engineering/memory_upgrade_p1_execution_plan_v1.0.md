@@ -165,6 +165,12 @@ P1 首批要做的，是把更多 legacy 直接读写点继续收紧成：
 - 优先走新语义 adapter
 - legacy 只保留为底层承载层
 
+当前代码事实：
+
+- `restoreMemory(...)` 当前已不再本地手写 `category / key / scope -> single-slot` 判定
+- `resolveSupportedSingleSlotTarget(...)` 已开始承接这层 legacy single-slot restore target 解析
+- memory 管理链路当前也已开始把 legacy row 的冲突查询前提收成共用 helper，而不再散落在 action 内联逻辑里
+
 ---
 
 ## 5. P1 明确不做的事项

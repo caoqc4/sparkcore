@@ -9,8 +9,8 @@ import { classifyStoredMemorySemanticTarget } from "@/lib/chat/memory-records";
 import {
   canTransitionMemoryStatus,
   getMemoryStatus,
-  isSupportedSingleSlotPath,
-  normalizeSingleSlotValue
+  normalizeSingleSlotValue,
+  resolveSupportedSingleSlotTarget
 } from "@/lib/chat/memory-v2";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import {
@@ -703,27 +703,19 @@ export async function restoreMemory(formData: FormData) {
     );
   }
 
-  const memoryPath =
-    typeof memoryItem.category === "string" && typeof memoryItem.key === "string"
-      ? `${memoryItem.category}.${memoryItem.key}`
-      : null;
-  const scope = typeof memoryItem.scope === "string" ? memoryItem.scope : null;
-  const isRestoringSingleSlot =
-    memoryPath !== null &&
-    isSupportedSingleSlotPath(memoryPath) &&
-    (scope === "user_global" || scope === "user_agent" || scope === "thread_local");
+  const singleSlotTarget = resolveSupportedSingleSlotTarget(memoryItem);
 
-  if (isRestoringSingleSlot) {
+  if (singleSlotTarget) {
     const conflictingQuery = loadActiveSingleSlotMemoryRows({
       supabase,
       workspaceId: memoryItem.workspace_id,
       userId: user.id,
-      category: memoryItem.category,
-      key: memoryItem.key,
-      scope,
+      category: singleSlotTarget.category,
+      key: singleSlotTarget.key,
+      scope: singleSlotTarget.scope,
       excludedMemoryItemId: memoryItem.id,
-      targetAgentId: memoryItem.target_agent_id,
-      targetThreadId: memoryItem.target_thread_id,
+      targetAgentId: singleSlotTarget.targetAgentId,
+      targetThreadId: singleSlotTarget.targetThreadId,
       select: "id, memory_type, category, scope, metadata"
     });
 

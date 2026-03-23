@@ -1,3 +1,5 @@
+import type { SingleSlotMemoryKey } from "./memory-shared";
+
 export type LegacyMemoryType = "profile" | "preference";
 export type MemoryCategory =
   | "profile"
@@ -17,6 +19,15 @@ export type SupportedSingleSlotKey =
   | "relationship.agent_nickname"
   | "relationship.user_preferred_name"
   | "relationship.user_address_style";
+
+export type SupportedSingleSlotTarget = {
+  category: MemoryCategory;
+  key: SingleSlotMemoryKey;
+  path: SupportedSingleSlotKey;
+  scope: MemoryScope;
+  targetAgentId: string | null;
+  targetThreadId: string | null;
+};
 
 export const LEGACY_MEMORY_KEY = "legacy_content";
 export const SUPPORTED_SINGLE_SLOT_KEYS = new Set<SupportedSingleSlotKey>([
@@ -200,6 +211,45 @@ export function isSupportedSingleSlotPath(
   path: string
 ): path is SupportedSingleSlotKey {
   return SUPPORTED_SINGLE_SLOT_KEYS.has(path as SupportedSingleSlotKey);
+}
+
+export function resolveSupportedSingleSlotTarget(
+  memory: MemoryLike
+): SupportedSingleSlotTarget | null {
+  const category = getMemoryCategory(memory);
+  const key = getMemoryKey(memory);
+  const path = `${category}.${key}`;
+
+  if (!isSupportedSingleSlotPath(path)) {
+    return null;
+  }
+
+  const scope = getMemoryScope(memory);
+  const targetAgentId =
+    typeof memory.target_agent_id === "string" && memory.target_agent_id.length > 0
+      ? memory.target_agent_id
+      : null;
+  const targetThreadId =
+    typeof memory.target_thread_id === "string" && memory.target_thread_id.length > 0
+      ? memory.target_thread_id
+      : null;
+
+  if (scope === "user_agent" && !targetAgentId) {
+    return null;
+  }
+
+  if (scope === "thread_local" && !targetThreadId) {
+    return null;
+  }
+
+  return {
+    category,
+    key: key as SingleSlotMemoryKey,
+    path,
+    scope,
+    targetAgentId,
+    targetThreadId
+  };
 }
 
 export function normalizeSingleSlotValue(value: string) {
