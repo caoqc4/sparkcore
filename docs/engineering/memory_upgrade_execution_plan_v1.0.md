@@ -153,6 +153,13 @@ P0 只做一件事：
 - `ThreadStateRecord`
 - `MemoryRelationRecord`
 
+当前代码事实：
+
+- `packages/core/memory/records.ts` 已新增首版 core record types
+- `apps/web/lib/chat/memory-records.ts` 已新增从 `StoredMemory` 到新 record 的最小 adapter
+- `StaticProfileRecord` 已开始接住 legacy `profile / preference` 语义
+- `DynamicProfileRecord` 当前仍保持克制，不直接承接 legacy `goal`
+
 ### 4.2 最小写入闭环
 
 首批必须成立：
@@ -163,6 +170,17 @@ P0 只做一件事：
 - update / invalidation check
 - commit
 
+当前代码事实：
+
+- `apps/web/lib/chat/memory-write.ts` 已开始对 planner request 做首版 `record_target` 分类
+- 当前最小分类为：
+  - `static_profile`
+  - `memory_record`
+  - `thread_state_candidate`
+- `profile / preference` 当前默认进入 `static_profile`
+- `relationship` 当前默认进入 `memory_record`
+- legacy `goal` 语义当前保守进入 `thread_state_candidate`
+
 ### 4.3 最小四路检索
 
 首批必须成立：
@@ -172,9 +190,33 @@ P0 只做一件事：
 - `timeline`
 - `thread_state`
 
+当前代码事实：
+
+- `apps/web/lib/chat/memory-recall.ts` 已新增 `MemoryRecallRoute`
+- `RecallOutcome` 已开始显式暴露 `appliedRoutes`
+- 当前已正式收口的 route name 包括：
+  - `profile`
+  - `episode`
+  - `timeline`
+  - `thread_state`
+- 当前实际已接入的最小 route 为：
+  - `profile`
+  - `thread_state`
+
 ### 4.4 最小 context assembly
 
 首批必须把以上四路结果按固定预算注入 runtime，而不是只留在数据层。
+
+当前代码事实：
+
+- `prepareRuntimeMemory(...)` 已开始接收 `threadState`
+- runtime memory context 已开始携带最小 `threadStateRecall`
+- 当前已注入的最小 thread state 摘要包括：
+  - `lifecycle_status`
+  - `focus_mode`
+  - `continuity_status`
+  - `current_language_hint`
+- `debug_metadata.session.thread_state` 已开始显式暴露该最小摘要
 
 ### 4.5 兼容迁移策略
 
@@ -297,6 +339,15 @@ P0 建议的最小模型如下：
 - `updated_at`
 - `source_refs`
 
+当前代码事实：
+
+- `StoredMemory` 已补齐 `updated_at`
+- 新增 core record type 已开始统一把 legacy row 映射到：
+  - `scope`
+  - `subject`
+  - `stability`
+  - `source_refs`
+
 #### `StaticProfileRecord`
 
 用于承载长期稳定画像。
@@ -312,6 +363,10 @@ P0 建议的最小模型如下：
 - `confidence`
 - `source_refs`
 - `updated_at`
+
+当前代码事实：
+
+- 现有 `profile_preference` 与 `user_preference` 已开始作为首批映射来源
 
 #### `DynamicProfileRecord`
 
@@ -330,6 +385,11 @@ P0 建议的最小模型如下：
 - `expires_at`
 - `source_refs`
 - `updated_at`
+
+当前代码事实：
+
+- legacy `goal` 当前未直接映射到 `DynamicProfileRecord`
+- 这条约束已经进入当前执行基线，而不是后置讨论项
 
 #### `MemoryRelationRecord`
 
@@ -369,6 +429,15 @@ P0 开始让新写入闭环以新 record 语义为主，但底层允许继续复
 最后再评估：
 
 - `memory_items` 是否退为 legacy layer
+
+当前代码事实：
+
+- `StoredMemory` 仍然是当前 chat runtime 的直接存储适配对象
+- 但 `apps/web/lib/chat/memory-records.ts` 已开始把它桥接到新 record 语义
+- 当前已经正式进入：
+  - “保留 legacy 存储底座”
+  - “新增语义层 adapter”
+  的双层过渡阶段
 
 ### 7.3 是否允许双写
 
@@ -414,6 +483,14 @@ P0 允许有限双写，但要克制：
 
 - 从当前 `profile / preference / relationship` 抽取与写入，升级成“可分类、可更新、可失效”的首版写入管线
 
+当前代码事实：
+
+- 写入链已开始显式暴露 `record_target`
+- 首批分类已覆盖：
+  - `static_profile`
+  - `memory_record`
+  - `thread_state_candidate`
+
 #### 检索链
 
 - `apps/web/lib/chat/memory-recall.ts`
@@ -424,6 +501,11 @@ P0 允许有限双写，但要克制：
 
 - 把当前 recall 逻辑升级成四路最小分流，而不是单一 memory recall helper 集合
 
+当前代码事实：
+
+- 检索链已开始显式暴露 `appliedRoutes`
+- `thread_state` 已进入 runtime memory preparation
+
 #### 注入与输出层
 
 - `apps/web/lib/chat/runtime.ts`
@@ -433,6 +515,10 @@ P0 允许有限双写，但要克制：
 目标：
 
 - 让新的 profile / thread / episode / timeline 路由结果进入 runtime 注入与调试可见性
+
+当前代码事实：
+
+- `debug_metadata.session.thread_state` 已能看到最小 thread state recall 摘要
 
 ### 8.2 首批暂不直接改的大模块
 
@@ -470,6 +556,15 @@ P0 最小要求：
   - 覆盖
   - 失效
 
+当前代码现实已经进入步骤 2：
+
+- planner request -> `record_target` classification 已成立
+- 下一步应继续把：
+  - `canonical type`
+  - `scope`
+  - `record adapter`
+  串成真正 commit 前的最小语义管线
+
 ### 9.2 检索闭环
 
 ```text
@@ -489,6 +584,12 @@ P0 首批四路：
 - `timeline`
 - `thread_state`
 
+当前代码现实：
+
+- route name 与 `appliedRoutes` 已成立
+- `thread_state` 已进入 runtime memory preparation
+- `episode / timeline` 仍处于语义预留，尚未成为真实分流实现
+
 ### 9.3 注入闭环
 
 P0 注入顺序建议：
@@ -504,6 +605,11 @@ P0 注入顺序建议：
 - 先稳定画像，再补具体事件
 - 避免长期记忆污染当前线程进行态
 
+当前代码现实：
+
+- `thread_state` 已先于其它新路由进入 runtime context 可见性
+- 这与当前注入顺序建议保持一致
+
 ---
 
 ## 10. 验收标准
@@ -517,6 +623,11 @@ P0 至少要验证：
 - `ThreadState` 不会被长期记忆替代
 - 检索能按四路最小分流
 - runtime 能注入新结构结果
+
+当前已部分满足：
+
+- runtime 已能显式区分 `profile / thread_state` 两路
+- `debug_metadata.session.thread_state` 已能显式看到 thread state 最小摘要
 
 ### 10.2 结构验收
 

@@ -61,7 +61,9 @@
 当前 memory 相关代码已经从原来的单文件混合状态，收成了较清晰的几层：
 
 - `packages/core/memory/contract.ts`
+- `packages/core/memory/records.ts`
 - `apps/web/lib/chat/memory-shared.ts`
+- `apps/web/lib/chat/memory-records.ts`
 - `apps/web/lib/chat/memory-recall.ts`
 - `apps/web/lib/chat/memory-write.ts`
 - `apps/web/lib/chat/memory.ts`
@@ -69,15 +71,23 @@
 当前已经完成的关键收口包括：
 
 - 纯 contract 已开始进入 `packages/core/memory`
+- core record types 也已开始进入 `packages/core/memory`
 - recall / write / shared 已在 `apps/web/lib/chat` 内部分层
+- `StoredMemory -> MemoryRecord / StaticProfileRecord` 的最小 adapter 已出现
 - `memory.ts` 已退成兼容入口
 - `profile / preference` 已形成 planner -> executor 最小闭环
 - `relationship memory` 已收进 `memory_write_requests` 的显式 subtype
 - relationship 写入已不再走额外旁路，而是回到统一 write pipeline
+- 写入链当前也已开始显式暴露最小 `record_target` 分类：
+  - `static_profile`
+  - `memory_record`
+  - `thread_state_candidate`
+- legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 
 这意味着：
 
 - memory 已不再只是“页面内部 helper”
+- 已开始具备“legacy row + new semantic record”双层过渡结构
 - 但仍未完全迁出 `apps/web`
 
 ---
@@ -111,10 +121,12 @@
 - `prepareRuntimeSession(...)` 已有第一版 session 装配函数壳，并已开始被主流程使用
 - `prepareRuntimeRole(...)` 已有第一版 role 装配函数壳，并已开始被主流程使用
 - `prepareRuntimeMemory(...)` 已有第一版 memory recall 装配函数壳，并已开始被主流程使用
+- `prepareRuntimeMemory(...)` 当前也已开始接收 `thread_state`
 - `runPreparedRuntimeTurn(...)` 已有第一版执行薄壳，并已开始被主流程使用
 - `memory_write_requests` 已有最小 planner output
 - `follow_up_requests` 已有最小 planner output
 - `runtime_events` 已有第一版标准事件类型
+- `memory recall` 当前也已开始显式暴露 `appliedRoutes`
 - `runtime` 输出治理也已开始进入文档收口阶段，当前已开始明确：
   - `runtime_events` 负责“本轮发生了什么标准过程”
   - `debug_metadata` 负责“这轮为什么这样、有哪些最小调试摘要”
@@ -147,6 +159,11 @@
   - `debug_metadata.session.continuation_reason_code`
   - `debug_metadata.session.recent_turn_count`
   - `debug_metadata.session.context_pressure`
+- `debug_metadata.session.thread_state` 当前也已开始进入最小摘要分组：
+  - `lifecycle_status`
+  - `focus_mode`
+  - `continuity_status`
+  - `current_language_hint`
 - `assistant_message.metadata` 也已开始进入统一 builder 收口：
   - `apps/web/lib/chat/assistant-message-metadata.ts`
 - `runtime.ts` 已不再直接内联拼接整块 assistant metadata，而是开始通过统一 builder 生成
@@ -197,7 +214,12 @@
   - `thread message` 单跳 persistence shell 已裁掉
   - `runtime user message` metadata 小壳已裁掉
   - `thread title` 小壳已裁掉
-  - `follow_up claim` 单跳 shell 也已裁掉，worker 与 harness 直接走 repository claim method
+- `follow_up claim` 单跳 shell 也已裁掉，worker 与 harness 直接走 repository claim method
+- 记忆升级 P0 也已正式进入代码起步阶段：
+  - core `MemoryRecord / StaticProfileRecord / DynamicProfileRecord / MemoryRelationRecord` 已有首版 record type
+  - chat 侧 `StoredMemory -> record` adapter 已出现
+  - recall route 已开始从单 helper 走向 `profile / thread_state` 的显式分流
+  - `thread_state` 已不只存在于 session 读取链，也已进入 runtime memory preparation 与 debug 可见性
 - 当前 runtime 主线的下一阶段优先级也已前移成：
   - 先治理输出层
   - 再决定是否继续细拆 execution
