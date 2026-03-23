@@ -2,7 +2,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { insertMessage } from "@/lib/chat/message-persistence";
 import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import { updateOwnedThread } from "@/lib/chat/runtime-turn-context";
-import { buildSmokeUserTurnPayload } from "@/lib/testing/smoke-user-turn-payload";
 
 export async function insertSmokeUserTurn(args: {
   supabase: SupabaseClient;
@@ -17,7 +16,10 @@ export async function insertSmokeUserTurn(args: {
       threadId: args.threadId,
       workspaceId: args.workspaceId,
       userId: args.userId,
-      payload: buildSmokeUserTurnPayload(args.content),
+      payload: {
+        role: "user",
+        content: args.content
+      },
       select: "id"
     }).single();
 
