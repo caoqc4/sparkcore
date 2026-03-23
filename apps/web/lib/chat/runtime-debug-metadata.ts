@@ -1,4 +1,5 @@
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
+import type { RuntimeThreadStateRecall } from "@/lib/chat/memory-recall";
 
 export type BuildRuntimeDebugMetadataInput = {
   model_profile_id: string;
@@ -11,6 +12,7 @@ export type BuildRuntimeDebugMetadataInput = {
   continuation_reason_code: string | null;
   recent_turn_count: number;
   context_pressure: ApproxContextPressure;
+  thread_state_recall?: RuntimeThreadStateRecall | null;
   reply_language: string;
 };
 
@@ -34,7 +36,19 @@ export function buildRuntimeDebugMetadata(
     session: {
       continuation_reason_code: input.continuation_reason_code,
       recent_turn_count: input.recent_turn_count,
-      context_pressure: input.context_pressure
+      context_pressure: input.context_pressure,
+      thread_state:
+        input.thread_state_recall?.applied && input.thread_state_recall.snapshot
+          ? {
+              lifecycle_status:
+                input.thread_state_recall.snapshot.lifecycle_status,
+              focus_mode: input.thread_state_recall.snapshot.focus_mode,
+              continuity_status:
+                input.thread_state_recall.snapshot.continuity_status,
+              current_language_hint:
+                input.thread_state_recall.snapshot.current_language_hint
+            }
+          : null
     },
     reply_language: input.reply_language
   };

@@ -3695,6 +3695,8 @@ export async function runPreparedRuntimeTurn({
       continuation_reason_code: continuationReasonCode,
       recent_turn_count: recentRawTurnCount,
       context_pressure: approxContextPressure,
+      thread_state_recall:
+        preparedRuntimeTurn.memory.runtime_memory_context.threadStateRecall,
       reply_language: replyLanguage
     })
   };
