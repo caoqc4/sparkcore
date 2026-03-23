@@ -7,9 +7,7 @@ import {
   isSmokeRelationshipContinuationEdgePrompt
 } from "@/lib/testing/smoke-answer-strategy";
 import {
-  findSmokeRelationshipMemory,
-  getSmokeUsedMemoryTypes,
-  prependSmokeRelationshipRecall
+  getSmokeUsedMemoryTypes
 } from "@/lib/testing/smoke-relationship-context";
 import {
   getSmokeApproxContextPressure,
@@ -18,6 +16,7 @@ import {
   type SmokeContinuityReply
 } from "@/lib/testing/smoke-reply-analysis";
 import { selectSmokeRecalledMemories } from "@/lib/testing/smoke-memory-recall-selection";
+import { selectSmokeRelationshipMemories } from "@/lib/testing/smoke-relationship-memory-selection";
 import {
   isMemoryActive,
   isMemoryHidden,
@@ -116,12 +115,19 @@ export function analyzeSmokeTurnContext({
   const sameThreadContinuationApplicable =
     sameThreadContinuity &&
     isSmokeRelationshipContinuationEdgePrompt(trimmedContent);
-  const relationshipCarryoverAvailable = activeMemories.some(
-    (memory) =>
-      memory.category === "relationship" &&
-      memory.scope === "user_agent" &&
-      memory.target_agent_id === agentId
-  );
+  const {
+    addressStyleMemory,
+    nicknameMemory,
+    preferredNameMemory,
+    relationshipCarryoverAvailable
+  } = selectSmokeRelationshipMemories({
+    trimmedContent,
+    activeMemories,
+    agentId,
+    relationshipStylePrompt,
+    sameThreadContinuity,
+    recalledMemories
+  });
   const answerStrategyRule = getSmokeAnswerStrategy({
     content: trimmedContent,
     sameThreadContinuity,
@@ -140,40 +146,6 @@ export function analyzeSmokeTurnContext({
     sameThreadContinuationApplicable &&
     recentRawTurnCount >= 10 &&
     (approxContextPressure === "elevated" || approxContextPressure === "high");
-  const nicknameMemory =
-    isSmokeDirectNamingQuestion(trimmedContent) ||
-    relationshipStylePrompt ||
-    isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
-    sameThreadContinuity
-      ? findSmokeRelationshipMemory({
-          memories: activeMemories,
-          key: "agent_nickname",
-          agentId
-        })
-      : null;
-
-  prependSmokeRelationshipRecall(recalledMemories, nicknameMemory);
-  const preferredNameMemory =
-    isSmokeDirectUserPreferredNameQuestion(trimmedContent) ||
-    relationshipStylePrompt ||
-    isSmokeOpenEndedSummaryQuestion(trimmedContent) ||
-    sameThreadContinuity
-      ? findSmokeRelationshipMemory({
-          memories: activeMemories,
-          key: "user_preferred_name",
-          agentId
-        })
-      : null;
-
-  prependSmokeRelationshipRecall(recalledMemories, preferredNameMemory);
-
-  const addressStyleMemory = findSmokeRelationshipMemory({
-    memories: activeMemories,
-    key: "user_address_style",
-    agentId
-  });
-
-  prependSmokeRelationshipRecall(recalledMemories, addressStyleMemory);
 
   return {
     activeMemories,
