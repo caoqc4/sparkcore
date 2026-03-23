@@ -323,7 +323,8 @@ export async function recallRelevantMemories({
       memories: [],
       usedMemoryTypes: [],
       hiddenExclusionCount: hiddenCandidates.length > 0 ? 1 : 0,
-      incorrectExclusionCount: incorrectCandidates.length > 0 ? 1 : 0
+      incorrectExclusionCount: incorrectCandidates.length > 0 ? 1 : 0,
+      appliedRoutes: ["profile"]
     };
   }
 
@@ -384,7 +385,8 @@ export async function recallRelevantMemories({
       new Set<MemoryUsageType>(recalledMemories.map((memory) => memory.memory_type))
     ),
     hiddenExclusionCount: countRelevantExclusions(hiddenCandidates),
-    incorrectExclusionCount: countRelevantExclusions(incorrectCandidates)
+    incorrectExclusionCount: countRelevantExclusions(incorrectCandidates),
+    appliedRoutes: ["profile"]
   };
 }
 
@@ -440,7 +442,8 @@ export async function loadRuntimeMemoryContext({
     memories: [],
     usedMemoryTypes: [],
     hiddenExclusionCount: 0,
-    incorrectExclusionCount: 0
+    incorrectExclusionCount: 0,
+    appliedRoutes: []
   };
 
   const emptyRelationshipRecall: RuntimeRelationshipRecall = {

@@ -3688,6 +3688,7 @@ export async function runPreparedRuntimeTurn({
       answer_strategy: answerStrategy,
       answer_strategy_reason_code: answerStrategyReasonCode,
       recalled_memory_count: allRecalledMemories.length,
+      memory_recall_routes: memoryRecall.appliedRoutes,
       memory_write_request_count: memoryWriteRequests.length,
       follow_up_request_count: followUpRequests.length,
       continuation_reason_code: continuationReasonCode,

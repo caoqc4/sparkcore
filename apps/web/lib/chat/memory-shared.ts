@@ -54,6 +54,7 @@ export type RecallOutcome = {
   usedMemoryTypes: MemoryUsageType[];
   hiddenExclusionCount: number;
   incorrectExclusionCount: number;
+  appliedRoutes: Array<"profile" | "episode" | "timeline" | "thread_state">;
 };
 
 export type MemoryWriteOutcome = {
