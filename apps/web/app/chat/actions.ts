@@ -34,7 +34,7 @@ import {
   updateOwnedAgent,
   updateOwnedThread
 } from "@/lib/chat/runtime-turn-context";
-import { loadThreadMessages } from "@/lib/chat/thread-message-persistence";
+import { loadThreadMessages } from "@/lib/chat/message-read";
 import { recoverRetryRuntimeTurn } from "@/lib/chat/runtime-turn-retry";
 import {
   insertPendingAssistantMessage,

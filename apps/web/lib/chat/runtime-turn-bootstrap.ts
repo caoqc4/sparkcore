@@ -1,7 +1,7 @@
 import { insertPendingAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
 import { updateOwnedThread } from "@/lib/chat/runtime-turn-context";
 import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
-import { loadThreadMessages } from "@/lib/chat/thread-message-persistence";
+import { loadThreadMessages } from "@/lib/chat/message-read";
 
 type RuntimeTurnBootstrapTarget = {
   supabase: any;

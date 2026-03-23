@@ -46,7 +46,7 @@ import {
   getUnderlyingModelLabel
 } from "@/lib/chat/model-profile-metadata";
 import { buildRuntimeDebugMetadata } from "@/lib/chat/runtime-debug-metadata";
-import { loadThreadMessages } from "@/lib/chat/thread-message-persistence";
+import { loadThreadMessages } from "@/lib/chat/message-read";
 import {
   planMemoryWriteRequests,
   planRelationshipMemoryWriteRequests
