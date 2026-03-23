@@ -3,7 +3,6 @@ import { buildSmokeFactReply } from "@/lib/testing/smoke-fact-replies";
 import { buildSmokeGroundedReply } from "@/lib/testing/smoke-grounded-replies";
 import { buildSmokeIntroReply } from "@/lib/testing/smoke-intro-replies";
 import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
-import { buildSmokeQuickHelloReply } from "@/lib/testing/smoke-quick-hello-replies";
 import { buildSmokeRelationshipOrContinuationReply } from "@/lib/testing/smoke-relationship-reply-branch";
 
 export function buildSmokeAssistantReply({
@@ -19,11 +18,13 @@ export function buildSmokeAssistantReply({
   preferredNameMemory
 }: SmokeAssistantReplyInput) {
   const normalizedContent = normalizeSmokePrompt(content);
-  const quickHelloReply = buildSmokeQuickHelloReply({
-    normalizedContent,
-    replyLanguage,
-    modelProfileName
-  });
+  const quickHelloReply = normalizedContent.includes(
+    "reply in one sentence with a quick hello"
+  )
+    ? replyLanguage === "zh-Hans"
+      ? `你好，我是通过 ${modelProfileName} 回复的 SparkCore。`
+      : `Hello from SparkCore via ${modelProfileName}.`
+    : null;
 
   if (quickHelloReply) {
     return quickHelloReply;
