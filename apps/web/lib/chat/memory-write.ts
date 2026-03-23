@@ -28,6 +28,11 @@ import {
   stripCodeFence,
   shouldPreferIncomingMemory
 } from "@/lib/chat/memory-shared";
+import {
+  buildGenericPlannerMemoryInsertMetadata,
+  buildGenericPlannerMemoryUpdateMetadata,
+  buildRelationshipPlannerMemoryMetadata
+} from "@/lib/chat/memory-write-metadata";
 import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
 import { createClient } from "@/lib/supabase/server";
 
@@ -544,14 +549,7 @@ export async function executeMemoryWriteRequests({
       confidence: request.confidence,
       stability:
         request.relationship_key === "user_address_style" ? "medium" : "high",
-      metadata: {
-        source: "runtime_planner",
-        relation_kind: request.relationship_key,
-        dedupe_key: request.dedupe_key ?? null,
-        write_mode: request.write_mode ?? "upsert",
-        planner_kind: request.kind,
-        planner_reason: request.reason
-      }
+      metadata: buildRelationshipPlannerMemoryMetadata(request)
     });
 
     if (relationshipWrite.created) {
@@ -645,13 +643,12 @@ export async function executeMemoryWriteRequests({
             ? [{ kind: "message", source_message_id: sourceTurnId }]
             : []
         }),
-        metadata: {
-          extraction_reason: candidate.reason,
-          source: "runtime_planner",
-          threshold: MEMORY_CONFIDENCE_THRESHOLD,
-          dedupe_key: matchingRequest?.dedupe_key ?? null,
-          write_mode: matchingRequest?.write_mode ?? "upsert"
-        }
+        metadata: buildGenericPlannerMemoryInsertMetadata({
+          reason: candidate.reason,
+          dedupeKey: matchingRequest?.dedupe_key ?? null,
+          writeMode: matchingRequest?.write_mode ?? "upsert",
+          threshold: MEMORY_CONFIDENCE_THRESHOLD
+        })
       });
       continue;
     }
@@ -665,15 +662,14 @@ export async function executeMemoryWriteRequests({
       memory_type: candidate.memory_type,
       content: candidate.content,
       confidence: Number(candidate.confidence.toFixed(2)),
-      metadata: {
-        ...(matchingExisting.metadata ?? {}),
-        extraction_reason: candidate.reason,
-        source: "runtime_planner",
+      metadata: buildGenericPlannerMemoryUpdateMetadata({
+        existingMetadata: matchingExisting.metadata ?? {},
+        reason: candidate.reason,
+        dedupeKey: matchingRequest?.dedupe_key ?? null,
+        writeMode: matchingRequest?.write_mode ?? "upsert",
         threshold: MEMORY_CONFIDENCE_THRESHOLD,
-        convergence_updated_at: new Date().toISOString(),
-        dedupe_key: matchingRequest?.dedupe_key ?? null,
-        write_mode: matchingRequest?.write_mode ?? "upsert"
-      },
+        convergenceUpdatedAt: new Date().toISOString()
+      }),
       category: candidate.memory_type,
       key: LEGACY_MEMORY_KEY,
       value: candidate.content,
