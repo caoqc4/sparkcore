@@ -17,6 +17,10 @@ import { buildImRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { insertRuntimeUserMessage } from "@/lib/chat/runtime-user-message-persistence";
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
 import { resolveRoleProfile } from "@/lib/chat/role-service";
+import {
+  loadOwnedThread,
+  loadOwnedWorkspace
+} from "@/lib/chat/runtime-turn-context";
 import { runAgentTurn } from "@/lib/chat/runtime";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -29,12 +33,11 @@ async function runImRuntimeTurnWithSupabase(args: {
   if (!input.thread_id || input.thread_id.trim().length === 0) {
     throw new Error("IM runtime input requires a resolved thread_id.");
   }
-  const { data: thread } = await supabase
-    .from("threads")
-    .select("id, title, status, agent_id, workspace_id, created_at, updated_at")
-    .eq("id", input.thread_id)
-    .eq("owner_user_id", input.user_id)
-    .maybeSingle();
+  const { data: thread } = await loadOwnedThread({
+    supabase,
+    threadId: input.thread_id,
+    userId: input.user_id
+  });
 
   if (!thread) {
     throw new Error("The requested thread could not be loaded for IM runtime.");
@@ -48,12 +51,11 @@ async function runImRuntimeTurnWithSupabase(args: {
     throw new Error("Thread agent binding does not match adapter runtime input.");
   }
 
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("id, name, kind")
-    .eq("id", thread.workspace_id)
-    .eq("owner_user_id", input.user_id)
-    .maybeSingle();
+  const { data: workspace } = await loadOwnedWorkspace({
+    supabase,
+    workspaceId: thread.workspace_id,
+    userId: input.user_id
+  });
 
   if (!workspace) {
     throw new Error("The workspace for the IM runtime turn could not be loaded.");

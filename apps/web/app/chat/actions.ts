@@ -19,6 +19,11 @@ import {
 } from "@/lib/chat/runtime-user-message-persistence";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
+  loadOwnedActiveAgent,
+  loadOwnedThread,
+  loadPrimaryWorkspace
+} from "@/lib/chat/runtime-turn-context";
+import {
   insertPendingAssistantMessage,
   markAssistantMessageFailed,
   markAssistantMessageRetried
@@ -405,13 +410,10 @@ export async function createThread(formData: FormData) {
     redirect("/login");
   }
 
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("id, name, kind")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data: workspace } = await loadPrimaryWorkspace({
+    supabase,
+    userId: user.id
+  });
 
   if (!workspace) {
     redirect("/workspace");
@@ -948,13 +950,12 @@ export async function sendMessage(
     };
   }
 
-  const { data: thread } = await supabase
-    .from("threads")
-    .select("id, title, status, agent_id, created_at, updated_at")
-    .eq("id", threadId)
-    .eq("workspace_id", workspace.id)
-    .eq("owner_user_id", user.id)
-    .maybeSingle();
+  const { data: thread } = await loadOwnedThread({
+    supabase,
+    threadId,
+    workspaceId: workspace.id,
+    userId: user.id
+  });
 
   if (!thread) {
     return {
@@ -972,16 +973,12 @@ export async function sendMessage(
     };
   }
 
-  const { data: agent } = await supabase
-    .from("agents")
-    .select(
-      "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata"
-    )
-    .eq("id", thread.agent_id)
-    .eq("workspace_id", workspace.id)
-    .eq("owner_user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle();
+  const { data: agent } = await loadOwnedActiveAgent({
+    supabase,
+    agentId: thread.agent_id,
+    workspaceId: workspace.id,
+    userId: user.id
+  });
 
   if (!agent) {
     return {
@@ -1186,13 +1183,10 @@ export async function retryAssistantReply(
     };
   }
 
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("id, name, kind")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data: workspace } = await loadPrimaryWorkspace({
+    supabase,
+    userId: user.id
+  });
 
   if (!workspace) {
     return {
@@ -1202,13 +1196,12 @@ export async function retryAssistantReply(
     };
   }
 
-  const { data: thread } = await supabase
-    .from("threads")
-    .select("id, title, status, agent_id, created_at, updated_at")
-    .eq("id", threadId)
-    .eq("workspace_id", workspace.id)
-    .eq("owner_user_id", user.id)
-    .maybeSingle();
+  const { data: thread } = await loadOwnedThread({
+    supabase,
+    threadId,
+    workspaceId: workspace.id,
+    userId: user.id
+  });
 
   if (!thread || !thread.agent_id) {
     return {
@@ -1218,16 +1211,12 @@ export async function retryAssistantReply(
     };
   }
 
-  const { data: agent } = await supabase
-    .from("agents")
-    .select(
-      "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata"
-    )
-    .eq("id", thread.agent_id)
-    .eq("workspace_id", workspace.id)
-    .eq("owner_user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle();
+  const { data: agent } = await loadOwnedActiveAgent({
+    supabase,
+    agentId: thread.agent_id,
+    workspaceId: workspace.id,
+    userId: user.id
+  });
 
   if (!agent) {
     return {

@@ -1,0 +1,65 @@
+const WORKSPACE_SELECT = "id, name, kind";
+const THREAD_SELECT = "id, title, status, agent_id, workspace_id, created_at, updated_at";
+const AGENT_SELECT =
+  "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata";
+
+export async function loadPrimaryWorkspace(args: {
+  supabase: any;
+  userId: string;
+}) {
+  return args.supabase
+    .from("workspaces")
+    .select(WORKSPACE_SELECT)
+    .eq("owner_user_id", args.userId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+}
+
+export async function loadOwnedWorkspace(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+}) {
+  return args.supabase
+    .from("workspaces")
+    .select(WORKSPACE_SELECT)
+    .eq("id", args.workspaceId)
+    .eq("owner_user_id", args.userId)
+    .maybeSingle();
+}
+
+export async function loadOwnedThread(args: {
+  supabase: any;
+  threadId: string;
+  userId: string;
+  workspaceId?: string;
+}) {
+  let query = args.supabase
+    .from("threads")
+    .select(THREAD_SELECT)
+    .eq("id", args.threadId)
+    .eq("owner_user_id", args.userId);
+
+  if (args.workspaceId) {
+    query = query.eq("workspace_id", args.workspaceId);
+  }
+
+  return query.maybeSingle();
+}
+
+export async function loadOwnedActiveAgent(args: {
+  supabase: any;
+  agentId: string;
+  workspaceId: string;
+  userId: string;
+}) {
+  return args.supabase
+    .from("agents")
+    .select(AGENT_SELECT)
+    .eq("id", args.agentId)
+    .eq("workspace_id", args.workspaceId)
+    .eq("owner_user_id", args.userId)
+    .eq("status", "active")
+    .maybeSingle();
+}
