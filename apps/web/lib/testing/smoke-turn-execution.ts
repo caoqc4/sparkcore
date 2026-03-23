@@ -1,7 +1,6 @@
-import { applySmokeTurnMemoryUpdates } from "@/lib/testing/smoke-turn-memory-updates";
-import { buildSmokeRelationshipSeedMetadata } from "@/lib/testing/smoke-relationship-seed-metadata";
 import { persistSmokeAssistantTurnStep } from "@/lib/testing/smoke-turn-assistant-step";
 import { prepareSmokeTurnExecutionState } from "@/lib/testing/smoke-turn-execution-state";
+import { persistSmokeMemoryTurnStep } from "@/lib/testing/smoke-turn-memory-step";
 import { persistSmokeUserTurnStep } from "@/lib/testing/smoke-turn-user-step";
 import { prepareSmokeAssistantTurn } from "@/lib/testing/smoke-turn-assistant-prep";
 import type { SmokeTurnContext } from "@/lib/testing/smoke-turn-context";
@@ -52,14 +51,13 @@ export async function executeSmokeTurn(args: {
     trimmedContent: args.trimmedContent
   });
 
-  const { createdTypes } = await applySmokeTurnMemoryUpdates({
+  const { createdTypes } = await persistSmokeMemoryTurnStep({
     supabase: admin,
     workspaceId: smokeUser.workspaceId,
     userId: smokeUser.id,
     agentId: ensuredAgent.id,
     sourceMessageId: ensuredUserMessage.id,
-    trimmedContent: args.trimmedContent,
-    relationshipSeedMetadataBuilder: buildSmokeRelationshipSeedMetadata
+    trimmedContent: args.trimmedContent
   });
   const {
     assistantContent,
