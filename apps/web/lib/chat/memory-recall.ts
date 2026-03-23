@@ -1,4 +1,5 @@
 import {
+  getMemoryScope,
   isMemoryActive,
   isMemoryHidden,
   isMemoryIncorrect,
@@ -64,11 +65,13 @@ function isMemoryApplicableToRecall({
     return false;
   }
 
-  if (memory.scope === "user_agent") {
+  const scope = getMemoryScope(memory);
+
+  if (scope === "user_agent") {
     return typeof agentId === "string" && memory.target_agent_id === agentId;
   }
 
-  if (memory.scope === "thread_local") {
+  if (scope === "thread_local") {
     return typeof threadId === "string" && memory.target_thread_id === threadId;
   }
 

@@ -162,6 +162,7 @@
     - `relationship memory_record`
     - generic `memory_record`
     的判定收成共用 semantic predicate，而不再在 recall 主路径里散落 raw `category / scope` 判断
+  - recall applicability 当前也已开始优先走 `getMemoryScope(...)`，而不再直接依赖 raw `memory.scope`
   - runtime 的 visible / hidden / incorrect / superseded memory list 当前也已开始通过共用 normalizer 生成 canonical displayed record，而不再各自重复拼装 legacy row 的 category / scope / source 字段
 - `P1-5 regression / acceptance expansion` 当前也已开始进入真实实现：
   - `memory-upgrade-harness.ts` 当前不只锁 `P1-1 ~ P1-3`
