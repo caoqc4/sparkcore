@@ -19,6 +19,7 @@ import {
   buildRuntimeMemoryWriteRequestMetadata
 } from "@/lib/chat/runtime-preview-metadata";
 import { buildRuntimeTurnInputFromAdapterInput } from "@/lib/chat/runtime-input";
+import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
 import { resolveRoleProfile } from "@/lib/chat/role-service";
 import { runAgentTurn } from "@/lib/chat/runtime";
@@ -136,12 +137,7 @@ async function runImRuntimeTurnWithSupabase(args: {
       user_id: input.user_id,
       role: "user",
       content: trimmedContent,
-      metadata: {
-        source: runtimeTurnInput.message.source,
-        runtime_source_timestamp: runtimeTurnInput.message.timestamp,
-        adapter_metadata: runtimeTurnInput.message.metadata,
-        runtime_turn_input: runtimeTurnInput
-      }
+      metadata: buildRuntimeUserMessageMetadata(runtimeTurnInput)
     })
     .select("id")
     .single();

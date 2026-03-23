@@ -11,6 +11,7 @@ import {
   normalizeSingleSlotValue
 } from "@/lib/chat/memory-v2";
 import { buildRuntimeTurnInput } from "@/lib/chat/runtime-input";
+import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
   executeMemoryWriteRequests
@@ -1147,6 +1148,21 @@ export async function sendMessage(
         source_platform: "web"
       }
     });
+
+    try {
+      await supabase
+        .from("messages")
+        .update({
+          metadata: buildRuntimeUserMessageMetadata(runtimeTurnInput),
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", insertedMessage.id)
+        .eq("thread_id", thread.id)
+        .eq("workspace_id", workspace.id)
+        .eq("user_id", user.id);
+    } catch (metadataError) {
+      console.warn("Failed to persist runtime user message metadata:", metadataError);
+    }
 
     const runtimeTurnResult = await runAgentTurn({
       input: runtimeTurnInput,
