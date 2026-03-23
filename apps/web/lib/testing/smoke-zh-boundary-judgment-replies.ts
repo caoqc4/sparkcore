@@ -5,12 +5,11 @@ import {
   isSmokeNonJudgingFollowUpPrompt,
 } from "@/lib/testing/smoke-answer-strategy";
 import { withSmokeZhBoundaryUserPrefix } from "@/lib/testing/smoke-zh-boundary-reply-prefix";
+import type { SmokeZhBoundaryReplyInput } from "@/lib/testing/smoke-zh-boundary-reply-types";
 
-export function buildSmokeZhBoundaryJudgmentReply(args: {
-  content: string;
-  normalized: string;
-  userName: string | null;
-}) {
+export function buildSmokeZhBoundaryJudgmentReply(
+  args: SmokeZhBoundaryReplyInput
+) {
   if (isSmokeNonJudgingFollowUpPrompt(args.content)) {
     if (args.normalized.includes("别数落我")) {
       return withSmokeZhBoundaryUserPrefix(

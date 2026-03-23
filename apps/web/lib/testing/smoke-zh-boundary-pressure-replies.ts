@@ -4,12 +4,11 @@ import {
   isSmokeAntiRushingFollowUpPrompt,
   isSmokeAntiSolutioningFollowUpPrompt,
 } from "@/lib/testing/smoke-answer-strategy";
+import type { SmokeZhBoundaryReplyInput } from "@/lib/testing/smoke-zh-boundary-reply-types";
 
-export function buildSmokeZhBoundaryPressureReply(args: {
-  content: string;
-  normalized: string;
-  userName: string | null;
-}) {
+export function buildSmokeZhBoundaryPressureReply(
+  args: SmokeZhBoundaryReplyInput
+) {
   if (isSmokeAntiProbingFollowUpPrompt(args.content)) {
     if (args.normalized.includes("别盘问我")) {
       return args.userName

@@ -6,12 +6,11 @@ import {
   isSmokeSameSideFollowUpPrompt,
 } from "@/lib/testing/smoke-answer-strategy";
 import { withSmokeZhBoundaryUserPrefix } from "@/lib/testing/smoke-zh-boundary-reply-prefix";
+import type { SmokeZhBoundaryReplyInput } from "@/lib/testing/smoke-zh-boundary-reply-types";
 
-export function buildSmokeZhBoundaryPerspectiveReply(args: {
-  content: string;
-  normalized: string;
-  userName: string | null;
-}) {
+export function buildSmokeZhBoundaryPerspectiveReply(
+  args: SmokeZhBoundaryReplyInput
+) {
   if (isSmokeAntiMinimizingFollowUpPrompt(args.content)) {
     if (args.normalized.includes("别跟我说没什么大不了")) {
       return withSmokeZhBoundaryUserPrefix(

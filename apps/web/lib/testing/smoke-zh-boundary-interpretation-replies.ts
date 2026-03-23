@@ -8,12 +8,11 @@ import {
   isSmokeAntiTaggingFollowUpPrompt,
 } from "@/lib/testing/smoke-answer-strategy";
 import { withSmokeZhBoundaryUserPrefix } from "@/lib/testing/smoke-zh-boundary-reply-prefix";
+import type { SmokeZhBoundaryReplyInput } from "@/lib/testing/smoke-zh-boundary-reply-types";
 
-export function buildSmokeZhBoundaryInterpretationReply(args: {
-  content: string;
-  normalized: string;
-  userName: string | null;
-}) {
+export function buildSmokeZhBoundaryInterpretationReply(
+  args: SmokeZhBoundaryReplyInput
+) {
   if (isSmokeAntiLabelingFollowUpPrompt(args.content)) {
     return withSmokeZhBoundaryUserPrefix(
       args.userName,

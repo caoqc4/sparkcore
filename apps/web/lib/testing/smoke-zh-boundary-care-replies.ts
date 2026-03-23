@@ -2,12 +2,9 @@ import {
   isSmokeAntiAdviceFollowUpPrompt,
   isSmokeAntiComfortingFollowUpPrompt,
 } from "@/lib/testing/smoke-answer-strategy";
+import type { SmokeZhBoundaryReplyInput } from "@/lib/testing/smoke-zh-boundary-reply-types";
 
-export function buildSmokeZhBoundaryCareReply(args: {
-  content: string;
-  normalized: string;
-  userName: string | null;
-}) {
+export function buildSmokeZhBoundaryCareReply(args: SmokeZhBoundaryReplyInput) {
   if (isSmokeAntiComfortingFollowUpPrompt(args.content)) {
     if (args.normalized.includes("别给我打气")) {
       return args.userName
