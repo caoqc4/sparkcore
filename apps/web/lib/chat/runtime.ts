@@ -24,9 +24,11 @@ import {
   bindOwnedThreadAgent,
   createOwnedAgent,
   createOwnedThread,
+  loadCompletedMessagesForThreads,
   loadFirstActiveModelProfile,
   loadFirstActivePersonaPack,
   loadLatestOwnedThread,
+  loadOwnedActiveAgentsByIds,
   loadOwnedAvailableAgents,
   loadOwnedThreadTitlesByIds,
   loadModelProfilesByIds,
@@ -3089,7 +3091,13 @@ export async function getChatPageState({
     };
   }
 
-  const agentIds = [...new Set(threads.map((thread) => thread.agent_id).filter(Boolean))];
+  const agentIds = [
+    ...new Set(
+      threads
+        .map((thread) => thread.agent_id)
+        .filter((agentId): agentId is string => typeof agentId === "string")
+    )
+  ];
   let agentById = new Map<string, AgentRecord>();
   let latestMessageByThreadId = new Map<
     string,
@@ -3097,15 +3105,12 @@ export async function getChatPageState({
   >();
 
   if (agentIds.length > 0) {
-    const { data: agents, error: agentsError } = await supabase
-      .from("agents")
-      .select(
-        "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata"
-      )
-      .in("id", agentIds)
-      .eq("workspace_id", workspace.id)
-      .eq("owner_user_id", user.id)
-      .eq("status", "active");
+    const { data: agents, error: agentsError } = await loadOwnedActiveAgentsByIds({
+      supabase,
+      agentIds,
+      workspaceId: workspace.id,
+      userId: user.id
+    });
 
     if (agentsError) {
       throw new Error(`Failed to load thread agents: ${agentsError.message}`);
@@ -3118,13 +3123,12 @@ export async function getChatPageState({
 
   if (threads.length > 0) {
     const threadIds = threads.map((thread) => thread.id);
-    const { data: latestMessages, error: latestMessagesError } = await supabase
-      .from("messages")
-      .select("thread_id, content, created_at, status")
-      .in("thread_id", threadIds)
-      .eq("workspace_id", workspace.id)
-      .in("status", ["completed"])
-      .order("created_at", { ascending: false });
+    const { data: latestMessages, error: latestMessagesError } =
+      await loadCompletedMessagesForThreads({
+        supabase,
+        threadIds,
+        workspaceId: workspace.id
+      });
 
     if (latestMessagesError) {
       throw new Error(

@@ -233,6 +233,21 @@ export async function loadOwnedAvailableAgents(args: {
     .order("updated_at", { ascending: false });
 }
 
+export async function loadOwnedActiveAgentsByIds(args: {
+  supabase: any;
+  agentIds: string[];
+  workspaceId: string;
+  userId: string;
+}) {
+  return args.supabase
+    .from("agents")
+    .select(AGENT_SELECT)
+    .in("id", args.agentIds)
+    .eq("workspace_id", args.workspaceId)
+    .eq("owner_user_id", args.userId)
+    .eq("status", "active");
+}
+
 export async function loadActiveModelProfiles(args: {
   supabase: any;
 }) {
@@ -341,4 +356,18 @@ export async function loadOwnedThreadTitlesByIds(args: {
     .in("id", args.threadIds)
     .eq("workspace_id", args.workspaceId)
     .eq("owner_user_id", args.userId);
+}
+
+export async function loadCompletedMessagesForThreads(args: {
+  supabase: any;
+  threadIds: string[];
+  workspaceId: string;
+}) {
+  return args.supabase
+    .from("messages")
+    .select("thread_id, content, created_at, status")
+    .in("thread_id", args.threadIds)
+    .eq("workspace_id", args.workspaceId)
+    .in("status", ["completed"])
+    .order("created_at", { ascending: false });
 }
