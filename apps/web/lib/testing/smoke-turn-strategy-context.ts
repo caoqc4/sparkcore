@@ -42,3 +42,7 @@ export function getSmokeTurnStrategyContext(args: {
     preferSameThreadContinuation
   };
 }
+
+export type SmokeTurnStrategyContext = ReturnType<
+  typeof getSmokeTurnStrategyContext
+>;

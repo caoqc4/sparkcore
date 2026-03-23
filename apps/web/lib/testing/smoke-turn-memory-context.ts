@@ -27,3 +27,5 @@ export function getSmokeTurnMemoryContext(args: {
     incorrectExclusionCount
   };
 }
+
+export type SmokeTurnMemoryContext = ReturnType<typeof getSmokeTurnMemoryContext>;
