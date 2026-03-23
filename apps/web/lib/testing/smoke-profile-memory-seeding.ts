@@ -1,4 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   buildMemoryV2Fields,
   inferLegacyMemoryStability,
@@ -10,17 +9,9 @@ import {
   buildSmokeSeedMetadata,
   mergeSmokeSeedMetadata
 } from "@/lib/testing/smoke-seed-metadata";
+import type { SmokeProfileMemorySeedingInput } from "@/lib/testing/smoke-profile-memory-seeding-types";
 
-export async function upsertSmokeProfileMemory(args: {
-  supabase: SupabaseClient;
-  workspaceId: string;
-  userId: string;
-  agentId: string;
-  sourceMessageId: string;
-  memoryType: "profile" | "preference";
-  value: string;
-  confidence: number;
-}) {
+export async function upsertSmokeProfileMemory(args: SmokeProfileMemorySeedingInput) {
   const { data: existingMemory } = await loadOwnedMemoryItemByTypeAndContent({
     supabase: args.supabase,
     workspaceId: args.workspaceId,

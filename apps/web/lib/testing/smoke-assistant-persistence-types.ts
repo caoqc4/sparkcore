@@ -9,6 +9,9 @@ import type {
   SmokeReplyLanguageSource,
   SmokeRoleCorePacket
 } from "@/lib/testing/smoke-assistant-builders";
+import type { SmokeAssistantMetadataRecall } from "@/lib/testing/smoke-assistant-metadata-types";
+import type { SmokeCreatedMemoryType } from "@/lib/testing/smoke-memory-write-types";
+import type { SmokeRecallMemory } from "@/lib/testing/smoke-recall-memory-types";
 
 export type SmokeAssistantInsertArgs = {
   supabase: SupabaseClient;
@@ -35,15 +38,11 @@ export type SmokeAssistantInsertArgs = {
   longChainPressureCandidate: boolean;
   sameThreadContinuationPreferred: boolean;
   distantMemoryFallbackAllowed: boolean;
-  recalledMemories: Array<{
-    memory_type: string | null;
-    content: string;
-    confidence: number | null;
-  }>;
+  recalledMemories: SmokeAssistantMetadataRecall[];
   usedMemoryTypes: string[];
   hiddenExclusionCount: number;
   incorrectExclusionCount: number;
-  createdTypes: string[];
+  createdTypes: SmokeCreatedMemoryType[];
 };
 
 export type SmokeAnalyzedAssistantInsertArgs = {
@@ -72,13 +71,9 @@ export type SmokeAnalyzedAssistantInsertArgs = {
   longChainPressureCandidate: boolean;
   sameThreadContinuationPreferred: boolean;
   distantMemoryFallbackAllowed: boolean;
-  recalledMemories: Array<{
-    memory_type: "profile" | "preference" | "relationship";
-    content: string;
-    confidence: number;
-  }>;
+  recalledMemories: SmokeRecallMemory[];
   usedMemoryTypes: string[];
   hiddenExclusionCount: number;
   incorrectExclusionCount: number;
-  createdTypes: Array<"profile" | "preference" | "relationship">;
+  createdTypes: SmokeCreatedMemoryType[];
 };
