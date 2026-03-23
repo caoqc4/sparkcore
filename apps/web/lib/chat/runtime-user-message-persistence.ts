@@ -3,7 +3,15 @@ import {
   insertMessage,
   updateScopedMessage
 } from "@/lib/chat/message-persistence";
-import { buildRuntimeUserMessageMetadata } from "@/lib/chat/runtime-user-message-metadata";
+
+function buildRuntimeUserMessageMetadata(runtimeTurnInput: RuntimeTurnInput) {
+  return {
+    source: runtimeTurnInput.message.source,
+    runtime_source_timestamp: runtimeTurnInput.message.timestamp,
+    adapter_metadata: runtimeTurnInput.message.metadata,
+    runtime_turn_input: runtimeTurnInput
+  };
+}
 
 type UserMessageTarget = {
   supabase: any;

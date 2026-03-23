@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { handleInboundChannelMessage } from "@/lib/integrations/im-adapter";
-import { createWebBindingLookup } from "@/lib/chat/im-binding-lookup";
+import {
+  createSupabaseBindingLookup,
+  handleInboundChannelMessage
+} from "@/lib/integrations/im-adapter";
 import { webImRuntimePort } from "@/lib/chat/im-runtime-port";
 import {
   isValidTelegramWebhookSecret,
@@ -9,6 +11,7 @@ import {
   type TelegramUpdate
 } from "@/lib/integrations/telegram";
 import { getTelegramBotEnv } from "@/lib/env";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
   const { botToken, webhookSecret } = getTelegramBotEnv();
@@ -33,7 +36,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const bindingLookup = await createWebBindingLookup();
+    const bindingLookup = await createSupabaseBindingLookup(createAdminClient());
     const result = await handleInboundChannelMessage({
       inbound,
       bindingLookup,
