@@ -273,6 +273,10 @@
   - 最小结构 gate 草案
   - 最小回归 gate 草案
   - `apps/web/scripts/memory-upgrade-harness.ts` 最小回归脚手架
+    - semantic target classifier
+    - record candidate adapter
+    - runtime `memory.semantic_summary`
+    - assistant metadata semantic summary reader
 
 依赖：
 

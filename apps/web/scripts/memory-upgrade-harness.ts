@@ -1,15 +1,23 @@
 import {
+  buildRuntimeMemorySemanticSummary,
   buildRecalledProfileMemoryFromStoredMemory,
   buildRecalledRelationshipMemoryFromStoredMemory,
   buildStaticProfileRecordFromStoredMemory,
   classifyStoredMemorySemanticTarget
 } from "@/lib/chat/memory-records";
+import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
+import {
+  getAssistantMemoryObservedSemanticLayers,
+  getAssistantMemoryPrimarySemanticLayer
+} from "@/lib/chat/assistant-message-metadata-read";
 import {
   buildPlannedRelationshipMemoryRecord,
   buildPlannedStaticProfileRecord,
   buildPlannedThreadStateCandidate
 } from "@/lib/chat/memory-write-record-candidates";
 import type { StoredMemory } from "@/lib/chat/memory-shared";
+import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
+import { buildRuntimeTurnInput } from "@/lib/chat/runtime-input";
 
 function expect(condition: unknown, message: string): asserts condition {
   if (!condition) {
@@ -197,6 +205,131 @@ function main() {
     "Expected thread state candidate to preserve goal semantic source."
   );
 
+  const semanticSummary = buildRuntimeMemorySemanticSummary({
+    memoryTypesUsed: ["profile", "relationship"],
+    profileSnapshot: ["User prefers concise technical explanations."],
+    hasThreadState: true,
+    threadStateFocusMode: plannedThreadState.focus_mode
+  });
+  expect(
+    semanticSummary.primary_layer === "thread_state",
+    "Expected semantic summary to prioritize thread_state when focus_mode exists."
+  );
+  expect(
+    semanticSummary.observed_layers.join(",") ===
+      "static_profile,memory_record,thread_state",
+    "Expected semantic summary to retain all observed layers."
+  );
+
+  const assistantMetadata = buildAssistantMessageMetadata(
+    buildRuntimeAssistantMetadataInput({
+      agent: {
+        id: "agent-1",
+        name: "Helper"
+      },
+      model: {
+        result_model: "gpt-test",
+        provider: "openai",
+        requested: "gpt-test",
+        profile_id: "profile-1",
+        profile_name: "Balanced",
+        profile_tier_label: "stable",
+        profile_usage_note: "Harness profile",
+        underlying_label: "gpt-test"
+      },
+      runtime: {
+        role_core_packet: {
+          packet_version: "v1",
+          identity: {
+            agent_id: "agent-1",
+            agent_name: "Helper"
+          },
+          persona_summary: "Helpful assistant",
+          style_guidance: "Be concise",
+          relationship_stance: {
+            effective: "friendly",
+            source: "relationship_memory"
+          },
+          language_behavior: {
+            reply_language_target: "en",
+            reply_language_source: "latest-user-message",
+            same_thread_continuation_preferred: true
+          }
+        },
+        runtime_input: buildRuntimeTurnInput({
+          userId: "user-1",
+          agentId: "agent-1",
+          threadId: "thread-1",
+          workspaceId: "workspace-1",
+          content: "Help me finish onboarding.",
+          source: "web"
+        }),
+        session_thread_id: "thread-1",
+        session_agent_id: "agent-1",
+        current_message_id: "msg-1",
+        recent_raw_turn_count: 4,
+        approx_context_pressure: "medium"
+      },
+      reply_language: {
+        target: "en",
+        detected: "en",
+        source: "latest-user-message"
+      },
+      answer: {
+        question_type: "grounded_help",
+        strategy: "grounded_answer",
+        strategy_reason_code: "memory_supported",
+        strategy_priority: "high",
+        strategy_priority_label: "High"
+      },
+      session: {
+        continuation_reason_code: "same_thread",
+        thread_state: {
+          lifecycle_status: "active",
+          focus_mode: plannedThreadState.focus_mode,
+          continuity_status: "warm",
+          current_language_hint: "en"
+        },
+        same_thread_continuation_applicable: true,
+        long_chain_pressure_candidate: false,
+        same_thread_continuation_preferred: true,
+        distant_memory_fallback_allowed: false
+      },
+      memory: {
+        recalled_memories: [
+          {
+            memory_type: "profile",
+            content: "User prefers concise technical explanations.",
+            confidence: 0.92
+          },
+          {
+            memory_type: "relationship",
+            content: "The user calls this agent 小助手.",
+            confidence: 0.95
+          }
+        ],
+        hit_count: 2,
+        used: true,
+        types_used: ["profile", "relationship"],
+        profile_snapshot: ["User prefers concise technical explanations."],
+        hidden_exclusion_count: 0,
+        incorrect_exclusion_count: 0
+      },
+      follow_up: {
+        request_count: 1
+      }
+    })
+  );
+  expect(
+    getAssistantMemoryPrimarySemanticLayer(assistantMetadata) === "thread_state",
+    "Expected assistant metadata reader to expose thread_state as primary semantic layer."
+  );
+  expect(
+    getAssistantMemoryObservedSemanticLayers(assistantMetadata).join(",") ===
+      "static_profile,memory_record,thread_state",
+    "Expected assistant metadata reader to expose all observed semantic layers."
+  );
+
   console.log(
     JSON.stringify(
       {
@@ -216,6 +349,13 @@ function main() {
           planned_profile_id: plannedProfile.profile_id,
           planned_relationship_id: plannedRelationship.memory_id,
           planned_thread_focus: plannedThreadState.focus_mode
+        },
+        runtime_semantic_summary: semanticSummary,
+        assistant_metadata_semantic_summary: {
+          primary_layer: getAssistantMemoryPrimarySemanticLayer(assistantMetadata),
+          observed_layers: getAssistantMemoryObservedSemanticLayers(
+            assistantMetadata
+          )
         }
       },
       null,

@@ -96,7 +96,11 @@
   - 功能 gate
   - 结构 gate
   - 回归 gate
-- `apps/web/scripts/memory-upgrade-harness.ts` 当前也已开始承接最小 P0 回归脚手架，用于锁住 semantic target 与 candidate adapter 的核心映射
+- `apps/web/scripts/memory-upgrade-harness.ts` 当前也已开始承接最小 P0 回归脚手架，用于锁住：
+  - semantic target classifier
+  - candidate adapter
+  - runtime `memory.semantic_summary`
+  - assistant metadata semantic summary reader
 - `profile / preference` 已形成 planner -> executor 最小闭环
 - `relationship memory` 已收进 `memory_write_requests` 的显式 subtype
 - relationship 写入已不再走额外旁路，而是回到统一 write pipeline
