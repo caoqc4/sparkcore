@@ -162,6 +162,7 @@
     - `relationship memory_record`
     - generic `memory_record`
     的判定收成共用 semantic predicate，而不再在 recall 主路径里散落 raw `category / scope` 判断
+  - runtime 的 visible / hidden / incorrect / superseded memory list 当前也已开始通过共用 normalizer 生成 canonical displayed record，而不再各自重复拼装 legacy row 的 category / scope / source 字段
 - legacy `goal` 当前默认不进入 `DynamicProfileRecord`，而是保守视为 `ThreadState` 迁移候选
 - 在具备 `threadId + repository` 时，legacy `goal` 当前也已开始写入 `ThreadState.focus_mode`
 

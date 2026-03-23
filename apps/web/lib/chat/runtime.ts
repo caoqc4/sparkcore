@@ -14,7 +14,7 @@ import { buildRuntimeAssistantPayload } from "@/lib/chat/assistant-message-paylo
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
 import { persistCompletedAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
-import type { RecalledMemory } from "@/lib/chat/memory-shared";
+import type { RecalledMemory, StoredMemory } from "@/lib/chat/memory-shared";
 import {
   buildRecalledStaticProfileSnapshot,
   buildRuntimeMemorySemanticSummary
@@ -847,6 +847,44 @@ type VisibleMemoryRecord = {
 type HiddenMemoryRecord = VisibleMemoryRecord;
 type IncorrectMemoryRecord = VisibleMemoryRecord;
 type SupersededMemoryRecord = VisibleMemoryRecord;
+
+function buildVisibleMemoryRecord(args: {
+  memory: StoredMemory;
+  agentNameById: Map<string, string>;
+  sourceMessageById: Map<string, { thread_id: string | null; created_at: string }>;
+  sourceThreadTitleById: Map<string, string>;
+}): VisibleMemoryRecord {
+  const sourceMessage = args.memory.source_message_id
+    ? args.sourceMessageById.get(args.memory.source_message_id) ?? null
+    : null;
+
+  return {
+    ...args.memory,
+    content: args.memory.content,
+    confidence: args.memory.confidence,
+    category: getMemoryCategory(args.memory),
+    key: getMemoryKey(args.memory),
+    value: args.memory.value ?? args.memory.content,
+    scope: getMemoryScope(args.memory),
+    target_agent_id: args.memory.target_agent_id ?? null,
+    target_thread_id: args.memory.target_thread_id ?? null,
+    target_agent_name: args.memory.target_agent_id
+      ? args.agentNameById.get(args.memory.target_agent_id) ?? null
+      : null,
+    stability: getMemoryStability(args.memory),
+    status: getMemoryStatus(args.memory),
+    metadata: (args.memory.metadata ?? {}) as Record<string, unknown>,
+    source_message_id: args.memory.source_message_id ?? null,
+    source_refs: getMemorySourceRefs(args.memory),
+    source_thread_id: sourceMessage?.thread_id ?? null,
+    source_thread_title: sourceMessage?.thread_id
+      ? args.sourceThreadTitleById.get(sourceMessage.thread_id) ?? null
+      : null,
+    source_timestamp: sourceMessage?.created_at ?? null,
+    created_at: args.memory.created_at,
+    updated_at: args.memory.updated_at ?? args.memory.created_at
+  };
+}
 
 type RequestedThreadFallback = {
   requestedThreadId: string;
@@ -3259,110 +3297,38 @@ export async function getChatPageState({
     usage_note: getModelProfileUsageNote(modelProfile.metadata),
     underlying_model: getUnderlyingModelLabel(modelProfile.metadata)
   })) as AvailableModelProfileRecord[];
-  const visibleMemories = filteredVisibleMemories.map((memory) => {
-    const sourceMessage = memory.source_message_id
-      ? sourceMessageById.get(memory.source_message_id) ?? null
-      : null;
-
-    return {
-      ...memory,
-      category: getMemoryCategory(memory),
-      key: getMemoryKey(memory),
-      value: memory.value ?? memory.content,
-      scope: getMemoryScope(memory),
-      target_agent_id: memory.target_agent_id ?? null,
-      target_thread_id: memory.target_thread_id ?? null,
-      target_agent_name: memory.target_agent_id
-        ? agentNameById.get(memory.target_agent_id) ?? null
-        : null,
-      stability: getMemoryStability(memory),
-      status: getMemoryStatus(memory),
-      source_refs: getMemorySourceRefs(memory),
-      source_thread_id: sourceMessage?.thread_id ?? null,
-      source_thread_title: sourceMessage?.thread_id
-        ? sourceThreadTitleById.get(sourceMessage.thread_id) ?? null
-        : null,
-      source_timestamp: sourceMessage?.created_at ?? null
-    };
-  }) as VisibleMemoryRecord[];
-  const hiddenMemories = filteredHiddenMemories.map((memory) => {
-    const sourceMessage = memory.source_message_id
-      ? sourceMessageById.get(memory.source_message_id) ?? null
-      : null;
-
-    return {
-      ...memory,
-      category: getMemoryCategory(memory),
-      key: getMemoryKey(memory),
-      value: memory.value ?? memory.content,
-      scope: getMemoryScope(memory),
-      target_agent_id: memory.target_agent_id ?? null,
-      target_thread_id: memory.target_thread_id ?? null,
-      target_agent_name: memory.target_agent_id
-        ? agentNameById.get(memory.target_agent_id) ?? null
-        : null,
-      stability: getMemoryStability(memory),
-      status: getMemoryStatus(memory),
-      source_refs: getMemorySourceRefs(memory),
-      source_thread_id: sourceMessage?.thread_id ?? null,
-      source_thread_title: sourceMessage?.thread_id
-        ? sourceThreadTitleById.get(sourceMessage.thread_id) ?? null
-        : null,
-      source_timestamp: sourceMessage?.created_at ?? null
-    };
-  }) as HiddenMemoryRecord[];
-  const incorrectMemories = filteredIncorrectMemories.map((memory) => {
-    const sourceMessage = memory.source_message_id
-      ? sourceMessageById.get(memory.source_message_id) ?? null
-      : null;
-
-    return {
-      ...memory,
-      category: getMemoryCategory(memory),
-      key: getMemoryKey(memory),
-      value: memory.value ?? memory.content,
-      scope: getMemoryScope(memory),
-      target_agent_id: memory.target_agent_id ?? null,
-      target_thread_id: memory.target_thread_id ?? null,
-      target_agent_name: memory.target_agent_id
-        ? agentNameById.get(memory.target_agent_id) ?? null
-        : null,
-      stability: getMemoryStability(memory),
-      status: getMemoryStatus(memory),
-      source_refs: getMemorySourceRefs(memory),
-      source_thread_id: sourceMessage?.thread_id ?? null,
-      source_thread_title: sourceMessage?.thread_id
-        ? sourceThreadTitleById.get(sourceMessage.thread_id) ?? null
-        : null,
-      source_timestamp: sourceMessage?.created_at ?? null
-    };
-  }) as IncorrectMemoryRecord[];
-  const supersededMemories = filteredSupersededMemories.map((memory) => {
-    const sourceMessage = memory.source_message_id
-      ? sourceMessageById.get(memory.source_message_id) ?? null
-      : null;
-
-    return {
-      ...memory,
-      category: getMemoryCategory(memory),
-      key: getMemoryKey(memory),
-      value: memory.value ?? memory.content,
-      scope: getMemoryScope(memory),
-      target_agent_id: memory.target_agent_id ?? null,
-      target_thread_id: memory.target_thread_id ?? null,
-      target_agent_name: memory.target_agent_id
-        ? agentNameById.get(memory.target_agent_id) ?? null
-        : null,
-      stability: getMemoryStability(memory),
-      status: getMemoryStatus(memory),
-      source_refs: getMemorySourceRefs(memory),
-      source_thread_id: sourceMessage?.thread_id ?? null,
-      source_thread_title: sourceMessage?.thread_id
-        ? sourceThreadTitleById.get(sourceMessage.thread_id) ?? null
-        : null,
-      source_timestamp: sourceMessage?.created_at ?? null
-    };
-  }) as SupersededMemoryRecord[];
+  const visibleMemories = filteredVisibleMemories.map((memory) =>
+    buildVisibleMemoryRecord({
+      memory,
+      agentNameById,
+      sourceMessageById,
+      sourceThreadTitleById
+    })
+  ) as VisibleMemoryRecord[];
+  const hiddenMemories = filteredHiddenMemories.map((memory) =>
+    buildVisibleMemoryRecord({
+      memory,
+      agentNameById,
+      sourceMessageById,
+      sourceThreadTitleById
+    })
+  ) as HiddenMemoryRecord[];
+  const incorrectMemories = filteredIncorrectMemories.map((memory) =>
+    buildVisibleMemoryRecord({
+      memory,
+      agentNameById,
+      sourceMessageById,
+      sourceThreadTitleById
+    })
+  ) as IncorrectMemoryRecord[];
+  const supersededMemories = filteredSupersededMemories.map((memory) =>
+    buildVisibleMemoryRecord({
+      memory,
+      agentNameById,
+      sourceMessageById,
+      sourceThreadTitleById
+    })
+  ) as SupersededMemoryRecord[];
   const threads = (rawThreads ?? []) as ThreadRecord[];
 
   if (threads.length === 0) {
