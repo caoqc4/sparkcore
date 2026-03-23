@@ -18,18 +18,18 @@
 
 ## 2. 当前总体判断
 
-当前 `Memory Upgrade P3` 已从中段推进到更明确的中后段，并开始接近可准备收口判断的区间。
+当前 `Memory Upgrade P3` 已从中段推进到更明确的中后段，并开始进入更清晰的 close-readiness 区间。
 
 当前总判断：
 
 - `P3-1 ~ P3-3` 主结构已经从 seam 推进到了真实作用边界
-- `P3-4` 已不再只是单 pack 占位，而开始进入真实选择逻辑
+- `P3-4` 已不再只是单 pack 占位，而开始进入真实选择与真实 prompt budget 消费逻辑
 - `P3-5` 已不再只是零散断言，而已成立第一版阶段聚合 gate
-- 当前剩余项已从“立高阶能力”转向“最后几刀收口 + 正式 close-readiness 判断”
+- 当前剩余项已从“立高阶能力”继续压缩到“收口判断前的最后少量尾项”
 
 当前整体完成度评估：
 
-- **约 80%**
+- **约 85%**
 
 ---
 
@@ -134,7 +134,7 @@
 
 状态：
 
-- **中后段**
+- **接近完成**
 
 当前已成立：
 
@@ -153,11 +153,20 @@
   - 默认 `companion`
   - project namespace -> `project_ops`
   - world-primary + project knowledge -> `project_knowledge_priority`
+- `apps/web/lib/chat/memory-knowledge.ts` 当前也已开始让 knowledge prompt budget 受 `activePackId` 影响
+- 当前最小规则已成立：
+  - `companion` 继续使用更紧的 knowledge budget，只保留 `project / world`
+  - `project_ops` 在 `project / world` 优先的前提下，可在预算允许时额外带入一条 `general` knowledge
+- `apps/web/lib/chat/runtime.ts` 当前也已开始把 active scenario pack 传入 knowledge prompt section，使 pack 选择开始真实影响 knowledge 消费预算
+- harness 当前也已开始显式校验：
+  - `project_ops` prompt 会带入 `General reply policy`
+  - `companion` prompt 仍不会带入 `General reply policy`
 
 结论：
 
 - `P3-4` 已越过“只有第二个 pack 存在”的阶段
-- 但相比 `P3-1 ~ P3-3`，仍是当前最弱的一项
+- 当前已经从 pack 选择推进到 pack-specific knowledge budget
+- 已可视为接近完成
 
 ### P3-5 regression / acceptance expansion
 
@@ -188,9 +197,8 @@
 
 当前真正还值得继续处理的，不是重新开新主题，而是：
 
-1. `P3-4` 是否还需要最后一刀 pack selection / expansion 收口
-2. `P3-5` 是否需要再补一层更正式的 close gate 表达
-3. 当前是否已经适合准备：
+1. `P3-5` 是否需要再补一层更正式的 close gate 表达
+2. 当前是否已经适合准备：
    - `P3 close note`
 
 ---
@@ -206,10 +214,9 @@
 - `P3-1`：接近完成
 - `P3-2`：接近完成
 - `P3-3`：接近完成
-- `P3-4`：中后段
+- `P3-4`：接近完成
 - `P3-5`：第一版已成立
 
 当前这轮复盘已经完成，下一步更合理的不是继续发散做新主题，而是：
 
-- 判断是否还需要最后 1-2 刀收口
-- 或开始准备 `P3 close note`
+- 判断是否已经可以开始准备 `P3 close note`
