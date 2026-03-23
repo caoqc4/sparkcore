@@ -164,3 +164,20 @@ export async function loadActiveModelProfiles(args: {
     .eq("is_active", true)
     .order("created_at", { ascending: true });
 }
+
+export async function loadRecentOwnedMemories(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+  limit?: number;
+}) {
+  return args.supabase
+    .from("memory_items")
+    .select(
+      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, metadata, source_message_id, created_at, updated_at"
+    )
+    .eq("workspace_id", args.workspaceId)
+    .eq("user_id", args.userId)
+    .order("created_at", { ascending: false })
+    .limit(args.limit ?? 60);
+}

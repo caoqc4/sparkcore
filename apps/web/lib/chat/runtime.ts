@@ -21,6 +21,7 @@ import {
   createOwnedThread,
   loadLatestOwnedThread,
   loadOwnedAvailableAgents,
+  loadRecentOwnedMemories,
   loadOwnedThreads,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
@@ -2705,15 +2706,13 @@ export async function getChatPageState({
     );
   }
 
-  const { data: visibleMemoriesData, error: visibleMemoriesError } = await supabase
-    .from("memory_items")
-    .select(
-      "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, metadata, source_message_id, created_at, updated_at"
-    )
-    .eq("workspace_id", workspace.id)
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(60);
+  const { data: visibleMemoriesData, error: visibleMemoriesError } =
+    await loadRecentOwnedMemories({
+      supabase,
+      workspaceId: workspace.id,
+      userId: user.id,
+      limit: 60
+    });
 
   if (visibleMemoriesError) {
     throw new Error(
