@@ -1,14 +1,10 @@
-import { isSmokeOneLineSoftCatchPrompt } from "@/lib/testing/smoke-follow-up-prompts";
 import {
   buildSmokeRelationshipClosingCoreReply,
   buildSmokeRelationshipExplanatoryCoreReply,
   buildSmokeRelationshipSupportiveCoreReply
 } from "@/lib/testing/smoke-relationship-core-replies";
-import {
-  buildSmokeEnSoftCatchReply,
-  buildSmokeZhSoftCatchReply
-} from "@/lib/testing/smoke-soft-catch-replies";
 import { buildSmokeDefaultContinuationReply as buildSmokeDefaultContinuationReplyByLanguage } from "@/lib/testing/smoke-default-continuation-reply";
+import { buildSmokeRelationshipSoftCatchReply } from "@/lib/testing/smoke-relationship-soft-catch";
 import type {
   SmokeReplyLanguage
 } from "@/lib/testing/smoke-assistant-builders";
@@ -45,14 +41,13 @@ export function buildSmokeRelationshipSupportiveReply({
   selfName,
   userName
 }: Args) {
-  if (replyLanguage === "zh-Hans") {
-    if (isSmokeOneLineSoftCatchPrompt(content)) {
-      return buildSmokeZhSoftCatchReply(userName);
-    }
-  }
-
-  if (isSmokeOneLineSoftCatchPrompt(content)) {
-    return buildSmokeEnSoftCatchReply(userName);
+  const softCatchReply = buildSmokeRelationshipSoftCatchReply({
+    content,
+    replyLanguage,
+    userName
+  });
+  if (softCatchReply) {
+    return softCatchReply;
   }
 
   return buildSmokeRelationshipSupportiveCoreReply({

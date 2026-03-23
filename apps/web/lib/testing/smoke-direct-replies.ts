@@ -6,6 +6,7 @@ import { buildSmokeFactReply } from "@/lib/testing/smoke-fact-replies";
 import { buildSmokeGroundedReply } from "@/lib/testing/smoke-grounded-replies";
 import { buildSmokeIntroReply } from "@/lib/testing/smoke-intro-replies";
 import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
+import { buildSmokeQuickHelloReply } from "@/lib/testing/smoke-quick-hello-replies";
 
 type SmokeRelationshipRecallMemory = {
   memory_type: "relationship";
@@ -41,11 +42,13 @@ export function buildSmokeDirectOrGroundedReply({
   recalledMemories: SmokeRecallMemory[];
 }) {
   const normalized = normalizeSmokePrompt(content);
-
-  if (normalized.includes("reply in one sentence with a quick hello")) {
-    return replyLanguage === "zh-Hans"
-      ? `你好，我是通过 ${modelProfileName} 回复的 SparkCore。`
-      : `Hello from SparkCore via ${modelProfileName}.`;
+  const quickHelloReply = buildSmokeQuickHelloReply({
+    normalizedContent: normalized,
+    replyLanguage,
+    modelProfileName
+  });
+  if (quickHelloReply) {
+    return quickHelloReply;
   }
 
   const introReply = buildSmokeIntroReply({
