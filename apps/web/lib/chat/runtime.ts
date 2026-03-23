@@ -28,7 +28,11 @@ import {
   loadFirstActivePersonaPack,
   loadLatestOwnedThread,
   loadOwnedAvailableAgents,
+  loadOwnedThreadTitlesByIds,
+  loadModelProfilesByIds,
+  loadPersonaPackNamesByIds,
   loadRecentOwnedMemories,
+  loadSourceMessagesByIds,
   loadOwnedThreads,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
@@ -2795,10 +2799,11 @@ export async function getChatPageState({
   let sourceThreadTitleById = new Map<string, string>();
 
   if (personaPackIds.length > 0) {
-    const { data: personaPacks, error: personaPacksError } = await supabase
-      .from("persona_packs")
-      .select("id, name")
-      .in("id", personaPackIds);
+    const { data: personaPacks, error: personaPacksError } =
+      await loadPersonaPackNamesByIds({
+        supabase,
+        personaPackIds
+      });
 
     if (personaPacksError) {
       throw new Error(
@@ -2806,17 +2811,22 @@ export async function getChatPageState({
       );
     }
 
+    const typedPersonaPacks = (personaPacks ?? []) as Array<{
+      id: string;
+      name: string;
+    }>;
+
     personaPackNameById = new Map(
-      (personaPacks ?? []).map((personaPack) => [personaPack.id, personaPack.name])
+      typedPersonaPacks.map((personaPack) => [personaPack.id, personaPack.name])
     );
   }
 
   if (modelProfileIds.length > 0) {
-    const { data: modelProfiles, error: modelProfilesError } = await supabase
-      .from("model_profiles")
-      .select("id, name, metadata")
-      .in("id", modelProfileIds)
-      .eq("is_active", true);
+    const { data: modelProfiles, error: modelProfilesError } =
+      await loadModelProfilesByIds({
+        supabase,
+        modelProfileIds
+      });
 
     if (modelProfilesError) {
       throw new Error(
@@ -2824,12 +2834,18 @@ export async function getChatPageState({
       );
     }
 
+    const typedModelProfiles = (modelProfiles ?? []) as Array<{
+      id: string;
+      name: string;
+      metadata: Record<string, unknown> | null;
+    }>;
+
     modelProfileNameById = new Map(
-      (modelProfiles ?? []).map((modelProfile) => [modelProfile.id, modelProfile.name])
+      typedModelProfiles.map((modelProfile) => [modelProfile.id, modelProfile.name])
     );
     modelProfileTierLabelById = new Map();
 
-    for (const modelProfile of modelProfiles ?? []) {
+    for (const modelProfile of typedModelProfiles) {
       const tierLabel = getModelProfileTierLabel(modelProfile.metadata);
       if (tierLabel !== null) {
         modelProfileTierLabelById.set(modelProfile.id, tierLabel);
@@ -2838,11 +2854,12 @@ export async function getChatPageState({
   }
 
   if (sourceMessageIds.length > 0) {
-    const { data: sourceMessages, error: sourceMessagesError } = await supabase
-      .from("messages")
-      .select("id, thread_id, created_at")
-      .in("id", sourceMessageIds)
-      .eq("workspace_id", workspace.id);
+    const { data: sourceMessages, error: sourceMessagesError } =
+      await loadSourceMessagesByIds({
+        supabase,
+        sourceMessageIds,
+        workspaceId: workspace.id
+      });
 
     if (sourceMessagesError) {
       throw new Error(
@@ -2850,8 +2867,14 @@ export async function getChatPageState({
       );
     }
 
+    const typedSourceMessages = (sourceMessages ?? []) as Array<{
+      id: string;
+      thread_id: string;
+      created_at: string;
+    }>;
+
     sourceMessageById = new Map(
-      (sourceMessages ?? []).map((message) => [
+      typedSourceMessages.map((message) => [
         message.id,
         {
           thread_id: message.thread_id,
@@ -2860,17 +2883,16 @@ export async function getChatPageState({
       ])
     );
 
-    const sourceThreadIds = [
-      ...new Set((sourceMessages ?? []).map((message) => message.thread_id))
-    ];
+    const sourceThreadIds = [...new Set(typedSourceMessages.map((message) => message.thread_id))];
 
     if (sourceThreadIds.length > 0) {
-      const { data: sourceThreads, error: sourceThreadsError } = await supabase
-        .from("threads")
-        .select("id, title")
-        .in("id", sourceThreadIds)
-        .eq("workspace_id", workspace.id)
-        .eq("owner_user_id", user.id);
+      const { data: sourceThreads, error: sourceThreadsError } =
+        await loadOwnedThreadTitlesByIds({
+          supabase,
+          threadIds: sourceThreadIds,
+          workspaceId: workspace.id,
+          userId: user.id
+        });
 
       if (sourceThreadsError) {
         throw new Error(
@@ -2878,8 +2900,13 @@ export async function getChatPageState({
         );
       }
 
+      const typedSourceThreads = (sourceThreads ?? []) as Array<{
+        id: string;
+        title: string;
+      }>;
+
       sourceThreadTitleById = new Map(
-        (sourceThreads ?? []).map((thread) => [thread.id, thread.title])
+        typedSourceThreads.map((thread) => [thread.id, thread.title])
       );
     }
   }

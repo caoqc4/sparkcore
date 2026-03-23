@@ -295,3 +295,50 @@ export async function loadRecentOwnedMemories(args: {
     .order("created_at", { ascending: false })
     .limit(args.limit ?? 60);
 }
+
+export async function loadPersonaPackNamesByIds(args: {
+  supabase: any;
+  personaPackIds: string[];
+}) {
+  return args.supabase
+    .from("persona_packs")
+    .select("id, name")
+    .in("id", args.personaPackIds);
+}
+
+export async function loadModelProfilesByIds(args: {
+  supabase: any;
+  modelProfileIds: string[];
+}) {
+  return args.supabase
+    .from("model_profiles")
+    .select("id, name, metadata")
+    .in("id", args.modelProfileIds)
+    .eq("is_active", true);
+}
+
+export async function loadSourceMessagesByIds(args: {
+  supabase: any;
+  sourceMessageIds: string[];
+  workspaceId: string;
+}) {
+  return args.supabase
+    .from("messages")
+    .select("id, thread_id, created_at")
+    .in("id", args.sourceMessageIds)
+    .eq("workspace_id", args.workspaceId);
+}
+
+export async function loadOwnedThreadTitlesByIds(args: {
+  supabase: any;
+  threadIds: string[];
+  workspaceId: string;
+  userId: string;
+}) {
+  return args.supabase
+    .from("threads")
+    .select("id, title")
+    .in("id", args.threadIds)
+    .eq("workspace_id", args.workspaceId)
+    .eq("owner_user_id", args.userId);
+}
