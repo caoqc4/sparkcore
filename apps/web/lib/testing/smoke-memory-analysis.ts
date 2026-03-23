@@ -1,35 +1,14 @@
 import {
   isMemoryActive,
   isMemoryHidden,
-  isMemoryIncorrect,
-  isMemoryScopeValid
+  isMemoryIncorrect
 } from "@/lib/chat/memory-v2";
 import type {
   SmokeMemoryAnalysisInput,
   SmokeMemoryAnalysisResult,
-  SmokeMemoryApplicabilityInput,
   SmokeMemoryRow
 } from "@/lib/testing/smoke-memory-analysis-types";
-
-function isSmokeMemoryApplicableToThread({
-  memory,
-  agentId,
-  threadId
-}: SmokeMemoryApplicabilityInput) {
-  if (!isMemoryScopeValid(memory)) {
-    return false;
-  }
-
-  if (memory.scope === "user_agent") {
-    return memory.target_agent_id === agentId;
-  }
-
-  if (memory.scope === "thread_local") {
-    return memory.target_thread_id === threadId;
-  }
-
-  return true;
-}
+import { isSmokeMemoryApplicableToThread } from "@/lib/testing/smoke-memory-applicability";
 
 export function analyzeSmokeMemoryState(
   args: SmokeMemoryAnalysisInput

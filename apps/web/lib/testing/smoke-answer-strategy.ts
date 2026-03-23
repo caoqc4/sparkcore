@@ -1,8 +1,3 @@
-import type {
-  SmokeContinuationReasonCode
-} from "@/lib/testing/smoke-assistant-builders";
-import { normalizeSmokePrompt } from "@/lib/testing/smoke-prompt-normalization";
-
 export {
   isSmokeBriefGreetingRequest,
   isSmokeDirectNamingQuestion,
