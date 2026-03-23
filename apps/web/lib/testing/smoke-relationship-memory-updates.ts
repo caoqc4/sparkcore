@@ -4,6 +4,7 @@ import {
   detectSmokeUserPreferredNameCandidate
 } from "@/lib/testing/smoke-relationship-detection";
 import { ensureSmokeRelationshipMemory } from "@/lib/testing/smoke-memory-seeding";
+import { writeSmokeRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-write";
 
 export async function applySmokeRelationshipMemoryUpdates(args: {
   supabase: Parameters<typeof ensureSmokeRelationshipMemory>[0]["supabase"];
@@ -24,7 +25,7 @@ export async function applySmokeRelationshipMemoryUpdates(args: {
   );
 
   if (smokeNickname) {
-    const result = await ensureSmokeRelationshipMemory({
+    const result = await writeSmokeRelationshipMemory({
       supabase: args.supabase,
       workspaceId: args.workspaceId,
       userId: args.userId,
@@ -44,7 +45,7 @@ export async function applySmokeRelationshipMemoryUpdates(args: {
   }
 
   if (smokePreferredName) {
-    const result = await ensureSmokeRelationshipMemory({
+    const result = await writeSmokeRelationshipMemory({
       supabase: args.supabase,
       workspaceId: args.workspaceId,
       userId: args.userId,
@@ -64,7 +65,7 @@ export async function applySmokeRelationshipMemoryUpdates(args: {
   }
 
   if (smokeUserAddressStyle) {
-    const result = await ensureSmokeRelationshipMemory({
+    const result = await writeSmokeRelationshipMemory({
       supabase: args.supabase,
       workspaceId: args.workspaceId,
       userId: args.userId,
