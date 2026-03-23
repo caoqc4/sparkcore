@@ -1,9 +1,4 @@
 import { runSmokeAssistantTurnStep } from "@/lib/testing/smoke-turn-assistant-run";
-import {
-  buildSmokeAssistantTurnStepInput,
-  buildSmokeMemoryTurnStepInput,
-  buildSmokeUserTurnStepInput
-} from "@/lib/testing/smoke-turn-step-builders";
 import type { SmokeTurnAnalysis } from "@/lib/testing/smoke-turn-assistant-run-types";
 import { persistSmokeMemoryTurnStep } from "@/lib/testing/smoke-turn-memory-step";
 import type { SmokeTurnStepContext } from "@/lib/testing/smoke-turn-step-context";
@@ -15,27 +10,44 @@ export async function executeSmokeTurnSteps(args: {
   analysis: SmokeTurnAnalysis;
 }) {
   const ensuredUserMessage = await persistSmokeUserTurnStep(
-    buildSmokeUserTurnStepInput({
-      context: args.context,
+    {
+      supabase: args.context.admin,
+      threadId: args.context.threadId,
+      workspaceId: args.context.workspaceId,
+      userId: args.context.userId,
+      threadTitle: args.context.threadTitle,
       trimmedContent: args.trimmedContent
-    })
+    }
   );
 
   const { createdTypes } = await persistSmokeMemoryTurnStep(
-    buildSmokeMemoryTurnStepInput({
-      context: args.context,
+    {
+      supabase: args.context.admin,
+      workspaceId: args.context.workspaceId,
+      userId: args.context.userId,
+      agentId: args.context.agentId,
       sourceMessageId: ensuredUserMessage.id,
       trimmedContent: args.trimmedContent
-    })
+    }
   );
 
   const insertedAssistantMessage = await runSmokeAssistantTurnStep(
-    buildSmokeAssistantTurnStepInput({
-      context: args.context,
+    {
+      supabase: args.context.admin,
+      threadId: args.context.threadId,
+      workspaceId: args.context.workspaceId,
+      userId: args.context.userId,
+      agentId: args.context.agentId,
+      agentName: args.context.agentName,
+      personaSummary: args.context.personaSummary,
+      styleGuidance: args.context.styleGuidance,
+      modelProfileId: args.context.modelProfileId,
+      modelProfileName: args.context.modelProfileName,
+      model: args.context.model,
       trimmedContent: args.trimmedContent,
       analysis: args.analysis,
       createdTypes
-    })
+    }
   );
 
   return {
