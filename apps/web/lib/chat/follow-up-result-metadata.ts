@@ -1,8 +1,20 @@
 import type {
-  PendingFollowUpRecord,
-  RuntimeFollowUpRequest
+  ClaimDuePendingFollowUpsInput,
+  PendingFollowUpRecord
 } from "@/lib/chat/runtime-contract";
 import type { ProactiveSendResult } from "@/lib/integrations/im-adapter";
+
+export function buildFollowUpClaimMetadata(args: {
+  claimToken: string;
+  claimedAt: string;
+  claimedBy: ClaimDuePendingFollowUpsInput["claimed_by"];
+}) {
+  return {
+    claim_token: args.claimToken,
+    claimed_at: args.claimedAt,
+    claimed_by: args.claimedBy
+  };
+}
 
 export function buildFollowUpBindingNotFoundFailureMetadata(
   record: PendingFollowUpRecord

@@ -11,6 +11,7 @@ import type {
   PendingFollowUpRecord,
   RuntimeFollowUpExecutionResult
 } from "@/lib/chat/runtime-contract";
+import { buildFollowUpClaimMetadata } from "@/lib/chat/follow-up-result-metadata";
 
 function isAcceptedFollowUpExecutionResult(
   result: RuntimeFollowUpExecutionResult
@@ -120,9 +121,11 @@ export class InMemoryFollowUpRepository implements FollowUpRepository {
         record.updated_at = claimedAt;
         record.request_payload = {
           ...record.request_payload,
-          claim_token: claimToken,
-          claimed_at: claimedAt,
-          claimed_by: input.claimed_by
+          ...buildFollowUpClaimMetadata({
+            claimToken,
+            claimedAt,
+            claimedBy: input.claimed_by
+          })
         };
       }
     });

@@ -10,6 +10,7 @@ import type {
   MarkFollowUpFailedResult,
   PendingFollowUpRecord
 } from "@/lib/chat/runtime-contract";
+import { buildFollowUpClaimMetadata } from "@/lib/chat/follow-up-result-metadata";
 import { buildPendingFollowUpRecord } from "@/lib/chat/follow-up-repository";
 
 export const DEFAULT_PENDING_FOLLOW_UPS_TABLE = "pending_follow_ups";
@@ -158,11 +159,11 @@ export class SupabaseFollowUpRepository implements FollowUpRepository {
       .from(this.tableName)
       .update({
         status: "claimed",
-        metadata: {
-          claim_token: claimToken,
-          claimed_at: claimedAt,
-          claimed_by: input.claimed_by
-        },
+        metadata: buildFollowUpClaimMetadata({
+          claimToken,
+          claimedAt,
+          claimedBy: input.claimed_by
+        }),
         updated_at: claimedAt
       })
       .in("id", ids)
