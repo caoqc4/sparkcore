@@ -123,24 +123,66 @@ export function filterKnowledgeByActiveNamespace(args: {
   );
 }
 
-export function buildKnowledgePromptSection(args: {
+function getKnowledgeScopePriority(layer: KnowledgeScopeLayer) {
+  switch (layer) {
+    case "project":
+      return 0;
+    case "world":
+      return 1;
+    case "general":
+    default:
+      return 2;
+  }
+}
+
+export function selectKnowledgeForPrompt(args: {
   knowledge: RuntimeKnowledgeSnippet[];
   activeNamespace?: ActiveMemoryNamespace | null;
-  replyLanguage: RuntimeReplyLanguage;
+  limit?: number;
 }) {
   const applicableKnowledge = filterKnowledgeByActiveNamespace({
     knowledge: args.knowledge,
     namespace: args.activeNamespace
   });
+  const limit = args.limit ?? 2;
 
-  if (applicableKnowledge.length === 0) {
+  return [...applicableKnowledge]
+    .sort((left, right) => {
+      const leftPriority = getKnowledgeScopePriority(
+        resolveKnowledgeScopeLayer(left)
+      );
+      const rightPriority = getKnowledgeScopePriority(
+        resolveKnowledgeScopeLayer(right)
+      );
+
+      if (leftPriority !== rightPriority) {
+        return leftPriority - rightPriority;
+      }
+
+      return left.title.localeCompare(right.title);
+    })
+    .slice(0, limit);
+}
+
+export function buildKnowledgePromptSection(args: {
+  knowledge: RuntimeKnowledgeSnippet[];
+  activeNamespace?: ActiveMemoryNamespace | null;
+  replyLanguage: RuntimeReplyLanguage;
+}) {
+  const selectedKnowledge = selectKnowledgeForPrompt({
+    knowledge: args.knowledge,
+    activeNamespace: args.activeNamespace,
+    limit: 2
+  });
+
+  if (selectedKnowledge.length === 0) {
     return "";
   }
 
   const isZh = args.replyLanguage === "zh-Hans";
   const lines = [
     isZh ? "相关 Knowledge Layer：" : "Relevant Knowledge Layer:",
-    ...applicableKnowledge.slice(0, 2).map((item, index) =>
+    ...selectedKnowledge.map((item, index) =>
       {
         const scopeLayer = resolveKnowledgeScopeLayer(item);
         const scopeLabel = isZh
@@ -157,8 +199,8 @@ export function buildKnowledgePromptSection(args: {
       }
     ),
     isZh
-      ? "把这些内容当作按 project/world/general 分层的外部知识来源，不要把它们误写成用户长期偏好或线程即时状态。"
-      : "Treat these items as project/world/general knowledge inputs, not as user preference memory or live thread-state.",
+      ? "把这些内容当作按 project/world/general 分层的外部知识来源；当前 prompt budget 会优先保留 project/world，再考虑 general。不要把它们误写成用户长期偏好或线程即时状态。"
+      : "Treat these items as project/world/general knowledge inputs; this prompt budget prefers project/world before general. Do not rewrite them as user preference memory or live thread-state.",
   ];
 
   return lines.join("\n");

@@ -183,6 +183,14 @@
     而不再只显示 `source_kind`
   - assistant metadata / debug metadata 当前也已开始暴露 knowledge scope layers
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 namespace 过滤后的 `project / world` knowledge 以及 prompt 中的 scope 区分
+  - `apps/web/lib/chat/memory-knowledge.ts` 当前也已开始提供 `selectKnowledgeForPrompt(...)`
+  - knowledge summary 当前继续保留完整统计：
+    - `count`
+    - `scope_layers`
+    - `scope_counts`
+    但 prompt budget 当前已开始按 `project -> world -> general` 的优先级选择注入项
+  - `general` knowledge 当前不会再自动与 `project/world` 平权进入 prompt
+  - `memory-upgrade-harness.ts` 当前也已开始显式校验 summary 中会保留 `project / world / general`，但 prompt 会优先选择 `project / world`
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder

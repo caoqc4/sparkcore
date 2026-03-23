@@ -33,7 +33,8 @@ import {
   buildKnowledgeSnapshot,
   buildKnowledgeSummary,
   filterKnowledgeByActiveNamespace,
-  buildRuntimeKnowledgeSnippet
+  buildRuntimeKnowledgeSnippet,
+  selectKnowledgeForPrompt
 } from "@/lib/chat/memory-knowledge";
 import {
   buildMemoryNamespaceScopedMetadata,
@@ -455,9 +456,21 @@ function main() {
     sourceKind: "project_document",
     capturedAt: "2026-03-23T00:00:00.000Z"
   });
+  const generalKnowledgeSnapshot = buildKnowledgeSnapshot({
+    snapshotId: "knowledge-snapshot-general",
+    resourceId: "resource-general",
+    scope: {
+      workspace_id: "workspace-1"
+    },
+    title: "General reply policy",
+    summary: "Prefer concise answers unless the user explicitly asks for depth.",
+    sourceKind: "external_reference",
+    capturedAt: "2026-03-23T00:00:00.000Z"
+  });
   const runtimeKnowledge = [
     buildRuntimeKnowledgeSnippet(knowledgeSnapshot),
     buildRuntimeKnowledgeSnippet(worldKnowledgeSnapshot),
+    buildRuntimeKnowledgeSnippet(generalKnowledgeSnapshot),
     buildRuntimeKnowledgeSnippet(worldMismatchedKnowledgeSnapshot)
   ];
   const activeMemoryNamespace = resolveActiveMemoryNamespace({
@@ -575,6 +588,11 @@ function main() {
   const knowledgeSummary = buildKnowledgeSummary({
     knowledge: runtimeKnowledge,
     activeNamespace: activeMemoryNamespace
+  });
+  const selectedKnowledgeForPrompt = selectKnowledgeForPrompt({
+    knowledge: runtimeKnowledge,
+    activeNamespace: activeMemoryNamespace,
+    limit: 2
   });
   const compactedThreadSummary = buildCompactedThreadSummary({
     threadState: {
@@ -769,12 +787,12 @@ function main() {
     "Expected assistant metadata reader to expose the active scenario memory pack."
   );
   expect(
-    getAssistantKnowledgeCount(assistantMetadata) === 2,
+    getAssistantKnowledgeCount(assistantMetadata) === 3,
     "Expected assistant metadata reader to expose the namespace-filtered knowledge count."
   );
   expect(
     getAssistantKnowledgeScopeLayers(assistantMetadata).join(",") ===
-      "project,world",
+      "project,world,general",
     "Expected assistant metadata reader to expose project/world knowledge scope layers in P3."
   );
   expect(
@@ -804,13 +822,19 @@ function main() {
     "Expected runtime debug metadata to expose the active scenario memory pack in P2."
   );
   expect(
-    runtimeDebugMetadata.knowledge.count === 2,
+    runtimeDebugMetadata.knowledge.count === 3,
     "Expected runtime debug metadata to expose the injected knowledge count in P2."
   );
   expect(
     Array.isArray(runtimeDebugMetadata.knowledge.scope_layers) &&
-      runtimeDebugMetadata.knowledge.scope_layers.join(",") === "project,world",
+      runtimeDebugMetadata.knowledge.scope_layers.join(",") ===
+        "project,world,general",
     "Expected runtime debug metadata to expose project/world knowledge scope layers in P3."
+  );
+  expect(
+    selectedKnowledgeForPrompt.map((item) => item.title).join(",") ===
+      "Onboarding checklist guide,Workspace operating norms",
+    "Expected knowledge prompt selection to prioritize project/world snippets before general knowledge in P3."
   );
   expect(
     runtimeDebugMetadata.thread_compaction?.summary_id ===
@@ -901,6 +925,10 @@ function main() {
     systemPrompt.includes("[project/project_document]") &&
       systemPrompt.includes("[world/workspace_note]"),
     "Expected system prompt assembly to distinguish project/world knowledge scopes in P3."
+  );
+  expect(
+    !systemPrompt.includes("General reply policy"),
+    "Expected system prompt assembly to leave general knowledge out when project/world consume the prompt budget in P3."
   );
   expect(
     !systemPrompt.includes("Other project brief"),
@@ -1105,10 +1133,10 @@ function main() {
         },
         p2_regression_gate: {
           pack_metadata_ok: runtimeDebugMetadata.memory.pack?.pack_id === "companion",
-          knowledge_metadata_ok: runtimeDebugMetadata.knowledge.count === 2,
+          knowledge_metadata_ok: runtimeDebugMetadata.knowledge.count === 3,
           knowledge_namespace_filter_ok:
-            knowledgeSummary.count === 2 &&
-            knowledgeSummary.scope_layers.join(",") === "project,world",
+            knowledgeSummary.count === 3 &&
+            knowledgeSummary.scope_layers.join(",") === "project,world,general",
           compaction_metadata_ok:
             runtimeDebugMetadata.thread_compaction?.summary_id ===
             compactedThreadSummary?.summary_id,

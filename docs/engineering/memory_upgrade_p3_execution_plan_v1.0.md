@@ -217,6 +217,23 @@ P3 首批要让 `Knowledge Layer` 更明确地区分：
   - namespace 过滤后的 knowledge 会同时保留 `project / world`
   - prompt 会显式区分 `project/world` knowledge
 
+当前已成立的第二刀代码事实：
+
+- `apps/web/lib/chat/memory-knowledge.ts` 当前已开始提供 `selectKnowledgeForPrompt(...)`
+- knowledge summary 当前继续保留完整统计：
+  - `count`
+  - `scope_layers`
+  - `scope_counts`
+  但 prompt budget 当前会按：
+  - `project`
+  - `world`
+  - `general`
+  的优先级选择注入项
+- 也就是说，`general` knowledge 当前不会再自动与 `project/world` 平权进入 prompt
+- `memory-upgrade-harness.ts` 当前也已开始显式校验：
+  - namespace 过滤后的 `project / world / general` 会完整保留在 summary
+  - 但 prompt 会优先选择 `project / world`
+
 ### 4.4 Scenario pack expansion point v1
 
 P3 首批要把 `Scenario Memory Pack` 从“一个默认 companion pack”推进到“更明确的扩展位”。
