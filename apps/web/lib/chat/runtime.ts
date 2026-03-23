@@ -15,9 +15,12 @@ import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-m
 import { persistCompletedAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
 import {
+  loadActiveModelProfiles,
+  loadActivePersonaPacks,
   bindOwnedThreadAgent,
   createOwnedThread,
   loadLatestOwnedThread,
+  loadOwnedAvailableAgents,
   loadOwnedThreads,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
@@ -2667,11 +2670,10 @@ export async function getChatPageState({
     throw new Error(`Failed to load threads: ${threadsError.message}`);
   }
 
-  const { data: personaPacksData, error: personaPacksError } = await supabase
-    .from("persona_packs")
-    .select("id, slug, name, description, persona_summary")
-    .eq("is_active", true)
-    .order("created_at", { ascending: true });
+  const { data: personaPacksData, error: personaPacksError } =
+    await loadActivePersonaPacks({
+      supabase
+    });
 
   if (personaPacksError) {
     throw new Error(
@@ -2679,15 +2681,12 @@ export async function getChatPageState({
     );
   }
 
-  const { data: availableAgentsData, error: availableAgentsError } = await supabase
-    .from("agents")
-    .select(
-      "id, name, is_custom, persona_summary, system_prompt, source_persona_pack_id, default_model_profile_id, metadata"
-    )
-    .eq("workspace_id", workspace.id)
-    .eq("owner_user_id", user.id)
-    .eq("status", "active")
-    .order("updated_at", { ascending: false });
+  const { data: availableAgentsData, error: availableAgentsError } =
+    await loadOwnedAvailableAgents({
+      supabase,
+      workspaceId: workspace.id,
+      userId: user.id
+    });
 
   if (availableAgentsError) {
     throw new Error(
@@ -2696,11 +2695,9 @@ export async function getChatPageState({
   }
 
   const { data: availableModelProfilesData, error: availableModelProfilesError } =
-    await supabase
-      .from("model_profiles")
-      .select("id, name, provider, model, metadata")
-      .eq("is_active", true)
-      .order("created_at", { ascending: true });
+    await loadActiveModelProfiles({
+      supabase
+    });
 
   if (availableModelProfilesError) {
     throw new Error(

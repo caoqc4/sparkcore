@@ -2,6 +2,8 @@ const WORKSPACE_SELECT = "id, name, kind";
 const THREAD_SELECT = "id, title, status, agent_id, workspace_id, created_at, updated_at";
 const AGENT_SELECT =
   "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata";
+const ACTIVE_AGENT_LIST_SELECT =
+  "id, name, is_custom, persona_summary, system_prompt, source_persona_pack_id, default_model_profile_id, metadata";
 
 export async function loadPrimaryWorkspace(args: {
   supabase: any;
@@ -127,4 +129,38 @@ export async function bindOwnedThreadAgent(args: {
     .eq("owner_user_id", args.userId)
     .select("id, title, status, agent_id, created_at, updated_at")
     .single();
+}
+
+export async function loadActivePersonaPacks(args: {
+  supabase: any;
+}) {
+  return args.supabase
+    .from("persona_packs")
+    .select("id, slug, name, description, persona_summary")
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
+}
+
+export async function loadOwnedAvailableAgents(args: {
+  supabase: any;
+  workspaceId: string;
+  userId: string;
+}) {
+  return args.supabase
+    .from("agents")
+    .select(ACTIVE_AGENT_LIST_SELECT)
+    .eq("workspace_id", args.workspaceId)
+    .eq("owner_user_id", args.userId)
+    .eq("status", "active")
+    .order("updated_at", { ascending: false });
+}
+
+export async function loadActiveModelProfiles(args: {
+  supabase: any;
+}) {
+  return args.supabase
+    .from("model_profiles")
+    .select("id, name, provider, model, metadata")
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
 }
