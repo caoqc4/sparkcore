@@ -1,11 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ensureSmokeAuthUser } from "@/lib/testing/smoke-auth-user";
+import {
+  ensureSmokeAuthUser,
+  type SmokeConfigLike
+} from "@/lib/testing/smoke-auth-user";
 import { ensureSmokeUserWorkspace } from "@/lib/testing/smoke-user-workspace";
-
-type SmokeConfigLike = {
-  email: string;
-  password: string;
-};
 
 export async function ensureSmokeUserState(
   admin: SupabaseClient,

@@ -1,9 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { SmokeConfigLike } from "@/lib/testing/smoke-auth-user-types";
 import {
   buildSmokeSeedMetadata,
   mergeSmokeSeedMetadata
 } from "@/lib/testing/smoke-seed-metadata";
+
+export type SmokeConfigLike = {
+  email: string;
+  password: string;
+};
 
 export async function ensureSmokeAuthUser(
   admin: SupabaseClient,
