@@ -8,6 +8,31 @@ type RecalledMemoryMetadataItem = {
   confidence: number | null;
 };
 
+export type BuildAssistantMetadataSummaryGroupsInput = {
+  model_profile_id: string;
+  model_profile_name: string;
+  model_profile_tier_label: string | null;
+  model_profile_usage_note: string | null;
+  underlying_model_label: string;
+  reply_language_target: RuntimeReplyLanguage;
+  reply_language_detected: RuntimeReplyLanguage;
+  reply_language_source: ReplyLanguageSource;
+  question_type: string;
+  answer_strategy: string;
+  answer_strategy_reason_code: string | null;
+  answer_strategy_priority: string | null;
+  answer_strategy_priority_label: string | null;
+  continuation_reason_code: string | null;
+  recent_raw_turn_count: number;
+  approx_context_pressure: ApproxContextPressure;
+  memory_hit_count: number;
+  memory_used: boolean;
+  memory_types_used: string[];
+  hidden_memory_exclusion_count: number;
+  incorrect_memory_exclusion_count: number;
+  follow_up_request_count: number;
+};
+
 export type BuildAssistantMessageMetadataInput = {
   agent_id: string;
   agent_name: string;
@@ -48,35 +73,10 @@ export type BuildAssistantMessageMetadataInput = {
   follow_up_request_count: number;
 };
 
-export function buildAssistantMessageMetadata(
-  input: BuildAssistantMessageMetadataInput
-): Record<string, unknown> {
+export function buildAssistantMetadataSummaryGroups(
+  input: BuildAssistantMetadataSummaryGroupsInput
+) {
   return {
-    agent_id: input.agent_id,
-    agent_name: input.agent_name,
-    model: input.model,
-    model_provider: input.model_provider,
-    model_requested: input.model_requested,
-    model_profile_id: input.model_profile_id,
-    role_core_packet: input.role_core_packet,
-    question_type: input.question_type,
-    answer_strategy: input.answer_strategy,
-    answer_strategy_reason_code: input.answer_strategy_reason_code,
-    continuation_reason_code: input.continuation_reason_code,
-    recent_raw_turn_count: input.recent_raw_turn_count,
-    approx_context_pressure: input.approx_context_pressure,
-    same_thread_continuation_applicable:
-      input.same_thread_continuation_applicable,
-    long_chain_pressure_candidate: input.long_chain_pressure_candidate,
-    same_thread_continuation_preferred:
-      input.same_thread_continuation_preferred,
-    distant_memory_fallback_allowed: input.distant_memory_fallback_allowed,
-    reply_language_target: input.reply_language_target,
-    reply_language_detected: input.reply_language_detected,
-    reply_language_source: input.reply_language_source,
-    memory_hit_count: input.memory_hit_count,
-    memory_used: input.memory_used,
-    recalled_memories: input.recalled_memories,
     model_profile: {
       id: input.model_profile_id,
       name: input.model_profile_name,
@@ -120,7 +120,40 @@ export function buildAssistantMessageMetadata(
       memory_types_used: input.memory_types_used,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_memory_exclusion_count: input.incorrect_memory_exclusion_count
-    },
+    }
+  };
+}
+
+export function buildAssistantMessageMetadata(
+  input: BuildAssistantMessageMetadataInput
+): Record<string, unknown> {
+  return {
+    agent_id: input.agent_id,
+    agent_name: input.agent_name,
+    model: input.model,
+    model_provider: input.model_provider,
+    model_requested: input.model_requested,
+    model_profile_id: input.model_profile_id,
+    role_core_packet: input.role_core_packet,
+    question_type: input.question_type,
+    answer_strategy: input.answer_strategy,
+    answer_strategy_reason_code: input.answer_strategy_reason_code,
+    continuation_reason_code: input.continuation_reason_code,
+    recent_raw_turn_count: input.recent_raw_turn_count,
+    approx_context_pressure: input.approx_context_pressure,
+    same_thread_continuation_applicable:
+      input.same_thread_continuation_applicable,
+    long_chain_pressure_candidate: input.long_chain_pressure_candidate,
+    same_thread_continuation_preferred:
+      input.same_thread_continuation_preferred,
+    distant_memory_fallback_allowed: input.distant_memory_fallback_allowed,
+    reply_language_target: input.reply_language_target,
+    reply_language_detected: input.reply_language_detected,
+    reply_language_source: input.reply_language_source,
+    memory_hit_count: input.memory_hit_count,
+    memory_used: input.memory_used,
+    recalled_memories: input.recalled_memories,
+    ...buildAssistantMetadataSummaryGroups(input),
     developer_diagnostics: {
       role_core_packet: input.role_core_packet,
       prepared_runtime_turn: {

@@ -4,6 +4,7 @@ import {
   type SupabaseClient
 } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+import { buildAssistantMetadataSummaryGroups } from "@/lib/chat/assistant-message-metadata";
 import { getSupabaseEnv } from "@/lib/env";
 import { getAssistantMetadataGroup } from "@/lib/chat/assistant-message-metadata-read";
 import {
@@ -3264,12 +3265,6 @@ export async function createSmokeTurn({
           model: modelProfile.model,
           model_profile_id: modelProfile.id,
           model_profile_name: modelProfile.name,
-          model_profile: {
-            id: modelProfile.id,
-            name: modelProfile.name,
-            tier_label: null,
-            usage_note: null
-          },
           reply_language_target: replyLanguage,
           reply_language_detected: detectSmokeReplyLanguage(assistantContent),
           question_type: answerStrategyRule.questionType,
@@ -3288,23 +3283,31 @@ export async function createSmokeTurn({
           memory_types_used: usedMemoryTypes,
           hidden_memory_exclusion_count: hiddenExclusionCount,
           incorrect_memory_exclusion_count: incorrectExclusionCount,
-          language: {
-            target: replyLanguage,
-            detected: detectSmokeReplyLanguage(assistantContent),
-            source: replyLanguageDecision.source
-          },
-          session: {
-            continuation_reason_code: answerStrategyRule.continuationReasonCode,
-            recent_turn_count: recentRawTurnCount,
-            context_pressure: approxContextPressure
-          },
-          memory: {
-            hit_count: recalledMemories.length,
-            used: recalledMemories.length > 0,
-            types_used: usedMemoryTypes,
-            hidden_exclusion_count: hiddenExclusionCount,
-            incorrect_exclusion_count: incorrectExclusionCount
-          },
+          ...buildAssistantMetadataSummaryGroups({
+            model_profile_id: modelProfile.id,
+            model_profile_name: modelProfile.name,
+            model_profile_tier_label: null,
+            model_profile_usage_note: null,
+            underlying_model_label: modelProfile.model,
+            reply_language_target: replyLanguage,
+            reply_language_detected: detectSmokeReplyLanguage(assistantContent),
+            reply_language_source: replyLanguageDecision.source,
+            question_type: answerStrategyRule.questionType,
+            answer_strategy: answerStrategyRule.answerStrategy,
+            answer_strategy_reason_code: answerStrategyRule.reasonCode,
+            answer_strategy_priority: null,
+            answer_strategy_priority_label: null,
+            continuation_reason_code:
+              answerStrategyRule.continuationReasonCode,
+            recent_raw_turn_count: recentRawTurnCount,
+            approx_context_pressure: approxContextPressure,
+            memory_hit_count: recalledMemories.length,
+            memory_used: recalledMemories.length > 0,
+            memory_types_used: usedMemoryTypes,
+            hidden_memory_exclusion_count: hiddenExclusionCount,
+            incorrect_memory_exclusion_count: incorrectExclusionCount,
+            follow_up_request_count: 0
+          }),
           recalled_memories: recalledMemories.map((memory) => ({
             memory_type: memory.memory_type,
             content: memory.content,
