@@ -8,9 +8,9 @@ import { executeFollowUpRequests } from "@/lib/chat/follow-up-executor";
 import { enqueueAcceptedFollowUps } from "@/lib/chat/follow-up-repository";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
 import {
-  buildFailedAssistantMetadata,
-  buildPendingAssistantMetadata
-} from "@/lib/chat/assistant-message-state-metadata";
+  insertPendingAssistantMessage,
+  markAssistantMessageFailed
+} from "@/lib/chat/assistant-message-state-persistence";
 import {
   updateAssistantFollowUpExecutionPreview,
   updateAssistantFollowUpRequestPreview,
@@ -171,23 +171,15 @@ async function runImRuntimeTurnWithSupabase(args: {
   }
 
   const { data: assistantPlaceholder, error: assistantPlaceholderError } =
-    await supabase
-      .from("messages")
-      .insert({
-        thread_id: thread.id,
-        workspace_id: workspace.id,
-        user_id: input.user_id,
-        role: "assistant",
-        content: "",
-        status: "pending",
-        metadata: buildPendingAssistantMetadata({
-          agentId: thread.agent_id,
-          userMessageId: insertedMessage.id,
-          source: input.source
-        })
-      })
-      .select("id")
-      .single();
+    await insertPendingAssistantMessage({
+      supabase,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      userId: input.user_id,
+      agentId: thread.agent_id,
+      userMessageId: insertedMessage.id,
+      source: input.source
+    });
 
   if (assistantPlaceholderError || !assistantPlaceholder) {
     throw new Error(
@@ -305,24 +297,18 @@ async function runImRuntimeTurnWithSupabase(args: {
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);
 
-    await supabase
-      .from("messages")
-      .update({
-        status: "failed",
-        content: "",
-        metadata: buildFailedAssistantMetadata({
-          agentId: thread.agent_id,
-          userMessageId: insertedMessage.id,
-          errorType: assistantFailure.errorType,
-          errorMessage: assistantFailure.message,
-          source: input.source
-        }),
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", assistantPlaceholder.id)
-      .eq("thread_id", thread.id)
-      .eq("workspace_id", workspace.id)
-      .eq("user_id", input.user_id);
+    await markAssistantMessageFailed({
+      supabase,
+      assistantMessageId: assistantPlaceholder.id,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      userId: input.user_id,
+      agentId: thread.agent_id,
+      userMessageId: insertedMessage.id,
+      source: input.source,
+      errorType: assistantFailure.errorType,
+      errorMessage: assistantFailure.message
+    });
 
     throw error;
   }
