@@ -11,15 +11,15 @@ import {
   buildSmokeRelationshipExplanatoryCoreReply
 } from "@/lib/testing/smoke-relationship-explanatory-core";
 import { buildSmokeRelationshipClosingCoreReply } from "@/lib/testing/smoke-relationship-closing-core";
-import { buildSmokeRelationshipReplyContext } from "@/lib/testing/smoke-relationship-reply-context";
 import type { SmokeRelationshipReplyInput } from "@/lib/testing/smoke-relationship-reply-types";
 import { buildSmokeRelationshipSupportiveReply } from "@/lib/testing/smoke-relationship-supportive-reply";
 
 export function buildSmokeRelationshipOrContinuationReply(
   args: SmokeRelationshipReplyInput
 ) {
-  const { addressStyleValue, selfName, userName } =
-    buildSmokeRelationshipReplyContext(args);
+  const addressStyleValue = args.addressStyleMemory?.content ?? null;
+  const selfName = args.nicknameMemory?.content ?? args.agentName;
+  const userName = args.preferredNameMemory?.content ?? null;
 
   if (isSmokeRelationshipExplanatoryPrompt(args.content)) {
     return buildSmokeRelationshipExplanatoryCoreReply({
