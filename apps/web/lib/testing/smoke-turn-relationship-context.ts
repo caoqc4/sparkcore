@@ -1,18 +1,19 @@
 import {
-  getSmokeAnswerStrategy,
-  isSmokeRelationshipAnswerShapePrompt,
-  isSmokeRelationshipContinuationEdgePrompt
+  getSmokeAnswerStrategy
 } from "@/lib/testing/smoke-answer-strategy";
 import { selectSmokeRelationshipMemories } from "@/lib/testing/smoke-relationship-memory-selection";
+import { getSmokeTurnRelationshipFlags } from "@/lib/testing/smoke-turn-relationship-flags";
 import type { SmokeTurnRelationshipContextInput } from "@/lib/testing/smoke-turn-relationship-context-types";
 
 export function getSmokeTurnRelationshipContext(args: SmokeTurnRelationshipContextInput) {
-  const relationshipStylePrompt =
-    isSmokeRelationshipAnswerShapePrompt(args.trimmedContent);
-  const sameThreadContinuity = args.recentAssistantReply !== null;
-  const sameThreadContinuationApplicable =
-    sameThreadContinuity &&
-    isSmokeRelationshipContinuationEdgePrompt(args.trimmedContent);
+  const {
+    relationshipStylePrompt,
+    sameThreadContinuity,
+    sameThreadContinuationApplicable
+  } = getSmokeTurnRelationshipFlags({
+    trimmedContent: args.trimmedContent,
+    recentAssistantReply: args.recentAssistantReply
+  });
   const relationshipMemoryContext = selectSmokeRelationshipMemories({
     trimmedContent: args.trimmedContent,
     activeMemories: args.activeMemories,

@@ -3,8 +3,6 @@ import {
   isSmokeDirectUserPreferredNameQuestion,
   isSmokeOpenEndedSummaryQuestion
 } from "@/lib/testing/smoke-answer-strategy";
-import {
-} from "@/lib/testing/smoke-relationship-context";
 import { hasSmokeRelationshipCarryover } from "@/lib/testing/smoke-relationship-carryover";
 import { findAndRecallSmokeRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-recall";
 import type {
@@ -24,12 +22,14 @@ export function selectSmokeRelationshipMemories(args: {
     activeMemories: args.activeMemories,
     agentId: args.agentId
   });
+  const sharedNameRecallPrompt =
+    args.relationshipStylePrompt ||
+    isSmokeOpenEndedSummaryQuestion(args.trimmedContent) ||
+    args.sameThreadContinuity;
 
   const nicknameMemory =
     isSmokeDirectNamingQuestion(args.trimmedContent) ||
-    args.relationshipStylePrompt ||
-    isSmokeOpenEndedSummaryQuestion(args.trimmedContent) ||
-    args.sameThreadContinuity
+    sharedNameRecallPrompt
       ? findAndRecallSmokeRelationshipMemory({
           memories: args.activeMemories,
           key: "agent_nickname",
@@ -40,9 +40,7 @@ export function selectSmokeRelationshipMemories(args: {
 
   const preferredNameMemory =
     isSmokeDirectUserPreferredNameQuestion(args.trimmedContent) ||
-    args.relationshipStylePrompt ||
-    isSmokeOpenEndedSummaryQuestion(args.trimmedContent) ||
-    args.sameThreadContinuity
+    sharedNameRecallPrompt
       ? findAndRecallSmokeRelationshipMemory({
           memories: args.activeMemories,
           key: "user_preferred_name",
