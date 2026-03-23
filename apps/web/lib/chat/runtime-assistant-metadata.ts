@@ -59,6 +59,7 @@ export type BuildRuntimeAssistantMetadataInput = {
     hit_count: number;
     used: boolean;
     types_used: string[];
+    profile_snapshot: string[];
     hidden_exclusion_count: number;
     incorrect_exclusion_count: number;
   };
@@ -108,6 +109,7 @@ export function buildRuntimeAssistantMetadataInput(
     memory_hit_count: input.memory.hit_count,
     memory_used: input.memory.used,
     memory_types_used: input.memory.types_used,
+    profile_snapshot: input.memory.profile_snapshot,
     hidden_memory_exclusion_count: input.memory.hidden_exclusion_count,
     incorrect_memory_exclusion_count: input.memory.incorrect_exclusion_count,
     follow_up_request_count: input.follow_up.request_count,

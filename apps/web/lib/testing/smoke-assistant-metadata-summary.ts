@@ -24,6 +24,7 @@ export function buildSmokeAssistantMetadataSummary(
     memory_hit_count: args.recalledMemoryCount,
     memory_used: args.memoryUsed,
     memory_types_used: args.usedMemoryTypes,
+    profile_snapshot: [],
     hidden_memory_exclusion_count: args.hiddenExclusionCount,
     incorrect_memory_exclusion_count: args.incorrectExclusionCount,
     follow_up_request_count: 0

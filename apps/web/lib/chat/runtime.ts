@@ -14,6 +14,7 @@ import { buildRuntimeAssistantPayload } from "@/lib/chat/assistant-message-paylo
 import { getAssistantDeveloperDiagnosticsMetadata } from "@/lib/chat/assistant-message-metadata-read";
 import { persistCompletedAssistantMessage } from "@/lib/chat/assistant-message-state-persistence";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
+import { buildRecalledStaticProfileSnapshot } from "@/lib/chat/memory-records";
 import {
   loadActiveModelProfiles,
   loadActiveModelProfileById,
@@ -3462,6 +3463,8 @@ export async function runPreparedRuntimeTurn({
   const relationshipRecall =
     preparedRuntimeTurn.memory.runtime_memory_context.relationshipRecall;
   const memoryRecall = preparedRuntimeTurn.memory.runtime_memory_context.memoryRecall;
+  const recalledProfileSnapshot =
+    buildRecalledStaticProfileSnapshot(memoryRecall.memories);
   const { workspace, thread, messages, assistant_message_id, supabase } =
     preparedRuntimeTurn.resources;
   const runtimeSupabase = supabase as any;
@@ -3589,6 +3592,7 @@ export async function runPreparedRuntimeTurn({
                 new Set([...memoryRecall.usedMemoryTypes, "relationship" as const])
               )
             : memoryRecall.usedMemoryTypes,
+        profile_snapshot: recalledProfileSnapshot,
         hidden_exclusion_count: memoryRecall.hiddenExclusionCount,
         incorrect_exclusion_count: memoryRecall.incorrectExclusionCount
       },
@@ -3698,6 +3702,7 @@ export async function runPreparedRuntimeTurn({
       answer_strategy_reason_code: answerStrategyReasonCode,
       recalled_memory_count: allRecalledMemories.length,
       memory_recall_routes: memoryRecall.appliedRoutes,
+      profile_snapshot: recalledProfileSnapshot,
       memory_write_request_count: memoryWriteRequests.length,
       follow_up_request_count: followUpRequests.length,
       continuation_reason_code: continuationReasonCode,

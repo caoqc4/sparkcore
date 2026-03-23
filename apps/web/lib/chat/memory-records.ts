@@ -100,3 +100,19 @@ export function buildRecalledProfileMemoryFromStoredMemory(
     confidence: staticProfile.confidence ?? 0
   };
 }
+
+export function buildRecalledStaticProfileSnapshot(
+  memories: RecalledMemory[]
+) {
+  return Array.from(
+    new Set(
+      memories
+        .filter(
+          (memory) =>
+            memory.memory_type === "profile" || memory.memory_type === "preference"
+        )
+        .map((memory) => memory.content.trim())
+        .filter((content) => content.length > 0)
+    )
+  ).slice(0, 5);
+}

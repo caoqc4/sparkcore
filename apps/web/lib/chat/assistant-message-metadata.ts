@@ -28,6 +28,7 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   memory_hit_count: number;
   memory_used: boolean;
   memory_types_used: string[];
+  profile_snapshot: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -68,6 +69,7 @@ export type BuildAssistantMessageMetadataInput = {
   memory_hit_count: number;
   memory_used: boolean;
   memory_types_used: string[];
+  profile_snapshot: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -104,6 +106,7 @@ export function buildAssistantMetadataSummaryGroups(
       hit_count: input.memory_hit_count,
       used: input.memory_used,
       types_used: input.memory_types_used,
+      profile_snapshot: input.profile_snapshot,
       hidden_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_exclusion_count: input.incorrect_memory_exclusion_count
     },
@@ -118,6 +121,7 @@ export function buildAssistantMetadataSummaryGroups(
       memory_hit_count: input.memory_hit_count,
       memory_used: input.memory_used,
       memory_types_used: input.memory_types_used,
+      profile_snapshot: input.profile_snapshot,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,
       incorrect_memory_exclusion_count: input.incorrect_memory_exclusion_count
     }

@@ -7,6 +7,7 @@ export type BuildRuntimeDebugMetadataInput = {
   answer_strategy_reason_code: string | null;
   recalled_memory_count: number;
   memory_recall_routes: Array<"profile" | "episode" | "timeline" | "thread_state">;
+  profile_snapshot: string[];
   memory_write_request_count: number;
   follow_up_request_count: number;
   continuation_reason_code: string | null;
@@ -28,6 +29,7 @@ export function buildRuntimeDebugMetadata(
     memory: {
       recalled_count: input.recalled_memory_count,
       routes: input.memory_recall_routes,
+      profile_snapshot: input.profile_snapshot,
       write_request_count: input.memory_write_request_count
     },
     follow_up: {
