@@ -12,6 +12,7 @@ import {
   buildSmokeNamingReply,
   buildSmokePreferredNameReply
 } from "@/lib/testing/smoke-greeting-replies";
+import { getSmokeIntroReplyContext } from "@/lib/testing/smoke-intro-reply-context";
 import {
   buildSmokeHelpIntroReply,
   buildSmokeSelfIntroReply
@@ -26,20 +27,27 @@ export function buildSmokeIntroReply(args: {
   nicknameMemory: SmokeRelationshipRecallMemory;
   preferredNameMemory: SmokeRelationshipRecallMemory;
 }) {
+  const introContext = getSmokeIntroReplyContext({
+    agentName: args.agentName,
+    addressStyleMemory: args.addressStyleMemory,
+    nicknameMemory: args.nicknameMemory,
+    preferredNameMemory: args.preferredNameMemory
+  });
+
   if (isSmokeSelfIntroGreetingRequest(args.content)) {
     return buildSmokeSelfIntroReply({
       replyLanguage: args.replyLanguage,
-      styleValue: args.addressStyleMemory?.content ?? null,
-      selfName: args.nicknameMemory?.content ?? args.agentName,
-      userName: args.preferredNameMemory?.content ?? null,
-      hasNicknameMemory: Boolean(args.nicknameMemory)
+      styleValue: introContext.styleValue,
+      selfName: introContext.selfName,
+      userName: introContext.userName,
+      hasNicknameMemory: introContext.hasNicknameMemory
     });
   }
 
   if (isSmokeBriefGreetingRequest(args.content)) {
     return buildSmokeBriefGreetingReply({
       replyLanguage: args.replyLanguage,
-      styleValue: args.addressStyleMemory?.content ?? null
+      styleValue: introContext.styleValue
     });
   }
 
@@ -47,14 +55,14 @@ export function buildSmokeIntroReply(args: {
     return buildSmokeNamingReply({
       replyLanguage: args.replyLanguage,
       agentName: args.agentName,
-      nickname: args.nicknameMemory?.content ?? null
+      nickname: introContext.nickname
     });
   }
 
   if (isSmokeDirectUserPreferredNameQuestion(args.content)) {
     return buildSmokePreferredNameReply({
       replyLanguage: args.replyLanguage,
-      preferredName: args.preferredNameMemory?.content ?? null
+      preferredName: introContext.preferredName
     });
   }
 
@@ -63,9 +71,9 @@ export function buildSmokeIntroReply(args: {
     args.content.includes("你能如何帮助我")
   ) {
     return buildSmokeHelpIntroReply({
-      styleValue: args.addressStyleMemory?.content ?? null,
-      selfName: args.nicknameMemory?.content ?? "SparkCore",
-      userName: args.preferredNameMemory?.content ?? null
+      styleValue: introContext.styleValue,
+      selfName: introContext.selfName,
+      userName: introContext.userName
     });
   }
 
