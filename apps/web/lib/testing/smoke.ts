@@ -30,15 +30,13 @@ const SMOKE_MODEL_PROFILES = [
     model: "replicate-llama-3-8b",
     temperature: 0.7,
     max_output_tokens: null,
-    metadata: {
-      seed: true,
-      default: true,
-      smoke_seed: true,
+    metadata: buildSmokeModelProfileSeedMetadata({
+      defaultProfile: true,
       tier: "stable-conversation",
-      tier_label: "Stable conversation",
-      usage_note:
+      tierLabel: "Stable conversation",
+      usageNote:
         "Balanced baseline for everyday chat and stage-1 comparison runs."
-    }
+    })
   },
   {
     slug: "smoke-alt",
@@ -47,14 +45,12 @@ const SMOKE_MODEL_PROFILES = [
     model: "replicate-llama-3-8b",
     temperature: 0.3,
     max_output_tokens: null,
-    metadata: {
-      seed: true,
-      smoke_seed: true,
+    metadata: buildSmokeModelProfileSeedMetadata({
       tier: "low-cost-testing",
-      tier_label: "Low-cost testing",
-      usage_note:
+      tierLabel: "Low-cost testing",
+      usageNote:
         "Lighter comparison profile for smoke checks and quick runtime verification."
-    }
+    })
   }
 ] as const;
 
@@ -86,6 +82,21 @@ function buildSmokeSeedMetadata(fields?: Record<string, unknown>) {
     smoke_seed: true,
     ...(fields ?? {})
   };
+}
+
+function buildSmokeModelProfileSeedMetadata(args: {
+  defaultProfile?: boolean;
+  tier: string;
+  tierLabel: string;
+  usageNote: string;
+}) {
+  return buildSmokeSeedMetadata({
+    seed: true,
+    ...(args.defaultProfile ? { default: true } : {}),
+    tier: args.tier,
+    tier_label: args.tierLabel,
+    usage_note: args.usageNote
+  });
 }
 
 function mergeSmokeSeedMetadata(
@@ -3109,9 +3120,7 @@ export async function createSmokeTurn({
           }
         ]
       }),
-      metadata: {
-        ...buildSmokeSeedMetadata()
-      }
+      metadata: buildSmokeSeedMetadata()
     });
 
     if (error) {
