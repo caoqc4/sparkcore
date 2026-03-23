@@ -15,6 +15,7 @@ import {
 } from "@/lib/chat/memory-records";
 import { buildAgentSystemPrompt, buildVisibleMemoryRecord } from "@/lib/chat/runtime";
 import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
+import { buildRuntimeDebugMetadata } from "@/lib/chat/runtime-debug-metadata";
 import {
   getAssistantMemoryObservedSemanticLayers,
   getAssistantCompactedThreadSummaryText,
@@ -535,6 +536,35 @@ function main() {
       }
     })
   );
+  const runtimeDebugMetadata = buildRuntimeDebugMetadata({
+    model_profile_id: "profile-1",
+    answer_strategy: "grounded_answer",
+    answer_strategy_reason_code: "memory_supported",
+    recalled_memory_count: 2,
+    memory_types_used: ["profile", "relationship"],
+    memory_semantic_layers: ["static_profile", "memory_record"],
+    memory_recall_routes: ["thread_state", "profile", "episode", "timeline"],
+    profile_snapshot: ["User prefers concise technical explanations."],
+    memory_write_request_count: 1,
+    follow_up_request_count: 1,
+    continuation_reason_code: "same_thread",
+    recent_turn_count: 4,
+    context_pressure: "medium",
+    thread_state_recall: {
+      applied: true,
+      snapshot: {
+        lifecycle_status: "active",
+        focus_mode: plannedThreadState.focus_mode,
+        continuity_status: "warm",
+        current_language_hint: "en"
+      }
+    },
+    reply_language: "en",
+    scenario_memory_pack: scenarioMemoryPack,
+    relevant_knowledge: runtimeKnowledge,
+    active_memory_namespace: activeMemoryNamespace,
+    compacted_thread_summary: compactedThreadSummary
+  });
   expect(
     getAssistantMemoryPrimarySemanticLayer(assistantMetadata) === "thread_state",
     "Expected assistant metadata reader to expose thread_state as primary semantic layer."
@@ -561,6 +591,23 @@ function main() {
   expect(
     getAssistantMemoryNamespacePrimaryLayer(assistantMetadata) === "project",
     "Expected assistant metadata reader to expose project as the primary namespace layer in P2."
+  );
+  expect(
+    runtimeDebugMetadata.memory.pack?.pack_id === "companion",
+    "Expected runtime debug metadata to expose the active scenario memory pack in P2."
+  );
+  expect(
+    runtimeDebugMetadata.knowledge.count === 1,
+    "Expected runtime debug metadata to expose the injected knowledge count in P2."
+  );
+  expect(
+    runtimeDebugMetadata.thread_compaction?.summary_id ===
+      compactedThreadSummary?.summary_id,
+    "Expected runtime debug metadata to expose the compacted thread summary in P2."
+  );
+  expect(
+    runtimeDebugMetadata.memory_namespace?.primary_layer === "project",
+    "Expected runtime debug metadata to expose project as the primary namespace layer in P2."
   );
 
   const systemPrompt = buildAgentSystemPrompt(
@@ -782,6 +829,14 @@ function main() {
         assistant_metadata_namespace: {
           primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata)
         },
+        runtime_debug_metadata: {
+          pack_id: runtimeDebugMetadata.memory.pack?.pack_id ?? null,
+          knowledge_count: runtimeDebugMetadata.knowledge.count,
+          thread_compaction_summary_id:
+            runtimeDebugMetadata.thread_compaction?.summary_id ?? null,
+          namespace_primary_layer:
+            runtimeDebugMetadata.memory_namespace?.primary_layer ?? null
+        },
         scenario_memory_pack: {
           pack_id: scenarioMemoryPack.pack_id,
           preferred_routes: scenarioMemoryPack.preferred_routes,
@@ -811,6 +866,21 @@ function main() {
           ),
           includes_memory_namespace: systemPrompt.includes(
             "Active Memory Namespace: primary_layer = project."
+          )
+        },
+        p2_regression_gate: {
+          pack_metadata_ok: runtimeDebugMetadata.memory.pack?.pack_id === "companion",
+          knowledge_metadata_ok: runtimeDebugMetadata.knowledge.count === 1,
+          compaction_metadata_ok:
+            runtimeDebugMetadata.thread_compaction?.summary_id ===
+            compactedThreadSummary?.summary_id,
+          namespace_metadata_ok:
+            runtimeDebugMetadata.memory_namespace?.primary_layer === "project",
+          prompt_namespace_ok: systemPrompt.includes(
+            "Active Memory Namespace: primary_layer = project."
+          ),
+          prompt_compaction_ok: systemPrompt.includes(
+            "Compacted thread summary:"
           )
         },
         system_prompt_route_guidance: {

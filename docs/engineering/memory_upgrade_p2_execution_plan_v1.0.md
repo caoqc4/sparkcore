@@ -329,6 +329,12 @@ P2 首批验收标准分三类。
   - `timeline`
   - `dynamic_profile`
   - layered context assembly
+- P2 首批高阶 seam 也开始有显式 gate：
+  - scenario memory pack summary
+  - knowledge summary
+  - thread compaction summary
+  - memory namespace summary
+  - prompt 中的 compaction / namespace 注入
 
 ---
 

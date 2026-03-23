@@ -156,6 +156,14 @@
   - runtime `buildAgentSystemPrompt(...)` 当前也已开始显式注入最小 namespace section
   - assistant metadata / debug metadata 当前也已开始暴露最小 memory namespace 摘要
   - `memory-upgrade-harness.ts` 当前也已开始显式校验 namespace metadata reader 与 project-layer prompt 注入
+- `P2-5 regression / acceptance expansion` 当前也已开始进入真实实现：
+  - `memory-upgrade-harness.ts` 当前不只锁 `P2-1 ~ P2-4` 的 seam 存在
+  - 也已开始显式校验：
+    - scenario memory pack summary
+    - knowledge summary
+    - thread compaction summary
+    - memory namespace summary
+    - prompt 中的 compaction / namespace 注入
 - `P1-1 episode / timeline retrieval` 当前也已开始进入真实实现，而不再只是 contract：
   - `selectMemoryRecallRoutes(...)` 已开始真实激活 `episode / timeline`
   - `buildRecalledEpisodeMemoryFromStoredMemory(...)`
