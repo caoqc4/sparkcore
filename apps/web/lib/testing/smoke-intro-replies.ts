@@ -1,24 +1,16 @@
-import type { SmokeReplyLanguage } from "@/lib/testing/smoke-assistant-builders";
 import {
   isSmokeSelfIntroGreetingRequest
 } from "@/lib/testing/smoke-answer-strategy";
 import { isSmokeHelpIntroRequest } from "@/lib/testing/smoke-help-intro-prompts";
 import { getSmokeIntroReplyContext } from "@/lib/testing/smoke-intro-reply-context";
 import { buildSmokeIntroPromptReply } from "@/lib/testing/smoke-intro-prompt-replies";
+import type { SmokeIntroReplyInput } from "@/lib/testing/smoke-intro-reply-types";
 import {
   buildSmokeHelpIntroReply,
   buildSmokeSelfIntroReply
 } from "@/lib/testing/smoke-self-intro-replies";
-import type { SmokeRelationshipRecallMemory } from "@/lib/testing/smoke-recall-memory-types";
 
-export function buildSmokeIntroReply(args: {
-  content: string;
-  replyLanguage: SmokeReplyLanguage;
-  agentName: string;
-  addressStyleMemory: SmokeRelationshipRecallMemory;
-  nicknameMemory: SmokeRelationshipRecallMemory;
-  preferredNameMemory: SmokeRelationshipRecallMemory;
-}) {
+export function buildSmokeIntroReply(args: SmokeIntroReplyInput) {
   const introContext = getSmokeIntroReplyContext({
     agentName: args.agentName,
     addressStyleMemory: args.addressStyleMemory,
