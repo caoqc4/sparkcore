@@ -1,12 +1,8 @@
 import { applySmokeTurnMemoryUpdates } from "@/lib/testing/smoke-turn-memory-updates";
 import { buildSmokeSeedMetadata } from "@/lib/testing/smoke-seed-metadata";
 import { insertAnalyzedSmokeAssistantReply } from "@/lib/testing/smoke-turn-assistant";
+import { prepareSmokeTurnExecutionState } from "@/lib/testing/smoke-turn-execution-state";
 import { persistSmokeUserTurnStep } from "@/lib/testing/smoke-turn-user-step";
-import {
-  analyzeSmokeTurnContext,
-  type SmokeMemoryRow,
-  type SmokeRuntimeMessage
-} from "@/lib/testing/smoke-turn-analysis";
 import { prepareSmokeAssistantTurn } from "@/lib/testing/smoke-turn-assistant-prep";
 import type { SmokeTurnContext } from "@/lib/testing/smoke-turn-context";
 
@@ -29,9 +25,13 @@ export async function executeSmokeTurn(args: {
     existingMemories,
     existingMessages
   } = args.context;
-  const smokeExistingMemories = (existingMemories ?? []) as SmokeMemoryRow[];
-  const smokeExistingMessages =
-    (existingMessages ?? []) as SmokeRuntimeMessage[];
+  const { analysis } = prepareSmokeTurnExecutionState({
+    trimmedContent: args.trimmedContent,
+    existingMemories,
+    existingMessages,
+    agentId: ensuredAgent.id,
+    threadId: thread.id
+  });
   const {
     addressStyleMemory,
     answerStrategyRule,
@@ -47,13 +47,7 @@ export async function executeSmokeTurn(args: {
     recalledMemories,
     sameThreadContinuationApplicable,
     usedMemoryTypes
-  } = analyzeSmokeTurnContext({
-    trimmedContent: args.trimmedContent,
-    existingMemories: smokeExistingMemories,
-    existingMessages: smokeExistingMessages,
-    agentId: ensuredAgent.id,
-    threadId: thread.id
-  });
+  } = analysis;
 
   const ensuredUserMessage = await persistSmokeUserTurnStep({
     supabase: admin,
