@@ -40,6 +40,7 @@ export type StoredMemory = {
   last_confirmed_at?: string | null;
   metadata?: Record<string, unknown>;
   created_at: string;
+  updated_at?: string | null;
 };
 
 export type RecalledMemory = {
