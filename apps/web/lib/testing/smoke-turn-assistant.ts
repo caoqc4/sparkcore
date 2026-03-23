@@ -1,5 +1,4 @@
 import {
-  buildSmokeRoleCorePacket,
   type SmokeAnswerQuestionType,
   type SmokeAnswerStrategy,
   type SmokeAnswerStrategyReasonCode,
@@ -9,7 +8,7 @@ import {
   type SmokeReplyLanguageSource
 } from "@/lib/testing/smoke-assistant-builders";
 import { insertSmokeAssistantReply } from "@/lib/testing/smoke-assistant-persistence";
-import { detectSmokeReplyLanguage } from "@/lib/testing/smoke-reply-analysis";
+import { buildSmokeAssistantTurnMetadata } from "@/lib/testing/smoke-turn-assistant-metadata";
 
 export async function insertAnalyzedSmokeAssistantReply({
   supabase,
@@ -78,16 +77,18 @@ export async function insertAnalyzedSmokeAssistantReply({
   incorrectExclusionCount: number;
   createdTypes: Array<"profile" | "preference" | "relationship">;
 }) {
-  const roleCorePacket = buildSmokeRoleCorePacket({
-    agentId,
-    agentName,
-    personaSummary,
-    styleGuidance,
-    relationshipStyleValue,
-    replyLanguage,
-    replyLanguageSource,
-    preferSameThreadContinuation: sameThreadContinuationPreferred
-  });
+  const { roleCorePacket, replyLanguageDetected } =
+    buildSmokeAssistantTurnMetadata({
+      agentId,
+      agentName,
+      personaSummary,
+      styleGuidance,
+      relationshipStyleValue,
+      replyLanguage,
+      replyLanguageSource,
+      sameThreadContinuationPreferred,
+      assistantContent
+    });
 
   return insertSmokeAssistantReply({
     supabase,
@@ -102,7 +103,7 @@ export async function insertAnalyzedSmokeAssistantReply({
     model,
     assistantContent,
     replyLanguage,
-    replyLanguageDetected: detectSmokeReplyLanguage(assistantContent),
+    replyLanguageDetected,
     replyLanguageSource,
     questionType,
     answerStrategy,
