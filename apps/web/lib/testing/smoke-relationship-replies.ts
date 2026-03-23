@@ -1,10 +1,9 @@
 import {
   buildSmokeRelationshipClosingCoreReply,
-  buildSmokeRelationshipExplanatoryCoreReply,
-  buildSmokeRelationshipSupportiveCoreReply
+  buildSmokeRelationshipExplanatoryCoreReply
 } from "@/lib/testing/smoke-relationship-core-replies";
-import { buildSmokeDefaultContinuationReply as buildSmokeDefaultContinuationReplyByLanguage } from "@/lib/testing/smoke-default-continuation-reply";
-import { buildSmokeRelationshipSoftCatchReply } from "@/lib/testing/smoke-relationship-soft-catch";
+import { buildSmokeRelationshipContinuationReply } from "@/lib/testing/smoke-relationship-continuation-reply";
+import { buildSmokeRelationshipSupportiveReply as buildSmokeRelationshipSupportiveReplyByHelper } from "@/lib/testing/smoke-relationship-supportive-reply";
 import type {
   SmokeContinuationReplyArgs,
   SmokeRelationshipReplyArgs
@@ -26,29 +25,10 @@ export function buildSmokeRelationshipExplanatoryReply({
   });
 }
 
-export function buildSmokeRelationshipSupportiveReply({
-  content,
-  replyLanguage,
-  addressStyleValue,
-  selfName,
-  userName
-}: SmokeRelationshipReplyArgs) {
-  const softCatchReply = buildSmokeRelationshipSoftCatchReply({
-    content,
-    replyLanguage,
-    userName
-  });
-  if (softCatchReply) {
-    return softCatchReply;
-  }
-
-  return buildSmokeRelationshipSupportiveCoreReply({
-    content,
-    replyLanguage,
-    addressStyleValue,
-    selfName,
-    userName
-  });
+export function buildSmokeRelationshipSupportiveReply(
+  args: SmokeRelationshipReplyArgs
+) {
+  return buildSmokeRelationshipSupportiveReplyByHelper(args);
 }
 
 export function buildSmokeRelationshipClosingReply({
@@ -64,17 +44,7 @@ export function buildSmokeRelationshipClosingReply({
 }
 
 export function buildSmokeDefaultContinuationReply({
-  content,
-  replyLanguage,
-  addressStyleValue,
-  userName,
-  recentAssistantReply
+  ...args
 }: SmokeContinuationReplyArgs) {
-  return buildSmokeDefaultContinuationReplyByLanguage({
-    content,
-    replyLanguage,
-    addressStyleValue,
-    userName,
-    recentAssistantReply
-  });
+  return buildSmokeRelationshipContinuationReply(args);
 }
