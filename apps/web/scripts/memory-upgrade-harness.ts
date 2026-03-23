@@ -22,7 +22,9 @@ import {
   getAssistantKnowledgeCount,
   getAssistantKnowledgeScopeLayers,
   getAssistantMemoryNamespacePrimaryLayer,
+  getAssistantMemoryScenarioPackAssemblyEmphasis,
   getAssistantMemoryScenarioPackId,
+  getAssistantMemoryScenarioPackKnowledgePriorityLayer,
   getAssistantMemoryPrimarySemanticLayer
 } from "@/lib/chat/assistant-message-metadata-read";
 import {
@@ -988,6 +990,16 @@ function main() {
     "Expected assistant metadata reader to expose the active scenario memory pack."
   );
   expect(
+    getAssistantMemoryScenarioPackKnowledgePriorityLayer(assistantMetadata) ===
+      "project",
+    "Expected assistant metadata reader to expose project as the active pack knowledge-priority layer in P4."
+  );
+  expect(
+    getAssistantMemoryScenarioPackAssemblyEmphasis(assistantMetadata) ===
+      "knowledge_first",
+    "Expected assistant metadata reader to expose knowledge_first assembly emphasis in P4."
+  );
+  expect(
     getAssistantKnowledgeCount(assistantMetadata) === 3,
     "Expected assistant metadata reader to expose the namespace-filtered knowledge count."
   );
@@ -1325,7 +1337,13 @@ function main() {
           )
         },
         assistant_metadata_pack: {
-          pack_id: getAssistantMemoryScenarioPackId(assistantMetadata)
+          pack_id: getAssistantMemoryScenarioPackId(assistantMetadata),
+          knowledge_priority_layer:
+            getAssistantMemoryScenarioPackKnowledgePriorityLayer(
+              assistantMetadata
+            ),
+          assembly_emphasis:
+            getAssistantMemoryScenarioPackAssemblyEmphasis(assistantMetadata)
         },
         assistant_metadata_knowledge: {
           count: getAssistantKnowledgeCount(assistantMetadata),
@@ -1340,6 +1358,10 @@ function main() {
         },
         runtime_debug_metadata: {
           pack_id: runtimeDebugMetadata.memory.pack?.pack_id ?? null,
+          pack_knowledge_priority_layer:
+            runtimeDebugMetadata.memory.pack?.knowledge_priority_layer ?? null,
+          pack_assembly_emphasis:
+            runtimeDebugMetadata.memory.pack?.assembly_emphasis ?? null,
           knowledge_count: runtimeDebugMetadata.knowledge.count,
           thread_compaction_summary_id:
             runtimeDebugMetadata.thread_compaction?.summary_id ?? null,
@@ -1349,7 +1371,10 @@ function main() {
         scenario_memory_pack: {
           pack_id: scenarioMemoryPack.pack_id,
           preferred_routes: scenarioMemoryPack.preferred_routes,
-          assembly_order: scenarioMemoryPack.assembly_order
+          assembly_order: scenarioMemoryPack.assembly_order,
+          knowledge_priority_layer:
+            scenarioMemoryPack.knowledge_priority_layer,
+          assembly_emphasis: scenarioMemoryPack.assembly_emphasis
         },
         system_prompt_thread_state: {
           includes_focus_mode: systemPrompt.includes(
@@ -1363,6 +1388,9 @@ function main() {
           ),
           includes_scenario_memory_pack: systemPrompt.includes(
             "Active Scenario Memory Pack: project_ops"
+          ),
+          includes_pack_assembly_emphasis: systemPrompt.includes(
+            "Current assembly emphasis: project knowledge enters context assembly first."
           ),
           includes_knowledge_layer: systemPrompt.includes(
             "Relevant Knowledge Layer:"

@@ -300,6 +300,22 @@ export function getAssistantMemoryScenarioPackId(
   );
 }
 
+export function getAssistantMemoryScenarioPackKnowledgePriorityLayer(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return getAssistantMetadataString(packMetadata, "knowledge_priority_layer");
+}
+
+export function getAssistantMemoryScenarioPackAssemblyEmphasis(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return getAssistantMetadataString(packMetadata, "assembly_emphasis");
+}
+
 export function getAssistantKnowledgeCount(
   metadata: Record<string, unknown> | null | undefined
 ) {

@@ -58,7 +58,10 @@ export function buildRuntimeDebugMetadata(
             label: input.scenario_memory_pack.label,
             preferred_routes: input.scenario_memory_pack.preferred_routes,
             assembly_order: input.scenario_memory_pack.assembly_order,
-            selection_reason: input.scenario_memory_pack.selection_reason
+            selection_reason: input.scenario_memory_pack.selection_reason,
+            knowledge_priority_layer:
+              input.scenario_memory_pack.knowledge_priority_layer,
+            assembly_emphasis: input.scenario_memory_pack.assembly_emphasis
           }
         : null,
       write_request_count: input.memory_write_request_count

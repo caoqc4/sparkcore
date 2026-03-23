@@ -303,6 +303,14 @@
     - `world_knowledge_influence`
     - knowledge-promoted preferred routes
     - knowledge-promoted assembly order
+  - `ActiveScenarioMemoryPack` 当前也已开始显式产出：
+    - `knowledge_priority_layer`
+    - `assembly_emphasis`
+  - 也就是说，knowledge influence 当前不再只是隐含在 route/order 结果里，而开始成为可读的 runtime decision 输出
+  - 这层输出当前已进入：
+    - scenario pack prompt section
+    - assistant metadata
+    - runtime debug metadata
 - `P2-1 Scenario Memory Pack seam` 当前也已开始进入真实实现：
   - `packages/core/memory/packs.ts` 已新增首版 `ScenarioMemoryPack` contract 与内建 `companion` pack
   - `apps/web/lib/chat/memory-packs.ts` 已新增默认 active-pack resolver 与 prompt section builder
