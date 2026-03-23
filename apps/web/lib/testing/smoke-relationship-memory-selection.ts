@@ -5,6 +5,7 @@ import {
 } from "@/lib/testing/smoke-answer-strategy";
 import { hasSmokeRelationshipCarryover } from "@/lib/testing/smoke-relationship-carryover";
 import { findAndRecallSmokeRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-recall";
+import { maybeFindAndRecallSmokeRelationshipMemory } from "@/lib/testing/smoke-relationship-memory-optional-recall";
 import type {
   SmokeActiveRelationshipMemory,
   SmokeRelationshipRecallMemoryList
@@ -28,26 +29,25 @@ export function selectSmokeRelationshipMemories(args: {
     args.sameThreadContinuity;
 
   const nicknameMemory =
-    isSmokeDirectNamingQuestion(args.trimmedContent) ||
-    sharedNameRecallPrompt
-      ? findAndRecallSmokeRelationshipMemory({
-          memories: args.activeMemories,
-          key: "agent_nickname",
-          agentId: args.agentId,
-          recalledMemories: args.recalledMemories
-        })
-      : null;
+    maybeFindAndRecallSmokeRelationshipMemory({
+      enabled:
+        isSmokeDirectNamingQuestion(args.trimmedContent) || sharedNameRecallPrompt,
+      memories: args.activeMemories,
+      key: "agent_nickname",
+      agentId: args.agentId,
+      recalledMemories: args.recalledMemories
+    });
 
   const preferredNameMemory =
-    isSmokeDirectUserPreferredNameQuestion(args.trimmedContent) ||
-    sharedNameRecallPrompt
-      ? findAndRecallSmokeRelationshipMemory({
-          memories: args.activeMemories,
-          key: "user_preferred_name",
-          agentId: args.agentId,
-          recalledMemories: args.recalledMemories
-        })
-      : null;
+    maybeFindAndRecallSmokeRelationshipMemory({
+      enabled:
+        isSmokeDirectUserPreferredNameQuestion(args.trimmedContent) ||
+        sharedNameRecallPrompt,
+      memories: args.activeMemories,
+      key: "user_preferred_name",
+      agentId: args.agentId,
+      recalledMemories: args.recalledMemories
+    });
 
   const addressStyleMemory = findAndRecallSmokeRelationshipMemory({
     memories: args.activeMemories,
