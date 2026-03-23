@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
   getSmokeConfig,
-  isAuthorizedSmokeRequest,
+  isAuthorizedSmokeRequest
+} from "@/lib/testing/smoke-config";
+import {
   resetSmokeState
 } from "@/lib/testing/smoke";
 

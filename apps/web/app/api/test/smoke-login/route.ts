@@ -1,8 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  createSmokeLoginResponse,
   getSmokeConfig,
   isAuthorizedSmokeRequest
+} from "@/lib/testing/smoke-config";
+import {
+  createSmokeLoginResponse,
 } from "@/lib/testing/smoke";
 
 function getRedirectPath(request: NextRequest) {

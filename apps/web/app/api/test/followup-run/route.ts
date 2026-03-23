@@ -8,7 +8,7 @@ import {
 import {
   getSmokeConfig,
   isAuthorizedSmokeRequest
-} from "@/lib/testing/smoke";
+} from "@/lib/testing/smoke-config";
 
 export async function POST(request: NextRequest) {
   const config = getSmokeConfig();

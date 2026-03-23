@@ -1,8 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  createSmokeTurn,
   getSmokeConfig,
   isAuthorizedSmokeRequest
+} from "@/lib/testing/smoke-config";
+import {
+  createSmokeTurn,
 } from "@/lib/testing/smoke";
 
 export async function POST(request: NextRequest) {
