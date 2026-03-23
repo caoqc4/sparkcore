@@ -259,6 +259,29 @@ P5 首批要把 scenario pack 从：
 - 至少一条 pack strategy 不再只影响单个 layer slot，而开始影响一组 layer/budget 组合
 - 至少一条 pack-specific strategy 开始进入更可复用的 contract/helper，而不只散落在 runtime 组装逻辑里
 
+当前已成立的第一刀代码事实：
+
+- [memory-packs.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-packs.ts) 当前已开始把 pack-specific consumption 从 runtime 分支收成共用 strategy helper：
+  - `resolveScenarioMemoryPackStrategy(...)`
+  - `strategy_bundle_id`
+  - `layer_budget_bundle`
+  - `dynamic_profile_strategy`
+  - `memory_record_priority_order`
+- 当前最小规则已经成立：
+  - `project_ops -> project_execution`
+    - relationship/static_profile/memory_record budget = `1/1/2`
+  - `companion -> companion_continuity`
+    - relationship/static_profile/memory_record budget = `2/2/1`
+- [runtime.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime.ts) 当前已开始通过这层 strategy bundle 驱动：
+  - relationship budget
+  - static profile budget
+  - memory record budget
+  - dynamic profile coexist/suppress 规则
+  - memory record subtype priority
+- [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已开始显式校验：
+  - `project_execution` strategy bundle
+  - prompt 中已能看到 `Current strategy bundle = project_execution; relationship/static_profile/memory_record budget = 1/1/2.`
+
 ### 4.5 P5 regression / acceptance expansion
 
 P5 首批要把 gate 扩大到：

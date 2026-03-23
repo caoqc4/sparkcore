@@ -22,6 +22,7 @@ import {
 import {
   buildScenarioMemoryPackPromptSection,
   resolveActiveScenarioMemoryPack,
+  resolveScenarioMemoryPackStrategy,
   type ActiveScenarioMemoryPack
 } from "@/lib/chat/memory-packs";
 import {
@@ -1258,9 +1259,12 @@ function buildMemoryLayerAssemblyPrompt(args: {
   replyLanguage: RuntimeReplyLanguage;
 }) {
   const isZh = args.replyLanguage === "zh-Hans";
+  const strategy = resolveScenarioMemoryPackStrategy(
+    args.scenarioPack ?? { pack_id: "companion" }
+  );
   const relationshipMemories = args.recalledMemories
     .filter((memory) => memory.memory_type === "relationship")
-    .slice(0, args.scenarioPack?.pack_id === "companion" ? 2 : 1);
+    .slice(0, strategy.layer_budget_bundle.relationship_limit);
   const relationshipFilteredMemories = args.recalledMemories.filter(
     (memory) => memory.memory_type !== "relationship"
   );
@@ -1268,7 +1272,8 @@ function buildMemoryLayerAssemblyPrompt(args: {
     .filter((memory) => memory.semantic_layer === "dynamic_profile")
     .slice(
       0,
-      args.scenarioPack?.pack_id === "project_ops" &&
+      strategy.dynamic_profile_strategy ===
+        "suppress_when_memory_record_present" &&
         relationshipFilteredMemories.some(
           (memory) => memory.semantic_layer === "memory_record"
         )
@@ -1277,21 +1282,16 @@ function buildMemoryLayerAssemblyPrompt(args: {
     );
   const staticProfileMemories = relationshipFilteredMemories
     .filter((memory) => memory.semantic_layer === "static_profile")
-    .slice(0, args.scenarioPack?.pack_id === "companion" ? 2 : 1);
-  const memoryRecordBudget = args.scenarioPack?.pack_id === "project_ops" ? 2 : 1;
+    .slice(0, strategy.layer_budget_bundle.static_profile_limit);
+  const memoryRecordBudget = strategy.layer_budget_bundle.memory_record_limit;
   const memoryRecordMemories = relationshipFilteredMemories
     .filter((memory) => memory.semantic_layer === "memory_record")
     .sort((left, right) => {
-      const getMemoryRecordPriority = (memoryType: RecalledMemory["memory_type"]) => {
-        if (args.scenarioPack?.pack_id === "project_ops") {
-          if (memoryType === "timeline") return 0;
-          if (memoryType === "episode") return 1;
-          return 2;
-        }
-
-        if (memoryType === "episode") return 0;
-        if (memoryType === "timeline") return 1;
-        return 2;
+      const getMemoryRecordPriority = (
+        memoryType: RecalledMemory["memory_type"]
+      ) => {
+        const priority = strategy.memory_record_priority_order.indexOf(memoryType);
+        return priority >= 0 ? priority : strategy.memory_record_priority_order.length;
       };
       const leftPriority = getMemoryRecordPriority(left.memory_type);
       const rightPriority = getMemoryRecordPriority(right.memory_type);

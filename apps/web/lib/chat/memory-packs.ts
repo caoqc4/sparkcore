@@ -6,6 +6,20 @@ import {
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
+import type { RecalledMemory } from "@/lib/chat/memory-shared";
+
+export type ScenarioMemoryPackStrategy = {
+  strategy_bundle_id: "companion_continuity" | "project_execution";
+  layer_budget_bundle: {
+    relationship_limit: number;
+    static_profile_limit: number;
+    memory_record_limit: number;
+  };
+  dynamic_profile_strategy:
+    | "coexist_with_memory_record"
+    | "suppress_when_memory_record_present";
+  memory_record_priority_order: RecalledMemory["memory_type"][];
+};
 
 export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
   selection_reason:
@@ -23,6 +37,34 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
     | "project_knowledge_bias"
     | "world_knowledge_bias";
 };
+
+export function resolveScenarioMemoryPackStrategy(
+  pack: Pick<ActiveScenarioMemoryPack, "pack_id">
+): ScenarioMemoryPackStrategy {
+  if (pack.pack_id === "project_ops") {
+    return {
+      strategy_bundle_id: "project_execution",
+      layer_budget_bundle: {
+        relationship_limit: 1,
+        static_profile_limit: 1,
+        memory_record_limit: 2
+      },
+      dynamic_profile_strategy: "suppress_when_memory_record_present",
+      memory_record_priority_order: ["timeline", "episode", "relationship", "profile"]
+    };
+  }
+
+  return {
+    strategy_bundle_id: "companion_continuity",
+    layer_budget_bundle: {
+      relationship_limit: 2,
+      static_profile_limit: 2,
+      memory_record_limit: 1
+    },
+    dynamic_profile_strategy: "coexist_with_memory_record",
+    memory_record_priority_order: ["episode", "timeline", "relationship", "profile"]
+  };
+}
 
 function withWorldKnowledgeInfluence(
   pack: ScenarioMemoryPack
@@ -131,6 +173,7 @@ export function buildScenarioMemoryPackPromptSection(args: {
   replyLanguage: RuntimeReplyLanguage;
 }) {
   const isZh = args.replyLanguage === "zh-Hans";
+  const strategy = resolveScenarioMemoryPackStrategy(args.pack);
 
   return [
     isZh
@@ -157,6 +200,9 @@ export function buildScenarioMemoryPackPromptSection(args: {
     isZh
       ? `当前 knowledge route weight = ${args.pack.knowledge_route_weight}，knowledge budget weight = ${args.pack.knowledge_budget_weight}。`
       : `Current knowledge route weight = ${args.pack.knowledge_route_weight}; knowledge budget weight = ${args.pack.knowledge_budget_weight}.`,
+    isZh
+      ? `当前 strategy bundle = ${strategy.strategy_bundle_id}；relationship/static_profile/memory_record budget = ${strategy.layer_budget_bundle.relationship_limit}/${strategy.layer_budget_bundle.static_profile_limit}/${strategy.layer_budget_bundle.memory_record_limit}。`
+      : `Current strategy bundle = ${strategy.strategy_bundle_id}; relationship/static_profile/memory_record budget = ${strategy.layer_budget_bundle.relationship_limit}/${strategy.layer_budget_bundle.static_profile_limit}/${strategy.layer_budget_bundle.memory_record_limit}.`,
     isZh
       ? args.pack.pack_id === "project_ops"
         ? "如果当前回复缺少直接任务事实，优先保持项目知识 grounding、线程连续性与执行上下文一致。"

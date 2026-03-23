@@ -49,6 +49,11 @@
   - `total_weight`
   - `knowledge_route_weight`
   - `knowledge_budget_weight`
+- `P5-4 scenario pack strategy layer v3` 已开始把 pack-specific consumption 从 runtime 分支推进成共用 strategy bundle：
+  - `strategy_bundle_id`
+  - `layer_budget_bundle`
+  - `dynamic_profile_strategy`
+  - `memory_record_priority_order`
 
 ---
 

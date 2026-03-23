@@ -32,7 +32,8 @@ import {
 } from "@/lib/chat/assistant-message-metadata-read";
 import {
   buildScenarioMemoryPackPromptSection,
-  resolveActiveScenarioMemoryPack
+  resolveActiveScenarioMemoryPack,
+  resolveScenarioMemoryPackStrategy
 } from "@/lib/chat/memory-packs";
 import {
   buildKnowledgeSnapshot,
@@ -590,9 +591,18 @@ function main() {
     activeNamespace: activeMemoryNamespace,
     relevantKnowledge: runtimeKnowledge
   });
+  const scenarioMemoryPackStrategy =
+    resolveScenarioMemoryPackStrategy(scenarioMemoryPack);
   expect(
     scenarioMemoryPack.pack_id === "project_ops",
     "Expected project-primary namespace to switch the active scenario memory pack to project_ops in P3."
+  );
+  expect(
+    scenarioMemoryPackStrategy.strategy_bundle_id === "project_execution" &&
+      scenarioMemoryPackStrategy.layer_budget_bundle.relationship_limit === 1 &&
+      scenarioMemoryPackStrategy.layer_budget_bundle.static_profile_limit === 1 &&
+      scenarioMemoryPackStrategy.layer_budget_bundle.memory_record_limit === 2,
+    "Expected project_ops scenario memory pack to resolve a reusable project_execution strategy bundle in P5."
   );
   expect(
     scenarioMemoryPack.preferred_routes.join(",") ===
@@ -1748,9 +1758,12 @@ function main() {
           pack_id: scenarioMemoryPack.pack_id,
           preferred_routes: scenarioMemoryPack.preferred_routes,
           assembly_order: scenarioMemoryPack.assembly_order,
+          strategy_bundle_id: scenarioMemoryPackStrategy.strategy_bundle_id,
           knowledge_priority_layer:
             scenarioMemoryPack.knowledge_priority_layer,
           assembly_emphasis: scenarioMemoryPack.assembly_emphasis,
+          knowledge_route_weight: scenarioMemoryPack.knowledge_route_weight,
+          knowledge_budget_weight: scenarioMemoryPack.knowledge_budget_weight,
           route_influence_reason:
             scenarioMemoryPack.route_influence_reason
         },
@@ -1914,10 +1927,15 @@ function main() {
               "Current knowledge route weight = 1; knowledge budget weight = 0.9."
             ),
           scenario_pack_strategy_v3_ok:
+            scenarioMemoryPackStrategy.strategy_bundle_id ===
+              "project_execution" &&
             systemPrompt.includes("RM1:") &&
             !systemPrompt.includes("RM2:") &&
             systemPrompt.includes("SP1:") &&
-            !systemPrompt.includes("SP2:")
+            !systemPrompt.includes("SP2:") &&
+            systemPrompt.includes(
+              "Current strategy bundle = project_execution; relationship/static_profile/memory_record budget = 1/1/2."
+            )
         },
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
