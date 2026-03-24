@@ -45,6 +45,9 @@ export type PlannedMemoryWriteTarget = {
   namespaceUnifiedGovernanceRuntimeSummary: string | null;
   namespaceUnifiedRuntimeAlignmentMode: string | null;
   namespaceUnifiedRuntimeReuseMode: string | null;
+  namespaceGovernanceConsolidationDigestId: string | null;
+  namespaceGovernanceConsolidationSummary: string | null;
+  namespaceRuntimeConsolidationMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -76,6 +79,9 @@ export type PlannedGenericMemoryWriteTarget = {
   namespaceUnifiedGovernanceRuntimeSummary: string | null;
   namespaceUnifiedRuntimeAlignmentMode: string | null;
   namespaceUnifiedRuntimeReuseMode: string | null;
+  namespaceGovernanceConsolidationDigestId: string | null;
+  namespaceGovernanceConsolidationSummary: string | null;
+  namespaceRuntimeConsolidationMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -107,6 +113,9 @@ export type PlannedRelationshipMemoryWriteTarget = {
   namespaceUnifiedGovernanceRuntimeSummary: string | null;
   namespaceUnifiedRuntimeAlignmentMode: string | null;
   namespaceUnifiedRuntimeReuseMode: string | null;
+  namespaceGovernanceConsolidationDigestId: string | null;
+  namespaceGovernanceConsolidationSummary: string | null;
+  namespaceRuntimeConsolidationMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -158,6 +167,12 @@ function resolveNamespaceWriteRouting(
           boundary.unified_runtime_alignment_mode,
         namespaceUnifiedRuntimeReuseMode:
           boundary.unified_runtime_reuse_mode,
+        namespaceGovernanceConsolidationDigestId:
+          boundary.governance_consolidation_digest_id,
+        namespaceGovernanceConsolidationSummary:
+          boundary.governance_consolidation_summary,
+        namespaceRuntimeConsolidationMode:
+          boundary.runtime_consolidation_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -181,6 +196,12 @@ function resolveNamespaceWriteRouting(
           boundary.unified_runtime_alignment_mode,
         namespaceUnifiedRuntimeReuseMode:
           boundary.unified_runtime_reuse_mode,
+        namespaceGovernanceConsolidationDigestId:
+          boundary.governance_consolidation_digest_id,
+        namespaceGovernanceConsolidationSummary:
+          boundary.governance_consolidation_summary,
+        namespaceRuntimeConsolidationMode:
+          boundary.runtime_consolidation_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -204,6 +225,12 @@ function resolveNamespaceWriteRouting(
           boundary.unified_runtime_alignment_mode,
         namespaceUnifiedRuntimeReuseMode:
           boundary.unified_runtime_reuse_mode,
+        namespaceGovernanceConsolidationDigestId:
+          boundary.governance_consolidation_digest_id,
+        namespaceGovernanceConsolidationSummary:
+          boundary.governance_consolidation_summary,
+        namespaceRuntimeConsolidationMode:
+          boundary.runtime_consolidation_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -227,6 +254,12 @@ function resolveNamespaceWriteRouting(
           boundary.unified_runtime_alignment_mode,
         namespaceUnifiedRuntimeReuseMode:
           boundary.unified_runtime_reuse_mode,
+        namespaceGovernanceConsolidationDigestId:
+          boundary.governance_consolidation_digest_id,
+        namespaceGovernanceConsolidationSummary:
+          boundary.governance_consolidation_summary,
+        namespaceRuntimeConsolidationMode:
+          boundary.runtime_consolidation_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -265,6 +298,9 @@ export function resolvePlannedMemoryWriteTarget(
     namespaceUnifiedGovernanceRuntimeSummary,
     namespaceUnifiedRuntimeAlignmentMode,
     namespaceUnifiedRuntimeReuseMode,
+    namespaceGovernanceConsolidationDigestId,
+    namespaceGovernanceConsolidationSummary,
+    namespaceRuntimeConsolidationMode,
     retrievalWriteDigestAlignment
   } = resolveNamespaceWriteRouting(namespace);
 
@@ -291,6 +327,9 @@ export function resolvePlannedMemoryWriteTarget(
       namespaceUnifiedGovernanceRuntimeSummary,
       namespaceUnifiedRuntimeAlignmentMode,
       namespaceUnifiedRuntimeReuseMode,
+      namespaceGovernanceConsolidationDigestId,
+      namespaceGovernanceConsolidationSummary,
+      namespaceRuntimeConsolidationMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -321,6 +360,9 @@ export function resolvePlannedMemoryWriteTarget(
       namespaceUnifiedGovernanceRuntimeSummary,
       namespaceUnifiedRuntimeAlignmentMode,
       namespaceUnifiedRuntimeReuseMode,
+      namespaceGovernanceConsolidationDigestId,
+      namespaceGovernanceConsolidationSummary,
+      namespaceRuntimeConsolidationMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -348,6 +390,9 @@ export function resolvePlannedMemoryWriteTarget(
       namespaceUnifiedGovernanceRuntimeSummary,
       namespaceUnifiedRuntimeAlignmentMode,
       namespaceUnifiedRuntimeReuseMode,
+      namespaceGovernanceConsolidationDigestId,
+      namespaceGovernanceConsolidationSummary,
+      namespaceRuntimeConsolidationMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -378,6 +423,9 @@ export function resolvePlannedMemoryWriteTarget(
     namespaceUnifiedGovernanceRuntimeSummary,
     namespaceUnifiedRuntimeAlignmentMode,
     namespaceUnifiedRuntimeReuseMode,
+    namespaceGovernanceConsolidationDigestId,
+    namespaceGovernanceConsolidationSummary,
+    namespaceRuntimeConsolidationMode,
     retrievalWriteDigestAlignment
   };
 }

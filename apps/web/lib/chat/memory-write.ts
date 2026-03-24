@@ -833,6 +833,12 @@ export async function executeMemoryWriteRequests({
             namespaceBoundary.unified_runtime_alignment_mode,
           namespaceUnifiedRuntimeReuseMode:
             namespaceBoundary.unified_runtime_reuse_mode,
+          namespaceGovernanceConsolidationDigestId:
+            namespaceBoundary.governance_consolidation_digest_id,
+          namespaceGovernanceConsolidationSummary:
+            namespaceBoundary.governance_consolidation_summary,
+          namespaceRuntimeConsolidationMode:
+            namespaceBoundary.runtime_consolidation_mode,
           retrievalWriteDigestAlignment:
             namespaceBoundary.retrieval_write_digest_alignment
         };

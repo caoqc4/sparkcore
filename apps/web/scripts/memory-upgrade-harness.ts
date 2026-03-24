@@ -51,6 +51,9 @@ import {
   getAssistantMemoryNamespacePolicyCoordinationSummary,
   getAssistantMemoryNamespacePolicyDigestId,
   getAssistantMemoryNamespacePrimaryLayer,
+  getAssistantMemoryNamespaceGovernanceConsolidationDigestId,
+  getAssistantMemoryNamespaceGovernanceConsolidationSummary,
+  getAssistantMemoryNamespaceRuntimeConsolidationMode,
   getAssistantMemoryNamespaceRetrievalWriteDigestAlignment,
   getAssistantMemoryNamespaceUnifiedGovernanceRuntimeDigestId,
   getAssistantMemoryNamespaceUnifiedGovernanceRuntimeSummary,
@@ -867,9 +870,15 @@ function main() {
         "project_runtime_aligned" &&
       namespaceAwareWriteTarget.namespaceUnifiedRuntimeReuseMode ===
         "project_balanced_runtime_reuse" &&
+      namespaceAwareWriteTarget.namespaceGovernanceConsolidationDigestId ===
+        "project_coordination_governance_consolidation" &&
+      namespaceAwareWriteTarget.namespaceGovernanceConsolidationSummary ===
+        "project_coordination_runtime_consolidated" &&
+      namespaceAwareWriteTarget.namespaceRuntimeConsolidationMode ===
+        "project_runtime_consolidated" &&
       namespaceAwareWriteTarget.retrievalWriteDigestAlignment ===
         "project_parallel_balanced_aligned",
-    "Expected namespace-aware write target resolution to reuse project namespace unified governance runtime in P9."
+    "Expected namespace-aware write target resolution to expose project namespace governance consolidation in P10."
   );
   const runtimeWritePreview = buildRuntimeMemoryWriteRequestMetadata(
     [
@@ -923,9 +932,18 @@ function main() {
         ?.namespace_unified_runtime_reuse_mode ===
         "project_balanced_runtime_reuse" &&
       runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_consolidation_digest_id ===
+        "project_coordination_governance_consolidation" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_consolidation_summary ===
+        "project_coordination_runtime_consolidated" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_runtime_consolidation_mode ===
+        "project_runtime_consolidated" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
         ?.retrieval_write_digest_alignment ===
         "project_parallel_balanced_aligned",
-    "Expected runtime memory write preview metadata to expose namespace unified governance runtime reuse in P9."
+    "Expected runtime memory write preview metadata to expose namespace governance consolidation in P10."
   );
   const applicableKnowledge = filterKnowledgeByActiveNamespace({
     knowledge: runtimeKnowledge,
@@ -1610,6 +1628,28 @@ function main() {
         "Current unified runtime reuse: project_balanced_runtime_reuse."
       ),
     "Expected namespace unified governance runtime to be consistent across prompt, assistant metadata, and runtime debug metadata in P9."
+  );
+  expect(
+    getAssistantMemoryNamespaceGovernanceConsolidationDigestId(
+      assistantMetadata
+    ) === "project_coordination_governance_consolidation" &&
+      getAssistantMemoryNamespaceGovernanceConsolidationSummary(
+        assistantMetadata
+      ) === "project_coordination_runtime_consolidated" &&
+      getAssistantMemoryNamespaceRuntimeConsolidationMode(assistantMetadata) ===
+        "project_runtime_consolidated" &&
+      runtimeDebugMetadata.memory_namespace
+        ?.governance_consolidation_digest_id ===
+        "project_coordination_governance_consolidation" &&
+      runtimeDebugMetadata.memory_namespace
+        ?.governance_consolidation_summary ===
+        "project_coordination_runtime_consolidated" &&
+      runtimeDebugMetadata.memory_namespace?.runtime_consolidation_mode ===
+        "project_runtime_consolidated" &&
+      systemPrompt.includes(
+        "Current governance consolidation: project_coordination_governance_consolidation; summary = project_coordination_runtime_consolidated; mode = project_runtime_consolidated."
+      ),
+    "Expected namespace governance consolidation to be consistent across prompt, assistant metadata, and runtime debug metadata in P10."
   );
   expect(
     systemPrompt.includes("5. relationship memory: keep only a minimal relationship-grounding layer so it does not outweigh project execution context."),
@@ -2790,6 +2830,41 @@ function main() {
     close_candidate: p9RegressionGateFailedChecks.length === 0
   } as const;
 
+  const p10NamespaceConsolidationChecks = {
+    namespace_governance_consolidation_v5_ok:
+      projectBoundary.governance_consolidation_digest_id ===
+        "project_coordination_governance_consolidation" &&
+      projectBoundary.governance_consolidation_summary ===
+        "project_coordination_runtime_consolidated" &&
+      projectBoundary.runtime_consolidation_mode ===
+        "project_runtime_consolidated" &&
+      getAssistantMemoryNamespaceGovernanceConsolidationDigestId(
+        assistantMetadata
+      ) === projectBoundary.governance_consolidation_digest_id &&
+      getAssistantMemoryNamespaceGovernanceConsolidationSummary(
+        assistantMetadata
+      ) === projectBoundary.governance_consolidation_summary &&
+      getAssistantMemoryNamespaceRuntimeConsolidationMode(
+        assistantMetadata
+      ) === projectBoundary.runtime_consolidation_mode &&
+      runtimeDebugMetadata.memory_namespace
+        ?.governance_consolidation_digest_id ===
+        projectBoundary.governance_consolidation_digest_id &&
+      runtimeDebugMetadata.memory_namespace?.governance_consolidation_summary ===
+        projectBoundary.governance_consolidation_summary &&
+      runtimeDebugMetadata.memory_namespace?.runtime_consolidation_mode ===
+        projectBoundary.runtime_consolidation_mode &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_consolidation_digest_id ===
+        projectBoundary.governance_consolidation_digest_id &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_consolidation_summary ===
+        projectBoundary.governance_consolidation_summary &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_runtime_consolidation_mode ===
+        projectBoundary.runtime_consolidation_mode
+  } as const;
+
   console.log(
     JSON.stringify(
       {
@@ -3053,6 +3128,18 @@ function main() {
             getAssistantMemoryNamespaceGovernanceConvergenceSummary(
               assistantMetadata
             ),
+          governance_consolidation_digest_id:
+            getAssistantMemoryNamespaceGovernanceConsolidationDigestId(
+              assistantMetadata
+            ),
+          governance_consolidation_summary:
+            getAssistantMemoryNamespaceGovernanceConsolidationSummary(
+              assistantMetadata
+            ),
+          runtime_consolidation_mode:
+            getAssistantMemoryNamespaceRuntimeConsolidationMode(
+              assistantMetadata
+            ),
           unified_governance_runtime_digest_id:
             getAssistantMemoryNamespaceUnifiedGovernanceRuntimeDigestId(
               assistantMetadata
@@ -3167,6 +3254,15 @@ function main() {
             runtimeDebugMetadata.memory_namespace?.write_escalation_mode ?? null,
           namespace_governance_convergence_summary:
             runtimeDebugMetadata.memory_namespace?.governance_convergence_summary ??
+            null,
+          namespace_governance_consolidation_digest_id:
+            runtimeDebugMetadata.memory_namespace
+              ?.governance_consolidation_digest_id ?? null,
+          namespace_governance_consolidation_summary:
+            runtimeDebugMetadata.memory_namespace
+              ?.governance_consolidation_summary ?? null,
+          namespace_runtime_consolidation_mode:
+            runtimeDebugMetadata.memory_namespace?.runtime_consolidation_mode ??
             null,
           namespace_unified_governance_runtime_digest_id:
             runtimeDebugMetadata.memory_namespace
@@ -3336,6 +3432,7 @@ function main() {
         p7_regression_gate: p7RegressionGate,
         p8_regression_gate: p8RegressionGate,
         p9_regression_gate: p9RegressionGate,
+        p10_namespace_consolidation: p10NamespaceConsolidationChecks,
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
             "When episode memory is present"

@@ -165,6 +165,15 @@ export function buildRuntimeDebugMetadata(
           unified_runtime_reuse_mode: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).unified_runtime_reuse_mode,
+          governance_consolidation_digest_id: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_consolidation_digest_id,
+          governance_consolidation_summary: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_consolidation_summary,
+          runtime_consolidation_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).runtime_consolidation_mode,
           retrieval_write_digest_alignment: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).retrieval_write_digest_alignment,

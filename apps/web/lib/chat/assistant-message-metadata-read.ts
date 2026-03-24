@@ -774,6 +774,57 @@ export function getAssistantMemoryNamespaceUnifiedRuntimeReuseMode(
   );
 }
 
+export function getAssistantMemoryNamespaceGovernanceConsolidationDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_consolidation_digest_id"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_consolidation_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernanceConsolidationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_consolidation_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_consolidation_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceRuntimeConsolidationMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "runtime_consolidation_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_runtime_consolidation_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
   metadata: Record<string, unknown> | null | undefined
 ) {

@@ -1405,13 +1405,15 @@
 
 当前 `P10` 的阶段判断：
 
-- `P10-1 ~ P10-5`
+- `P10-1`
+  - 前中段
+- `P10-2 ~ P10-5`
   - 待开始
 
 整体 `P10` 当前大约：
 
-- **`0%`**
+- **`15% - 25%`**
 
 当前更推荐的下一步：
 
-- **开始 `P10-1 Namespace governance consolidation v5` 的第一刀**
+- **继续补 `P10-1 Namespace governance consolidation v5` 的第二刀**
