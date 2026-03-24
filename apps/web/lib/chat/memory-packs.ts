@@ -1,8 +1,10 @@
 import {
   resolveBuiltInScenarioMemoryPack,
+  type ScenarioOrchestrationDigestId,
   type ScenarioOrchestrationMode,
   type ScenarioMemoryLayer,
   type ScenarioMemoryPack,
+  type ScenarioStrategyRationaleSummary,
   type ScenarioStrategyPolicyId,
 } from "../../../../packages/core/memory";
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
@@ -47,6 +49,8 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
   governance_route_bias: "authoritative" | "contextual" | "reference" | null;
   strategy_policy_id: ScenarioStrategyPolicyId;
   orchestration_mode: ScenarioOrchestrationMode;
+  orchestration_digest_id: ScenarioOrchestrationDigestId;
+  strategy_rationale_summary: ScenarioStrategyRationaleSummary;
 };
 
 function resolveKnowledgeGovernanceRouteWeights(args: {
@@ -156,7 +160,9 @@ export function resolveScenarioMemoryPackPolicy(
   if (pack.pack_id === "project_ops") {
     return {
       strategy_policy_id: "project_delivery_policy" as const,
-      orchestration_mode: "execution_centered" as const
+      orchestration_mode: "execution_centered" as const,
+      orchestration_digest_id: "project_delivery_orchestration" as const,
+      strategy_rationale_summary: "execution_priority_alignment" as const
     };
   }
 
@@ -166,13 +172,18 @@ export function resolveScenarioMemoryPackPolicy(
   ) {
     return {
       strategy_policy_id: "knowledge_guided_companion_policy" as const,
-      orchestration_mode: "knowledge_guided" as const
+      orchestration_mode: "knowledge_guided" as const,
+      orchestration_digest_id:
+        "knowledge_guided_companion_orchestration" as const,
+      strategy_rationale_summary: "knowledge_guided_alignment" as const
     };
   }
 
   return {
     strategy_policy_id: "continuity_companion_policy" as const,
-    orchestration_mode: "continuity_centered" as const
+    orchestration_mode: "continuity_centered" as const,
+    orchestration_digest_id: "continuity_companion_orchestration" as const,
+    strategy_rationale_summary: "continuity_alignment" as const
   };
 }
 
@@ -359,6 +370,9 @@ export function buildScenarioMemoryPackPromptSection(args: {
     isZh
       ? `当前 strategy policy = ${args.pack.strategy_policy_id}；orchestration mode = ${args.pack.orchestration_mode}。`
       : `Current strategy policy = ${args.pack.strategy_policy_id}; orchestration mode = ${args.pack.orchestration_mode}.`,
+    isZh
+      ? `当前 orchestration digest = ${args.pack.orchestration_digest_id}；strategy rationale = ${args.pack.strategy_rationale_summary}。`
+      : `Current orchestration digest = ${args.pack.orchestration_digest_id}; strategy rationale = ${args.pack.strategy_rationale_summary}.`,
     isZh
       ? `当前 knowledge route weight = ${args.pack.knowledge_route_weight}，knowledge budget weight = ${args.pack.knowledge_budget_weight}。`
       : `Current knowledge route weight = ${args.pack.knowledge_route_weight}; knowledge budget weight = ${args.pack.knowledge_budget_weight}.`,

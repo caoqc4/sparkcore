@@ -24,6 +24,16 @@ export type ScenarioOrchestrationMode =
   | "execution_centered"
   | "knowledge_guided";
 
+export type ScenarioOrchestrationDigestId =
+  | "continuity_companion_orchestration"
+  | "project_delivery_orchestration"
+  | "knowledge_guided_companion_orchestration";
+
+export type ScenarioStrategyRationaleSummary =
+  | "continuity_alignment"
+  | "execution_priority_alignment"
+  | "knowledge_guided_alignment";
+
 export type ScenarioMemoryPack = {
   pack_id: ScenarioMemoryPackId;
   label: string;

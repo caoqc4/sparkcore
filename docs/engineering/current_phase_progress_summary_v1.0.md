@@ -1228,7 +1228,7 @@
 - `P7-3`
   - 前中段到中段之间
 - `P7-4`
-  - 待开始
+  - 前中段
 - `P7-5`
   - 待开始
 
@@ -1238,7 +1238,7 @@
 
 当前更推荐的下一步：
 
-- **开始 `P7-4 Scenario orchestration digest v5` 的第一刀**
+- **继续补 `P7-4 Scenario orchestration digest v5`**
 - 当前已成立的 `P7-1` 主事实：
   - namespace boundary 现在开始显式产出 `policy_digest_id`
   - 当前最小 digest 已成立：

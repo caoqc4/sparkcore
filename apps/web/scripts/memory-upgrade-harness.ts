@@ -51,7 +51,9 @@ import {
   getAssistantMemoryScenarioPackRouteInfluenceReason,
   getAssistantMemoryScenarioPackGovernanceRouteBias,
   getAssistantMemoryScenarioPackOrchestrationMode,
+  getAssistantMemoryScenarioPackOrchestrationDigestId,
   getAssistantMemoryScenarioPackStrategyPolicyId,
+  getAssistantMemoryScenarioPackStrategyRationaleSummary,
   getAssistantMemoryPrimarySemanticLayer
 } from "@/lib/chat/assistant-message-metadata-read";
 import {
@@ -1108,6 +1110,12 @@ function main() {
     active_memory_namespace: activeMemoryNamespace,
     compacted_thread_summary: compactedThreadSummary
   });
+  const runtimeDebugPack = runtimeDebugMetadata.memory.pack as
+    | (NonNullable<typeof runtimeDebugMetadata.memory.pack> & {
+        orchestration_digest_id?: string | null;
+        strategy_rationale_summary?: string | null;
+      })
+    | null;
   expect(
     getAssistantMemoryPrimarySemanticLayer(assistantMetadata) === "thread_state",
     "Expected assistant metadata reader to expose thread_state as primary semantic layer."
@@ -2053,16 +2061,33 @@ function main() {
     scenario_strategy_orchestration_v4_ok:
       scenarioMemoryPack.strategy_policy_id === "project_delivery_policy" &&
       scenarioMemoryPack.orchestration_mode === "execution_centered" &&
+      scenarioMemoryPack.orchestration_digest_id ===
+        "project_delivery_orchestration" &&
+      scenarioMemoryPack.strategy_rationale_summary ===
+        "execution_priority_alignment" &&
       getAssistantMemoryScenarioPackStrategyPolicyId(assistantMetadata) ===
         scenarioMemoryPack.strategy_policy_id &&
       getAssistantMemoryScenarioPackOrchestrationMode(assistantMetadata) ===
         scenarioMemoryPack.orchestration_mode &&
+      getAssistantMemoryScenarioPackOrchestrationDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_digest_id &&
+      getAssistantMemoryScenarioPackStrategyRationaleSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_rationale_summary &&
       runtimeDebugMetadata.memory.pack?.strategy_policy_id ===
         scenarioMemoryPack.strategy_policy_id &&
       runtimeDebugMetadata.memory.pack?.orchestration_mode ===
         scenarioMemoryPack.orchestration_mode &&
+      runtimeDebugPack?.orchestration_digest_id ===
+        scenarioMemoryPack.orchestration_digest_id &&
+      runtimeDebugPack?.strategy_rationale_summary ===
+        scenarioMemoryPack.strategy_rationale_summary &&
       systemPrompt.includes(
         "Current strategy policy = project_delivery_policy; orchestration mode = execution_centered."
+      ) &&
+      systemPrompt.includes(
+        "Current orchestration digest = project_delivery_orchestration; strategy rationale = execution_priority_alignment."
       ),
     strategy_policy_consistency_v4_ok:
       getAssistantMemoryScenarioPackId(assistantMetadata) ===
@@ -2071,6 +2096,12 @@ function main() {
         scenarioMemoryPack.strategy_policy_id &&
       getAssistantMemoryScenarioPackOrchestrationMode(assistantMetadata) ===
         scenarioMemoryPack.orchestration_mode &&
+      getAssistantMemoryScenarioPackOrchestrationDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_digest_id &&
+      getAssistantMemoryScenarioPackStrategyRationaleSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_rationale_summary &&
       getAssistantMemoryScenarioPackGovernanceRouteBias(assistantMetadata) ===
         scenarioMemoryPack.governance_route_bias &&
       getAssistantMemoryScenarioPackStrategyBundleId(assistantMetadata) ===
@@ -2084,6 +2115,10 @@ function main() {
         scenarioMemoryPack.strategy_policy_id &&
       runtimeDebugMetadata.memory.pack?.orchestration_mode ===
         scenarioMemoryPack.orchestration_mode &&
+      runtimeDebugPack?.orchestration_digest_id ===
+        scenarioMemoryPack.orchestration_digest_id &&
+      runtimeDebugPack?.strategy_rationale_summary ===
+        scenarioMemoryPack.strategy_rationale_summary &&
       runtimeDebugMetadata.memory.pack?.governance_route_bias ===
         scenarioMemoryPack.governance_route_bias &&
       runtimeDebugMetadata.memory.pack?.strategy_bundle_id ===
@@ -2093,6 +2128,9 @@ function main() {
       systemPrompt.includes("Active Scenario Memory Pack: project_ops") &&
       systemPrompt.includes(
         "Current strategy policy = project_delivery_policy; orchestration mode = execution_centered."
+      ) &&
+      systemPrompt.includes(
+        "Current orchestration digest = project_delivery_orchestration; strategy rationale = execution_priority_alignment."
       ) &&
       systemPrompt.includes(
         "Current governance route bias = authoritative."
@@ -2224,7 +2262,15 @@ function main() {
           strategy_policy_id:
             getAssistantMemoryScenarioPackStrategyPolicyId(assistantMetadata),
           orchestration_mode:
-            getAssistantMemoryScenarioPackOrchestrationMode(assistantMetadata)
+            getAssistantMemoryScenarioPackOrchestrationMode(assistantMetadata),
+          orchestration_digest_id:
+            getAssistantMemoryScenarioPackOrchestrationDigestId(
+              assistantMetadata
+            ),
+          strategy_rationale_summary:
+            getAssistantMemoryScenarioPackStrategyRationaleSummary(
+              assistantMetadata
+            )
         },
         assistant_metadata_knowledge: {
           count: getAssistantKnowledgeCount(assistantMetadata),
@@ -2310,6 +2356,10 @@ function main() {
             runtimeDebugMetadata.memory.pack?.strategy_policy_id ?? null,
           pack_orchestration_mode:
             runtimeDebugMetadata.memory.pack?.orchestration_mode ?? null,
+          pack_orchestration_digest_id:
+            runtimeDebugPack?.orchestration_digest_id ?? null,
+          pack_strategy_rationale_summary:
+            runtimeDebugPack?.strategy_rationale_summary ?? null,
           knowledge_count: runtimeDebugMetadata.knowledge.count,
           thread_compaction_summary_id:
             runtimeDebugMetadata.thread_compaction?.summary_id ?? null,
@@ -2350,7 +2400,11 @@ function main() {
           strategy_policy_id:
             scenarioMemoryPack.strategy_policy_id,
           orchestration_mode:
-            scenarioMemoryPack.orchestration_mode
+            scenarioMemoryPack.orchestration_mode,
+          orchestration_digest_id:
+            scenarioMemoryPack.orchestration_digest_id,
+          strategy_rationale_summary:
+            scenarioMemoryPack.strategy_rationale_summary
         },
         system_prompt_thread_state: {
           includes_focus_mode: systemPrompt.includes(

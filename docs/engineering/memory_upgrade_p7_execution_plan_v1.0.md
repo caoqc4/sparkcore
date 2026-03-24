@@ -291,6 +291,17 @@ P7 首批要把 scenario strategy 从：
 - 至少一条 runtime 决策开始直接消费 orchestration digest，而不再只消费 policy / bundle 字段
 - 至少一条 metadata / prompt 摘要开始暴露 digest 级事实
 
+当前已成立的第一刀代码事实：
+
+- scenario pack 已开始显式产出：
+  - `orchestration_digest_id`
+  - `strategy_rationale_summary`
+- 这层事实已经进入：
+  - prompt
+  - assistant metadata / reader
+  - runtime debug metadata
+  - harness
+
 ### 4.5 Regression / acceptance expansion
 
 P7 首批必须让阶段 gate 继续往前推进，而不是等代码长完再回头补。
