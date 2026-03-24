@@ -1124,9 +1124,9 @@
 当前 `P6` 的阶段判断：
 
 - `P6-1`
-  - 前中段到中段之间
+  - 中段
 - `P6-2`
-  - 待开始
+  - 前中段
 - `P6-3`
   - 待开始
 - `P6-4`
@@ -1136,11 +1136,11 @@
 
 整体 `P6` 当前大约：
 
-- **`15% - 25%`**
+- **`25% - 35%`**
 
 当前更推荐的下一步：
 
-- **开始从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 落 `P6-2 Retention lifecycle policy v4` 的第一刀**
+- **继续从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 往前补 `P6-2 Retention lifecycle policy v4` 的第二刀**
 
 当前已成立的第一刀事实：
 
@@ -1169,3 +1169,8 @@
 - `P6-2` 当前也已开始有第一刀事实：
   - `retention_policy_id`
   - `cross_layer_survival_mode`
+- 这层 retention lifecycle policy 当前也已进入：
+  - thread compaction 主实现
+  - assistant metadata / reader
+  - runtime debug metadata
+  - harness
