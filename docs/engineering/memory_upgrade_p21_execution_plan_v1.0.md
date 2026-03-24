@@ -152,11 +152,11 @@
 
 整体 `P21` 当前大约：
 
-- **`40% - 45%`**
+- **`60% - 65%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P21-5` 的 close-readiness consumption / acceptance layering，而不是先写 `P21 close-readiness`**
+- **继续做 `P21 close-readiness judgment` 的前置收束，而不是回头补 archive 主线单点 contract**
 
 ---
 

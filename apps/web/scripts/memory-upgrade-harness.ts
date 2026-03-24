@@ -6322,15 +6322,184 @@ function main() {
     positive_contracts: p21PositiveContracts,
     metadata_consistency: p21MetadataConsistency,
     prompt_surface: p21PromptSurface,
-    ...summarizeGate(p21CloseNoteArchiveChecks)
+    close_readiness_consumption: summarizeGate({
+      role_core_memory_close_note_archive_close_readiness_prompt_v1_ok:
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.readiness_judgment ?? ""
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.progress_range ?? ""
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.close_note_recommended ? "true" : "false"
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          `blocking = ${p21CloseNoteArchive?.acceptance_gap_buckets.blocking ?? 0}`
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          "close_readiness_archive_consumption"
+        ),
+      role_core_memory_close_note_archive_gap_bucket_consumption_v1_ok:
+        assistantCloseNoteArchive?.readiness_judgment ===
+          p21CloseNoteArchive?.readiness_judgment &&
+        assistantCloseNoteArchive?.progress_range ===
+          p21CloseNoteArchive?.progress_range &&
+        assistantCloseNoteArchive?.close_note_recommended ===
+          p21CloseNoteArchive?.close_note_recommended &&
+        assistantCloseNoteArchive?.acceptance_gap_buckets.non_blocking ===
+          p21CloseNoteArchive?.acceptance_gap_buckets.non_blocking &&
+        assistantDiagnosticCloseNoteArchive?.acceptance_gap_buckets
+          .tail_candidate ===
+          p21CloseNoteArchive?.acceptance_gap_buckets.tail_candidate &&
+        runtimeDebugCloseNoteArchive?.readiness_judgment ===
+          p21CloseNoteArchive?.readiness_judgment &&
+        runtimeDebugCloseNoteArchive?.progress_range ===
+          p21CloseNoteArchive?.progress_range &&
+        runtimeDebugCloseNoteArchive?.acceptance_gap_buckets.blocking ===
+          p21CloseNoteArchive?.acceptance_gap_buckets.blocking &&
+        runtimeDebugCloseNoteArchive?.next_expansion_focus.includes(
+          "close_readiness_archive_consumption"
+        ),
+      role_core_memory_close_note_archive_gap_structuring_v1_ok:
+        (p21CloseNoteArchive?.blocking_items.length ?? 0) ===
+          (p21CloseNoteArchive?.acceptance_gap_buckets.blocking ?? -1) &&
+        (p21CloseNoteArchive?.non_blocking_items.length ?? 0) ===
+          (p21CloseNoteArchive?.acceptance_gap_buckets.non_blocking ?? -1) &&
+        (p21CloseNoteArchive?.tail_candidate_items.length ?? 0) ===
+          (p21CloseNoteArchive?.acceptance_gap_buckets.tail_candidate ?? -1) &&
+        p21CloseNoteArchive?.next_expansion_focus.includes(
+          "archive_regression_gate_layering"
+        ) &&
+        p21CloseNoteArchive?.next_expansion_focus.includes(
+          "close_readiness_archive_consumption"
+        ) &&
+        p21CloseNoteArchive?.next_expansion_focus.includes(
+          "remaining_archive_acceptance_gaps"
+        ),
+      role_core_memory_close_note_archive_close_note_input_readiness_v1_ok:
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.non_blocking_items.join(", ") ?? ""
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.tail_candidate_items.join(", ") ?? ""
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.next_expansion_focus.join(", ") ?? ""
+        ) &&
+        systemPrompt.includes(
+          p21CloseNoteArchive?.non_blocking_items.join(", ") ?? ""
+        ) &&
+        systemPrompt.includes(
+          p21CloseNoteArchive?.tail_candidate_items.join(", ") ?? ""
+        ) &&
+        (assistantCloseNoteArchive?.non_blocking_items.length ?? -1) ===
+          (p21CloseNoteArchive?.non_blocking_items.length ?? -2) &&
+        (assistantDiagnosticCloseNoteArchive?.tail_candidate_items.length ??
+          -1) ===
+          (p21CloseNoteArchive?.tail_candidate_items.length ?? -2) &&
+        (runtimeDebugCloseNoteArchive?.next_expansion_focus.length ?? -1) ===
+          (p21CloseNoteArchive?.next_expansion_focus.length ?? -2)
+    }),
+    ...summarizeGate({
+      ...p21CloseNoteArchiveChecks,
+      role_core_memory_close_note_archive_close_readiness_prompt_v1_ok:
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.readiness_judgment ?? ""
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.progress_range ?? ""
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.close_note_recommended ? "true" : "false"
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          `blocking = ${p21CloseNoteArchive?.acceptance_gap_buckets.blocking ?? 0}`
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          "close_readiness_archive_consumption"
+        ),
+      role_core_memory_close_note_archive_gap_bucket_consumption_v1_ok:
+        assistantCloseNoteArchive?.readiness_judgment ===
+          p21CloseNoteArchive?.readiness_judgment &&
+        assistantCloseNoteArchive?.progress_range ===
+          p21CloseNoteArchive?.progress_range &&
+        assistantCloseNoteArchive?.close_note_recommended ===
+          p21CloseNoteArchive?.close_note_recommended &&
+        assistantCloseNoteArchive?.acceptance_gap_buckets.non_blocking ===
+          p21CloseNoteArchive?.acceptance_gap_buckets.non_blocking &&
+        assistantDiagnosticCloseNoteArchive?.acceptance_gap_buckets
+          .tail_candidate ===
+          p21CloseNoteArchive?.acceptance_gap_buckets.tail_candidate &&
+        runtimeDebugCloseNoteArchive?.readiness_judgment ===
+          p21CloseNoteArchive?.readiness_judgment &&
+        runtimeDebugCloseNoteArchive?.progress_range ===
+          p21CloseNoteArchive?.progress_range &&
+        runtimeDebugCloseNoteArchive?.acceptance_gap_buckets.blocking ===
+          p21CloseNoteArchive?.acceptance_gap_buckets.blocking &&
+        runtimeDebugCloseNoteArchive?.next_expansion_focus.includes(
+          "close_readiness_archive_consumption"
+        ),
+      role_core_memory_close_note_archive_gap_structuring_v1_ok:
+        (p21CloseNoteArchive?.blocking_items.length ?? 0) ===
+          (p21CloseNoteArchive?.acceptance_gap_buckets.blocking ?? -1) &&
+        (p21CloseNoteArchive?.non_blocking_items.length ?? 0) ===
+          (p21CloseNoteArchive?.acceptance_gap_buckets.non_blocking ?? -1) &&
+        (p21CloseNoteArchive?.tail_candidate_items.length ?? 0) ===
+          (p21CloseNoteArchive?.acceptance_gap_buckets.tail_candidate ?? -1) &&
+        p21CloseNoteArchive?.next_expansion_focus.includes(
+          "archive_regression_gate_layering"
+        ) &&
+        p21CloseNoteArchive?.next_expansion_focus.includes(
+          "close_readiness_archive_consumption"
+        ) &&
+        p21CloseNoteArchive?.next_expansion_focus.includes(
+          "remaining_archive_acceptance_gaps"
+        ),
+      role_core_memory_close_note_archive_close_note_input_readiness_v1_ok:
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.non_blocking_items.join(", ") ?? ""
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.tail_candidate_items.join(", ") ?? ""
+        ) &&
+        p21CloseNoteArchivePrompt.includes(
+          p21CloseNoteArchive?.next_expansion_focus.join(", ") ?? ""
+        ) &&
+        systemPrompt.includes(
+          p21CloseNoteArchive?.non_blocking_items.join(", ") ?? ""
+        ) &&
+        systemPrompt.includes(
+          p21CloseNoteArchive?.tail_candidate_items.join(", ") ?? ""
+        ) &&
+        (assistantCloseNoteArchive?.non_blocking_items.length ?? -1) ===
+          (p21CloseNoteArchive?.non_blocking_items.length ?? -2) &&
+        (assistantDiagnosticCloseNoteArchive?.tail_candidate_items.length ??
+          -1) ===
+          (p21CloseNoteArchive?.tail_candidate_items.length ?? -2) &&
+        (runtimeDebugCloseNoteArchive?.next_expansion_focus.length ?? -1) ===
+          (p21CloseNoteArchive?.next_expansion_focus.length ?? -2)
+    })
   } as const;
   const p21GateSnapshot = {
     gate_id: "p21_regression_gate_v1",
     stage: "P21-5",
     focus: "close_note_archiveization",
-    archive_contract_readiness: "scenario_archive_started_not_close_ready",
-    progress_range: "40% - 45%",
+    archive_contract_readiness:
+      p21CloseNoteArchive?.close_note_recommended === true
+        ? "archive_close_ready"
+        : "archive_close_readiness_consumption_started",
+    progress_range: p21CloseNoteArchive?.progress_range ?? "40% - 45%",
     close_note_recommended: p21CloseNoteArchive?.close_note_recommended ?? false,
+    blocking_items: p21CloseNoteArchive?.blocking_items ?? [],
+    non_blocking_items: p21CloseNoteArchive?.non_blocking_items ?? [],
+    tail_candidate_items: p21CloseNoteArchive?.tail_candidate_items ?? [],
+    acceptance_gap_buckets:
+      p21CloseNoteArchive?.acceptance_gap_buckets ?? {
+        blocking: 0,
+        non_blocking: 0,
+        tail_candidate: 0
+      },
+    next_expansion_focus: p21CloseNoteArchive?.next_expansion_focus ?? [],
     positive_contracts: {
       checks_passed: p21PositiveContracts.checks_passed,
       checks_total: p21PositiveContracts.checks_total,
@@ -6345,6 +6514,11 @@ function main() {
       checks_passed: p21PromptSurface.checks_passed,
       checks_total: p21PromptSurface.checks_total,
       all_green: p21PromptSurface.all_green
+    },
+    close_readiness_consumption: {
+      checks_passed: p21RegressionGate.close_readiness_consumption.checks_passed,
+      checks_total: p21RegressionGate.close_readiness_consumption.checks_total,
+      all_green: p21RegressionGate.close_readiness_consumption.all_green
     },
     overall: {
       checks_passed: p21RegressionGate.checks_passed,

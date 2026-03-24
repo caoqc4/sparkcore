@@ -467,14 +467,18 @@
       [memory_upgrade_p21_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p21_gate_snapshot_v1.0.md)
       为准
     - 当前 `p21_gate_snapshot`：
-      - `archive_contract_readiness = scenario_archive_started_not_close_ready`
-      - `progress_range = 40% - 45%`
+      - `archive_contract_readiness = archive_close_readiness_consumption_started`
+      - `progress_range = 60% - 65%`
+      - `blocking_items = []`
+      - `non_blocking_items = [archive_regression_gate_layering, close_readiness_archive_consumption, remaining_archive_acceptance_gaps]`
+      - `tail_candidate_items = [archive_surface_symmetry_cleanup, non_blocking_archive_negative_coverage, record_to_archive_alignment_cleanup]`
       - `positive_contracts = 4 / 4`
       - `metadata_consistency = 4 / 4`
       - `prompt_surface = 4 / 4`
-      - `overall = 12 / 12`
-    - 当前整体约 `40% - 45%`
-    - 当前最推荐的下一步是 `P21-5 close-readiness consumption / acceptance layering`
+      - `close_readiness_consumption = 4 / 4`
+      - `overall = 16 / 16`
+    - 当前整体约 `60% - 65%`
+    - 当前最推荐的下一步是 `P21 close-readiness judgment`
 
 ---
 

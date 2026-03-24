@@ -28,13 +28,19 @@
 
 当前 `p21_gate_snapshot` 的结果为：
 
-- `archive_contract_readiness = scenario_archive_started_not_close_ready`
-- `progress_range = 40% - 45%`
-- `close_note_recommended = true`
+- `archive_contract_readiness = archive_close_readiness_consumption_started`
+- `progress_range = 60% - 65%`
+- `close_note_recommended = false`
+- `blocking_items = []`
+- `non_blocking_items = [archive_regression_gate_layering, close_readiness_archive_consumption, remaining_archive_acceptance_gaps]`
+- `tail_candidate_items = [archive_surface_symmetry_cleanup, non_blocking_archive_negative_coverage, record_to_archive_alignment_cleanup]`
+- `acceptance_gap_buckets = { blocking: 0, non_blocking: 3, tail_candidate: 3 }`
+- `next_expansion_focus = [archive_regression_gate_layering, close_readiness_archive_consumption, remaining_archive_acceptance_gaps]`
 - `positive_contracts = 4 / 4`
 - `metadata_consistency = 4 / 4`
 - `prompt_surface = 4 / 4`
-- `overall = 12 / 12`
+- `close_readiness_consumption = 4 / 4`
+- `overall = 16 / 16`
 - `failed_checks = []`
 - `all_green = true`
 - `close_candidate = true`
@@ -91,7 +97,7 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P21-5` 已经从“待开始”推进到“namespace / retention / knowledge / scenario close-note archive gate 已建立”，并且当前价值主要在于把这套 gate 推到 close-readiness consumption / acceptance layering，而不是回头继续补四条主线的单点 contract。**
+**`P21-5` 已经从“待开始”推进到“namespace / retention / knowledge / scenario close-note archive gate + close-readiness consumption 已建立”，并且当前价值主要在于把这套 gate 推到正式的 close-readiness judgment，而不是回头继续补四条主线的单点 contract。**
 
 ---
 
@@ -99,7 +105,7 @@
 
 当前更合理的下一步是：
 
-- **继续做 `P21-5` 的 close-readiness consumption / acceptance layering，而不是先写 `P21 close-readiness`**
+- **继续做 `P21 close-readiness judgment` 的前置收束，而不是回头补 archive 主线单点 contract**
 
 ---
 
@@ -107,4 +113,4 @@
 
 一句话结论：
 
-**`P21` 当前已经拥有一版全绿、并以 namespace / retention / knowledge / scenario close-note archive 为中心且带 positive contracts / metadata consistency / prompt surface 的正式 gate；它已经从 `P20 close-note record` 继续推进成更接近真实 archive 面的 contract。**
+**`P21` 当前已经拥有一版全绿、并以 namespace / retention / knowledge / scenario close-note archive 为中心且带 positive contracts / metadata consistency / prompt surface / close-readiness consumption 的正式 gate；它已经从 `P20 close-note record` 继续推进成更接近真实 archive 面的 contract。**

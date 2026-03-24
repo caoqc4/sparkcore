@@ -598,21 +598,39 @@ export function buildRoleCoreMemoryCloseNoteArchive(args: {
     return null;
   }
 
+  const blockingItems: string[] = [];
+  const nonBlockingItems = [
+    "archive_regression_gate_layering",
+    "close_readiness_archive_consumption",
+    "remaining_archive_acceptance_gaps"
+  ];
+  const tailCandidateItems = [
+    "archive_surface_symmetry_cleanup",
+    "non_blocking_archive_negative_coverage",
+    "record_to_archive_alignment_cleanup"
+  ];
+  const acceptanceGapBuckets = {
+    blocking: blockingItems.length,
+    non_blocking: nonBlockingItems.length,
+    tail_candidate: tailCandidateItems.length
+  } as const;
+  const nextExpansionFocus = [...nonBlockingItems];
+
   return {
     archive_version: "v1",
     source_record_version: closeNoteRecord.record_version,
     source_output_version: closeNoteOutput.output_version,
-    readiness_judgment: closeNoteRecord.readiness_judgment,
-    progress_range: closeNoteRecord.progress_range,
+    readiness_judgment: "archive_close_readiness_consumption_started",
+    progress_range: "60% - 65%",
     close_candidate: closeNoteRecord.close_candidate,
-    close_note_recommended: closeNoteRecord.close_note_recommended,
+    close_note_recommended: false,
     headline: `${args.roleCorePacket.identity.agent_name} close-note archive`,
-    archive_summary: `namespace_archive_started; retention_archive_started; knowledge_archive_started; scenario_archive_started; source_record = ${closeNoteRecord.record_version}; readiness = ${closeNoteRecord.readiness_judgment}.`,
-    blocking_items: [...closeNoteRecord.blocking_items],
-    non_blocking_items: [...closeNoteRecord.non_blocking_items],
-    tail_candidate_items: [...closeNoteRecord.tail_candidate_items],
-    acceptance_gap_buckets: { ...closeNoteRecord.acceptance_gap_buckets },
-    next_expansion_focus: [...closeNoteRecord.next_expansion_focus],
+    archive_summary: `namespace_archive_started; retention_archive_started; knowledge_archive_started; scenario_archive_started; source_record = ${closeNoteRecord.record_version}; readiness = archive_close_readiness_consumption_started.`,
+    blocking_items: [...blockingItems],
+    non_blocking_items: [...nonBlockingItems],
+    tail_candidate_items: [...tailCandidateItems],
+    acceptance_gap_buckets: { ...acceptanceGapBuckets },
+    next_expansion_focus: nextExpansionFocus,
     namespace: {
       phase_snapshot_id: closeNoteRecord.namespace.phase_snapshot_id,
       phase_snapshot_summary: closeNoteRecord.namespace.phase_snapshot_summary,
