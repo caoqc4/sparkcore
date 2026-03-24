@@ -66,6 +66,12 @@ function buildRuntimeMemoryWriteRequestPreview(
       namespace_primary_layer: target.namespacePrimaryLayer,
       target_namespace_id: target.targetNamespaceId,
       namespace_policy_bundle_id: target.namespacePolicyBundleId,
+      namespace_governance_convergence_digest_id:
+        target.namespaceGovernanceConvergenceDigestId,
+      namespace_governance_convergence_summary:
+        target.namespaceGovernanceConvergenceSummary,
+      retrieval_write_digest_alignment:
+        target.retrievalWriteDigestAlignment,
       thread_state_candidate:
         target.recordTarget === "thread_state_candidate"
           ? buildPlannedThreadStateCandidatePreview({

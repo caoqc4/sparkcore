@@ -614,8 +614,18 @@ export async function executeMemoryWriteRequests({
           writeBoundary: target.writeBoundary,
           writePriorityLayer: target.writePriorityLayer,
           fallbackWriteBoundary: target.fallbackWriteBoundary,
+          writeEscalationMode: target.writeEscalationMode,
+          routedProjectId: target.routedProjectId,
+          routedWorldId: target.routedWorldId,
           namespacePrimaryLayer: target.namespacePrimaryLayer,
-          targetNamespaceId: target.targetNamespaceId
+          targetNamespaceId: target.targetNamespaceId,
+          namespacePolicyBundleId: target.namespacePolicyBundleId,
+          namespaceGovernanceConvergenceDigestId:
+            target.namespaceGovernanceConvergenceDigestId,
+          namespaceGovernanceConvergenceSummary:
+            target.namespaceGovernanceConvergenceSummary,
+          retrievalWriteDigestAlignment:
+            target.retrievalWriteDigestAlignment
         }),
         record_target: target.recordTarget,
         semantic_subject_id: relationshipRecord.subject.entity_id
@@ -810,7 +820,13 @@ export async function executeMemoryWriteRequests({
           writeEscalationMode: namespaceBoundary.write_escalation_mode,
           namespacePrimaryLayer: activeNamespace?.primary_layer ?? null,
           targetNamespaceId: activeNamespace?.namespace_id ?? null,
-          namespacePolicyBundleId: namespaceBoundary.policy_bundle_id
+          namespacePolicyBundleId: namespaceBoundary.policy_bundle_id,
+          namespaceGovernanceConvergenceDigestId:
+            namespaceBoundary.governance_convergence_digest_id,
+          namespaceGovernanceConvergenceSummary:
+            namespaceBoundary.governance_convergence_summary,
+          retrievalWriteDigestAlignment:
+            namespaceBoundary.retrieval_write_digest_alignment
         };
     const matchingExisting = activeExistingMemories.find(
       (memory) =>

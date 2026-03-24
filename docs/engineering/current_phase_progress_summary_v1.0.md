@@ -1334,7 +1334,7 @@
 当前 `P8` 的阶段判断：
 
 - `P8-1`
-  - 已启动
+  - 前中段
 - `P8-2`
   - 待开始
 - `P8-3`
@@ -1346,11 +1346,11 @@
 
 整体 `P8` 当前大约：
 
-- **`10% - 20%`**
+- **`15% - 25%`**
 
 当前更推荐的下一步：
 
-- **继续补 `P8-1 Namespace governance convergence v3`**
+- **先对 `P8-1 Namespace governance convergence v3` 做一次小评估**
 - 当前最小 convergence 已成立：
   - `governance_convergence_digest_id`
   - `governance_convergence_summary`
@@ -1359,7 +1359,8 @@
   - namespace prompt section
   - assistant metadata / reader
   - runtime debug metadata
-  - harness
+  - write target resolution
+  - runtime write preview
   - knowledge summary 现在也开始显式产出：
     - `source_governance_summary`
     - `governance_consistency_mode`

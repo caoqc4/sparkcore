@@ -832,8 +832,14 @@ function main() {
     namespaceAwareWriteTarget.routedProjectId === "project-1" &&
       namespaceAwareWriteTarget.routedWorldId === null &&
       namespaceAwareWriteTarget.writePriorityLayer === "project" &&
-      namespaceAwareWriteTarget.fallbackWriteBoundary === "world",
-    "Expected namespace-aware write target resolution to prefer project writes first and keep world as fallback in P5."
+      namespaceAwareWriteTarget.fallbackWriteBoundary === "world" &&
+      namespaceAwareWriteTarget.namespaceGovernanceConvergenceDigestId ===
+        "project_coordination_governance_convergence" &&
+      namespaceAwareWriteTarget.namespaceGovernanceConvergenceSummary ===
+        "project_coordination_alignment" &&
+      namespaceAwareWriteTarget.retrievalWriteDigestAlignment ===
+        "project_parallel_balanced_aligned",
+    "Expected namespace-aware write target resolution to reuse project namespace convergence in P8."
   );
   const runtimeWritePreview = buildRuntimeMemoryWriteRequestMetadata(
     [
@@ -867,8 +873,17 @@ function main() {
       runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
         ?.write_priority_layer === "project" &&
       runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
-        ?.fallback_write_boundary === "world",
-    "Expected runtime memory write preview metadata to expose project-first write routing in P5."
+        ?.fallback_write_boundary === "world" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_convergence_digest_id ===
+        "project_coordination_governance_convergence" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_convergence_summary ===
+        "project_coordination_alignment" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.retrieval_write_digest_alignment ===
+        "project_parallel_balanced_aligned",
+    "Expected runtime memory write preview metadata to expose namespace convergence reuse in P8."
   );
   const applicableKnowledge = filterKnowledgeByActiveNamespace({
     knowledge: runtimeKnowledge,

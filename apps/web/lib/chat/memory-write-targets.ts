@@ -38,6 +38,9 @@ export type PlannedMemoryWriteTarget = {
     | null;
   targetNamespaceId: string | null;
   namespacePolicyBundleId: string | null;
+  namespaceGovernanceConvergenceDigestId: string | null;
+  namespaceGovernanceConvergenceSummary: string | null;
+  retrievalWriteDigestAlignment: string | null;
 };
 
 export type PlannedGenericMemoryWriteTarget = {
@@ -62,6 +65,9 @@ export type PlannedGenericMemoryWriteTarget = {
     | null;
   targetNamespaceId: string | null;
   namespacePolicyBundleId: string | null;
+  namespaceGovernanceConvergenceDigestId: string | null;
+  namespaceGovernanceConvergenceSummary: string | null;
+  retrievalWriteDigestAlignment: string | null;
 };
 
 export type PlannedRelationshipMemoryWriteTarget = {
@@ -86,6 +92,9 @@ export type PlannedRelationshipMemoryWriteTarget = {
     | null;
   targetNamespaceId: string | null;
   namespacePolicyBundleId: string | null;
+  namespaceGovernanceConvergenceDigestId: string | null;
+  namespaceGovernanceConvergenceSummary: string | null;
+  retrievalWriteDigestAlignment: string | null;
 };
 
 function resolveWriteBoundary(
@@ -119,7 +128,13 @@ function resolveNamespaceWriteRouting(
         writePriorityLayer: "project" as const,
         fallbackWriteBoundary,
         writeEscalationMode: boundary.write_escalation_mode,
-        namespacePolicyBundleId: boundary.policy_bundle_id
+        namespacePolicyBundleId: boundary.policy_bundle_id,
+        namespaceGovernanceConvergenceDigestId:
+          boundary.governance_convergence_digest_id,
+        namespaceGovernanceConvergenceSummary:
+          boundary.governance_convergence_summary,
+        retrievalWriteDigestAlignment:
+          boundary.retrieval_write_digest_alignment
       };
     case "world":
       return {
@@ -128,7 +143,13 @@ function resolveNamespaceWriteRouting(
         writePriorityLayer: "world" as const,
         fallbackWriteBoundary,
         writeEscalationMode: boundary.write_escalation_mode,
-        namespacePolicyBundleId: boundary.policy_bundle_id
+        namespacePolicyBundleId: boundary.policy_bundle_id,
+        namespaceGovernanceConvergenceDigestId:
+          boundary.governance_convergence_digest_id,
+        namespaceGovernanceConvergenceSummary:
+          boundary.governance_convergence_summary,
+        retrievalWriteDigestAlignment:
+          boundary.retrieval_write_digest_alignment
       };
     case "thread":
       return {
@@ -137,7 +158,13 @@ function resolveNamespaceWriteRouting(
         writePriorityLayer: "thread" as const,
         fallbackWriteBoundary,
         writeEscalationMode: boundary.write_escalation_mode,
-        namespacePolicyBundleId: boundary.policy_bundle_id
+        namespacePolicyBundleId: boundary.policy_bundle_id,
+        namespaceGovernanceConvergenceDigestId:
+          boundary.governance_convergence_digest_id,
+        namespaceGovernanceConvergenceSummary:
+          boundary.governance_convergence_summary,
+        retrievalWriteDigestAlignment:
+          boundary.retrieval_write_digest_alignment
       };
     default:
       return {
@@ -146,7 +173,13 @@ function resolveNamespaceWriteRouting(
         writePriorityLayer: "default" as const,
         fallbackWriteBoundary,
         writeEscalationMode: boundary.write_escalation_mode,
-        namespacePolicyBundleId: boundary.policy_bundle_id
+        namespacePolicyBundleId: boundary.policy_bundle_id,
+        namespaceGovernanceConvergenceDigestId:
+          boundary.governance_convergence_digest_id,
+        namespaceGovernanceConvergenceSummary:
+          boundary.governance_convergence_summary,
+        retrievalWriteDigestAlignment:
+          boundary.retrieval_write_digest_alignment
       };
   }
 }
@@ -176,7 +209,10 @@ export function resolvePlannedMemoryWriteTarget(
     writePriorityLayer,
     fallbackWriteBoundary,
     writeEscalationMode,
-    namespacePolicyBundleId
+    namespacePolicyBundleId,
+    namespaceGovernanceConvergenceDigestId,
+    namespaceGovernanceConvergenceSummary,
+    retrievalWriteDigestAlignment
   } = resolveNamespaceWriteRouting(namespace);
 
   if (request.kind === "relationship_memory") {
@@ -195,7 +231,10 @@ export function resolvePlannedMemoryWriteTarget(
       writeEscalationMode,
       namespacePrimaryLayer,
       targetNamespaceId,
-      namespacePolicyBundleId
+      namespacePolicyBundleId,
+      namespaceGovernanceConvergenceDigestId,
+      namespaceGovernanceConvergenceSummary,
+      retrievalWriteDigestAlignment
     };
   }
 
@@ -218,7 +257,10 @@ export function resolvePlannedMemoryWriteTarget(
       writeEscalationMode,
       namespacePrimaryLayer,
       targetNamespaceId,
-      namespacePolicyBundleId
+      namespacePolicyBundleId,
+      namespaceGovernanceConvergenceDigestId,
+      namespaceGovernanceConvergenceSummary,
+      retrievalWriteDigestAlignment
     };
   }
 
@@ -238,7 +280,10 @@ export function resolvePlannedMemoryWriteTarget(
       writeEscalationMode,
       namespacePrimaryLayer,
       targetNamespaceId,
-      namespacePolicyBundleId
+      namespacePolicyBundleId,
+      namespaceGovernanceConvergenceDigestId,
+      namespaceGovernanceConvergenceSummary,
+      retrievalWriteDigestAlignment
     };
   }
 
@@ -261,6 +306,9 @@ export function resolvePlannedMemoryWriteTarget(
     writeEscalationMode,
     namespacePrimaryLayer,
     targetNamespaceId,
-    namespacePolicyBundleId
+    namespacePolicyBundleId,
+    namespaceGovernanceConvergenceDigestId,
+    namespaceGovernanceConvergenceSummary,
+    retrievalWriteDigestAlignment
   };
 }

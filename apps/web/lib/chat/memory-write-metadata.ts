@@ -14,6 +14,9 @@ export function buildRelationshipPlannerMemoryMetadata(
     namespacePrimaryLayer?: string | null;
     targetNamespaceId?: string | null;
     namespacePolicyBundleId?: string | null;
+    namespaceGovernanceConvergenceDigestId?: string | null;
+    namespaceGovernanceConvergenceSummary?: string | null;
+    retrievalWriteDigestAlignment?: string | null;
   }
 ): Record<string, unknown> {
   return {
@@ -35,6 +38,12 @@ export function buildRelationshipPlannerMemoryMetadata(
     target_namespace_id: targetMetadata?.targetNamespaceId ?? null,
     namespace_policy_bundle_id:
       targetMetadata?.namespacePolicyBundleId ?? null,
+    namespace_governance_convergence_digest_id:
+      targetMetadata?.namespaceGovernanceConvergenceDigestId ?? null,
+    namespace_governance_convergence_summary:
+      targetMetadata?.namespaceGovernanceConvergenceSummary ?? null,
+    retrieval_write_digest_alignment:
+      targetMetadata?.retrievalWriteDigestAlignment ?? null,
     relation_kind: request.relationship_key,
     dedupe_key: request.dedupe_key ?? null,
     write_mode: request.write_mode ?? "upsert",
@@ -63,6 +72,9 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
   namespacePrimaryLayer?: string | null;
   targetNamespaceId?: string | null;
   namespacePolicyBundleId?: string | null;
+  namespaceGovernanceConvergenceDigestId?: string | null;
+  namespaceGovernanceConvergenceSummary?: string | null;
+  retrievalWriteDigestAlignment?: string | null;
 }): Record<string, unknown> {
   return {
     ...(args.namespaceMetadata ?? {}),
@@ -83,6 +95,12 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
     namespace_primary_layer: args.namespacePrimaryLayer ?? null,
     target_namespace_id: args.targetNamespaceId ?? null,
     namespace_policy_bundle_id: args.namespacePolicyBundleId ?? null,
+    namespace_governance_convergence_digest_id:
+      args.namespaceGovernanceConvergenceDigestId ?? null,
+    namespace_governance_convergence_summary:
+      args.namespaceGovernanceConvergenceSummary ?? null,
+    retrieval_write_digest_alignment:
+      args.retrievalWriteDigestAlignment ?? null,
     threshold: args.threshold,
     dedupe_key: args.dedupeKey ?? null,
     write_mode: args.writeMode ?? "upsert"
@@ -111,6 +129,9 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
   namespacePrimaryLayer?: string | null;
   targetNamespaceId?: string | null;
   namespacePolicyBundleId?: string | null;
+  namespaceGovernanceConvergenceDigestId?: string | null;
+  namespaceGovernanceConvergenceSummary?: string | null;
+  retrievalWriteDigestAlignment?: string | null;
 }): Record<string, unknown> {
   return {
     ...(args.existingMetadata ?? {}),
@@ -132,6 +153,12 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
     namespace_primary_layer: args.namespacePrimaryLayer ?? null,
     target_namespace_id: args.targetNamespaceId ?? null,
     namespace_policy_bundle_id: args.namespacePolicyBundleId ?? null,
+    namespace_governance_convergence_digest_id:
+      args.namespaceGovernanceConvergenceDigestId ?? null,
+    namespace_governance_convergence_summary:
+      args.namespaceGovernanceConvergenceSummary ?? null,
+    retrieval_write_digest_alignment:
+      args.retrievalWriteDigestAlignment ?? null,
     threshold: args.threshold,
     convergence_updated_at: args.convergenceUpdatedAt,
     dedupe_key: args.dedupeKey ?? null,

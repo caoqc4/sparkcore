@@ -75,7 +75,14 @@ export function buildPlannedGenericMemoryInsertRow(args: {
       routedProjectId: args.target.routedProjectId,
       routedWorldId: args.target.routedWorldId,
       namespacePrimaryLayer: args.target.namespacePrimaryLayer,
-      targetNamespaceId: args.target.targetNamespaceId
+      targetNamespaceId: args.target.targetNamespaceId,
+      namespacePolicyBundleId: args.target.namespacePolicyBundleId,
+      namespaceGovernanceConvergenceDigestId:
+        args.target.namespaceGovernanceConvergenceDigestId,
+      namespaceGovernanceConvergenceSummary:
+        args.target.namespaceGovernanceConvergenceSummary,
+      retrievalWriteDigestAlignment:
+        args.target.retrievalWriteDigestAlignment
     })
   };
 }
@@ -124,7 +131,14 @@ export function buildPlannedGenericMemoryUpdateRow(args: {
       routedProjectId: args.target.routedProjectId,
       routedWorldId: args.target.routedWorldId,
       namespacePrimaryLayer: args.target.namespacePrimaryLayer,
-      targetNamespaceId: args.target.targetNamespaceId
+      targetNamespaceId: args.target.targetNamespaceId,
+      namespacePolicyBundleId: args.target.namespacePolicyBundleId,
+      namespaceGovernanceConvergenceDigestId:
+        args.target.namespaceGovernanceConvergenceDigestId,
+      namespaceGovernanceConvergenceSummary:
+        args.target.namespaceGovernanceConvergenceSummary,
+      retrievalWriteDigestAlignment:
+        args.target.retrievalWriteDigestAlignment
     }),
     category: args.candidate.memory_type as MemoryType,
     key: staticProfile.key ?? LEGACY_MEMORY_KEY,
