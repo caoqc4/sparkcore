@@ -1408,14 +1408,14 @@
 - `P10-1`
   - 中段
 - `P10-2`
-  - 前中段
+  - 前中段到中段之间
 - `P10-3 ~ P10-5`
   - 待开始
 
 整体 `P10` 当前大约：
 
-- **`35% - 45%`**
+- **`40% - 50%`**
 
 当前更推荐的下一步：
 
-- **继续补 `P10-2 Retention lifecycle consolidation v8` 的第二刀**
+- **先对 `P10-2 Retention lifecycle consolidation v8` 做一次小评估**

@@ -758,6 +758,7 @@ export function getThreadCompactionRetentionDecision(args: {
     return {
       retain: false,
       reason:
+        summary.keep_drop_consolidation_summary === "closed_drop_consolidated" ||
         summary.keep_drop_unification_summary === "closed_drop_unified" ||
         summary.keep_drop_convergence_summary === "closed_drop_alignment"
           ? ("closed_minimal_pruned" as const)
@@ -766,6 +767,8 @@ export function getThreadCompactionRetentionDecision(args: {
   }
 
   if (
+    (summary.keep_drop_consolidation_summary === "closed_drop_consolidated" &&
+      summary.lifecycle_consolidation_mode === "closed_runtime_consolidated") ||
     (summary.keep_drop_unification_summary === "closed_drop_unified" &&
       summary.lifecycle_unification_mode === "closed_runtime_unified") ||
     (summary.keep_drop_convergence_summary === "closed_drop_alignment" &&
@@ -776,8 +779,12 @@ export function getThreadCompactionRetentionDecision(args: {
 
   if (
     summary.lifecycle_status === "paused" &&
-    ((summary.keep_drop_unification_summary === "minimal_decay_unified" &&
-      summary.lifecycle_unification_mode === "minimal_runtime_unified") ||
+    ((summary.keep_drop_consolidation_summary ===
+      "minimal_decay_consolidated" &&
+      summary.lifecycle_consolidation_mode ===
+        "minimal_runtime_consolidated") ||
+      (summary.keep_drop_unification_summary === "minimal_decay_unified" &&
+        summary.lifecycle_unification_mode === "minimal_runtime_unified") ||
       (summary.keep_drop_convergence_summary === "minimal_decay_alignment" &&
         summary.lifecycle_alignment_mode === "minimal_governance_aligned")) &&
     summary.retention_budget <= 1

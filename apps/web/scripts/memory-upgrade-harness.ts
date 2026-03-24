@@ -118,6 +118,7 @@ import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets
 import { buildRuntimeMemoryWriteRequestMetadata } from "@/lib/chat/runtime-preview-metadata";
 import {
   buildCompactedThreadSummary,
+  getThreadCompactionRetentionDecision,
   selectRetainedThreadCompactionSummary
 } from "@/lib/chat/thread-compaction";
 import {
@@ -2928,7 +2929,25 @@ function main() {
       runtimeDebugMetadata.thread_compaction?.keep_drop_consolidation_summary ===
         compactedThreadSummary?.keep_drop_consolidation_summary &&
       runtimeDebugMetadata.thread_compaction?.lifecycle_consolidation_mode ===
-        compactedThreadSummary?.lifecycle_consolidation_mode
+        compactedThreadSummary?.lifecycle_consolidation_mode &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "closed",
+          retained_fields: ["focus_mode"],
+          keep_drop_consolidation_summary: "closed_drop_consolidated",
+          lifecycle_consolidation_mode: "closed_runtime_consolidated"
+        }
+      }).retain === false &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "paused",
+          retention_budget: 1,
+          keep_drop_consolidation_summary: "minimal_decay_consolidated",
+          lifecycle_consolidation_mode: "minimal_runtime_consolidated"
+        }
+      }).retain === false
   } as const;
 
   console.log(
