@@ -1126,7 +1126,7 @@
 - `P6-1`
   - 中段
 - `P6-2`
-  - 前中段
+  - 前中段到中段之间
 - `P6-3`
   - 待开始
 - `P6-4`
@@ -1136,11 +1136,11 @@
 
 整体 `P6` 当前大约：
 
-- **`25% - 35%`**
+- **`30% - 40%`**
 
 当前更推荐的下一步：
 
-- **继续从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 往前补 `P6-2 Retention lifecycle policy v4` 的第二刀**
+- **先对 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 做一次 `P6` 小复盘，再判断是继续补 `P6-2` 第三刀，还是切去 `P6-3`**
 
 当前已成立的第一刀事实：
 
@@ -1174,3 +1174,9 @@
   - assistant metadata / reader
   - runtime debug metadata
   - harness
+- `P6-2` 当前也已继续推进到第二刀事实：
+  - `retention_decision_group`
+  - `survival_rationale`
+- keep/drop 主路径当前也已开始优先复用这层 lifecycle grouping：
+  - `anchor_preserve`
+  - `closed_decay_prune`

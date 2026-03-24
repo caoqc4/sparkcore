@@ -22,7 +22,9 @@ import {
   getAssistantKnowledgeCount,
   getAssistantKnowledgeScopeLayers,
   getAssistantThreadCrossLayerSurvivalMode,
+  getAssistantThreadRetentionDecisionGroup,
   getAssistantThreadRetentionPolicyId,
+  getAssistantThreadSurvivalRationale,
   getAssistantMemoryNamespacePolicyBundleId,
   getAssistantMemoryNamespacePrimaryLayer,
   getAssistantMemoryNamespaceRetrievalFallbackMode,
@@ -1232,6 +1234,16 @@ function main() {
     "Expected runtime debug metadata to expose the cross-layer survival mode in P6."
   );
   expect(
+    runtimeDebugMetadata.thread_compaction?.retention_decision_group ===
+      "anchor_preserve",
+    "Expected runtime debug metadata to expose the retention decision group in P6."
+  );
+  expect(
+    runtimeDebugMetadata.thread_compaction?.survival_rationale ===
+      "focus_anchor_survives",
+    "Expected runtime debug metadata to expose the survival rationale in P6."
+  );
+  expect(
     runtimeDebugMetadata.thread_compaction?.retention_budget === 2,
     "Expected runtime debug metadata to expose the retention budget in P4."
   );
@@ -1267,6 +1279,16 @@ function main() {
       runtimeDebugMetadata.thread_compaction?.retained_fields.join(",") ===
         "focus_mode,continuity_status",
     "Expected focus-anchor retention budget to prune retained_fields down to focus_mode and continuity_status in P4."
+  );
+  expect(
+    getAssistantThreadRetentionDecisionGroup(assistantMetadata) ===
+      "anchor_preserve",
+    "Expected assistant metadata to expose the retention decision group in P6."
+  );
+  expect(
+    getAssistantThreadSurvivalRationale(assistantMetadata) ===
+      "focus_anchor_survives",
+    "Expected assistant metadata to expose the survival rationale in P6."
   );
   expect(
     runtimeDebugMetadata.memory_namespace?.primary_layer === "project",
@@ -1919,7 +1941,11 @@ function main() {
           retention_policy_id:
             getAssistantThreadRetentionPolicyId(assistantMetadata),
           cross_layer_survival_mode:
-            getAssistantThreadCrossLayerSurvivalMode(assistantMetadata)
+            getAssistantThreadCrossLayerSurvivalMode(assistantMetadata),
+          retention_decision_group:
+            getAssistantThreadRetentionDecisionGroup(assistantMetadata),
+          survival_rationale:
+            getAssistantThreadSurvivalRationale(assistantMetadata)
         },
         assistant_metadata_namespace: {
           primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata),

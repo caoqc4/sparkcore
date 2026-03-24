@@ -27,6 +27,20 @@ export type ThreadCrossLayerSurvivalMode =
   | "context_window_bias"
   | "context_only";
 
+export type ThreadRetentionDecisionGroup =
+  | "anchor_preserve"
+  | "continuity_bridge"
+  | "window_replay"
+  | "minimal_decay"
+  | "closed_decay_prune";
+
+export type ThreadSurvivalRationale =
+  | "focus_anchor_survives"
+  | "continuity_bridge_survives"
+  | "recent_window_survives"
+  | "minimal_context_thins"
+  | "closed_context_pruned";
+
 export type ThreadRetentionLayer = "anchor" | "context" | "window";
 
 export type ThreadRetentionLayerBudget = {
@@ -58,6 +72,8 @@ export type CompactedThreadSummary = {
   retention_reason: ThreadRetentionReason;
   retention_policy_id: ThreadRetentionPolicyId;
   cross_layer_survival_mode: ThreadCrossLayerSurvivalMode;
+  retention_decision_group: ThreadRetentionDecisionGroup;
+  survival_rationale: ThreadSurvivalRationale;
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;

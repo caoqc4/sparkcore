@@ -70,6 +70,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   compacted_thread_retention_reason?: string | null;
   compacted_thread_retention_policy_id?: string | null;
   compacted_thread_cross_layer_survival_mode?: string | null;
+  compacted_thread_retention_decision_group?: string | null;
+  compacted_thread_survival_rationale?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -149,6 +151,8 @@ export type BuildAssistantMessageMetadataInput = {
   compacted_thread_retention_reason?: string | null;
   compacted_thread_retention_policy_id?: string | null;
   compacted_thread_cross_layer_survival_mode?: string | null;
+  compacted_thread_retention_decision_group?: string | null;
+  compacted_thread_survival_rationale?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -276,6 +280,10 @@ export function buildAssistantMetadataSummaryGroups(
             input.compacted_thread_retention_policy_id ?? null,
           cross_layer_survival_mode:
             input.compacted_thread_cross_layer_survival_mode ?? null,
+          retention_decision_group:
+            input.compacted_thread_retention_decision_group ?? null,
+          survival_rationale:
+            input.compacted_thread_survival_rationale ?? null,
           retained_fields:
             input.compacted_thread_retained_fields ?? []
         }
@@ -347,6 +355,10 @@ export function buildAssistantMetadataSummaryGroups(
         input.compacted_thread_retention_policy_id,
       compacted_thread_cross_layer_survival_mode:
         input.compacted_thread_cross_layer_survival_mode,
+      compacted_thread_retention_decision_group:
+        input.compacted_thread_retention_decision_group,
+      compacted_thread_survival_rationale:
+        input.compacted_thread_survival_rationale,
       compacted_thread_retained_fields:
         input.compacted_thread_retained_fields,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,

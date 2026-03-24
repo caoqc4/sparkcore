@@ -3,13 +3,15 @@ import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type {
   CompactedThreadSummary,
   ThreadCrossLayerSurvivalMode,
+  ThreadRetentionDecisionGroup,
   ThreadRetentionLayer,
   ThreadRetentionLayerBudget,
   ThreadRetentionSection,
   ThreadRetentionSectionWeights,
   ThreadRetentionMode,
   ThreadRetentionPolicyId,
-  ThreadRetentionReason
+  ThreadRetentionReason,
+  ThreadSurvivalRationale
 } from "../../../../packages/core/memory";
 
 function resolveThreadRetentionMode(args: {
@@ -270,6 +272,47 @@ function resolveThreadCrossLayerSurvivalMode(args: {
   }
 }
 
+function resolveThreadRetentionDecisionGroup(args: {
+  lifecycleStatus: ThreadStateRecord["lifecycle_status"];
+  retentionMode: ThreadRetentionMode;
+}): ThreadRetentionDecisionGroup {
+  if (
+    args.lifecycleStatus === "closed" &&
+    args.retentionMode === "minimal"
+  ) {
+    return "closed_decay_prune";
+  }
+
+  switch (args.retentionMode) {
+    case "focus_anchor":
+      return "anchor_preserve";
+    case "continuity_anchor":
+      return "continuity_bridge";
+    case "recent_window":
+      return "window_replay";
+    case "minimal":
+    default:
+      return "minimal_decay";
+  }
+}
+
+function resolveThreadSurvivalRationale(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadSurvivalRationale {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "focus_anchor_survives";
+    case "continuity_bridge":
+      return "continuity_bridge_survives";
+    case "window_replay":
+      return "recent_window_survives";
+    case "minimal_decay":
+      return "minimal_context_thins";
+    case "closed_decay_prune":
+      return "closed_context_pruned";
+  }
+}
+
 export function buildCompactedThreadSummary(args: {
   threadState: ThreadStateRecord | null | undefined;
   recentTurnCount: number;
@@ -321,6 +364,13 @@ export function buildCompactedThreadSummary(args: {
   const crossLayerSurvivalMode = resolveThreadCrossLayerSurvivalMode({
     retentionMode
   });
+  const retentionDecisionGroup = resolveThreadRetentionDecisionGroup({
+    lifecycleStatus: args.threadState.lifecycle_status,
+    retentionMode
+  });
+  const survivalRationale = resolveThreadSurvivalRationale({
+    retentionDecisionGroup
+  });
   const retainedFields = buildRetainedFields({
     threadState: args.threadState,
     retentionReason,
@@ -357,6 +407,8 @@ export function buildCompactedThreadSummary(args: {
     `Retention reason: ${retentionReason}.`,
     `Retention policy: ${retentionPolicyId}.`,
     `Cross-layer survival: ${crossLayerSurvivalMode}.`,
+    `Retention decision group: ${retentionDecisionGroup}.`,
+    `Survival rationale: ${survivalRationale}.`,
   ].filter((part): part is string => Boolean(part));
 
   return {
@@ -371,6 +423,8 @@ export function buildCompactedThreadSummary(args: {
     retention_reason: retentionReason,
     retention_policy_id: retentionPolicyId,
     cross_layer_survival_mode: crossLayerSurvivalMode,
+    retention_decision_group: retentionDecisionGroup,
+    survival_rationale: survivalRationale,
     retention_budget: retentionBudget,
     retention_layers: retentionLayers,
     retention_layer_budget: retentionLayerBudget,
@@ -402,15 +456,14 @@ export function getThreadCompactionRetentionDecision(args: {
   }
 
   if (
-    summary.lifecycle_status === "closed" &&
-    summary.retention_mode === "minimal"
+    summary.retention_decision_group === "closed_decay_prune"
   ) {
     return { retain: false, reason: "closed_minimal_pruned" as const };
   }
 
   if (
     summary.lifecycle_status === "paused" &&
-    summary.retention_reason === "minimal_context" &&
+    summary.retention_decision_group === "minimal_decay" &&
     summary.retention_budget <= 1
   ) {
     return { retain: false, reason: "minimal_context" as const };
@@ -441,7 +494,7 @@ export function buildThreadCompactionPromptSection(args: {
     isZh ? "线程压缩摘要：" : "Compacted thread summary:",
     isZh
       ? `${args.compactedThreadSummary.summary_text} 当前 retention mode = ${args.compactedThreadSummary.retention_mode}，retention reason = ${args.compactedThreadSummary.retention_reason}，section 顺序：${args.compactedThreadSummary.retention_section_order.join("、") || "无"}，保留字段：${args.compactedThreadSummary.retained_fields.join("、") || "无"}。把这段摘要当作线程历史压缩结果，而不是新的长期画像或外部知识。`
-      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; section order: ${args.compactedThreadSummary.retention_section_order.join(", ") || "none"}; retention layers: ${args.compactedThreadSummary.retention_layers.join(", ") || "none"}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
+      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; decision group = ${args.compactedThreadSummary.retention_decision_group}; survival rationale = ${args.compactedThreadSummary.survival_rationale}; section order: ${args.compactedThreadSummary.retention_section_order.join(", ") || "none"}; retention layers: ${args.compactedThreadSummary.retention_layers.join(", ") || "none"}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
   ].join("\n");
 }
 
@@ -461,6 +514,10 @@ export function buildThreadCompactionSummary(args: {
           retention_policy_id: args.compactedThreadSummary.retention_policy_id,
           cross_layer_survival_mode:
             args.compactedThreadSummary.cross_layer_survival_mode,
+          retention_decision_group:
+            args.compactedThreadSummary.retention_decision_group,
+          survival_rationale:
+            args.compactedThreadSummary.survival_rationale,
           retention_budget: args.compactedThreadSummary.retention_budget,
           retention_layers: args.compactedThreadSummary.retention_layers,
           retention_layer_budget:

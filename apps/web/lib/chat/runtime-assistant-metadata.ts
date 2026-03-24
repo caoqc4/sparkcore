@@ -218,6 +218,10 @@ export function buildRuntimeAssistantMetadataInput(
       input.compaction.summary?.retention_policy_id ?? null,
     compacted_thread_cross_layer_survival_mode:
       input.compaction.summary?.cross_layer_survival_mode ?? null,
+    compacted_thread_retention_decision_group:
+      input.compaction.summary?.retention_decision_group ?? null,
+    compacted_thread_survival_rationale:
+      input.compaction.summary?.survival_rationale ?? null,
     compacted_thread_retained_fields:
       input.compaction.summary?.retained_fields ?? [],
     follow_up_request_count: input.follow_up.request_count,
