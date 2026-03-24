@@ -1,6 +1,6 @@
 import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
 import {
-  resolveNamespaceUnifiedGovernanceRuntimeContract,
+  resolveNamespaceGovernanceConsolidationContract,
   resolveRuntimeMemoryBoundary,
   type ActiveRuntimeMemoryNamespace
 } from "@/lib/chat/memory-namespace";
@@ -137,12 +137,12 @@ function resolveNamespaceWriteRouting(
 ) {
   const boundary = resolveRuntimeMemoryBoundary(namespace);
   const writeBoundary = boundary.write_boundary;
-  const unifiedRuntimeContract =
-    resolveNamespaceUnifiedGovernanceRuntimeContract(namespace);
+  const consolidationContract =
+    resolveNamespaceGovernanceConsolidationContract(namespace);
   const projectId = getNamespaceRefId(namespace, "project");
   const worldId = getNamespaceRefId(namespace, "world");
   const fallbackWriteBoundary =
-    unifiedRuntimeContract.write_runtime_fallback_order.find(
+    consolidationContract.consolidation_write_fallback_order.find(
       (item) => item !== writeBoundary
     ) ?? null;
 

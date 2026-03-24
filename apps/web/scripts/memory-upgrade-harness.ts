@@ -103,6 +103,7 @@ import {
   buildMemoryNamespaceScopedMetadata,
   isMemoryWithinNamespace,
   type ActiveRuntimeMemoryNamespace,
+  resolveNamespaceGovernanceConsolidationContract,
   resolveActiveMemoryNamespace,
   resolveRuntimeMemoryBoundary
 } from "@/lib/chat/memory-namespace";
@@ -427,6 +428,8 @@ function main() {
     selection_reason: "session_and_knowledge_scope"
   };
   const projectBoundary = resolveRuntimeMemoryBoundary(projectPrimaryNamespace);
+  const projectConsolidationContract =
+    resolveNamespaceGovernanceConsolidationContract(projectPrimaryNamespace);
   expect(
     projectBoundary.profile_budget === 2 &&
       projectBoundary.episode_budget === 2 &&
@@ -445,6 +448,20 @@ function main() {
         "project_world_escalation" &&
       projectBoundary.write_fallback_order.join(",") === "project,world,default",
     "Expected project-primary namespace to expose explicit namespace policy facts in P6."
+  );
+  expect(
+    projectConsolidationContract.governance_consolidation_digest_id ===
+      "project_coordination_governance_consolidation" &&
+      projectConsolidationContract.governance_consolidation_summary ===
+        "project_coordination_runtime_consolidated" &&
+      projectConsolidationContract.runtime_consolidation_mode ===
+        "project_runtime_consolidated" &&
+      projectConsolidationContract.consolidation_retrieval_routes.join(",") ===
+        projectBoundary.retrieval_route_order.join(",") &&
+      projectConsolidationContract.consolidation_write_fallback_order.join(
+        ","
+      ) === projectBoundary.write_fallback_order.join(","),
+    "Expected project-primary namespace to expose a reusable namespace governance consolidation contract in P10."
   );
 
   const visibleMemoryRecord = buildVisibleMemoryRecord({
@@ -2938,7 +2955,13 @@ function main() {
             project_convergence_summary:
               projectBoundary.governance_convergence_summary,
             project_digest_alignment:
-              projectBoundary.retrieval_write_digest_alignment
+              projectBoundary.retrieval_write_digest_alignment,
+            project_consolidation_digest:
+              projectConsolidationContract.governance_consolidation_digest_id,
+            project_consolidation_summary:
+              projectConsolidationContract.governance_consolidation_summary,
+            project_runtime_consolidation_mode:
+              projectConsolidationContract.runtime_consolidation_mode
           }
         },
         runtime_semantic_summary: semanticSummary,

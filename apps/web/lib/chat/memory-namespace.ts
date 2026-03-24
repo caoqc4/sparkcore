@@ -252,6 +252,22 @@ export function resolveNamespaceUnifiedGovernanceRuntimeContract(
   };
 }
 
+export function resolveNamespaceGovernanceConsolidationContract(
+  namespace: ActiveRuntimeMemoryNamespace | null | undefined
+) {
+  const boundary = resolveRuntimeMemoryBoundary(namespace);
+
+  return {
+    governance_consolidation_digest_id:
+      boundary.governance_consolidation_digest_id,
+    governance_consolidation_summary:
+      boundary.governance_consolidation_summary,
+    runtime_consolidation_mode: boundary.runtime_consolidation_mode,
+    consolidation_retrieval_routes: boundary.retrieval_route_order,
+    consolidation_write_fallback_order: boundary.write_fallback_order
+  };
+}
+
 export function resolveRuntimeMemoryBoundary(
   namespace: ActiveRuntimeMemoryNamespace | null | undefined
 ): RuntimeMemoryBoundary {
