@@ -1,7 +1,9 @@
 import {
   resolveBuiltInScenarioMemoryPack,
+  type ScenarioOrchestrationMode,
   type ScenarioMemoryLayer,
   type ScenarioMemoryPack,
+  type ScenarioStrategyPolicyId,
 } from "../../../../packages/core/memory";
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
@@ -43,6 +45,8 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
     | "project_knowledge_bias"
     | "world_knowledge_bias";
   governance_route_bias: "authoritative" | "contextual" | "reference" | null;
+  strategy_policy_id: ScenarioStrategyPolicyId;
+  orchestration_mode: ScenarioOrchestrationMode;
 };
 
 function resolveKnowledgeGovernanceRouteWeights(args: {
@@ -143,6 +147,35 @@ export function resolveScenarioMemoryPackStrategy(
   };
 }
 
+export function resolveScenarioMemoryPackPolicy(
+  pack: Pick<
+    ActiveScenarioMemoryPack,
+    "pack_id" | "selection_reason" | "governance_route_bias"
+  >
+) {
+  if (pack.pack_id === "project_ops") {
+    return {
+      strategy_policy_id: "project_delivery_policy" as const,
+      orchestration_mode: "execution_centered" as const
+    };
+  }
+
+  if (
+    pack.selection_reason === "world_knowledge_influence" ||
+    pack.governance_route_bias === "authoritative"
+  ) {
+    return {
+      strategy_policy_id: "knowledge_guided_companion_policy" as const,
+      orchestration_mode: "knowledge_guided" as const
+    };
+  }
+
+  return {
+    strategy_policy_id: "continuity_companion_policy" as const,
+    orchestration_mode: "continuity_centered" as const
+  };
+}
+
 function withWorldKnowledgeInfluence(
   pack: ScenarioMemoryPack,
   relevantKnowledge?: RuntimeKnowledgeSnippet[]
@@ -167,6 +200,11 @@ function withWorldKnowledgeInfluence(
   ] as ScenarioMemoryPack["assembly_order"];
 
   return {
+    ...resolveScenarioMemoryPackPolicy({
+      pack_id: pack.pack_id,
+      selection_reason: "world_knowledge_influence",
+      governance_route_bias: governanceWeights.governance_route_bias
+    }),
     ...pack,
     preferred_routes: preferredRoutes,
     assembly_order: assemblyOrder,
@@ -191,6 +229,11 @@ export function resolveActiveScenarioMemoryPack(args?: {
       defaultBudgetWeight: 0.9
     });
     return {
+      ...resolveScenarioMemoryPackPolicy({
+        pack_id: "project_ops",
+        selection_reason: "project_namespace_priority",
+        governance_route_bias: governanceWeights.governance_route_bias
+      }),
       ...resolveBuiltInScenarioMemoryPack("project_ops"),
       selection_reason: "project_namespace_priority",
       knowledge_priority_layer: "project",
@@ -216,6 +259,11 @@ export function resolveActiveScenarioMemoryPack(args?: {
       defaultBudgetWeight: 0.85
     });
     return {
+      ...resolveScenarioMemoryPackPolicy({
+        pack_id: "project_ops",
+        selection_reason: "project_knowledge_priority",
+        governance_route_bias: governanceWeights.governance_route_bias
+      }),
       ...resolveBuiltInScenarioMemoryPack("project_ops"),
       selection_reason: "project_knowledge_priority",
       knowledge_priority_layer: "project",
@@ -240,6 +288,11 @@ export function resolveActiveScenarioMemoryPack(args?: {
     defaultBudgetWeight: 0.25
   });
   return {
+    ...resolveScenarioMemoryPackPolicy({
+      pack_id: "companion",
+      selection_reason: "default_companion_phase",
+      governance_route_bias: governanceWeights.governance_route_bias
+    }),
     ...resolveBuiltInScenarioMemoryPack("companion"),
     knowledge_priority_layer: null,
     assembly_emphasis: "default",
@@ -303,6 +356,9 @@ export function buildScenarioMemoryPackPromptSection(args: {
     isZh
       ? `当前 governance route bias = ${args.pack.governance_route_bias ?? "none"}。`
       : `Current governance route bias = ${args.pack.governance_route_bias ?? "none"}.`,
+    isZh
+      ? `当前 strategy policy = ${args.pack.strategy_policy_id}；orchestration mode = ${args.pack.orchestration_mode}。`
+      : `Current strategy policy = ${args.pack.strategy_policy_id}; orchestration mode = ${args.pack.orchestration_mode}.`,
     isZh
       ? `当前 knowledge route weight = ${args.pack.knowledge_route_weight}，knowledge budget weight = ${args.pack.knowledge_budget_weight}。`
       : `Current knowledge route weight = ${args.pack.knowledge_route_weight}; knowledge budget weight = ${args.pack.knowledge_budget_weight}.`,

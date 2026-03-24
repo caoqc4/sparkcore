@@ -3,6 +3,7 @@ import type { RuntimeThreadStateRecall } from "@/lib/chat/memory-recall";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
 import {
+  resolveScenarioMemoryPackPolicy,
   resolveScenarioMemoryPackStrategy,
   type ActiveScenarioMemoryPack
 } from "@/lib/chat/memory-packs";
@@ -43,6 +44,9 @@ export function buildRuntimeDebugMetadata(
   const scenarioPackStrategy = input.scenario_memory_pack
     ? resolveScenarioMemoryPackStrategy(input.scenario_memory_pack)
     : null;
+  const scenarioPackPolicy = input.scenario_memory_pack
+    ? resolveScenarioMemoryPackPolicy(input.scenario_memory_pack)
+    : null;
 
   return {
     model_profile_id: input.model_profile_id,
@@ -80,6 +84,10 @@ export function buildRuntimeDebugMetadata(
               input.scenario_memory_pack.route_influence_reason,
             governance_route_bias:
               input.scenario_memory_pack.governance_route_bias,
+            strategy_policy_id:
+              scenarioPackPolicy?.strategy_policy_id ?? null,
+            orchestration_mode:
+              scenarioPackPolicy?.orchestration_mode ?? null,
             strategy_bundle_id:
               scenarioPackStrategy?.strategy_bundle_id ?? null,
             strategy_assembly_order:

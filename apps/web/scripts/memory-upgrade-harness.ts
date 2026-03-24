@@ -39,6 +39,8 @@ import {
   getAssistantMemoryScenarioPackKnowledgePriorityLayer,
   getAssistantMemoryScenarioPackRouteInfluenceReason,
   getAssistantMemoryScenarioPackGovernanceRouteBias,
+  getAssistantMemoryScenarioPackOrchestrationMode,
+  getAssistantMemoryScenarioPackStrategyPolicyId,
   getAssistantMemoryPrimarySemanticLayer
 } from "@/lib/chat/assistant-message-metadata-read";
 import {
@@ -628,6 +630,11 @@ function main() {
     "Expected project_ops scenario memory pack to resolve a reusable project_execution strategy bundle in P5."
   );
   expect(
+    scenarioMemoryPack.strategy_policy_id === "project_delivery_policy" &&
+      scenarioMemoryPack.orchestration_mode === "execution_centered",
+    "Expected project_ops scenario memory pack to expose a project_delivery_policy and execution_centered orchestration mode in P6."
+  );
+  expect(
     scenarioMemoryPack.preferred_routes.join(",") ===
       "thread_state,knowledge,episode,profile",
     "Expected project_ops scenario memory pack to prioritize knowledge retrieval in P3."
@@ -639,6 +646,12 @@ function main() {
   expect(
     scenarioMemoryPackPrompt.includes("Active Scenario Memory Pack: project_ops"),
     "Expected project namespace scenario memory pack prompt section to expose project_ops in P3."
+  );
+  expect(
+    scenarioMemoryPackPrompt.includes(
+      "Current strategy policy = project_delivery_policy; orchestration mode = execution_centered."
+    ),
+    "Expected project namespace scenario memory pack prompt section to expose strategy policy and orchestration mode in P6."
   );
   const knowledgeDrivenScenarioMemoryPack = resolveActiveScenarioMemoryPack({
     activeNamespace: {
@@ -1953,7 +1966,11 @@ function main() {
           governance_route_bias:
             getAssistantMemoryScenarioPackGovernanceRouteBias(
               assistantMetadata
-            )
+            ),
+          strategy_policy_id:
+            getAssistantMemoryScenarioPackStrategyPolicyId(assistantMetadata),
+          orchestration_mode:
+            getAssistantMemoryScenarioPackOrchestrationMode(assistantMetadata)
         },
         assistant_metadata_knowledge: {
           count: getAssistantKnowledgeCount(assistantMetadata),
@@ -2005,6 +2022,10 @@ function main() {
             runtimeDebugMetadata.memory.pack?.route_influence_reason ?? null,
           pack_governance_route_bias:
             runtimeDebugMetadata.memory.pack?.governance_route_bias ?? null,
+          pack_strategy_policy_id:
+            runtimeDebugMetadata.memory.pack?.strategy_policy_id ?? null,
+          pack_orchestration_mode:
+            runtimeDebugMetadata.memory.pack?.orchestration_mode ?? null,
           knowledge_count: runtimeDebugMetadata.knowledge.count,
           thread_compaction_summary_id:
             runtimeDebugMetadata.thread_compaction?.summary_id ?? null,
@@ -2033,7 +2054,11 @@ function main() {
           route_influence_reason:
             scenarioMemoryPack.route_influence_reason,
           governance_route_bias:
-            scenarioMemoryPack.governance_route_bias
+            scenarioMemoryPack.governance_route_bias,
+          strategy_policy_id:
+            scenarioMemoryPack.strategy_policy_id,
+          orchestration_mode:
+            scenarioMemoryPack.orchestration_mode
         },
         system_prompt_thread_state: {
           includes_focus_mode: systemPrompt.includes(

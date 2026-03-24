@@ -1130,17 +1130,17 @@
 - `P6-3`
   - 中段
 - `P6-4`
-  - 待开始
+  - 前中段
 - `P6-5`
   - 待开始
 
 整体 `P6` 当前大约：
 
-- **`50% - 60%`**
+- **`55% - 65%`**
 
 当前更推荐的下一步：
 
-- **开始从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 落 `P6-4 Scenario strategy orchestration v4` 的第一刀**
+- **先对 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 做一次 `P6` 小复盘，再判断是继续补 `P6-4` 第二刀，还是开始 `P6-5`**
 
 当前已成立的第一刀事实：
 
@@ -1195,3 +1195,14 @@
 - 这层 governance weighting 当前也已开始进入：
   - active scenario pack route/budget orchestration
   - prompt 文案
+- `P6-4` 当前也已开始有第一刀事实：
+  - `ScenarioStrategyPolicyId`
+  - `ScenarioOrchestrationMode`
+  - `strategy_policy_id`
+  - `orchestration_mode`
+- 这层 strategy policy 当前也已开始进入：
+  - active scenario pack output
+  - prompt 文案
+  - assistant metadata / reader
+  - runtime debug metadata
+  - harness

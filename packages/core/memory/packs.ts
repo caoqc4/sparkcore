@@ -14,6 +14,16 @@ export type ScenarioMemoryRoute =
 
 export type ScenarioMemoryPackId = "companion" | "project_ops";
 
+export type ScenarioStrategyPolicyId =
+  | "continuity_companion_policy"
+  | "project_delivery_policy"
+  | "knowledge_guided_companion_policy";
+
+export type ScenarioOrchestrationMode =
+  | "continuity_centered"
+  | "execution_centered"
+  | "knowledge_guided";
+
 export type ScenarioMemoryPack = {
   pack_id: ScenarioMemoryPackId;
   label: string;

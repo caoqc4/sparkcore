@@ -49,6 +49,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   scenario_memory_pack_knowledge_budget_weight?: number | null;
   scenario_memory_pack_route_influence_reason?: string | null;
   scenario_memory_pack_governance_route_bias?: string | null;
+  scenario_memory_pack_strategy_policy_id?: string | null;
+  scenario_memory_pack_orchestration_mode?: string | null;
   scenario_memory_pack_strategy_bundle_id?: string | null;
   scenario_memory_pack_strategy_assembly_order?: string[];
   knowledge_count?: number;
@@ -132,6 +134,8 @@ export type BuildAssistantMessageMetadataInput = {
   scenario_memory_pack_knowledge_budget_weight?: number | null;
   scenario_memory_pack_route_influence_reason?: string | null;
   scenario_memory_pack_governance_route_bias?: string | null;
+  scenario_memory_pack_strategy_policy_id?: string | null;
+  scenario_memory_pack_orchestration_mode?: string | null;
   scenario_memory_pack_strategy_bundle_id?: string | null;
   scenario_memory_pack_strategy_assembly_order?: string[];
   knowledge_count?: number;
@@ -227,6 +231,10 @@ export function buildAssistantMetadataSummaryGroups(
               input.scenario_memory_pack_route_influence_reason ?? null,
             governance_route_bias:
               input.scenario_memory_pack_governance_route_bias ?? null,
+            strategy_policy_id:
+              input.scenario_memory_pack_strategy_policy_id ?? null,
+            orchestration_mode:
+              input.scenario_memory_pack_orchestration_mode ?? null,
             strategy_bundle_id:
               input.scenario_memory_pack_strategy_bundle_id ?? null,
             strategy_assembly_order:
@@ -328,6 +336,10 @@ export function buildAssistantMetadataSummaryGroups(
         input.scenario_memory_pack_route_influence_reason,
       scenario_memory_pack_governance_route_bias:
         input.scenario_memory_pack_governance_route_bias,
+      scenario_memory_pack_strategy_policy_id:
+        input.scenario_memory_pack_strategy_policy_id,
+      scenario_memory_pack_orchestration_mode:
+        input.scenario_memory_pack_orchestration_mode,
       scenario_memory_pack_strategy_bundle_id:
         input.scenario_memory_pack_strategy_bundle_id,
       scenario_memory_pack_strategy_assembly_order:

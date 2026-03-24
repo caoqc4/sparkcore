@@ -332,6 +332,28 @@ export function getAssistantMemoryScenarioPackGovernanceRouteBias(
   return getAssistantMetadataString(packMetadata, "governance_route_bias");
 }
 
+export function getAssistantMemoryScenarioPackStrategyPolicyId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "strategy_policy_id") ??
+    getAssistantMetadataString(metadata, "scenario_memory_pack_strategy_policy_id")
+  );
+}
+
+export function getAssistantMemoryScenarioPackOrchestrationMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "orchestration_mode") ??
+    getAssistantMetadataString(metadata, "scenario_memory_pack_orchestration_mode")
+  );
+}
+
 export function getAssistantMemoryScenarioPackKnowledgeRouteWeight(
   metadata: Record<string, unknown> | null | undefined
 ) {
