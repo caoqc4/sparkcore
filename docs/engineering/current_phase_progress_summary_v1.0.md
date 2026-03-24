@@ -1214,6 +1214,31 @@
   - `ScenarioStrategyPolicyId`
   - `ScenarioOrchestrationMode`
   - `strategy_policy_id`
+
+---
+
+## Memory Upgrade P7 Snapshot
+
+当前 `P7` 的阶段判断：
+
+- `P7-1`
+  - 待开始
+- `P7-2`
+  - 待开始
+- `P7-3`
+  - 待开始
+- `P7-4`
+  - 待开始
+- `P7-5`
+  - 待开始
+
+整体 `P7` 当前大约：
+
+- **`0% - 10%`**
+
+当前更推荐的下一步：
+
+- **开始从 [memory_upgrade_p7_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p7_execution_plan_v1.0.md) 落 `P7-1 Namespace policy orchestration v2` 的第一刀**
   - `orchestration_mode`
 - 这层 strategy policy 当前也已开始进入：
   - active scenario pack output
