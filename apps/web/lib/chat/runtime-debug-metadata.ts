@@ -96,6 +96,12 @@ export function buildRuntimeDebugMetadata(
               input.scenario_memory_pack.orchestration_coordination_summary,
             strategy_consistency_mode:
               input.scenario_memory_pack.strategy_consistency_mode,
+            governance_convergence_digest_id:
+              input.scenario_memory_pack.governance_convergence_digest_id,
+            strategy_convergence_summary:
+              input.scenario_memory_pack.strategy_convergence_summary,
+            orchestration_alignment_mode:
+              input.scenario_memory_pack.orchestration_alignment_mode,
             strategy_bundle_id:
               scenarioPackStrategy?.strategy_bundle_id ?? null,
             strategy_assembly_order:

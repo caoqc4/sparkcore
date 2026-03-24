@@ -1,10 +1,13 @@
 import {
+  type ScenarioGovernanceConvergenceDigestId,
   type ScenarioOrchestrationCoordinationSummary,
+  type ScenarioOrchestrationAlignmentMode,
   resolveBuiltInScenarioMemoryPack,
   type ScenarioOrchestrationDigestId,
   type ScenarioOrchestrationMode,
   type ScenarioMemoryLayer,
   type ScenarioMemoryPack,
+  type ScenarioStrategyConvergenceSummary,
   type ScenarioStrategyConsistencyMode,
   type ScenarioStrategyRationaleSummary,
   type ScenarioStrategyPolicyId,
@@ -55,6 +58,9 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
   strategy_rationale_summary: ScenarioStrategyRationaleSummary;
   orchestration_coordination_summary: ScenarioOrchestrationCoordinationSummary;
   strategy_consistency_mode: ScenarioStrategyConsistencyMode;
+  governance_convergence_digest_id: ScenarioGovernanceConvergenceDigestId;
+  strategy_convergence_summary: ScenarioStrategyConvergenceSummary;
+  orchestration_alignment_mode: ScenarioOrchestrationAlignmentMode;
 };
 
 function resolveKnowledgeGovernanceRouteWeights(args: {
@@ -169,7 +175,13 @@ export function resolveScenarioMemoryPackPolicy(
       strategy_rationale_summary: "execution_priority_alignment" as const,
       orchestration_coordination_summary:
         "project_delivery_coordination" as const,
-      strategy_consistency_mode: "execution_governance_aligned" as const
+      strategy_consistency_mode: "execution_governance_aligned" as const,
+      governance_convergence_digest_id:
+        "project_delivery_governance_convergence" as const,
+      strategy_convergence_summary:
+        "project_delivery_strategy_alignment" as const,
+      orchestration_alignment_mode:
+        "execution_convergence_aligned" as const
     };
   }
 
@@ -185,7 +197,13 @@ export function resolveScenarioMemoryPackPolicy(
       strategy_rationale_summary: "knowledge_guided_alignment" as const,
       orchestration_coordination_summary:
         "knowledge_guided_companion_coordination" as const,
-      strategy_consistency_mode: "knowledge_guidance_aligned" as const
+      strategy_consistency_mode: "knowledge_guidance_aligned" as const,
+      governance_convergence_digest_id:
+        "knowledge_guided_governance_convergence" as const,
+      strategy_convergence_summary:
+        "knowledge_guided_strategy_alignment" as const,
+      orchestration_alignment_mode:
+        "knowledge_guided_convergence_aligned" as const
     };
   }
 
@@ -196,7 +214,11 @@ export function resolveScenarioMemoryPackPolicy(
     strategy_rationale_summary: "continuity_alignment" as const,
     orchestration_coordination_summary:
       "continuity_companion_coordination" as const,
-    strategy_consistency_mode: "continuity_governance_aligned" as const
+    strategy_consistency_mode: "continuity_governance_aligned" as const,
+    governance_convergence_digest_id:
+      "continuity_governance_convergence" as const,
+    strategy_convergence_summary: "continuity_strategy_alignment" as const,
+    orchestration_alignment_mode: "continuity_convergence_aligned" as const
   };
 }
 
@@ -389,6 +411,9 @@ export function buildScenarioMemoryPackPromptSection(args: {
     isZh
       ? `当前 orchestration coordination = ${args.pack.orchestration_coordination_summary}；consistency = ${args.pack.strategy_consistency_mode}。`
       : `Current orchestration coordination = ${args.pack.orchestration_coordination_summary}; consistency = ${args.pack.strategy_consistency_mode}.`,
+    isZh
+      ? `当前 governance convergence = ${args.pack.governance_convergence_digest_id}；strategy convergence = ${args.pack.strategy_convergence_summary}；alignment mode = ${args.pack.orchestration_alignment_mode}。`
+      : `Current governance convergence = ${args.pack.governance_convergence_digest_id}; strategy convergence = ${args.pack.strategy_convergence_summary}; alignment mode = ${args.pack.orchestration_alignment_mode}.`,
     isZh
       ? `当前 knowledge route weight = ${args.pack.knowledge_route_weight}，knowledge budget weight = ${args.pack.knowledge_budget_weight}。`
       : `Current knowledge route weight = ${args.pack.knowledge_route_weight}; knowledge budget weight = ${args.pack.knowledge_budget_weight}.`,

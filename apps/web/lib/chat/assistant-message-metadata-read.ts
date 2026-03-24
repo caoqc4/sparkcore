@@ -413,6 +413,48 @@ export function getAssistantMemoryScenarioPackStrategyConsistencyMode(
   );
 }
 
+export function getAssistantMemoryScenarioPackGovernanceConvergenceDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "governance_convergence_digest_id") ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_governance_convergence_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackStrategyConvergenceSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "strategy_convergence_summary") ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_strategy_convergence_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackOrchestrationAlignmentMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "orchestration_alignment_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_orchestration_alignment_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryScenarioPackKnowledgeRouteWeight(
   metadata: Record<string, unknown> | null | undefined
 ) {

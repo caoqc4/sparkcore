@@ -44,6 +44,21 @@ export type ScenarioStrategyConsistencyMode =
   | "execution_governance_aligned"
   | "knowledge_guidance_aligned";
 
+export type ScenarioGovernanceConvergenceDigestId =
+  | "continuity_governance_convergence"
+  | "project_delivery_governance_convergence"
+  | "knowledge_guided_governance_convergence";
+
+export type ScenarioStrategyConvergenceSummary =
+  | "continuity_strategy_alignment"
+  | "project_delivery_strategy_alignment"
+  | "knowledge_guided_strategy_alignment";
+
+export type ScenarioOrchestrationAlignmentMode =
+  | "continuity_convergence_aligned"
+  | "execution_convergence_aligned"
+  | "knowledge_guided_convergence_aligned";
+
 export type ScenarioMemoryPack = {
   pack_id: ScenarioMemoryPackId;
   label: string;
