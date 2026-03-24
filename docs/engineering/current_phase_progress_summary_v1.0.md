@@ -1436,3 +1436,26 @@
 当前正式收官结论请以
 [memory_upgrade_p10_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p10_close_note_v1.0.md)
 为准。
+
+## Memory Upgrade P11 Snapshot
+
+当前 `P11` 的阶段判断：
+
+- `P11-1`
+  - 待开始
+- `P11-2`
+  - 待开始
+- `P11-3`
+  - 待开始
+- `P11-4`
+  - 待开始
+- `P11-5`
+  - 待开始
+
+整体 `P11` 当前大约：
+
+- **`0%`**
+
+当前更推荐的下一步：
+
+- **开始 `P11-1 Namespace unified governance consolidation v6` 的第一刀实现**
