@@ -212,6 +212,8 @@ export function buildRuntimeAssistantMetadataInput(
       input.namespace.active_namespace?.selection_reason ?? null,
     active_memory_namespace_policy_bundle_id:
       namespaceBoundary?.policy_bundle_id ?? null,
+    active_memory_namespace_policy_digest_id:
+      namespaceBoundary?.policy_digest_id ?? null,
     active_memory_namespace_route_governance_mode:
       namespaceBoundary?.route_governance_mode ?? null,
     active_memory_retrieval_fallback_mode:

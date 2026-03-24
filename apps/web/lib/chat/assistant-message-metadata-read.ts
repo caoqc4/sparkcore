@@ -448,6 +448,20 @@ export function getAssistantMemoryNamespacePolicyBundleId(
   );
 }
 
+export function getAssistantMemoryNamespacePolicyDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(namespaceMetadata, "policy_digest_id") ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_policy_digest_id"
+    )
+  );
+}
+
 export function getAssistantMemoryNamespaceRouteGovernanceMode(
   metadata: Record<string, unknown> | null | undefined
 ) {

@@ -26,6 +26,7 @@ import {
   getAssistantThreadRetentionPolicyId,
   getAssistantThreadSurvivalRationale,
   getAssistantMemoryNamespacePolicyBundleId,
+  getAssistantMemoryNamespacePolicyDigestId,
   getAssistantMemoryNamespacePrimaryLayer,
   getAssistantMemoryNamespaceRetrievalFallbackMode,
   getAssistantMemoryNamespaceRouteGovernanceMode,
@@ -1872,11 +1873,14 @@ function main() {
   const p6RegressionGateChecks = {
     namespace_policy_v4_ok:
       threadBoundary.policy_bundle_id === "thread_strict_focus" &&
+      threadBoundary.policy_digest_id === "thread_focus_orchestration" &&
       threadBoundary.route_governance_mode === "thread_strict" &&
       threadBoundary.retrieval_fallback_mode === "strict_no_timeline" &&
       threadBoundary.write_escalation_mode ===
         "thread_outward_escalation" &&
       projectBoundary.policy_bundle_id === "project_balanced_coordination" &&
+      projectBoundary.policy_digest_id ===
+        "project_coordination_orchestration" &&
       projectBoundary.route_governance_mode === "project_balanced" &&
       projectBoundary.retrieval_fallback_mode ===
         "parallel_timeline_allowed" &&
@@ -1884,6 +1888,8 @@ function main() {
         "project_world_escalation" &&
       getAssistantMemoryNamespacePolicyBundleId(assistantMetadata) ===
         projectBoundary.policy_bundle_id &&
+      getAssistantMemoryNamespacePolicyDigestId(assistantMetadata) ===
+        projectBoundary.policy_digest_id &&
       getAssistantMemoryNamespaceRouteGovernanceMode(assistantMetadata) ===
         projectBoundary.route_governance_mode &&
       getAssistantMemoryNamespaceRetrievalFallbackMode(assistantMetadata) ===
@@ -1892,6 +1898,8 @@ function main() {
         projectBoundary.write_escalation_mode &&
       runtimeDebugMetadata.memory_namespace?.policy_bundle_id ===
         projectBoundary.policy_bundle_id &&
+      runtimeDebugMetadata.memory_namespace?.policy_digest_id ===
+        projectBoundary.policy_digest_id &&
       runtimeDebugMetadata.memory_namespace?.route_governance_mode ===
         projectBoundary.route_governance_mode &&
       runtimeDebugMetadata.memory_namespace?.retrieval_fallback_mode ===
@@ -1900,6 +1908,9 @@ function main() {
         projectBoundary.write_escalation_mode &&
       systemPrompt.includes(
         "Current namespace policy: project_balanced_coordination; retrieval governance = project_balanced."
+      ) &&
+      systemPrompt.includes(
+        "Current namespace policy digest: project_coordination_orchestration."
       ),
     retention_lifecycle_v4_ok:
       getAssistantThreadRetentionPolicyId(assistantMetadata) ===
@@ -2064,11 +2075,13 @@ function main() {
           },
           namespace_policy: {
             thread_bundle: threadBoundary.policy_bundle_id,
+            thread_digest: threadBoundary.policy_digest_id,
             thread_mode: threadBoundary.route_governance_mode,
             thread_retrieval_fallback:
               threadBoundary.retrieval_fallback_mode,
             thread_write_escalation: threadBoundary.write_escalation_mode,
             project_bundle: projectBoundary.policy_bundle_id,
+            project_digest: projectBoundary.policy_digest_id,
             project_mode: projectBoundary.route_governance_mode,
             project_retrieval_fallback:
               projectBoundary.retrieval_fallback_mode,
@@ -2143,6 +2156,8 @@ function main() {
           primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata),
           policy_bundle_id:
             getAssistantMemoryNamespacePolicyBundleId(assistantMetadata),
+          policy_digest_id:
+            getAssistantMemoryNamespacePolicyDigestId(assistantMetadata),
           route_governance_mode:
             getAssistantMemoryNamespaceRouteGovernanceMode(assistantMetadata),
           retrieval_fallback_mode:
@@ -2181,6 +2196,8 @@ function main() {
             runtimeDebugMetadata.memory_namespace?.primary_layer ?? null,
           namespace_policy_bundle_id:
             runtimeDebugMetadata.memory_namespace?.policy_bundle_id ?? null,
+          namespace_policy_digest_id:
+            runtimeDebugMetadata.memory_namespace?.policy_digest_id ?? null,
           namespace_route_governance_mode:
             runtimeDebugMetadata.memory_namespace?.route_governance_mode ?? null,
           namespace_retrieval_fallback_mode:

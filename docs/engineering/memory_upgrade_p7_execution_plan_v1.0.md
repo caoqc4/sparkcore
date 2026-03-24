@@ -76,6 +76,27 @@ P7 首批要把 namespace 从：
 - 至少一条 namespace 决策不再只输出 policy 字段，而开始输出更明确的 orchestration digest
 - 至少一条 retrieval / write 行为开始复用同一层 policy digest，而不再分别消费零散字段
 
+当前已成立的第一刀代码事实：
+
+- 新增 `MemoryNamespacePolicyDigestId`
+- namespace boundary 现在除了：
+  - `policy_bundle_id`
+  - `route_governance_mode`
+  - `retrieval_fallback_mode`
+  - `write_escalation_mode`
+  之外，也会显式产出：
+  - `policy_digest_id`
+- 当前最小 digest 已成立：
+  - `thread_focus_orchestration`
+  - `project_coordination_orchestration`
+  - `world_reference_orchestration`
+  - `default_memory_orchestration`
+- 这层 digest 已进入：
+  - namespace prompt section
+  - assistant metadata / metadata reader
+  - runtime debug metadata
+  - harness
+
 ### 4.2 Retention lifecycle governance v5
 
 P7 首批要把 retention 从：

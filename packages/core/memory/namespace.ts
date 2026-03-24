@@ -23,6 +23,12 @@ export type MemoryNamespacePolicyBundleId =
   | "world_reference_exploration"
   | "default_balanced_memory";
 
+export type MemoryNamespacePolicyDigestId =
+  | "thread_focus_orchestration"
+  | "project_coordination_orchestration"
+  | "world_reference_orchestration"
+  | "default_memory_orchestration";
+
 function getPrimaryNamespaceLayer(
   layers: MemoryNamespaceLayer[]
 ): MemoryNamespaceLayer {

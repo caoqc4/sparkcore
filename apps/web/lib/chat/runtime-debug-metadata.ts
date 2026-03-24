@@ -109,6 +109,9 @@ export function buildRuntimeDebugMetadata(
           policy_bundle_id: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).policy_bundle_id,
+          policy_digest_id: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).policy_digest_id,
           route_governance_mode: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).route_governance_mode,

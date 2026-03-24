@@ -1239,6 +1239,18 @@
 当前更推荐的下一步：
 
 - **开始从 [memory_upgrade_p7_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p7_execution_plan_v1.0.md) 落 `P7-1 Namespace policy orchestration v2` 的第一刀**
+- 当前已成立的第一刀事实：
+  - namespace boundary 现在开始显式产出 `policy_digest_id`
+  - 当前最小 digest 已成立：
+    - `thread_focus_orchestration`
+    - `project_coordination_orchestration`
+    - `world_reference_orchestration`
+    - `default_memory_orchestration`
+  - 这层 digest 已进入：
+    - prompt
+    - assistant metadata / reader
+    - runtime debug metadata
+    - harness
   - `orchestration_mode`
 - 这层 strategy policy 当前也已开始进入：
   - active scenario pack output

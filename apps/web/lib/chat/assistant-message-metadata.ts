@@ -63,6 +63,7 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   active_memory_namespace_layers?: string[];
   active_memory_namespace_selection_reason?: string | null;
   active_memory_namespace_policy_bundle_id?: string | null;
+  active_memory_namespace_policy_digest_id?: string | null;
   active_memory_namespace_route_governance_mode?: string | null;
   active_memory_retrieval_fallback_mode?: string | null;
   active_memory_write_escalation_mode?: string | null;
@@ -148,6 +149,7 @@ export type BuildAssistantMessageMetadataInput = {
   active_memory_namespace_layers?: string[];
   active_memory_namespace_selection_reason?: string | null;
   active_memory_namespace_policy_bundle_id?: string | null;
+  active_memory_namespace_policy_digest_id?: string | null;
   active_memory_namespace_route_governance_mode?: string | null;
   active_memory_retrieval_fallback_mode?: string | null;
   active_memory_write_escalation_mode?: string | null;
@@ -271,6 +273,8 @@ export function buildAssistantMetadataSummaryGroups(
             input.active_memory_namespace_selection_reason ?? null,
           policy_bundle_id:
             input.active_memory_namespace_policy_bundle_id ?? null,
+          policy_digest_id:
+            input.active_memory_namespace_policy_digest_id ?? null,
           route_governance_mode:
             input.active_memory_namespace_route_governance_mode ?? null,
           retrieval_fallback_mode:
@@ -357,6 +361,8 @@ export function buildAssistantMetadataSummaryGroups(
         input.active_memory_namespace_selection_reason,
       active_memory_namespace_policy_bundle_id:
         input.active_memory_namespace_policy_bundle_id,
+      active_memory_namespace_policy_digest_id:
+        input.active_memory_namespace_policy_digest_id,
       active_memory_namespace_route_governance_mode:
         input.active_memory_namespace_route_governance_mode,
       active_memory_retrieval_fallback_mode:
