@@ -437,8 +437,11 @@
     - 当前 `close-readiness` 判断请以
       [memory_upgrade_p20_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p20_close_readiness_v1.0.md)
       为准
+    - 当前 `P20` 收官结论请以
+      [memory_upgrade_p20_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p20_close_note_v1.0.md)
+      为准
     - 当前 `p20_gate_snapshot`：
-      - `record_contract_readiness = record_close_readiness_consumption_started`
+      - `record_contract_readiness = record_close_ready`
       - `progress_range = 70% - 75%`
       - `positive_contracts = 4 / 4`
       - `metadata_consistency = 4 / 4`
@@ -446,8 +449,8 @@
       - `drift_guards = 2 / 2`
       - `close_readiness_consumption = 4 / 4`
       - `overall = 18 / 18`
-    - 当前整体约 `75% - 80%`
-    - 当前最推荐的下一步是先完成 `P20` 的最后一轮 acceptance gap 收束，再判断是否进入 `P20 close note`
+    - 当前整体约 `80% - 85%`
+    - 当前最推荐的下一步是开始下一阶段执行文档 / 第一批任务拆解
 
 ---
 
