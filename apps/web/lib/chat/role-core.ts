@@ -294,6 +294,13 @@ export type RoleCoreMemoryCloseNotePersistencePayload = {
     phase_snapshot_summary: string;
     persistence_summary: string;
   };
+  retention: {
+    phase_snapshot_id: string | null;
+    phase_snapshot_summary: string | null;
+    decision_group: string | null;
+    retained_fields: string[];
+    persistence_summary: string;
+  };
 };
 
 export function getRoleCoreRelationshipStance(
@@ -727,7 +734,7 @@ export function buildRoleCoreMemoryCloseNotePersistencePayload(args: {
     close_candidate: closeNoteArchive.close_candidate,
     close_note_recommended: false,
     headline: `${args.roleCorePacket.identity.agent_name} close-note persistence payload`,
-    persistence_summary: `namespace_persistence_started; source_archive = ${closeNoteArchive.archive_version}; readiness = namespace_persistence_started_not_close_ready.`,
+    persistence_summary: `namespace_persistence_started; retention_persistence_started; source_archive = ${closeNoteArchive.archive_version}; readiness = namespace_persistence_started_not_close_ready.`,
     blocking_items: [...blockingItems],
     non_blocking_items: [...nonBlockingItems],
     tail_candidate_items: [...tailCandidateItems],
@@ -737,6 +744,15 @@ export function buildRoleCoreMemoryCloseNotePersistencePayload(args: {
       phase_snapshot_id: closeNoteArchive.namespace.phase_snapshot_id,
       phase_snapshot_summary: closeNoteArchive.namespace.phase_snapshot_summary,
       persistence_summary: `${closeNoteArchive.namespace.phase_snapshot_id}; ${closeNoteArchive.namespace.phase_snapshot_summary}; archive_headline = ${closeNoteArchive.headline}`
+    },
+    retention: {
+      phase_snapshot_id: closeNoteArchive.retention.phase_snapshot_id,
+      phase_snapshot_summary: closeNoteArchive.retention.phase_snapshot_summary,
+      decision_group: closeNoteArchive.retention.decision_group,
+      retained_fields: [...closeNoteArchive.retention.retained_fields],
+      persistence_summary: closeNoteArchive.retention.phase_snapshot_id
+        ? `${closeNoteArchive.retention.phase_snapshot_id}; ${closeNoteArchive.retention.phase_snapshot_summary ?? "none"}; decision_group = ${closeNoteArchive.retention.decision_group ?? "none"}; retained_fields = ${closeNoteArchive.retention.retained_fields.join(", ") || "none"}`
+        : "none"
     }
   };
 }

@@ -3029,6 +3029,9 @@ export function buildRoleCoreMemoryCloseNotePersistencePayloadPrompt(
       ? `Namespace persistence section：${closeNotePersistencePayload.namespace.persistence_summary}。`
       : `Namespace persistence section: ${closeNotePersistencePayload.namespace.persistence_summary}.`,
     isZh
+      ? `Retention persistence section：${closeNotePersistencePayload.retention.persistence_summary}。`
+      : `Retention persistence section: ${closeNotePersistencePayload.retention.persistence_summary}.`,
+    isZh
       ? `Close-note persistence summary：${closeNotePersistencePayload.persistence_summary}`
       : `Close-note persistence summary: ${closeNotePersistencePayload.persistence_summary}`,
     isZh
