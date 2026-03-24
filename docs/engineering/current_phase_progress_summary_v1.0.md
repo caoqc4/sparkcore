@@ -1423,3 +1423,7 @@
 当前更推荐的下一步：
 
 - **开始进入 `P10 close-readiness` 前置评估**
+
+当前正式 `close-readiness` 判断请以
+[memory_upgrade_p10_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p10_close_readiness_v1.0.md)
+为准。
