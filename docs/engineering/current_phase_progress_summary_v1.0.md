@@ -1336,7 +1336,7 @@
 - `P8-1`
   - 前中段到中段之间
 - `P8-2`
-  - 前中段
+  - 前中段到中段之间
 - `P8-3`
   - 待开始
 - `P8-4`
@@ -1346,11 +1346,11 @@
 
 整体 `P8` 当前大约：
 
-- **`30% - 40%`**
+- **`35% - 45%`**
 
 当前更推荐的下一步：
 
-- **先对 `P8-2 Retention lifecycle convergence v6` 做一次小评估**
+- **开始 `P8-3 Knowledge governance convergence v6` 的第一刀**
 - 当前 retention 最小 convergence 已开始进入：
   - `lifecycle_convergence_digest`
   - `keep_drop_convergence_summary`
@@ -1361,5 +1361,5 @@
   - runtime debug metadata
   - harness
 - 当前判断是：
-  - `P8-2` 已经从启动推进到前中段
-  - 下一步很适合先做一次小复盘，再决定继续补还是切去 `P8-3`
+  - `P8-2` 已经从启动推进到前中段到中段之间
+  - 下一步更值的是把同一层 convergence 方法复制到 knowledge
