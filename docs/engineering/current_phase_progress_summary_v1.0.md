@@ -230,6 +230,15 @@
   - 当前结论是：
     - `P15` 已达到 `close-ready / 可收官`
     - `P15` 的非阻塞尾项当前已并入统一 backlog
+- `P16 execution plan` 当前已建立下一阶段执行入口：
+  - 当前执行起点请以
+    [memory_upgrade_p16_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p16_execution_plan_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P16` 已从“待定义的下一阶段”推进到“已建立执行计划的下一阶段”
+    - `P16-1 ~ P16-4` 已通过 `role_core_packet` memory handoff 第一刀接通
+    - `P16-5` 第一版 gate scaffold 已建立
+    - 当前整体约 `15% - 20%`
 
 ---
 

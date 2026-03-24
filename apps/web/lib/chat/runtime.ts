@@ -22,21 +22,26 @@ import {
 import {
   buildScenarioMemoryPackPromptSection,
   resolveActiveScenarioMemoryPack,
+  resolveScenarioGovernanceFabricPlanePhaseSnapshot,
   resolveScenarioMemoryPackStrategy,
   type ActiveScenarioMemoryPack
 } from "@/lib/chat/memory-packs";
 import {
+  buildKnowledgeSummary,
   buildKnowledgePromptSection,
   filterKnowledgeByActiveNamespace,
+  resolveKnowledgeGovernanceFabricPlanePhaseSnapshot,
   type RuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
 import {
   buildMemoryNamespacePromptSection,
   resolveActiveMemoryNamespace,
+  resolveNamespaceGovernanceFabricPlanePhaseSnapshot,
   type ActiveRuntimeMemoryNamespace
 } from "@/lib/chat/memory-namespace";
 import {
   buildCompactedThreadSummary,
+  resolveThreadGovernanceFabricPlanePhaseSnapshot,
   selectRetainedThreadCompactionSummary,
   buildThreadCompactionPromptSection
 } from "@/lib/chat/thread-compaction";
@@ -86,7 +91,8 @@ import {
   type AgentRecord,
   type ReplyLanguageSource,
   type RoleCorePacket,
-  type RuntimeReplyLanguage
+  type RuntimeReplyLanguage,
+  withRoleCoreMemoryHandoff
 } from "@/lib/chat/role-core";
 import { ROLE_PROFILE_SELECT } from "@/lib/chat/role-repository";
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
@@ -3937,6 +3943,66 @@ export async function runPreparedRuntimeTurn({
     knowledge: [],
     namespace: activeMemoryNamespace
   });
+  const activeScenarioMemoryPack = resolveActiveScenarioMemoryPack({
+    activeNamespace: activeMemoryNamespace,
+    relevantKnowledge: applicableKnowledge
+  });
+  const namespaceGovernanceFabricPlanePhaseSnapshot =
+    resolveNamespaceGovernanceFabricPlanePhaseSnapshot(activeMemoryNamespace);
+  const retentionGovernanceFabricPlanePhaseSnapshot = compactedThreadSummary
+    ? resolveThreadGovernanceFabricPlanePhaseSnapshot({
+        lifecycle_governance_fabric_plane_digest:
+          compactedThreadSummary.lifecycle_governance_fabric_plane_digest,
+        keep_drop_governance_fabric_plane_summary:
+          compactedThreadSummary.keep_drop_governance_fabric_plane_summary,
+        lifecycle_governance_fabric_plane_alignment_mode:
+          compactedThreadSummary
+            .lifecycle_governance_fabric_plane_alignment_mode,
+        lifecycle_governance_fabric_plane_reuse_mode:
+          compactedThreadSummary.lifecycle_governance_fabric_plane_reuse_mode,
+        retention_section_order: compactedThreadSummary.retention_section_order,
+        retained_fields: compactedThreadSummary.retained_fields
+      })
+    : null;
+  const knowledgeSummary = buildKnowledgeSummary({
+    knowledge: applicableKnowledge,
+    activeNamespace: activeMemoryNamespace
+  });
+  const knowledgeGovernanceFabricPlanePhaseSnapshot =
+    resolveKnowledgeGovernanceFabricPlanePhaseSnapshot({
+      governanceFabricPlaneDigest:
+        knowledgeSummary.governance_fabric_plane_digest,
+      sourceBudgetGovernanceFabricPlaneSummary:
+        knowledgeSummary.source_budget_governance_fabric_plane_summary,
+      governanceFabricPlaneMode: knowledgeSummary.governance_fabric_plane_mode,
+      governanceFabricPlaneReuseMode:
+        knowledgeSummary.governance_fabric_plane_reuse_mode,
+      applicableKnowledge
+    });
+  const scenarioGovernanceFabricPlanePhaseSnapshot =
+    resolveScenarioGovernanceFabricPlanePhaseSnapshot(activeScenarioMemoryPack);
+  const roleCorePacketWithMemoryHandoff = withRoleCoreMemoryHandoff({
+    packet: preparedRuntimeTurn.role.role_core,
+    memoryHandoff: {
+      handoff_version: "v1",
+      namespace_phase_snapshot_id:
+        namespaceGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
+      namespace_phase_snapshot_summary:
+        namespaceGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary,
+      retention_phase_snapshot_id:
+        retentionGovernanceFabricPlanePhaseSnapshot?.phase_snapshot_id ?? null,
+      retention_phase_snapshot_summary:
+        retentionGovernanceFabricPlanePhaseSnapshot?.phase_snapshot_summary ?? null,
+      knowledge_phase_snapshot_id:
+        knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
+      knowledge_phase_snapshot_summary:
+        knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary,
+      scenario_phase_snapshot_id:
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
+      scenario_phase_snapshot_summary:
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary
+    }
+  });
   const { workspace, thread, messages, assistant_message_id, supabase } =
     preparedRuntimeTurn.resources;
   const runtimeSupabase = supabase as any;
@@ -3944,7 +4010,7 @@ export async function runPreparedRuntimeTurn({
     {
       role: "system" as const,
       content: buildAgentSystemPrompt(
-        preparedRuntimeTurn.role.role_core,
+        roleCorePacketWithMemoryHandoff,
         agent.system_prompt,
         latestUserMessageContent ?? "",
         allRecalledMemories,
@@ -4022,7 +4088,7 @@ export async function runPreparedRuntimeTurn({
           `${modelProfile.provider}/${result.model ?? modelProfile.model}`
       },
       runtime: {
-        role_core_packet: preparedRuntimeTurn.role.role_core,
+        role_core_packet: roleCorePacketWithMemoryHandoff,
         runtime_input: preparedRuntimeTurn.input,
         session_thread_id: preparedRuntimeTurn.session.thread_id,
         session_agent_id: preparedRuntimeTurn.session.agent_id,
@@ -4095,10 +4161,7 @@ export async function runPreparedRuntimeTurn({
           )
         ),
         profile_snapshot: recalledProfileSnapshot,
-        scenario_pack: resolveActiveScenarioMemoryPack({
-          activeNamespace: activeMemoryNamespace,
-          relevantKnowledge: applicableKnowledge
-        }),
+        scenario_pack: activeScenarioMemoryPack,
         hidden_exclusion_count: memoryRecall.hiddenExclusionCount,
         incorrect_exclusion_count: memoryRecall.incorrectExclusionCount
       },

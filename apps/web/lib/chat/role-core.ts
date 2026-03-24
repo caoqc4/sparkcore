@@ -25,7 +25,7 @@ export type RoleCoreRelationshipStance =
   | "no_full_name";
 
 export type RoleCorePacket = {
-  packet_version: "v1";
+  packet_version: "v1" | "v2";
   identity: {
     agent_id: string;
     agent_name: string;
@@ -41,6 +41,17 @@ export type RoleCorePacket = {
     reply_language_source: ReplyLanguageSource;
     same_thread_continuation_preferred: boolean;
   };
+  memory_handoff?: {
+    handoff_version: "v1";
+    namespace_phase_snapshot_id: string;
+    namespace_phase_snapshot_summary: string;
+    retention_phase_snapshot_id: string | null;
+    retention_phase_snapshot_summary: string | null;
+    knowledge_phase_snapshot_id: string;
+    knowledge_phase_snapshot_summary: string;
+    scenario_phase_snapshot_id: string;
+    scenario_phase_snapshot_summary: string;
+  } | null;
 };
 
 export function getRoleCoreRelationshipStance(
@@ -104,6 +115,18 @@ export function buildRoleCorePacket({
       reply_language_target: replyLanguage,
       reply_language_source: replyLanguageSource,
       same_thread_continuation_preferred: preferSameThreadContinuation
-    }
+    },
+    memory_handoff: null
+  };
+}
+
+export function withRoleCoreMemoryHandoff(args: {
+  packet: RoleCorePacket;
+  memoryHandoff: NonNullable<RoleCorePacket["memory_handoff"]>;
+}): RoleCorePacket {
+  return {
+    ...args.packet,
+    packet_version: "v2",
+    memory_handoff: args.memoryHandoff
   };
 }

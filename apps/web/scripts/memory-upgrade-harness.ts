@@ -14,6 +14,7 @@ import {
   isStoredMemoryStaticProfile
 } from "@/lib/chat/memory-records";
 import { buildAgentSystemPrompt, buildVisibleMemoryRecord } from "@/lib/chat/runtime";
+import { withRoleCoreMemoryHandoff } from "@/lib/chat/role-core";
 import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
 import { buildRuntimeDebugMetadata } from "@/lib/chat/runtime-debug-metadata";
 import {
@@ -528,8 +529,10 @@ function main() {
         entity_id: "world-1"
       }
     ],
-    selection_reason: "session_and_knowledge_scope"
+      selection_reason: "session_and_knowledge_scope"
   };
+  const projectGovernanceFabricPlanePhaseSnapshot =
+    resolveNamespaceGovernanceFabricPlanePhaseSnapshot(projectPrimaryNamespace);
   const projectBoundary = resolveRuntimeMemoryBoundary(projectPrimaryNamespace);
   const projectConsolidationContract =
     resolveNamespaceGovernanceConsolidationContract(projectPrimaryNamespace);
@@ -1279,6 +1282,46 @@ function main() {
       retention_section_order: compactedThreadSummary!.retention_section_order,
       retained_fields: compactedThreadSummary!.retained_fields
     });
+  const roleCorePacketForHarness = withRoleCoreMemoryHandoff({
+    packet: {
+      packet_version: "v1",
+      identity: {
+        agent_id: "agent-1",
+        agent_name: "Helper"
+      },
+      persona_summary: "Helpful assistant",
+      style_guidance: "Be concise",
+      relationship_stance: {
+        effective: "friendly",
+        source: "relationship_memory"
+      },
+      language_behavior: {
+        reply_language_target: "en",
+        reply_language_source: "latest-user-message",
+        same_thread_continuation_preferred: true
+      },
+      memory_handoff: null
+    },
+    memoryHandoff: {
+      handoff_version: "v1",
+      namespace_phase_snapshot_id:
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
+      namespace_phase_snapshot_summary:
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary,
+      retention_phase_snapshot_id:
+        compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
+      retention_phase_snapshot_summary:
+        compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary,
+      knowledge_phase_snapshot_id:
+        knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
+      knowledge_phase_snapshot_summary:
+        knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary,
+      scenario_phase_snapshot_id:
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
+      scenario_phase_snapshot_summary:
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary
+    }
+  });
   expect(
     compactedThreadSummary?.lifecycle_convergence_digest ===
       "anchor_preservation_convergence" &&
@@ -1357,24 +1400,7 @@ function main() {
         underlying_label: "gpt-test"
       },
       runtime: {
-        role_core_packet: {
-          packet_version: "v1",
-          identity: {
-            agent_id: "agent-1",
-            agent_name: "Helper"
-          },
-          persona_summary: "Helpful assistant",
-          style_guidance: "Be concise",
-          relationship_stance: {
-            effective: "friendly",
-            source: "relationship_memory"
-          },
-          language_behavior: {
-            reply_language_target: "en",
-            reply_language_source: "latest-user-message",
-            same_thread_continuation_preferred: true
-          }
-        },
+        role_core_packet: roleCorePacketForHarness,
         runtime_input: buildRuntimeTurnInput({
           userId: "user-1",
           agentId: "agent-1",
@@ -1485,6 +1511,14 @@ function main() {
         strategy_rationale_summary?: string | null;
       })
     | null;
+  const assistantRoleCorePacket = (assistantMetadata as {
+    role_core_packet?: typeof roleCorePacketForHarness;
+  }).role_core_packet;
+  const assistantDiagnosticRoleCorePacket = (assistantMetadata as {
+    developer_diagnostics?: {
+      role_core_packet?: typeof roleCorePacketForHarness;
+    };
+  }).developer_diagnostics?.role_core_packet;
   expect(
     getAssistantMemoryPrimarySemanticLayer(assistantMetadata) === "thread_state",
     "Expected assistant metadata reader to expose thread_state as primary semantic layer."
@@ -3173,8 +3207,6 @@ function main() {
     resolveNamespaceGovernanceFabricRuntimeContract(projectPrimaryNamespace);
   const projectGovernanceFabricPlaneContract =
     resolveNamespaceGovernanceFabricPlaneContract(projectPrimaryNamespace);
-  const projectGovernanceFabricPlanePhaseSnapshot =
-    resolveNamespaceGovernanceFabricPlanePhaseSnapshot(projectPrimaryNamespace);
   const p12NamespaceGovernancePlaneChecks = {
     namespace_governance_plane_runtime_v7_ok:
       projectBoundary.governance_plane_runtime_digest_id ===
@@ -4775,6 +4807,60 @@ function main() {
       close_candidate: p15RegressionGate.close_candidate
     }
   } as const;
+  const p16RoleCoreMemoryHandoffChecks = {
+    role_core_memory_handoff_packet_v2_ok:
+      roleCorePacketForHarness.packet_version === "v2" &&
+      roleCorePacketForHarness.memory_handoff?.namespace_phase_snapshot_id ===
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      roleCorePacketForHarness.memory_handoff?.retention_phase_snapshot_id ===
+        compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      roleCorePacketForHarness.memory_handoff?.knowledge_phase_snapshot_id ===
+        knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_id ===
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      assistantRoleCorePacket?.packet_version === "v2" &&
+      assistantRoleCorePacket.memory_handoff?.namespace_phase_snapshot_summary ===
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary &&
+      assistantRoleCorePacket.memory_handoff?.retention_phase_snapshot_summary ===
+        compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary &&
+      assistantRoleCorePacket.memory_handoff?.knowledge_phase_snapshot_summary ===
+        knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary &&
+      assistantRoleCorePacket.memory_handoff?.scenario_phase_snapshot_summary ===
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary &&
+      assistantDiagnosticRoleCorePacket?.packet_version === "v2" &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.namespace_phase_snapshot_id ===
+        roleCorePacketForHarness.memory_handoff?.namespace_phase_snapshot_id &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.retention_phase_snapshot_id ===
+        roleCorePacketForHarness.memory_handoff?.retention_phase_snapshot_id &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.knowledge_phase_snapshot_id ===
+        roleCorePacketForHarness.memory_handoff?.knowledge_phase_snapshot_id &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.scenario_phase_snapshot_id ===
+        roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_id
+  } as const;
+  const p16RegressionGate = summarizeGate(p16RoleCoreMemoryHandoffChecks);
+  const p16GateSnapshot = {
+    gate_id: "p16_regression_gate_v1",
+    stage: "P16-5",
+    focus: "role_core_memory_handoff_packetization",
+    blocking_items: [] as string[],
+    next_expansion_focus: [
+      "retention_role_core_handoff_depth",
+      "close_note_handoff_packet",
+      "packet_prompt_surface_alignment"
+    ] as const,
+    positive_contracts: {
+      checks_passed: p16RegressionGate.checks_passed,
+      checks_total: p16RegressionGate.checks_total,
+      all_green: p16RegressionGate.all_green
+    },
+    overall: {
+      checks_passed: p16RegressionGate.checks_passed,
+      checks_total: p16RegressionGate.checks_total,
+      failed_checks: p16RegressionGate.failed_checks,
+      all_green: p16RegressionGate.all_green,
+      close_candidate: p16RegressionGate.close_candidate
+    }
+  } as const;
 
   const p12RegressionGateChecks = {
     ...p12NamespaceGovernancePlaneChecks,
@@ -5901,6 +5987,9 @@ function main() {
           p15KnowledgeGovernancePlaneConsumptionChecks,
         p15_scenario_governance_plane_consumption:
           p15ScenarioGovernancePlaneConsumptionChecks,
+        p16_role_core_memory_handoff: p16RoleCoreMemoryHandoffChecks,
+        p16_regression_gate: p16RegressionGate,
+        p16_gate_snapshot: p16GateSnapshot,
         p15_regression_gate: p15RegressionGate,
         p15_gate_snapshot: p15GateSnapshot,
         p14_regression_gate: p14RegressionGate,
