@@ -2861,6 +2861,9 @@ export function buildRoleCoreMemoryCloseNoteOutputPrompt(
       ? `Retention output section：${closeNoteOutput.retention.output_summary}。`
       : `Retention output section: ${closeNoteOutput.retention.output_summary}.`,
     isZh
+      ? `Knowledge output section：${closeNoteOutput.knowledge.output_summary}。`
+      : `Knowledge output section: ${closeNoteOutput.knowledge.output_summary}.`,
+    isZh
       ? `Close-note output emission：${closeNoteOutput.emission_summary}`
       : `Close-note output emission: ${closeNoteOutput.emission_summary}`
   ];

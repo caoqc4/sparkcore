@@ -384,6 +384,7 @@
     - `P19` 的一句话目标是把 `P18 close-note artifact contract` 推进成更接近真实 runtime 输出的 `close-note output contract`
     - `P19-1` 已开始，namespace close-note output contract 第一刀已成立
     - `P19-2` 已开始，retention close-note output contract 第一刀已成立
+    - `P19-3` 已开始，knowledge close-note output contract 第一刀已成立
     - `p19_close_note_output` 当前已锁住：
       - namespace close-note output contract v1
       - namespace close-note output metadata consistency v1
@@ -391,9 +392,12 @@
       - retention close-note output contract v1
       - retention close-note output metadata consistency v1
       - retention close-note output prompt surface v1
-    - `P19-3 ~ P19-5` 当前仍待开始
-    - 当前整体约 `20% - 25%`
-    - 当前最推荐的下一步是 `P19-3 Knowledge close-note output contract v1`
+      - knowledge close-note output contract v1
+      - knowledge close-note output metadata consistency v1
+      - knowledge close-note output prompt surface v1
+    - `P19-4 ~ P19-5` 当前仍待开始
+    - 当前整体约 `30% - 35%`
+    - 当前最推荐的下一步是 `P19-4 Scenario close-note output contract v1`
 
 ---
 

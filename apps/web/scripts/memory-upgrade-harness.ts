@@ -5626,7 +5626,31 @@ function main() {
       systemPrompt.includes(
         p19CloseNoteOutput?.retention.output_summary ?? ""
       ) &&
-      p19CloseNoteOutputPrompt.includes("Retention output section")
+      p19CloseNoteOutputPrompt.includes("Retention output section"),
+    knowledge_close_note_output_contract_v1_ok:
+      p19CloseNoteOutput?.knowledge.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.knowledge.phase_snapshot_id &&
+      p19CloseNoteOutput?.knowledge.output_summary.includes(
+        p17CloseNoteHandoffPacket?.knowledge.scope_layers.join(", ") ?? ""
+      ) &&
+      p19CloseNoteOutput?.knowledge.output_summary.includes(
+        p17CloseNoteHandoffPacket?.knowledge.governance_classes.join(", ") ?? ""
+      ),
+    knowledge_close_note_output_metadata_consistency_v1_ok:
+      assistantCloseNoteOutput?.knowledge.output_summary ===
+        p19CloseNoteOutput?.knowledge.output_summary &&
+      assistantDiagnosticCloseNoteOutput?.knowledge.phase_snapshot_summary ===
+        p19CloseNoteOutput?.knowledge.phase_snapshot_summary &&
+      runtimeDebugCloseNoteOutput?.knowledge.governance_classes.join(",") ===
+        p19CloseNoteOutput?.knowledge.governance_classes.join(","),
+    knowledge_close_note_output_prompt_surface_v1_ok:
+      p19CloseNoteOutputPrompt.includes(
+        p19CloseNoteOutput?.knowledge.output_summary ?? ""
+      ) &&
+      systemPrompt.includes(
+        p19CloseNoteOutput?.knowledge.output_summary ?? ""
+      ) &&
+      p19CloseNoteOutputPrompt.includes("Knowledge output section")
   } as const;
   const p18PositiveContracts = summarizeGate({
     role_core_memory_close_note_artifact_v1_ok:
