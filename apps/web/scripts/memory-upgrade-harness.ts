@@ -4123,6 +4123,208 @@ function main() {
       close_candidate: p13RegressionGate.close_candidate
     }
   } as const;
+  const p14PositiveContractChecks = {
+    ...p14NamespaceGovernanceFabricPlaneChecks,
+    ...p14RetentionGovernanceFabricPlaneChecks,
+    ...p14KnowledgeGovernanceFabricPlaneChecks,
+    ...p14ScenarioGovernanceFabricPlaneChecks
+  } as const;
+  const p14MetadataConsistencyChecks = {
+    fabric_plane_metadata_consistency_v12_ok:
+      getAssistantMemoryNamespaceGovernanceFabricPlaneDigestId(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace?.governance_fabric_plane_digest_id &&
+      getAssistantMemoryNamespaceGovernanceFabricPlaneSummary(
+        assistantMetadata
+      ) === runtimeDebugMetadata.memory_namespace?.governance_fabric_plane_summary &&
+      getAssistantMemoryNamespaceGovernanceFabricPlaneAlignmentMode(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace
+          ?.governance_fabric_plane_alignment_mode &&
+      getAssistantMemoryNamespaceGovernanceFabricPlaneReuseMode(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace?.governance_fabric_plane_reuse_mode &&
+      getAssistantMemoryNamespaceGovernanceFabricPlaneDigestId(
+        assistantMetadata
+      ) ===
+        runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+          ?.namespace_governance_fabric_plane_digest_id &&
+      getAssistantMemoryNamespaceGovernanceFabricPlaneSummary(
+        assistantMetadata
+      ) ===
+        runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+          ?.namespace_governance_fabric_plane_summary &&
+      getAssistantMemoryNamespaceGovernanceFabricPlaneAlignmentMode(
+        assistantMetadata
+      ) ===
+        runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+          ?.namespace_governance_fabric_plane_alignment_mode &&
+      getAssistantMemoryNamespaceGovernanceFabricPlaneReuseMode(
+        assistantMetadata
+      ) ===
+        runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+          ?.namespace_governance_fabric_plane_reuse_mode &&
+      getAssistantThreadLifecycleGovernanceFabricPlaneDigest(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.thread_compaction
+          ?.lifecycle_governance_fabric_plane_digest &&
+      getAssistantThreadKeepDropGovernanceFabricPlaneSummary(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.thread_compaction
+          ?.keep_drop_governance_fabric_plane_summary &&
+      getAssistantThreadLifecycleGovernanceFabricPlaneAlignmentMode(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.thread_compaction
+          ?.lifecycle_governance_fabric_plane_alignment_mode &&
+      getAssistantThreadLifecycleGovernanceFabricPlaneReuseMode(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.thread_compaction
+          ?.lifecycle_governance_fabric_plane_reuse_mode &&
+      getAssistantKnowledgeGovernanceFabricPlaneDigest(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.governance_fabric_plane_digest &&
+      getAssistantKnowledgeSourceBudgetGovernanceFabricPlaneSummary(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.knowledge
+          .source_budget_governance_fabric_plane_summary &&
+      getAssistantKnowledgeGovernanceFabricPlaneMode(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.governance_fabric_plane_mode &&
+      getAssistantKnowledgeGovernanceFabricPlaneReuseMode(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.governance_fabric_plane_reuse_mode &&
+      getAssistantMemoryScenarioPackGovernanceFabricPlaneDigestId(
+        assistantMetadata
+      ) === runtimeDebugPack?.governance_fabric_plane_digest_id &&
+      getAssistantMemoryScenarioPackStrategyGovernanceFabricPlaneSummary(
+        assistantMetadata
+      ) === runtimeDebugPack?.strategy_governance_fabric_plane_summary &&
+      getAssistantMemoryScenarioPackOrchestrationGovernanceFabricPlaneMode(
+        assistantMetadata
+      ) === runtimeDebugPack?.orchestration_governance_fabric_plane_mode &&
+      getAssistantMemoryScenarioPackGovernanceFabricPlaneReuseMode(
+        assistantMetadata
+      ) === runtimeDebugPack?.governance_fabric_plane_reuse_mode
+  } as const;
+  const p14DriftGuardChecks = {
+    fabric_plane_drift_guard_v12_ok:
+      threadBoundary.retrieval_fallback_mode === "strict_no_timeline" &&
+      threadScopedRoutes.join(",") === "thread_state,profile,episode" &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "closed",
+          retained_fields: ["focus_mode"],
+          keep_drop_governance_fabric_plane_summary:
+            "closed_drop_governance_fabric_plane",
+          lifecycle_governance_fabric_plane_alignment_mode:
+            "closed_governance_fabric_plane_aligned",
+          lifecycle_governance_fabric_plane_reuse_mode:
+            "closed_runtime_governance_fabric_plane_reuse"
+        }
+      }).retain === false &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "paused",
+          retention_budget: 1,
+          keep_drop_governance_fabric_plane_summary:
+            "minimal_decay_governance_fabric_plane",
+          lifecycle_governance_fabric_plane_alignment_mode:
+            "minimal_governance_fabric_plane_aligned",
+          lifecycle_governance_fabric_plane_reuse_mode:
+            "minimal_runtime_governance_fabric_plane_reuse"
+        }
+      }).retain === false &&
+      referenceOnlyProjectOpsSelection.length === 1 &&
+      referenceOnlyProjectOpsSelection[0]?.title === "General delivery note" &&
+      selectedKnowledgeForPrompt[0]?.title === "Onboarding checklist guide" &&
+      !defaultScenarioMemoryPackPrompt.includes("General reply policy"),
+    scenario_fabric_plane_drift_guard_v12_ok:
+      defaultScenarioMemoryPack.governance_fabric_plane_digest_id ===
+        "continuity_governance_fabric_plane" &&
+      defaultScenarioMemoryPack.strategy_governance_fabric_plane_summary ===
+        "continuity_strategy_governance_fabric_plane" &&
+      defaultScenarioMemoryPack.orchestration_governance_fabric_plane_mode ===
+        "continuity_runtime_governance_fabric_plane" &&
+      defaultScenarioMemoryPack.governance_fabric_plane_reuse_mode ===
+        "continuity_runtime_governance_fabric_plane_reuse" &&
+      !defaultScenarioMemoryPackPrompt.includes(
+        "project_delivery_governance_fabric_plane"
+      ) &&
+      worldKnowledgeDrivenScenarioMemoryPack.pack_id === "companion" &&
+      worldKnowledgeDrivenScenarioMemoryPack.governance_fabric_plane_digest_id ===
+        "knowledge_guided_governance_fabric_plane" &&
+      worldKnowledgeDrivenScenarioMemoryPack.strategy_governance_fabric_plane_summary ===
+        "knowledge_guided_strategy_governance_fabric_plane" &&
+      worldKnowledgeDrivenScenarioMemoryPack.orchestration_governance_fabric_plane_mode ===
+        "knowledge_guided_runtime_governance_fabric_plane" &&
+      worldKnowledgeDrivenScenarioMemoryPack.governance_fabric_plane_reuse_mode ===
+        "knowledge_guided_runtime_governance_fabric_plane_reuse" &&
+      !worldKnowledgeDrivenScenarioMemoryPackPrompt.includes(
+        "project_delivery_governance_fabric_plane"
+      ) &&
+      scenarioMemoryPack.governance_fabric_plane_digest_id ===
+        "project_delivery_governance_fabric_plane" &&
+      getAssistantMemoryScenarioPackGovernanceFabricPlaneDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_fabric_plane_digest_id &&
+      runtimeDebugPack?.governance_fabric_plane_digest_id ===
+        scenarioMemoryPack.governance_fabric_plane_digest_id
+  } as const;
+  const p14PositiveContracts = summarizeGate(p14PositiveContractChecks);
+  const p14MetadataConsistency = summarizeGate(p14MetadataConsistencyChecks);
+  const p14DriftGuards = summarizeGate(p14DriftGuardChecks);
+  const p14RegressionGateChecks = {
+    ...p14PositiveContractChecks,
+    ...p14MetadataConsistencyChecks,
+    ...p14DriftGuardChecks
+  } as const;
+  const p14RegressionGateSummary = summarizeGate(p14RegressionGateChecks);
+  const p14RegressionGate = {
+    positive_contracts: p14PositiveContracts,
+    metadata_consistency: p14MetadataConsistency,
+    drift_guards: p14DriftGuards,
+    ...p14RegressionGateSummary
+  } as const;
+  const p14GateSnapshot = {
+    gate_id: "p14_regression_gate_v1",
+    stage: "P14-5",
+    focus: "regression_acceptance_expansion",
+    blocking_items: [] as string[],
+    next_expansion_focus: [
+      "plane_negative_coverage",
+      "close_readiness_consumption",
+      "remaining_acceptance_gaps"
+    ] as const,
+    positive_contracts: {
+      checks_passed: p14PositiveContracts.checks_passed,
+      checks_total: p14PositiveContracts.checks_total,
+      all_green: p14PositiveContracts.all_green
+    },
+    metadata_consistency: {
+      checks_passed: p14MetadataConsistency.checks_passed,
+      checks_total: p14MetadataConsistency.checks_total,
+      all_green: p14MetadataConsistency.all_green
+    },
+    drift_guards: {
+      checks_passed: p14DriftGuards.checks_passed,
+      checks_total: p14DriftGuards.checks_total,
+      all_green: p14DriftGuards.all_green
+    },
+    overall: {
+      checks_passed: p14RegressionGate.checks_passed,
+      checks_total: p14RegressionGate.checks_total,
+      failed_checks: p14RegressionGate.failed_checks,
+      all_green: p14RegressionGate.all_green,
+      close_candidate: p14RegressionGate.close_candidate
+    }
+  } as const;
 
   const p12RegressionGateChecks = {
     ...p12NamespaceGovernancePlaneChecks,
@@ -5235,6 +5437,8 @@ function main() {
         p13_scenario_governance_fabric: p13ScenarioGovernanceFabricChecks,
         p14_scenario_governance_fabric_plane:
           p14ScenarioGovernanceFabricPlaneChecks,
+        p14_regression_gate: p14RegressionGate,
+        p14_gate_snapshot: p14GateSnapshot,
         p13_regression_gate: p13RegressionGate,
         p13_gate_snapshot: p13GateSnapshot,
         p12_regression_gate: p12RegressionGate,

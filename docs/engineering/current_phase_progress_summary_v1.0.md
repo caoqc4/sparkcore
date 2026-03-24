@@ -131,6 +131,29 @@
   - `orchestration_governance_fabric_plane_mode`
   - `governance_fabric_plane_reuse_mode`
   - scenario prompt / assistant metadata / runtime debug / harness 当前都已开始复用这层 fabric plane contract
+- `P14-5 regression / acceptance expansion` 已开始建立第一版正式 gate：
+  - `memory-upgrade-harness.ts` 当前已新增 `p14_regression_gate`
+  - `memory-upgrade-harness.ts` 当前也已新增 `p14_gate_snapshot`
+  - gate 当前已开始按三层 acceptance 面输出：
+    - `positive_contracts`
+    - `metadata_consistency`
+    - `drift_guards`
+  - 当前 `p14_gate_snapshot`：
+    - `positive_contracts = 4 / 4`
+    - `metadata_consistency = 1 / 1`
+    - `drift_guards = 2 / 2`
+    - `overall = 7 / 7`
+  - gate 当前已锁住：
+    - namespace governance fabric plane v9
+    - retention lifecycle governance fabric plane v12
+    - knowledge governance fabric plane v12
+    - scenario governance fabric plane v12
+    - plane-level metadata consistency v12
+    - plane-level drift guard v12
+    - scenario fabric plane drift guard v12
+  - 当前基础验证已通过：
+    - `pnpm --filter @sparkcore/web memory:upgrade:harness`
+    - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`
 
 ---
 

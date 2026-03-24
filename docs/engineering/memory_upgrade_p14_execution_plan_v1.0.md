@@ -188,15 +188,16 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
   - 已开始
   - scenario governance fabric plane v12 第一刀已成立
 - `P14-5`
-  - 待开始
+  - 已开始
+  - 第一版正式 gate 已建立
 
 整体 `P14` 当前大约：
 
-- **`45% - 50%`**
+- **`60% - 65%`**
 
 当前更推荐的下一步：
 
-- **开始 `P14-5 Regression / acceptance expansion`，把 namespace / retention / knowledge / scenario 四条 plane 主线收成第一版正式 gate**
+- **继续扩 `P14-5 Regression / acceptance expansion`，优先补 plane-level snapshot / negative coverage / close-readiness consumption**
 
 ---
 
@@ -238,7 +239,25 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
   - 当前基础验证已通过：
     - `pnpm --filter @sparkcore/web memory:upgrade:harness`
     - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`
-- 下一步最合理的是开始 `P14-5`，把第一版阶段 gate、plane-level consistency 和 drift guard 收起来，而不是继续停留在单线平推阶段
+- `P14-5 Regression / acceptance expansion` 的第一刀当前已经成立：
+  - `apps/web/scripts/memory-upgrade-harness.ts` 已新增 `p14_regression_gate`
+  - 当前 gate 已按三层 acceptance 面输出：
+    - `positive_contracts`
+    - `metadata_consistency`
+    - `drift_guards`
+  - 当前 gate 已锁住：
+    - namespace governance fabric plane v9
+    - retention lifecycle governance fabric plane v12
+    - knowledge governance fabric plane v12
+    - scenario governance fabric plane v12
+    - plane-level metadata consistency v12
+    - plane-level drift guard v12
+    - scenario fabric plane drift guard v12
+  - `apps/web/scripts/memory-upgrade-harness.ts` 当前也已新增 `p14_gate_snapshot`，用于更轻量地消费当前 gate 状态
+  - 当前基础验证已通过：
+    - `pnpm --filter @sparkcore/web memory:upgrade:harness`
+    - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`
+- 下一步最合理的是继续扩 `P14-5`，把 gate snapshot、negative coverage 和 close-readiness 可消费摘要补得更完整，而不是回到单线平推阶段
 
 当前正式收官结论请以
 [memory_upgrade_p13_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p13_close_note_v1.0.md)
