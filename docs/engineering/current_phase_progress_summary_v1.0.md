@@ -1454,11 +1454,11 @@
 
 整体 `P11` 当前大约：
 
-- **`80%`**
+- **`85%`**
 
 当前更推荐的下一步：
 
-- **开始进入 `P11 close-readiness` 前置评估**
+- **开始进入正式的 `P11 close-ready` 判断**
 
 当前更正式的阶段判断请以
 [memory_upgrade_p11_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p11_close_readiness_v1.0.md)
