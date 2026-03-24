@@ -179,16 +179,15 @@
     - `P15-2 Retention governance plane consumption unification` 第一刀已成立
     - `P15-3 Knowledge governance plane consumption unification` 第一刀已成立
     - `P15-4 Scenario governance plane consumption unification` 第一刀已成立
-    - `P15-5 Regression / acceptance continuation` 已进入第三层 `drift_guards`
-    - 当前整体约 `60% - 65%`
+    - `P15-5 Regression / acceptance continuation` 已达到 `close-ready / 可收官`
+    - 当前整体约 `80% - 85%`
 - `P15 close-readiness judgment` 当前已建立：
   - 当前判断请以
     [memory_upgrade_p15_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_close_readiness_v1.0.md)
     为准
   - 当前结论是：
-    - `P15` 已进入 `close-readiness` 判断区间
-    - 但当前还不建议直接写 `P15 close note`
-    - 当前整体更接近 `70% - 75%`
+    - `P15` 已进入 `close-readiness` 判断区间，并已达到 `close-ready / 可收官`
+    - 当前整体更接近 `80% - 85%`
     - `p15_gate_snapshot` 当前已开始直接暴露 `readiness_judgment / progress_range / acceptance_gap_buckets`
 - `P15-1 namespace governance plane contract unification` 当前已开始把 namespace fabric plane 继续推进到 phase snapshot / contract：
   - `resolveNamespaceGovernanceFabricPlanePhaseSnapshot(...)` 当前已把 namespace governance fabric plane 收成 phase snapshot surface
@@ -224,6 +223,13 @@
     - phase snapshot prompt surface v1
     - phase snapshot drift guard v1
     - scenario phase snapshot drift guard v1
+- `P15 close note` 当前已建立：
+  - 当前收官结论请以
+    [memory_upgrade_p15_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_close_note_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P15` 已达到 `close-ready / 可收官`
+    - `P15` 的非阻塞尾项当前已并入统一 backlog
 
 ---
 

@@ -157,24 +157,24 @@ P15 首批必须继续让阶段 gate 跟着主线生长，而不是等 phase-lev
   - 已开始
   - scenario governance plane consumption unification 第一刀已成立
 - `P15-5`
-  - 已开始
-  - gate 已进入第三层 `drift_guards`
+  - 已达到 `close-ready / 可收官`
 
 整体 `P15` 当前大约：
 
-- **`60% - 65%`**
+- **`80% - 85%`**
 
 当前更推荐的下一步：
 
-- **继续把 `P15-5 Regression / acceptance continuation` 从 `drift_guards` 扩到 `close_readiness_consumption / acceptance_gap_classification`，而不是提前写 `P15 close-readiness`**
+- **开始完成 `P15 close note`，并把非阻塞尾项正式归档到统一 backlog**
 
 当前正式 close-readiness 判断请以 [memory_upgrade_p15_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_close_readiness_v1.0.md) 为准：
 
 - 当前结论是：
-  - `P15` 已进入 `close-readiness` 判断区间
-  - 但当前还不建议直接写 `P15 close note`
-  - 当前整体更接近 `70% - 75%`
+  - `P15` 已进入 `close-readiness` 判断区间，并已达到 `close-ready / 可收官`
+  - 当前整体更接近 `80% - 85%`
   - `p15_gate_snapshot` 当前已开始直接暴露 `readiness_judgment / progress_range / acceptance_gap_buckets`
+
+当前正式收官结论请以 [memory_upgrade_p15_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_close_note_v1.0.md) 为准。
 
 ---
 

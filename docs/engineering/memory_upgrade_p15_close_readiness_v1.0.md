@@ -2,7 +2,7 @@
 
 ## 1. 文档定位
 
-本文档用于在 `P15` 已经形成三层 gate 之后，对当前阶段是否已经进入 `close-readiness` 判断区间做一次正式复盘。
+本文档用于在 `P15` 已经形成三层 gate 并开始显式服务 close-readiness consumption 之后，对当前阶段是否已经达到 `close-ready` 做一次正式复盘。
 
 本文档不等于：
 
@@ -13,7 +13,7 @@
 本文档只回答三件事：
 
 1. `P15-1 ~ P15-5` 当前各自推进到什么程度
-2. `P15` 是否已经进入 `close-readiness` 判断区间
+2. `P15` 是否已经达到 `close-ready`
 3. 下一步更应该继续补最后一刀，还是开始准备收官判断
 
 ---
@@ -82,11 +82,11 @@
 
 我现在的判断是：
 
-**`P15` 已进入 `close-readiness` 判断区间，但当前还不建议直接判成 `close-ready / 可收官`。**
+**`P15` 已进入 `close-readiness` 判断区间，并且当前已经满足 `close-ready / 可收官`。**
 
 如果给整体 `P15` 一个阶段进度，我会给：
 
-- **约 `70% - 75%`**
+- **约 `80% - 85%`**
 
 原因是：
 
@@ -99,37 +99,46 @@
   - prompt surface consistency 检查
   - drift guard / scenario drift guard
 
-当前之所以还不直接把 `P15` 判成 `close-ready`，原因是：
+当前之所以现在可以把 `P15` 判成 `close-ready`，原因是：
 
-- 当前 gate 虽然已经三层成立，但还没有把 `close-readiness` 自身的消费面正式收成一层稳定输出
-- 当前 `blocking_items = []` 虽已和 `non_blocking / tail_candidate` 联动，但还没有继续推进到可直接支撑 `close note` 的最终消费面
-- 剩余项已经明显缩小，但“哪些是非阻塞项、哪些应转 tail / 下阶段吸收”还没有写成当前阶段的正式判断输入
+- 当前 gate 虽然仍偏“第一版正式 close-readiness gate”，但它已经：
+  - 覆盖四条 phase snapshot / contract 主线
+  - 覆盖 cross-surface consistency
+  - 覆盖 prompt surface consistency
+  - 覆盖最小 drift guard
+  - 覆盖 readiness judgment / progress range / gap bucket
+- 当前 `blocking_items = []` 已不再只是轻量信号，而已经和：
+  - `non_blocking_items`
+  - `tail_candidate_items`
+  - `acceptance_gap_buckets`
+  形成联动
+- 剩余 acceptance gap 经过当前分类后，已经都可明确降级为非阻塞项
 
 这意味着：
 
 - 当前已经不再缺少 “`P15` 主线是否成立” 的主证据
-- 当前还差的主要不是功能实现，而是阶段判断与文档消费面的最后一层收束
+- 当前还差的主要不是功能实现，而是阶段判断之后的文档收口
 
 所以当前更准确的状态是：
 
 - **已经进入 `close-readiness` 判断区间**
-- **但还不建议直接写 `P15 close note`**
+- **并且当前已经适合正式判成 `close-ready`**
 
 ---
 
 ## 4. 下一步建议
 
-当前更合理的下一步不是立刻写 `P15 close note`，而是：
+当前更合理的下一步不是继续横向扩很多新 gate，而是：
 
-- **继续补 `close-readiness consumption`**
+- **开始准备 `P15 close note`**
 
 更具体地说，下一步更适合：
 
-- 把 `p15_gate_snapshot` 继续推进到：
-  - 更明确的 `acceptance gap` 分类
-  - 更明确的 `blocking / non-blocking` 归因
-  - 更明确的 `tail cleanup / 下阶段吸收` 消费面
-- 在此基础上，再决定是否开始准备：
+- 把剩余 acceptance gap 明确分类为：
+  - 阻塞项
+  - 非阻塞但有价值项
+  - 可转 tail cleanup / 下阶段吸收项
+- 当前这轮分类后，没有新增真实阻塞项，因此下一步更适合开始准备：
   - `P15 close note`
 
 ### 4.1 当前剩余 Acceptance Gap 初步分类
@@ -152,7 +161,7 @@
 这也是为什么我当前把 `P15` 判断为：
 
 - 已进入 `close-readiness` 判断区间
-- 但当前还不适合直接写 `close note`
+- 且当前已经可以写 `close note`
 
 ---
 
@@ -160,9 +169,9 @@
 
 一句话结论：
 
-**`P15` 当前已经进入 `close-readiness` 判断区间，但还未达到 `close-ready`；更合理的是继续补 `close-readiness consumption`，而不是提前写 `P15 close note`。**
+**`P15` 当前已经进入 `close-readiness` 判断区间，并且已经达到 `close-ready`；更合理的是开始写 `P15 close note`。**
 
 更合理的下一步是：
 
-- **继续推进 `P15-5` 的 close-readiness consumption**
+- **开始完成 `P15 close note`**
 - 当前正式阶段判断请以本文档为准
