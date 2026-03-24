@@ -4729,6 +4729,16 @@ function main() {
     stage: "P15-5",
     focus: "regression_acceptance_continuation",
     blocking_items: [] as string[],
+    non_blocking_items: [
+      "close_readiness_consumption_surface",
+      "acceptance_gap_structuring",
+      "close_note_handoff_clarity"
+    ] as const,
+    tail_candidate_items: [
+      "phase_snapshot_negative_coverage_expansion",
+      "gate_output_symmetry_cleanup",
+      "non_blocking_coverage_alignment"
+    ] as const,
     next_expansion_focus: [
       "close_readiness_consumption",
       "acceptance_gap_classification",

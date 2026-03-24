@@ -37,6 +37,8 @@
 当前 `p15_gate_snapshot` 的结果为：
 
 - `blocking_items = []`
+- `non_blocking_items = close_readiness_consumption_surface / acceptance_gap_structuring / close_note_handoff_clarity`
+- `tail_candidate_items = phase_snapshot_negative_coverage_expansion / gate_output_symmetry_cleanup / non_blocking_coverage_alignment`
 - `next_expansion_focus = close_readiness_consumption / acceptance_gap_classification / remaining_acceptance_gaps`
 - `positive_contracts = 4 / 4`
 - `metadata_consistency = 2 / 2`
@@ -111,6 +113,12 @@
 - close-readiness consumption
 - acceptance gap classification
 - remaining acceptance gaps
+
+但当前 snapshot 已经开始把剩余项按消费方向做轻量分类：
+
+- `blocking_items = []`
+- `non_blocking_items`
+- `tail_candidate_items`
 
 因此它当前更像是：
 

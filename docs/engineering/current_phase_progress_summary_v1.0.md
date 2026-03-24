@@ -203,6 +203,9 @@
     [memory_upgrade_p15_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_gate_snapshot_v1.0.md)
     为准
   - 当前 `p15_gate_snapshot`：
+    - `blocking_items = []`
+    - `non_blocking_items` 已开始显式列出
+    - `tail_candidate_items` 已开始显式列出
     - `positive_contracts = 4 / 4`
     - `metadata_consistency = 2 / 2`
     - `drift_guards = 2 / 2`
