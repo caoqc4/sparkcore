@@ -137,7 +137,8 @@
   - 已开始
   - retention close-note persistence payload 第一刀已成立
 - `P22-3`
-  - 待开始
+  - 已开始
+  - knowledge close-note persistence payload 第一刀已成立
 - `P22-4`
   - 待开始
 - `P22-5`
@@ -150,11 +151,11 @@
 
 整体 `P22` 当前大约：
 
-- **`20% - 25%`**
+- **`30% - 35%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P22-3 Knowledge close-note persistence payload v1`，而不是先写 `P22 close-readiness`**
+- **继续做 `P22-4 Scenario close-note persistence payload v1`，而不是先写 `P22 close-readiness`**
 
 ---
 

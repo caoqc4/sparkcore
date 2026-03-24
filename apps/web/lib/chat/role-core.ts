@@ -301,6 +301,13 @@ export type RoleCoreMemoryCloseNotePersistencePayload = {
     retained_fields: string[];
     persistence_summary: string;
   };
+  knowledge: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    scope_layers: string[];
+    governance_classes: string[];
+    persistence_summary: string;
+  };
 };
 
 export function getRoleCoreRelationshipStance(
@@ -729,12 +736,12 @@ export function buildRoleCoreMemoryCloseNotePersistencePayload(args: {
     payload_version: "v1",
     source_archive_version: closeNoteArchive.archive_version,
     source_record_version: closeNoteRecord.record_version,
-    readiness_judgment: "namespace_persistence_started_not_close_ready",
-    progress_range: "10% - 15%",
+    readiness_judgment: "knowledge_persistence_started_not_close_ready",
+    progress_range: "30% - 35%",
     close_candidate: closeNoteArchive.close_candidate,
     close_note_recommended: false,
     headline: `${args.roleCorePacket.identity.agent_name} close-note persistence payload`,
-    persistence_summary: `namespace_persistence_started; retention_persistence_started; source_archive = ${closeNoteArchive.archive_version}; readiness = namespace_persistence_started_not_close_ready.`,
+    persistence_summary: `namespace_persistence_started; retention_persistence_started; knowledge_persistence_started; source_archive = ${closeNoteArchive.archive_version}; readiness = knowledge_persistence_started_not_close_ready.`,
     blocking_items: [...blockingItems],
     non_blocking_items: [...nonBlockingItems],
     tail_candidate_items: [...tailCandidateItems],
@@ -753,6 +760,13 @@ export function buildRoleCoreMemoryCloseNotePersistencePayload(args: {
       persistence_summary: closeNoteArchive.retention.phase_snapshot_id
         ? `${closeNoteArchive.retention.phase_snapshot_id}; ${closeNoteArchive.retention.phase_snapshot_summary ?? "none"}; decision_group = ${closeNoteArchive.retention.decision_group ?? "none"}; retained_fields = ${closeNoteArchive.retention.retained_fields.join(", ") || "none"}`
         : "none"
+    },
+    knowledge: {
+      phase_snapshot_id: closeNoteArchive.knowledge.phase_snapshot_id,
+      phase_snapshot_summary: closeNoteArchive.knowledge.phase_snapshot_summary,
+      scope_layers: [...closeNoteArchive.knowledge.scope_layers],
+      governance_classes: [...closeNoteArchive.knowledge.governance_classes],
+      persistence_summary: `${closeNoteArchive.knowledge.phase_snapshot_id}; ${closeNoteArchive.knowledge.phase_snapshot_summary}; scope_layers = ${closeNoteArchive.knowledge.scope_layers.join(", ") || "none"}; governance_classes = ${closeNoteArchive.knowledge.governance_classes.join(", ") || "none"}`
     }
   };
 }

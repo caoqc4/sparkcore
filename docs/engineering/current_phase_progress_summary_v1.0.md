@@ -494,19 +494,20 @@
     - `P22` 的一句话目标是把 `P21 close-note archive contract` 推进成更接近真实 persistence-ready contract 的 `close-note persistence payload`
     - `P22-1` 已开始，namespace close-note persistence payload 第一刀已成立
     - `P22-2` 已开始，retention close-note persistence payload 第一刀已成立
+    - `P22-3` 已开始，knowledge close-note persistence payload 第一刀已成立
     - `P22-5` 已开始，第一版正式 gate 已建立
     - 当前 gate 轻量快照请以
       [memory_upgrade_p22_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p22_gate_snapshot_v1.0.md)
       为准
     - 当前 `p22_gate_snapshot`：
-      - `persistence_contract_readiness = retention_persistence_started_not_close_ready`
-      - `progress_range = 20% - 25%`
-      - `positive_contracts = 2 / 2`
-      - `metadata_consistency = 2 / 2`
-      - `prompt_surface = 2 / 2`
-      - `overall = 6 / 6`
-    - 当前整体约 `20% - 25%`
-    - 当前最推荐的下一步是 `P22-3 Knowledge close-note persistence payload v1`
+      - `persistence_contract_readiness = knowledge_persistence_started_not_close_ready`
+      - `progress_range = 30% - 35%`
+      - `positive_contracts = 3 / 3`
+      - `metadata_consistency = 3 / 3`
+      - `prompt_surface = 3 / 3`
+      - `overall = 9 / 9`
+    - 当前整体约 `30% - 35%`
+    - 当前最推荐的下一步是 `P22-4 Scenario close-note persistence payload v1`
 
 ---
 
