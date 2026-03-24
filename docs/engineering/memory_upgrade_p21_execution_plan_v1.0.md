@@ -152,11 +152,15 @@
 
 整体 `P21` 当前大约：
 
-- **`60% - 65%`**
+- **`75% - 80%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P21 close-readiness judgment` 的前置收束，而不是回头补 archive 主线单点 contract**
+- **继续做 `P21` 的最后一轮 close-readiness 收束，而不是回头补 archive 主线单点 contract**
+
+当前正式阶段判断请以
+[memory_upgrade_p21_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p21_close_readiness_v1.0.md)
+为准。
 
 ---
 

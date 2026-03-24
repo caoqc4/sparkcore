@@ -477,8 +477,11 @@
       - `prompt_surface = 4 / 4`
       - `close_readiness_consumption = 4 / 4`
       - `overall = 16 / 16`
-    - 当前整体约 `60% - 65%`
-    - 当前最推荐的下一步是 `P21 close-readiness judgment`
+    - 当前整体约 `75% - 80%`
+    - 当前最推荐的下一步是 `P21` 的最后一轮 close-readiness 收束
+    - 当前正式阶段判断请以
+      [memory_upgrade_p21_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p21_close_readiness_v1.0.md)
+      为准
 
 ---
 
