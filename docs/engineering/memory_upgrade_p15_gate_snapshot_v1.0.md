@@ -37,9 +37,10 @@
 当前 `p15_gate_snapshot` 的结果为：
 
 - `blocking_items = []`
-- `next_expansion_focus = retention_phase_snapshot / knowledge_phase_snapshot / scenario_phase_snapshot`
+- `next_expansion_focus = phase_snapshot_drift_guard / close_readiness_consumption / acceptance_gap_classification`
 - `positive_contracts = 4 / 4`
-- `overall = 4 / 4`
+- `metadata_consistency = 2 / 2`
+- `overall = 6 / 6`
 - `failed_checks = []`
 - `all_green = true`
 - `close_candidate = true`
@@ -72,19 +73,33 @@
 - runtime debug `memory.pack`
 - scenario prompt surface
 
-### 3.2 当前还没开始锁的面
+### 3.2 Metadata Consistency
+
+当前已经进一步锁住：
+
+- `phase_snapshot_metadata_consistency_v1_ok`
+- `phase_snapshot_prompt_surface_v1_ok`
+
+这意味着 phase snapshot 不只是各自成立，还已经开始跨以下输出面对齐：
+
+- runtime debug
+- runtime write preview
+- assistant metadata / preview consumption
+- scenario prompt surface
+- knowledge system prompt surface
+- thread compaction prompt surface
+
+### 3.3 当前还没开始锁的面
 
 当前这份 gate 还没有正式锁住：
 
-- retention phase snapshot consumption
-- knowledge phase snapshot consumption
-- scenario phase snapshot consumption
-- phase-level metadata consistency
 - phase-level drift guard
+- close-readiness consumption
+- acceptance gap classification
 
 因此它当前更像是：
 
-**`P15` gate 的第一版骨架，而不是完整 acceptance gate。**
+**`P15` gate 的第二层骨架，而不是完整 acceptance gate。**
 
 ---
 
@@ -92,13 +107,14 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P15-5` 已经开始，但当前价值主要在于“给下一批 phase snapshot contract 一个统一挂载点”，而不是立即提供 close-readiness 级判断。**
+**`P15-5` 已经从“第一版 gate 雏形”推进到“第二层 gate 已开始成形”，但当前价值仍主要在于继续把 phase snapshot contract 收成稳定 acceptance 面，而不是立即提供 close-readiness 级判断。**
 
 当前已经成立的是：
 
 - `P15` 不再停留在纯文档规划
-- namespace 已有第一条 phase snapshot / contract 级成立证明
-- 后续 retention / knowledge / scenario 可以直接沿用同一类 gate 结构继续长
+- namespace / retention / knowledge / scenario 四条主线都已有第一刀成立证明
+- `positive_contracts` 之后的 `metadata_consistency` 已开始成形
+- 后续 drift guard 可以直接沿用同一类 gate 结构继续长
 
 当前还不适合直接把它理解成：
 
@@ -115,10 +131,9 @@
 
 更具体地说，下一步更适合继续补：
 
-- retention phase snapshot consumption
-- knowledge phase snapshot consumption
-- scenario phase snapshot consumption
-- `positive_contracts` 之后的 `metadata_consistency`
+- phase-level drift guard
+- close-readiness consumption
+- acceptance gap classification
 
 ---
 
@@ -126,4 +141,4 @@
 
 一句话结论：
 
-**`P15` 当前已经拥有一版全绿、可继续扩张的 gate 雏形；它已经足够支撑后续 phase snapshot contract 按同一结构继续生长，但还不适合提前进入收官判断。**
+**`P15` 当前已经拥有一版全绿、并进入第二层结构化扩张的 gate；它已经足够支撑后续 drift guard / readiness consumption 按同一结构继续生长，但还不适合提前进入收官判断。**

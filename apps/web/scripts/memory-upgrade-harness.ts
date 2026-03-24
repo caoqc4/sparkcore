@@ -4536,6 +4536,46 @@ function main() {
         "Current governance fabric plane = project_delivery_governance_fabric_plane; strategy governance fabric plane = project_delivery_strategy_governance_fabric_plane; fabric plane mode = execution_runtime_governance_fabric_plane; fabric plane reuse = execution_runtime_governance_fabric_plane_reuse."
       )
   } as const;
+  const p15MetadataConsistencyChecks = {
+    phase_snapshot_metadata_consistency_v1_ok:
+      runtimeDebugMetadata.memory_namespace?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_id ===
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      runtimeDebugMetadata.thread_compaction?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_id ===
+        compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      runtimeDebugMetadata.knowledge.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_id ===
+        knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      runtimeDebugPack?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_id ===
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      runtimeDebugMetadata.memory_namespace?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_consumption_mode ===
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode &&
+      runtimeDebugMetadata.thread_compaction?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_consumption_mode ===
+        compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode &&
+      runtimeDebugMetadata.knowledge.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_consumption_mode ===
+        knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode &&
+      runtimeDebugPack?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_consumption_mode ===
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode,
+    phase_snapshot_prompt_surface_v1_ok:
+      systemPrompt.includes(
+        "Current governance fabric plane = authoritative_governance_fabric_plane; budget/source governance fabric plane = authoritative_budget_source_governance_fabric_plane; fabric plane mode = authoritative_runtime_governance_fabric_plane; fabric plane reuse = authoritative_runtime_governance_fabric_plane_reuse."
+      ) &&
+      systemPrompt.includes(
+        "Lifecycle governance fabric plane: anchor_preservation_governance_fabric_plane."
+      ) &&
+      systemPrompt.includes(
+        "Keep/drop governance fabric plane: anchor_keep_governance_fabric_plane."
+      ) &&
+      scenarioMemoryPackPrompt.includes(
+        "Current governance fabric plane = project_delivery_governance_fabric_plane; strategy governance fabric plane = project_delivery_strategy_governance_fabric_plane; fabric plane mode = execution_runtime_governance_fabric_plane; fabric plane reuse = execution_runtime_governance_fabric_plane_reuse."
+      )
+  } as const;
   const p15PositiveContracts = summarizeGate(
     {
       ...p15NamespaceGovernancePlaneContractChecks,
@@ -4544,15 +4584,18 @@ function main() {
       ...p15ScenarioGovernancePlaneConsumptionChecks
     }
   );
+  const p15MetadataConsistency = summarizeGate(p15MetadataConsistencyChecks);
   const p15RegressionGateChecks = {
     ...p15NamespaceGovernancePlaneContractChecks,
     ...p15RetentionGovernancePlaneConsumptionChecks,
     ...p15KnowledgeGovernancePlaneConsumptionChecks,
-    ...p15ScenarioGovernancePlaneConsumptionChecks
+    ...p15ScenarioGovernancePlaneConsumptionChecks,
+    ...p15MetadataConsistencyChecks
   } as const;
   const p15RegressionGateSummary = summarizeGate(p15RegressionGateChecks);
   const p15RegressionGate = {
     positive_contracts: p15PositiveContracts,
+    metadata_consistency: p15MetadataConsistency,
     ...p15RegressionGateSummary
   } as const;
   const p15GateSnapshot = {
@@ -4561,14 +4604,19 @@ function main() {
     focus: "regression_acceptance_continuation",
     blocking_items: [] as string[],
     next_expansion_focus: [
-      "retention_phase_snapshot",
-      "knowledge_phase_snapshot",
-      "scenario_phase_snapshot"
+      "phase_snapshot_drift_guard",
+      "close_readiness_consumption",
+      "acceptance_gap_classification"
     ] as const,
     positive_contracts: {
       checks_passed: p15PositiveContracts.checks_passed,
       checks_total: p15PositiveContracts.checks_total,
       all_green: p15PositiveContracts.all_green
+    },
+    metadata_consistency: {
+      checks_passed: p15MetadataConsistency.checks_passed,
+      checks_total: p15MetadataConsistency.checks_total,
+      all_green: p15MetadataConsistency.all_green
     },
     overall: {
       checks_passed: p15RegressionGate.checks_passed,
