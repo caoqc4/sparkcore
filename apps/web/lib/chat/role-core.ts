@@ -254,6 +254,13 @@ export type RoleCoreMemoryCloseNoteArchive = {
     retained_fields: string[];
     archive_summary: string;
   };
+  knowledge: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    scope_layers: string[];
+    governance_classes: string[];
+    archive_summary: string;
+  };
 };
 
 export function getRoleCoreRelationshipStance(
@@ -612,6 +619,13 @@ export function buildRoleCoreMemoryCloseNoteArchive(args: {
       archive_summary: closeNoteRecord.retention.phase_snapshot_id
         ? `${closeNoteRecord.retention.phase_snapshot_id}; ${closeNoteRecord.retention.phase_snapshot_summary ?? "none"}; decision_group = ${closeNoteRecord.retention.decision_group ?? "none"}; retained_fields = ${closeNoteRecord.retention.retained_fields.join(", ") || "none"}`
         : "none"
+    },
+    knowledge: {
+      phase_snapshot_id: closeNoteRecord.knowledge.phase_snapshot_id,
+      phase_snapshot_summary: closeNoteRecord.knowledge.phase_snapshot_summary,
+      scope_layers: [...closeNoteRecord.knowledge.scope_layers],
+      governance_classes: [...closeNoteRecord.knowledge.governance_classes],
+      archive_summary: `${closeNoteRecord.knowledge.phase_snapshot_id}; ${closeNoteRecord.knowledge.phase_snapshot_summary}; scope_layers = ${closeNoteRecord.knowledge.scope_layers.join(", ") || "none"}; governance_classes = ${closeNoteRecord.knowledge.governance_classes.join(", ") || "none"}`
     }
   };
 }
