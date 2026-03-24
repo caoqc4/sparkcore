@@ -270,6 +270,32 @@ export type RoleCoreMemoryCloseNoteArchive = {
   };
 };
 
+export type RoleCoreMemoryCloseNotePersistencePayload = {
+  payload_version: "v1";
+  source_archive_version: RoleCoreMemoryCloseNoteArchive["archive_version"];
+  source_record_version: RoleCoreMemoryCloseNoteRecord["record_version"];
+  readiness_judgment: string;
+  progress_range: string;
+  close_candidate: boolean;
+  close_note_recommended: boolean;
+  headline: string;
+  persistence_summary: string;
+  blocking_items: string[];
+  non_blocking_items: string[];
+  tail_candidate_items: string[];
+  acceptance_gap_buckets: {
+    blocking: number;
+    non_blocking: number;
+    tail_candidate: number;
+  };
+  next_expansion_focus: string[];
+  namespace: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    persistence_summary: string;
+  };
+};
+
 export function getRoleCoreRelationshipStance(
   relationshipRecall: {
     addressStyleMemory: {
@@ -658,6 +684,59 @@ export function buildRoleCoreMemoryCloseNoteArchive(args: {
       strategy_bundle_id: closeNoteRecord.scenario.strategy_bundle_id,
       orchestration_mode: closeNoteRecord.scenario.orchestration_mode,
       archive_summary: `${closeNoteRecord.scenario.phase_snapshot_id}; ${closeNoteRecord.scenario.phase_snapshot_summary}; strategy_bundle = ${closeNoteRecord.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNoteRecord.scenario.orchestration_mode ?? "none"}`
+    }
+  };
+}
+
+export function buildRoleCoreMemoryCloseNotePersistencePayload(args: {
+  roleCorePacket: RoleCorePacket;
+  closeNoteArchive: RoleCoreMemoryCloseNoteArchive | null;
+  closeNoteRecord: RoleCoreMemoryCloseNoteRecord | null;
+}): RoleCoreMemoryCloseNotePersistencePayload | null {
+  const closeNoteArchive = args.closeNoteArchive;
+  const closeNoteRecord = args.closeNoteRecord;
+
+  if (!closeNoteArchive || !closeNoteRecord) {
+    return null;
+  }
+
+  const blockingItems: string[] = [];
+  const nonBlockingItems = [
+    "persistence_regression_gate_layering",
+    "close_readiness_persistence_consumption",
+    "remaining_persistence_acceptance_gaps"
+  ];
+  const tailCandidateItems = [
+    "persistence_surface_symmetry_cleanup",
+    "non_blocking_persistence_negative_coverage",
+    "archive_to_persistence_alignment_cleanup"
+  ];
+  const acceptanceGapBuckets = {
+    blocking: blockingItems.length,
+    non_blocking: nonBlockingItems.length,
+    tail_candidate: tailCandidateItems.length
+  } as const;
+  const nextExpansionFocus = [...nonBlockingItems];
+
+  return {
+    payload_version: "v1",
+    source_archive_version: closeNoteArchive.archive_version,
+    source_record_version: closeNoteRecord.record_version,
+    readiness_judgment: "namespace_persistence_started_not_close_ready",
+    progress_range: "10% - 15%",
+    close_candidate: closeNoteArchive.close_candidate,
+    close_note_recommended: false,
+    headline: `${args.roleCorePacket.identity.agent_name} close-note persistence payload`,
+    persistence_summary: `namespace_persistence_started; source_archive = ${closeNoteArchive.archive_version}; readiness = namespace_persistence_started_not_close_ready.`,
+    blocking_items: [...blockingItems],
+    non_blocking_items: [...nonBlockingItems],
+    tail_candidate_items: [...tailCandidateItems],
+    acceptance_gap_buckets: { ...acceptanceGapBuckets },
+    next_expansion_focus: nextExpansionFocus,
+    namespace: {
+      phase_snapshot_id: closeNoteArchive.namespace.phase_snapshot_id,
+      phase_snapshot_summary: closeNoteArchive.namespace.phase_snapshot_summary,
+      persistence_summary: `${closeNoteArchive.namespace.phase_snapshot_id}; ${closeNoteArchive.namespace.phase_snapshot_summary}; archive_headline = ${closeNoteArchive.headline}`
     }
   };
 }
