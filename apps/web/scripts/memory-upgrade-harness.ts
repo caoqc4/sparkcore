@@ -81,6 +81,10 @@ import {
   getAssistantMemoryNamespaceUnifiedGovernanceRuntimeSummary,
   getAssistantMemoryNamespaceUnifiedRuntimeAlignmentMode,
   getAssistantMemoryNamespaceUnifiedRuntimeReuseMode,
+  getAssistantMemoryNamespaceGovernancePlaneRuntimeDigestId,
+  getAssistantMemoryNamespaceGovernancePlaneRuntimeSummary,
+  getAssistantMemoryNamespaceGovernancePlaneAlignmentMode,
+  getAssistantMemoryNamespaceGovernancePlaneReuseMode,
   getAssistantMemoryNamespaceRetrievalFallbackMode,
   getAssistantMemoryNamespaceRouteGovernanceMode,
   getAssistantMemoryNamespaceGovernanceConsistencyMode,
@@ -133,6 +137,7 @@ import {
   buildMemoryNamespaceScopedMetadata,
   isMemoryWithinNamespace,
   type ActiveRuntimeMemoryNamespace,
+  resolveNamespaceGovernancePlaneRuntimeContract,
   resolveNamespaceGovernanceConsolidationContract,
   resolveNamespaceUnifiedGovernanceConsolidationContract,
   resolveActiveMemoryNamespace,
@@ -3033,6 +3038,59 @@ function main() {
     resolveNamespaceUnifiedGovernanceConsolidationContract(
       projectPrimaryNamespace
     );
+  const projectGovernancePlaneContract =
+    resolveNamespaceGovernancePlaneRuntimeContract(projectPrimaryNamespace);
+  const p12NamespaceGovernancePlaneChecks = {
+    namespace_governance_plane_runtime_v7_ok:
+      projectBoundary.governance_plane_runtime_digest_id ===
+        "project_coordination_governance_plane" &&
+      projectBoundary.governance_plane_runtime_summary ===
+        "project_coordination_governance_plane_runtime" &&
+      projectBoundary.governance_plane_alignment_mode ===
+        "project_plane_aligned" &&
+      projectBoundary.governance_plane_reuse_mode ===
+        "project_coordination_governance_plane_reuse" &&
+      projectGovernancePlaneContract.governance_plane_runtime_digest_id ===
+        projectBoundary.governance_plane_runtime_digest_id &&
+      projectGovernancePlaneContract.governance_plane_runtime_summary ===
+        projectBoundary.governance_plane_runtime_summary &&
+      projectGovernancePlaneContract.governance_plane_alignment_mode ===
+        projectBoundary.governance_plane_alignment_mode &&
+      projectGovernancePlaneContract.governance_plane_reuse_mode ===
+        projectBoundary.governance_plane_reuse_mode &&
+      getAssistantMemoryNamespaceGovernancePlaneRuntimeDigestId(
+        assistantMetadata
+      ) === projectBoundary.governance_plane_runtime_digest_id &&
+      getAssistantMemoryNamespaceGovernancePlaneRuntimeSummary(
+        assistantMetadata
+      ) === projectBoundary.governance_plane_runtime_summary &&
+      getAssistantMemoryNamespaceGovernancePlaneAlignmentMode(
+        assistantMetadata
+      ) === projectBoundary.governance_plane_alignment_mode &&
+      getAssistantMemoryNamespaceGovernancePlaneReuseMode(
+        assistantMetadata
+      ) === projectBoundary.governance_plane_reuse_mode &&
+      runtimeDebugMetadata.memory_namespace?.governance_plane_runtime_digest_id ===
+        projectBoundary.governance_plane_runtime_digest_id &&
+      runtimeDebugMetadata.memory_namespace?.governance_plane_runtime_summary ===
+        projectBoundary.governance_plane_runtime_summary &&
+      runtimeDebugMetadata.memory_namespace?.governance_plane_alignment_mode ===
+        projectBoundary.governance_plane_alignment_mode &&
+      runtimeDebugMetadata.memory_namespace?.governance_plane_reuse_mode ===
+        projectBoundary.governance_plane_reuse_mode &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_plane_runtime_digest_id ===
+        projectBoundary.governance_plane_runtime_digest_id &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_plane_runtime_summary ===
+        projectBoundary.governance_plane_runtime_summary &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_plane_alignment_mode ===
+        projectBoundary.governance_plane_alignment_mode &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_plane_reuse_mode ===
+        projectBoundary.governance_plane_reuse_mode
+  } as const;
   const p11NamespaceUnifiedConsolidationChecks = {
     namespace_unified_governance_consolidation_v6_ok:
       projectBoundary.unified_governance_consolidation_digest_id ===
@@ -3534,7 +3592,15 @@ function main() {
             project_unified_consolidation_coordination_summary:
               projectUnifiedConsolidationContract.unified_consolidation_coordination_summary,
             project_unified_consolidation_consistency_mode:
-              projectUnifiedConsolidationContract.unified_consolidation_consistency_mode
+              projectUnifiedConsolidationContract.unified_consolidation_consistency_mode,
+            project_governance_plane_digest:
+              projectGovernancePlaneContract.governance_plane_runtime_digest_id,
+            project_governance_plane_summary:
+              projectGovernancePlaneContract.governance_plane_runtime_summary,
+            project_governance_plane_alignment_mode:
+              projectGovernancePlaneContract.governance_plane_alignment_mode,
+            project_governance_plane_reuse_mode:
+              projectGovernancePlaneContract.governance_plane_reuse_mode
           }
         },
         runtime_semantic_summary: semanticSummary,
@@ -3836,6 +3902,22 @@ function main() {
             getAssistantMemoryNamespaceUnifiedRuntimeAlignmentMode(
               assistantMetadata
             ),
+          governance_plane_runtime_digest_id:
+            getAssistantMemoryNamespaceGovernancePlaneRuntimeDigestId(
+              assistantMetadata
+            ),
+          governance_plane_runtime_summary:
+            getAssistantMemoryNamespaceGovernancePlaneRuntimeSummary(
+              assistantMetadata
+            ),
+          governance_plane_alignment_mode:
+            getAssistantMemoryNamespaceGovernancePlaneAlignmentMode(
+              assistantMetadata
+            ),
+          governance_plane_reuse_mode:
+            getAssistantMemoryNamespaceGovernancePlaneReuseMode(
+              assistantMetadata
+            ),
           retrieval_write_digest_alignment:
             getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
               assistantMetadata
@@ -3975,6 +4057,18 @@ function main() {
           namespace_unified_runtime_alignment_mode:
             runtimeDebugMetadata.memory_namespace?.unified_runtime_alignment_mode ??
             null,
+          namespace_governance_plane_runtime_digest_id:
+            runtimeDebugMetadata.memory_namespace
+              ?.governance_plane_runtime_digest_id ?? null,
+          namespace_governance_plane_runtime_summary:
+            runtimeDebugMetadata.memory_namespace
+              ?.governance_plane_runtime_summary ?? null,
+          namespace_governance_plane_alignment_mode:
+            runtimeDebugMetadata.memory_namespace
+              ?.governance_plane_alignment_mode ?? null,
+          namespace_governance_plane_reuse_mode:
+            runtimeDebugMetadata.memory_namespace
+              ?.governance_plane_reuse_mode ?? null,
           namespace_retrieval_write_digest_alignment:
             runtimeDebugMetadata.memory_namespace?.retrieval_write_digest_alignment ??
             null
@@ -4153,6 +4247,7 @@ function main() {
         p10_namespace_consolidation: p10NamespaceConsolidationChecks,
         p11_namespace_unified_consolidation:
           p11NamespaceUnifiedConsolidationChecks,
+        p12_namespace_governance_plane: p12NamespaceGovernancePlaneChecks,
         p10_retention_consolidation: p10RetentionConsolidationChecks,
         p11_retention_coordination: p11RetentionCoordinationChecks,
         p11_knowledge_coordination: p11KnowledgeCoordinationChecks,

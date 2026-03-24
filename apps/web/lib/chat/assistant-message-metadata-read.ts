@@ -1063,6 +1063,74 @@ export function getAssistantMemoryNamespaceUnifiedConsolidationConsistencyMode(
   );
 }
 
+export function getAssistantMemoryNamespaceGovernancePlaneRuntimeDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_plane_runtime_digest_id"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_plane_runtime_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernancePlaneRuntimeSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_plane_runtime_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_plane_runtime_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernancePlaneAlignmentMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_plane_alignment_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_plane_alignment_mode"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernancePlaneReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_plane_reuse_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_plane_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
   metadata: Record<string, unknown> | null | undefined
 ) {

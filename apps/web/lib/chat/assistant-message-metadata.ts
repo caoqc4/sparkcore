@@ -120,6 +120,10 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   active_memory_namespace_unified_consolidation_reuse_mode?: string | null;
   active_memory_namespace_unified_consolidation_coordination_summary?: string | null;
   active_memory_namespace_unified_consolidation_consistency_mode?: string | null;
+  active_memory_namespace_governance_plane_runtime_digest_id?: string | null;
+  active_memory_namespace_governance_plane_runtime_summary?: string | null;
+  active_memory_namespace_governance_plane_alignment_mode?: string | null;
+  active_memory_namespace_governance_plane_reuse_mode?: string | null;
   active_memory_namespace_retrieval_write_digest_alignment?: string | null;
   compacted_thread_summary_id?: string | null;
   compacted_thread_summary_text?: string | null;
@@ -278,6 +282,10 @@ export type BuildAssistantMessageMetadataInput = {
   active_memory_namespace_unified_consolidation_reuse_mode?: string | null;
   active_memory_namespace_unified_consolidation_coordination_summary?: string | null;
   active_memory_namespace_unified_consolidation_consistency_mode?: string | null;
+  active_memory_namespace_governance_plane_runtime_digest_id?: string | null;
+  active_memory_namespace_governance_plane_runtime_summary?: string | null;
+  active_memory_namespace_governance_plane_alignment_mode?: string | null;
+  active_memory_namespace_governance_plane_reuse_mode?: string | null;
   active_memory_namespace_retrieval_write_digest_alignment?: string | null;
   compacted_thread_summary_id?: string | null;
   compacted_thread_summary_text?: string | null;
@@ -551,6 +559,17 @@ export function buildAssistantMetadataSummaryGroups(
           unified_consolidation_consistency_mode:
             input.active_memory_namespace_unified_consolidation_consistency_mode ??
             null,
+          governance_plane_runtime_digest_id:
+            input.active_memory_namespace_governance_plane_runtime_digest_id ??
+            null,
+          governance_plane_runtime_summary:
+            input.active_memory_namespace_governance_plane_runtime_summary ??
+            null,
+          governance_plane_alignment_mode:
+            input.active_memory_namespace_governance_plane_alignment_mode ??
+            null,
+          governance_plane_reuse_mode:
+            input.active_memory_namespace_governance_plane_reuse_mode ?? null,
           retrieval_write_digest_alignment:
             input.active_memory_namespace_retrieval_write_digest_alignment ??
             null
@@ -788,6 +807,14 @@ export function buildAssistantMetadataSummaryGroups(
         input.active_memory_namespace_unified_consolidation_coordination_summary,
       active_memory_namespace_unified_consolidation_consistency_mode:
         input.active_memory_namespace_unified_consolidation_consistency_mode,
+      active_memory_namespace_governance_plane_runtime_digest_id:
+        input.active_memory_namespace_governance_plane_runtime_digest_id,
+      active_memory_namespace_governance_plane_runtime_summary:
+        input.active_memory_namespace_governance_plane_runtime_summary,
+      active_memory_namespace_governance_plane_alignment_mode:
+        input.active_memory_namespace_governance_plane_alignment_mode,
+      active_memory_namespace_governance_plane_reuse_mode:
+        input.active_memory_namespace_governance_plane_reuse_mode,
       active_memory_namespace_retrieval_write_digest_alignment:
         input.active_memory_namespace_retrieval_write_digest_alignment,
       compacted_thread_summary_id: input.compacted_thread_summary_id,

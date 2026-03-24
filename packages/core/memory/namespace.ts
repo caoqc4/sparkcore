@@ -53,6 +53,12 @@ export type MemoryNamespaceUnifiedGovernanceConsolidationDigestId =
   | "world_reference_unified_governance_consolidation"
   | "default_memory_unified_governance_consolidation";
 
+export type MemoryNamespaceGovernancePlaneRuntimeDigestId =
+  | "thread_focus_governance_plane"
+  | "project_coordination_governance_plane"
+  | "world_reference_governance_plane"
+  | "default_memory_governance_plane";
+
 function getPrimaryNamespaceLayer(
   layers: MemoryNamespaceLayer[]
 ): MemoryNamespaceLayer {

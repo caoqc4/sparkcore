@@ -208,6 +208,18 @@ export function buildRuntimeDebugMetadata(
           unified_consolidation_consistency_mode: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).unified_consolidation_consistency_mode,
+          governance_plane_runtime_digest_id: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_plane_runtime_digest_id,
+          governance_plane_runtime_summary: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_plane_runtime_summary,
+          governance_plane_alignment_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_plane_alignment_mode,
+          governance_plane_reuse_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_plane_reuse_mode,
           retrieval_write_digest_alignment: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).retrieval_write_digest_alignment,

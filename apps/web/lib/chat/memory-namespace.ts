@@ -7,6 +7,7 @@ import {
   type ActiveMemoryNamespace,
   type MemoryNamespaceGovernanceConsolidationDigestId,
   type MemoryNamespaceGovernanceConvergenceDigestId,
+  type MemoryNamespaceGovernancePlaneRuntimeDigestId,
   type MemoryNamespaceLayer,
   type MemoryNamespacePolicyDigestId,
   type MemoryNamespacePolicyBundleId,
@@ -107,6 +108,22 @@ export type RuntimeMemoryBoundary = {
     | "project_unified_consistent"
     | "world_unified_consistent"
     | "default_unified_consistent";
+  governance_plane_runtime_digest_id: MemoryNamespaceGovernancePlaneRuntimeDigestId;
+  governance_plane_runtime_summary:
+    | "thread_focus_governance_plane_runtime"
+    | "project_coordination_governance_plane_runtime"
+    | "world_reference_governance_plane_runtime"
+    | "default_memory_governance_plane_runtime";
+  governance_plane_alignment_mode:
+    | "thread_plane_aligned"
+    | "project_plane_aligned"
+    | "world_plane_aligned"
+    | "default_plane_aligned";
+  governance_plane_reuse_mode:
+    | "thread_focus_governance_plane_reuse"
+    | "project_coordination_governance_plane_reuse"
+    | "world_reference_governance_plane_reuse"
+    | "default_memory_governance_plane_reuse";
   retrieval_write_digest_alignment:
     | "thread_strict_outward_aligned"
     | "project_parallel_balanced_aligned"
@@ -213,6 +230,9 @@ export function buildMemoryNamespacePromptSection(args: {
       ? `当前 unified consolidation coordination：${boundary.unified_consolidation_coordination_summary}；consistency = ${boundary.unified_consolidation_consistency_mode}。`
       : `Current unified consolidation coordination: ${boundary.unified_consolidation_coordination_summary}; consistency = ${boundary.unified_consolidation_consistency_mode}.`,
     isZh
+      ? `当前 governance plane runtime：${boundary.governance_plane_runtime_digest_id}；summary = ${boundary.governance_plane_runtime_summary}；alignment = ${boundary.governance_plane_alignment_mode}；reuse = ${boundary.governance_plane_reuse_mode}。`
+      : `Current governance plane runtime: ${boundary.governance_plane_runtime_digest_id}; summary = ${boundary.governance_plane_runtime_summary}; alignment = ${boundary.governance_plane_alignment_mode}; reuse = ${boundary.governance_plane_reuse_mode}.`,
+    isZh
       ? `当前 coordination 摘要：${boundary.policy_coordination_summary}；consistency = ${boundary.governance_consistency_mode}。`
       : `Current coordination summary: ${boundary.policy_coordination_summary}; consistency = ${boundary.governance_consistency_mode}.`,
     isZh
@@ -275,6 +295,13 @@ export function buildMemoryNamespaceSummary(args: {
       boundary.unified_consolidation_coordination_summary,
     unified_consolidation_consistency_mode:
       boundary.unified_consolidation_consistency_mode,
+    governance_plane_runtime_digest_id:
+      boundary.governance_plane_runtime_digest_id,
+    governance_plane_runtime_summary:
+      boundary.governance_plane_runtime_summary,
+    governance_plane_alignment_mode:
+      boundary.governance_plane_alignment_mode,
+    governance_plane_reuse_mode: boundary.governance_plane_reuse_mode,
     retrieval_write_digest_alignment:
       boundary.retrieval_write_digest_alignment
   };
@@ -336,6 +363,24 @@ export function resolveNamespaceUnifiedGovernanceConsolidationContract(
   };
 }
 
+export function resolveNamespaceGovernancePlaneRuntimeContract(
+  namespace: ActiveRuntimeMemoryNamespace | null | undefined
+) {
+  const boundary = resolveRuntimeMemoryBoundary(namespace);
+
+  return {
+    governance_plane_runtime_digest_id:
+      boundary.governance_plane_runtime_digest_id,
+    governance_plane_runtime_summary:
+      boundary.governance_plane_runtime_summary,
+    governance_plane_alignment_mode:
+      boundary.governance_plane_alignment_mode,
+    governance_plane_reuse_mode: boundary.governance_plane_reuse_mode,
+    plane_retrieval_routes: boundary.retrieval_route_order,
+    plane_write_fallback_order: boundary.write_fallback_order
+  };
+}
+
 export function resolveRuntimeMemoryBoundary(
   namespace: ActiveRuntimeMemoryNamespace | null | undefined
 ): RuntimeMemoryBoundary {
@@ -374,6 +419,13 @@ export function resolveRuntimeMemoryBoundary(
         unified_consolidation_coordination_summary:
           "thread_focus_unified_coordination",
         unified_consolidation_consistency_mode: "thread_unified_consistent",
+        governance_plane_runtime_digest_id:
+          "thread_focus_governance_plane",
+        governance_plane_runtime_summary:
+          "thread_focus_governance_plane_runtime",
+        governance_plane_alignment_mode: "thread_plane_aligned",
+        governance_plane_reuse_mode:
+          "thread_focus_governance_plane_reuse",
         retrieval_write_digest_alignment: "thread_strict_outward_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode"],
         write_fallback_order: ["thread", "project", "world", "default"],
@@ -419,6 +471,13 @@ export function resolveRuntimeMemoryBoundary(
         unified_consolidation_coordination_summary:
           "project_parallel_unified_coordination",
         unified_consolidation_consistency_mode: "project_unified_consistent",
+        governance_plane_runtime_digest_id:
+          "project_coordination_governance_plane",
+        governance_plane_runtime_summary:
+          "project_coordination_governance_plane_runtime",
+        governance_plane_alignment_mode: "project_plane_aligned",
+        governance_plane_reuse_mode:
+          "project_coordination_governance_plane_reuse",
         retrieval_write_digest_alignment:
           "project_parallel_balanced_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
@@ -465,6 +524,13 @@ export function resolveRuntimeMemoryBoundary(
         unified_consolidation_coordination_summary:
           "world_reference_unified_coordination",
         unified_consolidation_consistency_mode: "world_unified_consistent",
+        governance_plane_runtime_digest_id:
+          "world_reference_governance_plane",
+        governance_plane_runtime_summary:
+          "world_reference_governance_plane_runtime",
+        governance_plane_alignment_mode: "world_plane_aligned",
+        governance_plane_reuse_mode:
+          "world_reference_governance_plane_reuse",
         retrieval_write_digest_alignment: "world_reference_pinned_aligned",
         retrieval_route_order: ["thread_state", "profile", "timeline", "episode"],
         write_fallback_order: ["world", "default"],
@@ -508,6 +574,13 @@ export function resolveRuntimeMemoryBoundary(
         unified_consolidation_coordination_summary:
           "default_balanced_unified_coordination",
         unified_consolidation_consistency_mode: "default_unified_consistent",
+        governance_plane_runtime_digest_id:
+          "default_memory_governance_plane",
+        governance_plane_runtime_summary:
+          "default_memory_governance_plane_runtime",
+        governance_plane_alignment_mode: "default_plane_aligned",
+        governance_plane_reuse_mode:
+          "default_memory_governance_plane_reuse",
         retrieval_write_digest_alignment: "default_balanced_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
         write_fallback_order: ["default"],
@@ -574,6 +647,14 @@ export function buildMemoryNamespaceScopedMetadata(args: {
       boundary.unified_consolidation_coordination_summary,
     active_memory_namespace_unified_consolidation_consistency_mode:
       boundary.unified_consolidation_consistency_mode,
+    active_memory_namespace_governance_plane_runtime_digest_id:
+      boundary.governance_plane_runtime_digest_id,
+    active_memory_namespace_governance_plane_runtime_summary:
+      boundary.governance_plane_runtime_summary,
+    active_memory_namespace_governance_plane_alignment_mode:
+      boundary.governance_plane_alignment_mode,
+    active_memory_namespace_governance_plane_reuse_mode:
+      boundary.governance_plane_reuse_mode,
     active_memory_namespace_retrieval_write_digest_alignment:
       boundary.retrieval_write_digest_alignment,
     active_memory_retrieval_boundary: boundary.retrieval_boundary,
