@@ -658,6 +658,37 @@ export function getAssistantThreadSurvivalConsistencyMode(
   );
 }
 
+export function getAssistantKnowledgeGovernanceCoordinationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "governance_coordination_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_governance_coordination_summary"
+    )
+  );
+}
+
+export function getAssistantKnowledgeBudgetCoordinationMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(knowledgeMetadata, "budget_coordination_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_budget_coordination_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryTypesUsed(
   metadata: Record<string, unknown> | null | undefined
 ) {

@@ -1,7 +1,9 @@
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type {
   ActiveMemoryNamespace,
+  KnowledgeBudgetCoordinationMode,
   KnowledgeGovernanceClass,
+  KnowledgeGovernanceCoordinationSummary,
   KnowledgeSnapshot,
   KnowledgeScopeLayer,
   KnowledgeSourceKind,
@@ -25,6 +27,59 @@ export type KnowledgeRouteWeighting = {
   governance_weight: number;
   total_weight: number;
 };
+
+function resolveKnowledgeGovernanceCoordinationSummary(args: {
+  knowledge: RuntimeKnowledgeSnippet[];
+}): KnowledgeGovernanceCoordinationSummary {
+  const counts = {
+    authoritative: args.knowledge.filter(
+      (item) => resolveKnowledgeGovernanceClass(item) === "authoritative"
+    ).length,
+    contextual: args.knowledge.filter(
+      (item) => resolveKnowledgeGovernanceClass(item) === "contextual"
+    ).length,
+    reference: args.knowledge.filter(
+      (item) => resolveKnowledgeGovernanceClass(item) === "reference"
+    ).length
+  };
+
+  if (
+    counts.authoritative > 0 &&
+    counts.authoritative >= counts.contextual &&
+    counts.authoritative >= counts.reference
+  ) {
+    return "authoritative_priority_coordination";
+  }
+
+  if (
+    counts.contextual > 0 &&
+    counts.contextual >= counts.reference
+  ) {
+    return "contextual_balance_coordination";
+  }
+
+  if (counts.reference > 0 && counts.authoritative === 0 && counts.contextual === 0) {
+    return "reference_support_coordination";
+  }
+
+  return "mixed_governance_coordination";
+}
+
+function resolveKnowledgeBudgetCoordinationMode(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeBudgetCoordinationMode {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_budget_priority";
+    case "contextual_balance_coordination":
+      return "contextual_budget_balance";
+    case "reference_support_coordination":
+      return "reference_budget_support";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_budget_balance";
+  }
+}
 
 export function resolveKnowledgeScopeLayer(
   snippet: RuntimeKnowledgeSnippet
@@ -287,6 +342,17 @@ export function buildKnowledgePromptSection(args: {
   }
 
   const isZh = args.replyLanguage === "zh-Hans";
+  const applicableKnowledge = filterKnowledgeByActiveNamespace({
+    knowledge: args.knowledge,
+    namespace: args.activeNamespace
+  });
+  const governanceCoordinationSummary =
+    resolveKnowledgeGovernanceCoordinationSummary({
+      knowledge: applicableKnowledge
+    });
+  const budgetCoordinationMode = resolveKnowledgeBudgetCoordinationMode({
+    coordinationSummary: governanceCoordinationSummary
+  });
   const lines = [
     isZh ? "相关 Knowledge Layer：" : "Relevant Knowledge Layer:",
     ...selectedKnowledge.map((item, index) =>
@@ -305,6 +371,9 @@ export function buildKnowledgePromptSection(args: {
           : `${index + 1}. [${scopeLabel}/${item.source_kind}] ${item.title}: ${item.summary}`;
       }
     ),
+    isZh
+      ? `当前 knowledge governance coordination = ${governanceCoordinationSummary}；budget coordination = ${budgetCoordinationMode}。`
+      : `Current knowledge governance coordination = ${governanceCoordinationSummary}; budget coordination = ${budgetCoordinationMode}.`,
     isZh
       ? args.activePackId === "project_ops"
         ? "把这些内容当作按 project/world/general 分层的外部知识来源；当前 project_ops prompt budget 会优先保留 project/world，并允许在预算内带入一条 general knowledge。不要把它们误写成用户长期偏好或线程即时状态。"
@@ -325,6 +394,13 @@ export function buildKnowledgeSummary(args: {
     knowledge: args.knowledge,
     namespace: args.activeNamespace
   });
+  const governanceCoordinationSummary =
+    resolveKnowledgeGovernanceCoordinationSummary({
+      knowledge: applicableKnowledge
+    });
+  const budgetCoordinationMode = resolveKnowledgeBudgetCoordinationMode({
+    coordinationSummary: governanceCoordinationSummary
+  });
 
   return {
     count: applicableKnowledge.length,
@@ -340,6 +416,8 @@ export function buildKnowledgeSummary(args: {
         applicableKnowledge.map((item) => resolveKnowledgeGovernanceClass(item))
       )
     ),
+    governance_coordination_summary: governanceCoordinationSummary,
+    budget_coordination_mode: budgetCoordinationMode,
     scope_counts: {
       project: applicableKnowledge.filter(
         (item) => resolveKnowledgeScopeLayer(item) === "project"

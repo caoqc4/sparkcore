@@ -1226,7 +1226,7 @@
 - `P7-2`
   - 前中段到中段之间
 - `P7-3`
-  - 待开始
+  - 前中段
 - `P7-4`
   - 待开始
 - `P7-5`
@@ -1234,7 +1234,7 @@
 
 整体 `P7` 当前大约：
 
-- **`30% - 40%`**
+- **`35% - 45%`**
 
 当前更推荐的下一步：
 
@@ -1273,6 +1273,18 @@
     - `anchor_keep_consistent`
   - 这层输出已进入：
     - thread compaction summary text
+    - assistant metadata / reader
+    - runtime debug metadata
+    - harness
+- 当前已成立的 `P7-3` 第一刀事实：
+  - knowledge summary 现在开始显式产出：
+    - `governance_coordination_summary`
+    - `budget_coordination_mode`
+  - 当前最小 coordination / budget 已成立：
+    - `authoritative_priority_coordination`
+    - `authoritative_budget_priority`
+  - 这层输出已进入：
+    - knowledge prompt section
     - assistant metadata / reader
     - runtime debug metadata
     - harness

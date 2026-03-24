@@ -218,6 +218,26 @@ P7 首批要把 knowledge 从：
 
 最小要求：
 
+- 至少一条 knowledge summary 不再只输出 class / weight，而开始输出更明确的 governance coordination
+- 至少一条 prompt / metadata / debug 行为开始复用同一层 governance coordination 输出
+
+当前已成立的第一刀代码事实：
+
+- knowledge summary 现在除了：
+  - `governance_class`
+  - `governance_weight`
+  之外，也会显式产出：
+  - `governance_coordination_summary`
+  - `budget_coordination_mode`
+- 当前最小 coordination / budget 已成立：
+  - `authoritative_priority_coordination`
+  - `authoritative_budget_priority`
+- 这层输出已进入：
+  - knowledge prompt section
+  - assistant metadata / metadata reader
+  - runtime debug metadata
+  - harness
+
 - 至少一条 knowledge 决策不再只输出 class/weight，而开始输出更明确的 governance coordination 字段
 - 至少一条 prompt / route 行为开始复用同一层 governance coordination 输出
 

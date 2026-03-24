@@ -12,6 +12,18 @@ export type KnowledgeGovernanceClass =
   | "contextual"
   | "reference";
 
+export type KnowledgeGovernanceCoordinationSummary =
+  | "authoritative_priority_coordination"
+  | "contextual_balance_coordination"
+  | "reference_support_coordination"
+  | "mixed_governance_coordination";
+
+export type KnowledgeBudgetCoordinationMode =
+  | "authoritative_budget_priority"
+  | "contextual_budget_balance"
+  | "reference_budget_support"
+  | "mixed_budget_balance";
+
 export type KnowledgeResource = {
   resource_id: string;
   scope: MemoryScopeRef;

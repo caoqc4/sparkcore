@@ -20,6 +20,8 @@ import {
   getAssistantMemoryObservedSemanticLayers,
   getAssistantCompactedThreadSummaryText,
   getAssistantKnowledgeCount,
+  getAssistantKnowledgeBudgetCoordinationMode,
+  getAssistantKnowledgeGovernanceCoordinationSummary,
   getAssistantKnowledgeScopeLayers,
   getAssistantThreadCrossLayerSurvivalMode,
   getAssistantThreadKeepDropGovernanceSummary,
@@ -2006,13 +2008,28 @@ function main() {
         generalKnowledgeWeight.governance_weight &&
       knowledgeSummary.governance_classes.join(",") ===
         "authoritative,contextual,reference" &&
+      knowledgeSummary.governance_coordination_summary ===
+        "authoritative_priority_coordination" &&
+      knowledgeSummary.budget_coordination_mode ===
+        "authoritative_budget_priority" &&
       runtimeDebugMetadata.knowledge.governance_classes?.join(",") ===
         "authoritative,contextual,reference" &&
+      runtimeDebugMetadata.knowledge.governance_coordination_summary ===
+        "authoritative_priority_coordination" &&
+      runtimeDebugMetadata.knowledge.budget_coordination_mode ===
+        "authoritative_budget_priority" &&
+      getAssistantKnowledgeGovernanceCoordinationSummary(assistantMetadata) ===
+        "authoritative_priority_coordination" &&
+      getAssistantKnowledgeBudgetCoordinationMode(assistantMetadata) ===
+        "authoritative_budget_priority" &&
       scenarioMemoryPack.governance_route_bias === "authoritative" &&
       scenarioMemoryPack.knowledge_budget_weight === 0.95 &&
       getAssistantMemoryScenarioPackGovernanceRouteBias(
         assistantMetadata
       ) === scenarioMemoryPack.governance_route_bias &&
+      systemPrompt.includes(
+        "Current knowledge governance coordination = authoritative_priority_coordination; budget coordination = authoritative_budget_priority."
+      ) &&
       systemPrompt.includes(
         "Current governance route bias = authoritative."
       ),
@@ -2197,7 +2214,13 @@ function main() {
           scope_layers: getAssistantKnowledgeScopeLayers(assistantMetadata),
           governance_classes:
             (assistantMetadata?.knowledge as { governance_classes?: string[] } | undefined)
-              ?.governance_classes ?? []
+              ?.governance_classes ?? [],
+          governance_coordination_summary:
+            getAssistantKnowledgeGovernanceCoordinationSummary(
+              assistantMetadata
+            ),
+          budget_coordination_mode:
+            getAssistantKnowledgeBudgetCoordinationMode(assistantMetadata)
         },
         filtered_knowledge_summary: knowledgeSummary,
         assistant_metadata_thread_compaction: {

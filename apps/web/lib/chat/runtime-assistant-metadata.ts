@@ -14,6 +14,7 @@ import {
   type ActiveScenarioMemoryPack
 } from "@/lib/chat/memory-packs";
 import {
+  buildKnowledgeSummary,
   resolveKnowledgeGovernanceClass,
   resolveKnowledgeScopeLayer,
   type RuntimeKnowledgeSnippet
@@ -109,6 +110,10 @@ export function buildRuntimeAssistantMetadataInput(
   const namespaceBoundary = input.namespace.active_namespace
     ? resolveRuntimeMemoryBoundary(input.namespace.active_namespace)
     : null;
+  const knowledgeSummary = buildKnowledgeSummary({
+    knowledge: input.knowledge.snippets,
+    activeNamespace: input.namespace.active_namespace ?? null
+  });
 
   return {
     agent_id: input.agent.id,
@@ -187,21 +192,15 @@ export function buildRuntimeAssistantMetadataInput(
       scenarioPackStrategy?.assembly_layer_order ?? [],
     hidden_memory_exclusion_count: input.memory.hidden_exclusion_count,
     incorrect_memory_exclusion_count: input.memory.incorrect_exclusion_count,
-    knowledge_count: input.knowledge.snippets.length,
-    knowledge_titles: input.knowledge.snippets.map((item) => item.title),
-    knowledge_source_kinds: Array.from(
-      new Set(input.knowledge.snippets.map((item) => item.source_kind))
-    ),
-    knowledge_scope_layers: Array.from(
-      new Set(input.knowledge.snippets.map((item) => resolveKnowledgeScopeLayer(item)))
-    ),
-    knowledge_governance_classes: Array.from(
-      new Set(
-        input.knowledge.snippets.map((item) =>
-          resolveKnowledgeGovernanceClass(item)
-        )
-      )
-    ),
+    knowledge_count: knowledgeSummary.count,
+    knowledge_titles: knowledgeSummary.titles,
+    knowledge_source_kinds: knowledgeSummary.source_kinds,
+    knowledge_scope_layers: knowledgeSummary.scope_layers,
+    knowledge_governance_classes: knowledgeSummary.governance_classes,
+    knowledge_governance_coordination_summary:
+      knowledgeSummary.governance_coordination_summary,
+    knowledge_budget_coordination_mode:
+      knowledgeSummary.budget_coordination_mode,
     active_memory_namespace_id:
       input.namespace.active_namespace?.namespace_id ?? null,
     active_memory_namespace_primary_layer:
