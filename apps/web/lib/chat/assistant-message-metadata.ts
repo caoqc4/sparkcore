@@ -61,6 +61,9 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   scenario_memory_pack_governance_unification_digest_id?: string | null;
   scenario_memory_pack_strategy_unification_summary?: string | null;
   scenario_memory_pack_orchestration_unification_mode?: string | null;
+  scenario_memory_pack_governance_consolidation_digest_id?: string | null;
+  scenario_memory_pack_strategy_consolidation_summary?: string | null;
+  scenario_memory_pack_orchestration_consolidation_mode?: string | null;
   scenario_memory_pack_strategy_bundle_id?: string | null;
   scenario_memory_pack_strategy_assembly_order?: string[];
   knowledge_count?: number;
@@ -195,6 +198,9 @@ export type BuildAssistantMessageMetadataInput = {
   scenario_memory_pack_governance_unification_digest_id?: string | null;
   scenario_memory_pack_strategy_unification_summary?: string | null;
   scenario_memory_pack_orchestration_unification_mode?: string | null;
+  scenario_memory_pack_governance_consolidation_digest_id?: string | null;
+  scenario_memory_pack_strategy_consolidation_summary?: string | null;
+  scenario_memory_pack_orchestration_consolidation_mode?: string | null;
   scenario_memory_pack_strategy_bundle_id?: string | null;
   scenario_memory_pack_strategy_assembly_order?: string[];
   knowledge_count?: number;
@@ -349,15 +355,22 @@ export function buildAssistantMetadataSummaryGroups(
               input.scenario_memory_pack_strategy_convergence_summary ?? null,
             orchestration_alignment_mode:
               input.scenario_memory_pack_orchestration_alignment_mode ?? null,
-            governance_unification_digest_id:
-              input.scenario_memory_pack_governance_unification_digest_id ??
-              null,
-            strategy_unification_summary:
-              input.scenario_memory_pack_strategy_unification_summary ?? null,
-            orchestration_unification_mode:
-              input.scenario_memory_pack_orchestration_unification_mode ?? null,
-            strategy_bundle_id:
-              input.scenario_memory_pack_strategy_bundle_id ?? null,
+          governance_unification_digest_id:
+            input.scenario_memory_pack_governance_unification_digest_id ??
+            null,
+          strategy_unification_summary:
+            input.scenario_memory_pack_strategy_unification_summary ?? null,
+          orchestration_unification_mode:
+            input.scenario_memory_pack_orchestration_unification_mode ?? null,
+          governance_consolidation_digest_id:
+            input.scenario_memory_pack_governance_consolidation_digest_id ??
+            null,
+          strategy_consolidation_summary:
+            input.scenario_memory_pack_strategy_consolidation_summary ?? null,
+          orchestration_consolidation_mode:
+            input.scenario_memory_pack_orchestration_consolidation_mode ?? null,
+          strategy_bundle_id:
+            input.scenario_memory_pack_strategy_bundle_id ?? null,
             strategy_assembly_order:
               input.scenario_memory_pack_strategy_assembly_order ?? []
           }
@@ -566,6 +579,12 @@ export function buildAssistantMetadataSummaryGroups(
         input.scenario_memory_pack_strategy_unification_summary,
       scenario_memory_pack_orchestration_unification_mode:
         input.scenario_memory_pack_orchestration_unification_mode,
+      scenario_memory_pack_governance_consolidation_digest_id:
+        input.scenario_memory_pack_governance_consolidation_digest_id,
+      scenario_memory_pack_strategy_consolidation_summary:
+        input.scenario_memory_pack_strategy_consolidation_summary,
+      scenario_memory_pack_orchestration_consolidation_mode:
+        input.scenario_memory_pack_orchestration_consolidation_mode,
       scenario_memory_pack_strategy_bundle_id:
         input.scenario_memory_pack_strategy_bundle_id,
       scenario_memory_pack_strategy_assembly_order:

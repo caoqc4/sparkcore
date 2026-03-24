@@ -74,6 +74,21 @@ export type ScenarioOrchestrationUnificationMode =
   | "execution_runtime_unified"
   | "knowledge_guided_runtime_unified";
 
+export type ScenarioGovernanceConsolidationDigestId =
+  | "continuity_governance_consolidation"
+  | "project_delivery_governance_consolidation"
+  | "knowledge_guided_governance_consolidation";
+
+export type ScenarioStrategyConsolidationSummary =
+  | "continuity_strategy_consolidated"
+  | "project_delivery_strategy_consolidated"
+  | "knowledge_guided_strategy_consolidated";
+
+export type ScenarioOrchestrationConsolidationMode =
+  | "continuity_runtime_consolidated"
+  | "execution_runtime_consolidated"
+  | "knowledge_guided_runtime_consolidated";
+
 export type ScenarioMemoryPack = {
   pack_id: ScenarioMemoryPackId;
   label: string;

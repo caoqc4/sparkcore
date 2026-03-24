@@ -79,11 +79,14 @@ import {
   getAssistantMemoryScenarioPackRouteInfluenceReason,
   getAssistantMemoryScenarioPackGovernanceRouteBias,
   getAssistantMemoryScenarioPackGovernanceConvergenceDigestId,
+  getAssistantMemoryScenarioPackGovernanceConsolidationDigestId,
   getAssistantMemoryScenarioPackOrchestrationAlignmentMode,
+  getAssistantMemoryScenarioPackOrchestrationConsolidationMode,
   getAssistantMemoryScenarioPackOrchestrationCoordinationSummary,
   getAssistantMemoryScenarioPackOrchestrationMode,
   getAssistantMemoryScenarioPackOrchestrationDigestId,
   getAssistantMemoryScenarioPackStrategyConsistencyMode,
+  getAssistantMemoryScenarioPackStrategyConsolidationSummary,
   getAssistantMemoryScenarioPackStrategyConvergenceSummary,
   getAssistantMemoryScenarioPackGovernanceUnificationDigestId,
   getAssistantMemoryScenarioPackStrategyUnificationSummary,
@@ -1714,6 +1717,27 @@ function main() {
     "Expected knowledge governance consolidation to be consistent across prompt, assistant metadata, and runtime debug metadata in P10."
   );
   expect(
+    getAssistantMemoryScenarioPackGovernanceConsolidationDigestId(
+      assistantMetadata
+    ) === "project_delivery_governance_consolidation" &&
+      getAssistantMemoryScenarioPackStrategyConsolidationSummary(
+        assistantMetadata
+      ) === "project_delivery_strategy_consolidated" &&
+      getAssistantMemoryScenarioPackOrchestrationConsolidationMode(
+        assistantMetadata
+      ) === "execution_runtime_consolidated" &&
+      runtimeDebugMetadata.memory.pack?.governance_consolidation_digest_id ===
+        "project_delivery_governance_consolidation" &&
+      runtimeDebugMetadata.memory.pack?.strategy_consolidation_summary ===
+        "project_delivery_strategy_consolidated" &&
+      runtimeDebugMetadata.memory.pack?.orchestration_consolidation_mode ===
+        "execution_runtime_consolidated" &&
+      systemPrompt.includes(
+        "Current governance consolidation = project_delivery_governance_consolidation; strategy consolidation = project_delivery_strategy_consolidated; consolidation mode = execution_runtime_consolidated."
+      ),
+    "Expected scenario governance consolidation to be consistent across prompt, assistant metadata, and runtime debug metadata in P10."
+  );
+  expect(
     systemPrompt.includes("Active Memory Namespace: primary_layer = project."),
     "Expected system prompt assembly to include the active memory namespace in P2."
   );
@@ -3052,6 +3076,31 @@ function main() {
         "General delivery note"
   } as const;
 
+  const p10ScenarioConsolidationChecks = {
+    scenario_governance_consolidation_v8_ok:
+      scenarioMemoryPack.governance_consolidation_digest_id ===
+        "project_delivery_governance_consolidation" &&
+      scenarioMemoryPack.strategy_consolidation_summary ===
+        "project_delivery_strategy_consolidated" &&
+      scenarioMemoryPack.orchestration_consolidation_mode ===
+        "execution_runtime_consolidated" &&
+      getAssistantMemoryScenarioPackGovernanceConsolidationDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_consolidation_digest_id &&
+      getAssistantMemoryScenarioPackStrategyConsolidationSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_consolidation_summary &&
+      getAssistantMemoryScenarioPackOrchestrationConsolidationMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_consolidation_mode &&
+      runtimeDebugMetadata.memory.pack?.governance_consolidation_digest_id ===
+        scenarioMemoryPack.governance_consolidation_digest_id &&
+      runtimeDebugMetadata.memory.pack?.strategy_consolidation_summary ===
+        scenarioMemoryPack.strategy_consolidation_summary &&
+      runtimeDebugMetadata.memory.pack?.orchestration_consolidation_mode ===
+        scenarioMemoryPack.orchestration_consolidation_mode
+  } as const;
+
   console.log(
     JSON.stringify(
       {
@@ -3215,6 +3264,18 @@ function main() {
             ),
           orchestration_unification_mode:
             getAssistantMemoryScenarioPackOrchestrationUnificationMode(
+              assistantMetadata
+            ),
+          governance_consolidation_digest_id:
+            getAssistantMemoryScenarioPackGovernanceConsolidationDigestId(
+              assistantMetadata
+            ),
+          strategy_consolidation_summary:
+            getAssistantMemoryScenarioPackStrategyConsolidationSummary(
+              assistantMetadata
+            ),
+          orchestration_consolidation_mode:
+            getAssistantMemoryScenarioPackOrchestrationConsolidationMode(
               assistantMetadata
             )
         },
@@ -3525,7 +3586,13 @@ function main() {
           strategy_unification_summary:
             scenarioMemoryPack.strategy_unification_summary,
           orchestration_unification_mode:
-            scenarioMemoryPack.orchestration_unification_mode
+            scenarioMemoryPack.orchestration_unification_mode,
+          governance_consolidation_digest_id:
+            scenarioMemoryPack.governance_consolidation_digest_id,
+          strategy_consolidation_summary:
+            scenarioMemoryPack.strategy_consolidation_summary,
+          orchestration_consolidation_mode:
+            scenarioMemoryPack.orchestration_consolidation_mode
         },
         system_prompt_thread_state: {
           includes_focus_mode: systemPrompt.includes(
@@ -3646,6 +3713,7 @@ function main() {
         p10_namespace_consolidation: p10NamespaceConsolidationChecks,
         p10_retention_consolidation: p10RetentionConsolidationChecks,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,
+        p10_scenario_consolidation: p10ScenarioConsolidationChecks,
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
             "When episode memory is present"

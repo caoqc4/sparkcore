@@ -497,6 +497,57 @@ export function getAssistantMemoryScenarioPackOrchestrationUnificationMode(
   );
 }
 
+export function getAssistantMemoryScenarioPackGovernanceConsolidationDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "governance_consolidation_digest_id"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_governance_consolidation_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackStrategyConsolidationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "strategy_consolidation_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_strategy_consolidation_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackOrchestrationConsolidationMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "orchestration_consolidation_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_orchestration_consolidation_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryScenarioPackKnowledgeRouteWeight(
   metadata: Record<string, unknown> | null | undefined
 ) {
