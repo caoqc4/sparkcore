@@ -1142,6 +1142,10 @@
 
 - **开始做 `P6 close-readiness` 前置评估**
 
+当前对应复盘文档：
+
+- [memory_upgrade_p6_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_close_readiness_v1.0.md)
+
 当前已成立的 `P6-5` gate：
 
 - [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前已开始显式产出 `p6_regression_gate`
