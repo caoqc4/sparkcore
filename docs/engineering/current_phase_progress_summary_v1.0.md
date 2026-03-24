@@ -1340,17 +1340,17 @@
 - `P8-3`
   - 前中段到中段之间
 - `P8-4`
-  - 已启动
+  - 前中段
 - `P8-5`
   - 待开始
 
 整体 `P8` 当前大约：
 
-- **`55% - 65%`**
+- **`60% - 70%`**
 
 当前更推荐的下一步：
 
-- **先对 `P8-4 Scenario governance convergence v6` 做一次小评估**
+- **开始 `P8-5 Regression / acceptance expansion` 的第一刀**
 - 当前 knowledge 最小 convergence 已经进入：
   - `governance_convergence_digest`
   - `source_budget_alignment_summary`
