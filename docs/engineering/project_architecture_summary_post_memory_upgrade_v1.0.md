@@ -2,301 +2,378 @@
 
 ## 1. 文档定位
 
-本文档用于在以下两轮大工作完成后，给出一份可交接、可扩展、可用于下一阶段产品实现的项目现状总结：
+本文档用于在以下两轮大工作完成后，给出一份更贴近 SparkCore 原始战略意图的项目现状总结：
 
 - `SparkCore_三层重构收官说明_v0.1.md`
 - `Memory Upgrade P0 ~ P24`
 
-本文档重点回答四件事：
+这份文档不是单纯的代码模块清单，而是要回答：
 
-1. 当前项目主结构已经稳定成什么样
-2. 三层结构重构到底收口了什么
-3. 记忆层升级到底新增了什么能力
-4. 下一阶段进入前端产品实现前，当前还缺不缺前置阻塞项
-
----
-
-## 2. 当前总判断
-
-当前项目可按下面的工程状态理解：
-
-- 三层结构重构：已 `Phase Close`
-- 记忆层升级：`P0 ~ P24` 已全部 `close-ready / 可收官`
-- 升级尾项：已统一归档到 backlog，不再构成主线阻塞
-- 当前阶段位置：**可以从“基础能力建设阶段”切入“产品实现阶段”**
-
-这意味着：
-
-- 不需要再把“记忆层升级未完成”当作前置问题
-- 也不建议继续以 `P25` 的方式沿原升级主线硬往后推
-- 更合适的是切换到新的产品实现阶段
+1. SparkCore 当前到底是什么结构
+2. 三层结构重构到底重构了什么“层”
+3. 记忆层升级在这三层结构里处于什么位置
+4. 当前第一阶段产品与未来产品扩展应如何理解
 
 ---
 
-## 3. 两轮工作的关系
+## 2. 先给结论
+
+你现在的理解，整体上是**对的**，而且比我上一版总结更接近 SparkCore 的原始架构意图。
+
+更准确地说，当前 SparkCore 应该这样理解：
+
+- **底座层（Core Layer）**：提供可复用、可演化、可支撑多个产品形态的能力基底
+- **接入层（Integration Layer）**：把不同入口或外部渠道接到统一底座上
+- **产品层（Product Layer）**：在底座层与接入层之上，构建面向用户的具体产品
+
+其中：
+
+- 记忆层升级主要发生在**底座层**
+- IM 当前属于**接入层 + 第一阶段产品壳的重要组成部分**
+- 当前第一个产品是**IM 原生的虚拟伴侣 / 助理产品**
+- 后续完全可以在同一底座上继续长出产品二、产品三
+
+所以如果用一句话总结现在的项目状态：
+
+> **SparkCore 当前已经完成“底座层稳定化 + 记忆核心能力升级”，现在可以进入“基于这套底座去实现第一阶段产品”的阶段。**
+
+---
+
+## 3. 当前项目的正确三层结构
 
 ```mermaid
 flowchart TD
-    A["三层结构重构<br/>Phase Close"] --> B["记忆层升级 P0 ~ P24<br/>close-ready"]
-    B --> C["统一尾项 Backlog<br/>非阻塞"]
-    B --> D["下一阶段：前端产品实现"]
+    A["底座层 Core Layer<br/>role / memory / session / scheduler / single-agent runtime"] --> B["接入层 Integration Layer<br/>IM adapter / message normalization / binding / routing / future API SDK"]
+    B --> C["产品层 Product Layer<br/>产品一：IM 原生虚拟伴侣 / 助理<br/>产品二：移动端事务推进产品<br/>产品三：更复杂角色互动 / 工作流 / 模拟产品"]
 ```
 
-可把这两轮工作理解成：
-
-- 第一轮解决“项目主干能不能稳定承载复杂能力”
-- 第二轮解决“记忆系统能不能成为长期状态内核”
-- 现在第三轮才应该进入“产品体验和业务闭环真正落地”
+这三层不是“为了看起来整齐”的抽象，而是项目未来可扩展性的核心。
 
 ---
 
-## 4. 三层结构重构完成了什么
+## 4. 三层结构重构，真正完成了什么
 
-三层结构重构的正式收官结论以 [SparkCore_三层重构收官说明_v0.1.md](/Users/caoq/git/sparkcore/doc_private/SparkCore_三层重构收官说明_v0.1.md) 为准。
+正式收官结论以 [SparkCore_三层重构收官说明_v0.1.md](/Users/caoq/git/sparkcore/doc_private/SparkCore_三层重构收官说明_v0.1.md) 为准。
 
-它收口的核心不是“代码更整齐了”，而是把几个关键基础边界钉死了：
+但如果放在这套三层结构里看，三层重构的真正成果不是某几个 helper 被整理了，而是：
 
-- `runtime` 主入口与主执行链稳定
-- Web / IM 接入统一 runtime 主路径
-- `thread_state` 从设计概念升级为正式事实层
-- `assistant_message.metadata`、`runtime_events`、`debug_metadata` 的落点稳定
-- `memory_items`、`messages`、`follow_up` 等高频读写路径完成一轮收口
+### 4.1 把底座层从“混在一起的项目骨架”收成真正可承载能力的 Core
 
-可以把三层结构理解成下面这个稳定骨架：
+当前已经被收平的底座事实包括：
 
-```mermaid
-flowchart LR
-    U["用户输入 / IM / Web"] --> R["runtime 主执行链"]
-    R --> M["metadata / debug / events"]
-    R --> T["thread_state"]
-    R --> W["memory write / follow_up / messages"]
-```
+- `runtime` 主执行链稳定
+- `thread_state` 成为正式事实层
+- `memory_items` 成为当前可工作的长期记忆兼容底座
+- `assistant_message.metadata`、`debug_metadata`、`runtime_events` 有稳定注入点
+- `messages`、`follow_up`、会话链路等高频路径完成一轮收口
 
-三层重构的最大价值是：
+也就是说，底座层已经不再只是“项目里的一些模块”，而是开始形成：
 
-- 后续复杂能力不再需要“另起一条旁路”
-- 新能力可以直接挂到现有 runtime 与状态链路上
+- 统一运行时
+- 统一状态落点
+- 统一调试与观测接口
+
+### 4.2 把接入层从“产品里顺手接一下”收成统一入口思路
+
+当前虽然最主要的接入还是 Web / IM，但经过三层重构以后，项目已经不再是“产品页面直接缠住底层逻辑”，而是更接近：
+
+- 外部入口
+- 统一 runtime
+- 统一输出面
+
+这意味着未来要增加：
+
+- 新 IM 平台
+- API 接入
+- SDK 接入
+
+时，不需要重新发明底层逻辑。
+
+### 4.3 把产品层从“和底层缠死”拉回到可替换、可扩展的位置
+
+这一点很关键。
+
+三层结构重构真正为后面留下的空间是：
+
+- 第一阶段可以先做 IM 原生虚拟伴侣 / 助理
+- 第二阶段可以继续长出移动端事务推进产品
+- 后面还可以做工作流型、多角色型、模拟型产品
+
+而不需要每做一个新产品就重写底座。
 
 ---
 
-## 5. 记忆层升级完成了什么
+## 5. 记忆层升级在三层结构里属于哪里
 
 记忆层升级的正式执行基线以 [memory_upgrade_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_execution_plan_v1.0.md) 为准，阶段总览以 [current_phase_progress_summary_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/current_phase_progress_summary_v1.0.md) 为准。
 
-从 `P0` 到 `P24`，这轮升级本质上完成了三件事：
+如果按三层结构来理解，这轮 `P0 ~ P24` 的记忆层升级，本质上是：
 
-### 5.1 把记忆从“若干局部能力”升级成“长期状态系统”
+- **不是在做某个单一产品功能**
+- **不是在做 IM 产品页面**
+- **而是在升级底座层里最核心的 memory 能力模块**
 
-当前系统不再只是：
+也就是说：
 
-- 有 `memory_items`
-- 有 `thread_state`
-- 能召回一点 profile / relationship / episode / timeline
+- 三层结构重构先把“底座层能不能承载复杂能力”解决了
+- 记忆层升级再把“底座层里的 memory 能力是否足够成为长期状态系统”解决了
 
-而是已经形成：
-
-- namespace
-- retention
-- knowledge governance
-- scenario pack
-- role-core close-note chain
-
-这些能力之间的明确协同。
-
-### 5.2 把状态抽象逐层收成稳定 contract
-
-后半段 `P17 ~ P24` 其实完成了一条很清晰的 close-note / persistence 收束链：
+所以它在全项目里的位置应该理解成：
 
 ```mermaid
 flowchart LR
-    A["memory_handoff"] --> B["close-note handoff packet"]
-    B --> C["artifact"]
-    C --> D["output"]
-    D --> E["record"]
-    E --> F["archive"]
-    F --> G["persistence payload"]
-    G --> H["persistence envelope"]
-    H --> I["persistence manifest"]
+    A["三层结构重构"] --> B["底座层稳定"]
+    B --> C["记忆层升级 P0~P24"]
+    C --> D["底座层里的 memory 能力升级为长期状态系统"]
+    D --> E["产品层可以开始真正消费"]
 ```
-
-这条链现在已经全部进入：
-
-- `role-core`
-- `runtime main path`
-- `system prompt`
-- `assistant metadata`
-- `developer diagnostics`
-- `runtime debug`
-- `memory-upgrade-harness`
-
-### 5.3 把回归面做成正式 gate
-
-`P13 ~ P24` 后半段已经不是“功能先做，测试以后再说”，而是每个阶段都形成了：
-
-- `execution plan`
-- `gate snapshot`
-- `close-readiness`
-- `close note`
-
-所以当前系统不是“功能成立但边界模糊”，而是“功能成立且阶段边界已经文档化”。
 
 ---
 
-## 6. 当前项目结构图
+## 6. 当前底座层，已经稳定成什么样
 
-从当前工程角度，可以用下面这张结构图理解主骨架：
+当前的底座层不应再理解为“一个聊天项目后端”，而应理解为：
+
+> **一个单 Agent 为主、具备长期状态能力、后续可扩展多产品与多接入形态的能力底座。**
+
+当前底座层的关键组成，可以按下面这张图理解：
 
 ```mermaid
 flowchart TD
-    UI["Web / IM / 产品前端"] --> RT["apps/web/lib/chat/runtime.ts"]
+    RT["single-agent runtime"] --> ROLE["role"]
+    RT --> MEM["memory"]
+    RT --> SESSION["session / thread_state"]
+    RT --> SCHED["scheduler / future timed tasks"]
 
-    RT --> RC["role-core<br/>身份 / 角色 / close-note contract"]
-    RT --> TS["thread-state<br/>线程进行态 / 写回"]
-    RT --> NS["memory-namespace<br/>namespace / route / boundary"]
-    RT --> KN["memory-knowledge<br/>knowledge scope / governance"]
-    RT --> SC["memory-packs<br/>scenario pack / strategy"]
-    RT --> TC["thread-compaction<br/>retention / summary"]
-    RT --> MW["memory-write / memory-recall"]
-
-    RT --> AM["assistant-message.metadata"]
-    RT --> RD["runtime-debug-metadata"]
-    RT --> EV["runtime events / follow_up / message outputs"]
-
-    MW --> MI["memory_items / persistence base"]
-    TS --> ST["thread_state persistence"]
+    MEM --> NS["namespace"]
+    MEM --> RET["retention"]
+    MEM --> KG["knowledge governance"]
+    MEM --> PACK["scenario memory pack"]
+    MEM --> CLOSE["close-note / persistence contract chain"]
 ```
 
-这张图里最重要的现实是：
+### 6.1 role
 
-- `runtime.ts` 仍然是总装配主链
-- `role-core.ts` 现在已经成为高阶状态 contract 的集中落点
-- `memory-*` 各模块已经不是零散 helper，而是分工稳定的治理层
+负责：
+
+- 角色定义
+- 角色身份边界
+- 风格与一致性
+- 长期人格连续性
+
+### 6.2 memory
+
+这是这轮升级的核心。
+
+它现在已经不只是“存点记忆”，而是具备：
+
+- namespace
+- retention lifecycle
+- knowledge governance
+- scenario pack
+- close-note / persistence contract chain
+
+这些结构化治理能力。
+
+### 6.3 session
+
+核心就是：
+
+- `thread_state`
+- 当前线程目标
+- 当前进行态
+- 线程内约束与连续性
+
+这部分对未来不只是陪伴产品，对事务推进产品也很关键。
+
+### 6.4 scheduler
+
+这块当前还不是重实现区，但架构位置已经明确保留了。
+
+它未来会承接：
+
+- 定时提醒
+- 回流任务
+- 事务推进节奏
+
+所以当前虽然不是重点实现对象，但已经属于底座层设计的一部分。
+
+### 6.5 single-agent runtime
+
+当前阶段底座主线明确是：
+
+- 单 Agent 优先
+- 多 Agent 不作为当前第一阶段主交付
+
+所以 runtime 当前应被理解为：
+
+- 底座层的主装配器
+- role / memory / session 的统一运行时
+
+而不是单纯的“聊天逻辑函数”。
 
 ---
 
-## 7. 当前实际能力边界
+## 7. 当前接入层，应该怎么理解
 
-如果从“现在这个项目已经能做什么”来看，可以把能力分成四层：
+接入层当前最重要的不是“已经有多少个平台”，而是**边界已经被立出来了**。
 
-### 7.1 Runtime 层
+按照目前项目定位，接入层应包含：
 
-- 统一接入 Web / IM
-- 统一组装 prompt
-- 统一注入记忆、知识、线程状态、scenario pack
-- 统一输出 metadata / debug / events
+- `IM adapter`
+- `message normalization`
+- `binding`
+- `routing`
+- 未来的 `API / SDK` 接入位
 
-### 7.2 State 层
+也就是说，IM 现在虽然是第一阶段最重要的入口，但它不等于 SparkCore 本身。
 
-- `thread_state` 是正式事实层
-- `memory_items` 是当前长期存储兼容底座
-- 长期状态已具备 namespace / retention / knowledge / scenario 四个主要治理面
+更准确的关系是：
 
-### 7.3 Governance 层
+```mermaid
+flowchart LR
+    IM["IM 平台"] --> ADP["IM adapter / normalization"]
+    WEB["网站 / 后台"] --> ADP
+    API["future API / SDK"] --> ADP
+    ADP --> RT["single-agent runtime"]
+```
 
-- namespace boundary / route / write escalation
-- retention lifecycle / keep-drop
-- knowledge scope / governance class
-- scenario strategy / orchestration
+所以你的理解是对的：
 
-### 7.4 Close-note / Persistence Contract 层
-
-- handoff packet
-- artifact
-- output
-- record
-- archive
-- persistence payload
-- persistence envelope
-- persistence manifest
-
-这一层的意义是：  
-系统已经不只“能记住”，而是已经能把记忆治理结果收成高阶、可消费、可观测的结构化对象。
+- 现在的 IM 接入属于接入层的重要部分
+- 将来的 API / SDK，也更应该被理解成接入层扩展，而不是另造一套底座
 
 ---
 
-## 8. 尾项是否需要现在解决
+## 8. 当前产品层，应该怎么理解
 
-结论很明确：
+产品层不是底座的一部分，而是：
+
+- 在底座层能力之上
+- 通过接入层接触用户
+- 用具体产品形态去验证价值
+
+按照当前路线，产品层可这样理解：
+
+### 8.1 产品一：IM 原生虚拟伴侣 / 助理
+
+当前第一个产品的正式方向，与 [companion_mvp_flow_v1.0.md](/Users/caoq/git/sparkcore/docs/product/companion_mvp_flow_v1.0.md) 和 [sparkcore_repositioning_v1.0.md](/Users/caoq/git/sparkcore/docs/strategy/sparkcore_repositioning_v1.0.md) 一致：
+
+- 用户通过网站完成角色配置与领取
+- 用户主要在 IM 中持续互动
+- 核心验证的是：
+  - 角色连续性
+  - 长记忆体验
+  - IM 高频入口
+  - 关系感与复访
+
+### 8.2 产品二：移动端事务推进产品
+
+这一层不是现在就做，但从架构上已经兼容：
+
+- thread state
+- 长期状态
+- 提醒与调度
+- 项目/任务推进
+
+### 8.3 产品三及以后：工作流 / 多角色 / 模拟类产品
+
+这一层当前不进入交付，但三层结构与底座能力设计已经是在为它预留空间。
+
+---
+
+## 9. 当前项目的真实结构图
+
+把战略结构和工程结构合在一起，可以用下面这张图理解现在的项目：
+
+```mermaid
+flowchart TD
+    subgraph Core["底座层 Core Layer"]
+      RT["single-agent runtime"]
+      ROLE["role"]
+      MEM["memory"]
+      SESSION["session / thread_state"]
+      SCHED["scheduler (reserved)"]
+      RT --> ROLE
+      RT --> MEM
+      RT --> SESSION
+      RT --> SCHED
+    end
+
+    subgraph Integration["接入层 Integration Layer"]
+      IMA["IM adapter"]
+      NORM["message normalization"]
+      BIND["binding / routing"]
+      API["future API / SDK"]
+    end
+
+    subgraph Product["产品层 Product Layer"]
+      P1["产品一：IM 原生虚拟伴侣 / 助理"]
+      P2["产品二：移动端事务推进产品"]
+      P3["产品三：工作流 / 多角色 / 模拟类产品"]
+    end
+
+    IMA --> RT
+    NORM --> RT
+    BIND --> RT
+    API --> RT
+
+    P1 --> IMA
+    P2 --> API
+    P3 --> API
+```
+
+---
+
+## 10. 当前升级尾项是否需要先解决
+
+结论仍然明确：
 
 - **需要被记录和管理**
-- **但不需要在进入下一阶段前先全部解决**
+- **但不需要在进入产品阶段前先补完**
 
 当前统一尾项文档是 [memory_upgrade_tail_cleanup_backlog_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_tail_cleanup_backlog_v1.0.md)。
 
-这些尾项的性质已经被明确分类为：
+这些尾项现在已经被明确归类为：
 
 - 清洁度 / 对称性尾项
 - 深化型尾项
 - gate 增强型尾项
 
-它们当前的影响是：
+所以它们对项目的意义是：
 
-- 不阻塞下一阶段产品实现
-- 但会影响后续维护成本和回归强度
+- 不阻塞产品层启动
+- 但后面仍值得按 batch 处理
 
-所以更合理的处理方式不是“现在先补完再说”，而是：
-
-- 进入新阶段主线
-- 同时把尾项留给后续 batch
-
-建议的处理方式仍然是文档里已经给出的三种：
-
-- `tail cleanup batch`
-- `gate strengthening batch`
-- `deepening batch`
+也就是说，**这些尾项现在属于“治理工作”，不属于“前端产品阶段前的基础阻塞”**。
 
 ---
 
-## 9. 前端产品实现前，是否还有前置阻塞项
+## 11. 对下一阶段的评估
 
-我的评估是：
+基于当前三层结构和记忆层升级状态，我的评估是：
 
-- **没有必须先完成的升级侧前置阻塞项**
-- **可以开始拆解前端产品实现任务**
+- **底座层：已足够稳定**
+- **接入层：已有明确边界，IM 主入口已成立**
+- **产品层：可以开始正式拆解与实现**
 
-但在真正进入开发前，仍建议先补一个很轻量的衔接动作：
+所以当前最合理的下一步不是继续做 `P25`，而是：
 
-### 9.1 建议做，但不算阻塞
+- 切换到产品层实施阶段
+- 以“产品一：IM 原生虚拟伴侣 / 助理”为主线开始任务拆解
 
-建议先有一份“下一阶段执行文档”，把下面三件事讲清楚：
+但在真正开始页面与交互前，我仍建议补一个很轻量的动作：
 
-- 这次产品实现阶段的目标是什么
-- 哪些现有记忆能力会被前端直接消费
-- 哪些升级尾项明确不进入本阶段主线
+- 写一份“前端产品实现阶段执行文档”
 
-这个动作的价值是切边界，不是补基础能力。
+这份文档的作用不是补底层，而是把下面三件事讲清楚：
 
-### 9.2 当前不建议做的事
-
-当前不建议在前端实现前再去做：
-
-- `P25` 式的继续升级编号
-- 再造一层新的 persistence / close-note 抽象
-- 回头把 backlog 全部清掉
-
-因为这会重新模糊“升级阶段已完成”的边界。
+1. 当前产品层主目标是什么
+2. 底座层哪些能力是现成可消费的
+3. 接入层与产品层边界如何分工
 
 ---
 
-## 10. 对下一阶段的建议
+## 12. 一句话结论
 
-下一阶段如果是“前端产品具体实现”，我建议按下面顺序推进：
-
-```mermaid
-flowchart TD
-    A["阶段切换文档<br/>定义新阶段目标"] --> B["产品任务拆解<br/>页面 / 交互 / 数据面"]
-    B --> C["前端主链实现<br/>优先主路径 MVP"]
-    C --> D["接通记忆消费面<br/>metadata / thread_state / close-note contract"]
-    D --> E["回头补尾项 batch<br/>按需处理"]
-```
-
-最合理的下一步不是继续升级记忆层，而是：
-
-- 开一份新的产品实现阶段执行文档
-- 以当前稳定结构为基础，开始拆页面、拆流程、拆交互和真实消费面
-
----
-
-## 11. 一句话结论
-
-**三层结构重构解决了“主干能否稳定承载能力”的问题；记忆层升级解决了“长期状态系统能否成为项目内核”的问题。到 `P24` 为止，这两轮基础工程已经完成，当前项目已经具备正式进入前端产品实现阶段的条件。**
+**SparkCore 当前已经完成了从“底座层未收平”到“底座层稳定、记忆模块升级完成”的阶段跃迁。现在项目的正确理解方式，不是“继续做升级”，而是“在底座层 + 接入层已经成立的前提下，开始实现第一个产品层产品：IM 原生虚拟伴侣 / 助理”。**
