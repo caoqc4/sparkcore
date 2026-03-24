@@ -61,7 +61,13 @@
     - `metadata_consistency`
     - `drift_guards`
   - `p15_gate_snapshot` 已形成轻量消费面：
+    - `readiness_judgment = entered_close_readiness_not_close_ready`
+    - `progress_range = 70% - 75%`
+    - `close_note_recommended = false`
     - `blocking_items = []`
+    - `non_blocking_items` 已显式列出
+    - `tail_candidate_items` 已显式列出
+    - `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
     - `positive_contracts = 4 / 4`
     - `metadata_consistency = 2 / 2`
     - `drift_guards = 2 / 2`
@@ -96,7 +102,7 @@
 当前之所以还不直接把 `P15` 判成 `close-ready`，原因是：
 
 - 当前 gate 虽然已经三层成立，但还没有把 `close-readiness` 自身的消费面正式收成一层稳定输出
-- 当前 `blocking_items = []` 还是阶段 gate 的轻量信号，还没有和 `acceptance gap` 分类形成正式联动
+- 当前 `blocking_items = []` 虽已和 `non_blocking / tail_candidate` 联动，但还没有继续推进到可直接支撑 `close note` 的最终消费面
 - 剩余项已经明显缩小，但“哪些是非阻塞项、哪些应转 tail / 下阶段吸收”还没有写成当前阶段的正式判断输入
 
 这意味着：

@@ -189,6 +189,7 @@
     - `P15` 已进入 `close-readiness` 判断区间
     - 但当前还不建议直接写 `P15 close note`
     - 当前整体更接近 `70% - 75%`
+    - `p15_gate_snapshot` 当前已开始直接暴露 `readiness_judgment / progress_range / acceptance_gap_buckets`
 - `P15-1 namespace governance plane contract unification` 当前已开始把 namespace fabric plane 继续推进到 phase snapshot / contract：
   - `resolveNamespaceGovernanceFabricPlanePhaseSnapshot(...)` 当前已把 namespace governance fabric plane 收成 phase snapshot surface
   - runtime debug / runtime write preview 当前都已开始复用这组 namespace phase snapshot 字段
@@ -203,9 +204,13 @@
     [memory_upgrade_p15_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_gate_snapshot_v1.0.md)
     为准
   - 当前 `p15_gate_snapshot`：
+    - `readiness_judgment = entered_close_readiness_not_close_ready`
+    - `progress_range = 70% - 75%`
+    - `close_note_recommended = false`
     - `blocking_items = []`
     - `non_blocking_items` 已开始显式列出
     - `tail_candidate_items` 已开始显式列出
+    - `acceptance_gap_buckets` 已开始显式列出
     - `positive_contracts = 4 / 4`
     - `metadata_consistency = 2 / 2`
     - `drift_guards = 2 / 2`

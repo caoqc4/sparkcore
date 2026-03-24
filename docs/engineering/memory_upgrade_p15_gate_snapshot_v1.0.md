@@ -36,9 +36,13 @@
 
 当前 `p15_gate_snapshot` 的结果为：
 
+- `readiness_judgment = entered_close_readiness_not_close_ready`
+- `progress_range = 70% - 75%`
+- `close_note_recommended = false`
 - `blocking_items = []`
 - `non_blocking_items = close_readiness_consumption_surface / acceptance_gap_structuring / close_note_handoff_clarity`
 - `tail_candidate_items = phase_snapshot_negative_coverage_expansion / gate_output_symmetry_cleanup / non_blocking_coverage_alignment`
+- `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
 - `next_expansion_focus = close_readiness_consumption / acceptance_gap_classification / remaining_acceptance_gaps`
 - `positive_contracts = 4 / 4`
 - `metadata_consistency = 2 / 2`
@@ -116,13 +120,17 @@
 
 但当前 snapshot 已经开始把剩余项按消费方向做轻量分类：
 
+- `readiness_judgment`
+- `progress_range`
+- `close_note_recommended`
 - `blocking_items = []`
 - `non_blocking_items`
 - `tail_candidate_items`
+- `acceptance_gap_buckets`
 
 因此它当前更像是：
 
-**`P15` gate 的三层结构已经成立，但还不是 close-readiness 级 gate。**
+**`P15` gate 的三层结构已经成立，并且开始显式服务于 close-readiness consumption，但还不是 close-ready 级 gate。**
 
 ---
 
@@ -130,7 +138,7 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P15-5` 已经从“第一版 gate 雏形”推进到“三层 gate 已开始成形”，但当前价值仍主要在于继续把 phase snapshot contract 收成稳定 acceptance 面，而不是立即提供 close-readiness 级判断。**
+**`P15-5` 已经从“第一版 gate 雏形”推进到“三层 gate + readiness consumption 已开始成形”，但当前价值仍主要在于继续把 phase snapshot contract 收成稳定 acceptance 面，而不是立即提供 close-ready 级判断。**
 
 当前已经成立的是：
 
@@ -138,6 +146,7 @@
 - namespace / retention / knowledge / scenario 四条主线都已有第一刀成立证明
 - `positive_contracts` 之后的 `metadata_consistency` 已开始成形
 - `drift_guards` 也已经开始成形
+- snapshot 已开始直接暴露 readiness judgment / progress range / gap bucket
 
 当前还不适合直接把它理解成：
 
@@ -150,7 +159,7 @@
 
 当前更合理的下一步是：
 
-- **继续扩 `P15-1` 与 `P15-5` 的连接面，而不是立刻写 `P15 close-readiness`**
+- **继续扩 `P15-5` 的 readiness consumption 与 gap classification，而不是立刻写 `P15 close note`**
 
 更具体地说，下一步更适合继续补：
 
@@ -164,4 +173,4 @@
 
 一句话结论：
 
-**`P15` 当前已经拥有一版全绿、并进入三层结构化扩张的 gate；它已经足够支撑后续 readiness consumption / gap classification 按同一结构继续生长，但还不适合提前进入收官判断。**
+**`P15` 当前已经拥有一版全绿、并进入三层结构化扩张且可直接服务 readiness consumption 的 gate；它已经足够支撑后续 gap classification / close-readiness 文档按同一结构继续生长，但还不适合提前进入收官判断。**

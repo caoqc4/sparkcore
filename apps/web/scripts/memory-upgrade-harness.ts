@@ -4728,6 +4728,9 @@ function main() {
     gate_id: "p15_regression_gate_v1",
     stage: "P15-5",
     focus: "regression_acceptance_continuation",
+    readiness_judgment: "entered_close_readiness_not_close_ready" as const,
+    progress_range: "70% - 75%" as const,
+    close_note_recommended: false,
     blocking_items: [] as string[],
     non_blocking_items: [
       "close_readiness_consumption_surface",
@@ -4739,6 +4742,11 @@ function main() {
       "gate_output_symmetry_cleanup",
       "non_blocking_coverage_alignment"
     ] as const,
+    acceptance_gap_buckets: {
+      blocking: 0,
+      non_blocking: 3,
+      tail_candidate: 3
+    },
     next_expansion_focus: [
       "close_readiness_consumption",
       "acceptance_gap_classification",

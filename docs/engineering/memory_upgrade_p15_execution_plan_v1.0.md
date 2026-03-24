@@ -174,6 +174,7 @@ P15 首批必须继续让阶段 gate 跟着主线生长，而不是等 phase-lev
   - `P15` 已进入 `close-readiness` 判断区间
   - 但当前还不建议直接写 `P15 close note`
   - 当前整体更接近 `70% - 75%`
+  - `p15_gate_snapshot` 当前已开始直接暴露 `readiness_judgment / progress_range / acceptance_gap_buckets`
 
 ---
 
