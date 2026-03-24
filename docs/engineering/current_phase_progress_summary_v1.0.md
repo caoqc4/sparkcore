@@ -88,6 +88,11 @@
     - `positive_contracts`
     - `metadata_consistency`
     - `drift_guards`
+  - 当前 `p13_gate_snapshot`：
+    - `positive_contracts = 4 / 4`
+    - `metadata_consistency = 1 / 1`
+    - `drift_guards = 2 / 2`
+    - `overall = 7 / 7`
   - gate 当前已锁住：
     - namespace governance fabric runtime v8
     - retention lifecycle governance fabric v11
