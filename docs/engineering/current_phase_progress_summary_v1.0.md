@@ -1430,5 +1430,5 @@
 
 当前更收紧的判断是：
 
-- `P10` 已进入 **`close-readiness` 后段 / close-ready 前夕**
-- `P10-5` 已开始接近更像正式阶段 gate 的形态
+- `P10` 已达到 **`close-ready / 可收官`**
+- 当前下一步已经适合写 `P10 close note`
