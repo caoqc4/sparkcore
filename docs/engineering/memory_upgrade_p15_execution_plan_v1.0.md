@@ -168,6 +168,13 @@ P15 首批必须继续让阶段 gate 跟着主线生长，而不是等 phase-lev
 
 - **继续把 `P15-5 Regression / acceptance continuation` 从 `drift_guards` 扩到 `close_readiness_consumption / acceptance_gap_classification`，而不是提前写 `P15 close-readiness`**
 
+当前正式 close-readiness 判断请以 [memory_upgrade_p15_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_close_readiness_v1.0.md) 为准：
+
+- 当前结论是：
+  - `P15` 已进入 `close-readiness` 判断区间
+  - 但当前还不建议直接写 `P15 close note`
+  - 当前整体更接近 `70% - 75%`
+
 ---
 
 ## 6. 当前结论

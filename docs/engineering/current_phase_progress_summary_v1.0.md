@@ -181,6 +181,14 @@
     - `P15-4 Scenario governance plane consumption unification` 第一刀已成立
     - `P15-5 Regression / acceptance continuation` 已进入第三层 `drift_guards`
     - 当前整体约 `60% - 65%`
+- `P15 close-readiness judgment` 当前已建立：
+  - 当前判断请以
+    [memory_upgrade_p15_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_close_readiness_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P15` 已进入 `close-readiness` 判断区间
+    - 但当前还不建议直接写 `P15 close note`
+    - 当前整体更接近 `70% - 75%`
 - `P15-1 namespace governance plane contract unification` 当前已开始把 namespace fabric plane 继续推进到 phase snapshot / contract：
   - `resolveNamespaceGovernanceFabricPlanePhaseSnapshot(...)` 当前已把 namespace governance fabric plane 收成 phase snapshot surface
   - runtime debug / runtime write preview 当前都已开始复用这组 namespace phase snapshot 字段
