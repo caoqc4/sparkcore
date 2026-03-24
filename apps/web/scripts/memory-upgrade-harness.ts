@@ -53,10 +53,14 @@ import {
   getAssistantThreadLifecycleCoordinationDigest,
   getAssistantThreadLifecycleCoordinationReuseMode,
   getAssistantThreadLifecycleCoordinationSummary,
+  getAssistantThreadLifecycleGovernancePlaneAlignmentMode,
+  getAssistantThreadLifecycleGovernancePlaneDigest,
+  getAssistantThreadLifecycleGovernancePlaneReuseMode,
   getAssistantThreadLifecycleGovernanceDigest,
   getAssistantThreadRetentionDecisionGroup,
   getAssistantThreadKeepDropConsolidationSummary,
   getAssistantThreadKeepDropConsolidationCoordinationSummary,
+  getAssistantThreadKeepDropGovernancePlaneSummary,
   getAssistantThreadKeepDropRuntimeCoordinationSummary,
   getAssistantThreadRetentionPolicyId,
   getAssistantThreadSurvivalConsistencyMode,
@@ -3250,6 +3254,75 @@ function main() {
       }).retain === false
   } as const;
 
+  const p12RetentionGovernancePlaneChecks = {
+    retention_lifecycle_governance_plane_v10_ok:
+      compactedThreadSummary?.lifecycle_governance_plane_digest ===
+        "anchor_preservation_governance_plane" &&
+      compactedThreadSummary?.keep_drop_governance_plane_summary ===
+        "anchor_keep_governance_plane" &&
+      compactedThreadSummary?.lifecycle_governance_plane_alignment_mode ===
+        "anchor_governance_plane_aligned" &&
+      compactedThreadSummary?.lifecycle_governance_plane_reuse_mode ===
+        "anchor_runtime_governance_plane_reuse" &&
+      getAssistantThreadLifecycleGovernancePlaneDigest(assistantMetadata) ===
+        compactedThreadSummary?.lifecycle_governance_plane_digest &&
+      getAssistantThreadKeepDropGovernancePlaneSummary(assistantMetadata) ===
+        compactedThreadSummary?.keep_drop_governance_plane_summary &&
+      getAssistantThreadLifecycleGovernancePlaneAlignmentMode(
+        assistantMetadata
+      ) === compactedThreadSummary?.lifecycle_governance_plane_alignment_mode &&
+      getAssistantThreadLifecycleGovernancePlaneReuseMode(
+        assistantMetadata
+      ) === compactedThreadSummary?.lifecycle_governance_plane_reuse_mode &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_governance_plane_digest ===
+        compactedThreadSummary?.lifecycle_governance_plane_digest &&
+      runtimeDebugMetadata.thread_compaction
+        ?.keep_drop_governance_plane_summary ===
+        compactedThreadSummary?.keep_drop_governance_plane_summary &&
+      runtimeDebugMetadata.thread_compaction
+        ?.lifecycle_governance_plane_alignment_mode ===
+        compactedThreadSummary?.lifecycle_governance_plane_alignment_mode &&
+      runtimeDebugMetadata.thread_compaction
+        ?.lifecycle_governance_plane_reuse_mode ===
+        compactedThreadSummary?.lifecycle_governance_plane_reuse_mode &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Lifecycle governance plane: anchor_preservation_governance_plane."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Keep/drop governance plane: anchor_keep_governance_plane."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Lifecycle governance plane alignment: anchor_governance_plane_aligned."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Lifecycle governance plane reuse: anchor_runtime_governance_plane_reuse."
+      ) &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "closed",
+          retained_fields: ["focus_mode"],
+          keep_drop_governance_plane_summary: "closed_drop_governance_plane",
+          lifecycle_governance_plane_alignment_mode:
+            "closed_governance_plane_aligned",
+          lifecycle_governance_plane_reuse_mode:
+            "closed_runtime_governance_plane_reuse"
+        }
+      }).retain === false &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "paused",
+          retention_budget: 1,
+          keep_drop_governance_plane_summary: "minimal_decay_governance_plane",
+          lifecycle_governance_plane_alignment_mode:
+            "minimal_governance_plane_aligned",
+          lifecycle_governance_plane_reuse_mode:
+            "minimal_runtime_governance_plane_reuse"
+        }
+      }).retain === false
+  } as const;
+
   const p11KnowledgeCoordinationChecks = {
     knowledge_governance_coordination_v9_ok:
       knowledgeSummary.governance_coordination_digest ===
@@ -3848,6 +3921,22 @@ function main() {
           lifecycle_coordination_reuse_mode:
             getAssistantThreadLifecycleCoordinationReuseMode(
               assistantMetadata
+            ),
+          lifecycle_governance_plane_digest:
+            getAssistantThreadLifecycleGovernancePlaneDigest(
+              assistantMetadata
+            ),
+          keep_drop_governance_plane_summary:
+            getAssistantThreadKeepDropGovernancePlaneSummary(
+              assistantMetadata
+            ),
+          lifecycle_governance_plane_alignment_mode:
+            getAssistantThreadLifecycleGovernancePlaneAlignmentMode(
+              assistantMetadata
+            ),
+          lifecycle_governance_plane_reuse_mode:
+            getAssistantThreadLifecycleGovernancePlaneReuseMode(
+              assistantMetadata
             )
         },
         assistant_metadata_namespace: {
@@ -3996,6 +4085,18 @@ function main() {
           thread_lifecycle_unification_mode:
             runtimeDebugMetadata.thread_compaction?.lifecycle_unification_mode ??
             null,
+          thread_lifecycle_governance_plane_digest:
+            runtimeDebugMetadata.thread_compaction
+              ?.lifecycle_governance_plane_digest ?? null,
+          thread_keep_drop_governance_plane_summary:
+            runtimeDebugMetadata.thread_compaction
+              ?.keep_drop_governance_plane_summary ?? null,
+          thread_lifecycle_governance_plane_alignment_mode:
+            runtimeDebugMetadata.thread_compaction
+              ?.lifecycle_governance_plane_alignment_mode ?? null,
+          thread_lifecycle_governance_plane_reuse_mode:
+            runtimeDebugMetadata.thread_compaction
+              ?.lifecycle_governance_plane_reuse_mode ?? null,
           namespace_primary_layer:
             runtimeDebugMetadata.memory_namespace?.primary_layer ?? null,
           namespace_policy_bundle_id:
@@ -4250,6 +4351,7 @@ function main() {
         p12_namespace_governance_plane: p12NamespaceGovernancePlaneChecks,
         p10_retention_consolidation: p10RetentionConsolidationChecks,
         p11_retention_coordination: p11RetentionCoordinationChecks,
+        p12_retention_governance_plane: p12RetentionGovernancePlaneChecks,
         p11_knowledge_coordination: p11KnowledgeCoordinationChecks,
         p11_scenario_coordination: p11ScenarioCoordinationChecks,
         p11_regression_gate: p11RegressionGate,

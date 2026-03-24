@@ -167,6 +167,34 @@ export type ThreadLifecycleCoordinationReuseMode =
   | "minimal_runtime_coordination_reuse"
   | "closed_runtime_coordination_reuse";
 
+export type ThreadLifecycleGovernancePlaneDigestId =
+  | "anchor_preservation_governance_plane"
+  | "continuity_bridge_governance_plane"
+  | "window_replay_governance_plane"
+  | "minimal_decay_governance_plane"
+  | "closed_decay_governance_plane";
+
+export type ThreadKeepDropGovernancePlaneSummary =
+  | "anchor_keep_governance_plane"
+  | "bridge_keep_governance_plane"
+  | "window_keep_governance_plane"
+  | "minimal_decay_governance_plane"
+  | "closed_drop_governance_plane";
+
+export type ThreadLifecycleGovernancePlaneAlignmentMode =
+  | "anchor_governance_plane_aligned"
+  | "bridge_governance_plane_aligned"
+  | "window_governance_plane_aligned"
+  | "minimal_governance_plane_aligned"
+  | "closed_governance_plane_aligned";
+
+export type ThreadLifecycleGovernancePlaneReuseMode =
+  | "anchor_runtime_governance_plane_reuse"
+  | "bridge_runtime_governance_plane_reuse"
+  | "window_runtime_governance_plane_reuse"
+  | "minimal_runtime_governance_plane_reuse"
+  | "closed_runtime_governance_plane_reuse";
+
 export type ThreadRetentionLayer = "anchor" | "context" | "window";
 
 export type ThreadRetentionLayerBudget = {
@@ -218,6 +246,10 @@ export type CompactedThreadSummary = {
   lifecycle_coordination_alignment_mode: ThreadLifecycleCoordinationAlignmentMode;
   keep_drop_runtime_coordination_summary: ThreadKeepDropRuntimeCoordinationSummary;
   lifecycle_coordination_reuse_mode: ThreadLifecycleCoordinationReuseMode;
+  lifecycle_governance_plane_digest: ThreadLifecycleGovernancePlaneDigestId;
+  keep_drop_governance_plane_summary: ThreadKeepDropGovernancePlaneSummary;
+  lifecycle_governance_plane_alignment_mode: ThreadLifecycleGovernancePlaneAlignmentMode;
+  lifecycle_governance_plane_reuse_mode: ThreadLifecycleGovernancePlaneReuseMode;
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;

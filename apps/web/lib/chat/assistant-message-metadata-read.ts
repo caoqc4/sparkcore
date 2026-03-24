@@ -1509,6 +1509,74 @@ export function getAssistantThreadLifecycleCoordinationReuseMode(
   );
 }
 
+export function getAssistantThreadLifecycleGovernancePlaneDigest(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_governance_plane_digest"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_governance_plane_digest"
+    )
+  );
+}
+
+export function getAssistantThreadKeepDropGovernancePlaneSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "keep_drop_governance_plane_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_keep_drop_governance_plane_summary"
+    )
+  );
+}
+
+export function getAssistantThreadLifecycleGovernancePlaneAlignmentMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_governance_plane_alignment_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_governance_plane_alignment_mode"
+    )
+  );
+}
+
+export function getAssistantThreadLifecycleGovernancePlaneReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_governance_plane_reuse_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_governance_plane_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantKnowledgeGovernanceCoordinationSummary(
   metadata: Record<string, unknown> | null | undefined
 ) {
