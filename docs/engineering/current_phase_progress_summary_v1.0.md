@@ -1406,14 +1406,14 @@
 当前 `P10` 的阶段判断：
 
 - `P10-1`
-  - 前中段到中段之间
+  - 中段
 - `P10-2 ~ P10-5`
   - 待开始
 
 整体 `P10` 当前大约：
 
-- **`20% - 30%`**
+- **`25% - 35%`**
 
 当前更推荐的下一步：
 
-- **先对 `P10-1 Namespace governance consolidation v5` 做一次小评估**
+- **开始 `P10-2 Retention lifecycle consolidation v8` 的第一刀**
