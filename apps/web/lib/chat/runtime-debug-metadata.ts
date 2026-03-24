@@ -9,6 +9,7 @@ import {
 } from "@/lib/chat/memory-packs";
 import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
 import {
+  resolveNamespaceGovernanceFabricPlanePhaseSnapshot,
   resolveRuntimeMemoryBoundary,
   type ActiveRuntimeMemoryNamespace
 } from "@/lib/chat/memory-namespace";
@@ -46,6 +47,11 @@ export function buildRuntimeDebugMetadata(
     : null;
   const scenarioPackPolicy = input.scenario_memory_pack
     ? resolveScenarioMemoryPackPolicy(input.scenario_memory_pack)
+    : null;
+  const namespacePhaseSnapshot = input.active_memory_namespace
+    ? resolveNamespaceGovernanceFabricPlanePhaseSnapshot(
+        input.active_memory_namespace
+      )
     : null;
 
   return {
@@ -272,6 +278,7 @@ export function buildRuntimeDebugMetadata(
           governance_fabric_plane_reuse_mode: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).governance_fabric_plane_reuse_mode,
+          governance_fabric_plane_phase_snapshot: namespacePhaseSnapshot,
           retrieval_write_digest_alignment: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).retrieval_write_digest_alignment,

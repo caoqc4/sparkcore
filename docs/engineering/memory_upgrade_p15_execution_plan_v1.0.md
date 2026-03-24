@@ -145,7 +145,8 @@ P15 首批必须继续让阶段 gate 跟着主线生长，而不是等 phase-lev
 当前阶段判断：
 
 - `P15-1`
-  - 待开始
+  - 已开始
+  - namespace governance plane contract unification 第一刀已成立
 - `P15-2`
   - 待开始
 - `P15-3`
@@ -157,11 +158,11 @@ P15 首批必须继续让阶段 gate 跟着主线生长，而不是等 phase-lev
 
 整体 `P15` 当前大约：
 
-- **`0% - 5%`**
+- **`10% - 15%`**
 
 当前更推荐的下一步：
 
-- **先完成 `P15-1 Namespace governance plane contract unification` 的第一刀，再决定是否同步起 `P15` gate 雏形**
+- **继续把 `P15-1 Namespace governance plane contract unification` 从 namespace 扩到 phase snapshot / gate 雏形，而不是立刻横向铺开 `P15-2 ~ P15-4`**
 
 ---
 
@@ -174,4 +175,11 @@ P15 首批必须继续让阶段 gate 跟着主线生长，而不是等 phase-lev
 - `P14` 可以正式视为已收官阶段
 - `P15` 应作为新的执行起点
 - `P15` 当前更合适的第一步不是继续横向扩张新字段，而是把 `P14` 已成立的 plane 事实继续收束成更统一的 phase-level contract / snapshot / close-readiness consumption surface
-- 当前 `P15` 仍处于执行计划建立阶段，尚未进入代码落地阶段
+- `P15-1 Namespace governance plane contract unification` 的第一刀当前已经成立：
+  - [memory-namespace.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-namespace.ts) 已新增 `resolveNamespaceGovernanceFabricPlanePhaseSnapshot(...)`，把 namespace governance fabric plane 收成更直接可消费的 phase snapshot / contract surface
+  - [runtime-debug-metadata.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime-debug-metadata.ts) 已把 namespace phase snapshot 接入 `memory_namespace` debug surface
+  - [runtime-preview-metadata.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime-preview-metadata.ts) 与 [memory-write-targets.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-write-targets.ts) 已把这组 phase snapshot 字段接入 write preview / target routing
+  - [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 已新增 `p15_namespace_governance_plane_contract.namespace_governance_plane_contract_unification_v1_ok`
+  - 当前基础验证已通过：
+    - `pnpm --filter @sparkcore/web memory:upgrade:harness`
+    - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`

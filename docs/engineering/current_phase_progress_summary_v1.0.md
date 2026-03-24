@@ -175,7 +175,15 @@
     为准
   - 当前结论是：
     - `P15` 已从“待定义的下一阶段”推进到“已建立执行计划的下一阶段”
-    - 当前整体仍处于执行计划建立阶段，约 `0% - 5%`
+    - `P15-1 Namespace governance plane contract unification` 第一刀已成立
+    - 当前整体约 `10% - 15%`
+- `P15-1 namespace governance plane contract unification` 当前已开始把 namespace fabric plane 继续推进到 phase snapshot / contract：
+  - `resolveNamespaceGovernanceFabricPlanePhaseSnapshot(...)` 当前已把 namespace governance fabric plane 收成 phase snapshot surface
+  - runtime debug / runtime write preview 当前都已开始复用这组 namespace phase snapshot 字段
+  - `memory-upgrade-harness.ts` 当前已新增 `p15_namespace_governance_plane_contract`
+  - 当前基础验证已通过：
+    - `pnpm --filter @sparkcore/web memory:upgrade:harness`
+    - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`
 
 ---
 

@@ -295,6 +295,8 @@ export function buildMemoryNamespaceSummary(args: {
   }
 
   const boundary = resolveRuntimeMemoryBoundary(args.namespace);
+  const phaseSnapshot =
+    resolveNamespaceGovernanceFabricPlanePhaseSnapshot(args.namespace);
 
   return {
     namespace_id: args.namespace.namespace_id,
@@ -357,6 +359,7 @@ export function buildMemoryNamespaceSummary(args: {
       boundary.governance_fabric_plane_alignment_mode,
     governance_fabric_plane_reuse_mode:
       boundary.governance_fabric_plane_reuse_mode,
+    governance_fabric_plane_phase_snapshot: phaseSnapshot,
     retrieval_write_digest_alignment:
       boundary.retrieval_write_digest_alignment
   };
@@ -469,6 +472,29 @@ export function resolveNamespaceGovernanceFabricPlaneContract(
       boundary.governance_fabric_plane_reuse_mode,
     fabric_plane_retrieval_routes: boundary.retrieval_route_order,
     fabric_plane_write_fallback_order: boundary.write_fallback_order
+  };
+}
+
+export function resolveNamespaceGovernanceFabricPlanePhaseSnapshot(
+  namespace: ActiveRuntimeMemoryNamespace | null | undefined
+) {
+  const boundary = resolveRuntimeMemoryBoundary(namespace);
+
+  return {
+    phase_snapshot_id: `${boundary.governance_fabric_plane_digest_id}_phase_snapshot`,
+    phase_snapshot_summary: `${boundary.governance_fabric_plane_summary}_phase_snapshot`,
+    phase_snapshot_consumption_mode: `${boundary.governance_fabric_plane_reuse_mode}_phase_consumption`,
+    governance_fabric_plane_digest_id:
+      boundary.governance_fabric_plane_digest_id,
+    governance_fabric_plane_summary: boundary.governance_fabric_plane_summary,
+    governance_fabric_plane_alignment_mode:
+      boundary.governance_fabric_plane_alignment_mode,
+    governance_fabric_plane_reuse_mode:
+      boundary.governance_fabric_plane_reuse_mode,
+    retrieval_write_digest_alignment:
+      boundary.retrieval_write_digest_alignment,
+    phase_snapshot_retrieval_routes: boundary.retrieval_route_order,
+    phase_snapshot_write_fallback_order: boundary.write_fallback_order
   };
 }
 

@@ -182,6 +182,7 @@ import {
   buildMemoryNamespaceScopedMetadata,
   isMemoryWithinNamespace,
   type ActiveRuntimeMemoryNamespace,
+  resolveNamespaceGovernanceFabricPlanePhaseSnapshot,
   resolveNamespaceGovernanceFabricPlaneContract,
   resolveNamespaceGovernanceFabricRuntimeContract,
   resolveNamespaceGovernancePlaneRuntimeContract,
@@ -3120,6 +3121,8 @@ function main() {
     resolveNamespaceGovernanceFabricRuntimeContract(projectPrimaryNamespace);
   const projectGovernanceFabricPlaneContract =
     resolveNamespaceGovernanceFabricPlaneContract(projectPrimaryNamespace);
+  const projectGovernanceFabricPlanePhaseSnapshot =
+    resolveNamespaceGovernanceFabricPlanePhaseSnapshot(projectPrimaryNamespace);
   const p12NamespaceGovernancePlaneChecks = {
     namespace_governance_plane_runtime_v7_ok:
       projectBoundary.governance_plane_runtime_digest_id ===
@@ -4345,6 +4348,49 @@ function main() {
       close_candidate: p14RegressionGate.close_candidate
     }
   } as const;
+  const p15NamespaceGovernancePlaneContractChecks = {
+    namespace_governance_plane_contract_unification_v1_ok:
+      projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id ===
+        "project_coordination_governance_fabric_plane_phase_snapshot" &&
+      projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary ===
+        "project_coordination_governance_fabric_plane_phase_snapshot" &&
+      projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode ===
+        "project_coordination_governance_fabric_plane_reuse_phase_consumption" &&
+      projectGovernanceFabricPlanePhaseSnapshot.governance_fabric_plane_digest_id ===
+        projectBoundary.governance_fabric_plane_digest_id &&
+      projectGovernanceFabricPlanePhaseSnapshot.governance_fabric_plane_summary ===
+        projectBoundary.governance_fabric_plane_summary &&
+      projectGovernanceFabricPlanePhaseSnapshot.governance_fabric_plane_alignment_mode ===
+        projectBoundary.governance_fabric_plane_alignment_mode &&
+      projectGovernanceFabricPlanePhaseSnapshot.governance_fabric_plane_reuse_mode ===
+        projectBoundary.governance_fabric_plane_reuse_mode &&
+      projectGovernanceFabricPlanePhaseSnapshot.retrieval_write_digest_alignment ===
+        projectBoundary.retrieval_write_digest_alignment &&
+      projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_retrieval_routes.join(
+        ","
+      ) === projectBoundary.retrieval_route_order.join(",") &&
+      projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_write_fallback_order.join(
+        ","
+      ) === projectBoundary.write_fallback_order.join(",") &&
+      runtimeDebugMetadata.memory_namespace?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_id ===
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      runtimeDebugMetadata.memory_namespace?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_summary ===
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary &&
+      runtimeDebugMetadata.memory_namespace?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_consumption_mode ===
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_fabric_plane_phase_snapshot_id ===
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_fabric_plane_phase_snapshot_summary ===
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_fabric_plane_phase_snapshot_consumption_mode ===
+        projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode
+  } as const;
 
   const p12RegressionGateChecks = {
     ...p12NamespaceGovernancePlaneChecks,
@@ -4651,7 +4697,13 @@ function main() {
             project_governance_fabric_plane_alignment_mode:
               projectGovernanceFabricPlaneContract.governance_fabric_plane_alignment_mode,
             project_governance_fabric_plane_reuse_mode:
-              projectGovernanceFabricPlaneContract.governance_fabric_plane_reuse_mode
+              projectGovernanceFabricPlaneContract.governance_fabric_plane_reuse_mode,
+            project_governance_fabric_plane_phase_snapshot_id:
+              projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
+            project_governance_fabric_plane_phase_snapshot_summary:
+              projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary,
+            project_governance_fabric_plane_phase_snapshot_consumption_mode:
+              projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode
           }
         },
         runtime_semantic_summary: semanticSummary,
@@ -5457,6 +5509,8 @@ function main() {
         p13_scenario_governance_fabric: p13ScenarioGovernanceFabricChecks,
         p14_scenario_governance_fabric_plane:
           p14ScenarioGovernanceFabricPlaneChecks,
+        p15_namespace_governance_plane_contract:
+          p15NamespaceGovernancePlaneContractChecks,
         p14_regression_gate: p14RegressionGate,
         p14_gate_snapshot: p14GateSnapshot,
         p13_regression_gate: p13RegressionGate,

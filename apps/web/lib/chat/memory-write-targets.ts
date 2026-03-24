@@ -1,5 +1,6 @@
 import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
 import {
+  resolveNamespaceGovernanceFabricPlanePhaseSnapshot,
   resolveNamespaceGovernanceFabricRuntimeContract,
   resolveNamespaceUnifiedGovernanceConsolidationContract,
   resolveRuntimeMemoryBoundary,
@@ -67,6 +68,9 @@ export type PlannedMemoryWriteTarget = {
   namespaceGovernanceFabricPlaneSummary: string | null;
   namespaceGovernanceFabricPlaneAlignmentMode: string | null;
   namespaceGovernanceFabricPlaneReuseMode: string | null;
+  namespaceGovernanceFabricPlanePhaseSnapshotId: string | null;
+  namespaceGovernanceFabricPlanePhaseSnapshotSummary: string | null;
+  namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -119,6 +123,9 @@ export type PlannedGenericMemoryWriteTarget = {
   namespaceGovernanceFabricPlaneSummary: string | null;
   namespaceGovernanceFabricPlaneAlignmentMode: string | null;
   namespaceGovernanceFabricPlaneReuseMode: string | null;
+  namespaceGovernanceFabricPlanePhaseSnapshotId: string | null;
+  namespaceGovernanceFabricPlanePhaseSnapshotSummary: string | null;
+  namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -171,6 +178,9 @@ export type PlannedRelationshipMemoryWriteTarget = {
   namespaceGovernanceFabricPlaneSummary: string | null;
   namespaceGovernanceFabricPlaneAlignmentMode: string | null;
   namespaceGovernanceFabricPlaneReuseMode: string | null;
+  namespaceGovernanceFabricPlanePhaseSnapshotId: string | null;
+  namespaceGovernanceFabricPlanePhaseSnapshotSummary: string | null;
+  namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -194,6 +204,8 @@ function resolveNamespaceWriteRouting(
   const writeBoundary = boundary.write_boundary;
   const fabricRuntimeContract =
     resolveNamespaceGovernanceFabricRuntimeContract(namespace);
+  const phaseSnapshot =
+    resolveNamespaceGovernanceFabricPlanePhaseSnapshot(namespace);
   const projectId = getNamespaceRefId(namespace, "project");
   const worldId = getNamespaceRefId(namespace, "world");
   const fallbackWriteBoundary =
@@ -264,6 +276,12 @@ function resolveNamespaceWriteRouting(
           boundary.governance_fabric_plane_alignment_mode,
         namespaceGovernanceFabricPlaneReuseMode:
           boundary.governance_fabric_plane_reuse_mode,
+        namespaceGovernanceFabricPlanePhaseSnapshotId:
+          phaseSnapshot.phase_snapshot_id,
+        namespaceGovernanceFabricPlanePhaseSnapshotSummary:
+          phaseSnapshot.phase_snapshot_summary,
+        namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode:
+          phaseSnapshot.phase_snapshot_consumption_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -329,6 +347,12 @@ function resolveNamespaceWriteRouting(
           boundary.governance_fabric_plane_alignment_mode,
         namespaceGovernanceFabricPlaneReuseMode:
           boundary.governance_fabric_plane_reuse_mode,
+        namespaceGovernanceFabricPlanePhaseSnapshotId:
+          phaseSnapshot.phase_snapshot_id,
+        namespaceGovernanceFabricPlanePhaseSnapshotSummary:
+          phaseSnapshot.phase_snapshot_summary,
+        namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode:
+          phaseSnapshot.phase_snapshot_consumption_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -394,6 +418,12 @@ function resolveNamespaceWriteRouting(
           boundary.governance_fabric_plane_alignment_mode,
         namespaceGovernanceFabricPlaneReuseMode:
           boundary.governance_fabric_plane_reuse_mode,
+        namespaceGovernanceFabricPlanePhaseSnapshotId:
+          phaseSnapshot.phase_snapshot_id,
+        namespaceGovernanceFabricPlanePhaseSnapshotSummary:
+          phaseSnapshot.phase_snapshot_summary,
+        namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode:
+          phaseSnapshot.phase_snapshot_consumption_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -459,6 +489,12 @@ function resolveNamespaceWriteRouting(
           boundary.governance_fabric_plane_alignment_mode,
         namespaceGovernanceFabricPlaneReuseMode:
           boundary.governance_fabric_plane_reuse_mode,
+        namespaceGovernanceFabricPlanePhaseSnapshotId:
+          phaseSnapshot.phase_snapshot_id,
+        namespaceGovernanceFabricPlanePhaseSnapshotSummary:
+          phaseSnapshot.phase_snapshot_summary,
+        namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode:
+          phaseSnapshot.phase_snapshot_consumption_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -518,6 +554,9 @@ export function resolvePlannedMemoryWriteTarget(
     namespaceGovernanceFabricPlaneSummary,
     namespaceGovernanceFabricPlaneAlignmentMode,
     namespaceGovernanceFabricPlaneReuseMode,
+    namespaceGovernanceFabricPlanePhaseSnapshotId,
+    namespaceGovernanceFabricPlanePhaseSnapshotSummary,
+    namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode,
     retrievalWriteDigestAlignment
   } = resolveNamespaceWriteRouting(namespace);
 
@@ -565,6 +604,9 @@ export function resolvePlannedMemoryWriteTarget(
       namespaceGovernanceFabricPlaneSummary,
       namespaceGovernanceFabricPlaneAlignmentMode,
       namespaceGovernanceFabricPlaneReuseMode,
+      namespaceGovernanceFabricPlanePhaseSnapshotId,
+      namespaceGovernanceFabricPlanePhaseSnapshotSummary,
+      namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -616,6 +658,9 @@ export function resolvePlannedMemoryWriteTarget(
       namespaceGovernanceFabricPlaneSummary,
       namespaceGovernanceFabricPlaneAlignmentMode,
       namespaceGovernanceFabricPlaneReuseMode,
+      namespaceGovernanceFabricPlanePhaseSnapshotId,
+      namespaceGovernanceFabricPlanePhaseSnapshotSummary,
+      namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -664,6 +709,9 @@ export function resolvePlannedMemoryWriteTarget(
       namespaceGovernanceFabricPlaneSummary,
       namespaceGovernanceFabricPlaneAlignmentMode,
       namespaceGovernanceFabricPlaneReuseMode,
+      namespaceGovernanceFabricPlanePhaseSnapshotId,
+      namespaceGovernanceFabricPlanePhaseSnapshotSummary,
+      namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -715,6 +763,9 @@ export function resolvePlannedMemoryWriteTarget(
     namespaceGovernanceFabricPlaneSummary,
     namespaceGovernanceFabricPlaneAlignmentMode,
     namespaceGovernanceFabricPlaneReuseMode,
+    namespaceGovernanceFabricPlanePhaseSnapshotId,
+    namespaceGovernanceFabricPlanePhaseSnapshotSummary,
+    namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode,
     retrievalWriteDigestAlignment
   };
 }

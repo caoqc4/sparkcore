@@ -47,6 +47,7 @@ import {
 import {
   buildMemoryNamespaceScopedMetadata,
   isMemoryWithinNamespace,
+  resolveNamespaceGovernanceFabricPlanePhaseSnapshot,
   resolveRuntimeMemoryBoundary,
   type ActiveRuntimeMemoryNamespace
 } from "@/lib/chat/memory-namespace";
@@ -792,6 +793,8 @@ export async function executeMemoryWriteRequests({
             ? "thread"
             : "default";
     const namespaceBoundary = resolveRuntimeMemoryBoundary(activeNamespace);
+    const namespacePhaseSnapshot =
+      resolveNamespaceGovernanceFabricPlanePhaseSnapshot(activeNamespace);
     const target = matchingRequest
       ? resolvePlannedMemoryWriteTarget(matchingRequest, activeNamespace)
       : {
@@ -875,6 +878,12 @@ export async function executeMemoryWriteRequests({
             namespaceBoundary.governance_fabric_plane_alignment_mode,
           namespaceGovernanceFabricPlaneReuseMode:
             namespaceBoundary.governance_fabric_plane_reuse_mode,
+          namespaceGovernanceFabricPlanePhaseSnapshotId:
+            namespacePhaseSnapshot.phase_snapshot_id,
+          namespaceGovernanceFabricPlanePhaseSnapshotSummary:
+            namespacePhaseSnapshot.phase_snapshot_summary,
+          namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode:
+            namespacePhaseSnapshot.phase_snapshot_consumption_mode,
           retrievalWriteDigestAlignment:
             namespaceBoundary.retrieval_write_digest_alignment
         };

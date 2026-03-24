@@ -120,6 +120,12 @@ function buildRuntimeMemoryWriteRequestPreview(
         target.namespaceGovernanceFabricPlaneAlignmentMode,
       namespace_governance_fabric_plane_reuse_mode:
         target.namespaceGovernanceFabricPlaneReuseMode,
+      namespace_governance_fabric_plane_phase_snapshot_id:
+        target.namespaceGovernanceFabricPlanePhaseSnapshotId,
+      namespace_governance_fabric_plane_phase_snapshot_summary:
+        target.namespaceGovernanceFabricPlanePhaseSnapshotSummary,
+      namespace_governance_fabric_plane_phase_snapshot_consumption_mode:
+        target.namespaceGovernanceFabricPlanePhaseSnapshotConsumptionMode,
       retrieval_write_digest_alignment:
         target.retrievalWriteDigestAlignment,
       thread_state_candidate:
