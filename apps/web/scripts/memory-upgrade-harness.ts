@@ -3105,7 +3105,43 @@ function main() {
     ...p10NamespaceConsolidationChecks,
     ...p10RetentionConsolidationChecks,
     ...p10KnowledgeConsolidationChecks,
-    ...p10ScenarioConsolidationChecks
+    ...p10ScenarioConsolidationChecks,
+    consolidation_metadata_consistency_v8_ok:
+      getAssistantMemoryNamespaceGovernanceConsolidationDigestId(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace
+          ?.governance_consolidation_digest_id &&
+      getAssistantMemoryNamespaceGovernanceConsolidationSummary(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace?.governance_consolidation_summary &&
+      getAssistantMemoryNamespaceRuntimeConsolidationMode(assistantMetadata) ===
+        runtimeDebugMetadata.memory_namespace?.runtime_consolidation_mode &&
+      getAssistantThreadLifecycleConsolidationDigest(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.lifecycle_consolidation_digest &&
+      getAssistantThreadKeepDropConsolidationSummary(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.keep_drop_consolidation_summary &&
+      getAssistantThreadLifecycleConsolidationMode(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.lifecycle_consolidation_mode &&
+      getAssistantKnowledgeGovernanceConsolidationDigest(
+        assistantMetadata
+      ) === runtimeDebugMetadata.knowledge.governance_consolidation_digest &&
+      getAssistantKnowledgeSourceBudgetConsolidationSummary(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.knowledge.source_budget_consolidation_summary &&
+      getAssistantKnowledgeGovernanceConsolidationMode(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.governance_consolidation_mode &&
+      getAssistantMemoryScenarioPackGovernanceConsolidationDigestId(
+        assistantMetadata
+      ) === runtimeDebugPack?.governance_consolidation_digest_id &&
+      getAssistantMemoryScenarioPackStrategyConsolidationSummary(
+        assistantMetadata
+      ) === runtimeDebugPack?.strategy_consolidation_summary &&
+      getAssistantMemoryScenarioPackOrchestrationConsolidationMode(
+        assistantMetadata
+      ) === runtimeDebugPack?.orchestration_consolidation_mode
   } as const;
   const p10RegressionGateFailedChecks = Object.entries(
     p10RegressionGateChecks

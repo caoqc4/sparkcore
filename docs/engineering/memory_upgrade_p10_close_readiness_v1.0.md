@@ -55,15 +55,16 @@
   - 并已进入 prompt / assistant metadata / runtime debug / harness 的一致输出面
 
 - `P10-5 Regression / acceptance expansion`
-  - 第一版已成立
+  - 第一版已成立，并开始接近更像正式阶段 gate 的形态
   - `p10_regression_gate` 已开始锁：
     - `namespace_governance_consolidation_v5_ok`
     - `retention_lifecycle_consolidation_v8_ok`
     - `knowledge_governance_consolidation_v8_ok`
     - `scenario_governance_consolidation_v8_ok`
+    - `consolidation_metadata_consistency_v8_ok`
   - 当前结果：
-    - `checks_passed = 4`
-    - `checks_total = 4`
+    - `checks_passed = 5`
+    - `checks_total = 5`
     - `failed_checks = []`
     - `all_green = true`
     - `close_candidate = true`
@@ -90,7 +91,7 @@
 
 - `P10-1 ~ P10-4` 虽然都已成立，但整体仍更像：
   - 中后段到接近完成之间
-- `P10-5` 已有第一版正式 gate，但还没有再往上压一层阶段一致性密度
+- `P10-5` 已有第一版正式 gate，并开始补到更像阶段 gate 的一致性密度
 
 这意味着：
 
