@@ -169,6 +169,13 @@
   - 当前正式结论请以
     [memory_upgrade_p14_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_close_note_v1.0.md)
     为准
+- `P15 execution plan` 当前已建立下一阶段执行入口：
+  - 当前执行起点请以
+    [memory_upgrade_p15_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_execution_plan_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P15` 已从“待定义的下一阶段”推进到“已建立执行计划的下一阶段”
+    - 当前整体仍处于执行计划建立阶段，约 `0% - 5%`
 
 ---
 
