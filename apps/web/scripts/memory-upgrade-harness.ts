@@ -3101,6 +3101,26 @@ function main() {
         scenarioMemoryPack.orchestration_consolidation_mode
   } as const;
 
+  const p10RegressionGateChecks = {
+    ...p10NamespaceConsolidationChecks,
+    ...p10RetentionConsolidationChecks,
+    ...p10KnowledgeConsolidationChecks,
+    ...p10ScenarioConsolidationChecks
+  } as const;
+  const p10RegressionGateFailedChecks = Object.entries(
+    p10RegressionGateChecks
+  ).flatMap(([check, passed]) => (passed ? [] : [check]));
+  const p10RegressionGate = {
+    ...p10RegressionGateChecks,
+    checks_passed:
+      Object.keys(p10RegressionGateChecks).length -
+      p10RegressionGateFailedChecks.length,
+    checks_total: Object.keys(p10RegressionGateChecks).length,
+    failed_checks: p10RegressionGateFailedChecks,
+    all_green: p10RegressionGateFailedChecks.length === 0,
+    close_candidate: p10RegressionGateFailedChecks.length === 0
+  } as const;
+
   console.log(
     JSON.stringify(
       {
@@ -3714,6 +3734,7 @@ function main() {
         p10_retention_consolidation: p10RetentionConsolidationChecks,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,
         p10_scenario_consolidation: p10ScenarioConsolidationChecks,
+        p10_regression_gate: p10RegressionGate,
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
             "When episode memory is present"
