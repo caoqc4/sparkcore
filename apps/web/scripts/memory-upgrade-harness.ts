@@ -3273,6 +3273,26 @@ function main() {
         scenarioMemoryPack.governance_coordination_reuse_mode
   } as const;
 
+  const p11RegressionGateChecks = {
+    ...p11NamespaceUnifiedConsolidationChecks,
+    ...p11RetentionCoordinationChecks,
+    ...p11KnowledgeCoordinationChecks,
+    ...p11ScenarioCoordinationChecks
+  } as const;
+  const p11RegressionGateFailedChecks = Object.entries(
+    p11RegressionGateChecks
+  ).flatMap(([check, passed]) => (passed ? [] : [check]));
+  const p11RegressionGate = {
+    ...p11RegressionGateChecks,
+    checks_passed:
+      Object.keys(p11RegressionGateChecks).length -
+      p11RegressionGateFailedChecks.length,
+    checks_total: Object.keys(p11RegressionGateChecks).length,
+    failed_checks: p11RegressionGateFailedChecks,
+    all_green: p11RegressionGateFailedChecks.length === 0,
+    close_candidate: p11RegressionGateFailedChecks.length === 0
+  } as const;
+
   const p10RetentionConsolidationChecks = {
     retention_lifecycle_consolidation_v8_ok:
       compactedThreadSummary?.lifecycle_consolidation_digest ===
@@ -4137,6 +4157,7 @@ function main() {
         p11_retention_coordination: p11RetentionCoordinationChecks,
         p11_knowledge_coordination: p11KnowledgeCoordinationChecks,
         p11_scenario_coordination: p11ScenarioCoordinationChecks,
+        p11_regression_gate: p11RegressionGate,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,
         p10_scenario_consolidation: p10ScenarioConsolidationChecks,
         p10_regression_gate: p10RegressionGate,
