@@ -72,6 +72,9 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   knowledge_governance_convergence_digest?: string | null;
   knowledge_source_budget_alignment_summary?: string | null;
   knowledge_governance_alignment_mode?: string | null;
+  knowledge_governance_unification_digest?: string | null;
+  knowledge_source_budget_unification_summary?: string | null;
+  knowledge_governance_unification_mode?: string | null;
   active_memory_namespace_id?: string | null;
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
@@ -191,6 +194,9 @@ export type BuildAssistantMessageMetadataInput = {
   knowledge_governance_convergence_digest?: string | null;
   knowledge_source_budget_alignment_summary?: string | null;
   knowledge_governance_alignment_mode?: string | null;
+  knowledge_governance_unification_digest?: string | null;
+  knowledge_source_budget_unification_summary?: string | null;
+  knowledge_governance_unification_mode?: string | null;
   active_memory_namespace_id?: string | null;
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
@@ -358,7 +364,13 @@ export function buildAssistantMetadataSummaryGroups(
       source_budget_alignment_summary:
         input.knowledge_source_budget_alignment_summary ?? null,
       governance_alignment_mode:
-        input.knowledge_governance_alignment_mode ?? null
+        input.knowledge_governance_alignment_mode ?? null,
+      governance_unification_digest:
+        input.knowledge_governance_unification_digest ?? null,
+      source_budget_unification_summary:
+        input.knowledge_source_budget_unification_summary ?? null,
+      governance_unification_mode:
+        input.knowledge_governance_unification_mode ?? null
     },
     memory_namespace: input.active_memory_namespace_id
       ? {
@@ -520,6 +532,12 @@ export function buildAssistantMetadataSummaryGroups(
         input.knowledge_source_budget_alignment_summary,
       knowledge_governance_alignment_mode:
         input.knowledge_governance_alignment_mode,
+      knowledge_governance_unification_digest:
+        input.knowledge_governance_unification_digest,
+      knowledge_source_budget_unification_summary:
+        input.knowledge_source_budget_unification_summary,
+      knowledge_governance_unification_mode:
+        input.knowledge_governance_unification_mode,
       active_memory_namespace_id: input.active_memory_namespace_id,
       active_memory_namespace_primary_layer:
         input.active_memory_namespace_primary_layer,

@@ -25,7 +25,10 @@ import {
   getAssistantKnowledgeGovernanceConvergenceDigest,
   getAssistantKnowledgeGovernanceConsistencyMode,
   getAssistantKnowledgeGovernanceCoordinationSummary,
+  getAssistantKnowledgeGovernanceUnificationDigest,
+  getAssistantKnowledgeGovernanceUnificationMode,
   getAssistantKnowledgeSourceBudgetAlignmentSummary,
+  getAssistantKnowledgeSourceBudgetUnificationSummary,
   getAssistantKnowledgeSourceGovernanceSummary,
   getAssistantKnowledgeScopeLayers,
   getAssistantThreadCrossLayerSurvivalMode,
@@ -1345,6 +1348,15 @@ function main() {
     referenceOnlySelection.length === 1 &&
       referenceOnlySelection[0]?.title === "General memory note",
     "Expected reference-heavy knowledge convergence to tighten companion prompt budget to one item in P8."
+  );
+  expect(
+    knowledgeSummary.governance_unification_digest ===
+      "authoritative_governance_unification" &&
+      knowledgeSummary.source_budget_unification_summary ===
+        "authoritative_budget_source_unified" &&
+      knowledgeSummary.governance_unification_mode ===
+        "authoritative_runtime_unified",
+    "Expected knowledge summary to expose governance unification facts in P9."
   );
   const projectKnowledgeWeight = buildKnowledgeRouteWeighting({
     snippet: buildRuntimeKnowledgeSnippet(knowledgeSnapshot),
@@ -2790,6 +2802,18 @@ function main() {
           governance_alignment_mode:
             getAssistantKnowledgeGovernanceAlignmentMode(
               assistantMetadata
+            ),
+          governance_unification_digest:
+            getAssistantKnowledgeGovernanceUnificationDigest(
+              assistantMetadata
+            ),
+          source_budget_unification_summary:
+            getAssistantKnowledgeSourceBudgetUnificationSummary(
+              assistantMetadata
+            ),
+          governance_unification_mode:
+            getAssistantKnowledgeGovernanceUnificationMode(
+              assistantMetadata
             )
         },
         filtered_knowledge_summary: knowledgeSummary,
@@ -2909,6 +2933,13 @@ function main() {
           pack_orchestration_alignment_mode:
             runtimeDebugPack?.orchestration_alignment_mode ?? null,
           knowledge_count: runtimeDebugMetadata.knowledge.count,
+          knowledge_governance_unification_digest:
+            runtimeDebugMetadata.knowledge.governance_unification_digest ?? null,
+          knowledge_source_budget_unification_summary:
+            runtimeDebugMetadata.knowledge.source_budget_unification_summary ??
+            null,
+          knowledge_governance_unification_mode:
+            runtimeDebugMetadata.knowledge.governance_unification_mode ?? null,
           thread_compaction_summary_id:
             runtimeDebugMetadata.thread_compaction?.summary_id ?? null,
           thread_lifecycle_convergence_digest:
