@@ -1367,7 +1367,7 @@
 当前 `P9` 的阶段判断：
 
 - `P9-1`
-  - 前中段
+  - 中段
 - `P9-2`
   - 待开始
 - `P9-3`
@@ -1379,12 +1379,12 @@
 
 整体 `P9` 当前大约：
 
-- **`15% - 25%`**
+- **`25% - 35%`**
 
 当前更推荐的下一步：
 
-- **继续补 `P9-1 Namespace unified governance runtime v4`**
-- 当前第一刀已成立：
+- **开始 `P9-2 Retention lifecycle unification v7` 的第一刀**
+- 当前 `P9-1` 已成立：
   - `unified_governance_runtime_digest_id`
   - `unified_governance_runtime_summary`
   - `unified_runtime_alignment_mode`
