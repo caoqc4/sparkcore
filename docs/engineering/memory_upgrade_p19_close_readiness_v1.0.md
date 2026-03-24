@@ -107,7 +107,7 @@
 
 我现在的判断是：
 
-**`P19` 已进入 `close-readiness` 判断区间，但当前还不建议直接判成 `close-ready / 可收官`。**
+**`P19` 已进入 `close-readiness` 判断区间，并且当前已经满足 `close-ready / 可收官`。**
 
 如果给整体 `P19` 一个阶段进度，我会给：
 
@@ -145,18 +145,20 @@
   - `acceptance_gap_buckets`
   - `next_expansion_focus`
 
-当前之所以还不建议立刻判成 `close-ready`，原因是：
+当前之所以现在可以把 `P19` 判成 `close-ready`，原因是：
 
-- 当前 `close_note_recommended = false` 仍然是 output-stage 的正式口径
-- 当前虽然已经出现 `close_readiness_consumption`，但还没有把这层判断正式压成：
-  - `P19 close note` 输入表达
-  - close-ready 到 close note 的最终映射结论
-- 当前剩余 acceptance gap 虽然都已经降级为非阻塞项，但还没有完成最后一轮 close-note 收束
+- 当前 `close_note_recommended = true` 已经成为 output-stage 的正式口径
+- 当前 `close_note_output` 已不再只是 output contract 本身成立，而已经开始承载：
+  - close-readiness prompt
+  - gap bucket consumption
+  - gap structuring
+  - close-note input readiness
+- 当前剩余 acceptance gap 虽然仍存在，但都已经明确降级为非阻塞项
 
 所以当前更准确的状态是：
 
 - **已经进入 `close-readiness` 判断区间**
-- **但当前还不建议直接判成 `close-ready`**
+- **并且当前已经适合正式判成 `close-ready`**
 
 ---
 
@@ -164,7 +166,7 @@
 
 当前更合理的下一步不是继续横向扩很多新 output 断言，而是：
 
-- **开始做 `P19 close-ready` 前的最后收束**
+- **开始准备 `P19 close note`**
 
 更具体地说，下一步更适合：
 
@@ -172,7 +174,7 @@
   - 阻塞项
   - 非阻塞但有价值项
   - 可转 tail cleanup / 下阶段吸收项
-- 在这个基础上，再正式判断是否进入：
+- 在这个基础上，再正式完成：
   - `P19 close note`
 
 ### 4.1 当前剩余 Acceptance Gap 初步分类
@@ -201,7 +203,7 @@
 这也是为什么我当前把 `P19` 判断为：
 
 - 已进入 `close-readiness` 判断区间
-- 但暂时还不建议直接写 `close note`
+- 且当前已经可以写 `close note`
 
 ---
 
@@ -209,9 +211,9 @@
 
 一句话结论：
 
-**`P19` 当前已经进入 `close-readiness` 判断区间，但还没有达到 `close-ready`；更合理的是先完成最后一轮 close-ready 收束，再决定是否写 `P19 close note`。**
+**`P19` 当前已经进入 `close-readiness` 判断区间，并且已经达到 `close-ready`；更合理的是开始写 `P19 close note`。**
 
 更合理的下一步是：
 
-- **继续完成 `P19 close-ready` 前的最后收束**
+- **开始完成 `P19 close note`**
 - 当前正式阶段判断请以本文档为准

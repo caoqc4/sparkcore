@@ -5802,9 +5802,9 @@ function main() {
     focus: "close_note_outputization",
     output_contract_readiness:
       p19CloseNoteOutput?.close_note_recommended === true
-        ? "output_close_readiness_started"
+        ? "output_close_ready"
         : "output_close_readiness_consumption_started",
-    progress_range: "75% - 80%",
+    progress_range: "80% - 85%",
     close_note_recommended:
       p19CloseNoteOutput?.close_note_recommended ?? false,
     blocking_items: p19CloseNoteOutput?.blocking_items ?? [],

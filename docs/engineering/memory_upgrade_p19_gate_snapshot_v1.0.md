@@ -27,9 +27,9 @@
 
 当前 `p19_gate_snapshot` 的结果为：
 
-- `output_contract_readiness = output_close_readiness_consumption_started`
-- `progress_range = 75% - 80%`
-- `close_note_recommended = false`
+- `output_contract_readiness = output_close_ready`
+- `progress_range = 80% - 85%`
+- `close_note_recommended = true`
 - `blocking_items = []`
 - `non_blocking_items = output_regression_gate_layering / close_readiness_output_consumption / remaining_output_acceptance_gaps`
 - `tail_candidate_items = output_surface_symmetry_cleanup / non_blocking_output_negative_coverage / artifact_to_output_alignment_cleanup`
@@ -112,7 +112,7 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P19-5` 已经从“第一版 output gate 已建立”推进到“close-note output gate 已开始显式服务 close-readiness consumption”，并且当前价值主要在于开始正式判断 `P19 close-readiness`，而不是继续横向补更多平行 output 断言。**
+**`P19-5` 已经从“第一版 output gate 已建立”推进到“close-note output gate 已开始显式服务 close-readiness consumption 并达到 close-ready 判断面”，并且当前价值主要在于开始完成 `P19 close note`，而不是继续横向补更多平行 output 断言。**
 
 ---
 
@@ -120,7 +120,7 @@
 
 当前更合理的下一步是：
 
-- **开始把 `P19` 从 output close-readiness consumption 推进到正式 `P19 close-readiness judgment`，而不是继续横向扩平行 output 类型**
+- **开始把 `P19` 从 output close-readiness consumption 推进到正式 `P19 close note`，而不是继续横向扩平行 output 类型**
 
 ---
 
