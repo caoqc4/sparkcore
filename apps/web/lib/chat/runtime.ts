@@ -2695,6 +2695,11 @@ function buildRoleCoreMemoryHandoffPrompt(
     isZh
       ? `Scenario phase snapshot：${handoff.scenario_phase_snapshot_id}；${handoff.scenario_phase_snapshot_summary}。`
       : `Scenario phase snapshot: ${handoff.scenario_phase_snapshot_id}; ${handoff.scenario_phase_snapshot_summary}.`,
+    handoff.scenario_strategy_bundle_id && handoff.scenario_orchestration_mode
+      ? isZh
+        ? `Scenario handoff depth：strategy_bundle = ${handoff.scenario_strategy_bundle_id}；orchestration_mode = ${handoff.scenario_orchestration_mode}。`
+        : `Scenario handoff depth: strategy_bundle = ${handoff.scenario_strategy_bundle_id}; orchestration_mode = ${handoff.scenario_orchestration_mode}.`
+      : "",
     handoff.retention_decision_group
       ? isZh
         ? `Retention handoff depth：decision_group = ${handoff.retention_decision_group}；retained_fields = ${handoff.retention_retained_fields?.join(", ") || "none"}。`
@@ -4027,6 +4032,8 @@ export async function runPreparedRuntimeTurn({
     });
   const scenarioGovernanceFabricPlanePhaseSnapshot =
     resolveScenarioGovernanceFabricPlanePhaseSnapshot(activeScenarioMemoryPack);
+  const activeScenarioMemoryPackStrategy =
+    resolveScenarioMemoryPackStrategy(activeScenarioMemoryPack);
   const roleCorePacketWithMemoryHandoff = withRoleCoreMemoryHandoff({
     packet: preparedRuntimeTurn.role.role_core,
     memoryHandoff: {
@@ -4049,7 +4056,10 @@ export async function runPreparedRuntimeTurn({
       scenario_phase_snapshot_id:
         scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
       scenario_phase_snapshot_summary:
-        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary,
+      scenario_strategy_bundle_id:
+        activeScenarioMemoryPackStrategy.strategy_bundle_id,
+      scenario_orchestration_mode: activeScenarioMemoryPack.orchestration_mode
     }
   });
   const { workspace, thread, messages, assistant_message_id, supabase } =

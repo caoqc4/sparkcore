@@ -53,6 +53,8 @@ export type RoleCorePacket = {
     knowledge_phase_snapshot_summary: string;
     scenario_phase_snapshot_id: string;
     scenario_phase_snapshot_summary: string;
+    scenario_strategy_bundle_id?: string | null;
+    scenario_orchestration_mode?: string | null;
   } | null;
 };
 
