@@ -55,15 +55,16 @@
   - 并已进入 prompt / assistant metadata / runtime debug / harness 的统一输出面
 
 - `P9-5 Regression / acceptance expansion`
-  - 第一版已成立
+  - 第一版已成立，并开始接近更像正式阶段 gate 的形态
   - `p9_regression_gate` 已开始锁：
     - `namespace_unified_governance_runtime_v4_ok`
     - `retention_lifecycle_unification_v7_ok`
     - `knowledge_governance_unification_v7_ok`
     - `scenario_governance_unification_v7_ok`
+    - `unification_metadata_consistency_v7_ok`
   - 当前结果：
-    - `checks_passed = 4`
-    - `checks_total = 4`
+    - `checks_passed = 5`
+    - `checks_total = 5`
     - `failed_checks = []`
     - `all_green = true`
     - `close_candidate = true`
@@ -74,48 +75,45 @@
 
 我现在的判断是：
 
-**`P9` 已进入 `close-readiness` 前置区间，但还不建议直接写 `P9 close note`。**
+**`P9` 已进入 `close-ready` 前夕，但还建议先做一次正式的 `close-ready` 判断。**
 
 如果给整体 `P9` 一个阶段进度，我会给：
 
-- **约 `80%`**
+- **约 `85%`**
 
 原因是：
 
 - 四条 unified 主线都已经不再只是类型或文案存在
 - prompt / assistant metadata / runtime debug / harness 已开始形成稳定的 unified 四面事实
-- `P9-5` 也已经从待开始推进成了第一版正式 gate
+- `P9-5` 也已经从第一版正式 gate 继续推进到了更像阶段 gate 的形态
 
-但当前还不直接把 `P9` 判成 `close-ready`，原因也很明确：
+但当前还不直接把 `P9` 写成 `close note`，原因也很明确：
 
-- `P9-1 ~ P9-4` 当前大多仍处在中段，而不是接近完成
-- `P9-5` 虽然已经是正式 gate 第一版，但还没有进入更像阶段 gate 的密度
+- `P9-1 ~ P9-4` 当前虽然都已稳定在中段，但还没有被正式压进 close note 结论
+- 当前更缺的不是代码主证据，而是最后一次正式的 close-ready 判断收束
 - 当前整体更像：
-  - `close-readiness` 前置区间
-  - 还差最后 `1-2` 刀的收口判断
+  - `close-ready` 前夕
+  - 还差最后一步文档判断收束
 
 这意味着：
 
 - 当前已经不再缺少 “`P9` 是否成立” 的主证据
-- 但也还没到可以稳定写 `P9 close note` 的时点
+- 当前更像已经接近可以写 `P9 close note`
+- 但最好先做一次正式的 `P9 close-ready` 判断再落笔
 
 ---
 
 ## 4. 下一步建议
 
-当前更合理的下一步不是直接做 `P9 close-ready` 判断，而是：
+当前更合理的下一步已经不是继续补最后一刀，而是：
 
-- **再判断 `P9-4 / P9-5` 是否值得最后一刀**
+- **直接进入正式的 `P9 close-ready` 判断**
 
-更具体地说：
+原因是：
 
-- 如果 `P9-5` 还能顺手补一层 metadata consistency / phase-level coverage，收益会比较高
-- 如果 `P9-4` 已经没有明显缺口，则不必为了“做满一条线”再盲补
-
-所以当前更合理的动作顺序是：
-
-1. 先判断 `P9-4 / P9-5` 是否还有最后一刀值得补
-2. 如果没有明显缺口，再进入正式的 `P9 close-ready` 判断
+- `P9-4` 当前没有明显缺口，继续深挖收益已经开始下降
+- `P9-5` 也已经补到 metadata consistency，这一层阶段 gate 的密度已经够用了
+- 当前最缺的是把“close-ready 前夕”的判断正式收成 close-ready 结论
 
 ---
 
@@ -123,8 +121,8 @@
 
 一句话结论：
 
-**`P9` 已进入 `close-readiness` 前置区间，但当前还不建议直接写 `P9 close note`。**
+**`P9` 已进入 `close-ready` 前夕，下一步适合直接做正式的 `P9 close-ready` 判断。**
 
 更合理的下一步是：
 
-- **先判断 `P9-4 / P9-5` 是否还需要最后一刀**
+- **开始正式的 `P9 close-ready` 判断**
