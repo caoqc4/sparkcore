@@ -22,6 +22,8 @@ import {
   getAssistantKnowledgeCount,
   getAssistantKnowledgeScopeLayers,
   getAssistantThreadCrossLayerSurvivalMode,
+  getAssistantThreadKeepDropGovernanceSummary,
+  getAssistantThreadLifecycleGovernanceDigest,
   getAssistantThreadRetentionDecisionGroup,
   getAssistantThreadRetentionPolicyId,
   getAssistantThreadSurvivalRationale,
@@ -1944,6 +1946,10 @@ function main() {
         "anchor_preserve" &&
       getAssistantThreadSurvivalRationale(assistantMetadata) ===
         "focus_anchor_survives" &&
+      getAssistantThreadLifecycleGovernanceDigest(assistantMetadata) ===
+        "anchor_preservation_governance" &&
+      getAssistantThreadKeepDropGovernanceSummary(assistantMetadata) ===
+        "anchor_keep_priority" &&
       runtimeDebugMetadata.thread_compaction?.retention_policy_id ===
         "focus_continuity_anchor" &&
       runtimeDebugMetadata.thread_compaction?.cross_layer_survival_mode ===
@@ -1952,6 +1958,10 @@ function main() {
         "anchor_preserve" &&
       runtimeDebugMetadata.thread_compaction?.survival_rationale ===
         "focus_anchor_survives" &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_governance_digest ===
+        "anchor_preservation_governance" &&
+      runtimeDebugMetadata.thread_compaction?.keep_drop_governance_summary ===
+        "anchor_keep_priority" &&
       getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
         "Retention policy: focus_continuity_anchor."
       ) &&
@@ -1963,6 +1973,12 @@ function main() {
       ) &&
       getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
         "Survival rationale: focus_anchor_survives."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Lifecycle governance digest: anchor_preservation_governance."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Keep/drop governance: anchor_keep_priority."
       ),
     knowledge_governance_weighting_v4_ok:
       projectKnowledgeWeight.governance_class === "authoritative" &&
@@ -2177,7 +2193,11 @@ function main() {
           retention_decision_group:
             getAssistantThreadRetentionDecisionGroup(assistantMetadata),
           survival_rationale:
-            getAssistantThreadSurvivalRationale(assistantMetadata)
+            getAssistantThreadSurvivalRationale(assistantMetadata),
+          lifecycle_governance_digest:
+            getAssistantThreadLifecycleGovernanceDigest(assistantMetadata),
+          keep_drop_governance_summary:
+            getAssistantThreadKeepDropGovernanceSummary(assistantMetadata)
         },
         assistant_metadata_namespace: {
           primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata),

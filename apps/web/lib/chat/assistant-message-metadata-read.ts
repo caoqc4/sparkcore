@@ -593,6 +593,37 @@ export function getAssistantThreadSurvivalRationale(
   );
 }
 
+export function getAssistantThreadLifecycleGovernanceDigest(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(compactionMetadata, "lifecycle_governance_digest") ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_governance_digest"
+    )
+  );
+}
+
+export function getAssistantThreadKeepDropGovernanceSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "keep_drop_governance_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_keep_drop_governance_summary"
+    )
+  );
+}
+
 export function getAssistantMemoryTypesUsed(
   metadata: Record<string, unknown> | null | undefined
 ) {

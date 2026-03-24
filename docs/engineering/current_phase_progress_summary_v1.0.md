@@ -1224,7 +1224,7 @@
 - `P7-1`
   - 前中段到中段之间
 - `P7-2`
-  - 待开始
+  - 前中段
 - `P7-3`
   - 待开始
 - `P7-4`
@@ -1234,11 +1234,11 @@
 
 整体 `P7` 当前大约：
 
-- **`15% - 25%`**
+- **`20% - 30%`**
 
 当前更推荐的下一步：
 
-- **开始 `P7-2 Retention lifecycle governance v5` 的第一刀**
+- **继续补 `P7-2 Retention lifecycle governance v5`，把 governance digest 再推进到更稳定的 keep/drop coordination**
 - 当前已成立的 `P7-1` 主事实：
   - namespace boundary 现在开始显式产出 `policy_digest_id`
   - 当前最小 digest 已成立：
@@ -1255,6 +1255,18 @@
     - `retrieval_write_balanced`
   - 这层输出已进入：
     - prompt
+    - assistant metadata / reader
+    - runtime debug metadata
+    - harness
+- 当前已成立的 `P7-2` 第一刀事实：
+  - retention 现在开始显式产出：
+    - `lifecycle_governance_digest`
+    - `keep_drop_governance_summary`
+  - 当前最小 digest / summary 已成立：
+    - `anchor_preservation_governance`
+    - `anchor_keep_priority`
+  - 这层输出已进入：
+    - thread compaction summary text
     - assistant metadata / reader
     - runtime debug metadata
     - harness

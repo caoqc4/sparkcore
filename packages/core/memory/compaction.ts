@@ -41,6 +41,20 @@ export type ThreadSurvivalRationale =
   | "minimal_context_thins"
   | "closed_context_pruned";
 
+export type ThreadLifecycleGovernanceDigestId =
+  | "anchor_preservation_governance"
+  | "continuity_bridge_governance"
+  | "window_replay_governance"
+  | "minimal_decay_governance"
+  | "closed_decay_governance";
+
+export type ThreadKeepDropGovernanceSummary =
+  | "anchor_keep_priority"
+  | "bridge_keep_priority"
+  | "window_keep_priority"
+  | "minimal_decay_priority"
+  | "closed_drop_priority";
+
 export type ThreadRetentionLayer = "anchor" | "context" | "window";
 
 export type ThreadRetentionLayerBudget = {
@@ -74,6 +88,8 @@ export type CompactedThreadSummary = {
   cross_layer_survival_mode: ThreadCrossLayerSurvivalMode;
   retention_decision_group: ThreadRetentionDecisionGroup;
   survival_rationale: ThreadSurvivalRationale;
+  lifecycle_governance_digest: ThreadLifecycleGovernanceDigestId;
+  keep_drop_governance_summary: ThreadKeepDropGovernanceSummary;
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;

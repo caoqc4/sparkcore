@@ -3,6 +3,8 @@ import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type {
   CompactedThreadSummary,
   ThreadCrossLayerSurvivalMode,
+  ThreadKeepDropGovernanceSummary,
+  ThreadLifecycleGovernanceDigestId,
   ThreadRetentionDecisionGroup,
   ThreadRetentionLayer,
   ThreadRetentionLayerBudget,
@@ -313,6 +315,40 @@ function resolveThreadSurvivalRationale(args: {
   }
 }
 
+function resolveThreadLifecycleGovernanceDigest(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadLifecycleGovernanceDigestId {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_preservation_governance";
+    case "continuity_bridge":
+      return "continuity_bridge_governance";
+    case "window_replay":
+      return "window_replay_governance";
+    case "minimal_decay":
+      return "minimal_decay_governance";
+    case "closed_decay_prune":
+      return "closed_decay_governance";
+  }
+}
+
+function resolveThreadKeepDropGovernanceSummary(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadKeepDropGovernanceSummary {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_keep_priority";
+    case "continuity_bridge":
+      return "bridge_keep_priority";
+    case "window_replay":
+      return "window_keep_priority";
+    case "minimal_decay":
+      return "minimal_decay_priority";
+    case "closed_decay_prune":
+      return "closed_drop_priority";
+  }
+}
+
 export function buildCompactedThreadSummary(args: {
   threadState: ThreadStateRecord | null | undefined;
   recentTurnCount: number;
@@ -371,6 +407,12 @@ export function buildCompactedThreadSummary(args: {
   const survivalRationale = resolveThreadSurvivalRationale({
     retentionDecisionGroup
   });
+  const lifecycleGovernanceDigest = resolveThreadLifecycleGovernanceDigest({
+    retentionDecisionGroup
+  });
+  const keepDropGovernanceSummary = resolveThreadKeepDropGovernanceSummary({
+    retentionDecisionGroup
+  });
   const retainedFields = buildRetainedFields({
     threadState: args.threadState,
     retentionReason,
@@ -409,6 +451,8 @@ export function buildCompactedThreadSummary(args: {
     `Cross-layer survival: ${crossLayerSurvivalMode}.`,
     `Retention decision group: ${retentionDecisionGroup}.`,
     `Survival rationale: ${survivalRationale}.`,
+    `Lifecycle governance digest: ${lifecycleGovernanceDigest}.`,
+    `Keep/drop governance: ${keepDropGovernanceSummary}.`,
   ].filter((part): part is string => Boolean(part));
 
   return {
@@ -425,6 +469,8 @@ export function buildCompactedThreadSummary(args: {
     cross_layer_survival_mode: crossLayerSurvivalMode,
     retention_decision_group: retentionDecisionGroup,
     survival_rationale: survivalRationale,
+    lifecycle_governance_digest: lifecycleGovernanceDigest,
+    keep_drop_governance_summary: keepDropGovernanceSummary,
     retention_budget: retentionBudget,
     retention_layers: retentionLayers,
     retention_layer_budget: retentionLayerBudget,
@@ -494,7 +540,7 @@ export function buildThreadCompactionPromptSection(args: {
     isZh ? "线程压缩摘要：" : "Compacted thread summary:",
     isZh
       ? `${args.compactedThreadSummary.summary_text} 当前 retention mode = ${args.compactedThreadSummary.retention_mode}，retention reason = ${args.compactedThreadSummary.retention_reason}，section 顺序：${args.compactedThreadSummary.retention_section_order.join("、") || "无"}，保留字段：${args.compactedThreadSummary.retained_fields.join("、") || "无"}。把这段摘要当作线程历史压缩结果，而不是新的长期画像或外部知识。`
-      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; decision group = ${args.compactedThreadSummary.retention_decision_group}; survival rationale = ${args.compactedThreadSummary.survival_rationale}; section order: ${args.compactedThreadSummary.retention_section_order.join(", ") || "none"}; retention layers: ${args.compactedThreadSummary.retention_layers.join(", ") || "none"}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
+      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; decision group = ${args.compactedThreadSummary.retention_decision_group}; survival rationale = ${args.compactedThreadSummary.survival_rationale}; lifecycle governance digest = ${args.compactedThreadSummary.lifecycle_governance_digest}; keep/drop governance = ${args.compactedThreadSummary.keep_drop_governance_summary}; section order: ${args.compactedThreadSummary.retention_section_order.join(", ") || "none"}; retention layers: ${args.compactedThreadSummary.retention_layers.join(", ") || "none"}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
   ].join("\n");
 }
 
@@ -518,6 +564,10 @@ export function buildThreadCompactionSummary(args: {
             args.compactedThreadSummary.retention_decision_group,
           survival_rationale:
             args.compactedThreadSummary.survival_rationale,
+          lifecycle_governance_digest:
+            args.compactedThreadSummary.lifecycle_governance_digest,
+          keep_drop_governance_summary:
+            args.compactedThreadSummary.keep_drop_governance_summary,
           retention_budget: args.compactedThreadSummary.retention_budget,
           retention_layers: args.compactedThreadSummary.retention_layers,
           retention_layer_budget:

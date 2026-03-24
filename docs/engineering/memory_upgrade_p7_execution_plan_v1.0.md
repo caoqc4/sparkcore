@@ -148,6 +148,25 @@ P7 首批要把 retention 从：
 - 更明确的 keep/drop governance summary
 - 更稳定的 cross-layer survival coordination
 
+当前已成立的第一刀代码事实：
+
+- retention 现在除了：
+  - `retention_policy_id`
+  - `cross_layer_survival_mode`
+  - `retention_decision_group`
+  - `survival_rationale`
+  之外，也会显式产出：
+  - `lifecycle_governance_digest`
+  - `keep_drop_governance_summary`
+- 当前最小 digest / summary 已成立：
+  - `anchor_preservation_governance`
+  - `anchor_keep_priority`
+- 这层输出已进入：
+  - thread compaction summary text
+  - assistant metadata / metadata reader
+  - runtime debug metadata
+  - harness
+
 最小要求：
 
 - 至少一条 retention decision 不再只输出 policy / group，而开始输出更明确的 governance digest

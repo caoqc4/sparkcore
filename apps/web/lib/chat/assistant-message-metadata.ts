@@ -79,6 +79,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   compacted_thread_cross_layer_survival_mode?: string | null;
   compacted_thread_retention_decision_group?: string | null;
   compacted_thread_survival_rationale?: string | null;
+  compacted_thread_lifecycle_governance_digest?: string | null;
+  compacted_thread_keep_drop_governance_summary?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -167,6 +169,8 @@ export type BuildAssistantMessageMetadataInput = {
   compacted_thread_cross_layer_survival_mode?: string | null;
   compacted_thread_retention_decision_group?: string | null;
   compacted_thread_survival_rationale?: string | null;
+  compacted_thread_lifecycle_governance_digest?: string | null;
+  compacted_thread_keep_drop_governance_summary?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -311,6 +315,10 @@ export function buildAssistantMetadataSummaryGroups(
             input.compacted_thread_retention_decision_group ?? null,
           survival_rationale:
             input.compacted_thread_survival_rationale ?? null,
+          lifecycle_governance_digest:
+            input.compacted_thread_lifecycle_governance_digest ?? null,
+          keep_drop_governance_summary:
+            input.compacted_thread_keep_drop_governance_summary ?? null,
           retained_fields:
             input.compacted_thread_retained_fields ?? []
         }
@@ -399,6 +407,10 @@ export function buildAssistantMetadataSummaryGroups(
         input.compacted_thread_retention_decision_group,
       compacted_thread_survival_rationale:
         input.compacted_thread_survival_rationale,
+      compacted_thread_lifecycle_governance_digest:
+        input.compacted_thread_lifecycle_governance_digest,
+      compacted_thread_keep_drop_governance_summary:
+        input.compacted_thread_keep_drop_governance_summary,
       compacted_thread_retained_fields:
         input.compacted_thread_retained_fields,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,
