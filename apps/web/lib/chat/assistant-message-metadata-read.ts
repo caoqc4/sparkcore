@@ -718,6 +718,20 @@ export function getAssistantMemoryNamespaceUnifiedRuntimeAlignmentMode(
   );
 }
 
+export function getAssistantMemoryNamespaceUnifiedRuntimeReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(namespaceMetadata, "unified_runtime_reuse_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_unified_runtime_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
   metadata: Record<string, unknown> | null | undefined
 ) {

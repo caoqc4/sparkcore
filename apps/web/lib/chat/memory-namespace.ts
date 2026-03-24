@@ -63,6 +63,11 @@ export type RuntimeMemoryBoundary = {
     | "project_runtime_aligned"
     | "world_runtime_aligned"
     | "default_runtime_aligned";
+  unified_runtime_reuse_mode:
+    | "thread_focus_runtime_reuse"
+    | "project_balanced_runtime_reuse"
+    | "world_reference_runtime_reuse"
+    | "default_balanced_runtime_reuse";
   retrieval_write_digest_alignment:
     | "thread_strict_outward_aligned"
     | "project_parallel_balanced_aligned"
@@ -157,6 +162,9 @@ export function buildMemoryNamespacePromptSection(args: {
       ? `当前 unified governance runtime：${boundary.unified_governance_runtime_digest_id}；summary = ${boundary.unified_governance_runtime_summary}；mode = ${boundary.unified_runtime_alignment_mode}。`
       : `Current unified governance runtime: ${boundary.unified_governance_runtime_digest_id}; summary = ${boundary.unified_governance_runtime_summary}; mode = ${boundary.unified_runtime_alignment_mode}.`,
     isZh
+      ? `当前 unified runtime reuse：${boundary.unified_runtime_reuse_mode}。`
+      : `Current unified runtime reuse: ${boundary.unified_runtime_reuse_mode}.`,
+    isZh
       ? `当前 coordination 摘要：${boundary.policy_coordination_summary}；consistency = ${boundary.governance_consistency_mode}。`
       : `Current coordination summary: ${boundary.policy_coordination_summary}; consistency = ${boundary.governance_consistency_mode}.`,
     isZh
@@ -201,8 +209,21 @@ export function buildMemoryNamespaceSummary(args: {
       boundary.unified_governance_runtime_summary,
     unified_runtime_alignment_mode:
       boundary.unified_runtime_alignment_mode,
+    unified_runtime_reuse_mode: boundary.unified_runtime_reuse_mode,
     retrieval_write_digest_alignment:
       boundary.retrieval_write_digest_alignment
+  };
+}
+
+export function resolveNamespaceUnifiedGovernanceRuntimeContract(
+  namespace: ActiveRuntimeMemoryNamespace | null | undefined
+) {
+  const boundary = resolveRuntimeMemoryBoundary(namespace);
+
+  return {
+    unified_runtime_reuse_mode: boundary.unified_runtime_reuse_mode,
+    retrieval_runtime_routes: boundary.retrieval_route_order,
+    write_runtime_fallback_order: boundary.write_fallback_order
   };
 }
 
@@ -227,6 +248,7 @@ export function resolveRuntimeMemoryBoundary(
         unified_governance_runtime_digest_id: "thread_focus_unified_runtime",
         unified_governance_runtime_summary: "thread_focus_runtime_unified",
         unified_runtime_alignment_mode: "thread_runtime_aligned",
+        unified_runtime_reuse_mode: "thread_focus_runtime_reuse",
         retrieval_write_digest_alignment: "thread_strict_outward_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode"],
         write_fallback_order: ["thread", "project", "world", "default"],
@@ -255,6 +277,7 @@ export function resolveRuntimeMemoryBoundary(
         unified_governance_runtime_summary:
           "project_coordination_runtime_unified",
         unified_runtime_alignment_mode: "project_runtime_aligned",
+        unified_runtime_reuse_mode: "project_balanced_runtime_reuse",
         retrieval_write_digest_alignment:
           "project_parallel_balanced_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
@@ -284,6 +307,7 @@ export function resolveRuntimeMemoryBoundary(
         unified_governance_runtime_summary:
           "world_reference_runtime_unified",
         unified_runtime_alignment_mode: "world_runtime_aligned",
+        unified_runtime_reuse_mode: "world_reference_runtime_reuse",
         retrieval_write_digest_alignment: "world_reference_pinned_aligned",
         retrieval_route_order: ["thread_state", "profile", "timeline", "episode"],
         write_fallback_order: ["world", "default"],
@@ -310,6 +334,7 @@ export function resolveRuntimeMemoryBoundary(
         unified_governance_runtime_digest_id: "default_memory_unified_runtime",
         unified_governance_runtime_summary: "default_memory_runtime_unified",
         unified_runtime_alignment_mode: "default_runtime_aligned",
+        unified_runtime_reuse_mode: "default_balanced_runtime_reuse",
         retrieval_write_digest_alignment: "default_balanced_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
         write_fallback_order: ["default"],
@@ -356,6 +381,8 @@ export function buildMemoryNamespaceScopedMetadata(args: {
       boundary.unified_governance_runtime_summary,
     active_memory_namespace_unified_runtime_alignment_mode:
       boundary.unified_runtime_alignment_mode,
+    active_memory_namespace_unified_runtime_reuse_mode:
+      boundary.unified_runtime_reuse_mode,
     active_memory_namespace_retrieval_write_digest_alignment:
       boundary.retrieval_write_digest_alignment,
     active_memory_retrieval_boundary: boundary.retrieval_boundary,

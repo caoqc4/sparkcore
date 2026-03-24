@@ -49,6 +49,7 @@ import {
   getAssistantMemoryNamespaceUnifiedGovernanceRuntimeDigestId,
   getAssistantMemoryNamespaceUnifiedGovernanceRuntimeSummary,
   getAssistantMemoryNamespaceUnifiedRuntimeAlignmentMode,
+  getAssistantMemoryNamespaceUnifiedRuntimeReuseMode,
   getAssistantMemoryNamespaceRetrievalFallbackMode,
   getAssistantMemoryNamespaceRouteGovernanceMode,
   getAssistantMemoryNamespaceGovernanceConsistencyMode,
@@ -855,6 +856,8 @@ function main() {
         "project_coordination_runtime_unified" &&
       namespaceAwareWriteTarget.namespaceUnifiedRuntimeAlignmentMode ===
         "project_runtime_aligned" &&
+      namespaceAwareWriteTarget.namespaceUnifiedRuntimeReuseMode ===
+        "project_balanced_runtime_reuse" &&
       namespaceAwareWriteTarget.retrievalWriteDigestAlignment ===
         "project_parallel_balanced_aligned",
     "Expected namespace-aware write target resolution to reuse project namespace unified governance runtime in P9."
@@ -907,6 +910,9 @@ function main() {
       runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
         ?.namespace_unified_runtime_alignment_mode ===
         "project_runtime_aligned" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_unified_runtime_reuse_mode ===
+        "project_balanced_runtime_reuse" &&
       runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
         ?.retrieval_write_digest_alignment ===
         "project_parallel_balanced_aligned",
@@ -1561,6 +1567,8 @@ function main() {
       getAssistantMemoryNamespaceUnifiedRuntimeAlignmentMode(
         assistantMetadata
       ) === "project_runtime_aligned" &&
+      getAssistantMemoryNamespaceUnifiedRuntimeReuseMode(assistantMetadata) ===
+        "project_balanced_runtime_reuse" &&
       runtimeDebugMetadata.memory_namespace
         ?.unified_governance_runtime_digest_id ===
         "project_coordination_unified_runtime" &&
@@ -1569,8 +1577,13 @@ function main() {
         "project_coordination_runtime_unified" &&
       runtimeDebugMetadata.memory_namespace?.unified_runtime_alignment_mode ===
         "project_runtime_aligned" &&
+      runtimeDebugMetadata.memory_namespace?.unified_runtime_reuse_mode ===
+        "project_balanced_runtime_reuse" &&
       systemPrompt.includes(
         "Current unified governance runtime: project_coordination_unified_runtime; summary = project_coordination_runtime_unified; mode = project_runtime_aligned."
+      ) &&
+      systemPrompt.includes(
+        "Current unified runtime reuse: project_balanced_runtime_reuse."
       ),
     "Expected namespace unified governance runtime to be consistent across prompt, assistant metadata, and runtime debug metadata in P9."
   );

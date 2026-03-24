@@ -156,6 +156,9 @@ export function buildRuntimeDebugMetadata(
           unified_runtime_alignment_mode: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).unified_runtime_alignment_mode,
+          unified_runtime_reuse_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).unified_runtime_reuse_mode,
           retrieval_write_digest_alignment: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).retrieval_write_digest_alignment,

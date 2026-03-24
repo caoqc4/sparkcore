@@ -1388,9 +1388,11 @@
   - `unified_governance_runtime_digest_id`
   - `unified_governance_runtime_summary`
   - `unified_runtime_alignment_mode`
+  - `unified_runtime_reuse_mode`
 - 这层 unified runtime contract 已开始进入：
   - namespace prompt section
   - assistant metadata / reader
   - runtime debug metadata
   - write target / runtime preview
   - harness
+- 当前 recall route 与 write fallback 也已开始复用同一层 unified runtime contract

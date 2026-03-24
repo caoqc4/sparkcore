@@ -76,6 +76,8 @@ function buildRuntimeMemoryWriteRequestPreview(
         target.namespaceUnifiedGovernanceRuntimeSummary,
       namespace_unified_runtime_alignment_mode:
         target.namespaceUnifiedRuntimeAlignmentMode,
+      namespace_unified_runtime_reuse_mode:
+        target.namespaceUnifiedRuntimeReuseMode,
       retrieval_write_digest_alignment:
         target.retrievalWriteDigestAlignment,
       thread_state_candidate:

@@ -1,5 +1,6 @@
 import type { RuntimeMemoryWriteRequest } from "@/lib/chat/runtime-contract";
 import {
+  resolveNamespaceUnifiedGovernanceRuntimeContract,
   resolveRuntimeMemoryBoundary,
   type ActiveRuntimeMemoryNamespace
 } from "@/lib/chat/memory-namespace";
@@ -43,6 +44,7 @@ export type PlannedMemoryWriteTarget = {
   namespaceUnifiedGovernanceRuntimeDigestId: string | null;
   namespaceUnifiedGovernanceRuntimeSummary: string | null;
   namespaceUnifiedRuntimeAlignmentMode: string | null;
+  namespaceUnifiedRuntimeReuseMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -73,6 +75,7 @@ export type PlannedGenericMemoryWriteTarget = {
   namespaceUnifiedGovernanceRuntimeDigestId: string | null;
   namespaceUnifiedGovernanceRuntimeSummary: string | null;
   namespaceUnifiedRuntimeAlignmentMode: string | null;
+  namespaceUnifiedRuntimeReuseMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -103,6 +106,7 @@ export type PlannedRelationshipMemoryWriteTarget = {
   namespaceUnifiedGovernanceRuntimeDigestId: string | null;
   namespaceUnifiedGovernanceRuntimeSummary: string | null;
   namespaceUnifiedRuntimeAlignmentMode: string | null;
+  namespaceUnifiedRuntimeReuseMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -124,10 +128,14 @@ function resolveNamespaceWriteRouting(
 ) {
   const boundary = resolveRuntimeMemoryBoundary(namespace);
   const writeBoundary = boundary.write_boundary;
+  const unifiedRuntimeContract =
+    resolveNamespaceUnifiedGovernanceRuntimeContract(namespace);
   const projectId = getNamespaceRefId(namespace, "project");
   const worldId = getNamespaceRefId(namespace, "world");
   const fallbackWriteBoundary =
-    boundary.write_fallback_order.find((item) => item !== writeBoundary) ?? null;
+    unifiedRuntimeContract.write_runtime_fallback_order.find(
+      (item) => item !== writeBoundary
+    ) ?? null;
 
   switch (writeBoundary) {
     case "project":
@@ -148,6 +156,8 @@ function resolveNamespaceWriteRouting(
           boundary.unified_governance_runtime_summary,
         namespaceUnifiedRuntimeAlignmentMode:
           boundary.unified_runtime_alignment_mode,
+        namespaceUnifiedRuntimeReuseMode:
+          boundary.unified_runtime_reuse_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -169,6 +179,8 @@ function resolveNamespaceWriteRouting(
           boundary.unified_governance_runtime_summary,
         namespaceUnifiedRuntimeAlignmentMode:
           boundary.unified_runtime_alignment_mode,
+        namespaceUnifiedRuntimeReuseMode:
+          boundary.unified_runtime_reuse_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -190,6 +202,8 @@ function resolveNamespaceWriteRouting(
           boundary.unified_governance_runtime_summary,
         namespaceUnifiedRuntimeAlignmentMode:
           boundary.unified_runtime_alignment_mode,
+        namespaceUnifiedRuntimeReuseMode:
+          boundary.unified_runtime_reuse_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -211,6 +225,8 @@ function resolveNamespaceWriteRouting(
           boundary.unified_governance_runtime_summary,
         namespaceUnifiedRuntimeAlignmentMode:
           boundary.unified_runtime_alignment_mode,
+        namespaceUnifiedRuntimeReuseMode:
+          boundary.unified_runtime_reuse_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -248,6 +264,7 @@ export function resolvePlannedMemoryWriteTarget(
     namespaceUnifiedGovernanceRuntimeDigestId,
     namespaceUnifiedGovernanceRuntimeSummary,
     namespaceUnifiedRuntimeAlignmentMode,
+    namespaceUnifiedRuntimeReuseMode,
     retrievalWriteDigestAlignment
   } = resolveNamespaceWriteRouting(namespace);
 
@@ -273,6 +290,7 @@ export function resolvePlannedMemoryWriteTarget(
       namespaceUnifiedGovernanceRuntimeDigestId,
       namespaceUnifiedGovernanceRuntimeSummary,
       namespaceUnifiedRuntimeAlignmentMode,
+      namespaceUnifiedRuntimeReuseMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -302,6 +320,7 @@ export function resolvePlannedMemoryWriteTarget(
       namespaceUnifiedGovernanceRuntimeDigestId,
       namespaceUnifiedGovernanceRuntimeSummary,
       namespaceUnifiedRuntimeAlignmentMode,
+      namespaceUnifiedRuntimeReuseMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -328,6 +347,7 @@ export function resolvePlannedMemoryWriteTarget(
       namespaceUnifiedGovernanceRuntimeDigestId,
       namespaceUnifiedGovernanceRuntimeSummary,
       namespaceUnifiedRuntimeAlignmentMode,
+      namespaceUnifiedRuntimeReuseMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -357,6 +377,7 @@ export function resolvePlannedMemoryWriteTarget(
     namespaceUnifiedGovernanceRuntimeDigestId,
     namespaceUnifiedGovernanceRuntimeSummary,
     namespaceUnifiedRuntimeAlignmentMode,
+    namespaceUnifiedRuntimeReuseMode,
     retrievalWriteDigestAlignment
   };
 }

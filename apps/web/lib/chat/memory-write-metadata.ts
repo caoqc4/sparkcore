@@ -19,6 +19,7 @@ export function buildRelationshipPlannerMemoryMetadata(
     namespaceUnifiedGovernanceRuntimeDigestId?: string | null;
     namespaceUnifiedGovernanceRuntimeSummary?: string | null;
     namespaceUnifiedRuntimeAlignmentMode?: string | null;
+    namespaceUnifiedRuntimeReuseMode?: string | null;
     retrievalWriteDigestAlignment?: string | null;
   }
 ): Record<string, unknown> {
@@ -51,6 +52,8 @@ export function buildRelationshipPlannerMemoryMetadata(
       targetMetadata?.namespaceUnifiedGovernanceRuntimeSummary ?? null,
     namespace_unified_runtime_alignment_mode:
       targetMetadata?.namespaceUnifiedRuntimeAlignmentMode ?? null,
+    namespace_unified_runtime_reuse_mode:
+      targetMetadata?.namespaceUnifiedRuntimeReuseMode ?? null,
     retrieval_write_digest_alignment:
       targetMetadata?.retrievalWriteDigestAlignment ?? null,
     relation_kind: request.relationship_key,
@@ -86,6 +89,7 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
   namespaceUnifiedGovernanceRuntimeDigestId?: string | null;
   namespaceUnifiedGovernanceRuntimeSummary?: string | null;
   namespaceUnifiedRuntimeAlignmentMode?: string | null;
+  namespaceUnifiedRuntimeReuseMode?: string | null;
   retrievalWriteDigestAlignment?: string | null;
 }): Record<string, unknown> {
   return {
@@ -117,6 +121,8 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
       args.namespaceUnifiedGovernanceRuntimeSummary ?? null,
     namespace_unified_runtime_alignment_mode:
       args.namespaceUnifiedRuntimeAlignmentMode ?? null,
+    namespace_unified_runtime_reuse_mode:
+      args.namespaceUnifiedRuntimeReuseMode ?? null,
     retrieval_write_digest_alignment:
       args.retrievalWriteDigestAlignment ?? null,
     threshold: args.threshold,
@@ -152,6 +158,7 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
   namespaceUnifiedGovernanceRuntimeDigestId?: string | null;
   namespaceUnifiedGovernanceRuntimeSummary?: string | null;
   namespaceUnifiedRuntimeAlignmentMode?: string | null;
+  namespaceUnifiedRuntimeReuseMode?: string | null;
   retrievalWriteDigestAlignment?: string | null;
 }): Record<string, unknown> {
   return {
@@ -184,6 +191,8 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
       args.namespaceUnifiedGovernanceRuntimeSummary ?? null,
     namespace_unified_runtime_alignment_mode:
       args.namespaceUnifiedRuntimeAlignmentMode ?? null,
+    namespace_unified_runtime_reuse_mode:
+      args.namespaceUnifiedRuntimeReuseMode ?? null,
     retrieval_write_digest_alignment:
       args.retrievalWriteDigestAlignment ?? null,
     threshold: args.threshold,
