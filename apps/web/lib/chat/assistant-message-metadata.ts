@@ -108,6 +108,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   active_memory_namespace_unified_governance_consolidation_summary?: string | null;
   active_memory_namespace_unified_consolidation_alignment_mode?: string | null;
   active_memory_namespace_unified_consolidation_reuse_mode?: string | null;
+  active_memory_namespace_unified_consolidation_coordination_summary?: string | null;
+  active_memory_namespace_unified_consolidation_consistency_mode?: string | null;
   active_memory_namespace_retrieval_write_digest_alignment?: string | null;
   compacted_thread_summary_id?: string | null;
   compacted_thread_summary_text?: string | null;
@@ -249,6 +251,8 @@ export type BuildAssistantMessageMetadataInput = {
   active_memory_namespace_unified_governance_consolidation_summary?: string | null;
   active_memory_namespace_unified_consolidation_alignment_mode?: string | null;
   active_memory_namespace_unified_consolidation_reuse_mode?: string | null;
+  active_memory_namespace_unified_consolidation_coordination_summary?: string | null;
+  active_memory_namespace_unified_consolidation_consistency_mode?: string | null;
   active_memory_namespace_retrieval_write_digest_alignment?: string | null;
   compacted_thread_summary_id?: string | null;
   compacted_thread_summary_text?: string | null;
@@ -487,6 +491,12 @@ export function buildAssistantMetadataSummaryGroups(
           unified_consolidation_reuse_mode:
             input.active_memory_namespace_unified_consolidation_reuse_mode ??
             null,
+          unified_consolidation_coordination_summary:
+            input.active_memory_namespace_unified_consolidation_coordination_summary ??
+            null,
+          unified_consolidation_consistency_mode:
+            input.active_memory_namespace_unified_consolidation_consistency_mode ??
+            null,
           retrieval_write_digest_alignment:
             input.active_memory_namespace_retrieval_write_digest_alignment ??
             null
@@ -686,6 +696,10 @@ export function buildAssistantMetadataSummaryGroups(
         input.active_memory_namespace_unified_consolidation_alignment_mode,
       active_memory_namespace_unified_consolidation_reuse_mode:
         input.active_memory_namespace_unified_consolidation_reuse_mode,
+      active_memory_namespace_unified_consolidation_coordination_summary:
+        input.active_memory_namespace_unified_consolidation_coordination_summary,
+      active_memory_namespace_unified_consolidation_consistency_mode:
+        input.active_memory_namespace_unified_consolidation_consistency_mode,
       active_memory_namespace_retrieval_write_digest_alignment:
         input.active_memory_namespace_retrieval_write_digest_alignment,
       compacted_thread_summary_id: input.compacted_thread_summary_id,

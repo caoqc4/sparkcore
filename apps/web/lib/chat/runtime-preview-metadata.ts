@@ -92,6 +92,10 @@ function buildRuntimeMemoryWriteRequestPreview(
         target.namespaceUnifiedConsolidationAlignmentMode,
       namespace_unified_consolidation_reuse_mode:
         target.namespaceUnifiedConsolidationReuseMode,
+      namespace_unified_consolidation_coordination_summary:
+        target.namespaceUnifiedConsolidationCoordinationSummary,
+      namespace_unified_consolidation_consistency_mode:
+        target.namespaceUnifiedConsolidationConsistencyMode,
       retrieval_write_digest_alignment:
         target.retrievalWriteDigestAlignment,
       thread_state_candidate:

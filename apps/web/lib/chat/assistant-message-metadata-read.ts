@@ -944,6 +944,40 @@ export function getAssistantMemoryNamespaceUnifiedConsolidationReuseMode(
   );
 }
 
+export function getAssistantMemoryNamespaceUnifiedConsolidationCoordinationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "unified_consolidation_coordination_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_unified_consolidation_coordination_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceUnifiedConsolidationConsistencyMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "unified_consolidation_consistency_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_unified_consolidation_consistency_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
   metadata: Record<string, unknown> | null | undefined
 ) {

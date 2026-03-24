@@ -64,6 +64,8 @@ import {
   getAssistantMemoryNamespaceUnifiedGovernanceConsolidationSummary,
   getAssistantMemoryNamespaceUnifiedConsolidationAlignmentMode,
   getAssistantMemoryNamespaceUnifiedConsolidationReuseMode,
+  getAssistantMemoryNamespaceUnifiedConsolidationCoordinationSummary,
+  getAssistantMemoryNamespaceUnifiedConsolidationConsistencyMode,
   getAssistantMemoryNamespaceRetrievalWriteDigestAlignment,
   getAssistantMemoryNamespaceUnifiedGovernanceRuntimeDigestId,
   getAssistantMemoryNamespaceUnifiedGovernanceRuntimeSummary,
@@ -3026,6 +3028,10 @@ function main() {
         "project_unified_runtime_consolidated" &&
       projectBoundary.unified_consolidation_reuse_mode ===
         "project_coordination_unified_consolidation_reuse" &&
+      projectBoundary.unified_consolidation_coordination_summary ===
+        "project_parallel_unified_coordination" &&
+      projectBoundary.unified_consolidation_consistency_mode ===
+        "project_unified_consistent" &&
       projectUnifiedConsolidationContract.unified_governance_consolidation_digest_id ===
         projectBoundary.unified_governance_consolidation_digest_id &&
       getAssistantMemoryNamespaceUnifiedGovernanceConsolidationDigestId(
@@ -3040,6 +3046,12 @@ function main() {
       getAssistantMemoryNamespaceUnifiedConsolidationReuseMode(
         assistantMetadata
       ) === projectBoundary.unified_consolidation_reuse_mode &&
+      getAssistantMemoryNamespaceUnifiedConsolidationCoordinationSummary(
+        assistantMetadata
+      ) === projectBoundary.unified_consolidation_coordination_summary &&
+      getAssistantMemoryNamespaceUnifiedConsolidationConsistencyMode(
+        assistantMetadata
+      ) === projectBoundary.unified_consolidation_consistency_mode &&
       runtimeDebugMetadata.memory_namespace
         ?.unified_governance_consolidation_digest_id ===
         projectBoundary.unified_governance_consolidation_digest_id &&
@@ -3052,6 +3064,12 @@ function main() {
       runtimeDebugMetadata.memory_namespace
         ?.unified_consolidation_reuse_mode ===
         projectBoundary.unified_consolidation_reuse_mode &&
+      runtimeDebugMetadata.memory_namespace
+        ?.unified_consolidation_coordination_summary ===
+        projectBoundary.unified_consolidation_coordination_summary &&
+      runtimeDebugMetadata.memory_namespace
+        ?.unified_consolidation_consistency_mode ===
+        projectBoundary.unified_consolidation_consistency_mode &&
       runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
         ?.namespace_unified_governance_consolidation_digest_id ===
         projectBoundary.unified_governance_consolidation_digest_id &&
@@ -3063,7 +3081,13 @@ function main() {
         projectBoundary.unified_consolidation_alignment_mode &&
       runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
         ?.namespace_unified_consolidation_reuse_mode ===
-        projectBoundary.unified_consolidation_reuse_mode
+        projectBoundary.unified_consolidation_reuse_mode &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_unified_consolidation_coordination_summary ===
+        projectBoundary.unified_consolidation_coordination_summary &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_unified_consolidation_consistency_mode ===
+        projectBoundary.unified_consolidation_consistency_mode
   } as const;
 
   const p10RetentionConsolidationChecks = {
@@ -3303,7 +3327,11 @@ function main() {
             project_unified_consolidation_alignment_mode:
               projectUnifiedConsolidationContract.unified_consolidation_alignment_mode,
             project_unified_consolidation_reuse_mode:
-              projectUnifiedConsolidationContract.unified_consolidation_reuse_mode
+              projectUnifiedConsolidationContract.unified_consolidation_reuse_mode,
+            project_unified_consolidation_coordination_summary:
+              projectUnifiedConsolidationContract.unified_consolidation_coordination_summary,
+            project_unified_consolidation_consistency_mode:
+              projectUnifiedConsolidationContract.unified_consolidation_consistency_mode
           }
         },
         runtime_semantic_summary: semanticSummary,
@@ -3671,6 +3699,12 @@ function main() {
           namespace_unified_consolidation_reuse_mode:
             runtimeDebugMetadata.memory_namespace
               ?.unified_consolidation_reuse_mode ?? null,
+          namespace_unified_consolidation_coordination_summary:
+            runtimeDebugMetadata.memory_namespace
+              ?.unified_consolidation_coordination_summary ?? null,
+          namespace_unified_consolidation_consistency_mode:
+            runtimeDebugMetadata.memory_namespace
+              ?.unified_consolidation_consistency_mode ?? null,
           namespace_unified_governance_runtime_digest_id:
             runtimeDebugMetadata.memory_namespace
               ?.unified_governance_runtime_digest_id ?? null,

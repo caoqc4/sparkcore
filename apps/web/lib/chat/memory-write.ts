@@ -847,6 +847,10 @@ export async function executeMemoryWriteRequests({
             namespaceBoundary.unified_consolidation_alignment_mode,
           namespaceUnifiedConsolidationReuseMode:
             namespaceBoundary.unified_consolidation_reuse_mode,
+          namespaceUnifiedConsolidationCoordinationSummary:
+            namespaceBoundary.unified_consolidation_coordination_summary,
+          namespaceUnifiedConsolidationConsistencyMode:
+            namespaceBoundary.unified_consolidation_consistency_mode,
           retrievalWriteDigestAlignment:
             namespaceBoundary.retrieval_write_digest_alignment
         };

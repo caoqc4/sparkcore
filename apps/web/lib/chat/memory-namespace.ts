@@ -97,6 +97,16 @@ export type RuntimeMemoryBoundary = {
     | "project_coordination_unified_consolidation_reuse"
     | "world_reference_unified_consolidation_reuse"
     | "default_memory_unified_consolidation_reuse";
+  unified_consolidation_coordination_summary:
+    | "thread_focus_unified_coordination"
+    | "project_parallel_unified_coordination"
+    | "world_reference_unified_coordination"
+    | "default_balanced_unified_coordination";
+  unified_consolidation_consistency_mode:
+    | "thread_unified_consistent"
+    | "project_unified_consistent"
+    | "world_unified_consistent"
+    | "default_unified_consistent";
   retrieval_write_digest_alignment:
     | "thread_strict_outward_aligned"
     | "project_parallel_balanced_aligned"
@@ -200,6 +210,9 @@ export function buildMemoryNamespacePromptSection(args: {
       ? `当前 unified governance consolidation：${boundary.unified_governance_consolidation_digest_id}；summary = ${boundary.unified_governance_consolidation_summary}；mode = ${boundary.unified_consolidation_alignment_mode}；reuse = ${boundary.unified_consolidation_reuse_mode}。`
       : `Current unified governance consolidation: ${boundary.unified_governance_consolidation_digest_id}; summary = ${boundary.unified_governance_consolidation_summary}; mode = ${boundary.unified_consolidation_alignment_mode}; reuse = ${boundary.unified_consolidation_reuse_mode}.`,
     isZh
+      ? `当前 unified consolidation coordination：${boundary.unified_consolidation_coordination_summary}；consistency = ${boundary.unified_consolidation_consistency_mode}。`
+      : `Current unified consolidation coordination: ${boundary.unified_consolidation_coordination_summary}; consistency = ${boundary.unified_consolidation_consistency_mode}.`,
+    isZh
       ? `当前 coordination 摘要：${boundary.policy_coordination_summary}；consistency = ${boundary.governance_consistency_mode}。`
       : `Current coordination summary: ${boundary.policy_coordination_summary}; consistency = ${boundary.governance_consistency_mode}.`,
     isZh
@@ -258,6 +271,10 @@ export function buildMemoryNamespaceSummary(args: {
       boundary.unified_consolidation_alignment_mode,
     unified_consolidation_reuse_mode:
       boundary.unified_consolidation_reuse_mode,
+    unified_consolidation_coordination_summary:
+      boundary.unified_consolidation_coordination_summary,
+    unified_consolidation_consistency_mode:
+      boundary.unified_consolidation_consistency_mode,
     retrieval_write_digest_alignment:
       boundary.retrieval_write_digest_alignment
   };
@@ -310,6 +327,10 @@ export function resolveNamespaceUnifiedGovernanceConsolidationContract(
       boundary.unified_consolidation_alignment_mode,
     unified_consolidation_reuse_mode:
       boundary.unified_consolidation_reuse_mode,
+    unified_consolidation_coordination_summary:
+      boundary.unified_consolidation_coordination_summary,
+    unified_consolidation_consistency_mode:
+      boundary.unified_consolidation_consistency_mode,
     unified_consolidation_retrieval_routes: boundary.retrieval_route_order,
     unified_consolidation_write_fallback_order: boundary.write_fallback_order
   };
@@ -350,6 +371,9 @@ export function resolveRuntimeMemoryBoundary(
           "thread_unified_runtime_consolidated",
         unified_consolidation_reuse_mode:
           "thread_focus_unified_consolidation_reuse",
+        unified_consolidation_coordination_summary:
+          "thread_focus_unified_coordination",
+        unified_consolidation_consistency_mode: "thread_unified_consistent",
         retrieval_write_digest_alignment: "thread_strict_outward_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode"],
         write_fallback_order: ["thread", "project", "world", "default"],
@@ -392,6 +416,9 @@ export function resolveRuntimeMemoryBoundary(
           "project_unified_runtime_consolidated",
         unified_consolidation_reuse_mode:
           "project_coordination_unified_consolidation_reuse",
+        unified_consolidation_coordination_summary:
+          "project_parallel_unified_coordination",
+        unified_consolidation_consistency_mode: "project_unified_consistent",
         retrieval_write_digest_alignment:
           "project_parallel_balanced_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
@@ -435,6 +462,9 @@ export function resolveRuntimeMemoryBoundary(
           "world_unified_runtime_consolidated",
         unified_consolidation_reuse_mode:
           "world_reference_unified_consolidation_reuse",
+        unified_consolidation_coordination_summary:
+          "world_reference_unified_coordination",
+        unified_consolidation_consistency_mode: "world_unified_consistent",
         retrieval_write_digest_alignment: "world_reference_pinned_aligned",
         retrieval_route_order: ["thread_state", "profile", "timeline", "episode"],
         write_fallback_order: ["world", "default"],
@@ -475,6 +505,9 @@ export function resolveRuntimeMemoryBoundary(
           "default_unified_runtime_consolidated",
         unified_consolidation_reuse_mode:
           "default_memory_unified_consolidation_reuse",
+        unified_consolidation_coordination_summary:
+          "default_balanced_unified_coordination",
+        unified_consolidation_consistency_mode: "default_unified_consistent",
         retrieval_write_digest_alignment: "default_balanced_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
         write_fallback_order: ["default"],
@@ -537,6 +570,10 @@ export function buildMemoryNamespaceScopedMetadata(args: {
       boundary.unified_consolidation_alignment_mode,
     active_memory_namespace_unified_consolidation_reuse_mode:
       boundary.unified_consolidation_reuse_mode,
+    active_memory_namespace_unified_consolidation_coordination_summary:
+      boundary.unified_consolidation_coordination_summary,
+    active_memory_namespace_unified_consolidation_consistency_mode:
+      boundary.unified_consolidation_consistency_mode,
     active_memory_namespace_retrieval_write_digest_alignment:
       boundary.retrieval_write_digest_alignment,
     active_memory_retrieval_boundary: boundary.retrieval_boundary,

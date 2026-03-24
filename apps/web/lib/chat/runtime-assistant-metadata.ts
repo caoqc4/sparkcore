@@ -297,6 +297,10 @@ export function buildRuntimeAssistantMetadataInput(
       namespaceBoundary?.unified_consolidation_alignment_mode ?? null,
     active_memory_namespace_unified_consolidation_reuse_mode:
       namespaceBoundary?.unified_consolidation_reuse_mode ?? null,
+    active_memory_namespace_unified_consolidation_coordination_summary:
+      namespaceBoundary?.unified_consolidation_coordination_summary ?? null,
+    active_memory_namespace_unified_consolidation_consistency_mode:
+      namespaceBoundary?.unified_consolidation_consistency_mode ?? null,
     active_memory_namespace_retrieval_write_digest_alignment:
       namespaceBoundary?.retrieval_write_digest_alignment ?? null,
     compacted_thread_summary_id: input.compaction.summary?.summary_id ?? null,
