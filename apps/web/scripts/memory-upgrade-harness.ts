@@ -67,11 +67,15 @@ import {
   getAssistantThreadLifecycleGovernanceFabricAlignmentMode,
   getAssistantThreadLifecycleGovernanceFabricDigest,
   getAssistantThreadLifecycleGovernanceFabricReuseMode,
+  getAssistantThreadLifecycleGovernanceFabricPlaneAlignmentMode,
+  getAssistantThreadLifecycleGovernanceFabricPlaneDigest,
+  getAssistantThreadLifecycleGovernanceFabricPlaneReuseMode,
   getAssistantThreadLifecycleGovernanceDigest,
   getAssistantThreadRetentionDecisionGroup,
   getAssistantThreadKeepDropConsolidationSummary,
   getAssistantThreadKeepDropConsolidationCoordinationSummary,
   getAssistantThreadKeepDropGovernanceFabricSummary,
+  getAssistantThreadKeepDropGovernanceFabricPlaneSummary,
   getAssistantThreadKeepDropGovernancePlaneSummary,
   getAssistantThreadKeepDropRuntimeCoordinationSummary,
   getAssistantThreadRetentionPolicyId,
@@ -3562,6 +3566,83 @@ function main() {
       }).retain === false
   } as const;
 
+  const p14RetentionGovernanceFabricPlaneChecks = {
+    retention_lifecycle_governance_fabric_plane_v12_ok:
+      compactedThreadSummary?.lifecycle_governance_fabric_plane_digest ===
+        "anchor_preservation_governance_fabric_plane" &&
+      compactedThreadSummary?.keep_drop_governance_fabric_plane_summary ===
+        "anchor_keep_governance_fabric_plane" &&
+      compactedThreadSummary?.lifecycle_governance_fabric_plane_alignment_mode ===
+        "anchor_governance_fabric_plane_aligned" &&
+      compactedThreadSummary?.lifecycle_governance_fabric_plane_reuse_mode ===
+        "anchor_runtime_governance_fabric_plane_reuse" &&
+      getAssistantThreadLifecycleGovernanceFabricPlaneDigest(
+        assistantMetadata
+      ) === compactedThreadSummary?.lifecycle_governance_fabric_plane_digest &&
+      getAssistantThreadKeepDropGovernanceFabricPlaneSummary(
+        assistantMetadata
+      ) ===
+        compactedThreadSummary?.keep_drop_governance_fabric_plane_summary &&
+      getAssistantThreadLifecycleGovernanceFabricPlaneAlignmentMode(
+        assistantMetadata
+      ) ===
+        compactedThreadSummary?.lifecycle_governance_fabric_plane_alignment_mode &&
+      getAssistantThreadLifecycleGovernanceFabricPlaneReuseMode(
+        assistantMetadata
+      ) ===
+        compactedThreadSummary?.lifecycle_governance_fabric_plane_reuse_mode &&
+      runtimeDebugMetadata.thread_compaction
+        ?.lifecycle_governance_fabric_plane_digest ===
+        compactedThreadSummary?.lifecycle_governance_fabric_plane_digest &&
+      runtimeDebugMetadata.thread_compaction
+        ?.keep_drop_governance_fabric_plane_summary ===
+        compactedThreadSummary?.keep_drop_governance_fabric_plane_summary &&
+      runtimeDebugMetadata.thread_compaction
+        ?.lifecycle_governance_fabric_plane_alignment_mode ===
+        compactedThreadSummary?.lifecycle_governance_fabric_plane_alignment_mode &&
+      runtimeDebugMetadata.thread_compaction
+        ?.lifecycle_governance_fabric_plane_reuse_mode ===
+        compactedThreadSummary?.lifecycle_governance_fabric_plane_reuse_mode &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Lifecycle governance fabric plane: anchor_preservation_governance_fabric_plane."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Keep/drop governance fabric plane: anchor_keep_governance_fabric_plane."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Lifecycle governance fabric plane alignment: anchor_governance_fabric_plane_aligned."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Lifecycle governance fabric plane reuse: anchor_runtime_governance_fabric_plane_reuse."
+      ) &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "closed",
+          retained_fields: ["focus_mode"],
+          keep_drop_governance_fabric_plane_summary:
+            "closed_drop_governance_fabric_plane",
+          lifecycle_governance_fabric_plane_alignment_mode:
+            "closed_governance_fabric_plane_aligned",
+          lifecycle_governance_fabric_plane_reuse_mode:
+            "closed_runtime_governance_fabric_plane_reuse"
+        }
+      }).retain === false &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "paused",
+          retention_budget: 1,
+          keep_drop_governance_fabric_plane_summary:
+            "minimal_decay_governance_fabric_plane",
+          lifecycle_governance_fabric_plane_alignment_mode:
+            "minimal_governance_fabric_plane_aligned",
+          lifecycle_governance_fabric_plane_reuse_mode:
+            "minimal_runtime_governance_fabric_plane_reuse"
+        }
+      }).retain === false
+  } as const;
+
   const p11KnowledgeCoordinationChecks = {
     knowledge_governance_coordination_v9_ok:
       knowledgeSummary.governance_coordination_digest ===
@@ -4608,6 +4689,22 @@ function main() {
           lifecycle_governance_fabric_reuse_mode:
             getAssistantThreadLifecycleGovernanceFabricReuseMode(
               assistantMetadata
+            ),
+          lifecycle_governance_fabric_plane_digest:
+            getAssistantThreadLifecycleGovernanceFabricPlaneDigest(
+              assistantMetadata
+            ),
+          keep_drop_governance_fabric_plane_summary:
+            getAssistantThreadKeepDropGovernanceFabricPlaneSummary(
+              assistantMetadata
+            ),
+          lifecycle_governance_fabric_plane_alignment_mode:
+            getAssistantThreadLifecycleGovernanceFabricPlaneAlignmentMode(
+              assistantMetadata
+            ),
+          lifecycle_governance_fabric_plane_reuse_mode:
+            getAssistantThreadLifecycleGovernanceFabricPlaneReuseMode(
+              assistantMetadata
             )
         },
         assistant_metadata_namespace: {
@@ -5054,6 +5151,8 @@ function main() {
         p11_retention_coordination: p11RetentionCoordinationChecks,
         p12_retention_governance_plane: p12RetentionGovernancePlaneChecks,
         p13_retention_governance_fabric: p13RetentionGovernanceFabricChecks,
+        p14_retention_governance_fabric_plane:
+          p14RetentionGovernanceFabricPlaneChecks,
         p11_knowledge_coordination: p11KnowledgeCoordinationChecks,
         p12_knowledge_governance_plane: p12KnowledgeGovernancePlaneChecks,
         p13_knowledge_governance_fabric: p13KnowledgeGovernanceFabricChecks,

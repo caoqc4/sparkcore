@@ -223,6 +223,34 @@ export type ThreadLifecycleGovernanceFabricReuseMode =
   | "minimal_runtime_governance_fabric_reuse"
   | "closed_runtime_governance_fabric_reuse";
 
+export type ThreadLifecycleGovernanceFabricPlaneDigestId =
+  | "anchor_preservation_governance_fabric_plane"
+  | "continuity_bridge_governance_fabric_plane"
+  | "window_replay_governance_fabric_plane"
+  | "minimal_decay_governance_fabric_plane"
+  | "closed_decay_governance_fabric_plane";
+
+export type ThreadKeepDropGovernanceFabricPlaneSummary =
+  | "anchor_keep_governance_fabric_plane"
+  | "bridge_keep_governance_fabric_plane"
+  | "window_keep_governance_fabric_plane"
+  | "minimal_decay_governance_fabric_plane"
+  | "closed_drop_governance_fabric_plane";
+
+export type ThreadLifecycleGovernanceFabricPlaneAlignmentMode =
+  | "anchor_governance_fabric_plane_aligned"
+  | "bridge_governance_fabric_plane_aligned"
+  | "window_governance_fabric_plane_aligned"
+  | "minimal_governance_fabric_plane_aligned"
+  | "closed_governance_fabric_plane_aligned";
+
+export type ThreadLifecycleGovernanceFabricPlaneReuseMode =
+  | "anchor_runtime_governance_fabric_plane_reuse"
+  | "bridge_runtime_governance_fabric_plane_reuse"
+  | "window_runtime_governance_fabric_plane_reuse"
+  | "minimal_runtime_governance_fabric_plane_reuse"
+  | "closed_runtime_governance_fabric_plane_reuse";
+
 export type ThreadRetentionLayer = "anchor" | "context" | "window";
 
 export type ThreadRetentionLayerBudget = {
@@ -282,6 +310,10 @@ export type CompactedThreadSummary = {
   keep_drop_governance_fabric_summary: ThreadKeepDropGovernanceFabricSummary;
   lifecycle_governance_fabric_alignment_mode: ThreadLifecycleGovernanceFabricAlignmentMode;
   lifecycle_governance_fabric_reuse_mode: ThreadLifecycleGovernanceFabricReuseMode;
+  lifecycle_governance_fabric_plane_digest: ThreadLifecycleGovernanceFabricPlaneDigestId;
+  keep_drop_governance_fabric_plane_summary: ThreadKeepDropGovernanceFabricPlaneSummary;
+  lifecycle_governance_fabric_plane_alignment_mode: ThreadLifecycleGovernanceFabricPlaneAlignmentMode;
+  lifecycle_governance_fabric_plane_reuse_mode: ThreadLifecycleGovernanceFabricPlaneReuseMode;
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;

@@ -5,6 +5,7 @@ import type {
   ThreadCrossLayerSurvivalMode,
   ThreadKeepDropGovernanceSummary,
   ThreadKeepDropGovernanceFabricSummary,
+  ThreadKeepDropGovernanceFabricPlaneSummary,
   ThreadKeepDropGovernancePlaneSummary,
   ThreadKeepDropConsolidationCoordinationSummary,
   ThreadKeepDropRuntimeCoordinationSummary,
@@ -19,10 +20,13 @@ import type {
   ThreadLifecycleConsolidationDigestId,
   ThreadLifecycleGovernanceDigestId,
   ThreadLifecycleGovernanceFabricDigestId,
+  ThreadLifecycleGovernanceFabricPlaneDigestId,
   ThreadLifecycleGovernancePlaneDigestId,
   ThreadLifecycleGovernanceFabricAlignmentMode,
+  ThreadLifecycleGovernanceFabricPlaneAlignmentMode,
   ThreadLifecycleGovernancePlaneAlignmentMode,
   ThreadLifecycleGovernanceFabricReuseMode,
+  ThreadLifecycleGovernanceFabricPlaneReuseMode,
   ThreadLifecycleGovernancePlaneReuseMode,
   ThreadLifecycleAlignmentMode,
   ThreadLifecycleConsolidationMode,
@@ -781,6 +785,74 @@ function resolveThreadLifecycleGovernanceFabricReuseMode(args: {
   }
 }
 
+function resolveThreadLifecycleGovernanceFabricPlaneDigest(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadLifecycleGovernanceFabricPlaneDigestId {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_preservation_governance_fabric_plane";
+    case "continuity_bridge":
+      return "continuity_bridge_governance_fabric_plane";
+    case "window_replay":
+      return "window_replay_governance_fabric_plane";
+    case "minimal_decay":
+      return "minimal_decay_governance_fabric_plane";
+    case "closed_decay_prune":
+      return "closed_decay_governance_fabric_plane";
+  }
+}
+
+function resolveThreadKeepDropGovernanceFabricPlaneSummary(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadKeepDropGovernanceFabricPlaneSummary {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_keep_governance_fabric_plane";
+    case "continuity_bridge":
+      return "bridge_keep_governance_fabric_plane";
+    case "window_replay":
+      return "window_keep_governance_fabric_plane";
+    case "minimal_decay":
+      return "minimal_decay_governance_fabric_plane";
+    case "closed_decay_prune":
+      return "closed_drop_governance_fabric_plane";
+  }
+}
+
+function resolveThreadLifecycleGovernanceFabricPlaneAlignmentMode(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadLifecycleGovernanceFabricPlaneAlignmentMode {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_governance_fabric_plane_aligned";
+    case "continuity_bridge":
+      return "bridge_governance_fabric_plane_aligned";
+    case "window_replay":
+      return "window_governance_fabric_plane_aligned";
+    case "minimal_decay":
+      return "minimal_governance_fabric_plane_aligned";
+    case "closed_decay_prune":
+      return "closed_governance_fabric_plane_aligned";
+  }
+}
+
+function resolveThreadLifecycleGovernanceFabricPlaneReuseMode(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadLifecycleGovernanceFabricPlaneReuseMode {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_runtime_governance_fabric_plane_reuse";
+    case "continuity_bridge":
+      return "bridge_runtime_governance_fabric_plane_reuse";
+    case "window_replay":
+      return "window_runtime_governance_fabric_plane_reuse";
+    case "minimal_decay":
+      return "minimal_runtime_governance_fabric_plane_reuse";
+    case "closed_decay_prune":
+      return "closed_runtime_governance_fabric_plane_reuse";
+  }
+}
+
 export function buildCompactedThreadSummary(args: {
   threadState: ThreadStateRecord | null | undefined;
   recentTurnCount: number;
@@ -934,6 +1006,22 @@ export function buildCompactedThreadSummary(args: {
     resolveThreadLifecycleGovernanceFabricReuseMode({
       retentionDecisionGroup
     });
+  const lifecycleGovernanceFabricPlaneDigest =
+    resolveThreadLifecycleGovernanceFabricPlaneDigest({
+      retentionDecisionGroup
+    });
+  const keepDropGovernanceFabricPlaneSummary =
+    resolveThreadKeepDropGovernanceFabricPlaneSummary({
+      retentionDecisionGroup
+    });
+  const lifecycleGovernanceFabricPlaneAlignmentMode =
+    resolveThreadLifecycleGovernanceFabricPlaneAlignmentMode({
+      retentionDecisionGroup
+    });
+  const lifecycleGovernanceFabricPlaneReuseMode =
+    resolveThreadLifecycleGovernanceFabricPlaneReuseMode({
+      retentionDecisionGroup
+    });
   const retainedFields = buildRetainedFields({
     threadState: args.threadState,
     retentionReason,
@@ -998,6 +1086,10 @@ export function buildCompactedThreadSummary(args: {
     `Keep/drop governance fabric: ${keepDropGovernanceFabricSummary}.`,
     `Lifecycle governance fabric alignment: ${lifecycleGovernanceFabricAlignmentMode}.`,
     `Lifecycle governance fabric reuse: ${lifecycleGovernanceFabricReuseMode}.`,
+    `Lifecycle governance fabric plane: ${lifecycleGovernanceFabricPlaneDigest}.`,
+    `Keep/drop governance fabric plane: ${keepDropGovernanceFabricPlaneSummary}.`,
+    `Lifecycle governance fabric plane alignment: ${lifecycleGovernanceFabricPlaneAlignmentMode}.`,
+    `Lifecycle governance fabric plane reuse: ${lifecycleGovernanceFabricPlaneReuseMode}.`,
   ].filter((part): part is string => Boolean(part));
 
   return {
@@ -1046,6 +1138,14 @@ export function buildCompactedThreadSummary(args: {
       lifecycleGovernanceFabricAlignmentMode,
     lifecycle_governance_fabric_reuse_mode:
       lifecycleGovernanceFabricReuseMode,
+    lifecycle_governance_fabric_plane_digest:
+      lifecycleGovernanceFabricPlaneDigest,
+    keep_drop_governance_fabric_plane_summary:
+      keepDropGovernanceFabricPlaneSummary,
+    lifecycle_governance_fabric_plane_alignment_mode:
+      lifecycleGovernanceFabricPlaneAlignmentMode,
+    lifecycle_governance_fabric_plane_reuse_mode:
+      lifecycleGovernanceFabricPlaneReuseMode,
     retention_budget: retentionBudget,
     retention_layers: retentionLayers,
     retention_layer_budget: retentionLayerBudget,
@@ -1096,6 +1196,12 @@ export function getThreadCompactionRetentionDecision(args: {
           "closed_governance_fabric_aligned" ||
         summary.lifecycle_governance_fabric_reuse_mode ===
           "closed_runtime_governance_fabric_reuse" ||
+        summary.keep_drop_governance_fabric_plane_summary ===
+          "closed_drop_governance_fabric_plane" ||
+        summary.lifecycle_governance_fabric_plane_alignment_mode ===
+          "closed_governance_fabric_plane_aligned" ||
+        summary.lifecycle_governance_fabric_plane_reuse_mode ===
+          "closed_runtime_governance_fabric_plane_reuse" ||
         summary.keep_drop_consolidation_summary === "closed_drop_consolidated" ||
         summary.keep_drop_unification_summary === "closed_drop_unified" ||
         summary.keep_drop_convergence_summary === "closed_drop_alignment"
@@ -1125,6 +1231,12 @@ export function getThreadCompactionRetentionDecision(args: {
         "closed_governance_fabric_aligned") ||
     summary.lifecycle_governance_fabric_reuse_mode ===
       "closed_runtime_governance_fabric_reuse" ||
+    (summary.keep_drop_governance_fabric_plane_summary ===
+      "closed_drop_governance_fabric_plane" &&
+      summary.lifecycle_governance_fabric_plane_alignment_mode ===
+        "closed_governance_fabric_plane_aligned") ||
+    summary.lifecycle_governance_fabric_plane_reuse_mode ===
+      "closed_runtime_governance_fabric_plane_reuse" ||
     (summary.keep_drop_consolidation_summary === "closed_drop_consolidated" &&
       summary.lifecycle_consolidation_mode === "closed_runtime_consolidated") ||
     (summary.keep_drop_unification_summary === "closed_drop_unified" &&
@@ -1157,6 +1269,12 @@ export function getThreadCompactionRetentionDecision(args: {
           "minimal_governance_fabric_aligned") ||
       summary.lifecycle_governance_fabric_reuse_mode ===
         "minimal_runtime_governance_fabric_reuse" ||
+      (summary.keep_drop_governance_fabric_plane_summary ===
+        "minimal_decay_governance_fabric_plane" &&
+        summary.lifecycle_governance_fabric_plane_alignment_mode ===
+          "minimal_governance_fabric_plane_aligned") ||
+      summary.lifecycle_governance_fabric_plane_reuse_mode ===
+        "minimal_runtime_governance_fabric_plane_reuse" ||
       (summary.keep_drop_consolidation_summary ===
         "minimal_decay_consolidated" &&
         summary.lifecycle_consolidation_mode ===
@@ -1275,6 +1393,18 @@ export function buildThreadCompactionSummary(args: {
               .lifecycle_governance_fabric_alignment_mode,
           lifecycle_governance_fabric_reuse_mode:
             args.compactedThreadSummary.lifecycle_governance_fabric_reuse_mode,
+          lifecycle_governance_fabric_plane_digest:
+            args.compactedThreadSummary
+              .lifecycle_governance_fabric_plane_digest,
+          keep_drop_governance_fabric_plane_summary:
+            args.compactedThreadSummary
+              .keep_drop_governance_fabric_plane_summary,
+          lifecycle_governance_fabric_plane_alignment_mode:
+            args.compactedThreadSummary
+              .lifecycle_governance_fabric_plane_alignment_mode,
+          lifecycle_governance_fabric_plane_reuse_mode:
+            args.compactedThreadSummary
+              .lifecycle_governance_fabric_plane_reuse_mode,
           retention_budget: args.compactedThreadSummary.retention_budget,
           retention_layers: args.compactedThreadSummary.retention_layers,
           retention_layer_budget:

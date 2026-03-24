@@ -113,6 +113,12 @@
   - `governance_fabric_plane_alignment_mode`
   - `governance_fabric_plane_reuse_mode`
   - prompt / assistant metadata / runtime debug / write preview / harness 当前都已开始复用这层 fabric plane contract
+- `P14-2 retention lifecycle governance fabric plane v12` 已开始把 retention governance fabric 继续推进到 fabric plane：
+  - `lifecycle_governance_fabric_plane_digest`
+  - `keep_drop_governance_fabric_plane_summary`
+  - `lifecycle_governance_fabric_plane_alignment_mode`
+  - `lifecycle_governance_fabric_plane_reuse_mode`
+  - thread compaction summary / assistant metadata / runtime debug / harness 当前都已开始复用这层 fabric plane contract
 
 ---
 
@@ -1600,7 +1606,8 @@
   - 已开始
   - namespace governance fabric plane v9 第一刀已成立
 - `P14-2`
-  - 待开始
+  - 已开始
+  - retention lifecycle governance fabric plane v12 第一刀已成立
 - `P14-3`
   - 待开始
 - `P14-4`
@@ -1610,11 +1617,11 @@
 
 整体 `P14` 当前大约：
 
-- **`10% - 15%`**
+- **`20% - 25%`**
 
 当前更推荐的下一步：
 
-- **继续扩 `P14-1`，或开始 `P14-2`**
+- **继续扩 `P14-2`，或开始 `P14-3`**
 
 当前下一阶段执行入口请以
 [memory_upgrade_p14_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_execution_plan_v1.0.md)

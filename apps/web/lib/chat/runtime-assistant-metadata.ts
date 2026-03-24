@@ -453,6 +453,18 @@ export function buildRuntimeAssistantMetadataInput(
     compacted_thread_lifecycle_governance_fabric_reuse_mode:
       input.compaction.summary?.lifecycle_governance_fabric_reuse_mode ??
       null,
+    compacted_thread_lifecycle_governance_fabric_plane_digest:
+      input.compaction.summary?.lifecycle_governance_fabric_plane_digest ??
+      null,
+    compacted_thread_keep_drop_governance_fabric_plane_summary:
+      input.compaction.summary?.keep_drop_governance_fabric_plane_summary ??
+      null,
+    compacted_thread_lifecycle_governance_fabric_plane_alignment_mode:
+      input.compaction.summary
+        ?.lifecycle_governance_fabric_plane_alignment_mode ?? null,
+    compacted_thread_lifecycle_governance_fabric_plane_reuse_mode:
+      input.compaction.summary?.lifecycle_governance_fabric_plane_reuse_mode ??
+      null,
     compacted_thread_retained_fields:
       input.compaction.summary?.retained_fields ?? [],
     follow_up_request_count: input.follow_up.request_count,

@@ -179,7 +179,8 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
   - 已开始
   - namespace governance fabric plane v9 第一刀已成立
 - `P14-2`
-  - 待开始
+  - 已开始
+  - retention lifecycle governance fabric plane v12 第一刀已成立
 - `P14-3`
   - 待开始
 - `P14-4`
@@ -189,11 +190,11 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
 
 整体 `P14` 当前大约：
 
-- **`10% - 15%`**
+- **`20% - 25%`**
 
 当前更推荐的下一步：
 
-- **继续扩 `P14-1 Namespace governance fabric plane v9`，或开始 `P14-2 Retention lifecycle governance fabric plane v12`**
+- **继续扩 `P14-2 Retention lifecycle governance fabric plane v12`，或开始 `P14-3 Knowledge governance fabric plane v12`**
 
 ---
 
@@ -211,10 +212,15 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
   - `apps/web/lib/chat/runtime-assistant-metadata.ts`、`assistant-message-metadata.ts`、`assistant-message-metadata-read.ts` 已把 fabric plane 事实接入 assistant metadata 与 reader
   - `apps/web/lib/chat/runtime-preview-metadata.ts`、`memory-write-targets.ts`、`runtime-debug-metadata.ts` 已把 fabric plane 事实接入 write preview / target routing / debug surface
   - `apps/web/scripts/memory-upgrade-harness.ts` 已新增 `p14_namespace_governance_fabric_plane.namespace_governance_fabric_plane_v9_ok`
+- `P14-2 Retention lifecycle governance fabric plane v12` 的第一刀当前已经成立：
+  - `packages/core/memory/compaction.ts` 已新增 retention governance fabric plane digest / summary / alignment / reuse type
+  - `apps/web/lib/chat/thread-compaction.ts` 已把 fabric plane 事实接入 compaction summary text、summary object 与 retain/drop decision
+  - `apps/web/lib/chat/runtime-assistant-metadata.ts`、`assistant-message-metadata.ts`、`assistant-message-metadata-read.ts` 已把 retention fabric plane 事实接入 assistant metadata 与 reader
+  - `apps/web/scripts/memory-upgrade-harness.ts` 已新增 `p14_retention_governance_fabric_plane.retention_lifecycle_governance_fabric_plane_v12_ok`
   - 当前基础验证已通过：
     - `pnpm --filter @sparkcore/web memory:upgrade:harness`
     - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`
-- 下一步最合理的是继续扩 `P14-1` 或开始 `P14-2`，而不是继续停留在 `P13` 内横向补强
+- 下一步最合理的是继续扩 `P14-2` 或开始 `P14-3`，而不是继续停留在 `P13` 内横向补强
 
 当前正式收官结论请以
 [memory_upgrade_p13_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p13_close_note_v1.0.md)
