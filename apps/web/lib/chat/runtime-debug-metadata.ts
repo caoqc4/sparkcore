@@ -140,6 +140,16 @@ export function buildRuntimeDebugMetadata(
               input.scenario_memory_pack.orchestration_governance_fabric_mode,
             governance_fabric_reuse_mode:
               input.scenario_memory_pack.governance_fabric_reuse_mode,
+            governance_fabric_plane_digest_id:
+              input.scenario_memory_pack.governance_fabric_plane_digest_id,
+            strategy_governance_fabric_plane_summary:
+              input.scenario_memory_pack
+                .strategy_governance_fabric_plane_summary,
+            orchestration_governance_fabric_plane_mode:
+              input.scenario_memory_pack
+                .orchestration_governance_fabric_plane_mode,
+            governance_fabric_plane_reuse_mode:
+              input.scenario_memory_pack.governance_fabric_plane_reuse_mode,
             strategy_bundle_id:
               scenarioPackStrategy?.strategy_bundle_id ?? null,
             strategy_assembly_order:

@@ -238,6 +238,16 @@ export function buildRuntimeAssistantMetadataInput(
       input.memory.scenario_pack?.orchestration_governance_fabric_mode ?? null,
     scenario_memory_pack_governance_fabric_reuse_mode:
       input.memory.scenario_pack?.governance_fabric_reuse_mode ?? null,
+    scenario_memory_pack_governance_fabric_plane_digest_id:
+      input.memory.scenario_pack?.governance_fabric_plane_digest_id ?? null,
+    scenario_memory_pack_strategy_governance_fabric_plane_summary:
+      input.memory.scenario_pack?.strategy_governance_fabric_plane_summary ??
+      null,
+    scenario_memory_pack_orchestration_governance_fabric_plane_mode:
+      input.memory.scenario_pack?.orchestration_governance_fabric_plane_mode ??
+      null,
+    scenario_memory_pack_governance_fabric_plane_reuse_mode:
+      input.memory.scenario_pack?.governance_fabric_plane_reuse_mode ?? null,
     scenario_memory_pack_strategy_bundle_id:
       scenarioPackStrategy?.strategy_bundle_id ?? null,
     scenario_memory_pack_strategy_assembly_order:

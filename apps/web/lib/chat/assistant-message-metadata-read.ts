@@ -757,6 +757,74 @@ export function getAssistantMemoryScenarioPackGovernanceFabricReuseMode(
   );
 }
 
+export function getAssistantMemoryScenarioPackGovernanceFabricPlaneDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "governance_fabric_plane_digest_id"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_governance_fabric_plane_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackStrategyGovernanceFabricPlaneSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "strategy_governance_fabric_plane_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_strategy_governance_fabric_plane_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackOrchestrationGovernanceFabricPlaneMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "orchestration_governance_fabric_plane_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_orchestration_governance_fabric_plane_mode"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackGovernanceFabricPlaneReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "governance_fabric_plane_reuse_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_governance_fabric_plane_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryScenarioPackKnowledgeRouteWeight(
   metadata: Record<string, unknown> | null | undefined
 ) {

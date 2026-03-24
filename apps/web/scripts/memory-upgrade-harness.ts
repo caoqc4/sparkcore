@@ -135,10 +135,13 @@ import {
   getAssistantMemoryScenarioPackGovernanceCoordinationDigestId,
   getAssistantMemoryScenarioPackGovernanceCoordinationReuseMode,
   getAssistantMemoryScenarioPackGovernanceFabricDigestId,
+  getAssistantMemoryScenarioPackGovernanceFabricPlaneDigestId,
+  getAssistantMemoryScenarioPackGovernanceFabricPlaneReuseMode,
   getAssistantMemoryScenarioPackGovernanceFabricReuseMode,
   getAssistantMemoryScenarioPackGovernancePlaneDigestId,
   getAssistantMemoryScenarioPackGovernancePlaneReuseMode,
   getAssistantMemoryScenarioPackOrchestrationGovernanceFabricMode,
+  getAssistantMemoryScenarioPackOrchestrationGovernanceFabricPlaneMode,
   getAssistantMemoryScenarioPackOrchestrationAlignmentMode,
   getAssistantMemoryScenarioPackOrchestrationConsolidationMode,
   getAssistantMemoryScenarioPackOrchestrationCoordinationModeV9,
@@ -149,6 +152,7 @@ import {
   getAssistantMemoryScenarioPackStrategyConsistencyMode,
   getAssistantMemoryScenarioPackStrategyConsolidationSummary,
   getAssistantMemoryScenarioPackStrategyGovernanceFabricSummary,
+  getAssistantMemoryScenarioPackStrategyGovernanceFabricPlaneSummary,
   getAssistantMemoryScenarioPackStrategyGovernancePlaneSummary,
   getAssistantMemoryScenarioPackStrategyRuntimeCoordinationSummary,
   getAssistantMemoryScenarioPackStrategyRuntimeReuseSummary,
@@ -3885,6 +3889,40 @@ function main() {
         scenarioMemoryPack.governance_fabric_reuse_mode
   } as const;
 
+  const p14ScenarioGovernanceFabricPlaneChecks = {
+    scenario_governance_fabric_plane_v12_ok:
+      scenarioMemoryPack.governance_fabric_plane_digest_id ===
+        "project_delivery_governance_fabric_plane" &&
+      scenarioMemoryPack.strategy_governance_fabric_plane_summary ===
+        "project_delivery_strategy_governance_fabric_plane" &&
+      scenarioMemoryPack.orchestration_governance_fabric_plane_mode ===
+        "execution_runtime_governance_fabric_plane" &&
+      scenarioMemoryPack.governance_fabric_plane_reuse_mode ===
+        "execution_runtime_governance_fabric_plane_reuse" &&
+      getAssistantMemoryScenarioPackGovernanceFabricPlaneDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_fabric_plane_digest_id &&
+      getAssistantMemoryScenarioPackStrategyGovernanceFabricPlaneSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_governance_fabric_plane_summary &&
+      getAssistantMemoryScenarioPackOrchestrationGovernanceFabricPlaneMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_governance_fabric_plane_mode &&
+      getAssistantMemoryScenarioPackGovernanceFabricPlaneReuseMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_fabric_plane_reuse_mode &&
+      runtimeDebugMetadata.memory.pack?.governance_fabric_plane_digest_id ===
+        scenarioMemoryPack.governance_fabric_plane_digest_id &&
+      runtimeDebugMetadata.memory.pack
+        ?.strategy_governance_fabric_plane_summary ===
+        scenarioMemoryPack.strategy_governance_fabric_plane_summary &&
+      runtimeDebugMetadata.memory.pack
+        ?.orchestration_governance_fabric_plane_mode ===
+        scenarioMemoryPack.orchestration_governance_fabric_plane_mode &&
+      runtimeDebugMetadata.memory.pack?.governance_fabric_plane_reuse_mode ===
+        scenarioMemoryPack.governance_fabric_plane_reuse_mode
+  } as const;
+
   const p13PositiveContractChecks = {
     ...p13NamespaceGovernanceFabricChecks,
     ...p13RetentionGovernanceFabricChecks,
@@ -5195,6 +5233,8 @@ function main() {
         p11_scenario_coordination: p11ScenarioCoordinationChecks,
         p12_scenario_governance_plane: p12ScenarioGovernancePlaneChecks,
         p13_scenario_governance_fabric: p13ScenarioGovernanceFabricChecks,
+        p14_scenario_governance_fabric_plane:
+          p14ScenarioGovernanceFabricPlaneChecks,
         p13_regression_gate: p13RegressionGate,
         p13_gate_snapshot: p13GateSnapshot,
         p12_regression_gate: p12RegressionGate,

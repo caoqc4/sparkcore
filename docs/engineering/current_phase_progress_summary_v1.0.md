@@ -125,6 +125,12 @@
   - `governance_fabric_plane_mode`
   - `governance_fabric_plane_reuse_mode`
   - knowledge prompt / assistant metadata / runtime debug / harness 当前都已开始复用这层 fabric plane contract
+- `P14-4 scenario governance fabric plane v12` 已开始把 scenario governance fabric 继续推进到 fabric plane：
+  - `governance_fabric_plane_digest_id`
+  - `strategy_governance_fabric_plane_summary`
+  - `orchestration_governance_fabric_plane_mode`
+  - `governance_fabric_plane_reuse_mode`
+  - scenario prompt / assistant metadata / runtime debug / harness 当前都已开始复用这层 fabric plane contract
 
 ---
 
