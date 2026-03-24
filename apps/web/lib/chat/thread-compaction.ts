@@ -614,18 +614,26 @@ export function getThreadCompactionRetentionDecision(args: {
   }
 
   if (summary.retained_fields.length === 0) {
-    return { retain: false, reason: "minimal_context" as const };
+    return {
+      retain: false,
+      reason:
+        summary.keep_drop_convergence_summary === "closed_drop_alignment"
+          ? ("closed_minimal_pruned" as const)
+          : ("minimal_context" as const)
+    };
   }
 
   if (
-    summary.retention_decision_group === "closed_decay_prune"
+    summary.keep_drop_convergence_summary === "closed_drop_alignment" &&
+    summary.lifecycle_alignment_mode === "closed_governance_aligned"
   ) {
     return { retain: false, reason: "closed_minimal_pruned" as const };
   }
 
   if (
     summary.lifecycle_status === "paused" &&
-    summary.retention_decision_group === "minimal_decay" &&
+    summary.keep_drop_convergence_summary === "minimal_decay_alignment" &&
+    summary.lifecycle_alignment_mode === "minimal_governance_aligned" &&
     summary.retention_budget <= 1
   ) {
     return { retain: false, reason: "minimal_context" as const };

@@ -948,6 +948,15 @@ function main() {
     recentTurnCount: 4,
     latestUserMessage: "Help me finish onboarding."
   });
+  expect(
+    compactedThreadSummary?.lifecycle_convergence_digest ===
+      "anchor_preservation_convergence" &&
+      compactedThreadSummary?.keep_drop_convergence_summary ===
+        "anchor_keep_alignment" &&
+      compactedThreadSummary?.lifecycle_alignment_mode ===
+        "anchor_governance_aligned",
+    "Expected focus-anchor compaction summary to expose lifecycle convergence facts in P8."
+  );
   const droppedCompactedThreadSummary = selectRetainedThreadCompactionSummary({
     compactedThreadSummary: buildCompactedThreadSummary({
       threadState: {
