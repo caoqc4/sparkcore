@@ -102,6 +102,10 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   knowledge_source_budget_governance_plane_summary?: string | null;
   knowledge_governance_plane_mode?: string | null;
   knowledge_governance_plane_reuse_mode?: string | null;
+  knowledge_governance_fabric_digest?: string | null;
+  knowledge_source_budget_governance_fabric_summary?: string | null;
+  knowledge_governance_fabric_mode?: string | null;
+  knowledge_governance_fabric_reuse_mode?: string | null;
   active_memory_namespace_id?: string | null;
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
@@ -284,6 +288,10 @@ export type BuildAssistantMessageMetadataInput = {
   knowledge_source_budget_governance_plane_summary?: string | null;
   knowledge_governance_plane_mode?: string | null;
   knowledge_governance_plane_reuse_mode?: string | null;
+  knowledge_governance_fabric_digest?: string | null;
+  knowledge_source_budget_governance_fabric_summary?: string | null;
+  knowledge_governance_fabric_mode?: string | null;
+  knowledge_governance_fabric_reuse_mode?: string | null;
   active_memory_namespace_id?: string | null;
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
@@ -553,7 +561,15 @@ export function buildAssistantMetadataSummaryGroups(
       governance_plane_mode:
         input.knowledge_governance_plane_mode ?? null,
       governance_plane_reuse_mode:
-        input.knowledge_governance_plane_reuse_mode ?? null
+        input.knowledge_governance_plane_reuse_mode ?? null,
+      governance_fabric_digest:
+        input.knowledge_governance_fabric_digest ?? null,
+      source_budget_governance_fabric_summary:
+        input.knowledge_source_budget_governance_fabric_summary ?? null,
+      governance_fabric_mode:
+        input.knowledge_governance_fabric_mode ?? null,
+      governance_fabric_reuse_mode:
+        input.knowledge_governance_fabric_reuse_mode ?? null
     },
     memory_namespace: input.active_memory_namespace_id
       ? {
@@ -863,6 +879,14 @@ export function buildAssistantMetadataSummaryGroups(
         input.knowledge_governance_plane_mode,
       knowledge_governance_plane_reuse_mode:
         input.knowledge_governance_plane_reuse_mode,
+      knowledge_governance_fabric_digest:
+        input.knowledge_governance_fabric_digest,
+      knowledge_source_budget_governance_fabric_summary:
+        input.knowledge_source_budget_governance_fabric_summary,
+      knowledge_governance_fabric_mode:
+        input.knowledge_governance_fabric_mode,
+      knowledge_governance_fabric_reuse_mode:
+        input.knowledge_governance_fabric_reuse_mode,
       active_memory_namespace_id: input.active_memory_namespace_id,
       active_memory_namespace_primary_layer:
         input.active_memory_namespace_primary_layer,

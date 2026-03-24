@@ -30,6 +30,9 @@ import {
   getAssistantKnowledgeGovernanceConsolidationDigest,
   getAssistantKnowledgeGovernanceConsolidationMode,
   getAssistantKnowledgeGovernanceCoordinationReuseMode,
+  getAssistantKnowledgeGovernanceFabricDigest,
+  getAssistantKnowledgeGovernanceFabricMode,
+  getAssistantKnowledgeGovernanceFabricReuseMode,
   getAssistantKnowledgeGovernancePlaneDigest,
   getAssistantKnowledgeGovernancePlaneMode,
   getAssistantKnowledgeGovernancePlaneReuseMode,
@@ -38,6 +41,7 @@ import {
   getAssistantKnowledgeSourceBudgetAlignmentSummary,
   getAssistantKnowledgeSourceBudgetCoordinationSummary,
   getAssistantKnowledgeSourceBudgetConsolidationSummary,
+  getAssistantKnowledgeSourceBudgetGovernanceFabricSummary,
   getAssistantKnowledgeSourceBudgetGovernancePlaneSummary,
   getAssistantKnowledgeSelectionRuntimeCoordinationSummary,
   getAssistantKnowledgeSourceBudgetUnificationSummary,
@@ -3538,6 +3542,38 @@ function main() {
       referenceOnlyProjectOpsSelection.length === 1
   } as const;
 
+  const p13KnowledgeGovernanceFabricChecks = {
+    knowledge_governance_fabric_v11_ok:
+      knowledgeSummary.governance_fabric_digest ===
+        "authoritative_governance_fabric" &&
+      knowledgeSummary.source_budget_governance_fabric_summary ===
+        "authoritative_budget_source_governance_fabric" &&
+      knowledgeSummary.governance_fabric_mode ===
+        "authoritative_runtime_governance_fabric" &&
+      knowledgeSummary.governance_fabric_reuse_mode ===
+        "authoritative_runtime_governance_fabric_reuse" &&
+      getAssistantKnowledgeGovernanceFabricDigest(assistantMetadata) ===
+        knowledgeSummary.governance_fabric_digest &&
+      getAssistantKnowledgeSourceBudgetGovernanceFabricSummary(
+        assistantMetadata
+      ) === knowledgeSummary.source_budget_governance_fabric_summary &&
+      getAssistantKnowledgeGovernanceFabricMode(assistantMetadata) ===
+        knowledgeSummary.governance_fabric_mode &&
+      getAssistantKnowledgeGovernanceFabricReuseMode(assistantMetadata) ===
+        knowledgeSummary.governance_fabric_reuse_mode &&
+      runtimeDebugMetadata.knowledge.governance_fabric_digest ===
+        knowledgeSummary.governance_fabric_digest &&
+      runtimeDebugMetadata.knowledge
+        .source_budget_governance_fabric_summary ===
+        knowledgeSummary.source_budget_governance_fabric_summary &&
+      runtimeDebugMetadata.knowledge.governance_fabric_mode ===
+        knowledgeSummary.governance_fabric_mode &&
+      runtimeDebugMetadata.knowledge.governance_fabric_reuse_mode ===
+        knowledgeSummary.governance_fabric_reuse_mode &&
+      selectedKnowledgeForPrompt[0]?.title === "Onboarding checklist guide" &&
+      referenceOnlyProjectOpsSelection.length === 1
+  } as const;
+
   const p11ScenarioCoordinationChecks = {
     scenario_governance_coordination_v9_ok:
       scenarioMemoryPack.governance_coordination_digest_id ===
@@ -4124,7 +4160,17 @@ function main() {
           governance_plane_mode:
             getAssistantKnowledgeGovernancePlaneMode(assistantMetadata),
           governance_plane_reuse_mode:
-            getAssistantKnowledgeGovernancePlaneReuseMode(assistantMetadata)
+            getAssistantKnowledgeGovernancePlaneReuseMode(assistantMetadata),
+          governance_fabric_digest:
+            getAssistantKnowledgeGovernanceFabricDigest(assistantMetadata),
+          source_budget_governance_fabric_summary:
+            getAssistantKnowledgeSourceBudgetGovernanceFabricSummary(
+              assistantMetadata
+            ),
+          governance_fabric_mode:
+            getAssistantKnowledgeGovernanceFabricMode(assistantMetadata),
+          governance_fabric_reuse_mode:
+            getAssistantKnowledgeGovernanceFabricReuseMode(assistantMetadata)
         },
         filtered_knowledge_summary: knowledgeSummary,
         assistant_metadata_thread_compaction: {
@@ -4639,6 +4685,7 @@ function main() {
         p13_retention_governance_fabric: p13RetentionGovernanceFabricChecks,
         p11_knowledge_coordination: p11KnowledgeCoordinationChecks,
         p12_knowledge_governance_plane: p12KnowledgeGovernancePlaneChecks,
+        p13_knowledge_governance_fabric: p13KnowledgeGovernanceFabricChecks,
         p11_scenario_coordination: p11ScenarioCoordinationChecks,
         p12_scenario_governance_plane: p12ScenarioGovernancePlaneChecks,
         p12_regression_gate: p12RegressionGate,

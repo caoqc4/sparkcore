@@ -69,6 +69,12 @@
   - `lifecycle_governance_fabric_alignment_mode`
   - `lifecycle_governance_fabric_reuse_mode`
   - keep/drop decision 当前也已开始复用这层 fabric contract
+- `P13-3 knowledge governance fabric v11` 已开始把 knowledge governance plane 继续推进到 fabric：
+  - `governance_fabric_digest`
+  - `source_budget_governance_fabric_summary`
+  - `governance_fabric_mode`
+  - `governance_fabric_reuse_mode`
+  - knowledge prompt selection 当前也已开始复用这层 fabric contract
 
 ---
 
@@ -1515,11 +1521,11 @@
 当前 `P13` 的阶段判断：
 
 - `P13-1`
-  - 待开始
+  - 前中段
 - `P13-2`
-  - 待开始
+  - 前中段
 - `P13-3`
-  - 待开始
+  - 前中段
 - `P13-4`
   - 待开始
 - `P13-5`
@@ -1527,8 +1533,8 @@
 
 整体 `P13` 当前大约：
 
-- **`0% - 10%`**
+- **`45% - 55%`**
 
 当前更推荐的下一步：
 
-- **开始 `P13-1 Namespace governance fabric runtime v8` 的第一刀**
+- **开始 `P13-4 Scenario governance fabric v11` 的第一刀**

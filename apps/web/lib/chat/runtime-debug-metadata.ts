@@ -140,10 +140,12 @@ export function buildRuntimeDebugMetadata(
         : null,
       write_request_count: input.memory_write_request_count
     },
-    knowledge: buildKnowledgeSummary({
-      knowledge: input.relevant_knowledge ?? [],
-      activeNamespace: input.active_memory_namespace ?? null
-    }),
+    knowledge: {
+      ...buildKnowledgeSummary({
+        knowledge: input.relevant_knowledge ?? [],
+        activeNamespace: input.active_memory_namespace ?? null
+      })
+    },
     memory_namespace: input.active_memory_namespace
       ? {
           namespace_id: input.active_memory_namespace.namespace_id,
