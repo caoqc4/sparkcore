@@ -134,6 +134,9 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   compacted_thread_lifecycle_consolidation_digest?: string | null;
   compacted_thread_keep_drop_consolidation_summary?: string | null;
   compacted_thread_lifecycle_consolidation_mode?: string | null;
+  compacted_thread_lifecycle_coordination_digest?: string | null;
+  compacted_thread_keep_drop_consolidation_coordination_summary?: string | null;
+  compacted_thread_lifecycle_coordination_alignment_mode?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -277,6 +280,9 @@ export type BuildAssistantMessageMetadataInput = {
   compacted_thread_lifecycle_consolidation_digest?: string | null;
   compacted_thread_keep_drop_consolidation_summary?: string | null;
   compacted_thread_lifecycle_consolidation_mode?: string | null;
+  compacted_thread_lifecycle_coordination_digest?: string | null;
+  compacted_thread_keep_drop_consolidation_coordination_summary?: string | null;
+  compacted_thread_lifecycle_coordination_alignment_mode?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -548,6 +554,15 @@ export function buildAssistantMetadataSummaryGroups(
             input.compacted_thread_keep_drop_consolidation_summary ?? null,
           lifecycle_consolidation_mode:
             input.compacted_thread_lifecycle_consolidation_mode ?? null,
+          lifecycle_coordination_digest:
+            input.compacted_thread_lifecycle_coordination_digest ?? null,
+          keep_drop_consolidation_coordination_summary:
+            input
+              .compacted_thread_keep_drop_consolidation_coordination_summary ??
+            null,
+          lifecycle_coordination_alignment_mode:
+            input.compacted_thread_lifecycle_coordination_alignment_mode ??
+            null,
           retained_fields:
             input.compacted_thread_retained_fields ?? []
         }
@@ -746,6 +761,12 @@ export function buildAssistantMetadataSummaryGroups(
         input.compacted_thread_keep_drop_consolidation_summary,
       compacted_thread_lifecycle_consolidation_mode:
         input.compacted_thread_lifecycle_consolidation_mode,
+      compacted_thread_lifecycle_coordination_digest:
+        input.compacted_thread_lifecycle_coordination_digest,
+      compacted_thread_keep_drop_consolidation_coordination_summary:
+        input.compacted_thread_keep_drop_consolidation_coordination_summary,
+      compacted_thread_lifecycle_coordination_alignment_mode:
+        input.compacted_thread_lifecycle_coordination_alignment_mode,
       compacted_thread_retained_fields:
         input.compacted_thread_retained_fields,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,

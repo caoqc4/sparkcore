@@ -132,6 +132,27 @@ export type ThreadLifecycleConsolidationMode =
   | "minimal_runtime_consolidated"
   | "closed_runtime_consolidated";
 
+export type ThreadLifecycleCoordinationDigestId =
+  | "anchor_preservation_coordination"
+  | "continuity_bridge_coordination"
+  | "window_replay_coordination"
+  | "minimal_decay_coordination"
+  | "closed_decay_coordination";
+
+export type ThreadKeepDropConsolidationCoordinationSummary =
+  | "anchor_keep_consolidation_coordination"
+  | "bridge_keep_consolidation_coordination"
+  | "window_keep_consolidation_coordination"
+  | "minimal_decay_consolidation_coordination"
+  | "closed_drop_consolidation_coordination";
+
+export type ThreadLifecycleCoordinationAlignmentMode =
+  | "anchor_consolidation_aligned"
+  | "bridge_consolidation_aligned"
+  | "window_consolidation_aligned"
+  | "minimal_consolidation_aligned"
+  | "closed_consolidation_aligned";
+
 export type ThreadRetentionLayer = "anchor" | "context" | "window";
 
 export type ThreadRetentionLayerBudget = {
@@ -178,6 +199,9 @@ export type CompactedThreadSummary = {
   lifecycle_consolidation_digest: ThreadLifecycleConsolidationDigestId;
   keep_drop_consolidation_summary: ThreadKeepDropConsolidationSummary;
   lifecycle_consolidation_mode: ThreadLifecycleConsolidationMode;
+  lifecycle_coordination_digest: ThreadLifecycleCoordinationDigestId;
+  keep_drop_consolidation_coordination_summary: ThreadKeepDropConsolidationCoordinationSummary;
+  lifecycle_coordination_alignment_mode: ThreadLifecycleCoordinationAlignmentMode;
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;

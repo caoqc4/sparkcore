@@ -1271,6 +1271,57 @@ export function getAssistantThreadLifecycleConsolidationMode(
   );
 }
 
+export function getAssistantThreadLifecycleCoordinationDigest(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_coordination_digest"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_coordination_digest"
+    )
+  );
+}
+
+export function getAssistantThreadKeepDropConsolidationCoordinationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "keep_drop_consolidation_coordination_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_keep_drop_consolidation_coordination_summary"
+    )
+  );
+}
+
+export function getAssistantThreadLifecycleCoordinationAlignmentMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_coordination_alignment_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_coordination_alignment_mode"
+    )
+  );
+}
+
 export function getAssistantKnowledgeGovernanceCoordinationSummary(
   metadata: Record<string, unknown> | null | undefined
 ) {

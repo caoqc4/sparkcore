@@ -44,10 +44,13 @@ import {
   getAssistantThreadLifecycleUnificationMode,
   getAssistantThreadLifecycleConsolidationDigest,
   getAssistantThreadLifecycleConsolidationMode,
+  getAssistantThreadLifecycleCoordinationAlignmentMode,
+  getAssistantThreadLifecycleCoordinationDigest,
   getAssistantThreadLifecycleCoordinationSummary,
   getAssistantThreadLifecycleGovernanceDigest,
   getAssistantThreadRetentionDecisionGroup,
   getAssistantThreadKeepDropConsolidationSummary,
+  getAssistantThreadKeepDropConsolidationCoordinationSummary,
   getAssistantThreadRetentionPolicyId,
   getAssistantThreadSurvivalConsistencyMode,
   getAssistantThreadSurvivalRationale,
@@ -3090,6 +3093,63 @@ function main() {
         projectBoundary.unified_consolidation_consistency_mode
   } as const;
 
+  const p11RetentionCoordinationChecks = {
+    retention_lifecycle_coordination_v9_ok:
+      compactedThreadSummary?.lifecycle_coordination_digest ===
+        "anchor_preservation_coordination" &&
+      compactedThreadSummary?.keep_drop_consolidation_coordination_summary ===
+        "anchor_keep_consolidation_coordination" &&
+      compactedThreadSummary?.lifecycle_coordination_alignment_mode ===
+        "anchor_consolidation_aligned" &&
+      getAssistantThreadLifecycleCoordinationDigest(assistantMetadata) ===
+        compactedThreadSummary?.lifecycle_coordination_digest &&
+      getAssistantThreadKeepDropConsolidationCoordinationSummary(
+        assistantMetadata
+      ) === compactedThreadSummary?.keep_drop_consolidation_coordination_summary &&
+      getAssistantThreadLifecycleCoordinationAlignmentMode(
+        assistantMetadata
+      ) === compactedThreadSummary?.lifecycle_coordination_alignment_mode &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_coordination_digest ===
+        compactedThreadSummary?.lifecycle_coordination_digest &&
+      runtimeDebugMetadata.thread_compaction
+        ?.keep_drop_consolidation_coordination_summary ===
+        compactedThreadSummary?.keep_drop_consolidation_coordination_summary &&
+      runtimeDebugMetadata.thread_compaction
+        ?.lifecycle_coordination_alignment_mode ===
+        compactedThreadSummary?.lifecycle_coordination_alignment_mode &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Lifecycle coordination digest: anchor_preservation_coordination."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Keep/drop consolidation coordination: anchor_keep_consolidation_coordination."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Lifecycle coordination alignment: anchor_consolidation_aligned."
+      ) &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "closed",
+          retained_fields: ["focus_mode"],
+          keep_drop_consolidation_coordination_summary:
+            "closed_drop_consolidation_coordination",
+          lifecycle_coordination_alignment_mode:
+            "closed_consolidation_aligned"
+        }
+      }).retain === false &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "paused",
+          retention_budget: 1,
+          keep_drop_consolidation_coordination_summary:
+            "minimal_decay_consolidation_coordination",
+          lifecycle_coordination_alignment_mode:
+            "minimal_consolidation_aligned"
+        }
+      }).retain === false
+  } as const;
+
   const p10RetentionConsolidationChecks = {
     retention_lifecycle_consolidation_v8_ok:
       compactedThreadSummary?.lifecycle_consolidation_digest ===
@@ -3521,7 +3581,17 @@ function main() {
           keep_drop_consolidation_summary:
             getAssistantThreadKeepDropConsolidationSummary(assistantMetadata),
           lifecycle_consolidation_mode:
-            getAssistantThreadLifecycleConsolidationMode(assistantMetadata)
+            getAssistantThreadLifecycleConsolidationMode(assistantMetadata),
+          lifecycle_coordination_digest:
+            getAssistantThreadLifecycleCoordinationDigest(assistantMetadata),
+          keep_drop_consolidation_coordination_summary:
+            getAssistantThreadKeepDropConsolidationCoordinationSummary(
+              assistantMetadata
+            ),
+          lifecycle_coordination_alignment_mode:
+            getAssistantThreadLifecycleCoordinationAlignmentMode(
+              assistantMetadata
+            )
         },
         assistant_metadata_namespace: {
           primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata),
@@ -3883,6 +3953,7 @@ function main() {
         p11_namespace_unified_consolidation:
           p11NamespaceUnifiedConsolidationChecks,
         p10_retention_consolidation: p10RetentionConsolidationChecks,
+        p11_retention_coordination: p11RetentionCoordinationChecks,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,
         p10_scenario_consolidation: p10ScenarioConsolidationChecks,
         p10_regression_gate: p10RegressionGate,
