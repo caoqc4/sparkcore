@@ -1124,9 +1124,9 @@
 当前 `P6` 的阶段判断：
 
 - `P6-1`
-  - 中段
+  - 中段偏后
 - `P6-2`
-  - 前中段到中段之间
+  - 中段
 - `P6-3`
   - 待开始
 - `P6-4`
@@ -1136,11 +1136,11 @@
 
 整体 `P6` 当前大约：
 
-- **`30% - 40%`**
+- **`35% - 45%`**
 
 当前更推荐的下一步：
 
-- **先对 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 做一次 `P6` 小复盘，再判断是继续补 `P6-2` 第三刀，还是切去 `P6-3`**
+- **开始从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 落 `P6-3 Knowledge governance weighting v4` 的第一刀**
 
 当前已成立的第一刀事实：
 
