@@ -28,13 +28,14 @@
 
 当前 `p20_gate_snapshot` 的结果为：
 
-- `record_contract_readiness = scenario_record_started_not_close_ready`
-- `progress_range = 40% - 45%`
+- `record_contract_readiness = record_drift_guards_started_not_close_ready`
+- `progress_range = 55% - 60%`
 - `close_note_recommended = false`
 - `positive_contracts = 4 / 4`
 - `metadata_consistency = 4 / 4`
 - `prompt_surface = 4 / 4`
-- `overall = 12 / 12`
+- `drift_guards = 2 / 2`
+- `overall = 14 / 14`
 - `failed_checks = []`
 - `all_green = true`
 - `close_candidate = true`
@@ -76,6 +77,13 @@
 - `knowledge_close_note_record_prompt_surface_v1_ok`
 - `scenario_close_note_record_prompt_surface_v1_ok`
 
+### 3.4 Drift Guards
+
+当前已经进一步锁住：
+
+- `role_core_memory_close_note_record_null_guard_v1_ok`
+- `role_core_memory_close_note_record_prompt_drift_guard_v1_ok`
+
 这意味着 namespace close-note record 当前已经开始进入：
 
 - `buildAgentSystemPrompt(...)`
@@ -91,7 +99,7 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P20-5` 已经从“待开始”推进到“四条 close-note record 主线都已有第一刀并被 gate 锁住”，并且当前价值主要在于把 gate 从第一版合同面推进到更明确的 regression / acceptance layering，而不是回头继续补单条 record section。**
+**`P20-5` 已经从“待开始”推进到“四条 close-note record 主线都已有第一刀并被 gate 锁住，同时 drift guard 也已开始成立”，并且当前价值主要在于把 gate 从第一版合同面继续推进到更明确的 close-readiness consumption / acceptance gap structuring，而不是回头继续补单条 record section。**
 
 ---
 
@@ -99,7 +107,7 @@
 
 当前更合理的下一步是：
 
-- **继续扩 `P20-5 Regression / acceptance close-note recordization`，而不是先写 `P20 close-readiness`**
+- **继续扩 `P20-5` 的 close-readiness consumption / acceptance gap structuring，而不是先写 `P20 close-readiness`**
 
 ---
 
@@ -107,4 +115,4 @@
 
 一句话结论：
 
-**`P20` 当前已经拥有一版全绿、并以 namespace / retention / knowledge / scenario close-note record 为中心且带 positive contracts / metadata consistency / prompt surface 的正式 gate；它已经从 `P19 close-note output` 继续推进成更接近真实记录面的 contract。**
+**`P20` 当前已经拥有一版全绿、并以 namespace / retention / knowledge / scenario close-note record 为中心且带 positive contracts / metadata consistency / prompt surface / drift guards 的正式 gate；它已经从 `P19 close-note output` 继续推进成更接近真实记录面的 contract。**

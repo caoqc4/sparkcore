@@ -5996,18 +5996,43 @@ function main() {
     scenario_close_note_record_prompt_surface_v1_ok:
       p20CloseNoteRecordChecks.scenario_close_note_record_prompt_surface_v1_ok
   });
+  const p20DriftGuardChecks = {
+    role_core_memory_close_note_record_null_guard_v1_ok:
+      buildRoleCoreMemoryCloseNoteRecord({
+        roleCorePacket: roleCorePacketForHarness,
+        closeNoteOutput: null,
+        closeNoteArtifact: p18CloseNoteArtifact
+      }) === null &&
+      buildRoleCoreMemoryCloseNoteRecord({
+        roleCorePacket: roleCorePacketForHarness,
+        closeNoteOutput: p19CloseNoteOutput,
+        closeNoteArtifact: null
+      }) === null,
+    role_core_memory_close_note_record_prompt_drift_guard_v1_ok:
+      !systemPromptWithoutCloseNote.includes("Role core close-note record") &&
+      !systemPromptWithoutCloseNote.includes(
+        p20CloseNoteRecord?.headline ?? ""
+      ) &&
+      systemPrompt.includes("Role core close-note record") &&
+      systemPrompt.includes(p20CloseNoteRecord?.record_summary ?? "")
+  } as const;
+  const p20DriftGuards = summarizeGate(p20DriftGuardChecks);
   const p20RegressionGate = {
     positive_contracts: p20PositiveContracts,
     metadata_consistency: p20MetadataConsistency,
     prompt_surface: p20PromptSurface,
-    ...summarizeGate(p20CloseNoteRecordChecks)
+    drift_guards: p20DriftGuards,
+    ...summarizeGate({
+      ...p20CloseNoteRecordChecks,
+      ...p20DriftGuardChecks
+    })
   } as const;
   const p20GateSnapshot = {
     gate_id: "p20_regression_gate_v1",
     stage: "P20-5",
     focus: "close_note_recordization",
-    record_contract_readiness: "scenario_record_started_not_close_ready",
-    progress_range: "40% - 45%",
+    record_contract_readiness: "record_drift_guards_started_not_close_ready",
+    progress_range: "55% - 60%",
     close_note_recommended: false,
     positive_contracts: {
       checks_passed: p20PositiveContracts.checks_passed,
@@ -6023,6 +6048,11 @@ function main() {
       checks_passed: p20PromptSurface.checks_passed,
       checks_total: p20PromptSurface.checks_total,
       all_green: p20PromptSurface.all_green
+    },
+    drift_guards: {
+      checks_passed: p20DriftGuards.checks_passed,
+      checks_total: p20DriftGuards.checks_total,
+      all_green: p20DriftGuards.all_green
     },
     overall: {
       checks_passed: p20RegressionGate.checks_passed,
