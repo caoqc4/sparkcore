@@ -2650,6 +2650,7 @@ function buildAgentSystemPromptInternal(
       scenarioPack: activePack,
       replyLanguage
     }),
+    buildRoleCoreMemoryHandoffPrompt(roleCorePacket, replyLanguage),
     agentSystemPrompt,
     buildMemoryRecallPrompt(
       latestUserMessage,
@@ -2660,6 +2661,46 @@ function buildAgentSystemPromptInternal(
   ].filter(Boolean);
 
   return sections.join("\n\n");
+}
+
+function buildRoleCoreMemoryHandoffPrompt(
+  roleCorePacket: RoleCorePacket,
+  replyLanguage: RuntimeReplyLanguage
+) {
+  const handoff = roleCorePacket.memory_handoff;
+
+  if (!handoff) {
+    return "";
+  }
+
+  const isZh = replyLanguage === "zh-Hans";
+  const sections = [
+    isZh
+      ? `Role core memory handoff：handoff_version = ${handoff.handoff_version}。`
+      : `Role core memory handoff: handoff_version = ${handoff.handoff_version}.`,
+    isZh
+      ? `Namespace phase snapshot：${handoff.namespace_phase_snapshot_id}；${handoff.namespace_phase_snapshot_summary}。`
+      : `Namespace phase snapshot: ${handoff.namespace_phase_snapshot_id}; ${handoff.namespace_phase_snapshot_summary}.`,
+    handoff.retention_phase_snapshot_id &&
+    handoff.retention_phase_snapshot_summary
+      ? isZh
+        ? `Retention phase snapshot：${handoff.retention_phase_snapshot_id}；${handoff.retention_phase_snapshot_summary}。`
+        : `Retention phase snapshot: ${handoff.retention_phase_snapshot_id}; ${handoff.retention_phase_snapshot_summary}.`
+      : isZh
+        ? "Retention phase snapshot：none。"
+        : "Retention phase snapshot: none.",
+    isZh
+      ? `Knowledge phase snapshot：${handoff.knowledge_phase_snapshot_id}；${handoff.knowledge_phase_snapshot_summary}。`
+      : `Knowledge phase snapshot: ${handoff.knowledge_phase_snapshot_id}; ${handoff.knowledge_phase_snapshot_summary}.`,
+    isZh
+      ? `Scenario phase snapshot：${handoff.scenario_phase_snapshot_id}；${handoff.scenario_phase_snapshot_summary}。`
+      : `Scenario phase snapshot: ${handoff.scenario_phase_snapshot_id}; ${handoff.scenario_phase_snapshot_summary}.`,
+    isZh
+      ? "将这些 phase snapshot 视为当前 role-core 记忆交接基线；回答时保持 handoff 与 runtime memory surface 一致，不要把它们回退成更旧的散点 summary。"
+      : "Treat these phase snapshots as the current role-core memory handoff baseline; keep responses aligned with the handoff and runtime memory surfaces instead of falling back to older fragmented summaries."
+  ];
+
+  return sections.join("\n");
 }
 
 function buildThreadStatePrompt(

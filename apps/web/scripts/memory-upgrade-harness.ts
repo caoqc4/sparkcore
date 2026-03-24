@@ -1764,24 +1764,7 @@ function main() {
   );
 
   const systemPrompt = buildAgentSystemPrompt(
-    {
-      packet_version: "v1",
-      identity: {
-        agent_id: "agent-1",
-        agent_name: "Helper"
-      },
-      persona_summary: "Helpful assistant",
-      style_guidance: "Be concise",
-      relationship_stance: {
-        effective: "friendly",
-        source: "relationship_memory"
-      },
-      language_behavior: {
-        reply_language_target: "en",
-        reply_language_source: "latest-user-message",
-        same_thread_continuation_preferred: true
-      }
-    },
+    roleCorePacketForHarness,
     "Keep answers grounded.",
     "Help me finish onboarding.",
     [
@@ -4837,7 +4820,70 @@ function main() {
       assistantDiagnosticRoleCorePacket.memory_handoff?.scenario_phase_snapshot_id ===
         roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_id
   } as const;
-  const p16RegressionGate = summarizeGate(p16RoleCoreMemoryHandoffChecks);
+  const p16RoleCoreMemoryHandoffMetadataConsistencyChecks = {
+    role_core_memory_handoff_metadata_consistency_v1_ok:
+      assistantRoleCorePacket?.memory_handoff?.handoff_version === "v1" &&
+      assistantDiagnosticRoleCorePacket?.memory_handoff?.handoff_version ===
+        "v1" &&
+      assistantRoleCorePacket.memory_handoff?.namespace_phase_snapshot_id ===
+        roleCorePacketForHarness.memory_handoff?.namespace_phase_snapshot_id &&
+      assistantRoleCorePacket.memory_handoff?.retention_phase_snapshot_id ===
+        roleCorePacketForHarness.memory_handoff?.retention_phase_snapshot_id &&
+      assistantRoleCorePacket.memory_handoff?.knowledge_phase_snapshot_id ===
+        roleCorePacketForHarness.memory_handoff?.knowledge_phase_snapshot_id &&
+      assistantRoleCorePacket.memory_handoff?.scenario_phase_snapshot_id ===
+        roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_id &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.namespace_phase_snapshot_summary ===
+        roleCorePacketForHarness.memory_handoff?.namespace_phase_snapshot_summary &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.retention_phase_snapshot_summary ===
+        roleCorePacketForHarness.memory_handoff?.retention_phase_snapshot_summary &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.knowledge_phase_snapshot_summary ===
+        roleCorePacketForHarness.memory_handoff?.knowledge_phase_snapshot_summary &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.scenario_phase_snapshot_summary ===
+        roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_summary,
+    role_core_memory_handoff_prompt_surface_v1_ok:
+      systemPrompt.includes("Role core memory handoff: handoff_version = v1.") &&
+      systemPrompt.includes(
+        roleCorePacketForHarness.memory_handoff?.namespace_phase_snapshot_id ??
+          ""
+      ) &&
+      systemPrompt.includes(
+        roleCorePacketForHarness.memory_handoff?.namespace_phase_snapshot_summary ??
+          ""
+      ) &&
+      systemPrompt.includes(
+        roleCorePacketForHarness.memory_handoff?.retention_phase_snapshot_id ??
+          ""
+      ) &&
+      systemPrompt.includes(
+        roleCorePacketForHarness.memory_handoff?.retention_phase_snapshot_summary ??
+          ""
+      ) &&
+      systemPrompt.includes(
+        roleCorePacketForHarness.memory_handoff?.knowledge_phase_snapshot_id ??
+          ""
+      ) &&
+      systemPrompt.includes(
+        roleCorePacketForHarness.memory_handoff?.knowledge_phase_snapshot_summary ??
+          ""
+      ) &&
+      systemPrompt.includes(
+        roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_id ??
+          ""
+      ) &&
+      systemPrompt.includes(
+        roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_summary ??
+          ""
+      )
+  } as const;
+  const p16RegressionGate = summarizeGate({
+    ...p16RoleCoreMemoryHandoffChecks,
+    ...p16RoleCoreMemoryHandoffMetadataConsistencyChecks
+  });
+  const p16PositiveContracts = summarizeGate(p16RoleCoreMemoryHandoffChecks);
+  const p16MetadataConsistency = summarizeGate(
+    p16RoleCoreMemoryHandoffMetadataConsistencyChecks
+  );
   const p16GateSnapshot = {
     gate_id: "p16_regression_gate_v1",
     stage: "P16-5",
@@ -4846,12 +4892,17 @@ function main() {
     next_expansion_focus: [
       "retention_role_core_handoff_depth",
       "close_note_handoff_packet",
-      "packet_prompt_surface_alignment"
+      "remaining_packet_acceptance_gaps"
     ] as const,
     positive_contracts: {
-      checks_passed: p16RegressionGate.checks_passed,
-      checks_total: p16RegressionGate.checks_total,
-      all_green: p16RegressionGate.all_green
+      checks_passed: p16PositiveContracts.checks_passed,
+      checks_total: p16PositiveContracts.checks_total,
+      all_green: p16PositiveContracts.all_green
+    },
+    metadata_consistency: {
+      checks_passed: p16MetadataConsistency.checks_passed,
+      checks_total: p16MetadataConsistency.checks_total,
+      all_green: p16MetadataConsistency.all_green
     },
     overall: {
       checks_passed: p16RegressionGate.checks_passed,
@@ -5988,6 +6039,8 @@ function main() {
         p15_scenario_governance_plane_consumption:
           p15ScenarioGovernancePlaneConsumptionChecks,
         p16_role_core_memory_handoff: p16RoleCoreMemoryHandoffChecks,
+        p16_role_core_memory_handoff_metadata_consistency:
+          p16RoleCoreMemoryHandoffMetadataConsistencyChecks,
         p16_regression_gate: p16RegressionGate,
         p16_gate_snapshot: p16GateSnapshot,
         p15_regression_gate: p15RegressionGate,

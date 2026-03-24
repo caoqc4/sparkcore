@@ -237,8 +237,20 @@
   - 当前结论是：
     - `P16` 已从“待定义的下一阶段”推进到“已建立执行计划的下一阶段”
     - `P16-1 ~ P16-4` 已通过 `role_core_packet` memory handoff 第一刀接通
-    - `P16-5` 第一版 gate scaffold 已建立
-    - 当前整体约 `15% - 20%`
+    - `P16-5` 已从第一版 gate scaffold 推进到 `positive_contracts + metadata_consistency`
+    - 当前 gate 轻量快照请以
+      [memory_upgrade_p16_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p16_gate_snapshot_v1.0.md)
+      为准
+    - 当前 `p16_gate_snapshot`：
+      - `blocking_items = []`
+      - `positive_contracts = 1 / 1`
+      - `metadata_consistency = 2 / 2`
+      - `overall = 3 / 3`
+    - 当前 gate 已锁住：
+      - role core memory handoff packet v2
+      - role core memory handoff metadata consistency v1
+      - role core memory handoff prompt surface v1
+    - 当前整体约 `25% - 30%`
 
 ---
 
