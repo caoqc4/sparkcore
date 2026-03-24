@@ -1482,13 +1482,13 @@
 
 整体 `P12` 当前大约：
 
-- **`80%`**
+- **`85%`**
 
 当前更收紧的判断是：
 
-- `P12` 已进入 **`close-readiness` 后段 / close-ready 前夕**
+- `P12` 已达到 **`close-ready / 可收官`**
 - 当前最合理的下一步：
-  - **开始进入正式的 `P12 close-ready` 判断**
+  - **开始写 `P12 close note`**
 
 当前正式 `close-readiness` 判断请以
 [memory_upgrade_p12_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p12_close_readiness_v1.0.md)

@@ -78,11 +78,11 @@
 
 我现在的判断是：
 
-**`P12` 已进入 `close-readiness` 后段 / close-ready 前夕。**
+**`P12` 已达到 `close-ready / 可收官`。**
 
 如果给整体 `P12` 一个阶段进度，我会给：
 
-- **约 `80%`**
+- **约 `85%`**
 
 原因是：
 
@@ -90,7 +90,7 @@
 - prompt / assistant metadata / runtime debug / harness 已开始形成稳定的 plane 四面事实
 - `P12-5` 已形成第一版正式 gate，并且当前全绿
 
-当前之所以可以把判断进一步收紧，不是因为所有细节都已经做尽，而是因为：
+当前之所以可以把 `P12` 正式判成 `close-ready`，不是因为所有细节都已经做尽，而是因为：
 
 - `P12-1 ~ P12-4` 都已经形成真实的 governance plane 级代码事实
 - prompt / assistant metadata / runtime debug / harness 已形成稳定的四面证据
@@ -99,24 +99,31 @@
 
 这意味着：
 
-- 当前已经进入 `close-readiness` 判断区间
-- 但当前仍然没有直接写成 `close-ready / 可收官`
-- 原因是：
-  - `P12-5` 虽然已成立，但仍更像第一版阶段 gate
-  - `P12-1 ~ P12-4` 当前更像“中段到接近完成之间”，而不是已经完全收平
-  - 所以还值得做最后一次正式收口判断，而不是直接跳到 close note
+- 当前已经不再缺少 “`P12` 是否成立” 的主证据
+- 当前剩余事项更像：
+  - gate strengthening
+  - governance plane consistency 深化
+  - 清洁度 / 对称性继续补强
+
+这些事项仍然有价值，但它们已经不构成：
+
+- `P12` 主目标成立的阻塞项
 
 ---
 
 ## 4. 下一步建议
 
-当前更合理的下一步不是继续泛泛评估，而是：
+当前更合理的下一步已经不是继续做 `P12 close-ready` 判断，而是：
 
-- **开始进入正式的 `P12 close-ready` 判断**
+- **开始准备 `P12 close note`**
 
-如果这次判断结论不再摇摆，那么下一步就应该直接进入：
+原因是：
 
-- `P12 close note`
+- `P12` 当前主判断已经清楚
+- 当前剩余项已更适合统一转入：
+  - tail cleanup
+  - gate strengthening
+  - 后续 phase 吸收项
 
 ---
 
@@ -124,9 +131,9 @@
 
 一句话结论：
 
-**`P12` 已进入 `close-readiness` 后段 / close-ready 前夕。**
+**`P12` 已达到 `close-ready / 可收官`，下一步已经适合写 `P12 close note`。**
 
 更合理的下一步是：
 
-- **开始进入正式的 `P12 close-ready` 判断**
-- 当前正式收口结论请以后续收紧后的 `P12 close-ready` 判断为准
+- **开始正式写 `P12 close note`**
+- 当前正式收官结论请以后续 `P12 close note` 为准
