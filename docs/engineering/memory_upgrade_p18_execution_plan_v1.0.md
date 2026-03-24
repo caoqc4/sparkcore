@@ -130,15 +130,15 @@
   - scenario close-note artifact contract 第一刀已成立
 - `P18-5`
   - 已开始
-  - gate 已推进到 `positive_contracts + metadata_consistency + artifact_consumption + drift_guards`
+  - gate 已推进到 `positive_contracts + metadata_consistency + artifact_consumption + close_readiness_consumption + drift_guards`
 
 整体 `P18` 当前大约：
 
-- **`40% - 45%`**
+- **`55% - 60%`**
 
 当前更推荐的下一步：
 
-- **继续把 `P18` 从 drift guards，推进到更明确的 acceptance layering / close-readiness handoff**
+- **开始把 `P18` 从第三版 gate 推进到正式 `close-readiness judgment`**
 
 ---
 

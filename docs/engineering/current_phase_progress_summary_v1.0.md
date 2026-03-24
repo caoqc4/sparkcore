@@ -337,24 +337,27 @@
       [memory_upgrade_p18_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p18_gate_snapshot_v1.0.md)
       为准
     - 当前 `p18_gate_snapshot`：
-      - `artifact_readiness = artifact_contract_started_not_close_ready`
-      - `progress_range = 40% - 45%`
+      - `artifact_readiness = artifact_close_readiness_handoff_started`
+      - `progress_range = 55% - 60%`
       - `close_note_recommended = true`
       - `blocking_items = []`
       - `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
       - `positive_contracts = 1 / 1`
       - `metadata_consistency = 1 / 1`
+      - `close_readiness_consumption = 2 / 2`
       - `drift_guards = 2 / 2`
       - `artifact_consumption = 2 / 2`
-      - `overall = 6 / 6`
+      - `overall = 8 / 8`
     - 当前 gate 已锁住：
       - role core memory close-note artifact v1
       - role core memory close-note artifact metadata consistency v1
       - role core memory close-note artifact prompt surface v1
       - role core memory close-note artifact runtime consumption v1
+      - role core memory close-note artifact close-readiness prompt v1
+      - role core memory close-note artifact gap bucket consumption v1
       - role core memory close-note artifact null guard v1
       - role core memory close-note artifact prompt drift guard v1
-    - 当前整体约 `40% - 45%`
+    - 当前整体约 `55% - 60%`
 
 ---
 

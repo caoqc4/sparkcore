@@ -5568,6 +5568,52 @@ function main() {
     role_core_memory_close_note_artifact_runtime_consumption_v1_ok:
       p18CloseNoteArtifactChecks.role_core_memory_close_note_artifact_runtime_consumption_v1_ok
   });
+  const p18CloseReadinessConsumptionChecks = {
+    role_core_memory_close_note_artifact_close_readiness_prompt_v1_ok:
+      p18CloseNoteArtifactPrompt.includes(
+        p18CloseNoteArtifact?.readiness_judgment ?? ""
+      ) &&
+      p18CloseNoteArtifactPrompt.includes(
+        p18CloseNoteArtifact?.progress_range ?? ""
+      ) &&
+      p18CloseNoteArtifactPrompt.includes(
+        p18CloseNoteArtifact?.close_note_recommended ? "true" : "false"
+      ) &&
+      p18CloseNoteArtifactPrompt.includes(
+        `blocking = ${p18CloseNoteArtifact?.acceptance_gap_buckets.blocking ?? 0}`
+      ) &&
+      p18CloseNoteArtifactPrompt.includes(
+        "close_readiness_handoff_alignment"
+      ),
+    role_core_memory_close_note_artifact_gap_bucket_consumption_v1_ok:
+      assistantCloseNoteArtifact?.readiness_judgment ===
+        p18CloseNoteArtifact?.readiness_judgment &&
+      assistantCloseNoteArtifact?.progress_range ===
+        p18CloseNoteArtifact?.progress_range &&
+      assistantCloseNoteArtifact?.close_candidate ===
+        p18CloseNoteArtifact?.close_candidate &&
+      assistantCloseNoteArtifact?.close_note_recommended ===
+        p18CloseNoteArtifact?.close_note_recommended &&
+      assistantCloseNoteArtifact?.acceptance_gap_buckets.non_blocking ===
+        p18CloseNoteArtifact?.acceptance_gap_buckets.non_blocking &&
+      assistantDiagnosticCloseNoteArtifact?.acceptance_gap_buckets
+        .tail_candidate ===
+        p18CloseNoteArtifact?.acceptance_gap_buckets.tail_candidate &&
+      runtimeDebugCloseNoteArtifact?.readiness_judgment ===
+        p18CloseNoteArtifact?.readiness_judgment &&
+      runtimeDebugCloseNoteArtifact?.progress_range ===
+        p18CloseNoteArtifact?.progress_range &&
+      runtimeDebugCloseNoteArtifact?.close_note_recommended ===
+        p18CloseNoteArtifact?.close_note_recommended &&
+      runtimeDebugCloseNoteArtifact?.acceptance_gap_buckets.blocking ===
+        p18CloseNoteArtifact?.acceptance_gap_buckets.blocking &&
+      runtimeDebugCloseNoteArtifact?.next_expansion_focus.includes(
+        "close_readiness_handoff_alignment"
+      )
+  } as const;
+  const p18CloseReadinessConsumption = summarizeGate(
+    p18CloseReadinessConsumptionChecks
+  );
   const p18DriftGuardChecks = {
     role_core_memory_close_note_artifact_null_guard_v1_ok:
       buildRoleCoreMemoryCloseNoteArtifact({
@@ -5585,21 +5631,23 @@ function main() {
     positive_contracts: p18PositiveContracts,
     metadata_consistency: p18MetadataConsistency,
     artifact_consumption: p18PacketConsumption,
+    close_readiness_consumption: p18CloseReadinessConsumption,
     drift_guards: p18DriftGuards,
     ...summarizeGate({
       ...p18CloseNoteArtifactChecks,
+      ...p18CloseReadinessConsumptionChecks,
       ...p18DriftGuardChecks
     })
   } as const;
   const p18GateSnapshot = {
-    gate_id: "p18_regression_gate_v1",
+    gate_id: "p18_regression_gate_v2",
     stage: "P18-5",
     focus: "close_note_artifactization",
     artifact_readiness:
       p18CloseNoteArtifact?.close_note_recommended === true
-        ? "artifact_contract_started_not_close_ready"
+        ? "artifact_close_readiness_handoff_started"
         : "not_started",
-    progress_range: "25% - 30%",
+    progress_range: "55% - 60%",
     close_note_recommended:
       p18CloseNoteArtifact?.close_note_recommended ?? false,
     blocking_items: p18CloseNoteArtifact?.blocking_items ?? [],
@@ -5626,6 +5674,11 @@ function main() {
       checks_passed: p18PacketConsumption.checks_passed,
       checks_total: p18PacketConsumption.checks_total,
       all_green: p18PacketConsumption.all_green
+    },
+    close_readiness_consumption: {
+      checks_passed: p18CloseReadinessConsumption.checks_passed,
+      checks_total: p18CloseReadinessConsumption.checks_total,
+      all_green: p18CloseReadinessConsumption.all_green
     },
     drift_guards: {
       checks_passed: p18DriftGuards.checks_passed,

@@ -2794,6 +2794,9 @@ export function buildRoleCoreMemoryCloseNoteArtifactPrompt(
       ? `Role core close-note artifact：artifact_version = ${closeNoteArtifact.artifact_version}；readiness = ${closeNoteArtifact.readiness_judgment}。`
       : `Role core close-note artifact: artifact_version = ${closeNoteArtifact.artifact_version}; readiness = ${closeNoteArtifact.readiness_judgment}.`,
     isZh
+      ? `Close-note artifact progress：${closeNoteArtifact.progress_range}；close_candidate = ${closeNoteArtifact.close_candidate ? "true" : "false"}；close_note_recommended = ${closeNoteArtifact.close_note_recommended ? "true" : "false"}。`
+      : `Close-note artifact progress: ${closeNoteArtifact.progress_range}; close_candidate = ${closeNoteArtifact.close_candidate ? "true" : "false"}; close_note_recommended = ${closeNoteArtifact.close_note_recommended ? "true" : "false"}.`,
+    isZh
       ? `Close-note artifact headline：${closeNoteArtifact.headline}。`
       : `Close-note artifact headline: ${closeNoteArtifact.headline}.`,
     isZh
@@ -2814,6 +2817,9 @@ export function buildRoleCoreMemoryCloseNoteArtifactPrompt(
     isZh
       ? `Close-note artifact acceptance：${closeNoteArtifact.acceptance_summary}`
       : `Close-note artifact acceptance: ${closeNoteArtifact.acceptance_summary}`,
+    isZh
+      ? `Close-note artifact gap buckets：blocking = ${closeNoteArtifact.acceptance_gap_buckets.blocking}；non_blocking = ${closeNoteArtifact.acceptance_gap_buckets.non_blocking}；tail_candidate = ${closeNoteArtifact.acceptance_gap_buckets.tail_candidate}。`
+      : `Close-note artifact gap buckets: blocking = ${closeNoteArtifact.acceptance_gap_buckets.blocking}; non_blocking = ${closeNoteArtifact.acceptance_gap_buckets.non_blocking}; tail_candidate = ${closeNoteArtifact.acceptance_gap_buckets.tail_candidate}.`,
     isZh
       ? `Close-note artifact next focus：${closeNoteArtifact.next_expansion_focus.join(", ") || "none"}。`
       : `Close-note artifact next focus: ${closeNoteArtifact.next_expansion_focus.join(", ") || "none"}.`
