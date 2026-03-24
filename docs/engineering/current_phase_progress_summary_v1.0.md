@@ -1346,11 +1346,13 @@
 
 整体 `P8` 当前大约：
 
-- **`80%`**
+- **`85%`**
 
 当前更推荐的下一步：
 
-- **开始判断是否可以写 `P8 close note`**
+- **`P8` 已达到 `close-ready / 可收官`**
+- 当前更推荐的下一步：
+  - **开始写 `P8 close note`**
 - 当前 knowledge 最小 convergence 已经进入：
   - `governance_convergence_digest`
   - `source_budget_alignment_summary`

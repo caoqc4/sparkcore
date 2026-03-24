@@ -2,7 +2,7 @@
 
 ## 1. 文档定位
 
-本文档用于在 `P8` 进入中后段之后，对当前阶段是否已经接近 `close-ready` 做一次前置复盘。
+本文档用于在 `P8` 进入 `close-ready` 判断区间之后，对当前阶段是否已经达到 `close-ready` 做一次正式复盘。
 
 本文档不等于：
 
@@ -13,7 +13,7 @@
 本文档只回答三件事：
 
 1. `P8-1 ~ P8-5` 当前各自推进到什么程度
-2. `P8` 是否已经进入 `close-readiness` 区间
+2. `P8` 是否已经达到 `close-ready`
 3. 下一步更应该继续补最后一刀，还是开始准备收官判断
 
 ---
@@ -71,15 +71,15 @@
 
 ---
 
-## 3. 是否已进入 Close-Readiness
+## 3. 是否已达到 Close-Ready
 
 我现在的判断是：
 
-**`P8` 已经从 `close-readiness` 前置区间推进到了更明确的后段。**
+**`P8` 已达到 `close-ready / 可收官`。**
 
 如果给整体 `P8` 一个阶段进度，我会给：
 
-- **约 `80%`**
+- **约 `85%`**
 
 原因是：
 
@@ -87,28 +87,40 @@
 - prompt / assistant metadata / runtime debug / harness 已形成较完整的四面事实
 - `P8-5` 也已经从第一版 gate 继续推进到了更像正式阶段 gate 的形态
 
-但同时，当前也还没到“完全无需再判断就直接写 `P8 close note`”的程度。
+当前之所以可以把 `P8` 判定为 `close-ready`，不是因为所有细节都已经做尽，而是因为：
 
-原因是：
+- `P8-1 ~ P8-4` 都已经形成真实的 convergence 级代码事实
+- prompt / assistant metadata / runtime debug / harness 已形成稳定的四面证据
+- `P8-5` 已从第一版 gate 推进到更像正式阶段 gate 的形态
+- 当前 gate 已经全绿，并且 `close_candidate = true`
 
-- `P8-1 ~ P8-4` 多数仍更接近“中段偏后”而不是“接近完成”
-- `P8-1 ~ P8-4` 虽然都已进入 convergence 层，但多数仍更接近“中段偏后”而不是“接近完成”
+这意味着：
+
+- 当前已经不再缺少“`P8` 是否成立”的主证据
+- 当前剩余事项更像：
+  - gate strengthening
+  - convergence summary 深化
+  - 清洁度 / 对称性继续补强
+
+这些事项仍然有价值，但它们已经不构成：
+
+- `P8` 主目标成立的阻塞项
 
 ---
 
 ## 4. 下一步建议
 
-当前更合理的已经不再是继续盲补单点。
+当前更合理的下一步已经不是继续做 `P8 close-ready` 判断，而是：
 
-更合理的是：
-
-- **开始进入正式的 `P8 close-ready` 判断**
+- **开始准备 `P8 close note`**
 
 原因是：
 
-- `P8-5` 当前已经不只是一版浅 gate，而开始具备阶段 gate 的密度
-- `P8-1 ~ P8-4` 也已经都进入了 prompt / assistant metadata / runtime debug / harness 的四面事实
-- 再继续盲补某一条单线，边际收益已经开始下降
+- `P8` 当前主判断已经清楚
+- 当前剩余项已更适合统一转入：
+  - tail cleanup
+  - gate strengthening
+  - 后续 phase 吸收项
 
 ---
 
@@ -116,8 +128,8 @@
 
 一句话结论：
 
-**`P8` 已进入 `close-ready` 前夕，下一步已经适合做正式的 `close-ready` 判断。**
+**`P8` 已达到 `close-ready / 可收官`，下一步已经适合写 `P8 close note`。**
 
 更合理的下一步是：
 
-- **开始正式判断是否可以写 `P8 close note`**
+- **开始正式写 `P8 close note`**
