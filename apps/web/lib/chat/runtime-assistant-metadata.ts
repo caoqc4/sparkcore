@@ -9,6 +9,7 @@ import type {
   RoleCoreMemoryCloseNoteArtifact,
   RoleCoreMemoryCloseNoteHandoffPacket,
   RoleCoreMemoryCloseNotePersistenceEnvelope,
+  RoleCoreMemoryCloseNotePersistenceManifest,
   RoleCoreMemoryCloseNotePersistencePayload,
   RoleCoreMemoryCloseNoteRecord,
   RoleCoreMemoryCloseNoteOutput,
@@ -55,6 +56,7 @@ export type BuildRuntimeAssistantMetadataInput = {
     role_core_close_note_artifact?: RoleCoreMemoryCloseNoteArtifact | null;
     role_core_close_note_archive?: RoleCoreMemoryCloseNoteArchive | null;
     role_core_close_note_persistence_envelope?: RoleCoreMemoryCloseNotePersistenceEnvelope | null;
+    role_core_close_note_persistence_manifest?: RoleCoreMemoryCloseNotePersistenceManifest | null;
     role_core_close_note_persistence_payload?: RoleCoreMemoryCloseNotePersistencePayload | null;
     role_core_close_note_record?: RoleCoreMemoryCloseNoteRecord | null;
     role_core_close_note_output?: RoleCoreMemoryCloseNoteOutput | null;
@@ -149,6 +151,8 @@ export function buildRuntimeAssistantMetadataInput(
       input.runtime.role_core_close_note_archive ?? null,
     role_core_close_note_persistence_envelope:
       input.runtime.role_core_close_note_persistence_envelope ?? null,
+    role_core_close_note_persistence_manifest:
+      input.runtime.role_core_close_note_persistence_manifest ?? null,
     role_core_close_note_persistence_payload:
       input.runtime.role_core_close_note_persistence_payload ?? null,
     role_core_close_note_record:

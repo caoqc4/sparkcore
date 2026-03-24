@@ -551,6 +551,30 @@
     - `P23` 已进入 `close-readiness` 判断区间，并已达到 `close-ready / 可收官`
     - 当前最推荐的下一步是开始下一阶段执行文档 / 第一批任务拆解，而不是继续扩张 `P23` 范围
 
+- `P24 execution plan` 当前已建立：
+  - 当前执行入口请以
+    [memory_upgrade_p24_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p24_execution_plan_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P24` 的一句话目标是把 `P23 close-note persistence envelope` 推进成更接近真实 persistence write integration 的 `close-note persistence manifest`
+    - `P24-1` 已开始，namespace close-note persistence manifest 第一刀已成立
+    - `P24-2` 已开始，retention close-note persistence manifest 第一刀已成立
+    - `P24-3` 已开始，knowledge close-note persistence manifest 第一刀已成立
+    - `P24-4` 已开始，scenario close-note persistence manifest 第一刀已成立
+    - `P24-5` 已开始，第一版正式 gate 已建立
+    - 当前 gate 轻量快照请以
+      [memory_upgrade_p24_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p24_gate_snapshot_v1.0.md)
+      为准
+    - 当前 `p24_gate_snapshot`：
+      - `persistence_manifest_readiness = scenario_persistence_manifest_started_not_close_ready`
+      - `progress_range = 30% - 35%`
+      - `positive_contracts = 4 / 4`
+      - `metadata_consistency = 4 / 4`
+      - `prompt_surface = 4 / 4`
+      - `overall = 12 / 12`
+    - 当前整体约 `30% - 35%`
+    - 当前最推荐的下一步是 `P24-5` 的 persistence manifest acceptance layering
+
 ---
 
 ## 3. 当前已经完成的事情

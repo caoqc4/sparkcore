@@ -372,6 +372,69 @@ export type RoleCoreMemoryCloseNotePersistenceEnvelope = {
   };
 };
 
+export type RoleCoreMemoryCloseNotePersistenceManifest = {
+  manifest_version: "v1";
+  source_envelope_version: RoleCoreMemoryCloseNotePersistenceEnvelope["envelope_version"];
+  source_payload_version: RoleCoreMemoryCloseNotePersistencePayload["payload_version"];
+  readiness_judgment: string;
+  progress_range: string;
+  close_candidate: boolean;
+  close_note_recommended: boolean;
+  headline: string;
+  manifest_summary: string;
+  blocking_items: string[];
+  non_blocking_items: string[];
+  tail_candidate_items: string[];
+  acceptance_gap_buckets: {
+    blocking: number;
+    non_blocking: number;
+    tail_candidate: number;
+  };
+  next_expansion_focus: string[];
+  namespace: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    persistence_key: string;
+    persistence_scope: string;
+    storage_target: string;
+    write_mode: string;
+    manifest_summary: string;
+  };
+  retention: {
+    phase_snapshot_id: string | null;
+    phase_snapshot_summary: string | null;
+    decision_group: string | null;
+    retained_fields: string[];
+    persistence_key: string;
+    persistence_scope: string;
+    storage_target: string;
+    write_mode: string;
+    manifest_summary: string;
+  };
+  knowledge: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    scope_layers: string[];
+    governance_classes: string[];
+    persistence_key: string;
+    persistence_scope: string;
+    storage_target: string;
+    write_mode: string;
+    manifest_summary: string;
+  };
+  scenario: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    strategy_bundle_id: string | null;
+    orchestration_mode: string | null;
+    persistence_key: string;
+    persistence_scope: string;
+    storage_target: string;
+    write_mode: string;
+    manifest_summary: string;
+  };
+};
+
 export function getRoleCoreRelationshipStance(
   relationshipRecall: {
     addressStyleMemory: {
@@ -927,6 +990,112 @@ export function buildRoleCoreMemoryCloseNotePersistenceEnvelope(args: {
       persistence_key: `close_note.scenario.${closeNotePersistencePayload.scenario.phase_snapshot_id}`,
       persistence_scope: "agent_session",
       envelope_summary: `${closeNotePersistencePayload.scenario.phase_snapshot_id}; ${closeNotePersistencePayload.scenario.phase_snapshot_summary}; strategy_bundle = ${closeNotePersistencePayload.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNotePersistencePayload.scenario.orchestration_mode ?? "none"}; persistence_key = close_note.scenario.${closeNotePersistencePayload.scenario.phase_snapshot_id}; persistence_scope = agent_session`
+    }
+  };
+}
+
+export function buildRoleCoreMemoryCloseNotePersistenceManifest(args: {
+  roleCorePacket: RoleCorePacket;
+  closeNotePersistenceEnvelope: RoleCoreMemoryCloseNotePersistenceEnvelope | null;
+  closeNotePersistencePayload: RoleCoreMemoryCloseNotePersistencePayload | null;
+}): RoleCoreMemoryCloseNotePersistenceManifest | null {
+  const closeNotePersistenceEnvelope = args.closeNotePersistenceEnvelope;
+  const closeNotePersistencePayload = args.closeNotePersistencePayload;
+
+  if (!closeNotePersistenceEnvelope || !closeNotePersistencePayload) {
+    return null;
+  }
+
+  const blockingItems: string[] = [];
+  const nonBlockingItems = [
+    "persistence_manifest_regression_gate_layering",
+    "close_readiness_persistence_manifest_consumption",
+    "remaining_persistence_manifest_acceptance_gaps"
+  ];
+  const tailCandidateItems = [
+    "persistence_manifest_surface_symmetry_cleanup",
+    "non_blocking_persistence_manifest_negative_coverage",
+    "envelope_to_manifest_alignment_cleanup"
+  ];
+  const acceptanceGapBuckets = {
+    blocking: blockingItems.length,
+    non_blocking: nonBlockingItems.length,
+    tail_candidate: tailCandidateItems.length
+  } as const;
+  const nextExpansionFocus = [...nonBlockingItems];
+
+  return {
+    manifest_version: "v1",
+    source_envelope_version: closeNotePersistenceEnvelope.envelope_version,
+    source_payload_version: closeNotePersistencePayload.payload_version,
+    readiness_judgment: "scenario_persistence_manifest_started_not_close_ready",
+    progress_range: "30% - 35%",
+    close_candidate: closeNotePersistenceEnvelope.close_candidate,
+    close_note_recommended: false,
+    headline: `${args.roleCorePacket.identity.agent_name} close-note persistence manifest`,
+    manifest_summary: `namespace_persistence_manifest_started; retention_persistence_manifest_started; knowledge_persistence_manifest_started; scenario_persistence_manifest_started; source_envelope = ${closeNotePersistenceEnvelope.envelope_version}; readiness = scenario_persistence_manifest_started_not_close_ready.`,
+    blocking_items: [...blockingItems],
+    non_blocking_items: [...nonBlockingItems],
+    tail_candidate_items: [...tailCandidateItems],
+    acceptance_gap_buckets: { ...acceptanceGapBuckets },
+    next_expansion_focus: nextExpansionFocus,
+    namespace: {
+      phase_snapshot_id: closeNotePersistenceEnvelope.namespace.phase_snapshot_id,
+      phase_snapshot_summary:
+        closeNotePersistenceEnvelope.namespace.phase_snapshot_summary,
+      persistence_key: closeNotePersistenceEnvelope.namespace.persistence_key,
+      persistence_scope:
+        closeNotePersistenceEnvelope.namespace.persistence_scope,
+      storage_target: "memory_items",
+      write_mode: "upsert_close_note_manifest",
+      manifest_summary: `${closeNotePersistenceEnvelope.namespace.phase_snapshot_id}; ${closeNotePersistenceEnvelope.namespace.phase_snapshot_summary}; persistence_key = ${closeNotePersistenceEnvelope.namespace.persistence_key}; persistence_scope = ${closeNotePersistenceEnvelope.namespace.persistence_scope}; storage_target = memory_items; write_mode = upsert_close_note_manifest`
+    },
+    retention: {
+      phase_snapshot_id: closeNotePersistenceEnvelope.retention.phase_snapshot_id,
+      phase_snapshot_summary:
+        closeNotePersistenceEnvelope.retention.phase_snapshot_summary,
+      decision_group: closeNotePersistenceEnvelope.retention.decision_group,
+      retained_fields: [
+        ...closeNotePersistenceEnvelope.retention.retained_fields
+      ],
+      persistence_key: closeNotePersistenceEnvelope.retention.persistence_key,
+      persistence_scope:
+        closeNotePersistenceEnvelope.retention.persistence_scope,
+      storage_target: "memory_items",
+      write_mode: "upsert_close_note_manifest",
+      manifest_summary: closeNotePersistenceEnvelope.retention.phase_snapshot_id
+        ? `${closeNotePersistenceEnvelope.retention.phase_snapshot_id}; ${closeNotePersistenceEnvelope.retention.phase_snapshot_summary ?? "none"}; decision_group = ${closeNotePersistenceEnvelope.retention.decision_group ?? "none"}; retained_fields = ${closeNotePersistenceEnvelope.retention.retained_fields.join(", ") || "none"}; persistence_key = ${closeNotePersistenceEnvelope.retention.persistence_key}; persistence_scope = ${closeNotePersistenceEnvelope.retention.persistence_scope}; storage_target = memory_items; write_mode = upsert_close_note_manifest`
+        : "none"
+    },
+    knowledge: {
+      phase_snapshot_id: closeNotePersistenceEnvelope.knowledge.phase_snapshot_id,
+      phase_snapshot_summary:
+        closeNotePersistenceEnvelope.knowledge.phase_snapshot_summary,
+      scope_layers: [...closeNotePersistenceEnvelope.knowledge.scope_layers],
+      governance_classes: [
+        ...closeNotePersistenceEnvelope.knowledge.governance_classes
+      ],
+      persistence_key: closeNotePersistenceEnvelope.knowledge.persistence_key,
+      persistence_scope:
+        closeNotePersistenceEnvelope.knowledge.persistence_scope,
+      storage_target: "memory_items",
+      write_mode: "upsert_close_note_manifest",
+      manifest_summary: `${closeNotePersistenceEnvelope.knowledge.phase_snapshot_id}; ${closeNotePersistenceEnvelope.knowledge.phase_snapshot_summary}; scope_layers = ${closeNotePersistenceEnvelope.knowledge.scope_layers.join(", ") || "none"}; governance_classes = ${closeNotePersistenceEnvelope.knowledge.governance_classes.join(", ") || "none"}; persistence_key = ${closeNotePersistenceEnvelope.knowledge.persistence_key}; persistence_scope = ${closeNotePersistenceEnvelope.knowledge.persistence_scope}; storage_target = memory_items; write_mode = upsert_close_note_manifest`
+    },
+    scenario: {
+      phase_snapshot_id: closeNotePersistenceEnvelope.scenario.phase_snapshot_id,
+      phase_snapshot_summary:
+        closeNotePersistenceEnvelope.scenario.phase_snapshot_summary,
+      strategy_bundle_id:
+        closeNotePersistenceEnvelope.scenario.strategy_bundle_id,
+      orchestration_mode:
+        closeNotePersistenceEnvelope.scenario.orchestration_mode,
+      persistence_key: closeNotePersistenceEnvelope.scenario.persistence_key,
+      persistence_scope:
+        closeNotePersistenceEnvelope.scenario.persistence_scope,
+      storage_target: "memory_items",
+      write_mode: "upsert_close_note_manifest",
+      manifest_summary: `${closeNotePersistenceEnvelope.scenario.phase_snapshot_id}; ${closeNotePersistenceEnvelope.scenario.phase_snapshot_summary}; strategy_bundle = ${closeNotePersistenceEnvelope.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNotePersistenceEnvelope.scenario.orchestration_mode ?? "none"}; persistence_key = ${closeNotePersistenceEnvelope.scenario.persistence_key}; persistence_scope = ${closeNotePersistenceEnvelope.scenario.persistence_scope}; storage_target = memory_items; write_mode = upsert_close_note_manifest`
     }
   };
 }
