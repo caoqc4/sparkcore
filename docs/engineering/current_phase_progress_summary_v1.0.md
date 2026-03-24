@@ -461,19 +461,20 @@
     - `P21-1` 已开始，namespace close-note archive contract 第一刀已成立
     - `P21-2` 已开始，retention close-note archive contract 第一刀已成立
     - `P21-3` 已开始，knowledge close-note archive contract 第一刀已成立
+    - `P21-4` 已开始，scenario close-note archive contract 第一刀已成立
     - `P21-5` 已开始，第一版正式 gate 已建立
     - 当前 gate 轻量快照请以
       [memory_upgrade_p21_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p21_gate_snapshot_v1.0.md)
       为准
     - 当前 `p21_gate_snapshot`：
-      - `archive_contract_readiness = knowledge_archive_started_not_close_ready`
-      - `progress_range = 30% - 35%`
-      - `positive_contracts = 3 / 3`
-      - `metadata_consistency = 3 / 3`
-      - `prompt_surface = 3 / 3`
-      - `overall = 9 / 9`
-    - 当前整体约 `30% - 35%`
-    - 当前最推荐的下一步是 `P21-4 Scenario close-note archive contract v1`
+      - `archive_contract_readiness = scenario_archive_started_not_close_ready`
+      - `progress_range = 40% - 45%`
+      - `positive_contracts = 4 / 4`
+      - `metadata_consistency = 4 / 4`
+      - `prompt_surface = 4 / 4`
+      - `overall = 12 / 12`
+    - 当前整体约 `40% - 45%`
+    - 当前最推荐的下一步是 `P21-5 close-readiness consumption / acceptance layering`
 
 ---
 

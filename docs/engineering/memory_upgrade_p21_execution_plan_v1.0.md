@@ -140,7 +140,8 @@
   - 已开始
   - knowledge close-note archive contract 第一刀已成立
 - `P21-4`
-  - 待开始
+  - 已开始
+  - scenario close-note archive contract 第一刀已成立
 - `P21-5`
   - 已开始
   - 第一版正式 gate 已建立
@@ -151,11 +152,11 @@
 
 整体 `P21` 当前大约：
 
-- **`30% - 35%`**
+- **`40% - 45%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P21-4 Scenario close-note archive contract v1`，而不是先写 `P21 close-readiness`**
+- **继续做 `P21-5` 的 close-readiness consumption / acceptance layering，而不是先写 `P21 close-readiness`**
 
 ---
 

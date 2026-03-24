@@ -2977,6 +2977,9 @@ export function buildRoleCoreMemoryCloseNoteArchivePrompt(
       ? `Knowledge archive section：${closeNoteArchive.knowledge.archive_summary}。`
       : `Knowledge archive section: ${closeNoteArchive.knowledge.archive_summary}.`,
     isZh
+      ? `Scenario archive section：${closeNoteArchive.scenario.archive_summary}。`
+      : `Scenario archive section: ${closeNoteArchive.scenario.archive_summary}.`,
+    isZh
       ? `Close-note archive summary：${closeNoteArchive.archive_summary}`
       : `Close-note archive summary: ${closeNoteArchive.archive_summary}`,
     isZh

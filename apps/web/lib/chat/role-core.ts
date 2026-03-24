@@ -261,6 +261,13 @@ export type RoleCoreMemoryCloseNoteArchive = {
     governance_classes: string[];
     archive_summary: string;
   };
+  scenario: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    strategy_bundle_id: string | null;
+    orchestration_mode: string | null;
+    archive_summary: string;
+  };
 };
 
 export function getRoleCoreRelationshipStance(
@@ -600,7 +607,7 @@ export function buildRoleCoreMemoryCloseNoteArchive(args: {
     close_candidate: closeNoteRecord.close_candidate,
     close_note_recommended: closeNoteRecord.close_note_recommended,
     headline: `${args.roleCorePacket.identity.agent_name} close-note archive`,
-    archive_summary: `namespace_archive_started; source_record = ${closeNoteRecord.record_version}; readiness = ${closeNoteRecord.readiness_judgment}.`,
+    archive_summary: `namespace_archive_started; retention_archive_started; knowledge_archive_started; scenario_archive_started; source_record = ${closeNoteRecord.record_version}; readiness = ${closeNoteRecord.readiness_judgment}.`,
     blocking_items: [...closeNoteRecord.blocking_items],
     non_blocking_items: [...closeNoteRecord.non_blocking_items],
     tail_candidate_items: [...closeNoteRecord.tail_candidate_items],
@@ -626,6 +633,13 @@ export function buildRoleCoreMemoryCloseNoteArchive(args: {
       scope_layers: [...closeNoteRecord.knowledge.scope_layers],
       governance_classes: [...closeNoteRecord.knowledge.governance_classes],
       archive_summary: `${closeNoteRecord.knowledge.phase_snapshot_id}; ${closeNoteRecord.knowledge.phase_snapshot_summary}; scope_layers = ${closeNoteRecord.knowledge.scope_layers.join(", ") || "none"}; governance_classes = ${closeNoteRecord.knowledge.governance_classes.join(", ") || "none"}`
+    },
+    scenario: {
+      phase_snapshot_id: closeNoteRecord.scenario.phase_snapshot_id,
+      phase_snapshot_summary: closeNoteRecord.scenario.phase_snapshot_summary,
+      strategy_bundle_id: closeNoteRecord.scenario.strategy_bundle_id,
+      orchestration_mode: closeNoteRecord.scenario.orchestration_mode,
+      archive_summary: `${closeNoteRecord.scenario.phase_snapshot_id}; ${closeNoteRecord.scenario.phase_snapshot_summary}; strategy_bundle = ${closeNoteRecord.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNoteRecord.scenario.orchestration_mode ?? "none"}`
     }
   };
 }
