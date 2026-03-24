@@ -5603,7 +5603,30 @@ function main() {
         p19CloseNoteOutput?.namespace.output_summary ?? ""
       ) &&
       systemPrompt.includes("Role core close-note output") &&
-      systemPrompt.includes(p19CloseNoteOutput?.headline ?? "")
+      systemPrompt.includes(p19CloseNoteOutput?.headline ?? ""),
+    retention_close_note_output_contract_v1_ok:
+      p19CloseNoteOutput?.retention.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.retention.phase_snapshot_id &&
+      p19CloseNoteOutput?.retention.decision_group ===
+        p17CloseNoteHandoffPacket?.retention.decision_group &&
+      p19CloseNoteOutput?.retention.output_summary.includes(
+        p17CloseNoteHandoffPacket?.retention.retained_fields.join(", ") ?? ""
+      ),
+    retention_close_note_output_metadata_consistency_v1_ok:
+      assistantCloseNoteOutput?.retention.output_summary ===
+        p19CloseNoteOutput?.retention.output_summary &&
+      assistantDiagnosticCloseNoteOutput?.retention.decision_group ===
+        p19CloseNoteOutput?.retention.decision_group &&
+      runtimeDebugCloseNoteOutput?.retention.phase_snapshot_summary ===
+        p19CloseNoteOutput?.retention.phase_snapshot_summary,
+    retention_close_note_output_prompt_surface_v1_ok:
+      p19CloseNoteOutputPrompt.includes(
+        p19CloseNoteOutput?.retention.output_summary ?? ""
+      ) &&
+      systemPrompt.includes(
+        p19CloseNoteOutput?.retention.output_summary ?? ""
+      ) &&
+      p19CloseNoteOutputPrompt.includes("Retention output section")
   } as const;
   const p18PositiveContracts = summarizeGate({
     role_core_memory_close_note_artifact_v1_ok:

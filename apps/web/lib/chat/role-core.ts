@@ -141,6 +141,13 @@ export type RoleCoreMemoryCloseNoteOutput = {
     phase_snapshot_summary: string;
     output_summary: string;
   };
+  retention: {
+    phase_snapshot_id: string | null;
+    phase_snapshot_summary: string | null;
+    decision_group: string | null;
+    retained_fields: string[];
+    output_summary: string;
+  };
 };
 
 export function getRoleCoreRelationshipStance(
@@ -337,12 +344,22 @@ export function buildRoleCoreMemoryCloseNoteOutput(args: {
     source_handoff_packet_version: closeNoteHandoffPacket.packet_version,
     readiness_judgment: closeNoteArtifact.readiness_judgment,
     headline: `${args.roleCorePacket.identity.agent_name} close-note output`,
-    emission_summary: `namespace_output_started; source_artifact = ${closeNoteArtifact.artifact_version}; blocking_items = ${closeNoteArtifact.blocking_items.join(", ") || "none"}.`,
+    emission_summary: `namespace_output_started; retention_output_started; source_artifact = ${closeNoteArtifact.artifact_version}; blocking_items = ${closeNoteArtifact.blocking_items.join(", ") || "none"}.`,
     namespace: {
       phase_snapshot_id: closeNoteHandoffPacket.namespace.phase_snapshot_id,
       phase_snapshot_summary:
         closeNoteHandoffPacket.namespace.phase_snapshot_summary,
       output_summary: `${closeNoteHandoffPacket.namespace.phase_snapshot_id}; ${closeNoteHandoffPacket.namespace.phase_snapshot_summary}; artifact_headline = ${closeNoteArtifact.headline}`
+    },
+    retention: {
+      phase_snapshot_id: closeNoteHandoffPacket.retention.phase_snapshot_id,
+      phase_snapshot_summary:
+        closeNoteHandoffPacket.retention.phase_snapshot_summary,
+      decision_group: closeNoteHandoffPacket.retention.decision_group,
+      retained_fields: [...closeNoteHandoffPacket.retention.retained_fields],
+      output_summary: closeNoteHandoffPacket.retention.phase_snapshot_id
+        ? `${closeNoteHandoffPacket.retention.phase_snapshot_id}; ${closeNoteHandoffPacket.retention.phase_snapshot_summary ?? "none"}; decision_group = ${closeNoteHandoffPacket.retention.decision_group ?? "none"}; retained_fields = ${closeNoteHandoffPacket.retention.retained_fields.join(", ") || "none"}`
+        : "none"
     }
   };
 }
