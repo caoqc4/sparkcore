@@ -3757,7 +3757,40 @@ function main() {
       ) === runtimeDebugPack?.orchestration_governance_fabric_mode &&
       getAssistantMemoryScenarioPackGovernanceFabricReuseMode(
         assistantMetadata
-      ) === runtimeDebugPack?.governance_fabric_reuse_mode
+      ) === runtimeDebugPack?.governance_fabric_reuse_mode,
+    fabric_drift_guard_v11_ok:
+      threadBoundary.retrieval_fallback_mode === "strict_no_timeline" &&
+      threadScopedRoutes.join(",") === "thread_state,profile,episode" &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "closed",
+          retained_fields: ["focus_mode"],
+          keep_drop_governance_fabric_summary:
+            "closed_drop_governance_fabric",
+          lifecycle_governance_fabric_alignment_mode:
+            "closed_governance_fabric_aligned",
+          lifecycle_governance_fabric_reuse_mode:
+            "closed_runtime_governance_fabric_reuse"
+        }
+      }).retain === false &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "paused",
+          retention_budget: 1,
+          keep_drop_governance_fabric_summary:
+            "minimal_decay_governance_fabric",
+          lifecycle_governance_fabric_alignment_mode:
+            "minimal_governance_fabric_aligned",
+          lifecycle_governance_fabric_reuse_mode:
+            "minimal_runtime_governance_fabric_reuse"
+        }
+      }).retain === false &&
+      referenceOnlyProjectOpsSelection.length === 1 &&
+      referenceOnlyProjectOpsSelection[0]?.title === "General delivery note" &&
+      selectedKnowledgeForPrompt[0]?.title === "Onboarding checklist guide" &&
+      !defaultScenarioMemoryPackPrompt.includes("General reply policy")
   } as const;
   const p13RegressionGateFailedChecks = Object.entries(
     p13RegressionGateChecks
