@@ -33,7 +33,7 @@
 当前 `p17_gate_snapshot` 的结果为：
 
 - `readiness_judgment = close_ready`
-- `progress_range = 40% - 45%`
+- `progress_range = 50% - 55%`
 - `close_note_recommended = true`
 - `blocking_items = []`
 - `non_blocking_items = runtime_close_note_packet_consumption / packet_prompt_surface_alignment / close_note_acceptance_structuring`
@@ -82,7 +82,7 @@
 - `buildAssistantMessageMetadata(...)`
 - `buildRuntimeDebugMetadata(...)`
 
-这是一版 builder-level runtime consumption，而不再只是 harness 内部对象。
+当前这层已经不只是 builder-level 可用，而是 runtime main path 已开始真实传递这份 packet。
 
 ### 3.4 当前还没开始锁的面
 
@@ -94,7 +94,7 @@
 
 因此它当前更像是：
 
-**`P17` gate 已经从零推进到“close-note handoff packet contract + metadata consistency + packet consumption 已成立，并开始进入 builder-level runtime consumption”，并且开始把 `P16` 的 close-note 判断输入从文档自述推进成独立 packet；它是 `P17` 的正式起点，但还远不是收官级 gate。**
+**`P17` gate 已经从零推进到“close-note handoff packet contract + metadata consistency + packet consumption 已成立，并开始进入 runtime main-path consumption”，并且开始把 `P16` 的 close-note 判断输入从文档自述推进成独立 packet；它是 `P17` 的正式起点，但还远不是收官级 gate。**
 
 ---
 
@@ -102,7 +102,7 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P17-5` 已经从“待开始”推进到“第一版 close-note packet gate 已建立，并开始出现 metadata consistency + packet consumption + builder-level runtime consumption”，当前价值主要在于继续把 close-note handoff packet 推到 runtime main-path consumption，而不是立刻进入 close-readiness 判断。**
+**`P17-5` 已经从“待开始”推进到“第一版 close-note packet gate 已建立，并开始出现 metadata consistency + packet consumption + runtime main-path consumption”，当前价值主要在于继续把 close-note handoff packet 推到 acceptance layering / drift guard，而不是立刻进入 close-readiness 判断。**
 
 当前已经成立的是：
 
@@ -111,6 +111,7 @@
 - close-note packet 当前已开始跨 assistant metadata / developer diagnostics 复用同一套 builder
 - close-note packet 当前也已开始拥有一版标准 prompt surface builder
 - close-note packet 当前也已进入 assistant metadata / runtime debug metadata 的可消费 surface
+- close-note packet 当前也已由 runtime main path 主动构建并传递
 - close-note packet 当前已开始显式暴露：
   - `readiness_judgment`
   - `progress_range`
@@ -134,7 +135,7 @@
 
 当前更合理的下一步是：
 
-- **继续完成 `P17` 的 runtime main-path close-note consumption，而不是立刻写 `P17 close-readiness`**
+- **继续完成 `P17` 的 acceptance layering / drift guard，而不是立刻写 `P17 close-readiness`**
 
 ---
 
@@ -142,4 +143,4 @@
 
 一句话结论：
 
-**`P17` 当前已经拥有一版全绿、并以 close-note handoff packet 为中心且带 metadata consistency / packet consumption / builder-level runtime consumption 的第一版 gate；它已经不再只是文档判断，而是开始形成可复用 packet contract。**
+**`P17` 当前已经拥有一版全绿、并以 close-note handoff packet 为中心且带 metadata consistency / packet consumption / runtime main-path consumption 的第一版 gate；它已经不再只是文档判断，而是开始形成可复用 packet contract。**

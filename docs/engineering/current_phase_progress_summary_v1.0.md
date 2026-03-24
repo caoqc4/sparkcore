@@ -288,7 +288,7 @@
       为准
     - 当前 `p17_gate_snapshot`：
       - `readiness_judgment = close_ready`
-      - `progress_range = 40% - 45%`
+      - `progress_range = 50% - 55%`
       - `close_note_recommended = true`
       - `blocking_items = []`
       - `positive_contracts = 1 / 1`
@@ -302,7 +302,7 @@
       - role core memory close-note handoff runtime consumption v1
       - close-note readiness summary to packet alignment v1
       - namespace / retention / knowledge / scenario section carry-through v1
-    - 当前整体约 `40% - 45%`
+    - 当前整体约 `50% - 55%`
 
 ---
 

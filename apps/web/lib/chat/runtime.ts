@@ -89,6 +89,7 @@ import {
 } from "@/lib/chat/session-context";
 import {
   type AgentRecord,
+  buildRoleCoreMemoryCloseNoteHandoffPacket,
   type RoleCoreMemoryCloseNoteHandoffPacket,
   type ReplyLanguageSource,
   type RoleCorePacket,
@@ -4119,6 +4120,26 @@ export async function runPreparedRuntimeTurn({
       scenario_orchestration_mode: activeScenarioMemoryPack.orchestration_mode
     }
   });
+  const roleCoreCloseNoteHandoffPacket = buildRoleCoreMemoryCloseNoteHandoffPacket(
+    {
+      roleCorePacket: roleCorePacketWithMemoryHandoff,
+      readinessJudgment: "close_ready",
+      progressRange: "40% - 45%",
+      closeCandidate: true,
+      closeNoteRecommended: true,
+      blockingItems: [],
+      nonBlockingItems: [
+        "runtime_close_note_packet_consumption",
+        "packet_prompt_surface_alignment",
+        "close_note_acceptance_structuring"
+      ],
+      tailCandidateItems: [
+        "packet_output_symmetry_cleanup",
+        "non_blocking_packet_negative_coverage",
+        "close_note_tail_cleanup_alignment"
+      ]
+    }
+  );
   const { workspace, thread, messages, assistant_message_id, supabase } =
     preparedRuntimeTurn.resources;
   const runtimeSupabase = supabase as any;
@@ -4136,7 +4157,8 @@ export async function runPreparedRuntimeTurn({
         replyLanguage,
         relationshipRecall,
         threadContinuityPrompt,
-        preparedRuntimeTurn.session.thread_state
+        preparedRuntimeTurn.session.thread_state,
+        roleCoreCloseNoteHandoffPacket
       )
     },
     ...messages
@@ -4205,6 +4227,7 @@ export async function runPreparedRuntimeTurn({
       },
       runtime: {
         role_core_packet: roleCorePacketWithMemoryHandoff,
+        role_core_close_note_handoff_packet: roleCoreCloseNoteHandoffPacket,
         runtime_input: preparedRuntimeTurn.input,
         session_thread_id: preparedRuntimeTurn.session.thread_id,
         session_agent_id: preparedRuntimeTurn.session.agent_id,
@@ -4439,7 +4462,8 @@ export async function runPreparedRuntimeTurn({
       }),
       relevant_knowledge: applicableKnowledge,
       active_memory_namespace: activeMemoryNamespace,
-      compacted_thread_summary: compactedThreadSummary
+      compacted_thread_summary: compactedThreadSummary,
+      role_core_close_note_handoff_packet: roleCoreCloseNoteHandoffPacket
     })
   };
 
