@@ -5704,40 +5704,119 @@ function main() {
     scenario_close_note_output_prompt_surface_v1_ok:
       p19CloseNoteOutputChecks.scenario_close_note_output_prompt_surface_v1_ok
   });
+  const p19CloseReadinessConsumptionChecks = {
+    role_core_memory_close_note_output_close_readiness_prompt_v1_ok:
+      p19CloseNoteOutputPrompt.includes(
+        p19CloseNoteOutput?.readiness_judgment ?? ""
+      ) &&
+      p19CloseNoteOutputPrompt.includes(
+        p19CloseNoteOutput?.progress_range ?? ""
+      ) &&
+      p19CloseNoteOutputPrompt.includes(
+        p19CloseNoteOutput?.close_note_recommended ? "true" : "false"
+      ) &&
+      p19CloseNoteOutputPrompt.includes(
+        `blocking = ${p19CloseNoteOutput?.acceptance_gap_buckets.blocking ?? 0}`
+      ) &&
+      p19CloseNoteOutputPrompt.includes("close_readiness_output_consumption"),
+    role_core_memory_close_note_output_gap_bucket_consumption_v1_ok:
+      assistantCloseNoteOutput?.readiness_judgment ===
+        p19CloseNoteOutput?.readiness_judgment &&
+      assistantCloseNoteOutput?.progress_range ===
+        p19CloseNoteOutput?.progress_range &&
+      assistantCloseNoteOutput?.close_candidate ===
+        p19CloseNoteOutput?.close_candidate &&
+      assistantCloseNoteOutput?.close_note_recommended ===
+        p19CloseNoteOutput?.close_note_recommended &&
+      assistantCloseNoteOutput?.acceptance_gap_buckets.non_blocking ===
+        p19CloseNoteOutput?.acceptance_gap_buckets.non_blocking &&
+      assistantDiagnosticCloseNoteOutput?.acceptance_gap_buckets
+        .tail_candidate ===
+        p19CloseNoteOutput?.acceptance_gap_buckets.tail_candidate &&
+      runtimeDebugCloseNoteOutput?.readiness_judgment ===
+        p19CloseNoteOutput?.readiness_judgment &&
+      runtimeDebugCloseNoteOutput?.progress_range ===
+        p19CloseNoteOutput?.progress_range &&
+      runtimeDebugCloseNoteOutput?.close_note_recommended ===
+        p19CloseNoteOutput?.close_note_recommended &&
+      runtimeDebugCloseNoteOutput?.acceptance_gap_buckets.blocking ===
+        p19CloseNoteOutput?.acceptance_gap_buckets.blocking &&
+      runtimeDebugCloseNoteOutput?.next_expansion_focus.includes(
+        "close_readiness_output_consumption"
+      ),
+    role_core_memory_close_note_output_gap_structuring_v1_ok:
+      (p19CloseNoteOutput?.blocking_items.length ?? 0) ===
+        (p19CloseNoteOutput?.acceptance_gap_buckets.blocking ?? -1) &&
+      (p19CloseNoteOutput?.non_blocking_items.length ?? 0) ===
+        (p19CloseNoteOutput?.acceptance_gap_buckets.non_blocking ?? -1) &&
+      (p19CloseNoteOutput?.tail_candidate_items.length ?? 0) ===
+        (p19CloseNoteOutput?.acceptance_gap_buckets.tail_candidate ?? -1) &&
+      p19CloseNoteOutput?.next_expansion_focus.includes(
+        "output_regression_gate_layering"
+      ) &&
+      p19CloseNoteOutput?.next_expansion_focus.includes(
+        "close_readiness_output_consumption"
+      ) &&
+      p19CloseNoteOutput?.next_expansion_focus.includes(
+        "remaining_output_acceptance_gaps"
+      ),
+    role_core_memory_close_note_output_close_note_input_readiness_v1_ok:
+      p19CloseNoteOutputPrompt.includes(
+        p19CloseNoteOutput?.non_blocking_items.join(", ") ?? ""
+      ) &&
+      p19CloseNoteOutputPrompt.includes(
+        p19CloseNoteOutput?.tail_candidate_items.join(", ") ?? ""
+      ) &&
+      p19CloseNoteOutputPrompt.includes(
+        p19CloseNoteOutput?.next_expansion_focus.join(", ") ?? ""
+      ) &&
+      systemPrompt.includes(
+        p19CloseNoteOutput?.non_blocking_items.join(", ") ?? ""
+      ) &&
+      systemPrompt.includes(
+        p19CloseNoteOutput?.tail_candidate_items.join(", ") ?? ""
+      ) &&
+      (assistantCloseNoteOutput?.non_blocking_items.length ?? -1) ===
+        (p19CloseNoteOutput?.non_blocking_items.length ?? -2) &&
+      (assistantDiagnosticCloseNoteOutput?.tail_candidate_items.length ?? -1) ===
+        (p19CloseNoteOutput?.tail_candidate_items.length ?? -2) &&
+      (runtimeDebugCloseNoteOutput?.next_expansion_focus.length ?? -1) ===
+        (p19CloseNoteOutput?.next_expansion_focus.length ?? -2)
+  } as const;
+  const p19CloseReadinessConsumption = summarizeGate(
+    p19CloseReadinessConsumptionChecks
+  );
   const p19RegressionGate = {
     positive_contracts: p19PositiveContracts,
     metadata_consistency: p19MetadataConsistency,
     prompt_surface: p19PromptSurface,
-    ...summarizeGate(p19CloseNoteOutputChecks)
+    close_readiness_consumption: p19CloseReadinessConsumption,
+    ...summarizeGate({
+      ...p19CloseNoteOutputChecks,
+      ...p19CloseReadinessConsumptionChecks
+    })
   } as const;
   const p19GateSnapshot = {
-    gate_id: "p19_regression_gate_v1",
+    gate_id: "p19_regression_gate_v2",
     stage: "P19-5",
     focus: "close_note_outputization",
-    output_contract_readiness: "scenario_output_started_not_close_ready",
-    progress_range: "50% - 55%",
-    close_note_recommended: false,
-    blocking_items: [] as string[],
-    non_blocking_items: [
-      "output_regression_gate_layering",
-      "close_readiness_output_consumption",
-      "remaining_output_acceptance_gaps"
-    ],
-    tail_candidate_items: [
-      "output_surface_symmetry_cleanup",
-      "non_blocking_output_negative_coverage",
-      "artifact_to_output_alignment_cleanup"
-    ],
-    acceptance_gap_buckets: {
-      blocking: 0,
-      non_blocking: 3,
-      tail_candidate: 3
-    },
-    next_expansion_focus: [
-      "output_regression_gate_layering",
-      "close_readiness_output_consumption",
-      "remaining_output_acceptance_gaps"
-    ],
+    output_contract_readiness:
+      p19CloseNoteOutput?.close_note_recommended === true
+        ? "output_close_readiness_started"
+        : "output_close_readiness_consumption_started",
+    progress_range: "75% - 80%",
+    close_note_recommended:
+      p19CloseNoteOutput?.close_note_recommended ?? false,
+    blocking_items: p19CloseNoteOutput?.blocking_items ?? [],
+    non_blocking_items: p19CloseNoteOutput?.non_blocking_items ?? [],
+    tail_candidate_items: p19CloseNoteOutput?.tail_candidate_items ?? [],
+    acceptance_gap_buckets:
+      p19CloseNoteOutput?.acceptance_gap_buckets ?? {
+        blocking: 0,
+        non_blocking: 0,
+        tail_candidate: 0
+      },
+    next_expansion_focus: p19CloseNoteOutput?.next_expansion_focus ?? [],
     positive_contracts: {
       checks_passed: p19PositiveContracts.checks_passed,
       checks_total: p19PositiveContracts.checks_total,
@@ -5752,6 +5831,11 @@ function main() {
       checks_passed: p19PromptSurface.checks_passed,
       checks_total: p19PromptSurface.checks_total,
       all_green: p19PromptSurface.all_green
+    },
+    close_readiness_consumption: {
+      checks_passed: p19CloseReadinessConsumption.checks_passed,
+      checks_total: p19CloseReadinessConsumption.checks_total,
+      all_green: p19CloseReadinessConsumption.all_green
     },
     overall: {
       checks_passed: p19RegressionGate.checks_passed,

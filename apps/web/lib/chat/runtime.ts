@@ -2852,6 +2852,9 @@ export function buildRoleCoreMemoryCloseNoteOutputPrompt(
       ? `Role core close-note output：output_version = ${closeNoteOutput.output_version}；readiness = ${closeNoteOutput.readiness_judgment}。`
       : `Role core close-note output: output_version = ${closeNoteOutput.output_version}; readiness = ${closeNoteOutput.readiness_judgment}.`,
     isZh
+      ? `Close-note output progress：${closeNoteOutput.progress_range}；close_candidate = ${closeNoteOutput.close_candidate ? "true" : "false"}；close_note_recommended = ${closeNoteOutput.close_note_recommended ? "true" : "false"}。`
+      : `Close-note output progress: ${closeNoteOutput.progress_range}; close_candidate = ${closeNoteOutput.close_candidate ? "true" : "false"}; close_note_recommended = ${closeNoteOutput.close_note_recommended ? "true" : "false"}.`,
+    isZh
       ? `Close-note output headline：${closeNoteOutput.headline}。`
       : `Close-note output headline: ${closeNoteOutput.headline}.`,
     isZh
@@ -2868,7 +2871,19 @@ export function buildRoleCoreMemoryCloseNoteOutputPrompt(
       : `Scenario output section: ${closeNoteOutput.scenario.output_summary}.`,
     isZh
       ? `Close-note output emission：${closeNoteOutput.emission_summary}`
-      : `Close-note output emission: ${closeNoteOutput.emission_summary}`
+      : `Close-note output emission: ${closeNoteOutput.emission_summary}`,
+    isZh
+      ? `Close-note output non-blocking items：${closeNoteOutput.non_blocking_items.join(", ") || "none"}。`
+      : `Close-note output non-blocking items: ${closeNoteOutput.non_blocking_items.join(", ") || "none"}.`,
+    isZh
+      ? `Close-note output tail candidates：${closeNoteOutput.tail_candidate_items.join(", ") || "none"}。`
+      : `Close-note output tail candidates: ${closeNoteOutput.tail_candidate_items.join(", ") || "none"}.`,
+    isZh
+      ? `Close-note output gap buckets：blocking = ${closeNoteOutput.acceptance_gap_buckets.blocking}；non_blocking = ${closeNoteOutput.acceptance_gap_buckets.non_blocking}；tail_candidate = ${closeNoteOutput.acceptance_gap_buckets.tail_candidate}。`
+      : `Close-note output gap buckets: blocking = ${closeNoteOutput.acceptance_gap_buckets.blocking}; non_blocking = ${closeNoteOutput.acceptance_gap_buckets.non_blocking}; tail_candidate = ${closeNoteOutput.acceptance_gap_buckets.tail_candidate}.`,
+    isZh
+      ? `Close-note output next focus：${closeNoteOutput.next_expansion_focus.join(", ") || "none"}。`
+      : `Close-note output next focus: ${closeNoteOutput.next_expansion_focus.join(", ") || "none"}.`
   ];
 
   return sections.join("\n");

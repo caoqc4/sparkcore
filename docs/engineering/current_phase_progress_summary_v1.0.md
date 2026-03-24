@@ -386,7 +386,7 @@
     - `P19-2` 已开始，retention close-note output contract 第一刀已成立
     - `P19-3` 已开始，knowledge close-note output contract 第一刀已成立
     - `P19-4` 已开始，scenario close-note output contract 第一刀已成立
-    - `P19-5` 已开始，第一版正式 gate 已建立
+    - `P19-5` 已开始，第二版正式 gate 已建立，并开始显式服务 close-readiness consumption
     - 当前 gate 轻量快照请以
       [memory_upgrade_p19_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p19_gate_snapshot_v1.0.md)
       为准
@@ -404,14 +404,15 @@
       - scenario close-note output metadata consistency v1
       - scenario close-note output prompt surface v1
     - 当前 `p19_gate_snapshot`：
-      - `output_contract_readiness = scenario_output_started_not_close_ready`
-      - `progress_range = 50% - 55%`
+      - `output_contract_readiness = output_close_readiness_consumption_started`
+      - `progress_range = 75% - 80%`
       - `positive_contracts = 4 / 4`
       - `metadata_consistency = 4 / 4`
       - `prompt_surface = 4 / 4`
-      - `overall = 12 / 12`
-    - 当前整体约 `50% - 55%`
-    - 当前最推荐的下一步是 `P19 close-readiness consumption`
+      - `close_readiness_consumption = 4 / 4`
+      - `overall = 16 / 16`
+    - 当前整体约 `75% - 80%`
+    - 当前最推荐的下一步是 `P19 close-readiness judgment`
 
 ---
 

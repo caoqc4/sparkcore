@@ -134,8 +134,20 @@ export type RoleCoreMemoryCloseNoteOutput = {
   source_artifact_version: RoleCoreMemoryCloseNoteArtifact["artifact_version"];
   source_handoff_packet_version: RoleCoreMemoryCloseNoteHandoffPacket["packet_version"];
   readiness_judgment: string;
+  progress_range: string;
+  close_candidate: boolean;
+  close_note_recommended: boolean;
   headline: string;
   emission_summary: string;
+  blocking_items: string[];
+  non_blocking_items: string[];
+  tail_candidate_items: string[];
+  acceptance_gap_buckets: {
+    blocking: number;
+    non_blocking: number;
+    tail_candidate: number;
+  };
+  next_expansion_focus: string[];
   namespace: {
     phase_snapshot_id: string;
     phase_snapshot_summary: string;
@@ -352,13 +364,39 @@ export function buildRoleCoreMemoryCloseNoteOutput(args: {
     return null;
   }
 
+  const blockingItems: string[] = [];
+  const nonBlockingItems = [
+    "output_regression_gate_layering",
+    "close_readiness_output_consumption",
+    "remaining_output_acceptance_gaps"
+  ];
+  const tailCandidateItems = [
+    "output_surface_symmetry_cleanup",
+    "non_blocking_output_negative_coverage",
+    "artifact_to_output_alignment_cleanup"
+  ];
+  const acceptanceGapBuckets = {
+    blocking: blockingItems.length,
+    non_blocking: nonBlockingItems.length,
+    tail_candidate: tailCandidateItems.length
+  } as const;
+  const nextExpansionFocus = [...nonBlockingItems];
+
   return {
     output_version: "v1",
     source_artifact_version: closeNoteArtifact.artifact_version,
     source_handoff_packet_version: closeNoteHandoffPacket.packet_version,
-    readiness_judgment: closeNoteArtifact.readiness_judgment,
+    readiness_judgment: "entered_close_readiness_not_close_ready",
+    progress_range: "75% - 80%",
+    close_candidate: closeNoteArtifact.close_candidate,
+    close_note_recommended: false,
     headline: `${args.roleCorePacket.identity.agent_name} close-note output`,
-    emission_summary: `namespace_output_started; retention_output_started; knowledge_output_started; scenario_output_started; source_artifact = ${closeNoteArtifact.artifact_version}; blocking_items = ${closeNoteArtifact.blocking_items.join(", ") || "none"}.`,
+    emission_summary: `namespace_output_started; retention_output_started; knowledge_output_started; scenario_output_started; source_artifact = ${closeNoteArtifact.artifact_version}; blocking_items = none; non_blocking_items = ${nonBlockingItems.join(", ")}.`,
+    blocking_items: [...blockingItems],
+    non_blocking_items: [...nonBlockingItems],
+    tail_candidate_items: [...tailCandidateItems],
+    acceptance_gap_buckets: { ...acceptanceGapBuckets },
+    next_expansion_focus: nextExpansionFocus,
     namespace: {
       phase_snapshot_id: closeNoteHandoffPacket.namespace.phase_snapshot_id,
       phase_snapshot_summary:
