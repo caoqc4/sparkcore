@@ -2,7 +2,7 @@
 
 ## 1. 文档定位
 
-本文档用于把 `Memory Upgrade P0 ~ P23` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
+本文档用于把 `Memory Upgrade P0 ~ P24` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
 
 - 这些尾项属于什么性质
 - 为什么它们当前不阻塞阶段切换
@@ -12,14 +12,14 @@
 本文档不是新的执行方案，也不是新的 close note，而是：
 
 - 对 `P0 ~ P4` 已收官阶段中遗留尾项的统一归档
-- 对 `P5 ~ P23` 已收官阶段中遗留尾项的统一归档
+- 对 `P5 ~ P24` 已收官阶段中遗留尾项的统一归档
 - 对后续 tail cleanup batch 的最小执行入口
 
 ---
 
 ## 2. 当前总判断
 
-`P0 ~ P23` 当前确实都还存在少量剩余尾项。  
+`P0 ~ P24` 当前确实都还存在少量剩余尾项。  
 但这些尾项的性质已经从：
 
 - 主目标未成立
@@ -80,7 +80,7 @@
 
 ---
 
-## 4. P0 ~ P23 当前典型尾项
+## 4. P0 ~ P24 当前典型尾项
 
 ### 4.1 P0 尾项
 
@@ -424,6 +424,20 @@
 - 非阻塞
 - 更偏 persistence envelope close-note 输入收敛、gate 消费压缩与 close 后清洁度补强
 
+### 4.25 P24 尾项
+
+典型尾项包括：
+
+- persistence manifest close-note input alignment 还可继续向更低冗余、更高对称性的 close-note 输入表达收敛
+- persistence manifest acceptance gap structuring 还可继续向更明确的 close 文档消费字段深化
+- close-readiness 与 close note 之间的 manifest handoff compression 还可继续向更紧凑的文档与 gate 口径收敛
+- 非阻塞的 persistence manifest negative coverage 与 envelope-to-manifest 对齐清洁度还可继续补强
+
+当前性质：
+
+- 非阻塞
+- 更偏 persistence manifest close-note 输入收敛、gate 消费压缩与 close 后清洁度补强
+
 ---
 
 ## 5. 处理原则
@@ -477,7 +491,7 @@
 
 ## 7. 最终结论
 
-`P0 ~ P23` 当前确实都还存在少量尾项。  
+`P0 ~ P24` 当前确实都还存在少量尾项。  
 但这些尾项已经被明确识别为：
 
 - **非阻塞尾项**

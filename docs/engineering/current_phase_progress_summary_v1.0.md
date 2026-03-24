@@ -568,6 +568,9 @@
     - 当前正式 `close-readiness` 判断请以
       [memory_upgrade_p24_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p24_close_readiness_v1.0.md)
       为准
+    - 当前正式收官结论请以
+      [memory_upgrade_p24_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p24_close_note_v1.0.md)
+      为准
     - 当前 `p24_gate_snapshot`：
       - `persistence_manifest_readiness = persistence_manifest_close_readiness_consumption_started`
       - `progress_range = 30% - 35%`
@@ -577,9 +580,9 @@
       - `close_readiness_consumption = 4 / 4`
       - `overall = 16 / 16`
       - `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
-    - 当前整体约 `70% - 75%`
-    - `P24` 已进入 `close-readiness` 判断区间，但暂不建议直接判成 `close-ready / 可收官`
-    - 当前最推荐的下一步是继续做 `P24` 的最后一轮收束，再决定是否进入 `P24 close note`
+    - 当前整体约 `80% - 85%`
+    - `P24` 已进入 `close-readiness` 判断区间，并已达到 `close-ready / 可收官`
+    - 当前最推荐的下一步是开始下一阶段执行文档 / 第一批任务拆解，而不是继续扩张 `P24` 范围
 
 ---
 

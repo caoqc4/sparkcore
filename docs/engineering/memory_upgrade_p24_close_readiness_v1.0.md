@@ -38,8 +38,8 @@
 当前正式判断是：
 
 - `P24` 已进入 `close-readiness` 判断区间
-- 但当前**还不建议直接判成 `close-ready / 可收官`**
-- 当前整体大约在 **`70% - 75%`**
+- 并且当前已经达到 **`close-ready / 可收官`**
+- 当前整体大约在 **`80% - 85%`**
 
 ---
 
@@ -84,12 +84,12 @@
 
 当前更合理的下一步是：
 
-- 继续做 `P24` 的最后一轮收束
-- 把 `close-readiness` 输入进一步压紧成更接近 `close note` 的表达
-- 然后再决定是否进入 `P24 close note`
+- 以 [memory_upgrade_p24_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p24_close_note_v1.0.md) 作为正式收官结论
+- 将非阻塞项并入统一 tail cleanup backlog
+- 开始下一阶段执行文档 / 第一批任务拆解
 
 ---
 
 ## 7. 一句话结论
 
-**`P24` 当前已经进入正式 `close-readiness` 判断区间，但更准确的状态仍是“evidence 已足够开始 close-readiness 讨论，尚不建议直接判定 close-ready”。**
+**`P24` 当前已经进入正式 `close-readiness` 判断区间，并且已达到 `close-ready / 可收官`。**

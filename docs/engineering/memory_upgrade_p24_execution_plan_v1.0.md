@@ -104,13 +104,17 @@
 [memory_upgrade_p24_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p24_close_readiness_v1.0.md)
 为准。
 
+当前正式收官结论请以
+[memory_upgrade_p24_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p24_close_note_v1.0.md)
+为准。
+
 整体 `P24` 当前大约：
 
-- **`70% - 75%`**
+- **`80% - 85%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P24` 的最后一轮收束，再决定是否进入 `P24 close note`**
+- **开始下一阶段执行文档 / 第一批任务拆解，而不是继续扩张 `P24` 范围**
 
 ---
 
