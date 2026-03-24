@@ -138,11 +138,18 @@ P16 首批必须让阶段 gate 跟着 packet 主线生长，而不是等 handoff
 
 整体 `P16` 当前大约：
 
-- **`65% - 70%`**
+- **`75% - 80%`**
 
 当前更推荐的下一步：
 
-- **继续把 `P16-5 Regression / acceptance packetization` 从 packet consumption 扩到 retention handoff depth / remaining packet acceptance gaps，而不是立刻写 `P16 close-readiness`**
+- **继续把 `P16-5 Regression / acceptance packetization` 从 packet depth 成立推进到 `close-readiness` 最后一轮 gap 分类，而不是立刻写 `P16 close note`**
+
+当前正式 `close-readiness` 判断请以 [memory_upgrade_p16_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p16_close_readiness_v1.0.md) 为准：
+
+- 当前结论是：
+  - `P16` 已进入 `close-readiness` 判断区间
+  - 但当前还不建议直接判成 `close-ready / 可收官`
+  - 当前整体更接近 `75% - 80%`
 
 ---
 

@@ -237,7 +237,7 @@
   - 当前结论是：
     - `P16` 已从“待定义的下一阶段”推进到“已建立执行计划的下一阶段”
     - `P16-1 ~ P16-4` 已通过 `role_core_packet` memory handoff 第一刀接通
-    - `P16-5` 已从第一版 gate scaffold 推进到 `positive_contracts + metadata_consistency`
+    - `P16-5` 已从第一版 gate scaffold 推进到 `positive_contracts + metadata_consistency + packet_consumption`
     - 当前 gate 轻量快照请以
       [memory_upgrade_p16_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p16_gate_snapshot_v1.0.md)
       为准
@@ -259,7 +259,15 @@
       - retention decision group / retained fields handoff depth v1
       - scenario strategy bundle / orchestration handoff depth v1
       - knowledge scope layers / governance classes handoff depth v1
-    - 当前整体约 `65% - 70%`
+    - 当前整体约 `75% - 80%`
+- `P16 close-readiness judgment` 当前已建立：
+  - 当前判断请以
+    [memory_upgrade_p16_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p16_close_readiness_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P16` 已进入 `close-readiness` 判断区间
+    - 但当前还不建议直接判成 `close-ready / 可收官`
+    - 当前整体更接近 `75% - 80%`
 
 ---
 
