@@ -1373,17 +1373,17 @@
 - `P9-3`
   - 中段
 - `P9-4`
-  - 前中段到中段之间
+  - 中段
 - `P9-5`
   - 第一版已成立
 
 整体 `P9` 当前大约：
 
-- **`70% - 75%`**
+- **`75% - 80%`**
 
 当前更推荐的下一步：
 
-- **先做一次 `P9` 小复盘**
+- **开始进入 `P9 close-readiness` 前置评估**
 - 当前 `P9-5` 已开始显式产出：
   - `p9_regression_gate`
   - `checks_passed`
@@ -1397,4 +1397,6 @@
   - `knowledge_governance_unification_v7_ok`
   - `scenario_governance_unification_v7_ok`
 - 这说明 `P9` 已经不再只是主线代码各自成立，而是开始形成阶段级 `unified runtime + gate` 的组合事实
-- 当前更值的下一步，是先复盘 `P9-1 ~ P9-5` 的相对强弱，再决定继续补 `P9-4 / P9-5`，还是开始进入 `close-readiness` 前置区间
+- 当前更值的下一步，已经不是继续盲补单点，而是开始判断：
+  - `P9-4 / P9-5` 是否还需要最后一刀
+  - 还是已经可以进入正式的 `close-readiness` 复盘
