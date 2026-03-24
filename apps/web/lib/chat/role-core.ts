@@ -196,6 +196,13 @@ export type RoleCoreMemoryCloseNoteRecord = {
     retained_fields: string[];
     record_summary: string;
   };
+  knowledge: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    scope_layers: string[];
+    governance_classes: string[];
+    record_summary: string;
+  };
 };
 
 export function getRoleCoreRelationshipStance(
@@ -475,7 +482,7 @@ export function buildRoleCoreMemoryCloseNoteRecord(args: {
     readiness_judgment: closeNoteOutput.readiness_judgment,
     close_note_recommended: closeNoteOutput.close_note_recommended,
     headline: `${args.roleCorePacket.identity.agent_name} close-note record`,
-    record_summary: `namespace_record_started; source_output = ${closeNoteOutput.output_version}; readiness = ${closeNoteOutput.readiness_judgment}.`,
+    record_summary: `namespace_record_started; retention_record_started; knowledge_record_started; source_output = ${closeNoteOutput.output_version}; readiness = ${closeNoteOutput.readiness_judgment}.`,
     namespace: {
       phase_snapshot_id: closeNoteOutput.namespace.phase_snapshot_id,
       phase_snapshot_summary: closeNoteOutput.namespace.phase_snapshot_summary,
@@ -489,6 +496,13 @@ export function buildRoleCoreMemoryCloseNoteRecord(args: {
       record_summary: closeNoteOutput.retention.phase_snapshot_id
         ? `${closeNoteOutput.retention.phase_snapshot_id}; ${closeNoteOutput.retention.phase_snapshot_summary ?? "none"}; decision_group = ${closeNoteOutput.retention.decision_group ?? "none"}; retained_fields = ${closeNoteOutput.retention.retained_fields.join(", ") || "none"}`
         : "none"
+    },
+    knowledge: {
+      phase_snapshot_id: closeNoteOutput.knowledge.phase_snapshot_id,
+      phase_snapshot_summary: closeNoteOutput.knowledge.phase_snapshot_summary,
+      scope_layers: [...closeNoteOutput.knowledge.scope_layers],
+      governance_classes: [...closeNoteOutput.knowledge.governance_classes],
+      record_summary: `${closeNoteOutput.knowledge.phase_snapshot_id}; ${closeNoteOutput.knowledge.phase_snapshot_summary}; scope_layers = ${closeNoteOutput.knowledge.scope_layers.join(", ") || "none"}; governance_classes = ${closeNoteOutput.knowledge.governance_classes.join(", ") || "none"}`
     }
   };
 }

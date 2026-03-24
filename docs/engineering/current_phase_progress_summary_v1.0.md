@@ -427,19 +427,21 @@
   - 当前结论是：
     - `P20` 的一句话目标是把 `P19 close-note output contract` 推进成更接近真实记录 / 归档准备态的 `close-note record contract`
     - `P20-1` 已开始，namespace close-note record contract 第一刀已成立
+    - `P20-2` 已开始，retention close-note record contract 第一刀已成立
+    - `P20-3` 已开始，knowledge close-note record contract 第一刀已成立
     - `P20-5` 已开始，第一版正式 gate 已建立
     - 当前 gate 轻量快照请以
       [memory_upgrade_p20_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p20_gate_snapshot_v1.0.md)
       为准
     - 当前 `p20_gate_snapshot`：
-      - `record_contract_readiness = namespace_record_started_not_close_ready`
-      - `progress_range = 10% - 15%`
-      - `positive_contracts = 1 / 1`
-      - `metadata_consistency = 1 / 1`
-      - `prompt_surface = 1 / 1`
-      - `overall = 3 / 3`
-    - 当前整体约 `10% - 15%`
-    - 当前最推荐的下一步是 `P20-2 Retention close-note record contract v1`
+      - `record_contract_readiness = knowledge_record_started_not_close_ready`
+      - `progress_range = 30% - 35%`
+      - `positive_contracts = 3 / 3`
+      - `metadata_consistency = 3 / 3`
+      - `prompt_surface = 3 / 3`
+      - `overall = 9 / 9`
+    - 当前整体约 `30% - 35%`
+    - 当前最推荐的下一步是 `P20-4 Scenario close-note record contract v1`
 
 ---
 

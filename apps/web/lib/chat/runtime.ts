@@ -2916,6 +2916,9 @@ export function buildRoleCoreMemoryCloseNoteRecordPrompt(
       ? `Retention record section：${closeNoteRecord.retention.record_summary}。`
       : `Retention record section: ${closeNoteRecord.retention.record_summary}.`,
     isZh
+      ? `Knowledge record section：${closeNoteRecord.knowledge.record_summary}。`
+      : `Knowledge record section: ${closeNoteRecord.knowledge.record_summary}.`,
+    isZh
       ? `Close-note record summary：${closeNoteRecord.record_summary}`
       : `Close-note record summary: ${closeNoteRecord.record_summary}`
   ];
