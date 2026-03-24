@@ -1448,14 +1448,14 @@
 - `P11-3`
   - 中段
 - `P11-4`
-  - 待开始
+  - 前中段
 - `P11-5`
   - 待开始
 
 整体 `P11` 当前大约：
 
-- **`65% - 75%`**
+- **`70% - 80%`**
 
 当前更推荐的下一步：
 
-- **开始 `P11-4 Scenario governance coordination v9` 的第一刀**
+- **开始 `P11-5 Regression / acceptance expansion` 的第一刀**

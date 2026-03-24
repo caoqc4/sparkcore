@@ -1,8 +1,10 @@
 import {
   type ScenarioGovernanceConsolidationDigestId,
+  type ScenarioGovernanceCoordinationDigestId,
   type ScenarioGovernanceConvergenceDigestId,
   type ScenarioGovernanceUnificationDigestId,
   type ScenarioOrchestrationConsolidationMode,
+  type ScenarioOrchestrationCoordinationModeV9,
   type ScenarioOrchestrationCoordinationSummary,
   type ScenarioOrchestrationAlignmentMode,
   type ScenarioOrchestrationUnificationMode,
@@ -12,8 +14,11 @@ import {
   type ScenarioMemoryLayer,
   type ScenarioMemoryPack,
   type ScenarioStrategyConsolidationSummary,
+  type ScenarioStrategyRuntimeCoordinationSummary,
+  type ScenarioStrategyRuntimeReuseSummary,
   type ScenarioStrategyConvergenceSummary,
   type ScenarioStrategyConsistencyMode,
+  type ScenarioGovernanceCoordinationReuseMode,
   type ScenarioStrategyRationaleSummary,
   type ScenarioStrategyPolicyId,
   type ScenarioStrategyUnificationSummary,
@@ -73,6 +78,11 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
   governance_consolidation_digest_id: ScenarioGovernanceConsolidationDigestId;
   strategy_consolidation_summary: ScenarioStrategyConsolidationSummary;
   orchestration_consolidation_mode: ScenarioOrchestrationConsolidationMode;
+  governance_coordination_digest_id: ScenarioGovernanceCoordinationDigestId;
+  strategy_runtime_coordination_summary: ScenarioStrategyRuntimeCoordinationSummary;
+  orchestration_coordination_mode_v9: ScenarioOrchestrationCoordinationModeV9;
+  strategy_runtime_reuse_summary: ScenarioStrategyRuntimeReuseSummary;
+  governance_coordination_reuse_mode: ScenarioGovernanceCoordinationReuseMode;
 };
 
 function resolveKnowledgeGovernanceRouteWeights(args: {
@@ -204,7 +214,17 @@ export function resolveScenarioMemoryPackPolicy(
       strategy_consolidation_summary:
         "project_delivery_strategy_consolidated" as const,
       orchestration_consolidation_mode:
-        "execution_runtime_consolidated" as const
+        "execution_runtime_consolidated" as const,
+      governance_coordination_digest_id:
+        "project_delivery_governance_coordination" as const,
+      strategy_runtime_coordination_summary:
+        "project_delivery_strategy_runtime_coordination" as const,
+      orchestration_coordination_mode_v9:
+        "execution_runtime_coordination" as const,
+      strategy_runtime_reuse_summary:
+        "project_delivery_strategy_runtime_reuse" as const,
+      governance_coordination_reuse_mode:
+        "execution_runtime_coordination_reuse" as const
     };
   }
 
@@ -238,7 +258,17 @@ export function resolveScenarioMemoryPackPolicy(
       strategy_consolidation_summary:
         "knowledge_guided_strategy_consolidated" as const,
       orchestration_consolidation_mode:
-        "knowledge_guided_runtime_consolidated" as const
+        "knowledge_guided_runtime_consolidated" as const,
+      governance_coordination_digest_id:
+        "knowledge_guided_governance_coordination" as const,
+      strategy_runtime_coordination_summary:
+        "knowledge_guided_strategy_runtime_coordination" as const,
+      orchestration_coordination_mode_v9:
+        "knowledge_guided_runtime_coordination" as const,
+      strategy_runtime_reuse_summary:
+        "knowledge_guided_strategy_runtime_reuse" as const,
+      governance_coordination_reuse_mode:
+        "knowledge_guided_runtime_coordination_reuse" as const
     };
   }
 
@@ -263,7 +293,17 @@ export function resolveScenarioMemoryPackPolicy(
     strategy_consolidation_summary:
       "continuity_strategy_consolidated" as const,
     orchestration_consolidation_mode:
-      "continuity_runtime_consolidated" as const
+      "continuity_runtime_consolidated" as const,
+    governance_coordination_digest_id:
+      "continuity_governance_coordination" as const,
+    strategy_runtime_coordination_summary:
+      "continuity_strategy_runtime_coordination" as const,
+    orchestration_coordination_mode_v9:
+      "continuity_runtime_coordination" as const,
+    strategy_runtime_reuse_summary:
+      "continuity_strategy_runtime_reuse" as const,
+    governance_coordination_reuse_mode:
+      "continuity_runtime_coordination_reuse" as const
   };
 }
 
@@ -465,6 +505,12 @@ export function buildScenarioMemoryPackPromptSection(args: {
     isZh
       ? `当前 governance consolidation = ${args.pack.governance_consolidation_digest_id}；strategy consolidation = ${args.pack.strategy_consolidation_summary}；consolidation mode = ${args.pack.orchestration_consolidation_mode}。`
       : `Current governance consolidation = ${args.pack.governance_consolidation_digest_id}; strategy consolidation = ${args.pack.strategy_consolidation_summary}; consolidation mode = ${args.pack.orchestration_consolidation_mode}.`,
+    isZh
+      ? `当前 governance coordination digest = ${args.pack.governance_coordination_digest_id}；strategy runtime coordination = ${args.pack.strategy_runtime_coordination_summary}；coordination mode = ${args.pack.orchestration_coordination_mode_v9}。`
+      : `Current governance coordination digest = ${args.pack.governance_coordination_digest_id}; strategy runtime coordination = ${args.pack.strategy_runtime_coordination_summary}; coordination mode = ${args.pack.orchestration_coordination_mode_v9}.`,
+    isZh
+      ? `当前 strategy runtime reuse = ${args.pack.strategy_runtime_reuse_summary}；coordination reuse = ${args.pack.governance_coordination_reuse_mode}。`
+      : `Current strategy runtime reuse = ${args.pack.strategy_runtime_reuse_summary}; coordination reuse = ${args.pack.governance_coordination_reuse_mode}.`,
     isZh
       ? `当前 knowledge route weight = ${args.pack.knowledge_route_weight}，knowledge budget weight = ${args.pack.knowledge_budget_weight}。`
       : `Current knowledge route weight = ${args.pack.knowledge_route_weight}; knowledge budget weight = ${args.pack.knowledge_budget_weight}.`,

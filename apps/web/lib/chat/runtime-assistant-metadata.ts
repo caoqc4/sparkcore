@@ -212,6 +212,16 @@ export function buildRuntimeAssistantMetadataInput(
       input.memory.scenario_pack?.strategy_consolidation_summary ?? null,
     scenario_memory_pack_orchestration_consolidation_mode:
       input.memory.scenario_pack?.orchestration_consolidation_mode ?? null,
+    scenario_memory_pack_governance_coordination_digest_id:
+      input.memory.scenario_pack?.governance_coordination_digest_id ?? null,
+    scenario_memory_pack_strategy_runtime_coordination_summary:
+      input.memory.scenario_pack?.strategy_runtime_coordination_summary ?? null,
+    scenario_memory_pack_orchestration_coordination_mode_v9:
+      input.memory.scenario_pack?.orchestration_coordination_mode_v9 ?? null,
+    scenario_memory_pack_strategy_runtime_reuse_summary:
+      input.memory.scenario_pack?.strategy_runtime_reuse_summary ?? null,
+    scenario_memory_pack_governance_coordination_reuse_mode:
+      input.memory.scenario_pack?.governance_coordination_reuse_mode ?? null,
     scenario_memory_pack_strategy_bundle_id:
       scenarioPackStrategy?.strategy_bundle_id ?? null,
     scenario_memory_pack_strategy_assembly_order:

@@ -548,6 +548,91 @@ export function getAssistantMemoryScenarioPackOrchestrationConsolidationMode(
   );
 }
 
+export function getAssistantMemoryScenarioPackGovernanceCoordinationDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "governance_coordination_digest_id"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_governance_coordination_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackStrategyRuntimeCoordinationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "strategy_runtime_coordination_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_strategy_runtime_coordination_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackOrchestrationCoordinationModeV9(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "orchestration_coordination_mode_v9"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_orchestration_coordination_mode_v9"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackStrategyRuntimeReuseSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "strategy_runtime_reuse_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_strategy_runtime_reuse_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackGovernanceCoordinationReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "governance_coordination_reuse_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_governance_coordination_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryScenarioPackKnowledgeRouteWeight(
   metadata: Record<string, unknown> | null | undefined
 ) {

@@ -96,13 +96,18 @@ import {
   getAssistantMemoryScenarioPackGovernanceRouteBias,
   getAssistantMemoryScenarioPackGovernanceConvergenceDigestId,
   getAssistantMemoryScenarioPackGovernanceConsolidationDigestId,
+  getAssistantMemoryScenarioPackGovernanceCoordinationDigestId,
+  getAssistantMemoryScenarioPackGovernanceCoordinationReuseMode,
   getAssistantMemoryScenarioPackOrchestrationAlignmentMode,
   getAssistantMemoryScenarioPackOrchestrationConsolidationMode,
+  getAssistantMemoryScenarioPackOrchestrationCoordinationModeV9,
   getAssistantMemoryScenarioPackOrchestrationCoordinationSummary,
   getAssistantMemoryScenarioPackOrchestrationMode,
   getAssistantMemoryScenarioPackOrchestrationDigestId,
   getAssistantMemoryScenarioPackStrategyConsistencyMode,
   getAssistantMemoryScenarioPackStrategyConsolidationSummary,
+  getAssistantMemoryScenarioPackStrategyRuntimeCoordinationSummary,
+  getAssistantMemoryScenarioPackStrategyRuntimeReuseSummary,
   getAssistantMemoryScenarioPackStrategyConvergenceSummary,
   getAssistantMemoryScenarioPackGovernanceUnificationDigestId,
   getAssistantMemoryScenarioPackStrategyUnificationSummary,
@@ -3229,6 +3234,45 @@ function main() {
         "General delivery note"
   } as const;
 
+  const p11ScenarioCoordinationChecks = {
+    scenario_governance_coordination_v9_ok:
+      scenarioMemoryPack.governance_coordination_digest_id ===
+        "project_delivery_governance_coordination" &&
+      scenarioMemoryPack.strategy_runtime_coordination_summary ===
+        "project_delivery_strategy_runtime_coordination" &&
+      scenarioMemoryPack.orchestration_coordination_mode_v9 ===
+        "execution_runtime_coordination" &&
+      scenarioMemoryPack.strategy_runtime_reuse_summary ===
+        "project_delivery_strategy_runtime_reuse" &&
+      scenarioMemoryPack.governance_coordination_reuse_mode ===
+        "execution_runtime_coordination_reuse" &&
+      getAssistantMemoryScenarioPackGovernanceCoordinationDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_coordination_digest_id &&
+      getAssistantMemoryScenarioPackStrategyRuntimeCoordinationSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_runtime_coordination_summary &&
+      getAssistantMemoryScenarioPackOrchestrationCoordinationModeV9(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_coordination_mode_v9 &&
+      getAssistantMemoryScenarioPackStrategyRuntimeReuseSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_runtime_reuse_summary &&
+      getAssistantMemoryScenarioPackGovernanceCoordinationReuseMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_coordination_reuse_mode &&
+      runtimeDebugMetadata.memory.pack?.governance_coordination_digest_id ===
+        scenarioMemoryPack.governance_coordination_digest_id &&
+      runtimeDebugMetadata.memory.pack?.strategy_runtime_coordination_summary ===
+        scenarioMemoryPack.strategy_runtime_coordination_summary &&
+      runtimeDebugMetadata.memory.pack?.orchestration_coordination_mode_v9 ===
+        scenarioMemoryPack.orchestration_coordination_mode_v9 &&
+      runtimeDebugMetadata.memory.pack?.strategy_runtime_reuse_summary ===
+        scenarioMemoryPack.strategy_runtime_reuse_summary &&
+      runtimeDebugMetadata.memory.pack?.governance_coordination_reuse_mode ===
+        scenarioMemoryPack.governance_coordination_reuse_mode
+  } as const;
+
   const p10RetentionConsolidationChecks = {
     retention_lifecycle_consolidation_v8_ok:
       compactedThreadSummary?.lifecycle_consolidation_digest ===
@@ -3566,6 +3610,26 @@ function main() {
             ),
           orchestration_consolidation_mode:
             getAssistantMemoryScenarioPackOrchestrationConsolidationMode(
+              assistantMetadata
+            ),
+          governance_coordination_digest_id:
+            getAssistantMemoryScenarioPackGovernanceCoordinationDigestId(
+              assistantMetadata
+            ),
+          strategy_runtime_coordination_summary:
+            getAssistantMemoryScenarioPackStrategyRuntimeCoordinationSummary(
+              assistantMetadata
+            ),
+          orchestration_coordination_mode_v9:
+            getAssistantMemoryScenarioPackOrchestrationCoordinationModeV9(
+              assistantMetadata
+            ),
+          strategy_runtime_reuse_summary:
+            getAssistantMemoryScenarioPackStrategyRuntimeReuseSummary(
+              assistantMetadata
+            ),
+          governance_coordination_reuse_mode:
+            getAssistantMemoryScenarioPackGovernanceCoordinationReuseMode(
               assistantMetadata
             )
         },
@@ -3938,7 +4002,17 @@ function main() {
           strategy_consolidation_summary:
             scenarioMemoryPack.strategy_consolidation_summary,
           orchestration_consolidation_mode:
-            scenarioMemoryPack.orchestration_consolidation_mode
+            scenarioMemoryPack.orchestration_consolidation_mode,
+          governance_coordination_digest_id:
+            scenarioMemoryPack.governance_coordination_digest_id,
+          strategy_runtime_coordination_summary:
+            scenarioMemoryPack.strategy_runtime_coordination_summary,
+          orchestration_coordination_mode_v9:
+            scenarioMemoryPack.orchestration_coordination_mode_v9,
+          strategy_runtime_reuse_summary:
+            scenarioMemoryPack.strategy_runtime_reuse_summary,
+          governance_coordination_reuse_mode:
+            scenarioMemoryPack.governance_coordination_reuse_mode
         },
         system_prompt_thread_state: {
           includes_focus_mode: systemPrompt.includes(
@@ -4062,6 +4136,7 @@ function main() {
         p10_retention_consolidation: p10RetentionConsolidationChecks,
         p11_retention_coordination: p11RetentionCoordinationChecks,
         p11_knowledge_coordination: p11KnowledgeCoordinationChecks,
+        p11_scenario_coordination: p11ScenarioCoordinationChecks,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,
         p10_scenario_consolidation: p10ScenarioConsolidationChecks,
         p10_regression_gate: p10RegressionGate,

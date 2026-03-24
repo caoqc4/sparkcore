@@ -114,6 +114,16 @@ export function buildRuntimeDebugMetadata(
               input.scenario_memory_pack.strategy_consolidation_summary,
             orchestration_consolidation_mode:
               input.scenario_memory_pack.orchestration_consolidation_mode,
+            governance_coordination_digest_id:
+              input.scenario_memory_pack.governance_coordination_digest_id,
+            strategy_runtime_coordination_summary:
+              input.scenario_memory_pack.strategy_runtime_coordination_summary,
+            orchestration_coordination_mode_v9:
+              input.scenario_memory_pack.orchestration_coordination_mode_v9,
+            strategy_runtime_reuse_summary:
+              input.scenario_memory_pack.strategy_runtime_reuse_summary,
+            governance_coordination_reuse_mode:
+              input.scenario_memory_pack.governance_coordination_reuse_mode,
             strategy_bundle_id:
               scenarioPackStrategy?.strategy_bundle_id ?? null,
             strategy_assembly_order:
