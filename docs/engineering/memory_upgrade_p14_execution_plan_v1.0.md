@@ -24,6 +24,7 @@
 - [memory_upgrade_tail_cleanup_backlog_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_tail_cleanup_backlog_v1.0.md)
 - `doc_private/SparkCore_记忆层升级方案_v0.2.md`
 - [memory_upgrade_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_execution_plan_v1.0.md)
+- [memory_upgrade_p14_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_gate_snapshot_v1.0.md)
 
 ---
 
@@ -254,6 +255,9 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
     - plane-level drift guard v12
     - scenario fabric plane drift guard v12
   - `apps/web/scripts/memory-upgrade-harness.ts` 当前也已新增 `p14_gate_snapshot`，用于更轻量地消费当前 gate 状态
+  - 当前 gate 轻量快照请以
+    [memory_upgrade_p14_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_gate_snapshot_v1.0.md)
+    为准
   - 当前基础验证已通过：
     - `pnpm --filter @sparkcore/web memory:upgrade:harness`
     - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`

@@ -134,6 +134,9 @@
 - `P14-5 regression / acceptance expansion` 已开始建立第一版正式 gate：
   - `memory-upgrade-harness.ts` 当前已新增 `p14_regression_gate`
   - `memory-upgrade-harness.ts` 当前也已新增 `p14_gate_snapshot`
+  - 当前 gate 轻量快照请以
+    [memory_upgrade_p14_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_gate_snapshot_v1.0.md)
+    为准
   - gate 当前已开始按三层 acceptance 面输出：
     - `positive_contracts`
     - `metadata_consistency`
