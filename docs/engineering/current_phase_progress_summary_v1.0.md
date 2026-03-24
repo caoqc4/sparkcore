@@ -1226,7 +1226,7 @@
 - `P7-2`
   - 前中段到中段之间
 - `P7-3`
-  - 前中段
+  - 前中段到中段之间
 - `P7-4`
   - 待开始
 - `P7-5`
@@ -1234,11 +1234,11 @@
 
 整体 `P7` 当前大约：
 
-- **`40% - 50%`**
+- **`45% - 55%`**
 
 当前更推荐的下一步：
 
-- **继续补 `P7-3 Knowledge governance coordination v5`，把 governance coordination 推进到更明确的 orchestration 输出**
+- **开始 `P7-4 Scenario orchestration digest v5` 的第一刀**
 - 当前已成立的 `P7-1` 主事实：
   - namespace boundary 现在开始显式产出 `policy_digest_id`
   - 当前最小 digest 已成立：

@@ -253,7 +253,7 @@ P7 首批要把 knowledge 从：
 当前阶段判断：
 
 - `P7-3` 已经从“待开始”推进到：
-  - **前中段**
+  - **前中段到中段之间**
 - 当前已成立的主事实：
   - `governance_coordination_summary`
   - `budget_coordination_mode`
@@ -265,8 +265,8 @@ P7 首批要把 knowledge 从：
   - runtime debug metadata
   - harness
 - 下一步更合理的选择仍然是：
-  - **继续补 `P7-3 Knowledge governance coordination v5`**
-  - 先不要切去 `P7-4`
+  - **开始切去 `P7-4 Scenario orchestration digest v5`**
+  - 不再需要继续深挖 `P7-3` 很多刀
 
 - 至少一条 knowledge 决策不再只输出 class/weight，而开始输出更明确的 governance coordination 字段
 - 至少一条 prompt / route 行为开始复用同一层 governance coordination 输出
