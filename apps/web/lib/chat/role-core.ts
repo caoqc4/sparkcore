@@ -223,6 +223,32 @@ export type RoleCoreMemoryCloseNoteRecord = {
   };
 };
 
+export type RoleCoreMemoryCloseNoteArchive = {
+  archive_version: "v1";
+  source_record_version: RoleCoreMemoryCloseNoteRecord["record_version"];
+  source_output_version: RoleCoreMemoryCloseNoteOutput["output_version"];
+  readiness_judgment: string;
+  progress_range: string;
+  close_candidate: boolean;
+  close_note_recommended: boolean;
+  headline: string;
+  archive_summary: string;
+  blocking_items: string[];
+  non_blocking_items: string[];
+  tail_candidate_items: string[];
+  acceptance_gap_buckets: {
+    blocking: number;
+    non_blocking: number;
+    tail_candidate: number;
+  };
+  next_expansion_focus: string[];
+  namespace: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    archive_summary: string;
+  };
+};
+
 export function getRoleCoreRelationshipStance(
   relationshipRecall: {
     addressStyleMemory: {
@@ -535,6 +561,41 @@ export function buildRoleCoreMemoryCloseNoteRecord(args: {
       strategy_bundle_id: closeNoteOutput.scenario.strategy_bundle_id,
       orchestration_mode: closeNoteOutput.scenario.orchestration_mode,
       record_summary: `${closeNoteOutput.scenario.phase_snapshot_id}; ${closeNoteOutput.scenario.phase_snapshot_summary}; strategy_bundle = ${closeNoteOutput.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNoteOutput.scenario.orchestration_mode ?? "none"}`
+    }
+  };
+}
+
+export function buildRoleCoreMemoryCloseNoteArchive(args: {
+  roleCorePacket: RoleCorePacket;
+  closeNoteRecord: RoleCoreMemoryCloseNoteRecord | null;
+  closeNoteOutput: RoleCoreMemoryCloseNoteOutput | null;
+}): RoleCoreMemoryCloseNoteArchive | null {
+  const closeNoteRecord = args.closeNoteRecord;
+  const closeNoteOutput = args.closeNoteOutput;
+
+  if (!closeNoteRecord || !closeNoteOutput) {
+    return null;
+  }
+
+  return {
+    archive_version: "v1",
+    source_record_version: closeNoteRecord.record_version,
+    source_output_version: closeNoteOutput.output_version,
+    readiness_judgment: closeNoteRecord.readiness_judgment,
+    progress_range: closeNoteRecord.progress_range,
+    close_candidate: closeNoteRecord.close_candidate,
+    close_note_recommended: closeNoteRecord.close_note_recommended,
+    headline: `${args.roleCorePacket.identity.agent_name} close-note archive`,
+    archive_summary: `namespace_archive_started; source_record = ${closeNoteRecord.record_version}; readiness = ${closeNoteRecord.readiness_judgment}.`,
+    blocking_items: [...closeNoteRecord.blocking_items],
+    non_blocking_items: [...closeNoteRecord.non_blocking_items],
+    tail_candidate_items: [...closeNoteRecord.tail_candidate_items],
+    acceptance_gap_buckets: { ...closeNoteRecord.acceptance_gap_buckets },
+    next_expansion_focus: [...closeNoteRecord.next_expansion_focus],
+    namespace: {
+      phase_snapshot_id: closeNoteRecord.namespace.phase_snapshot_id,
+      phase_snapshot_summary: closeNoteRecord.namespace.phase_snapshot_summary,
+      archive_summary: `${closeNoteRecord.namespace.phase_snapshot_id}; ${closeNoteRecord.namespace.phase_snapshot_summary}; record_headline = ${closeNoteRecord.headline}`
     }
   };
 }

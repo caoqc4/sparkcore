@@ -452,6 +452,27 @@
     - 当前整体约 `80% - 85%`
     - 当前最推荐的下一步是开始下一阶段执行文档 / 第一批任务拆解
 
+- `P21 execution plan` 当前已建立：
+  - 当前执行入口请以
+    [memory_upgrade_p21_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p21_execution_plan_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P21` 的一句话目标是把 `P20 close-note record contract` 推进成更接近真实归档 / persistence 准备态的 `close-note archive contract`
+    - `P21-1` 已开始，namespace close-note archive contract 第一刀已成立
+    - `P21-5` 已开始，第一版正式 gate 已建立
+    - 当前 gate 轻量快照请以
+      [memory_upgrade_p21_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p21_gate_snapshot_v1.0.md)
+      为准
+    - 当前 `p21_gate_snapshot`：
+      - `archive_contract_readiness = namespace_archive_started_not_close_ready`
+      - `progress_range = 10% - 15%`
+      - `positive_contracts = 1 / 1`
+      - `metadata_consistency = 1 / 1`
+      - `prompt_surface = 1 / 1`
+      - `overall = 3 / 3`
+    - 当前整体约 `10% - 15%`
+    - 当前最推荐的下一步是 `P21-2 Retention close-note archive contract v1`
+
 ---
 
 ## 3. 当前已经完成的事情

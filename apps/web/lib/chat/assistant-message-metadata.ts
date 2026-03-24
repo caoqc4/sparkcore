@@ -2,6 +2,7 @@ import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import type {
   ReplyLanguageSource,
+  RoleCoreMemoryCloseNoteArchive,
   RoleCoreMemoryCloseNoteArtifact,
   RoleCoreMemoryCloseNoteHandoffPacket,
   RoleCoreMemoryCloseNoteRecord,
@@ -225,6 +226,7 @@ export type BuildAssistantMessageMetadataInput = {
   role_core_packet: RoleCorePacket;
   role_core_close_note_handoff_packet?: RoleCoreMemoryCloseNoteHandoffPacket | null;
   role_core_close_note_artifact?: RoleCoreMemoryCloseNoteArtifact | null;
+  role_core_close_note_archive?: RoleCoreMemoryCloseNoteArchive | null;
   role_core_close_note_record?: RoleCoreMemoryCloseNoteRecord | null;
   role_core_close_note_output?: RoleCoreMemoryCloseNoteOutput | null;
   runtime_input: RuntimeTurnInput;
@@ -1197,6 +1199,8 @@ export function buildAssistantMessageMetadata(
       input.role_core_close_note_handoff_packet ?? null,
     role_core_close_note_artifact:
       input.role_core_close_note_artifact ?? null,
+    role_core_close_note_archive:
+      input.role_core_close_note_archive ?? null,
     role_core_close_note_record:
       input.role_core_close_note_record ?? null,
     role_core_close_note_output:
@@ -1230,6 +1234,8 @@ export function buildAssistantMessageMetadata(
         input.role_core_close_note_handoff_packet ?? null,
       role_core_close_note_artifact:
         input.role_core_close_note_artifact ?? null,
+      role_core_close_note_archive:
+        input.role_core_close_note_archive ?? null,
       role_core_close_note_record:
         input.role_core_close_note_record ?? null,
       role_core_close_note_output:

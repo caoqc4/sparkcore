@@ -16,6 +16,7 @@ import {
 import {
   buildAgentSystemPrompt,
   buildRoleCoreMemoryCloseNoteArtifactPrompt,
+  buildRoleCoreMemoryCloseNoteArchivePrompt,
   buildRoleCoreMemoryCloseNoteHandoffPrompt,
   buildRoleCoreMemoryCloseNoteRecordPrompt,
   buildRoleCoreMemoryCloseNoteOutputPrompt,
@@ -23,6 +24,7 @@ import {
 } from "@/lib/chat/runtime";
 import {
   buildRoleCoreMemoryCloseNoteArtifact,
+  buildRoleCoreMemoryCloseNoteArchive,
   buildRoleCoreMemoryCloseNoteHandoffPacket,
   buildRoleCoreMemoryCloseNoteOutput,
   buildRoleCoreMemoryCloseNoteRecord,
@@ -1387,6 +1389,11 @@ function main() {
     closeNoteOutput: p19CloseNoteOutput,
     closeNoteArtifact: p18CloseNoteArtifact
   });
+  const p21CloseNoteArchive = buildRoleCoreMemoryCloseNoteArchive({
+    roleCorePacket: roleCorePacketForHarness,
+    closeNoteRecord: p20CloseNoteRecord,
+    closeNoteOutput: p19CloseNoteOutput
+  });
   expect(
     compactedThreadSummary?.lifecycle_convergence_digest ===
       "anchor_preservation_convergence" &&
@@ -1468,6 +1475,7 @@ function main() {
         role_core_packet: roleCorePacketForHarness,
         role_core_close_note_handoff_packet: p17CloseNoteHandoffPacket,
         role_core_close_note_artifact: p18CloseNoteArtifact,
+        role_core_close_note_archive: p21CloseNoteArchive,
         role_core_close_note_record: p20CloseNoteRecord,
         role_core_close_note_output: p19CloseNoteOutput,
         runtime_input: buildRuntimeTurnInput({
@@ -1575,6 +1583,7 @@ function main() {
     compacted_thread_summary: compactedThreadSummary,
     role_core_close_note_handoff_packet: p17CloseNoteHandoffPacket,
     role_core_close_note_artifact: p18CloseNoteArtifact,
+    role_core_close_note_archive: p21CloseNoteArchive,
     role_core_close_note_record: p20CloseNoteRecord,
     role_core_close_note_output: p19CloseNoteOutput
   });
@@ -1617,9 +1626,17 @@ function main() {
   const assistantCloseNoteOutput = (assistantMetadata as {
     role_core_close_note_output?: typeof p19CloseNoteOutput;
   }).role_core_close_note_output;
+  const assistantCloseNoteArchive = (assistantMetadata as {
+    role_core_close_note_archive?: typeof p21CloseNoteArchive;
+  }).role_core_close_note_archive;
   const assistantCloseNoteRecord = (assistantMetadata as {
     role_core_close_note_record?: typeof p20CloseNoteRecord;
   }).role_core_close_note_record;
+  const assistantDiagnosticCloseNoteArchive = (assistantMetadata as {
+    developer_diagnostics?: {
+      role_core_close_note_archive?: typeof p21CloseNoteArchive;
+    };
+  }).developer_diagnostics?.role_core_close_note_archive;
   const assistantDiagnosticCloseNoteRecord = (assistantMetadata as {
     developer_diagnostics?: {
       role_core_close_note_record?: typeof p20CloseNoteRecord;
@@ -1628,6 +1645,9 @@ function main() {
   const runtimeDebugCloseNoteRecord = (runtimeDebugMetadata.memory as {
     close_note_record?: typeof p20CloseNoteRecord;
   }).close_note_record;
+  const runtimeDebugCloseNoteArchive = (runtimeDebugMetadata.memory as {
+    close_note_archive?: typeof p21CloseNoteArchive;
+  }).close_note_archive;
   const assistantDiagnosticCloseNoteOutput = (assistantMetadata as {
     developer_diagnostics?: {
       role_core_close_note_output?: typeof p19CloseNoteOutput;
@@ -1916,7 +1936,8 @@ function main() {
     p17CloseNoteHandoffPacket,
     p18CloseNoteArtifact,
     p19CloseNoteOutput,
-    p20CloseNoteRecord
+    p20CloseNoteRecord,
+    p21CloseNoteArchive
   );
   const systemPromptWithoutCloseNote = buildAgentSystemPrompt(
     roleCorePacketForHarness,
@@ -1997,6 +2018,10 @@ function main() {
   );
   const p20CloseNoteRecordPrompt = buildRoleCoreMemoryCloseNoteRecordPrompt(
     p20CloseNoteRecord,
+    "en"
+  );
+  const p21CloseNoteArchivePrompt = buildRoleCoreMemoryCloseNoteArchivePrompt(
+    p21CloseNoteArchive,
     "en"
   );
   expect(
@@ -6166,6 +6191,80 @@ function main() {
       close_candidate: p20RegressionGate.close_candidate
     }
   } as const;
+  const p21CloseNoteArchiveChecks = {
+    namespace_close_note_archive_contract_v1_ok:
+      p21CloseNoteArchive?.archive_version === "v1" &&
+      p21CloseNoteArchive.source_record_version === "v1" &&
+      p21CloseNoteArchive.source_output_version === "v1" &&
+      p21CloseNoteArchive.headline.includes("Helper close-note archive") &&
+      p21CloseNoteArchive.namespace.phase_snapshot_id ===
+        p20CloseNoteRecord?.namespace.phase_snapshot_id &&
+      p21CloseNoteArchive.namespace.archive_summary.includes(
+        p20CloseNoteRecord?.headline ?? ""
+      ),
+    namespace_close_note_archive_metadata_consistency_v1_ok:
+      assistantCloseNoteArchive?.headline === p21CloseNoteArchive?.headline &&
+      assistantDiagnosticCloseNoteArchive?.namespace.archive_summary ===
+        p21CloseNoteArchive?.namespace.archive_summary &&
+      runtimeDebugCloseNoteArchive?.archive_summary ===
+        p21CloseNoteArchive?.archive_summary,
+    namespace_close_note_archive_prompt_surface_v1_ok:
+      p21CloseNoteArchivePrompt.includes("Role core close-note archive") &&
+      p21CloseNoteArchivePrompt.includes(p21CloseNoteArchive?.headline ?? "") &&
+      p21CloseNoteArchivePrompt.includes(
+        p21CloseNoteArchive?.namespace.archive_summary ?? ""
+      ) &&
+      systemPrompt.includes("Role core close-note archive") &&
+      systemPrompt.includes(p21CloseNoteArchive?.headline ?? "")
+  } as const;
+  const p21PositiveContracts = summarizeGate({
+    namespace_close_note_archive_contract_v1_ok:
+      p21CloseNoteArchiveChecks.namespace_close_note_archive_contract_v1_ok
+  });
+  const p21MetadataConsistency = summarizeGate({
+    namespace_close_note_archive_metadata_consistency_v1_ok:
+      p21CloseNoteArchiveChecks.namespace_close_note_archive_metadata_consistency_v1_ok
+  });
+  const p21PromptSurface = summarizeGate({
+    namespace_close_note_archive_prompt_surface_v1_ok:
+      p21CloseNoteArchiveChecks.namespace_close_note_archive_prompt_surface_v1_ok
+  });
+  const p21RegressionGate = {
+    positive_contracts: p21PositiveContracts,
+    metadata_consistency: p21MetadataConsistency,
+    prompt_surface: p21PromptSurface,
+    ...summarizeGate(p21CloseNoteArchiveChecks)
+  } as const;
+  const p21GateSnapshot = {
+    gate_id: "p21_regression_gate_v1",
+    stage: "P21-5",
+    focus: "close_note_archiveization",
+    archive_contract_readiness: "namespace_archive_started_not_close_ready",
+    progress_range: "10% - 15%",
+    close_note_recommended: p21CloseNoteArchive?.close_note_recommended ?? false,
+    positive_contracts: {
+      checks_passed: p21PositiveContracts.checks_passed,
+      checks_total: p21PositiveContracts.checks_total,
+      all_green: p21PositiveContracts.all_green
+    },
+    metadata_consistency: {
+      checks_passed: p21MetadataConsistency.checks_passed,
+      checks_total: p21MetadataConsistency.checks_total,
+      all_green: p21MetadataConsistency.all_green
+    },
+    prompt_surface: {
+      checks_passed: p21PromptSurface.checks_passed,
+      checks_total: p21PromptSurface.checks_total,
+      all_green: p21PromptSurface.all_green
+    },
+    overall: {
+      checks_passed: p21RegressionGate.checks_passed,
+      checks_total: p21RegressionGate.checks_total,
+      failed_checks: p21RegressionGate.failed_checks,
+      all_green: p21RegressionGate.all_green,
+      close_candidate: p21RegressionGate.close_candidate
+    }
+  } as const;
   const p18PositiveContracts = summarizeGate({
     role_core_memory_close_note_artifact_v1_ok:
       p18CloseNoteArtifactChecks.role_core_memory_close_note_artifact_v1_ok
@@ -7480,6 +7579,9 @@ function main() {
         p17_regression_gate: p17RegressionGate,
         p17_gate_snapshot: p17GateSnapshot,
         p18_close_note_artifact: p18CloseNoteArtifactChecks,
+        p21_close_note_archive: p21CloseNoteArchiveChecks,
+        p21_regression_gate: p21RegressionGate,
+        p21_gate_snapshot: p21GateSnapshot,
         p20_close_note_record: p20CloseNoteRecordChecks,
         p20_regression_gate: p20RegressionGate,
         p20_gate_snapshot: p20GateSnapshot,
