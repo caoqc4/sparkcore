@@ -2,7 +2,7 @@
 
 ## 1. 文档定位
 
-本文档用于把 `Memory Upgrade P0 ~ P11` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
+本文档用于把 `Memory Upgrade P0 ~ P12` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
 
 - 这些尾项属于什么性质
 - 为什么它们当前不阻塞阶段切换
@@ -12,14 +12,14 @@
 本文档不是新的执行方案，也不是新的 close note，而是：
 
 - 对 `P0 ~ P4` 已收官阶段中遗留尾项的统一归档
-- 对 `P5 ~ P11` 已收官阶段中遗留尾项的统一归档
+- 对 `P5 ~ P12` 已收官阶段中遗留尾项的统一归档
 - 对后续 tail cleanup batch 的最小执行入口
 
 ---
 
 ## 2. 当前总判断
 
-`P0 ~ P11` 当前确实都还存在少量剩余尾项。  
+`P0 ~ P12` 当前确实都还存在少量剩余尾项。  
 但这些尾项的性质已经从：
 
 - 主目标未成立
@@ -80,7 +80,7 @@
 
 ---
 
-## 4. P0 ~ P11 当前典型尾项
+## 4. P0 ~ P12 当前典型尾项
 
 ### 4.1 P0 尾项
 
@@ -254,6 +254,21 @@
 
 - 非阻塞
 - 更偏 coordination 深化与阶段 gate 增强
+
+### 4.13 P12 尾项
+
+典型尾项包括：
+
+- namespace governance plane runtime v7 还可继续向更完整的 retrieval / write governance plane reuse 与 cross-surface alignment 深化
+- retention lifecycle governance plane v10 还可继续向更细的 keep/drop governance plane grouping 与 runtime lifecycle rule 深化
+- knowledge governance plane v10 还可继续向更完整的 source / budget governance plane orchestration 深化
+- scenario governance plane v10 还可继续向更细的 strategy governance plane summary / runtime alignment contract 深化
+- `P12-5` gate 还可继续补更强的阶段级聚合判断与 governance plane metadata consistency 校验
+
+当前性质：
+
+- 非阻塞
+- 更偏 governance plane 深化与阶段 gate 增强
 
 ---
 
