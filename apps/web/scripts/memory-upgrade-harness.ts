@@ -46,6 +46,9 @@ import {
   getAssistantMemoryNamespacePolicyDigestId,
   getAssistantMemoryNamespacePrimaryLayer,
   getAssistantMemoryNamespaceRetrievalWriteDigestAlignment,
+  getAssistantMemoryNamespaceUnifiedGovernanceRuntimeDigestId,
+  getAssistantMemoryNamespaceUnifiedGovernanceRuntimeSummary,
+  getAssistantMemoryNamespaceUnifiedRuntimeAlignmentMode,
   getAssistantMemoryNamespaceRetrievalFallbackMode,
   getAssistantMemoryNamespaceRouteGovernanceMode,
   getAssistantMemoryNamespaceGovernanceConsistencyMode,
@@ -846,9 +849,15 @@ function main() {
         "project_coordination_governance_convergence" &&
       namespaceAwareWriteTarget.namespaceGovernanceConvergenceSummary ===
         "project_coordination_alignment" &&
+      namespaceAwareWriteTarget.namespaceUnifiedGovernanceRuntimeDigestId ===
+        "project_coordination_unified_runtime" &&
+      namespaceAwareWriteTarget.namespaceUnifiedGovernanceRuntimeSummary ===
+        "project_coordination_runtime_unified" &&
+      namespaceAwareWriteTarget.namespaceUnifiedRuntimeAlignmentMode ===
+        "project_runtime_aligned" &&
       namespaceAwareWriteTarget.retrievalWriteDigestAlignment ===
         "project_parallel_balanced_aligned",
-    "Expected namespace-aware write target resolution to reuse project namespace convergence in P8."
+    "Expected namespace-aware write target resolution to reuse project namespace unified governance runtime in P9."
   );
   const runtimeWritePreview = buildRuntimeMemoryWriteRequestMetadata(
     [
@@ -890,9 +899,18 @@ function main() {
         ?.namespace_governance_convergence_summary ===
         "project_coordination_alignment" &&
       runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_unified_governance_runtime_digest_id ===
+        "project_coordination_unified_runtime" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_unified_governance_runtime_summary ===
+        "project_coordination_runtime_unified" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_unified_runtime_alignment_mode ===
+        "project_runtime_aligned" &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
         ?.retrieval_write_digest_alignment ===
         "project_parallel_balanced_aligned",
-    "Expected runtime memory write preview metadata to expose namespace convergence reuse in P8."
+    "Expected runtime memory write preview metadata to expose namespace unified governance runtime reuse in P9."
   );
   const applicableKnowledge = filterKnowledgeByActiveNamespace({
     knowledge: runtimeKnowledge,
@@ -1532,6 +1550,29 @@ function main() {
   expect(
     systemPrompt.includes("Active Memory Namespace: primary_layer = project."),
     "Expected system prompt assembly to include the active memory namespace in P2."
+  );
+  expect(
+    getAssistantMemoryNamespaceUnifiedGovernanceRuntimeDigestId(
+      assistantMetadata
+    ) === "project_coordination_unified_runtime" &&
+      getAssistantMemoryNamespaceUnifiedGovernanceRuntimeSummary(
+        assistantMetadata
+      ) === "project_coordination_runtime_unified" &&
+      getAssistantMemoryNamespaceUnifiedRuntimeAlignmentMode(
+        assistantMetadata
+      ) === "project_runtime_aligned" &&
+      runtimeDebugMetadata.memory_namespace
+        ?.unified_governance_runtime_digest_id ===
+        "project_coordination_unified_runtime" &&
+      runtimeDebugMetadata.memory_namespace
+        ?.unified_governance_runtime_summary ===
+        "project_coordination_runtime_unified" &&
+      runtimeDebugMetadata.memory_namespace?.unified_runtime_alignment_mode ===
+        "project_runtime_aligned" &&
+      systemPrompt.includes(
+        "Current unified governance runtime: project_coordination_unified_runtime; summary = project_coordination_runtime_unified; mode = project_runtime_aligned."
+      ),
+    "Expected namespace unified governance runtime to be consistent across prompt, assistant metadata, and runtime debug metadata in P9."
   );
   expect(
     systemPrompt.includes("5. relationship memory: keep only a minimal relationship-grounding layer so it does not outweigh project execution context."),
@@ -2777,6 +2818,18 @@ function main() {
             getAssistantMemoryNamespaceGovernanceConvergenceSummary(
               assistantMetadata
             ),
+          unified_governance_runtime_digest_id:
+            getAssistantMemoryNamespaceUnifiedGovernanceRuntimeDigestId(
+              assistantMetadata
+            ),
+          unified_governance_runtime_summary:
+            getAssistantMemoryNamespaceUnifiedGovernanceRuntimeSummary(
+              assistantMetadata
+            ),
+          unified_runtime_alignment_mode:
+            getAssistantMemoryNamespaceUnifiedRuntimeAlignmentMode(
+              assistantMetadata
+            ),
           retrieval_write_digest_alignment:
             getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
               assistantMetadata
@@ -2857,6 +2910,15 @@ function main() {
             runtimeDebugMetadata.memory_namespace?.write_escalation_mode ?? null,
           namespace_governance_convergence_summary:
             runtimeDebugMetadata.memory_namespace?.governance_convergence_summary ??
+            null,
+          namespace_unified_governance_runtime_digest_id:
+            runtimeDebugMetadata.memory_namespace
+              ?.unified_governance_runtime_digest_id ?? null,
+          namespace_unified_governance_runtime_summary:
+            runtimeDebugMetadata.memory_namespace
+              ?.unified_governance_runtime_summary ?? null,
+          namespace_unified_runtime_alignment_mode:
+            runtimeDebugMetadata.memory_namespace?.unified_runtime_alignment_mode ??
             null,
           namespace_retrieval_write_digest_alignment:
             runtimeDebugMetadata.memory_namespace?.retrieval_write_digest_alignment ??

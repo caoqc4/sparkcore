@@ -40,6 +40,9 @@ export type PlannedMemoryWriteTarget = {
   namespacePolicyBundleId: string | null;
   namespaceGovernanceConvergenceDigestId: string | null;
   namespaceGovernanceConvergenceSummary: string | null;
+  namespaceUnifiedGovernanceRuntimeDigestId: string | null;
+  namespaceUnifiedGovernanceRuntimeSummary: string | null;
+  namespaceUnifiedRuntimeAlignmentMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -67,6 +70,9 @@ export type PlannedGenericMemoryWriteTarget = {
   namespacePolicyBundleId: string | null;
   namespaceGovernanceConvergenceDigestId: string | null;
   namespaceGovernanceConvergenceSummary: string | null;
+  namespaceUnifiedGovernanceRuntimeDigestId: string | null;
+  namespaceUnifiedGovernanceRuntimeSummary: string | null;
+  namespaceUnifiedRuntimeAlignmentMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -94,6 +100,9 @@ export type PlannedRelationshipMemoryWriteTarget = {
   namespacePolicyBundleId: string | null;
   namespaceGovernanceConvergenceDigestId: string | null;
   namespaceGovernanceConvergenceSummary: string | null;
+  namespaceUnifiedGovernanceRuntimeDigestId: string | null;
+  namespaceUnifiedGovernanceRuntimeSummary: string | null;
+  namespaceUnifiedRuntimeAlignmentMode: string | null;
   retrievalWriteDigestAlignment: string | null;
 };
 
@@ -133,6 +142,12 @@ function resolveNamespaceWriteRouting(
           boundary.governance_convergence_digest_id,
         namespaceGovernanceConvergenceSummary:
           boundary.governance_convergence_summary,
+        namespaceUnifiedGovernanceRuntimeDigestId:
+          boundary.unified_governance_runtime_digest_id,
+        namespaceUnifiedGovernanceRuntimeSummary:
+          boundary.unified_governance_runtime_summary,
+        namespaceUnifiedRuntimeAlignmentMode:
+          boundary.unified_runtime_alignment_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -148,6 +163,12 @@ function resolveNamespaceWriteRouting(
           boundary.governance_convergence_digest_id,
         namespaceGovernanceConvergenceSummary:
           boundary.governance_convergence_summary,
+        namespaceUnifiedGovernanceRuntimeDigestId:
+          boundary.unified_governance_runtime_digest_id,
+        namespaceUnifiedGovernanceRuntimeSummary:
+          boundary.unified_governance_runtime_summary,
+        namespaceUnifiedRuntimeAlignmentMode:
+          boundary.unified_runtime_alignment_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -163,6 +184,12 @@ function resolveNamespaceWriteRouting(
           boundary.governance_convergence_digest_id,
         namespaceGovernanceConvergenceSummary:
           boundary.governance_convergence_summary,
+        namespaceUnifiedGovernanceRuntimeDigestId:
+          boundary.unified_governance_runtime_digest_id,
+        namespaceUnifiedGovernanceRuntimeSummary:
+          boundary.unified_governance_runtime_summary,
+        namespaceUnifiedRuntimeAlignmentMode:
+          boundary.unified_runtime_alignment_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -178,6 +205,12 @@ function resolveNamespaceWriteRouting(
           boundary.governance_convergence_digest_id,
         namespaceGovernanceConvergenceSummary:
           boundary.governance_convergence_summary,
+        namespaceUnifiedGovernanceRuntimeDigestId:
+          boundary.unified_governance_runtime_digest_id,
+        namespaceUnifiedGovernanceRuntimeSummary:
+          boundary.unified_governance_runtime_summary,
+        namespaceUnifiedRuntimeAlignmentMode:
+          boundary.unified_runtime_alignment_mode,
         retrievalWriteDigestAlignment:
           boundary.retrieval_write_digest_alignment
       };
@@ -212,6 +245,9 @@ export function resolvePlannedMemoryWriteTarget(
     namespacePolicyBundleId,
     namespaceGovernanceConvergenceDigestId,
     namespaceGovernanceConvergenceSummary,
+    namespaceUnifiedGovernanceRuntimeDigestId,
+    namespaceUnifiedGovernanceRuntimeSummary,
+    namespaceUnifiedRuntimeAlignmentMode,
     retrievalWriteDigestAlignment
   } = resolveNamespaceWriteRouting(namespace);
 
@@ -234,6 +270,9 @@ export function resolvePlannedMemoryWriteTarget(
       namespacePolicyBundleId,
       namespaceGovernanceConvergenceDigestId,
       namespaceGovernanceConvergenceSummary,
+      namespaceUnifiedGovernanceRuntimeDigestId,
+      namespaceUnifiedGovernanceRuntimeSummary,
+      namespaceUnifiedRuntimeAlignmentMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -260,6 +299,9 @@ export function resolvePlannedMemoryWriteTarget(
       namespacePolicyBundleId,
       namespaceGovernanceConvergenceDigestId,
       namespaceGovernanceConvergenceSummary,
+      namespaceUnifiedGovernanceRuntimeDigestId,
+      namespaceUnifiedGovernanceRuntimeSummary,
+      namespaceUnifiedRuntimeAlignmentMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -283,6 +325,9 @@ export function resolvePlannedMemoryWriteTarget(
       namespacePolicyBundleId,
       namespaceGovernanceConvergenceDigestId,
       namespaceGovernanceConvergenceSummary,
+      namespaceUnifiedGovernanceRuntimeDigestId,
+      namespaceUnifiedGovernanceRuntimeSummary,
+      namespaceUnifiedRuntimeAlignmentMode,
       retrievalWriteDigestAlignment
     };
   }
@@ -309,6 +354,9 @@ export function resolvePlannedMemoryWriteTarget(
     namespacePolicyBundleId,
     namespaceGovernanceConvergenceDigestId,
     namespaceGovernanceConvergenceSummary,
+    namespaceUnifiedGovernanceRuntimeDigestId,
+    namespaceUnifiedGovernanceRuntimeSummary,
+    namespaceUnifiedRuntimeAlignmentMode,
     retrievalWriteDigestAlignment
   };
 }

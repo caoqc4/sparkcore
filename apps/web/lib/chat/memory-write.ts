@@ -825,6 +825,12 @@ export async function executeMemoryWriteRequests({
             namespaceBoundary.governance_convergence_digest_id,
           namespaceGovernanceConvergenceSummary:
             namespaceBoundary.governance_convergence_summary,
+          namespaceUnifiedGovernanceRuntimeDigestId:
+            namespaceBoundary.unified_governance_runtime_digest_id,
+          namespaceUnifiedGovernanceRuntimeSummary:
+            namespaceBoundary.unified_governance_runtime_summary,
+          namespaceUnifiedRuntimeAlignmentMode:
+            namespaceBoundary.unified_runtime_alignment_mode,
           retrievalWriteDigestAlignment:
             namespaceBoundary.retrieval_write_digest_alignment
         };

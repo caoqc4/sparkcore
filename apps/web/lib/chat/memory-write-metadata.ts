@@ -16,6 +16,9 @@ export function buildRelationshipPlannerMemoryMetadata(
     namespacePolicyBundleId?: string | null;
     namespaceGovernanceConvergenceDigestId?: string | null;
     namespaceGovernanceConvergenceSummary?: string | null;
+    namespaceUnifiedGovernanceRuntimeDigestId?: string | null;
+    namespaceUnifiedGovernanceRuntimeSummary?: string | null;
+    namespaceUnifiedRuntimeAlignmentMode?: string | null;
     retrievalWriteDigestAlignment?: string | null;
   }
 ): Record<string, unknown> {
@@ -42,6 +45,12 @@ export function buildRelationshipPlannerMemoryMetadata(
       targetMetadata?.namespaceGovernanceConvergenceDigestId ?? null,
     namespace_governance_convergence_summary:
       targetMetadata?.namespaceGovernanceConvergenceSummary ?? null,
+    namespace_unified_governance_runtime_digest_id:
+      targetMetadata?.namespaceUnifiedGovernanceRuntimeDigestId ?? null,
+    namespace_unified_governance_runtime_summary:
+      targetMetadata?.namespaceUnifiedGovernanceRuntimeSummary ?? null,
+    namespace_unified_runtime_alignment_mode:
+      targetMetadata?.namespaceUnifiedRuntimeAlignmentMode ?? null,
     retrieval_write_digest_alignment:
       targetMetadata?.retrievalWriteDigestAlignment ?? null,
     relation_kind: request.relationship_key,
@@ -74,6 +83,9 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
   namespacePolicyBundleId?: string | null;
   namespaceGovernanceConvergenceDigestId?: string | null;
   namespaceGovernanceConvergenceSummary?: string | null;
+  namespaceUnifiedGovernanceRuntimeDigestId?: string | null;
+  namespaceUnifiedGovernanceRuntimeSummary?: string | null;
+  namespaceUnifiedRuntimeAlignmentMode?: string | null;
   retrievalWriteDigestAlignment?: string | null;
 }): Record<string, unknown> {
   return {
@@ -99,6 +111,12 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
       args.namespaceGovernanceConvergenceDigestId ?? null,
     namespace_governance_convergence_summary:
       args.namespaceGovernanceConvergenceSummary ?? null,
+    namespace_unified_governance_runtime_digest_id:
+      args.namespaceUnifiedGovernanceRuntimeDigestId ?? null,
+    namespace_unified_governance_runtime_summary:
+      args.namespaceUnifiedGovernanceRuntimeSummary ?? null,
+    namespace_unified_runtime_alignment_mode:
+      args.namespaceUnifiedRuntimeAlignmentMode ?? null,
     retrieval_write_digest_alignment:
       args.retrievalWriteDigestAlignment ?? null,
     threshold: args.threshold,
@@ -131,6 +149,9 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
   namespacePolicyBundleId?: string | null;
   namespaceGovernanceConvergenceDigestId?: string | null;
   namespaceGovernanceConvergenceSummary?: string | null;
+  namespaceUnifiedGovernanceRuntimeDigestId?: string | null;
+  namespaceUnifiedGovernanceRuntimeSummary?: string | null;
+  namespaceUnifiedRuntimeAlignmentMode?: string | null;
   retrievalWriteDigestAlignment?: string | null;
 }): Record<string, unknown> {
   return {
@@ -157,6 +178,12 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
       args.namespaceGovernanceConvergenceDigestId ?? null,
     namespace_governance_convergence_summary:
       args.namespaceGovernanceConvergenceSummary ?? null,
+    namespace_unified_governance_runtime_digest_id:
+      args.namespaceUnifiedGovernanceRuntimeDigestId ?? null,
+    namespace_unified_governance_runtime_summary:
+      args.namespaceUnifiedGovernanceRuntimeSummary ?? null,
+    namespace_unified_runtime_alignment_mode:
+      args.namespaceUnifiedRuntimeAlignmentMode ?? null,
     retrieval_write_digest_alignment:
       args.retrievalWriteDigestAlignment ?? null,
     threshold: args.threshold,

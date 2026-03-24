@@ -667,6 +667,57 @@ export function getAssistantMemoryNamespaceGovernanceConvergenceSummary(
   );
 }
 
+export function getAssistantMemoryNamespaceUnifiedGovernanceRuntimeDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "unified_governance_runtime_digest_id"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_unified_governance_runtime_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceUnifiedGovernanceRuntimeSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "unified_governance_runtime_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_unified_governance_runtime_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceUnifiedRuntimeAlignmentMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "unified_runtime_alignment_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_unified_runtime_alignment_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
   metadata: Record<string, unknown> | null | undefined
 ) {

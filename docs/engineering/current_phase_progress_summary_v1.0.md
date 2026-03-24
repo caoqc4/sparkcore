@@ -1367,7 +1367,7 @@
 当前 `P9` 的阶段判断：
 
 - `P9-1`
-  - 待开始
+  - 前中段
 - `P9-2`
   - 待开始
 - `P9-3`
@@ -1379,11 +1379,18 @@
 
 整体 `P9` 当前大约：
 
-- **`0% - 10%`**
+- **`15% - 25%`**
 
 当前更推荐的下一步：
 
-- **开始 `P9-1 Namespace unified governance runtime v4` 的第一刀**
-- 当前 `P8` 已达到 `close-ready / 可收官`
-- 当前更合理的下一步已经不是继续补 `P8`
-- 而是把下一阶段执行起点立成明确的第一刀施工项
+- **继续补 `P9-1 Namespace unified governance runtime v4`**
+- 当前第一刀已成立：
+  - `unified_governance_runtime_digest_id`
+  - `unified_governance_runtime_summary`
+  - `unified_runtime_alignment_mode`
+- 这层 unified runtime contract 已开始进入：
+  - namespace prompt section
+  - assistant metadata / reader
+  - runtime debug metadata
+  - write target / runtime preview
+  - harness

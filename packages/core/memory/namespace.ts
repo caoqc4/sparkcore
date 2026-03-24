@@ -35,6 +35,12 @@ export type MemoryNamespaceGovernanceConvergenceDigestId =
   | "world_reference_governance_convergence"
   | "default_memory_governance_convergence";
 
+export type MemoryNamespaceUnifiedGovernanceRuntimeDigestId =
+  | "thread_focus_unified_runtime"
+  | "project_coordination_unified_runtime"
+  | "world_reference_unified_runtime"
+  | "default_memory_unified_runtime";
+
 function getPrimaryNamespaceLayer(
   layers: MemoryNamespaceLayer[]
 ): MemoryNamespaceLayer {

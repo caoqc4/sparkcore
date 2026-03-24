@@ -70,6 +70,12 @@ function buildRuntimeMemoryWriteRequestPreview(
         target.namespaceGovernanceConvergenceDigestId,
       namespace_governance_convergence_summary:
         target.namespaceGovernanceConvergenceSummary,
+      namespace_unified_governance_runtime_digest_id:
+        target.namespaceUnifiedGovernanceRuntimeDigestId,
+      namespace_unified_governance_runtime_summary:
+        target.namespaceUnifiedGovernanceRuntimeSummary,
+      namespace_unified_runtime_alignment_mode:
+        target.namespaceUnifiedRuntimeAlignmentMode,
       retrieval_write_digest_alignment:
         target.retrievalWriteDigestAlignment,
       thread_state_candidate:
