@@ -308,7 +308,22 @@
       - close-note next expansion focus v1
       - close-note readiness summary to packet alignment v1
       - namespace / retention / knowledge / scenario section carry-through v1
-    - 当前整体约 `60% - 65%`
+    - 当前整体约 `80% - 85%`
+- `P17 close-readiness judgment` 当前已建立：
+  - 当前判断请以
+    [memory_upgrade_p17_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p17_close_readiness_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P17` 已进入 `close-readiness` 判断区间
+    - 并且当前已经达到 `close-ready / 可收官`
+    - 当前整体更接近 `80% - 85%`
+- `P17 close note` 当前已建立：
+  - 当前收官结论请以
+    [memory_upgrade_p17_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p17_close_note_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P17` 已达到 `close-ready / 可收官`
+    - `P17` 的非阻塞尾项当前已并入统一 backlog
 
 ---
 

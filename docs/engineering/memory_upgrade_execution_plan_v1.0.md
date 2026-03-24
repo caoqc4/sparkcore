@@ -51,7 +51,8 @@
 - 进入下一阶段时，请以 [memory_upgrade_p16_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p16_execution_plan_v1.0.md) 作为执行起点
 - 当前 P16 收官结论，请以 [memory_upgrade_p16_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p16_close_note_v1.0.md) 为准
 - 进入下一阶段时，请以 [memory_upgrade_p17_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p17_execution_plan_v1.0.md) 作为执行起点
-- `P0 ~ P16` 的非阻塞尾项当前已统一收束到 [memory_upgrade_tail_cleanup_backlog_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_tail_cleanup_backlog_v1.0.md)，后续如需处理，请优先按 batch 方式推进，而不要回头阻塞主线
+- 当前 P17 收官结论，请以 [memory_upgrade_p17_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p17_close_note_v1.0.md) 为准
+- `P0 ~ P17` 的非阻塞尾项当前已统一收束到 [memory_upgrade_tail_cleanup_backlog_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_tail_cleanup_backlog_v1.0.md)，后续如需处理，请优先按 batch 方式推进，而不要回头阻塞主线
 
 适用阶段：
 

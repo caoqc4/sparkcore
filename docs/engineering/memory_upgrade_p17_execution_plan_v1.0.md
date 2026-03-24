@@ -145,15 +145,16 @@ P17 首批必须让阶段 gate 跟着 close-note packet 主线生长，而不是
   - scenario close-note handoff packet 第一刀已成立
 - `P17-5`
   - 已开始
+  - 已达到 `close-ready / 可收官`
   - gate 已推进到 `positive_contracts + metadata_consistency + packet_consumption + drift_guards`，并已开始显式暴露 `acceptance_gap_buckets / next_expansion_focus`
 
 整体 `P17` 当前大约：
 
-- **`60% - 65%`**
+- **`80% - 85%`**
 
 当前更推荐的下一步：
 
-- **继续把 `P17` 从已显式结构化的 acceptance gaps，推进到更明确的 close-readiness handoff / judgment**
+- **开始准备下一阶段执行文档 / 第一批任务拆解，而不是继续横向扩张 `P17`**
 
 ---
 
