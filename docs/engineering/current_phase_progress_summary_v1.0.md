@@ -1338,7 +1338,7 @@
 - `P8-2`
   - 前中段到中段之间
 - `P8-3`
-  - 前中段
+  - 前中段到中段之间
 - `P8-4`
   - 待开始
 - `P8-5`
@@ -1346,12 +1346,12 @@
 
 整体 `P8` 当前大约：
 
-- **`45% - 55%`**
+- **`50% - 60%`**
 
 当前更推荐的下一步：
 
-- **先对 `P8-3 Knowledge governance convergence v6` 做一次小评估**
-- 当前 knowledge 最小 convergence 已开始进入：
+- **开始 `P8-4 Scenario governance convergence v6` 的第一刀**
+- 当前 knowledge 最小 convergence 已经进入：
   - `governance_convergence_digest`
   - `source_budget_alignment_summary`
   - `governance_alignment_mode`
