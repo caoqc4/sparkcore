@@ -150,13 +150,17 @@
 [memory_upgrade_p19_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p19_gate_snapshot_v1.0.md)
 为准。
 
+当前正式 `close-readiness` 判断请以
+[memory_upgrade_p19_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p19_close_readiness_v1.0.md)
+为准。
+
 整体 `P19` 当前大约：
 
 - **`75% - 80%`**
 
 当前更推荐的下一步：
 
-- **开始正式写 `P19 close-readiness judgment`，而不是继续横向扩更多 output 断言**
+- **继续完成 `P19 close-ready` 前的最后收束，而不是继续横向扩更多 output 断言**
 
 ---
 

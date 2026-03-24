@@ -390,6 +390,10 @@
     - 当前 gate 轻量快照请以
       [memory_upgrade_p19_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p19_gate_snapshot_v1.0.md)
       为准
+    - `P19 close-readiness judgment` 当前已建立：
+      [memory_upgrade_p19_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p19_close_readiness_v1.0.md)
+      - `P19` 已进入 `close-readiness` 判断区间
+      - 但当前还不建议直接判成 `close-ready / 可收官`
     - `p19_close_note_output` 当前已锁住：
       - namespace close-note output contract v1
       - namespace close-note output metadata consistency v1
@@ -411,8 +415,8 @@
       - `prompt_surface = 4 / 4`
       - `close_readiness_consumption = 4 / 4`
       - `overall = 16 / 16`
-    - 当前整体约 `75% - 80%`
-    - 当前最推荐的下一步是 `P19 close-readiness judgment`
+    - 当前整体约 `80% - 85%`
+    - 当前最推荐的下一步是 `P19 close-ready` 前的最后收束
 
 ---
 
