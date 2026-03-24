@@ -203,7 +203,7 @@
 
 - [memory_upgrade_tail_cleanup_backlog_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_tail_cleanup_backlog_v1.0.md)
 
-如有必要，`P13` 的非阻塞尾项后续也应并入这份统一 backlog，而不是另开一份平行清单。
+`P13` 的非阻塞尾项当前已并入这份统一 backlog，而不是另开一份平行清单。
 
 ---
 
