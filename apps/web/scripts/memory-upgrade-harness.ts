@@ -5942,7 +5942,29 @@ function main() {
       systemPrompt.includes(
         p20CloseNoteRecord?.knowledge.record_summary ?? ""
       ) &&
-      p20CloseNoteRecordPrompt.includes("Knowledge record section")
+      p20CloseNoteRecordPrompt.includes("Knowledge record section"),
+    scenario_close_note_record_contract_v1_ok:
+      p20CloseNoteRecord?.scenario.phase_snapshot_id ===
+        p19CloseNoteOutput?.scenario.phase_snapshot_id &&
+      p20CloseNoteRecord?.scenario.strategy_bundle_id ===
+        p19CloseNoteOutput?.scenario.strategy_bundle_id &&
+      p20CloseNoteRecord?.scenario.orchestration_mode ===
+        p19CloseNoteOutput?.scenario.orchestration_mode,
+    scenario_close_note_record_metadata_consistency_v1_ok:
+      assistantCloseNoteRecord?.scenario.record_summary ===
+        p20CloseNoteRecord?.scenario.record_summary &&
+      assistantDiagnosticCloseNoteRecord?.scenario.strategy_bundle_id ===
+        p20CloseNoteRecord?.scenario.strategy_bundle_id &&
+      runtimeDebugCloseNoteRecord?.scenario.orchestration_mode ===
+        p20CloseNoteRecord?.scenario.orchestration_mode,
+    scenario_close_note_record_prompt_surface_v1_ok:
+      p20CloseNoteRecordPrompt.includes(
+        p20CloseNoteRecord?.scenario.record_summary ?? ""
+      ) &&
+      systemPrompt.includes(
+        p20CloseNoteRecord?.scenario.record_summary ?? ""
+      ) &&
+      p20CloseNoteRecordPrompt.includes("Scenario record section")
   } as const;
   const p20PositiveContracts = summarizeGate({
     namespace_close_note_record_contract_v1_ok:
@@ -5950,7 +5972,9 @@ function main() {
     retention_close_note_record_contract_v1_ok:
       p20CloseNoteRecordChecks.retention_close_note_record_contract_v1_ok,
     knowledge_close_note_record_contract_v1_ok:
-      p20CloseNoteRecordChecks.knowledge_close_note_record_contract_v1_ok
+      p20CloseNoteRecordChecks.knowledge_close_note_record_contract_v1_ok,
+    scenario_close_note_record_contract_v1_ok:
+      p20CloseNoteRecordChecks.scenario_close_note_record_contract_v1_ok
   });
   const p20MetadataConsistency = summarizeGate({
     namespace_close_note_record_metadata_consistency_v1_ok:
@@ -5958,7 +5982,9 @@ function main() {
     retention_close_note_record_metadata_consistency_v1_ok:
       p20CloseNoteRecordChecks.retention_close_note_record_metadata_consistency_v1_ok,
     knowledge_close_note_record_metadata_consistency_v1_ok:
-      p20CloseNoteRecordChecks.knowledge_close_note_record_metadata_consistency_v1_ok
+      p20CloseNoteRecordChecks.knowledge_close_note_record_metadata_consistency_v1_ok,
+    scenario_close_note_record_metadata_consistency_v1_ok:
+      p20CloseNoteRecordChecks.scenario_close_note_record_metadata_consistency_v1_ok
   });
   const p20PromptSurface = summarizeGate({
     namespace_close_note_record_prompt_surface_v1_ok:
@@ -5966,7 +5992,9 @@ function main() {
     retention_close_note_record_prompt_surface_v1_ok:
       p20CloseNoteRecordChecks.retention_close_note_record_prompt_surface_v1_ok,
     knowledge_close_note_record_prompt_surface_v1_ok:
-      p20CloseNoteRecordChecks.knowledge_close_note_record_prompt_surface_v1_ok
+      p20CloseNoteRecordChecks.knowledge_close_note_record_prompt_surface_v1_ok,
+    scenario_close_note_record_prompt_surface_v1_ok:
+      p20CloseNoteRecordChecks.scenario_close_note_record_prompt_surface_v1_ok
   });
   const p20RegressionGate = {
     positive_contracts: p20PositiveContracts,
@@ -5978,8 +6006,8 @@ function main() {
     gate_id: "p20_regression_gate_v1",
     stage: "P20-5",
     focus: "close_note_recordization",
-    record_contract_readiness: "knowledge_record_started_not_close_ready",
-    progress_range: "30% - 35%",
+    record_contract_readiness: "scenario_record_started_not_close_ready",
+    progress_range: "40% - 45%",
     close_note_recommended: false,
     positive_contracts: {
       checks_passed: p20PositiveContracts.checks_passed,

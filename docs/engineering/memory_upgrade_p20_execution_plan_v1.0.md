@@ -140,7 +140,8 @@
   - 已开始
   - knowledge close-note record contract 第一刀已成立
 - `P20-4`
-  - 待开始
+  - 已开始
+  - scenario close-note record contract 第一刀已成立
 - `P20-5`
   - 已开始
   - 第一版正式 gate 已建立
@@ -151,11 +152,11 @@
 
 整体 `P20` 当前大约：
 
-- **`30% - 35%`**
+- **`40% - 45%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P20-4 Scenario close-note record contract v1`，而不是先写 `P20 close-readiness`**
+- **继续扩 `P20-5 Regression / acceptance close-note recordization`，而不是先写 `P20 close-readiness`**
 
 ---
 
