@@ -1334,7 +1334,7 @@
 当前 `P8` 的阶段判断：
 
 - `P8-1`
-  - 前中段
+  - 前中段到中段之间
 - `P8-2`
   - 待开始
 - `P8-3`
@@ -1346,11 +1346,11 @@
 
 整体 `P8` 当前大约：
 
-- **`15% - 25%`**
+- **`20% - 30%`**
 
 当前更推荐的下一步：
 
-- **先对 `P8-1 Namespace governance convergence v3` 做一次小评估**
+- **开始 `P8-2 Retention lifecycle convergence v6` 的第一刀**
 - 当前最小 convergence 已成立：
   - `governance_convergence_digest_id`
   - `governance_convergence_summary`
@@ -1361,9 +1361,6 @@
   - runtime debug metadata
   - write target resolution
   - runtime write preview
-  - knowledge summary 现在也开始显式产出：
-    - `source_governance_summary`
-    - `governance_consistency_mode`
-  - 当前最小 orchestration / consistency 已成立：
-    - `authoritative_source_priority`
-    - `authoritative_governance_aligned`
+- 当前判断是：
+  - `P8-1` 已经从起步推进到前中段到中段之间
+  - 下一步更值的是把同一层 convergence 方法复制到 retention
