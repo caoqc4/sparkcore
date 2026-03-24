@@ -1361,3 +1361,29 @@
   - `convergence_metadata_consistency_v6_ok`
 - 当前 gate 已全绿，并且：
   - `close_candidate = true`
+
+## Memory Upgrade P9 Snapshot
+
+当前 `P9` 的阶段判断：
+
+- `P9-1`
+  - 待开始
+- `P9-2`
+  - 待开始
+- `P9-3`
+  - 待开始
+- `P9-4`
+  - 待开始
+- `P9-5`
+  - 待开始
+
+整体 `P9` 当前大约：
+
+- **`0% - 10%`**
+
+当前更推荐的下一步：
+
+- **开始 `P9-1 Namespace unified governance runtime v4` 的第一刀**
+- 当前 `P8` 已达到 `close-ready / 可收官`
+- 当前更合理的下一步已经不是继续补 `P8`
+- 而是把下一阶段执行起点立成明确的第一刀施工项
