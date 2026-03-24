@@ -1230,15 +1230,15 @@
 - `P7-4`
   - 前中段到中段之间
 - `P7-5`
-  - 待开始
+  - 第一版已成立
 
 整体 `P7` 当前大约：
 
-- **`55% - 65%`**
+- **`60% - 70%`**
 
 当前更推荐的下一步：
 
-- **开始 `P7-5 Regression / acceptance expansion` 的第一刀**
+- **先做一次 `P7` 小复盘**
 - 当前已成立的 `P7-1` 主事实：
   - namespace boundary 现在开始显式产出 `policy_digest_id`
   - 当前最小 digest 已成立：
@@ -1309,6 +1309,20 @@
     - assistant metadata / reader
     - runtime debug metadata
     - harness
+- 当前已成立的 `P7-5` 第一刀事实：
+  - `memory-upgrade-harness.ts` 现在显式产出：
+    - `p7_regression_gate`
+  - 当前第一版 `P7` gate 已开始锁：
+    - `namespace_policy_orchestration_v2_ok`
+    - `retention_lifecycle_governance_v5_ok`
+    - `knowledge_governance_coordination_v5_ok`
+    - `scenario_orchestration_digest_v5_ok`
+  - 当前跑出来已是：
+    - `checks_passed = 4`
+    - `checks_total = 4`
+    - `failed_checks = []`
+    - `all_green = true`
+    - `close_candidate = true`
 - 当前已成立的 `P7-3` 第一刀事实：
   - knowledge summary 现在开始显式产出：
     - `governance_coordination_summary`

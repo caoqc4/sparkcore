@@ -2188,6 +2188,111 @@ function main() {
     close_candidate: p6RegressionGateFailedChecks.length === 0
   } as const;
 
+  const p7RegressionGateChecks = {
+    namespace_policy_orchestration_v2_ok:
+      projectBoundary.policy_digest_id === "project_coordination_orchestration" &&
+      projectBoundary.policy_coordination_summary ===
+        "project_parallel_coordination" &&
+      projectBoundary.governance_consistency_mode ===
+        "retrieval_write_balanced" &&
+      getAssistantMemoryNamespacePolicyDigestId(assistantMetadata) ===
+        projectBoundary.policy_digest_id &&
+      getAssistantMemoryNamespacePolicyCoordinationSummary(
+        assistantMetadata
+      ) === projectBoundary.policy_coordination_summary &&
+      getAssistantMemoryNamespaceGovernanceConsistencyMode(
+        assistantMetadata
+      ) === projectBoundary.governance_consistency_mode &&
+      runtimeDebugMetadata.memory_namespace?.policy_digest_id ===
+        projectBoundary.policy_digest_id &&
+      runtimeDebugMetadata.memory_namespace?.policy_coordination_summary ===
+        projectBoundary.policy_coordination_summary &&
+      runtimeDebugMetadata.memory_namespace?.governance_consistency_mode ===
+        projectBoundary.governance_consistency_mode,
+    retention_lifecycle_governance_v5_ok:
+      compactedThreadSummary?.lifecycle_governance_digest ===
+        "anchor_preservation_governance" &&
+      compactedThreadSummary?.keep_drop_governance_summary ===
+        "anchor_keep_priority" &&
+      compactedThreadSummary?.lifecycle_coordination_summary ===
+        "anchor_only_coordination" &&
+      compactedThreadSummary?.survival_consistency_mode ===
+        "anchor_keep_consistent" &&
+      getAssistantThreadLifecycleGovernanceDigest(assistantMetadata) ===
+        compactedThreadSummary?.lifecycle_governance_digest &&
+      getAssistantThreadKeepDropGovernanceSummary(assistantMetadata) ===
+        compactedThreadSummary?.keep_drop_governance_summary &&
+      getAssistantThreadLifecycleCoordinationSummary(assistantMetadata) ===
+        compactedThreadSummary?.lifecycle_coordination_summary &&
+      getAssistantThreadSurvivalConsistencyMode(assistantMetadata) ===
+        compactedThreadSummary?.survival_consistency_mode,
+    knowledge_governance_coordination_v5_ok:
+      knowledgeSummary.governance_coordination_summary ===
+        "authoritative_priority_coordination" &&
+      knowledgeSummary.budget_coordination_mode ===
+        "authoritative_budget_priority" &&
+      knowledgeSummary.source_governance_summary ===
+        "authoritative_source_priority" &&
+      knowledgeSummary.governance_consistency_mode ===
+        "authoritative_governance_aligned" &&
+      getAssistantKnowledgeGovernanceCoordinationSummary(assistantMetadata) ===
+        knowledgeSummary.governance_coordination_summary &&
+      getAssistantKnowledgeBudgetCoordinationMode(assistantMetadata) ===
+        knowledgeSummary.budget_coordination_mode &&
+      getAssistantKnowledgeSourceGovernanceSummary(assistantMetadata) ===
+        knowledgeSummary.source_governance_summary &&
+      getAssistantKnowledgeGovernanceConsistencyMode(assistantMetadata) ===
+        knowledgeSummary.governance_consistency_mode,
+    scenario_orchestration_digest_v5_ok:
+      scenarioMemoryPack.orchestration_digest_id ===
+        "project_delivery_orchestration" &&
+      scenarioMemoryPack.strategy_rationale_summary ===
+        "execution_priority_alignment" &&
+      scenarioMemoryPack.orchestration_coordination_summary ===
+        "project_delivery_coordination" &&
+      scenarioMemoryPack.strategy_consistency_mode ===
+        "execution_governance_aligned" &&
+      getAssistantMemoryScenarioPackOrchestrationDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_digest_id &&
+      getAssistantMemoryScenarioPackStrategyRationaleSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_rationale_summary &&
+      getAssistantMemoryScenarioPackOrchestrationCoordinationSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_coordination_summary &&
+      getAssistantMemoryScenarioPackStrategyConsistencyMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_consistency_mode &&
+      runtimeDebugPack?.orchestration_digest_id ===
+        scenarioMemoryPack.orchestration_digest_id &&
+      runtimeDebugPack?.strategy_rationale_summary ===
+        scenarioMemoryPack.strategy_rationale_summary &&
+      runtimeDebugMetadata.memory.pack?.orchestration_coordination_summary ===
+        scenarioMemoryPack.orchestration_coordination_summary &&
+      runtimeDebugMetadata.memory.pack?.strategy_consistency_mode ===
+        scenarioMemoryPack.strategy_consistency_mode &&
+      systemPrompt.includes(
+        "Current orchestration digest = project_delivery_orchestration; strategy rationale = execution_priority_alignment."
+      ) &&
+      systemPrompt.includes(
+        "Current orchestration coordination = project_delivery_coordination; consistency = execution_governance_aligned."
+      )
+  } as const;
+  const p7RegressionGateFailedChecks = Object.entries(
+    p7RegressionGateChecks
+  ).flatMap(([check, passed]) => (passed ? [] : [check]));
+  const p7RegressionGate = {
+    ...p7RegressionGateChecks,
+    checks_passed:
+      Object.keys(p7RegressionGateChecks).length -
+      p7RegressionGateFailedChecks.length,
+    checks_total: Object.keys(p7RegressionGateChecks).length,
+    failed_checks: p7RegressionGateFailedChecks,
+    all_green: p7RegressionGateFailedChecks.length === 0,
+    close_candidate: p7RegressionGateFailedChecks.length === 0
+  } as const;
+
   console.log(
     JSON.stringify(
       {
@@ -2568,6 +2673,7 @@ function main() {
         },
         p5_regression_gate: p5RegressionGate,
         p6_regression_gate: p6RegressionGate,
+        p7_regression_gate: p7RegressionGate,
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
             "When episode memory is present"
