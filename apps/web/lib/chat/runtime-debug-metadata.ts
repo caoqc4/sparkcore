@@ -4,6 +4,7 @@ import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import type {
   RoleCoreMemoryCloseNoteArtifact,
   RoleCoreMemoryCloseNoteHandoffPacket,
+  RoleCoreMemoryCloseNoteRecord,
   RoleCoreMemoryCloseNoteOutput
 } from "@/lib/chat/role-core";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
@@ -45,6 +46,7 @@ export type BuildRuntimeDebugMetadataInput = {
   compacted_thread_summary?: CompactedThreadSummary | null;
   role_core_close_note_handoff_packet?: RoleCoreMemoryCloseNoteHandoffPacket | null;
   role_core_close_note_artifact?: RoleCoreMemoryCloseNoteArtifact | null;
+  role_core_close_note_record?: RoleCoreMemoryCloseNoteRecord | null;
   role_core_close_note_output?: RoleCoreMemoryCloseNoteOutput | null;
 };
 
@@ -89,6 +91,7 @@ export function buildRuntimeDebugMetadata(
       close_note_handoff_packet:
         input.role_core_close_note_handoff_packet ?? null,
       close_note_artifact: input.role_core_close_note_artifact ?? null,
+      close_note_record: input.role_core_close_note_record ?? null,
       close_note_output: input.role_core_close_note_output ?? null,
       pack: input.scenario_memory_pack
         ? {

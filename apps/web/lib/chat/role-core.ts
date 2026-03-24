@@ -176,6 +176,21 @@ export type RoleCoreMemoryCloseNoteOutput = {
   };
 };
 
+export type RoleCoreMemoryCloseNoteRecord = {
+  record_version: "v1";
+  source_output_version: RoleCoreMemoryCloseNoteOutput["output_version"];
+  source_artifact_version: RoleCoreMemoryCloseNoteArtifact["artifact_version"];
+  readiness_judgment: string;
+  close_note_recommended: boolean;
+  headline: string;
+  record_summary: string;
+  namespace: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    record_summary: string;
+  };
+};
+
 export function getRoleCoreRelationshipStance(
   relationshipRecall: {
     addressStyleMemory: {
@@ -430,6 +445,34 @@ export function buildRoleCoreMemoryCloseNoteOutput(args: {
       strategy_bundle_id: closeNoteHandoffPacket.scenario.strategy_bundle_id,
       orchestration_mode: closeNoteHandoffPacket.scenario.orchestration_mode,
       output_summary: `${closeNoteHandoffPacket.scenario.phase_snapshot_id}; ${closeNoteHandoffPacket.scenario.phase_snapshot_summary}; strategy_bundle = ${closeNoteHandoffPacket.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNoteHandoffPacket.scenario.orchestration_mode ?? "none"}`
+    }
+  };
+}
+
+export function buildRoleCoreMemoryCloseNoteRecord(args: {
+  roleCorePacket: RoleCorePacket;
+  closeNoteOutput: RoleCoreMemoryCloseNoteOutput | null;
+  closeNoteArtifact: RoleCoreMemoryCloseNoteArtifact | null;
+}): RoleCoreMemoryCloseNoteRecord | null {
+  const closeNoteOutput = args.closeNoteOutput;
+  const closeNoteArtifact = args.closeNoteArtifact;
+
+  if (!closeNoteOutput || !closeNoteArtifact) {
+    return null;
+  }
+
+  return {
+    record_version: "v1",
+    source_output_version: closeNoteOutput.output_version,
+    source_artifact_version: closeNoteArtifact.artifact_version,
+    readiness_judgment: closeNoteOutput.readiness_judgment,
+    close_note_recommended: closeNoteOutput.close_note_recommended,
+    headline: `${args.roleCorePacket.identity.agent_name} close-note record`,
+    record_summary: `namespace_record_started; source_output = ${closeNoteOutput.output_version}; readiness = ${closeNoteOutput.readiness_judgment}.`,
+    namespace: {
+      phase_snapshot_id: closeNoteOutput.namespace.phase_snapshot_id,
+      phase_snapshot_summary: closeNoteOutput.namespace.phase_snapshot_summary,
+      record_summary: `${closeNoteOutput.namespace.phase_snapshot_id}; ${closeNoteOutput.namespace.phase_snapshot_summary}; output_headline = ${closeNoteOutput.headline}`
     }
   };
 }

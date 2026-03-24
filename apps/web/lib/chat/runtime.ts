@@ -92,8 +92,10 @@ import {
   buildRoleCoreMemoryCloseNoteArtifact,
   buildRoleCoreMemoryCloseNoteHandoffPacket,
   buildRoleCoreMemoryCloseNoteOutput,
+  buildRoleCoreMemoryCloseNoteRecord,
   type RoleCoreMemoryCloseNoteArtifact,
   type RoleCoreMemoryCloseNoteHandoffPacket,
+  type RoleCoreMemoryCloseNoteRecord,
   type RoleCoreMemoryCloseNoteOutput,
   type ReplyLanguageSource,
   type RoleCorePacket,
@@ -2610,7 +2612,8 @@ function buildAgentSystemPromptInternal(
   threadState: ThreadStateRecord | null = null,
   closeNoteHandoffPacket: RoleCoreMemoryCloseNoteHandoffPacket | null = null,
   closeNoteArtifact: RoleCoreMemoryCloseNoteArtifact | null = null,
-  closeNoteOutput: RoleCoreMemoryCloseNoteOutput | null = null
+  closeNoteOutput: RoleCoreMemoryCloseNoteOutput | null = null,
+  closeNoteRecord: RoleCoreMemoryCloseNoteRecord | null = null
 ) {
   const activePack = resolveActiveScenarioMemoryPack({
     activeNamespace: activeMemoryNamespace ?? null,
@@ -2669,6 +2672,7 @@ function buildAgentSystemPromptInternal(
       replyLanguage
     ),
     buildRoleCoreMemoryCloseNoteOutputPrompt(closeNoteOutput, replyLanguage),
+    buildRoleCoreMemoryCloseNoteRecordPrompt(closeNoteRecord, replyLanguage),
     agentSystemPrompt,
     buildMemoryRecallPrompt(
       latestUserMessage,
@@ -2889,6 +2893,33 @@ export function buildRoleCoreMemoryCloseNoteOutputPrompt(
   return sections.join("\n");
 }
 
+export function buildRoleCoreMemoryCloseNoteRecordPrompt(
+  closeNoteRecord: RoleCoreMemoryCloseNoteRecord | null,
+  replyLanguage: RuntimeReplyLanguage
+) {
+  if (!closeNoteRecord) {
+    return "";
+  }
+
+  const isZh = replyLanguage === "zh-Hans";
+  const sections = [
+    isZh
+      ? `Role core close-note record：record_version = ${closeNoteRecord.record_version}；readiness = ${closeNoteRecord.readiness_judgment}。`
+      : `Role core close-note record: record_version = ${closeNoteRecord.record_version}; readiness = ${closeNoteRecord.readiness_judgment}.`,
+    isZh
+      ? `Close-note record headline：${closeNoteRecord.headline}。`
+      : `Close-note record headline: ${closeNoteRecord.headline}.`,
+    isZh
+      ? `Namespace record section：${closeNoteRecord.namespace.record_summary}。`
+      : `Namespace record section: ${closeNoteRecord.namespace.record_summary}.`,
+    isZh
+      ? `Close-note record summary：${closeNoteRecord.record_summary}`
+      : `Close-note record summary: ${closeNoteRecord.record_summary}`
+  ];
+
+  return sections.join("\n");
+}
+
 function buildThreadStatePrompt(
   threadState: ThreadStateRecord | null | undefined,
   replyLanguage: RuntimeReplyLanguage
@@ -3098,7 +3129,8 @@ export function buildAgentSystemPrompt(
   threadState: ThreadStateRecord | null = null,
   closeNoteHandoffPacket: RoleCoreMemoryCloseNoteHandoffPacket | null = null,
   closeNoteArtifact: RoleCoreMemoryCloseNoteArtifact | null = null,
-  closeNoteOutput: RoleCoreMemoryCloseNoteOutput | null = null
+  closeNoteOutput: RoleCoreMemoryCloseNoteOutput | null = null,
+  closeNoteRecord: RoleCoreMemoryCloseNoteRecord | null = null
 ) {
   return buildAgentSystemPromptInternal(
     roleCorePacket,
@@ -3114,7 +3146,8 @@ export function buildAgentSystemPrompt(
     threadState,
     closeNoteHandoffPacket,
     closeNoteArtifact,
-    closeNoteOutput
+    closeNoteOutput,
+    closeNoteRecord
   );
 }
 
@@ -4285,6 +4318,11 @@ export async function runPreparedRuntimeTurn({
     closeNoteHandoffPacket: roleCoreCloseNoteHandoffPacket,
     closeNoteArtifact: roleCoreCloseNoteArtifact
   });
+  const roleCoreCloseNoteRecord = buildRoleCoreMemoryCloseNoteRecord({
+    roleCorePacket: roleCorePacketWithMemoryHandoff,
+    closeNoteOutput: roleCoreCloseNoteOutput,
+    closeNoteArtifact: roleCoreCloseNoteArtifact
+  });
   const { workspace, thread, messages, assistant_message_id, supabase } =
     preparedRuntimeTurn.resources;
   const runtimeSupabase = supabase as any;
@@ -4305,7 +4343,8 @@ export async function runPreparedRuntimeTurn({
         preparedRuntimeTurn.session.thread_state,
         roleCoreCloseNoteHandoffPacket,
         roleCoreCloseNoteArtifact,
-        roleCoreCloseNoteOutput
+        roleCoreCloseNoteOutput,
+        roleCoreCloseNoteRecord
       )
     },
     ...messages
@@ -4376,6 +4415,7 @@ export async function runPreparedRuntimeTurn({
         role_core_packet: roleCorePacketWithMemoryHandoff,
         role_core_close_note_handoff_packet: roleCoreCloseNoteHandoffPacket,
         role_core_close_note_artifact: roleCoreCloseNoteArtifact,
+        role_core_close_note_record: roleCoreCloseNoteRecord,
         role_core_close_note_output: roleCoreCloseNoteOutput,
         runtime_input: preparedRuntimeTurn.input,
         session_thread_id: preparedRuntimeTurn.session.thread_id,
@@ -4614,6 +4654,7 @@ export async function runPreparedRuntimeTurn({
       compacted_thread_summary: compactedThreadSummary,
       role_core_close_note_handoff_packet: roleCoreCloseNoteHandoffPacket,
       role_core_close_note_artifact: roleCoreCloseNoteArtifact,
+      role_core_close_note_record: roleCoreCloseNoteRecord,
       role_core_close_note_output: roleCoreCloseNoteOutput
     })
   };
