@@ -214,6 +214,10 @@ export function buildRuntimeAssistantMetadataInput(
       namespaceBoundary?.policy_bundle_id ?? null,
     active_memory_namespace_policy_digest_id:
       namespaceBoundary?.policy_digest_id ?? null,
+    active_memory_namespace_policy_coordination_summary:
+      namespaceBoundary?.policy_coordination_summary ?? null,
+    active_memory_namespace_governance_consistency_mode:
+      namespaceBoundary?.governance_consistency_mode ?? null,
     active_memory_namespace_route_governance_mode:
       namespaceBoundary?.route_governance_mode ?? null,
     active_memory_retrieval_fallback_mode:

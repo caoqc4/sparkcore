@@ -19,6 +19,16 @@ export type RuntimeMemoryBoundary = {
   write_boundary: "default" | "thread" | "project" | "world";
   policy_bundle_id: MemoryNamespacePolicyBundleId;
   policy_digest_id: MemoryNamespacePolicyDigestId;
+  policy_coordination_summary:
+    | "thread_focus_no_timeline"
+    | "project_parallel_coordination"
+    | "world_timeline_reference"
+    | "default_balanced_coordination";
+  governance_consistency_mode:
+    | "retrieval_strict_write_outward"
+    | "retrieval_write_balanced"
+    | "retrieval_timeline_write_pinned"
+    | "retrieval_write_default";
   route_governance_mode:
     | "thread_strict"
     | "project_balanced"
@@ -117,6 +127,9 @@ export function buildMemoryNamespacePromptSection(args: {
       ? `当前 namespace policy digest：${boundary.policy_digest_id}。`
       : `Current namespace policy digest: ${boundary.policy_digest_id}.`,
     isZh
+      ? `当前 coordination 摘要：${boundary.policy_coordination_summary}；consistency = ${boundary.governance_consistency_mode}。`
+      : `Current coordination summary: ${boundary.policy_coordination_summary}; consistency = ${boundary.governance_consistency_mode}.`,
+    isZh
       ? `当前 fallback 策略：retrieval = ${boundary.retrieval_fallback_mode}；write = ${boundary.write_escalation_mode}。`
       : `Current fallback policy: retrieval = ${boundary.retrieval_fallback_mode}; write = ${boundary.write_escalation_mode}.`,
     isZh
@@ -141,6 +154,8 @@ export function buildMemoryNamespaceSummary(args: {
     selection_reason: args.namespace.selection_reason,
     policy_bundle_id: boundary.policy_bundle_id,
     policy_digest_id: boundary.policy_digest_id,
+    policy_coordination_summary: boundary.policy_coordination_summary,
+    governance_consistency_mode: boundary.governance_consistency_mode,
     route_governance_mode: boundary.route_governance_mode,
     retrieval_fallback_mode: boundary.retrieval_fallback_mode,
     write_escalation_mode: boundary.write_escalation_mode
@@ -157,6 +172,8 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "thread",
         policy_bundle_id: "thread_strict_focus",
         policy_digest_id: "thread_focus_orchestration",
+        policy_coordination_summary: "thread_focus_no_timeline",
+        governance_consistency_mode: "retrieval_strict_write_outward",
         route_governance_mode: "thread_strict",
         retrieval_fallback_mode: "strict_no_timeline",
         write_escalation_mode: "thread_outward_escalation",
@@ -174,6 +191,8 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "project",
         policy_bundle_id: "project_balanced_coordination",
         policy_digest_id: "project_coordination_orchestration",
+        policy_coordination_summary: "project_parallel_coordination",
+        governance_consistency_mode: "retrieval_write_balanced",
         route_governance_mode: "project_balanced",
         retrieval_fallback_mode: "parallel_timeline_allowed",
         write_escalation_mode: "project_world_escalation",
@@ -191,6 +210,8 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "world",
         policy_bundle_id: "world_reference_exploration",
         policy_digest_id: "world_reference_orchestration",
+        policy_coordination_summary: "world_timeline_reference",
+        governance_consistency_mode: "retrieval_timeline_write_pinned",
         route_governance_mode: "world_expansive",
         retrieval_fallback_mode: "timeline_preferred",
         write_escalation_mode: "world_pinned",
@@ -208,6 +229,8 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "default",
         policy_bundle_id: "default_balanced_memory",
         policy_digest_id: "default_memory_orchestration",
+        policy_coordination_summary: "default_balanced_coordination",
+        governance_consistency_mode: "retrieval_write_default",
         route_governance_mode: "default_balanced",
         retrieval_fallback_mode: "balanced_timeline_optional",
         write_escalation_mode: "default_pinned",
@@ -238,6 +261,10 @@ export function buildMemoryNamespaceScopedMetadata(args: {
     active_memory_namespace_selection_reason: args.namespace.selection_reason,
     active_memory_namespace_policy_bundle_id: boundary.policy_bundle_id,
     active_memory_namespace_policy_digest_id: boundary.policy_digest_id,
+    active_memory_namespace_policy_coordination_summary:
+      boundary.policy_coordination_summary,
+    active_memory_namespace_governance_consistency_mode:
+      boundary.governance_consistency_mode,
     active_memory_namespace_route_governance_mode:
       boundary.route_governance_mode,
     active_memory_retrieval_fallback_mode: boundary.retrieval_fallback_mode,

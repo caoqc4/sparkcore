@@ -64,6 +64,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   active_memory_namespace_selection_reason?: string | null;
   active_memory_namespace_policy_bundle_id?: string | null;
   active_memory_namespace_policy_digest_id?: string | null;
+  active_memory_namespace_policy_coordination_summary?: string | null;
+  active_memory_namespace_governance_consistency_mode?: string | null;
   active_memory_namespace_route_governance_mode?: string | null;
   active_memory_retrieval_fallback_mode?: string | null;
   active_memory_write_escalation_mode?: string | null;
@@ -150,6 +152,8 @@ export type BuildAssistantMessageMetadataInput = {
   active_memory_namespace_selection_reason?: string | null;
   active_memory_namespace_policy_bundle_id?: string | null;
   active_memory_namespace_policy_digest_id?: string | null;
+  active_memory_namespace_policy_coordination_summary?: string | null;
+  active_memory_namespace_governance_consistency_mode?: string | null;
   active_memory_namespace_route_governance_mode?: string | null;
   active_memory_retrieval_fallback_mode?: string | null;
   active_memory_write_escalation_mode?: string | null;
@@ -275,6 +279,10 @@ export function buildAssistantMetadataSummaryGroups(
             input.active_memory_namespace_policy_bundle_id ?? null,
           policy_digest_id:
             input.active_memory_namespace_policy_digest_id ?? null,
+          policy_coordination_summary:
+            input.active_memory_namespace_policy_coordination_summary ?? null,
+          governance_consistency_mode:
+            input.active_memory_namespace_governance_consistency_mode ?? null,
           route_governance_mode:
             input.active_memory_namespace_route_governance_mode ?? null,
           retrieval_fallback_mode:
@@ -363,6 +371,10 @@ export function buildAssistantMetadataSummaryGroups(
         input.active_memory_namespace_policy_bundle_id,
       active_memory_namespace_policy_digest_id:
         input.active_memory_namespace_policy_digest_id,
+      active_memory_namespace_policy_coordination_summary:
+        input.active_memory_namespace_policy_coordination_summary,
+      active_memory_namespace_governance_consistency_mode:
+        input.active_memory_namespace_governance_consistency_mode,
       active_memory_namespace_route_governance_mode:
         input.active_memory_namespace_route_governance_mode,
       active_memory_retrieval_fallback_mode:

@@ -112,6 +112,12 @@ export function buildRuntimeDebugMetadata(
           policy_digest_id: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).policy_digest_id,
+          policy_coordination_summary: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).policy_coordination_summary,
+          governance_consistency_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_consistency_mode,
           route_governance_mode: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).route_governance_mode,

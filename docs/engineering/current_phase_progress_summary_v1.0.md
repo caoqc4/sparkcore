@@ -1222,7 +1222,7 @@
 当前 `P7` 的阶段判断：
 
 - `P7-1`
-  - 待开始
+  - 前中段
 - `P7-2`
   - 待开始
 - `P7-3`
@@ -1234,27 +1234,27 @@
 
 整体 `P7` 当前大约：
 
-- **`0% - 10%`**
+- **`10% - 20%`**
 
 当前更推荐的下一步：
 
-- **开始从 [memory_upgrade_p7_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p7_execution_plan_v1.0.md) 落 `P7-1 Namespace policy orchestration v2` 的第一刀**
-- 当前已成立的第一刀事实：
+- **继续补 `P7-1 Namespace policy orchestration v2`，让 policy 输出更明确进入 coordination / consistency contract**
+- 当前已成立的前两刀事实：
   - namespace boundary 现在开始显式产出 `policy_digest_id`
   - 当前最小 digest 已成立：
     - `thread_focus_orchestration`
     - `project_coordination_orchestration`
     - `world_reference_orchestration`
     - `default_memory_orchestration`
-  - 这层 digest 已进入：
+  - namespace boundary 现在也开始显式产出：
+    - `policy_coordination_summary`
+    - `governance_consistency_mode`
+  - 当前最小 coordination / consistency 已成立：
+    - `thread_focus_no_timeline`
+    - `project_parallel_coordination`
+    - `retrieval_write_balanced`
+  - 这层输出已进入：
     - prompt
     - assistant metadata / reader
     - runtime debug metadata
     - harness
-  - `orchestration_mode`
-- 这层 strategy policy 当前也已开始进入：
-  - active scenario pack output
-  - prompt 文案
-  - assistant metadata / reader
-  - runtime debug metadata
-  - harness

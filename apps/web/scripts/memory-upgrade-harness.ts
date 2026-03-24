@@ -26,10 +26,12 @@ import {
   getAssistantThreadRetentionPolicyId,
   getAssistantThreadSurvivalRationale,
   getAssistantMemoryNamespacePolicyBundleId,
+  getAssistantMemoryNamespacePolicyCoordinationSummary,
   getAssistantMemoryNamespacePolicyDigestId,
   getAssistantMemoryNamespacePrimaryLayer,
   getAssistantMemoryNamespaceRetrievalFallbackMode,
   getAssistantMemoryNamespaceRouteGovernanceMode,
+  getAssistantMemoryNamespaceGovernanceConsistencyMode,
   getAssistantMemoryNamespaceWriteEscalationMode,
   getAssistantMemoryScenarioPackAssemblyEmphasis,
   getAssistantMemoryScenarioPackStrategyAssemblyOrder,
@@ -1874,6 +1876,10 @@ function main() {
     namespace_policy_v4_ok:
       threadBoundary.policy_bundle_id === "thread_strict_focus" &&
       threadBoundary.policy_digest_id === "thread_focus_orchestration" &&
+      threadBoundary.policy_coordination_summary ===
+        "thread_focus_no_timeline" &&
+      threadBoundary.governance_consistency_mode ===
+        "retrieval_strict_write_outward" &&
       threadBoundary.route_governance_mode === "thread_strict" &&
       threadBoundary.retrieval_fallback_mode === "strict_no_timeline" &&
       threadBoundary.write_escalation_mode ===
@@ -1881,6 +1887,10 @@ function main() {
       projectBoundary.policy_bundle_id === "project_balanced_coordination" &&
       projectBoundary.policy_digest_id ===
         "project_coordination_orchestration" &&
+      projectBoundary.policy_coordination_summary ===
+        "project_parallel_coordination" &&
+      projectBoundary.governance_consistency_mode ===
+        "retrieval_write_balanced" &&
       projectBoundary.route_governance_mode === "project_balanced" &&
       projectBoundary.retrieval_fallback_mode ===
         "parallel_timeline_allowed" &&
@@ -1890,6 +1900,12 @@ function main() {
         projectBoundary.policy_bundle_id &&
       getAssistantMemoryNamespacePolicyDigestId(assistantMetadata) ===
         projectBoundary.policy_digest_id &&
+      getAssistantMemoryNamespacePolicyCoordinationSummary(
+        assistantMetadata
+      ) === projectBoundary.policy_coordination_summary &&
+      getAssistantMemoryNamespaceGovernanceConsistencyMode(
+        assistantMetadata
+      ) === projectBoundary.governance_consistency_mode &&
       getAssistantMemoryNamespaceRouteGovernanceMode(assistantMetadata) ===
         projectBoundary.route_governance_mode &&
       getAssistantMemoryNamespaceRetrievalFallbackMode(assistantMetadata) ===
@@ -1900,6 +1916,10 @@ function main() {
         projectBoundary.policy_bundle_id &&
       runtimeDebugMetadata.memory_namespace?.policy_digest_id ===
         projectBoundary.policy_digest_id &&
+      runtimeDebugMetadata.memory_namespace?.policy_coordination_summary ===
+        projectBoundary.policy_coordination_summary &&
+      runtimeDebugMetadata.memory_namespace?.governance_consistency_mode ===
+        projectBoundary.governance_consistency_mode &&
       runtimeDebugMetadata.memory_namespace?.route_governance_mode ===
         projectBoundary.route_governance_mode &&
       runtimeDebugMetadata.memory_namespace?.retrieval_fallback_mode ===
@@ -1911,6 +1931,9 @@ function main() {
       ) &&
       systemPrompt.includes(
         "Current namespace policy digest: project_coordination_orchestration."
+      ) &&
+      systemPrompt.includes(
+        "Current coordination summary: project_parallel_coordination; consistency = retrieval_write_balanced."
       ),
     retention_lifecycle_v4_ok:
       getAssistantThreadRetentionPolicyId(assistantMetadata) ===
@@ -2076,12 +2099,16 @@ function main() {
           namespace_policy: {
             thread_bundle: threadBoundary.policy_bundle_id,
             thread_digest: threadBoundary.policy_digest_id,
+            thread_coordination: threadBoundary.policy_coordination_summary,
+            thread_consistency: threadBoundary.governance_consistency_mode,
             thread_mode: threadBoundary.route_governance_mode,
             thread_retrieval_fallback:
               threadBoundary.retrieval_fallback_mode,
             thread_write_escalation: threadBoundary.write_escalation_mode,
             project_bundle: projectBoundary.policy_bundle_id,
             project_digest: projectBoundary.policy_digest_id,
+            project_coordination: projectBoundary.policy_coordination_summary,
+            project_consistency: projectBoundary.governance_consistency_mode,
             project_mode: projectBoundary.route_governance_mode,
             project_retrieval_fallback:
               projectBoundary.retrieval_fallback_mode,
@@ -2158,6 +2185,14 @@ function main() {
             getAssistantMemoryNamespacePolicyBundleId(assistantMetadata),
           policy_digest_id:
             getAssistantMemoryNamespacePolicyDigestId(assistantMetadata),
+          policy_coordination_summary:
+            getAssistantMemoryNamespacePolicyCoordinationSummary(
+              assistantMetadata
+            ),
+          governance_consistency_mode:
+            getAssistantMemoryNamespaceGovernanceConsistencyMode(
+              assistantMetadata
+            ),
           route_governance_mode:
             getAssistantMemoryNamespaceRouteGovernanceMode(assistantMetadata),
           retrieval_fallback_mode:
@@ -2198,6 +2233,12 @@ function main() {
             runtimeDebugMetadata.memory_namespace?.policy_bundle_id ?? null,
           namespace_policy_digest_id:
             runtimeDebugMetadata.memory_namespace?.policy_digest_id ?? null,
+          namespace_policy_coordination_summary:
+            runtimeDebugMetadata.memory_namespace?.policy_coordination_summary ??
+            null,
+          namespace_governance_consistency_mode:
+            runtimeDebugMetadata.memory_namespace?.governance_consistency_mode ??
+            null,
           namespace_route_governance_mode:
             runtimeDebugMetadata.memory_namespace?.route_governance_mode ?? null,
           namespace_retrieval_fallback_mode:

@@ -462,6 +462,34 @@ export function getAssistantMemoryNamespacePolicyDigestId(
   );
 }
 
+export function getAssistantMemoryNamespacePolicyCoordinationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(namespaceMetadata, "policy_coordination_summary") ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_policy_coordination_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernanceConsistencyMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(namespaceMetadata, "governance_consistency_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_consistency_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryNamespaceRouteGovernanceMode(
   metadata: Record<string, unknown> | null | undefined
 ) {

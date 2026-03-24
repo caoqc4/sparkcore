@@ -96,6 +96,25 @@ P7 首批要把 namespace 从：
   - assistant metadata / metadata reader
   - runtime debug metadata
   - harness
+- 第二刀已成立的 coordination 事实：
+  - namespace boundary 现在还会显式产出：
+    - `policy_coordination_summary`
+    - `governance_consistency_mode`
+  - 当前最小 coordination 已成立：
+    - `thread_focus_no_timeline`
+    - `project_parallel_coordination`
+    - `world_timeline_reference`
+    - `default_balanced_coordination`
+  - 当前最小 consistency 已成立：
+    - `retrieval_strict_write_outward`
+    - `retrieval_write_balanced`
+    - `retrieval_timeline_write_pinned`
+    - `retrieval_write_default`
+  - 这层输出已进入：
+    - prompt
+    - assistant metadata / reader
+    - runtime debug metadata
+    - harness
 
 ### 4.2 Retention lifecycle governance v5
 
