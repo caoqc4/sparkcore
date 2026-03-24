@@ -2,7 +2,7 @@
 
 ## 1. 文档定位
 
-本文档用于把 `Memory Upgrade P0 ~ P7` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
+本文档用于把 `Memory Upgrade P0 ~ P8` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
 
 - 这些尾项属于什么性质
 - 为什么它们当前不阻塞阶段切换
@@ -19,7 +19,7 @@
 
 ## 2. 当前总判断
 
-`P0 ~ P7` 当前确实都还存在少量剩余尾项。  
+`P0 ~ P8` 当前确实都还存在少量剩余尾项。  
 但这些尾项的性质已经从：
 
 - 主目标未成立
@@ -80,7 +80,7 @@
 
 ---
 
-## 4. P0 ~ P7 当前典型尾项
+## 4. P0 ~ P8 当前典型尾项
 
 ### 4.1 P0 尾项
 
@@ -195,6 +195,21 @@
 - 非阻塞
 - 更偏 digest / coordination 深化与阶段 gate 增强
 
+### 4.9 P8 尾项
+
+典型尾项包括：
+
+- namespace governance convergence v3 还可继续向更完整的 retrieval / write convergence reuse 与 cross-surface alignment 深化
+- retention lifecycle convergence v6 还可继续向更细的 keep/drop convergence grouping 与 lifecycle alignment rule 深化
+- knowledge governance convergence v6 还可继续向更完整的 source / budget convergence orchestration 深化
+- scenario governance convergence v6 还可继续向更细的 strategy convergence summary / alignment contract 深化
+- `P8-5` gate 还可继续补更强的阶段级聚合判断与跨 convergence metadata consistency 校验
+
+当前性质：
+
+- 非阻塞
+- 更偏 convergence 深化与阶段 gate 增强
+
 ---
 
 ## 5. 处理原则
@@ -248,7 +263,7 @@
 
 ## 7. 最终结论
 
-`P0 ~ P7` 当前确实都还存在少量尾项。  
+`P0 ~ P8` 当前确实都还存在少量尾项。  
 但这些尾项已经被明确识别为：
 
 - **非阻塞尾项**
