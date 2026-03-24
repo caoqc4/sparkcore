@@ -17,11 +17,13 @@ import {
   buildAgentSystemPrompt,
   buildRoleCoreMemoryCloseNoteArtifactPrompt,
   buildRoleCoreMemoryCloseNoteHandoffPrompt,
+  buildRoleCoreMemoryCloseNoteOutputPrompt,
   buildVisibleMemoryRecord
 } from "@/lib/chat/runtime";
 import {
   buildRoleCoreMemoryCloseNoteArtifact,
   buildRoleCoreMemoryCloseNoteHandoffPacket,
+  buildRoleCoreMemoryCloseNoteOutput,
   withRoleCoreMemoryHandoff
 } from "@/lib/chat/role-core";
 import { buildAssistantMessageMetadata } from "@/lib/chat/assistant-message-metadata";
@@ -1373,6 +1375,11 @@ function main() {
     roleCorePacket: roleCorePacketForHarness,
     closeNoteHandoffPacket: p17CloseNoteHandoffPacket
   });
+  const p19CloseNoteOutput = buildRoleCoreMemoryCloseNoteOutput({
+    roleCorePacket: roleCorePacketForHarness,
+    closeNoteHandoffPacket: p17CloseNoteHandoffPacket,
+    closeNoteArtifact: p18CloseNoteArtifact
+  });
   expect(
     compactedThreadSummary?.lifecycle_convergence_digest ===
       "anchor_preservation_convergence" &&
@@ -1454,6 +1461,7 @@ function main() {
         role_core_packet: roleCorePacketForHarness,
         role_core_close_note_handoff_packet: p17CloseNoteHandoffPacket,
         role_core_close_note_artifact: p18CloseNoteArtifact,
+        role_core_close_note_output: p19CloseNoteOutput,
         runtime_input: buildRuntimeTurnInput({
           userId: "user-1",
           agentId: "agent-1",
@@ -1558,7 +1566,8 @@ function main() {
     active_memory_namespace: activeMemoryNamespace,
     compacted_thread_summary: compactedThreadSummary,
     role_core_close_note_handoff_packet: p17CloseNoteHandoffPacket,
-    role_core_close_note_artifact: p18CloseNoteArtifact
+    role_core_close_note_artifact: p18CloseNoteArtifact,
+    role_core_close_note_output: p19CloseNoteOutput
   });
   const runtimeDebugPack = runtimeDebugMetadata.memory.pack as
     | (NonNullable<typeof runtimeDebugMetadata.memory.pack> & {
@@ -1596,6 +1605,17 @@ function main() {
   const runtimeDebugCloseNoteArtifact = (runtimeDebugMetadata.memory as {
     close_note_artifact?: typeof p18CloseNoteArtifact;
   }).close_note_artifact;
+  const assistantCloseNoteOutput = (assistantMetadata as {
+    role_core_close_note_output?: typeof p19CloseNoteOutput;
+  }).role_core_close_note_output;
+  const assistantDiagnosticCloseNoteOutput = (assistantMetadata as {
+    developer_diagnostics?: {
+      role_core_close_note_output?: typeof p19CloseNoteOutput;
+    };
+  }).developer_diagnostics?.role_core_close_note_output;
+  const runtimeDebugCloseNoteOutput = (runtimeDebugMetadata.memory as {
+    close_note_output?: typeof p19CloseNoteOutput;
+  }).close_note_output;
   expect(
     getAssistantMemoryPrimarySemanticLayer(assistantMetadata) === "thread_state",
     "Expected assistant metadata reader to expose thread_state as primary semantic layer."
@@ -1874,7 +1894,8 @@ function main() {
       updated_at: "2026-03-23T00:00:00.000Z"
     },
     p17CloseNoteHandoffPacket,
-    p18CloseNoteArtifact
+    p18CloseNoteArtifact,
+    p19CloseNoteOutput
   );
   const systemPromptWithoutCloseNote = buildAgentSystemPrompt(
     roleCorePacketForHarness,
@@ -1947,6 +1968,10 @@ function main() {
   );
   const p18CloseNoteArtifactPrompt = buildRoleCoreMemoryCloseNoteArtifactPrompt(
     p18CloseNoteArtifact,
+    "en"
+  );
+  const p19CloseNoteOutputPrompt = buildRoleCoreMemoryCloseNoteOutputPrompt(
+    p19CloseNoteOutput,
     "en"
   );
   expect(
@@ -5554,6 +5579,32 @@ function main() {
       systemPrompt.includes("Role core close-note artifact") &&
       systemPrompt.includes(p18CloseNoteArtifact?.headline ?? "")
   } as const;
+  const p19CloseNoteOutputChecks = {
+    namespace_close_note_output_contract_v1_ok:
+      p19CloseNoteOutput?.output_version === "v1" &&
+      p19CloseNoteOutput.source_artifact_version === "v1" &&
+      p19CloseNoteOutput.source_handoff_packet_version === "v1" &&
+      p19CloseNoteOutput.headline.includes("Helper close-note output") &&
+      p19CloseNoteOutput.namespace.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.namespace.phase_snapshot_id &&
+      p19CloseNoteOutput.namespace.output_summary.includes(
+        p18CloseNoteArtifact?.headline ?? ""
+      ),
+    namespace_close_note_output_metadata_consistency_v1_ok:
+      assistantCloseNoteOutput?.headline === p19CloseNoteOutput?.headline &&
+      assistantDiagnosticCloseNoteOutput?.namespace.output_summary ===
+        p19CloseNoteOutput?.namespace.output_summary &&
+      runtimeDebugCloseNoteOutput?.emission_summary ===
+        p19CloseNoteOutput?.emission_summary,
+    namespace_close_note_output_prompt_surface_v1_ok:
+      p19CloseNoteOutputPrompt.includes("Role core close-note output") &&
+      p19CloseNoteOutputPrompt.includes(p19CloseNoteOutput?.headline ?? "") &&
+      p19CloseNoteOutputPrompt.includes(
+        p19CloseNoteOutput?.namespace.output_summary ?? ""
+      ) &&
+      systemPrompt.includes("Role core close-note output") &&
+      systemPrompt.includes(p19CloseNoteOutput?.headline ?? "")
+  } as const;
   const p18PositiveContracts = summarizeGate({
     role_core_memory_close_note_artifact_v1_ok:
       p18CloseNoteArtifactChecks.role_core_memory_close_note_artifact_v1_ok
@@ -6868,6 +6919,7 @@ function main() {
         p17_regression_gate: p17RegressionGate,
         p17_gate_snapshot: p17GateSnapshot,
         p18_close_note_artifact: p18CloseNoteArtifactChecks,
+        p19_close_note_output: p19CloseNoteOutputChecks,
         p18_regression_gate: p18RegressionGate,
         p18_gate_snapshot: p18GateSnapshot,
         p15_regression_gate: p15RegressionGate,

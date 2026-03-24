@@ -7,6 +7,7 @@ import type {
   ReplyLanguageSource,
   RoleCoreMemoryCloseNoteArtifact,
   RoleCoreMemoryCloseNoteHandoffPacket,
+  RoleCoreMemoryCloseNoteOutput,
   RoleCorePacket,
   RuntimeReplyLanguage,
 } from "@/lib/chat/role-core";
@@ -48,6 +49,7 @@ export type BuildRuntimeAssistantMetadataInput = {
     role_core_packet: RoleCorePacket;
     role_core_close_note_handoff_packet?: RoleCoreMemoryCloseNoteHandoffPacket | null;
     role_core_close_note_artifact?: RoleCoreMemoryCloseNoteArtifact | null;
+    role_core_close_note_output?: RoleCoreMemoryCloseNoteOutput | null;
     runtime_input: RuntimeTurnInput;
     session_thread_id: string;
     session_agent_id: string;
@@ -135,6 +137,8 @@ export function buildRuntimeAssistantMetadataInput(
       input.runtime.role_core_close_note_handoff_packet ?? null,
     role_core_close_note_artifact:
       input.runtime.role_core_close_note_artifact ?? null,
+    role_core_close_note_output:
+      input.runtime.role_core_close_note_output ?? null,
     runtime_input: input.runtime.runtime_input,
     session_thread_id: input.runtime.session_thread_id,
     session_agent_id: input.runtime.session_agent_id,

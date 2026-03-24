@@ -4,6 +4,7 @@ import type {
   ReplyLanguageSource,
   RoleCoreMemoryCloseNoteArtifact,
   RoleCoreMemoryCloseNoteHandoffPacket,
+  RoleCoreMemoryCloseNoteOutput,
   RoleCorePacket,
   RuntimeReplyLanguage
 } from "@/lib/chat/role-core";
@@ -223,6 +224,7 @@ export type BuildAssistantMessageMetadataInput = {
   role_core_packet: RoleCorePacket;
   role_core_close_note_handoff_packet?: RoleCoreMemoryCloseNoteHandoffPacket | null;
   role_core_close_note_artifact?: RoleCoreMemoryCloseNoteArtifact | null;
+  role_core_close_note_output?: RoleCoreMemoryCloseNoteOutput | null;
   runtime_input: RuntimeTurnInput;
   session_thread_id: string;
   session_agent_id: string;
@@ -1193,6 +1195,8 @@ export function buildAssistantMessageMetadata(
       input.role_core_close_note_handoff_packet ?? null,
     role_core_close_note_artifact:
       input.role_core_close_note_artifact ?? null,
+    role_core_close_note_output:
+      input.role_core_close_note_output ?? null,
     question_type: input.question_type,
     answer_strategy: input.answer_strategy,
     answer_strategy_reason_code: input.answer_strategy_reason_code,
@@ -1222,6 +1226,8 @@ export function buildAssistantMessageMetadata(
         input.role_core_close_note_handoff_packet ?? null,
       role_core_close_note_artifact:
         input.role_core_close_note_artifact ?? null,
+      role_core_close_note_output:
+        input.role_core_close_note_output ?? null,
       prepared_runtime_turn: {
         input: input.runtime_input,
         session: {

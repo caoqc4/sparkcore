@@ -129,6 +129,20 @@ export type RoleCoreMemoryCloseNoteArtifact = {
   };
 };
 
+export type RoleCoreMemoryCloseNoteOutput = {
+  output_version: "v1";
+  source_artifact_version: RoleCoreMemoryCloseNoteArtifact["artifact_version"];
+  source_handoff_packet_version: RoleCoreMemoryCloseNoteHandoffPacket["packet_version"];
+  readiness_judgment: string;
+  headline: string;
+  emission_summary: string;
+  namespace: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    output_summary: string;
+  };
+};
+
 export function getRoleCoreRelationshipStance(
   relationshipRecall: {
     addressStyleMemory: {
@@ -301,6 +315,34 @@ export function buildRoleCoreMemoryCloseNoteArtifact(args: {
         : "none",
       knowledge: `${closeNoteHandoffPacket.knowledge.phase_snapshot_id}; scope_layers = ${closeNoteHandoffPacket.knowledge.scope_layers.join(", ") || "none"}; governance_classes = ${closeNoteHandoffPacket.knowledge.governance_classes.join(", ") || "none"}`,
       scenario: `${closeNoteHandoffPacket.scenario.phase_snapshot_id}; strategy_bundle = ${closeNoteHandoffPacket.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNoteHandoffPacket.scenario.orchestration_mode ?? "none"}`
+    }
+  };
+}
+
+export function buildRoleCoreMemoryCloseNoteOutput(args: {
+  roleCorePacket: RoleCorePacket;
+  closeNoteHandoffPacket: RoleCoreMemoryCloseNoteHandoffPacket | null;
+  closeNoteArtifact: RoleCoreMemoryCloseNoteArtifact | null;
+}): RoleCoreMemoryCloseNoteOutput | null {
+  const closeNoteHandoffPacket = args.closeNoteHandoffPacket;
+  const closeNoteArtifact = args.closeNoteArtifact;
+
+  if (!closeNoteHandoffPacket || !closeNoteArtifact) {
+    return null;
+  }
+
+  return {
+    output_version: "v1",
+    source_artifact_version: closeNoteArtifact.artifact_version,
+    source_handoff_packet_version: closeNoteHandoffPacket.packet_version,
+    readiness_judgment: closeNoteArtifact.readiness_judgment,
+    headline: `${args.roleCorePacket.identity.agent_name} close-note output`,
+    emission_summary: `namespace_output_started; source_artifact = ${closeNoteArtifact.artifact_version}; blocking_items = ${closeNoteArtifact.blocking_items.join(", ") || "none"}.`,
+    namespace: {
+      phase_snapshot_id: closeNoteHandoffPacket.namespace.phase_snapshot_id,
+      phase_snapshot_summary:
+        closeNoteHandoffPacket.namespace.phase_snapshot_summary,
+      output_summary: `${closeNoteHandoffPacket.namespace.phase_snapshot_id}; ${closeNoteHandoffPacket.namespace.phase_snapshot_summary}; artifact_headline = ${closeNoteArtifact.headline}`
     }
   };
 }

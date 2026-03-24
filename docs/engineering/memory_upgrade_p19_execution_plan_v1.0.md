@@ -131,7 +131,8 @@
 当前阶段判断：
 
 - `P19-1`
-  - 待开始
+  - 已开始
+  - namespace close-note output contract 第一刀已成立
 - `P19-2`
   - 待开始
 - `P19-3`
@@ -143,11 +144,11 @@
 
 整体 `P19` 当前大约：
 
-- **`0% - 5%`**
+- **`10% - 15%`**
 
 当前更推荐的下一步：
 
-- **先做 `P19-1 Namespace close-note output contract v1` 第一刀，而不是先写 `P19 close-readiness`**
+- **继续做 `P19-2 Retention close-note output contract v1` 第一刀，而不是先写 `P19 close-readiness`**
 
 ---
 
