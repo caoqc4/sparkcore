@@ -140,22 +140,27 @@
   - 已开始
   - knowledge close-note persistence payload 第一刀已成立
 - `P22-4`
-  - 待开始
+  - 已开始
+  - scenario close-note persistence payload 第一刀已成立
 - `P22-5`
   - 已开始
-  - 第一版正式 gate 已建立
+  - 第二版正式 gate 已建立
 
 当前 gate 轻量快照请以
 [memory_upgrade_p22_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p22_gate_snapshot_v1.0.md)
 为准。
 
+当前正式阶段判断请以
+[memory_upgrade_p22_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p22_close_readiness_v1.0.md)
+为准。
+
 整体 `P22` 当前大约：
 
-- **`30% - 35%`**
+- **`75% - 80%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P22-4 Scenario close-note persistence payload v1`，而不是先写 `P22 close-readiness`**
+- **继续做 `P22` 的最后一轮收束，再决定是否进入 `P22 close note`**
 
 ---
 

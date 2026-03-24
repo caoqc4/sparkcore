@@ -6639,7 +6639,31 @@ function main() {
       systemPrompt.includes(
         p22CloseNotePersistencePayload?.knowledge.persistence_summary ?? ""
       ) &&
-      p22CloseNotePersistencePayloadPrompt.includes("Knowledge persistence section")
+      p22CloseNotePersistencePayloadPrompt.includes("Knowledge persistence section"),
+    scenario_close_note_persistence_payload_contract_v1_ok:
+      p22CloseNotePersistencePayload?.scenario.phase_snapshot_id ===
+        p21CloseNoteArchive?.scenario.phase_snapshot_id &&
+      p22CloseNotePersistencePayload?.scenario.strategy_bundle_id ===
+        p21CloseNoteArchive?.scenario.strategy_bundle_id &&
+      p22CloseNotePersistencePayload?.scenario.persistence_summary.includes(
+        p21CloseNoteArchive?.scenario.orchestration_mode ?? ""
+      ),
+    scenario_close_note_persistence_payload_metadata_consistency_v1_ok:
+      assistantCloseNotePersistencePayload?.scenario.persistence_summary ===
+        p22CloseNotePersistencePayload?.scenario.persistence_summary &&
+      assistantDiagnosticCloseNotePersistencePayload?.scenario
+        .strategy_bundle_id ===
+        p22CloseNotePersistencePayload?.scenario.strategy_bundle_id &&
+      runtimeDebugCloseNotePersistencePayload?.scenario.orchestration_mode ===
+        p22CloseNotePersistencePayload?.scenario.orchestration_mode,
+    scenario_close_note_persistence_payload_prompt_surface_v1_ok:
+      p22CloseNotePersistencePayloadPrompt.includes(
+      p22CloseNotePersistencePayload?.scenario.persistence_summary ?? ""
+      ) &&
+      systemPrompt.includes(
+        p22CloseNotePersistencePayload?.scenario.persistence_summary ?? ""
+      ) &&
+      p22CloseNotePersistencePayloadPrompt.includes("Scenario persistence section")
   } as const;
   const p22PositiveContracts = summarizeGate({
     namespace_close_note_persistence_payload_contract_v1_ok:
@@ -6647,7 +6671,9 @@ function main() {
     retention_close_note_persistence_payload_contract_v1_ok:
       p22CloseNotePersistencePayloadChecks.retention_close_note_persistence_payload_contract_v1_ok,
     knowledge_close_note_persistence_payload_contract_v1_ok:
-      p22CloseNotePersistencePayloadChecks.knowledge_close_note_persistence_payload_contract_v1_ok
+      p22CloseNotePersistencePayloadChecks.knowledge_close_note_persistence_payload_contract_v1_ok,
+    scenario_close_note_persistence_payload_contract_v1_ok:
+      p22CloseNotePersistencePayloadChecks.scenario_close_note_persistence_payload_contract_v1_ok
   });
   const p22MetadataConsistency = summarizeGate({
     namespace_close_note_persistence_payload_metadata_consistency_v1_ok:
@@ -6655,7 +6681,9 @@ function main() {
     retention_close_note_persistence_payload_metadata_consistency_v1_ok:
       p22CloseNotePersistencePayloadChecks.retention_close_note_persistence_payload_metadata_consistency_v1_ok,
     knowledge_close_note_persistence_payload_metadata_consistency_v1_ok:
-      p22CloseNotePersistencePayloadChecks.knowledge_close_note_persistence_payload_metadata_consistency_v1_ok
+      p22CloseNotePersistencePayloadChecks.knowledge_close_note_persistence_payload_metadata_consistency_v1_ok,
+    scenario_close_note_persistence_payload_metadata_consistency_v1_ok:
+      p22CloseNotePersistencePayloadChecks.scenario_close_note_persistence_payload_metadata_consistency_v1_ok
   });
   const p22PromptSurface = summarizeGate({
     namespace_close_note_persistence_payload_prompt_surface_v1_ok:
@@ -6663,23 +6691,89 @@ function main() {
     retention_close_note_persistence_payload_prompt_surface_v1_ok:
       p22CloseNotePersistencePayloadChecks.retention_close_note_persistence_payload_prompt_surface_v1_ok,
     knowledge_close_note_persistence_payload_prompt_surface_v1_ok:
-      p22CloseNotePersistencePayloadChecks.knowledge_close_note_persistence_payload_prompt_surface_v1_ok
+      p22CloseNotePersistencePayloadChecks.knowledge_close_note_persistence_payload_prompt_surface_v1_ok,
+    scenario_close_note_persistence_payload_prompt_surface_v1_ok:
+      p22CloseNotePersistencePayloadChecks.scenario_close_note_persistence_payload_prompt_surface_v1_ok
   });
+  const p22CloseReadinessConsumptionChecks = {
+    role_core_memory_close_note_persistence_payload_close_readiness_prompt_v1_ok:
+      p22CloseNotePersistencePayloadPrompt.includes(
+        p22CloseNotePersistencePayload?.readiness_judgment ?? ""
+      ) &&
+      p22CloseNotePersistencePayloadPrompt.includes(
+        p22CloseNotePersistencePayload?.progress_range ?? ""
+      ) &&
+      p22CloseNotePersistencePayloadPrompt.includes(
+        p22CloseNotePersistencePayload?.close_note_recommended ? "true" : "false"
+      ) &&
+      p22CloseNotePersistencePayloadPrompt.includes(
+        `blocking = ${p22CloseNotePersistencePayload?.acceptance_gap_buckets.blocking ?? 0}`
+      ) &&
+      p22CloseNotePersistencePayloadPrompt.includes(
+        "close_readiness_persistence_consumption"
+      ),
+    role_core_memory_close_note_persistence_payload_gap_bucket_consumption_v1_ok:
+      assistantCloseNotePersistencePayload?.readiness_judgment ===
+        p22CloseNotePersistencePayload?.readiness_judgment &&
+      assistantCloseNotePersistencePayload?.progress_range ===
+        p22CloseNotePersistencePayload?.progress_range &&
+      assistantDiagnosticCloseNotePersistencePayload?.acceptance_gap_buckets
+        .non_blocking ===
+        p22CloseNotePersistencePayload?.acceptance_gap_buckets.non_blocking &&
+      runtimeDebugCloseNotePersistencePayload?.acceptance_gap_buckets
+        .tail_candidate ===
+        p22CloseNotePersistencePayload?.acceptance_gap_buckets.tail_candidate,
+    role_core_memory_close_note_persistence_payload_gap_structuring_v1_ok:
+      (p22CloseNotePersistencePayload?.blocking_items.length ?? -1) === 0 &&
+      (p22CloseNotePersistencePayload?.non_blocking_items.length ?? 0) === 3 &&
+      (p22CloseNotePersistencePayload?.tail_candidate_items.length ?? 0) === 3 &&
+      p22CloseNotePersistencePayload?.next_expansion_focus.join(",") ===
+        p22CloseNotePersistencePayload?.non_blocking_items.join(","),
+    role_core_memory_close_note_persistence_payload_close_note_input_readiness_v1_ok:
+      p22CloseNotePersistencePayload?.readiness_judgment ===
+        "entered_close_readiness_not_close_ready" &&
+      p22CloseNotePersistencePayload?.progress_range === "70% - 75%" &&
+      systemPrompt.includes(
+        p22CloseNotePersistencePayload?.persistence_summary ?? ""
+      ) &&
+      assistantCloseNotePersistencePayload?.persistence_summary ===
+        p22CloseNotePersistencePayload?.persistence_summary
+  } as const;
+  const p22CloseReadinessConsumption = summarizeGate(
+    p22CloseReadinessConsumptionChecks
+  );
   const p22RegressionGate = {
     positive_contracts: p22PositiveContracts,
     metadata_consistency: p22MetadataConsistency,
     prompt_surface: p22PromptSurface,
-    ...summarizeGate(p22CloseNotePersistencePayloadChecks)
+    close_readiness_consumption: p22CloseReadinessConsumption,
+    ...summarizeGate({
+      ...p22CloseNotePersistencePayloadChecks,
+      ...p22CloseReadinessConsumptionChecks
+    })
   } as const;
   const p22GateSnapshot = {
     gate_id: "p22_regression_gate_v1",
     stage: "P22-5",
     focus: "close_note_persistence_payloadization",
     persistence_contract_readiness:
-      "knowledge_persistence_started_not_close_ready",
-    progress_range: "30% - 35%",
+      p22CloseNotePersistencePayload?.readiness_judgment ?? "unknown",
+    progress_range: p22CloseNotePersistencePayload?.progress_range ?? "unknown",
     close_note_recommended:
       p22CloseNotePersistencePayload?.close_note_recommended ?? false,
+    blocking_items: p22CloseNotePersistencePayload?.blocking_items ?? [],
+    non_blocking_items:
+      p22CloseNotePersistencePayload?.non_blocking_items ?? [],
+    tail_candidate_items:
+      p22CloseNotePersistencePayload?.tail_candidate_items ?? [],
+    acceptance_gap_buckets:
+      p22CloseNotePersistencePayload?.acceptance_gap_buckets ?? {
+        blocking: 0,
+        non_blocking: 0,
+        tail_candidate: 0
+      },
+    next_expansion_focus:
+      p22CloseNotePersistencePayload?.next_expansion_focus ?? [],
     positive_contracts: {
       checks_passed: p22PositiveContracts.checks_passed,
       checks_total: p22PositiveContracts.checks_total,
@@ -6694,6 +6788,11 @@ function main() {
       checks_passed: p22PromptSurface.checks_passed,
       checks_total: p22PromptSurface.checks_total,
       all_green: p22PromptSurface.all_green
+    },
+    close_readiness_consumption: {
+      checks_passed: p22CloseReadinessConsumption.checks_passed,
+      checks_total: p22CloseReadinessConsumption.checks_total,
+      all_green: p22CloseReadinessConsumption.all_green
     },
     overall: {
       checks_passed: p22RegressionGate.checks_passed,

@@ -3035,6 +3035,9 @@ export function buildRoleCoreMemoryCloseNotePersistencePayloadPrompt(
       ? `Knowledge persistence section：${closeNotePersistencePayload.knowledge.persistence_summary}。`
       : `Knowledge persistence section: ${closeNotePersistencePayload.knowledge.persistence_summary}.`,
     isZh
+      ? `Scenario persistence section：${closeNotePersistencePayload.scenario.persistence_summary}。`
+      : `Scenario persistence section: ${closeNotePersistencePayload.scenario.persistence_summary}.`,
+    isZh
       ? `Close-note persistence summary：${closeNotePersistencePayload.persistence_summary}`
       : `Close-note persistence summary: ${closeNotePersistencePayload.persistence_summary}`,
     isZh

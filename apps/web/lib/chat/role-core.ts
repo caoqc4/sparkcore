@@ -308,6 +308,13 @@ export type RoleCoreMemoryCloseNotePersistencePayload = {
     governance_classes: string[];
     persistence_summary: string;
   };
+  scenario: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    strategy_bundle_id: string | null;
+    orchestration_mode: string | null;
+    persistence_summary: string;
+  };
 };
 
 export function getRoleCoreRelationshipStance(
@@ -736,12 +743,12 @@ export function buildRoleCoreMemoryCloseNotePersistencePayload(args: {
     payload_version: "v1",
     source_archive_version: closeNoteArchive.archive_version,
     source_record_version: closeNoteRecord.record_version,
-    readiness_judgment: "knowledge_persistence_started_not_close_ready",
-    progress_range: "30% - 35%",
+    readiness_judgment: "entered_close_readiness_not_close_ready",
+    progress_range: "70% - 75%",
     close_candidate: closeNoteArchive.close_candidate,
     close_note_recommended: false,
     headline: `${args.roleCorePacket.identity.agent_name} close-note persistence payload`,
-    persistence_summary: `namespace_persistence_started; retention_persistence_started; knowledge_persistence_started; source_archive = ${closeNoteArchive.archive_version}; readiness = knowledge_persistence_started_not_close_ready.`,
+    persistence_summary: `namespace_persistence_started; retention_persistence_started; knowledge_persistence_started; scenario_persistence_started; source_archive = ${closeNoteArchive.archive_version}; readiness = entered_close_readiness_not_close_ready.`,
     blocking_items: [...blockingItems],
     non_blocking_items: [...nonBlockingItems],
     tail_candidate_items: [...tailCandidateItems],
@@ -767,6 +774,13 @@ export function buildRoleCoreMemoryCloseNotePersistencePayload(args: {
       scope_layers: [...closeNoteArchive.knowledge.scope_layers],
       governance_classes: [...closeNoteArchive.knowledge.governance_classes],
       persistence_summary: `${closeNoteArchive.knowledge.phase_snapshot_id}; ${closeNoteArchive.knowledge.phase_snapshot_summary}; scope_layers = ${closeNoteArchive.knowledge.scope_layers.join(", ") || "none"}; governance_classes = ${closeNoteArchive.knowledge.governance_classes.join(", ") || "none"}`
+    },
+    scenario: {
+      phase_snapshot_id: closeNoteArchive.scenario.phase_snapshot_id,
+      phase_snapshot_summary: closeNoteArchive.scenario.phase_snapshot_summary,
+      strategy_bundle_id: closeNoteArchive.scenario.strategy_bundle_id,
+      orchestration_mode: closeNoteArchive.scenario.orchestration_mode,
+      persistence_summary: `${closeNoteArchive.scenario.phase_snapshot_id}; ${closeNoteArchive.scenario.phase_snapshot_summary}; strategy_bundle = ${closeNoteArchive.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNoteArchive.scenario.orchestration_mode ?? "none"}`
     }
   };
 }
