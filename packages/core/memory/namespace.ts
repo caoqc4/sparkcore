@@ -59,6 +59,12 @@ export type MemoryNamespaceGovernancePlaneRuntimeDigestId =
   | "world_reference_governance_plane"
   | "default_memory_governance_plane";
 
+export type MemoryNamespaceGovernanceFabricRuntimeDigestId =
+  | "thread_focus_governance_fabric"
+  | "project_coordination_governance_fabric"
+  | "world_reference_governance_fabric"
+  | "default_memory_governance_fabric";
+
 function getPrimaryNamespaceLayer(
   layers: MemoryNamespaceLayer[]
 ): MemoryNamespaceLayer {

@@ -228,6 +228,18 @@ export function buildRuntimeDebugMetadata(
           governance_plane_reuse_mode: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).governance_plane_reuse_mode,
+          governance_fabric_runtime_digest_id: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_fabric_runtime_digest_id,
+          governance_fabric_runtime_summary: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_fabric_runtime_summary,
+          governance_fabric_alignment_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_fabric_alignment_mode,
+          governance_fabric_reuse_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_fabric_reuse_mode,
           retrieval_write_digest_alignment: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).retrieval_write_digest_alignment,

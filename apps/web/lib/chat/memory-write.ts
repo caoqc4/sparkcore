@@ -859,6 +859,14 @@ export async function executeMemoryWriteRequests({
             namespaceBoundary.governance_plane_alignment_mode,
           namespaceGovernancePlaneReuseMode:
             namespaceBoundary.governance_plane_reuse_mode,
+          namespaceGovernanceFabricRuntimeDigestId:
+            namespaceBoundary.governance_fabric_runtime_digest_id,
+          namespaceGovernanceFabricRuntimeSummary:
+            namespaceBoundary.governance_fabric_runtime_summary,
+          namespaceGovernanceFabricAlignmentMode:
+            namespaceBoundary.governance_fabric_alignment_mode,
+          namespaceGovernanceFabricReuseMode:
+            namespaceBoundary.governance_fabric_reuse_mode,
           retrievalWriteDigestAlignment:
             namespaceBoundary.retrieval_write_digest_alignment
         };

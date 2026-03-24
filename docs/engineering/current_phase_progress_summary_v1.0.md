@@ -57,6 +57,12 @@
   - `assembly_layer_order`
   - 当前 `project_execution` 已让 `memory_record` 先于 `static_profile`
   - 当前 `companion_continuity` 已让 `relationship` 先于 `static_profile / memory_record`
+- `P13-1 namespace governance fabric runtime v8` 已开始把 namespace governance plane 继续推进到 fabric runtime：
+  - `governance_fabric_runtime_digest_id`
+  - `governance_fabric_runtime_summary`
+  - `governance_fabric_alignment_mode`
+  - `governance_fabric_reuse_mode`
+  - recall / write 当前也已开始复用这层 fabric contract
 
 ---
 

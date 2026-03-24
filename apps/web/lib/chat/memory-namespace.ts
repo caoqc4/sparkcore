@@ -7,6 +7,7 @@ import {
   type ActiveMemoryNamespace,
   type MemoryNamespaceGovernanceConsolidationDigestId,
   type MemoryNamespaceGovernanceConvergenceDigestId,
+  type MemoryNamespaceGovernanceFabricRuntimeDigestId,
   type MemoryNamespaceGovernancePlaneRuntimeDigestId,
   type MemoryNamespaceLayer,
   type MemoryNamespacePolicyDigestId,
@@ -124,6 +125,22 @@ export type RuntimeMemoryBoundary = {
     | "project_coordination_governance_plane_reuse"
     | "world_reference_governance_plane_reuse"
     | "default_memory_governance_plane_reuse";
+  governance_fabric_runtime_digest_id: MemoryNamespaceGovernanceFabricRuntimeDigestId;
+  governance_fabric_runtime_summary:
+    | "thread_focus_governance_fabric_runtime"
+    | "project_coordination_governance_fabric_runtime"
+    | "world_reference_governance_fabric_runtime"
+    | "default_memory_governance_fabric_runtime";
+  governance_fabric_alignment_mode:
+    | "thread_fabric_aligned"
+    | "project_fabric_aligned"
+    | "world_fabric_aligned"
+    | "default_fabric_aligned";
+  governance_fabric_reuse_mode:
+    | "thread_focus_governance_fabric_reuse"
+    | "project_coordination_governance_fabric_reuse"
+    | "world_reference_governance_fabric_reuse"
+    | "default_memory_governance_fabric_reuse";
   retrieval_write_digest_alignment:
     | "thread_strict_outward_aligned"
     | "project_parallel_balanced_aligned"
@@ -233,6 +250,9 @@ export function buildMemoryNamespacePromptSection(args: {
       ? `当前 governance plane runtime：${boundary.governance_plane_runtime_digest_id}；summary = ${boundary.governance_plane_runtime_summary}；alignment = ${boundary.governance_plane_alignment_mode}；reuse = ${boundary.governance_plane_reuse_mode}。`
       : `Current governance plane runtime: ${boundary.governance_plane_runtime_digest_id}; summary = ${boundary.governance_plane_runtime_summary}; alignment = ${boundary.governance_plane_alignment_mode}; reuse = ${boundary.governance_plane_reuse_mode}.`,
     isZh
+      ? `当前 governance fabric runtime：${boundary.governance_fabric_runtime_digest_id}；summary = ${boundary.governance_fabric_runtime_summary}；alignment = ${boundary.governance_fabric_alignment_mode}；reuse = ${boundary.governance_fabric_reuse_mode}。`
+      : `Current governance fabric runtime: ${boundary.governance_fabric_runtime_digest_id}; summary = ${boundary.governance_fabric_runtime_summary}; alignment = ${boundary.governance_fabric_alignment_mode}; reuse = ${boundary.governance_fabric_reuse_mode}.`,
+    isZh
       ? `当前 coordination 摘要：${boundary.policy_coordination_summary}；consistency = ${boundary.governance_consistency_mode}。`
       : `Current coordination summary: ${boundary.policy_coordination_summary}; consistency = ${boundary.governance_consistency_mode}.`,
     isZh
@@ -302,6 +322,13 @@ export function buildMemoryNamespaceSummary(args: {
     governance_plane_alignment_mode:
       boundary.governance_plane_alignment_mode,
     governance_plane_reuse_mode: boundary.governance_plane_reuse_mode,
+    governance_fabric_runtime_digest_id:
+      boundary.governance_fabric_runtime_digest_id,
+    governance_fabric_runtime_summary:
+      boundary.governance_fabric_runtime_summary,
+    governance_fabric_alignment_mode:
+      boundary.governance_fabric_alignment_mode,
+    governance_fabric_reuse_mode: boundary.governance_fabric_reuse_mode,
     retrieval_write_digest_alignment:
       boundary.retrieval_write_digest_alignment
   };
@@ -381,6 +408,24 @@ export function resolveNamespaceGovernancePlaneRuntimeContract(
   };
 }
 
+export function resolveNamespaceGovernanceFabricRuntimeContract(
+  namespace: ActiveRuntimeMemoryNamespace | null | undefined
+) {
+  const boundary = resolveRuntimeMemoryBoundary(namespace);
+
+  return {
+    governance_fabric_runtime_digest_id:
+      boundary.governance_fabric_runtime_digest_id,
+    governance_fabric_runtime_summary:
+      boundary.governance_fabric_runtime_summary,
+    governance_fabric_alignment_mode:
+      boundary.governance_fabric_alignment_mode,
+    governance_fabric_reuse_mode: boundary.governance_fabric_reuse_mode,
+    fabric_retrieval_routes: boundary.retrieval_route_order,
+    fabric_write_fallback_order: boundary.write_fallback_order
+  };
+}
+
 export function resolveRuntimeMemoryBoundary(
   namespace: ActiveRuntimeMemoryNamespace | null | undefined
 ): RuntimeMemoryBoundary {
@@ -426,6 +471,13 @@ export function resolveRuntimeMemoryBoundary(
         governance_plane_alignment_mode: "thread_plane_aligned",
         governance_plane_reuse_mode:
           "thread_focus_governance_plane_reuse",
+        governance_fabric_runtime_digest_id:
+          "thread_focus_governance_fabric",
+        governance_fabric_runtime_summary:
+          "thread_focus_governance_fabric_runtime",
+        governance_fabric_alignment_mode: "thread_fabric_aligned",
+        governance_fabric_reuse_mode:
+          "thread_focus_governance_fabric_reuse",
         retrieval_write_digest_alignment: "thread_strict_outward_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode"],
         write_fallback_order: ["thread", "project", "world", "default"],
@@ -478,6 +530,13 @@ export function resolveRuntimeMemoryBoundary(
         governance_plane_alignment_mode: "project_plane_aligned",
         governance_plane_reuse_mode:
           "project_coordination_governance_plane_reuse",
+        governance_fabric_runtime_digest_id:
+          "project_coordination_governance_fabric",
+        governance_fabric_runtime_summary:
+          "project_coordination_governance_fabric_runtime",
+        governance_fabric_alignment_mode: "project_fabric_aligned",
+        governance_fabric_reuse_mode:
+          "project_coordination_governance_fabric_reuse",
         retrieval_write_digest_alignment:
           "project_parallel_balanced_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
@@ -531,6 +590,13 @@ export function resolveRuntimeMemoryBoundary(
         governance_plane_alignment_mode: "world_plane_aligned",
         governance_plane_reuse_mode:
           "world_reference_governance_plane_reuse",
+        governance_fabric_runtime_digest_id:
+          "world_reference_governance_fabric",
+        governance_fabric_runtime_summary:
+          "world_reference_governance_fabric_runtime",
+        governance_fabric_alignment_mode: "world_fabric_aligned",
+        governance_fabric_reuse_mode:
+          "world_reference_governance_fabric_reuse",
         retrieval_write_digest_alignment: "world_reference_pinned_aligned",
         retrieval_route_order: ["thread_state", "profile", "timeline", "episode"],
         write_fallback_order: ["world", "default"],
@@ -581,6 +647,13 @@ export function resolveRuntimeMemoryBoundary(
         governance_plane_alignment_mode: "default_plane_aligned",
         governance_plane_reuse_mode:
           "default_memory_governance_plane_reuse",
+        governance_fabric_runtime_digest_id:
+          "default_memory_governance_fabric",
+        governance_fabric_runtime_summary:
+          "default_memory_governance_fabric_runtime",
+        governance_fabric_alignment_mode: "default_fabric_aligned",
+        governance_fabric_reuse_mode:
+          "default_memory_governance_fabric_reuse",
         retrieval_write_digest_alignment: "default_balanced_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
         write_fallback_order: ["default"],
@@ -655,6 +728,14 @@ export function buildMemoryNamespaceScopedMetadata(args: {
       boundary.governance_plane_alignment_mode,
     active_memory_namespace_governance_plane_reuse_mode:
       boundary.governance_plane_reuse_mode,
+    active_memory_namespace_governance_fabric_runtime_digest_id:
+      boundary.governance_fabric_runtime_digest_id,
+    active_memory_namespace_governance_fabric_runtime_summary:
+      boundary.governance_fabric_runtime_summary,
+    active_memory_namespace_governance_fabric_alignment_mode:
+      boundary.governance_fabric_alignment_mode,
+    active_memory_namespace_governance_fabric_reuse_mode:
+      boundary.governance_fabric_reuse_mode,
     active_memory_namespace_retrieval_write_digest_alignment:
       boundary.retrieval_write_digest_alignment,
     active_memory_retrieval_boundary: boundary.retrieval_boundary,

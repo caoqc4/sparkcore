@@ -104,6 +104,14 @@ function buildRuntimeMemoryWriteRequestPreview(
         target.namespaceGovernancePlaneAlignmentMode,
       namespace_governance_plane_reuse_mode:
         target.namespaceGovernancePlaneReuseMode,
+      namespace_governance_fabric_runtime_digest_id:
+        target.namespaceGovernanceFabricRuntimeDigestId,
+      namespace_governance_fabric_runtime_summary:
+        target.namespaceGovernanceFabricRuntimeSummary,
+      namespace_governance_fabric_alignment_mode:
+        target.namespaceGovernanceFabricAlignmentMode,
+      namespace_governance_fabric_reuse_mode:
+        target.namespaceGovernanceFabricReuseMode,
       retrieval_write_digest_alignment:
         target.retrievalWriteDigestAlignment,
       thread_state_candidate:

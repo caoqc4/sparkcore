@@ -1193,6 +1193,74 @@ export function getAssistantMemoryNamespaceGovernancePlaneReuseMode(
   );
 }
 
+export function getAssistantMemoryNamespaceGovernanceFabricRuntimeDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_fabric_runtime_digest_id"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_fabric_runtime_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernanceFabricRuntimeSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_fabric_runtime_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_fabric_runtime_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernanceFabricAlignmentMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_fabric_alignment_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_fabric_alignment_mode"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernanceFabricReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_fabric_reuse_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_fabric_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
   metadata: Record<string, unknown> | null | undefined
 ) {
