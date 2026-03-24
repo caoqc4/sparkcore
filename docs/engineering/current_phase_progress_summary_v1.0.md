@@ -1427,3 +1427,7 @@
 当前正式 `close-readiness` 判断请以
 [memory_upgrade_p10_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p10_close_readiness_v1.0.md)
 为准。
+
+当前更收紧的判断是：
+
+- `P10` 已进入 **`close-readiness` 后段 / close-ready 前夕**
