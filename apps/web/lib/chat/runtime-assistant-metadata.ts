@@ -5,6 +5,7 @@ import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type {
   ReplyLanguageSource,
+  RoleCoreMemoryCloseNoteHandoffPacket,
   RoleCorePacket,
   RuntimeReplyLanguage,
 } from "@/lib/chat/role-core";
@@ -44,6 +45,7 @@ export type BuildRuntimeAssistantMetadataInput = {
   };
   runtime: {
     role_core_packet: RoleCorePacket;
+    role_core_close_note_handoff_packet?: RoleCoreMemoryCloseNoteHandoffPacket | null;
     runtime_input: RuntimeTurnInput;
     session_thread_id: string;
     session_agent_id: string;
@@ -127,6 +129,8 @@ export function buildRuntimeAssistantMetadataInput(
     model_profile_usage_note: input.model.profile_usage_note,
     underlying_model_label: input.model.underlying_label,
     role_core_packet: input.runtime.role_core_packet,
+    role_core_close_note_handoff_packet:
+      input.runtime.role_core_close_note_handoff_packet ?? null,
     runtime_input: input.runtime.runtime_input,
     session_thread_id: input.runtime.session_thread_id,
     session_agent_id: input.runtime.session_agent_id,

@@ -1,6 +1,11 @@
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
-import type { ReplyLanguageSource, RoleCorePacket, RuntimeReplyLanguage } from "@/lib/chat/role-core";
+import type {
+  ReplyLanguageSource,
+  RoleCoreMemoryCloseNoteHandoffPacket,
+  RoleCorePacket,
+  RuntimeReplyLanguage
+} from "@/lib/chat/role-core";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
 import type { ScenarioMemoryLayer, ScenarioMemoryRoute } from "../../../../packages/core/memory";
@@ -215,6 +220,7 @@ export type BuildAssistantMessageMetadataInput = {
   model_profile_usage_note: string | null;
   underlying_model_label: string;
   role_core_packet: RoleCorePacket;
+  role_core_close_note_handoff_packet?: RoleCoreMemoryCloseNoteHandoffPacket | null;
   runtime_input: RuntimeTurnInput;
   session_thread_id: string;
   session_agent_id: string;
@@ -1181,6 +1187,8 @@ export function buildAssistantMessageMetadata(
     model_requested: input.model_requested,
     model_profile_id: input.model_profile_id,
     role_core_packet: input.role_core_packet,
+    role_core_close_note_handoff_packet:
+      input.role_core_close_note_handoff_packet ?? null,
     question_type: input.question_type,
     answer_strategy: input.answer_strategy,
     answer_strategy_reason_code: input.answer_strategy_reason_code,
@@ -1206,6 +1214,8 @@ export function buildAssistantMessageMetadata(
     ...buildAssistantMetadataSummaryGroups(input),
     developer_diagnostics: {
       role_core_packet: input.role_core_packet,
+      role_core_close_note_handoff_packet:
+        input.role_core_close_note_handoff_packet ?? null,
       prepared_runtime_turn: {
         input: input.runtime_input,
         session: {

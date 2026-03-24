@@ -1336,6 +1336,27 @@ function main() {
       scenario_orchestration_mode: scenarioMemoryPack.orchestration_mode
     }
   });
+  const p17CloseNoteReadinessSnapshot = {
+    readinessJudgment: "close_ready",
+    progressRange: "40% - 45%",
+    closeCandidate: true,
+    closeNoteRecommended: true,
+    blockingItems: [] as string[],
+    nonBlockingItems: [
+      "runtime_close_note_packet_consumption",
+      "packet_prompt_surface_alignment",
+      "close_note_acceptance_structuring"
+    ] as const,
+    tailCandidateItems: [
+      "packet_output_symmetry_cleanup",
+      "non_blocking_packet_negative_coverage",
+      "close_note_tail_cleanup_alignment"
+    ] as const
+  } as const;
+  const p17CloseNoteHandoffPacket = buildRoleCoreMemoryCloseNoteHandoffPacket({
+    roleCorePacket: roleCorePacketForHarness,
+    ...p17CloseNoteReadinessSnapshot
+  });
   expect(
     compactedThreadSummary?.lifecycle_convergence_digest ===
       "anchor_preservation_convergence" &&
@@ -1415,6 +1436,7 @@ function main() {
       },
       runtime: {
         role_core_packet: roleCorePacketForHarness,
+        role_core_close_note_handoff_packet: p17CloseNoteHandoffPacket,
         runtime_input: buildRuntimeTurnInput({
           userId: "user-1",
           agentId: "agent-1",
@@ -1517,7 +1539,8 @@ function main() {
     scenario_memory_pack: scenarioMemoryPack,
     relevant_knowledge: runtimeKnowledge,
     active_memory_namespace: activeMemoryNamespace,
-    compacted_thread_summary: compactedThreadSummary
+    compacted_thread_summary: compactedThreadSummary,
+    role_core_close_note_handoff_packet: p17CloseNoteHandoffPacket
   });
   const runtimeDebugPack = runtimeDebugMetadata.memory.pack as
     | (NonNullable<typeof runtimeDebugMetadata.memory.pack> & {
@@ -1533,6 +1556,17 @@ function main() {
       role_core_packet?: typeof roleCorePacketForHarness;
     };
   }).developer_diagnostics?.role_core_packet;
+  const assistantCloseNoteHandoffPacket = (assistantMetadata as {
+    role_core_close_note_handoff_packet?: typeof p17CloseNoteHandoffPacket;
+  }).role_core_close_note_handoff_packet;
+  const assistantDiagnosticCloseNoteHandoffPacket = (assistantMetadata as {
+    developer_diagnostics?: {
+      role_core_close_note_handoff_packet?: typeof p17CloseNoteHandoffPacket;
+    };
+  }).developer_diagnostics?.role_core_close_note_handoff_packet;
+  const runtimeDebugCloseNoteHandoffPacket = (runtimeDebugMetadata.memory as {
+    close_note_handoff_packet?: typeof p17CloseNoteHandoffPacket;
+  }).close_note_handoff_packet;
   expect(
     getAssistantMemoryPrimarySemanticLayer(assistantMetadata) === "thread_state",
     "Expected assistant metadata reader to expose thread_state as primary semantic layer."
@@ -1809,7 +1843,8 @@ function main() {
       last_user_message_id: "msg-1",
       last_assistant_message_id: "msg-2",
       updated_at: "2026-03-23T00:00:00.000Z"
-    }
+    },
+    p17CloseNoteHandoffPacket
   );
   expect(
     systemPrompt.includes("focus_mode = Finish the onboarding checklist this week."),
@@ -5104,41 +5139,6 @@ function main() {
       close_candidate: p16RegressionGate.close_candidate
     }
   } as const;
-  const p17CloseNoteReadinessSnapshot = {
-    readinessJudgment: "close_ready",
-    progressRange: "30% - 35%",
-    closeCandidate: p16RegressionGate.close_candidate,
-    closeNoteRecommended: true,
-    blockingItems: [] as string[],
-    nonBlockingItems: [
-      "runtime_close_note_packet_consumption",
-      "packet_prompt_surface_alignment",
-      "close_note_acceptance_structuring"
-    ] as const,
-    tailCandidateItems: [
-      "packet_output_symmetry_cleanup",
-      "non_blocking_packet_negative_coverage",
-      "close_note_tail_cleanup_alignment"
-    ] as const
-  } as const;
-  const p17CloseNoteHandoffPacket = buildRoleCoreMemoryCloseNoteHandoffPacket({
-    roleCorePacket: roleCorePacketForHarness,
-    ...p17CloseNoteReadinessSnapshot
-  });
-  const p17AssistantCloseNoteHandoffPacket =
-    assistantRoleCorePacket
-      ? buildRoleCoreMemoryCloseNoteHandoffPacket({
-          roleCorePacket: assistantRoleCorePacket,
-          ...p17CloseNoteReadinessSnapshot
-        })
-      : null;
-  const p17DiagnosticCloseNoteHandoffPacket =
-    assistantDiagnosticRoleCorePacket
-      ? buildRoleCoreMemoryCloseNoteHandoffPacket({
-          roleCorePacket: assistantDiagnosticRoleCorePacket,
-          ...p17CloseNoteReadinessSnapshot
-        })
-      : null;
   const p17CloseNotePrompt = buildRoleCoreMemoryCloseNoteHandoffPrompt(
     p17CloseNoteHandoffPacket,
     "en"
@@ -5153,7 +5153,7 @@ function main() {
       p17CloseNoteHandoffPacket.progress_range ===
         p17CloseNoteReadinessSnapshot.progressRange &&
       p17CloseNoteHandoffPacket.close_candidate ===
-        p16RegressionGate.close_candidate &&
+        p17CloseNoteReadinessSnapshot.closeCandidate &&
       p17CloseNoteHandoffPacket.close_note_recommended ===
         p17CloseNoteReadinessSnapshot.closeNoteRecommended &&
       p17CloseNoteHandoffPacket.blocking_items.length === 0 &&
@@ -5192,54 +5192,54 @@ function main() {
         "close_note_tail_cleanup_alignment"
       ),
     role_core_memory_close_note_handoff_metadata_consistency_v1_ok:
-      p17AssistantCloseNoteHandoffPacket?.packet_version === "v1" &&
-      p17DiagnosticCloseNoteHandoffPacket?.packet_version === "v1" &&
-      p17AssistantCloseNoteHandoffPacket.readiness_judgment ===
+      assistantCloseNoteHandoffPacket?.packet_version === "v1" &&
+      assistantDiagnosticCloseNoteHandoffPacket?.packet_version === "v1" &&
+      assistantCloseNoteHandoffPacket.readiness_judgment ===
         p17CloseNoteHandoffPacket?.readiness_judgment &&
-      p17AssistantCloseNoteHandoffPacket.progress_range ===
+      assistantCloseNoteHandoffPacket.progress_range ===
         p17CloseNoteHandoffPacket?.progress_range &&
-      p17AssistantCloseNoteHandoffPacket.close_candidate ===
+      assistantCloseNoteHandoffPacket.close_candidate ===
         p17CloseNoteHandoffPacket?.close_candidate &&
-      p17AssistantCloseNoteHandoffPacket.close_note_recommended ===
+      assistantCloseNoteHandoffPacket.close_note_recommended ===
         p17CloseNoteHandoffPacket?.close_note_recommended &&
-      p17AssistantCloseNoteHandoffPacket.namespace.phase_snapshot_id ===
+      assistantCloseNoteHandoffPacket.namespace.phase_snapshot_id ===
         p17CloseNoteHandoffPacket?.namespace.phase_snapshot_id &&
-      p17AssistantCloseNoteHandoffPacket.retention.phase_snapshot_id ===
+      assistantCloseNoteHandoffPacket.retention.phase_snapshot_id ===
         p17CloseNoteHandoffPacket?.retention.phase_snapshot_id &&
-      p17AssistantCloseNoteHandoffPacket.retention.retained_fields.join(",") ===
+      assistantCloseNoteHandoffPacket.retention.retained_fields.join(",") ===
         p17CloseNoteHandoffPacket?.retention.retained_fields.join(",") &&
-      p17AssistantCloseNoteHandoffPacket.knowledge.phase_snapshot_id ===
+      assistantCloseNoteHandoffPacket.knowledge.phase_snapshot_id ===
         p17CloseNoteHandoffPacket?.knowledge.phase_snapshot_id &&
-      p17AssistantCloseNoteHandoffPacket.knowledge.scope_layers.join(",") ===
+      assistantCloseNoteHandoffPacket.knowledge.scope_layers.join(",") ===
         p17CloseNoteHandoffPacket?.knowledge.scope_layers.join(",") &&
-      p17AssistantCloseNoteHandoffPacket.knowledge.governance_classes.join(
+      assistantCloseNoteHandoffPacket.knowledge.governance_classes.join(
         ","
       ) === p17CloseNoteHandoffPacket?.knowledge.governance_classes.join(",") &&
-      p17AssistantCloseNoteHandoffPacket.scenario.phase_snapshot_id ===
+      assistantCloseNoteHandoffPacket.scenario.phase_snapshot_id ===
         p17CloseNoteHandoffPacket?.scenario.phase_snapshot_id &&
-      p17AssistantCloseNoteHandoffPacket.scenario.strategy_bundle_id ===
+      assistantCloseNoteHandoffPacket.scenario.strategy_bundle_id ===
         p17CloseNoteHandoffPacket?.scenario.strategy_bundle_id &&
-      p17AssistantCloseNoteHandoffPacket.scenario.orchestration_mode ===
+      assistantCloseNoteHandoffPacket.scenario.orchestration_mode ===
         p17CloseNoteHandoffPacket?.scenario.orchestration_mode &&
-      p17DiagnosticCloseNoteHandoffPacket.readiness_judgment ===
+      assistantDiagnosticCloseNoteHandoffPacket.readiness_judgment ===
         p17CloseNoteHandoffPacket?.readiness_judgment &&
-      p17DiagnosticCloseNoteHandoffPacket.progress_range ===
+      assistantDiagnosticCloseNoteHandoffPacket.progress_range ===
         p17CloseNoteHandoffPacket?.progress_range &&
-      p17DiagnosticCloseNoteHandoffPacket.namespace.phase_snapshot_summary ===
+      assistantDiagnosticCloseNoteHandoffPacket.namespace.phase_snapshot_summary ===
         p17CloseNoteHandoffPacket?.namespace.phase_snapshot_summary &&
-      p17DiagnosticCloseNoteHandoffPacket.retention.phase_snapshot_summary ===
+      assistantDiagnosticCloseNoteHandoffPacket.retention.phase_snapshot_summary ===
         p17CloseNoteHandoffPacket?.retention.phase_snapshot_summary &&
-      p17DiagnosticCloseNoteHandoffPacket.retention.decision_group ===
+      assistantDiagnosticCloseNoteHandoffPacket.retention.decision_group ===
         p17CloseNoteHandoffPacket?.retention.decision_group &&
-      p17DiagnosticCloseNoteHandoffPacket.knowledge.phase_snapshot_summary ===
+      assistantDiagnosticCloseNoteHandoffPacket.knowledge.phase_snapshot_summary ===
         p17CloseNoteHandoffPacket?.knowledge.phase_snapshot_summary &&
-      p17DiagnosticCloseNoteHandoffPacket.knowledge.scope_layers.join(",") ===
+      assistantDiagnosticCloseNoteHandoffPacket.knowledge.scope_layers.join(",") ===
         p17CloseNoteHandoffPacket?.knowledge.scope_layers.join(",") &&
-      p17DiagnosticCloseNoteHandoffPacket.scenario.phase_snapshot_summary ===
+      assistantDiagnosticCloseNoteHandoffPacket.scenario.phase_snapshot_summary ===
         p17CloseNoteHandoffPacket?.scenario.phase_snapshot_summary &&
-      p17DiagnosticCloseNoteHandoffPacket.scenario.strategy_bundle_id ===
+      assistantDiagnosticCloseNoteHandoffPacket.scenario.strategy_bundle_id ===
         p17CloseNoteHandoffPacket?.scenario.strategy_bundle_id &&
-      p17DiagnosticCloseNoteHandoffPacket.scenario.orchestration_mode ===
+      assistantDiagnosticCloseNoteHandoffPacket.scenario.orchestration_mode ===
         p17CloseNoteHandoffPacket?.scenario.orchestration_mode,
     role_core_memory_close_note_handoff_prompt_surface_v1_ok:
       p17CloseNotePrompt.includes("Role core close-note handoff") &&
@@ -5263,6 +5263,24 @@ function main() {
       ) &&
       p17CloseNotePrompt.includes(
         p17CloseNoteHandoffPacket?.non_blocking_items.join(", ") ?? ""
+      ),
+    role_core_memory_close_note_handoff_runtime_consumption_v1_ok:
+      runtimeDebugCloseNoteHandoffPacket?.packet_version === "v1" &&
+      runtimeDebugCloseNoteHandoffPacket.readiness_judgment ===
+        p17CloseNoteHandoffPacket?.readiness_judgment &&
+      runtimeDebugCloseNoteHandoffPacket.progress_range ===
+        p17CloseNoteHandoffPacket?.progress_range &&
+      runtimeDebugCloseNoteHandoffPacket.namespace.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.namespace.phase_snapshot_id &&
+      runtimeDebugCloseNoteHandoffPacket.retention.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.retention.phase_snapshot_id &&
+      runtimeDebugCloseNoteHandoffPacket.knowledge.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.knowledge.phase_snapshot_id &&
+      runtimeDebugCloseNoteHandoffPacket.scenario.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.scenario.phase_snapshot_id &&
+      systemPrompt.includes("Role core close-note handoff") &&
+      systemPrompt.includes(
+        p17CloseNoteHandoffPacket?.readiness_judgment ?? ""
       )
   } as const;
   const p17PositiveContracts = summarizeGate({
@@ -5275,7 +5293,9 @@ function main() {
   });
   const p17PacketConsumption = summarizeGate({
     role_core_memory_close_note_handoff_prompt_surface_v1_ok:
-      p17CloseNoteHandoffPacketChecks.role_core_memory_close_note_handoff_prompt_surface_v1_ok
+      p17CloseNoteHandoffPacketChecks.role_core_memory_close_note_handoff_prompt_surface_v1_ok,
+    role_core_memory_close_note_handoff_runtime_consumption_v1_ok:
+      p17CloseNoteHandoffPacketChecks.role_core_memory_close_note_handoff_runtime_consumption_v1_ok
   });
   const p17RegressionGate = {
     positive_contracts: p17PositiveContracts,

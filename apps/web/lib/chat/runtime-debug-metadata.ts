@@ -1,6 +1,7 @@
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type { RuntimeThreadStateRecall } from "@/lib/chat/memory-recall";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
+import type { RoleCoreMemoryCloseNoteHandoffPacket } from "@/lib/chat/role-core";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
 import {
   resolveScenarioGovernanceFabricPlanePhaseSnapshot,
@@ -38,6 +39,7 @@ export type BuildRuntimeDebugMetadataInput = {
   relevant_knowledge?: RuntimeKnowledgeSnippet[];
   active_memory_namespace?: ActiveRuntimeMemoryNamespace | null;
   compacted_thread_summary?: CompactedThreadSummary | null;
+  role_core_close_note_handoff_packet?: RoleCoreMemoryCloseNoteHandoffPacket | null;
 };
 
 export function buildRuntimeDebugMetadata(
@@ -78,6 +80,8 @@ export function buildRuntimeDebugMetadata(
         threadStateFocusMode: input.thread_state_recall?.snapshot?.focus_mode ?? null,
         semanticLayersUsed: input.memory_semantic_layers
       }),
+      close_note_handoff_packet:
+        input.role_core_close_note_handoff_packet ?? null,
       pack: input.scenario_memory_pack
         ? {
             pack_id: input.scenario_memory_pack.pack_id,

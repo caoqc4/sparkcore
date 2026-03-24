@@ -2602,7 +2602,8 @@ function buildAgentSystemPromptInternal(
     preferredNameMemory: null
   },
   threadContinuityPrompt = "",
-  threadState: ThreadStateRecord | null = null
+  threadState: ThreadStateRecord | null = null,
+  closeNoteHandoffPacket: RoleCoreMemoryCloseNoteHandoffPacket | null = null
 ) {
   const activePack = resolveActiveScenarioMemoryPack({
     activeNamespace: activeMemoryNamespace ?? null,
@@ -2652,6 +2653,10 @@ function buildAgentSystemPromptInternal(
       replyLanguage
     }),
     buildRoleCoreMemoryHandoffPrompt(roleCorePacket, replyLanguage),
+    buildRoleCoreMemoryCloseNoteHandoffPrompt(
+      closeNoteHandoffPacket,
+      replyLanguage
+    ),
     agentSystemPrompt,
     buildMemoryRecallPrompt(
       latestUserMessage,
@@ -2967,7 +2972,8 @@ export function buildAgentSystemPrompt(
     preferredNameMemory: null
   },
   threadContinuityPrompt = "",
-  threadState: ThreadStateRecord | null = null
+  threadState: ThreadStateRecord | null = null,
+  closeNoteHandoffPacket: RoleCoreMemoryCloseNoteHandoffPacket | null = null
 ) {
   return buildAgentSystemPromptInternal(
     roleCorePacket,
@@ -2980,7 +2986,8 @@ export function buildAgentSystemPrompt(
     replyLanguage,
     relationshipRecall,
     threadContinuityPrompt,
-    threadState
+    threadState,
+    closeNoteHandoffPacket
   );
 }
 
