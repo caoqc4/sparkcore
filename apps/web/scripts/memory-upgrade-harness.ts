@@ -4391,6 +4391,40 @@ function main() {
         ?.namespace_governance_fabric_plane_phase_snapshot_consumption_mode ===
         projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode
   } as const;
+  const p15PositiveContracts = summarizeGate(
+    p15NamespaceGovernancePlaneContractChecks
+  );
+  const p15RegressionGateChecks = {
+    ...p15NamespaceGovernancePlaneContractChecks
+  } as const;
+  const p15RegressionGateSummary = summarizeGate(p15RegressionGateChecks);
+  const p15RegressionGate = {
+    positive_contracts: p15PositiveContracts,
+    ...p15RegressionGateSummary
+  } as const;
+  const p15GateSnapshot = {
+    gate_id: "p15_regression_gate_v1",
+    stage: "P15-5",
+    focus: "regression_acceptance_continuation",
+    blocking_items: [] as string[],
+    next_expansion_focus: [
+      "retention_phase_snapshot",
+      "knowledge_phase_snapshot",
+      "scenario_phase_snapshot"
+    ] as const,
+    positive_contracts: {
+      checks_passed: p15PositiveContracts.checks_passed,
+      checks_total: p15PositiveContracts.checks_total,
+      all_green: p15PositiveContracts.all_green
+    },
+    overall: {
+      checks_passed: p15RegressionGate.checks_passed,
+      checks_total: p15RegressionGate.checks_total,
+      failed_checks: p15RegressionGate.failed_checks,
+      all_green: p15RegressionGate.all_green,
+      close_candidate: p15RegressionGate.close_candidate
+    }
+  } as const;
 
   const p12RegressionGateChecks = {
     ...p12NamespaceGovernancePlaneChecks,
@@ -5511,6 +5545,8 @@ function main() {
           p14ScenarioGovernanceFabricPlaneChecks,
         p15_namespace_governance_plane_contract:
           p15NamespaceGovernancePlaneContractChecks,
+        p15_regression_gate: p15RegressionGate,
+        p15_gate_snapshot: p15GateSnapshot,
         p14_regression_gate: p14RegressionGate,
         p14_gate_snapshot: p14GateSnapshot,
         p13_regression_gate: p13RegressionGate,

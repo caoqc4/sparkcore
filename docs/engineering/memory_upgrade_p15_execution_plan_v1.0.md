@@ -154,7 +154,8 @@ P15 首批必须继续让阶段 gate 跟着主线生长，而不是等 phase-lev
 - `P15-4`
   - 待开始
 - `P15-5`
-  - 待开始
+  - 已开始
+  - 第一版 gate 雏形已建立
 
 整体 `P15` 当前大约：
 
@@ -180,6 +181,10 @@ P15 首批必须继续让阶段 gate 跟着主线生长，而不是等 phase-lev
   - [runtime-debug-metadata.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime-debug-metadata.ts) 已把 namespace phase snapshot 接入 `memory_namespace` debug surface
   - [runtime-preview-metadata.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime-preview-metadata.ts) 与 [memory-write-targets.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-write-targets.ts) 已把这组 phase snapshot 字段接入 write preview / target routing
   - [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 已新增 `p15_namespace_governance_plane_contract.namespace_governance_plane_contract_unification_v1_ok`
+- `P15-5 Regression / acceptance continuation` 的第一刀当前也已经成立：
+  - [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 已新增 `p15_regression_gate`
+  - [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已新增 `p15_gate_snapshot`
+  - 当前 gate 轻量快照请以 [memory_upgrade_p15_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_gate_snapshot_v1.0.md) 为准
   - 当前基础验证已通过：
     - `pnpm --filter @sparkcore/web memory:upgrade:harness`
     - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`

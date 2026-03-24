@@ -184,6 +184,17 @@
   - 当前基础验证已通过：
     - `pnpm --filter @sparkcore/web memory:upgrade:harness`
     - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`
+- `P15-5 regression / acceptance continuation` 当前已开始建立第一版 gate 雏形：
+  - `memory-upgrade-harness.ts` 当前已新增 `p15_regression_gate`
+  - `memory-upgrade-harness.ts` 当前也已新增 `p15_gate_snapshot`
+  - 当前 gate 轻量快照请以
+    [memory_upgrade_p15_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_gate_snapshot_v1.0.md)
+    为准
+  - 当前 `p15_gate_snapshot`：
+    - `positive_contracts = 1 / 1`
+    - `overall = 1 / 1`
+  - 当前 gate 已锁住：
+    - namespace governance plane contract unification v1
 
 ---
 
