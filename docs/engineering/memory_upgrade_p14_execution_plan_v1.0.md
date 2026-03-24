@@ -26,6 +26,7 @@
 - [memory_upgrade_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_execution_plan_v1.0.md)
 - [memory_upgrade_p14_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_gate_snapshot_v1.0.md)
 - [memory_upgrade_p14_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_close_readiness_v1.0.md)
+- [memory_upgrade_p14_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_close_note_v1.0.md)
 
 ---
 
@@ -191,7 +192,7 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
   - scenario governance fabric plane v12 第一刀已成立
 - `P14-5`
   - 已开始
-  - 第一版正式 gate 已建立
+  - 已达到 `close-ready / 可收官`
 
 整体 `P14` 当前大约：
 
@@ -199,7 +200,7 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
 
 当前更推荐的下一步：
 
-- **开始 `P14 close-readiness` 的最后一轮阶段判断收束，而不是继续横向扩很多新 gate**
+- **开始下一阶段执行文档 / 第一批任务拆解，而不是继续回头补 `P14` 主目标成立证明**
 
 ---
 
@@ -269,9 +270,13 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
     为准
   - 当前结论是：
     - `P14` 已进入 `close-readiness` 判断区间
-    - 但暂时还不建议直接写 `P14 close note`
-- 下一步最合理的是围绕 `P14-5` 做最后一轮阶段判断收束，而不是回到单线平推阶段
+    - 且当前已经达到 `close-ready / 可收官`
+- `P14 close note` 的正式结论当前已经成立：
+  - 当前正式结论请以
+    [memory_upgrade_p14_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_close_note_v1.0.md)
+    为准
+- 下一步最合理的是开始下一阶段执行文档 / 第一批任务拆解，而不是回到单线平推阶段
 
 当前正式阶段判断请以
-[memory_upgrade_p14_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_close_readiness_v1.0.md)
+[memory_upgrade_p14_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_close_note_v1.0.md)
 为准。

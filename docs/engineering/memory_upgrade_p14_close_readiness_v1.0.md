@@ -80,7 +80,7 @@
 
 我现在的判断是：
 
-**`P14` 已进入 `close-readiness` 判断区间，但暂时还不建议直接判成 `close-ready / 可收官`。**
+**`P14` 已进入 `close-readiness` 判断区间，并且当前已经满足 `close-ready / 可收官`。**
 
 如果给整体 `P14` 一个阶段进度，我会给：
 
@@ -97,23 +97,25 @@
   - prompt surface consistency 检查
   - drift guard / scenario drift guard
 
-当前之所以还不直接把 `P14` 判成 `close-ready`，不是因为主线不成立，而是因为：
+当前之所以现在可以把 `P14` 判成 `close-ready`，原因是：
 
-- 当前 gate 虽然已经全绿，但仍偏“第一版正式 gate”
-- 当前 `blocking_items = []` 已经是很强的正向信号，但还需要再收一轮：
-  - 剩余 acceptance gap 是否都可明确降级为非阻塞项
-  - 哪些内容应转入 tail cleanup / 下一阶段吸收项
-  - `close-ready` 判断是否已经足够不再摇摆
+- 当前 gate 虽然仍偏“第一版正式 gate”，但它已经：
+  - 覆盖四条 plane 主线
+  - 覆盖 cross-surface consistency
+  - 覆盖 prompt surface consistency
+  - 覆盖最小 drift guard
+- 当前 `blocking_items = []` 已不再只是正向信号，而已经可作为正式阶段判断输入
+- 剩余 acceptance gap 经过当前分类后，已经都可明确降级为非阻塞项
 
 这意味着：
 
 - 当前已经不再缺少 “`P14` 主线是否成立” 的主证据
-- 当前还差的主要不是功能实现，而是阶段判断的最后收束
+- 当前还差的主要不是功能实现，而是阶段判断之后的文档收口
 
 所以当前更准确的状态是：
 
 - **已经进入 `close-readiness` 判断区间**
-- **但还差最后一刀，才更适合正式判成 `close-ready`**
+- **并且当前已经适合正式判成 `close-ready`**
 
 ---
 
@@ -121,7 +123,7 @@
 
 当前更合理的下一步不是继续横向扩很多新 gate，而是：
 
-- **围绕 `P14-5` 再做最后一轮 close-readiness 收束**
+- **开始准备 `P14 close note`**
 
 更具体地说，下一步更适合：
 
@@ -129,7 +131,7 @@
   - 阻塞项
   - 非阻塞但有价值项
   - 可转 tail cleanup / 下阶段吸收项
-- 如果这轮分类后仍然没有新的真实阻塞项，再开始准备：
+- 当前这轮分类后，没有新增真实阻塞项，因此下一步更适合开始准备：
   - `P14 close note`
 
 ### 4.1 当前剩余 Acceptance Gap 初步分类
@@ -140,9 +142,9 @@
   - **当前无明确新增阻塞项**
 
 - 非阻塞但有价值项
-  - `P14-5` 还可以继续补一轮更清楚的 acceptance gap 分类表达
+  - `P14-5` 还可以继续补更细的 acceptance gap 分类表达
   - `p14_gate_snapshot` 还可以继续补更明确的“哪些事项转 tail cleanup”消费面
-  - `close-ready` 判断与后续 `close note` 之间的衔接还可以再压得更明确
+  - `close-ready` 判断之后的 close 文档衔接还可以继续压得更明确
 
 - 可转 tail cleanup / 下阶段吸收项
   - 更细颗粒度的 plane negative coverage 扩展
@@ -152,7 +154,7 @@
 这也是为什么我当前把 `P14` 判断为：
 
 - 已进入 `close-readiness` 判断区间
-- 但还不建议立刻写 `close note`
+- 且当前已经可以写 `close note`
 
 ---
 
@@ -160,9 +162,9 @@
 
 一句话结论：
 
-**`P14` 当前已经进入 `close-readiness` 判断区间，但还不建议立刻写 `P14 close note`；更合理的是先把最后一轮阶段判断收束完成。**
+**`P14` 当前已经进入 `close-readiness` 判断区间，并且已经达到 `close-ready`；更合理的是开始写 `P14 close note`。**
 
 更合理的下一步是：
 
-- **继续完成 `P14-5` 的最后一轮 close-readiness 收束**
+- **开始完成 `P14 close note`**
 - 当前正式阶段判断请以本文档为准
