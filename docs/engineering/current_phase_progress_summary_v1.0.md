@@ -83,6 +83,10 @@
   - prompt / assistant metadata / runtime debug 当前都已开始复用这层 fabric contract
 - `P13-5 regression / acceptance expansion` 已开始建立第一版正式 gate：
   - `memory-upgrade-harness.ts` 当前已新增 `p13_regression_gate`
+  - gate 当前已开始按三层 acceptance 面输出：
+    - `positive_contracts`
+    - `metadata_consistency`
+    - `drift_guards`
   - gate 当前已锁住：
     - namespace governance fabric runtime v8
     - retention lifecycle governance fabric v11

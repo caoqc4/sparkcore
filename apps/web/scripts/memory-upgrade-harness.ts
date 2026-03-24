@@ -201,6 +201,21 @@ function expect(condition: unknown, message: string): asserts condition {
   }
 }
 
+function summarizeGate<T extends Record<string, boolean | undefined>>(checks: T) {
+  const failedChecks = Object.entries(checks).flatMap(([check, passed]) =>
+    passed === true ? [] : [check]
+  );
+
+  return {
+    ...checks,
+    checks_passed: Object.keys(checks).length - failedChecks.length,
+    checks_total: Object.keys(checks).length,
+    failed_checks: failedChecks,
+    all_green: failedChecks.length === 0,
+    close_candidate: failedChecks.length === 0
+  } as const;
+}
+
 function createStoredMemory(
   overrides: Partial<StoredMemory> & Pick<StoredMemory, "id" | "content">
 ): StoredMemory {
@@ -3695,11 +3710,13 @@ function main() {
         scenarioMemoryPack.governance_fabric_reuse_mode
   } as const;
 
-  const p13RegressionGateChecks = {
+  const p13PositiveContractChecks = {
     ...p13NamespaceGovernanceFabricChecks,
     ...p13RetentionGovernanceFabricChecks,
     ...p13KnowledgeGovernanceFabricChecks,
-    ...p13ScenarioGovernanceFabricChecks,
+    ...p13ScenarioGovernanceFabricChecks
+  } as const;
+  const p13MetadataConsistencyChecks = {
     fabric_metadata_consistency_v11_ok:
       getAssistantMemoryNamespaceGovernanceFabricRuntimeDigestId(
         assistantMetadata
@@ -3771,7 +3788,9 @@ function main() {
       ) === runtimeDebugPack?.orchestration_governance_fabric_mode &&
       getAssistantMemoryScenarioPackGovernanceFabricReuseMode(
         assistantMetadata
-      ) === runtimeDebugPack?.governance_fabric_reuse_mode,
+      ) === runtimeDebugPack?.governance_fabric_reuse_mode
+  } as const;
+  const p13DriftGuardChecks = {
     fabric_drift_guard_v11_ok:
       threadBoundary.retrieval_fallback_mode === "strict_no_timeline" &&
       threadScopedRoutes.join(",") === "thread_state,profile,episode" &&
@@ -3843,18 +3862,20 @@ function main() {
       runtimeDebugPack?.governance_fabric_digest_id ===
         scenarioMemoryPack.governance_fabric_digest_id
   } as const;
-  const p13RegressionGateFailedChecks = Object.entries(
-    p13RegressionGateChecks
-  ).flatMap(([check, passed]) => (passed ? [] : [check]));
+  const p13PositiveContracts = summarizeGate(p13PositiveContractChecks);
+  const p13MetadataConsistency = summarizeGate(p13MetadataConsistencyChecks);
+  const p13DriftGuards = summarizeGate(p13DriftGuardChecks);
+  const p13RegressionGateChecks = {
+    ...p13PositiveContractChecks,
+    ...p13MetadataConsistencyChecks,
+    ...p13DriftGuardChecks
+  } as const;
+  const p13RegressionGateSummary = summarizeGate(p13RegressionGateChecks);
   const p13RegressionGate = {
-    ...p13RegressionGateChecks,
-    checks_passed:
-      Object.keys(p13RegressionGateChecks).length -
-      p13RegressionGateFailedChecks.length,
-    checks_total: Object.keys(p13RegressionGateChecks).length,
-    failed_checks: p13RegressionGateFailedChecks,
-    all_green: p13RegressionGateFailedChecks.length === 0,
-    close_candidate: p13RegressionGateFailedChecks.length === 0
+    positive_contracts: p13PositiveContracts,
+    metadata_consistency: p13MetadataConsistency,
+    drift_guards: p13DriftGuards,
+    ...p13RegressionGateSummary
   } as const;
 
   const p12RegressionGateChecks = {
