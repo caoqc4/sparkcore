@@ -1375,15 +1375,15 @@
 - `P9-4`
   - 中段
 - `P9-5`
-  - 第一版已成立
+  - 第一版已成立，并开始接近更像阶段 gate 的形态
 
 整体 `P9` 当前大约：
 
-- **`80%`**
+- **`80% - 85%`**
 
 当前更推荐的下一步：
 
-- **开始判断 `P9-4 / P9-5` 是否还需要最后一刀**
+- **开始进入正式的 `P9 close-ready` 判断**
 - 当前 `P9-5` 已开始显式产出：
   - `p9_regression_gate`
   - `checks_passed`
@@ -1396,9 +1396,7 @@
   - `retention_lifecycle_unification_v7_ok`
   - `knowledge_governance_unification_v7_ok`
   - `scenario_governance_unification_v7_ok`
-- 这说明 `P9` 已经开始形成阶段级 `unified runtime + gate` 的组合事实
-- 当前更准确的阶段位置，仍然是：
-  - `close-readiness` 前置区间
-- 所以下一步更值的是先判断：
-  - `P9-4 / P9-5` 是否还需要最后一刀
-  - 然后再决定是否进入正式的 `close-ready` 判断
+- `P9-5` 当前也已开始锁：
+  - `unification_metadata_consistency_v7_ok`
+- 这说明 `P9` 已经不只是形成第一版阶段 gate，而是开始进入更像正式阶段 gate 的密度
+- 所以下一步更值的，不是继续盲补单点，而是直接进入正式的 `close-ready` 判断

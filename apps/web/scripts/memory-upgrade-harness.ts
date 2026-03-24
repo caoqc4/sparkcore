@@ -2738,7 +2738,43 @@ function main() {
         scenarioMemoryPack.orchestration_unification_mode &&
       systemPrompt.includes(
         "Current governance unification = project_delivery_governance_unification; strategy unification = project_delivery_strategy_unified; unification mode = execution_runtime_unified."
-      )
+      ),
+    unification_metadata_consistency_v7_ok:
+      getAssistantMemoryNamespaceUnifiedGovernanceRuntimeDigestId(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace
+          ?.unified_governance_runtime_digest_id &&
+      getAssistantMemoryNamespaceUnifiedGovernanceRuntimeSummary(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace
+          ?.unified_governance_runtime_summary &&
+      getAssistantMemoryNamespaceUnifiedRuntimeAlignmentMode(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace?.unified_runtime_alignment_mode &&
+      getAssistantThreadLifecycleUnificationDigest(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.lifecycle_unification_digest &&
+      getAssistantThreadKeepDropUnificationSummary(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.keep_drop_unification_summary &&
+      getAssistantThreadLifecycleUnificationMode(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.lifecycle_unification_mode &&
+      getAssistantKnowledgeGovernanceUnificationDigest(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.governance_unification_digest &&
+      getAssistantKnowledgeSourceBudgetUnificationSummary(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.source_budget_unification_summary &&
+      getAssistantKnowledgeGovernanceUnificationMode(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.governance_unification_mode &&
+      getAssistantMemoryScenarioPackGovernanceUnificationDigestId(
+        assistantMetadata
+      ) === runtimeDebugPack?.governance_unification_digest_id &&
+      getAssistantMemoryScenarioPackStrategyUnificationSummary(
+        assistantMetadata
+      ) === runtimeDebugPack?.strategy_unification_summary &&
+      getAssistantMemoryScenarioPackOrchestrationUnificationMode(
+        assistantMetadata
+      ) === runtimeDebugPack?.orchestration_unification_mode
   } as const;
   const p9RegressionGateFailedChecks = Object.entries(
     p9RegressionGateChecks
