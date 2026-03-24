@@ -1373,7 +1373,7 @@
 - `P9-3`
   - 中段
 - `P9-4`
-  - 前中段
+  - 前中段到中段之间
 - `P9-5`
   - 待开始
 
@@ -1383,7 +1383,7 @@
 
 当前更推荐的下一步：
 
-- **先对 `P9-4 Scenario governance unification v7` 做一次小评估**
+- **开始 `P9-5 Regression / acceptance expansion` 的第一刀**
 - 当前 `P9-4` 已开始显式产出：
   - `governance_unification_digest_id`
   - `strategy_unification_summary`
@@ -1394,5 +1394,4 @@
   - runtime debug metadata
   - harness
 - 这说明 `P9-4` 已经不只是 convergence 字段可见，而是开始进入真实的 scenario prompt / metadata 统一输出
-- 当前更值的下一步，是先判断 `P9-4` 现在处在前中段还是已经接近中段
-- 然后再决定继续补第二刀，还是切去 `P9-5`
+- 这也说明 `P9-4` 已经不再只是第一刀 seam，当前更值的不是继续盲补单点，而是开始把 `P9-5` 的阶段 gate 立起来
