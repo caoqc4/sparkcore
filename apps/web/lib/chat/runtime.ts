@@ -2907,6 +2907,9 @@ export function buildRoleCoreMemoryCloseNoteRecordPrompt(
       ? `Role core close-note record：record_version = ${closeNoteRecord.record_version}；readiness = ${closeNoteRecord.readiness_judgment}。`
       : `Role core close-note record: record_version = ${closeNoteRecord.record_version}; readiness = ${closeNoteRecord.readiness_judgment}.`,
     isZh
+      ? `Close-note record progress：${closeNoteRecord.progress_range}；close_candidate = ${closeNoteRecord.close_candidate ? "true" : "false"}。`
+      : `Close-note record progress: ${closeNoteRecord.progress_range}; close_candidate = ${closeNoteRecord.close_candidate ? "true" : "false"}.`,
+    isZh
       ? `Close-note record headline：${closeNoteRecord.headline}。`
       : `Close-note record headline: ${closeNoteRecord.headline}.`,
     isZh
@@ -2921,6 +2924,18 @@ export function buildRoleCoreMemoryCloseNoteRecordPrompt(
     isZh
       ? `Scenario record section：${closeNoteRecord.scenario.record_summary}。`
       : `Scenario record section: ${closeNoteRecord.scenario.record_summary}.`,
+    isZh
+      ? `Close-note record non-blocking items：${closeNoteRecord.non_blocking_items.join(", ") || "none"}。`
+      : `Close-note record non-blocking items: ${closeNoteRecord.non_blocking_items.join(", ") || "none"}.`,
+    isZh
+      ? `Close-note record tail candidates：${closeNoteRecord.tail_candidate_items.join(", ") || "none"}。`
+      : `Close-note record tail candidates: ${closeNoteRecord.tail_candidate_items.join(", ") || "none"}.`,
+    isZh
+      ? `Close-note record gap buckets：blocking = ${closeNoteRecord.acceptance_gap_buckets.blocking}；non_blocking = ${closeNoteRecord.acceptance_gap_buckets.non_blocking}；tail_candidate = ${closeNoteRecord.acceptance_gap_buckets.tail_candidate}。`
+      : `Close-note record gap buckets: blocking = ${closeNoteRecord.acceptance_gap_buckets.blocking}; non_blocking = ${closeNoteRecord.acceptance_gap_buckets.non_blocking}; tail_candidate = ${closeNoteRecord.acceptance_gap_buckets.tail_candidate}.`,
+    isZh
+      ? `Close-note record next focus：${closeNoteRecord.next_expansion_focus.join(", ") || "none"}。`
+      : `Close-note record next focus: ${closeNoteRecord.next_expansion_focus.join(", ") || "none"}.`,
     isZh
       ? `Close-note record summary：${closeNoteRecord.record_summary}`
       : `Close-note record summary: ${closeNoteRecord.record_summary}`

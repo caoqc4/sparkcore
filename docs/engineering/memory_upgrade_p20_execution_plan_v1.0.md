@@ -144,7 +144,7 @@
   - scenario close-note record contract 第一刀已成立
 - `P20-5`
   - 已开始
-  - 已开始进入 acceptance layering / drift guard
+  - 已开始进入 close-readiness consumption / acceptance gap structuring
 
 当前 gate 轻量快照请以
 [memory_upgrade_p20_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p20_gate_snapshot_v1.0.md)
@@ -152,11 +152,11 @@
 
 整体 `P20` 当前大约：
 
-- **`55% - 60%`**
+- **`70% - 75%`**
 
 当前更推荐的下一步：
 
-- **继续扩 `P20-5` 的 close-readiness consumption / acceptance gap structuring，而不是先写 `P20 close-readiness`**
+- **先完成 `P20` 的最后一轮 acceptance gap 收束，再判断是否进入 `P20 close-readiness`**
 
 ---
 

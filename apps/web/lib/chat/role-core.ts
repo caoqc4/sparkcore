@@ -181,9 +181,20 @@ export type RoleCoreMemoryCloseNoteRecord = {
   source_output_version: RoleCoreMemoryCloseNoteOutput["output_version"];
   source_artifact_version: RoleCoreMemoryCloseNoteArtifact["artifact_version"];
   readiness_judgment: string;
+  progress_range: string;
+  close_candidate: boolean;
   close_note_recommended: boolean;
   headline: string;
   record_summary: string;
+  blocking_items: string[];
+  non_blocking_items: string[];
+  tail_candidate_items: string[];
+  acceptance_gap_buckets: {
+    blocking: number;
+    non_blocking: number;
+    tail_candidate: number;
+  };
+  next_expansion_focus: string[];
   namespace: {
     phase_snapshot_id: string;
     phase_snapshot_summary: string;
@@ -487,9 +498,16 @@ export function buildRoleCoreMemoryCloseNoteRecord(args: {
     source_output_version: closeNoteOutput.output_version,
     source_artifact_version: closeNoteArtifact.artifact_version,
     readiness_judgment: closeNoteOutput.readiness_judgment,
+    progress_range: closeNoteOutput.progress_range,
+    close_candidate: closeNoteOutput.close_candidate,
     close_note_recommended: closeNoteOutput.close_note_recommended,
     headline: `${args.roleCorePacket.identity.agent_name} close-note record`,
     record_summary: `namespace_record_started; retention_record_started; knowledge_record_started; scenario_record_started; source_output = ${closeNoteOutput.output_version}; readiness = ${closeNoteOutput.readiness_judgment}.`,
+    blocking_items: [...closeNoteOutput.blocking_items],
+    non_blocking_items: [...closeNoteOutput.non_blocking_items],
+    tail_candidate_items: [...closeNoteOutput.tail_candidate_items],
+    acceptance_gap_buckets: { ...closeNoteOutput.acceptance_gap_buckets },
+    next_expansion_focus: [...closeNoteOutput.next_expansion_focus],
     namespace: {
       phase_snapshot_id: closeNoteOutput.namespace.phase_snapshot_id,
       phase_snapshot_summary: closeNoteOutput.namespace.phase_snapshot_summary,

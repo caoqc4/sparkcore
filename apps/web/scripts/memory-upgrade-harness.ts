@@ -6017,23 +6017,122 @@ function main() {
       systemPrompt.includes(p20CloseNoteRecord?.record_summary ?? "")
   } as const;
   const p20DriftGuards = summarizeGate(p20DriftGuardChecks);
+  const p20CloseReadinessConsumptionChecks = {
+    role_core_memory_close_note_record_close_readiness_prompt_v1_ok:
+      p20CloseNoteRecordPrompt.includes(
+        p20CloseNoteRecord?.readiness_judgment ?? ""
+      ) &&
+      p20CloseNoteRecordPrompt.includes(
+        p20CloseNoteRecord?.progress_range ?? ""
+      ) &&
+      p20CloseNoteRecordPrompt.includes(
+        p20CloseNoteRecord?.close_candidate ? "true" : "false"
+      ) &&
+      p20CloseNoteRecordPrompt.includes(
+        `blocking = ${p20CloseNoteRecord?.acceptance_gap_buckets.blocking ?? 0}`
+      ) &&
+      p20CloseNoteRecordPrompt.includes(
+        "close_readiness_record_consumption"
+      ),
+    role_core_memory_close_note_record_gap_bucket_consumption_v1_ok:
+      assistantCloseNoteRecord?.readiness_judgment ===
+        p20CloseNoteRecord?.readiness_judgment &&
+      assistantCloseNoteRecord?.progress_range ===
+        p20CloseNoteRecord?.progress_range &&
+      assistantCloseNoteRecord?.close_candidate ===
+        p20CloseNoteRecord?.close_candidate &&
+      assistantCloseNoteRecord?.close_note_recommended ===
+        p20CloseNoteRecord?.close_note_recommended &&
+      assistantCloseNoteRecord?.acceptance_gap_buckets.non_blocking ===
+        p20CloseNoteRecord?.acceptance_gap_buckets.non_blocking &&
+      assistantDiagnosticCloseNoteRecord?.acceptance_gap_buckets
+        .tail_candidate ===
+        p20CloseNoteRecord?.acceptance_gap_buckets.tail_candidate &&
+      runtimeDebugCloseNoteRecord?.readiness_judgment ===
+        p20CloseNoteRecord?.readiness_judgment &&
+      runtimeDebugCloseNoteRecord?.progress_range ===
+        p20CloseNoteRecord?.progress_range &&
+      runtimeDebugCloseNoteRecord?.close_note_recommended ===
+        p20CloseNoteRecord?.close_note_recommended &&
+      runtimeDebugCloseNoteRecord?.acceptance_gap_buckets.blocking ===
+        p20CloseNoteRecord?.acceptance_gap_buckets.blocking &&
+      runtimeDebugCloseNoteRecord?.next_expansion_focus.includes(
+        "close_readiness_record_consumption"
+      ),
+    role_core_memory_close_note_record_gap_structuring_v1_ok:
+      (p20CloseNoteRecord?.blocking_items.length ?? 0) ===
+        (p20CloseNoteRecord?.acceptance_gap_buckets.blocking ?? -1) &&
+      (p20CloseNoteRecord?.non_blocking_items.length ?? 0) ===
+        (p20CloseNoteRecord?.acceptance_gap_buckets.non_blocking ?? -1) &&
+      (p20CloseNoteRecord?.tail_candidate_items.length ?? 0) ===
+        (p20CloseNoteRecord?.acceptance_gap_buckets.tail_candidate ?? -1) &&
+      p20CloseNoteRecord?.next_expansion_focus.includes(
+        "record_regression_gate_layering"
+      ) &&
+      p20CloseNoteRecord?.next_expansion_focus.includes(
+        "close_readiness_record_consumption"
+      ) &&
+      p20CloseNoteRecord?.next_expansion_focus.includes(
+        "remaining_record_acceptance_gaps"
+      ),
+    role_core_memory_close_note_record_close_note_input_readiness_v1_ok:
+      p20CloseNoteRecordPrompt.includes(
+        p20CloseNoteRecord?.non_blocking_items.join(", ") ?? ""
+      ) &&
+      p20CloseNoteRecordPrompt.includes(
+        p20CloseNoteRecord?.tail_candidate_items.join(", ") ?? ""
+      ) &&
+      p20CloseNoteRecordPrompt.includes(
+        p20CloseNoteRecord?.next_expansion_focus.join(", ") ?? ""
+      ) &&
+      systemPrompt.includes(
+        p20CloseNoteRecord?.non_blocking_items.join(", ") ?? ""
+      ) &&
+      systemPrompt.includes(
+        p20CloseNoteRecord?.tail_candidate_items.join(", ") ?? ""
+      ) &&
+      (assistantCloseNoteRecord?.non_blocking_items.length ?? -1) ===
+        (p20CloseNoteRecord?.non_blocking_items.length ?? -2) &&
+      (assistantDiagnosticCloseNoteRecord?.tail_candidate_items.length ?? -1) ===
+        (p20CloseNoteRecord?.tail_candidate_items.length ?? -2) &&
+      (runtimeDebugCloseNoteRecord?.next_expansion_focus.length ?? -1) ===
+        (p20CloseNoteRecord?.next_expansion_focus.length ?? -2)
+  } as const;
+  const p20CloseReadinessConsumption = summarizeGate(
+    p20CloseReadinessConsumptionChecks
+  );
   const p20RegressionGate = {
     positive_contracts: p20PositiveContracts,
     metadata_consistency: p20MetadataConsistency,
     prompt_surface: p20PromptSurface,
     drift_guards: p20DriftGuards,
+    close_readiness_consumption: p20CloseReadinessConsumption,
     ...summarizeGate({
       ...p20CloseNoteRecordChecks,
-      ...p20DriftGuardChecks
+      ...p20DriftGuardChecks,
+      ...p20CloseReadinessConsumptionChecks
     })
   } as const;
   const p20GateSnapshot = {
-    gate_id: "p20_regression_gate_v1",
+    gate_id: "p20_regression_gate_v2",
     stage: "P20-5",
     focus: "close_note_recordization",
-    record_contract_readiness: "record_drift_guards_started_not_close_ready",
-    progress_range: "55% - 60%",
-    close_note_recommended: false,
+    record_contract_readiness:
+      p20CloseNoteRecord?.close_note_recommended === true
+        ? "record_close_ready"
+        : "record_close_readiness_consumption_started",
+    progress_range: "70% - 75%",
+    close_note_recommended: p20CloseNoteRecord?.close_note_recommended ?? false,
+    blocking_items: p20CloseNoteRecord?.blocking_items ?? [],
+    non_blocking_items: p20CloseNoteRecord?.non_blocking_items ?? [],
+    tail_candidate_items: p20CloseNoteRecord?.tail_candidate_items ?? [],
+    acceptance_gap_buckets:
+      p20CloseNoteRecord?.acceptance_gap_buckets ?? {
+        blocking: 0,
+        non_blocking: 0,
+        tail_candidate: 0
+      },
+    next_expansion_focus: p20CloseNoteRecord?.next_expansion_focus ?? [],
     positive_contracts: {
       checks_passed: p20PositiveContracts.checks_passed,
       checks_total: p20PositiveContracts.checks_total,
@@ -6053,6 +6152,11 @@ function main() {
       checks_passed: p20DriftGuards.checks_passed,
       checks_total: p20DriftGuards.checks_total,
       all_green: p20DriftGuards.all_green
+    },
+    close_readiness_consumption: {
+      checks_passed: p20CloseReadinessConsumption.checks_passed,
+      checks_total: p20CloseReadinessConsumption.checks_total,
+      all_green: p20CloseReadinessConsumption.all_green
     },
     overall: {
       checks_passed: p20RegressionGate.checks_passed,

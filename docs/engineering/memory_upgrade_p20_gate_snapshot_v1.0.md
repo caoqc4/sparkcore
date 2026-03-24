@@ -28,14 +28,15 @@
 
 当前 `p20_gate_snapshot` 的结果为：
 
-- `record_contract_readiness = record_drift_guards_started_not_close_ready`
-- `progress_range = 55% - 60%`
+- `record_contract_readiness = record_close_readiness_consumption_started`
+- `progress_range = 70% - 75%`
 - `close_note_recommended = false`
 - `positive_contracts = 4 / 4`
 - `metadata_consistency = 4 / 4`
 - `prompt_surface = 4 / 4`
 - `drift_guards = 2 / 2`
-- `overall = 14 / 14`
+- `close_readiness_consumption = 4 / 4`
+- `overall = 18 / 18`
 - `failed_checks = []`
 - `all_green = true`
 - `close_candidate = true`
@@ -84,6 +85,15 @@
 - `role_core_memory_close_note_record_null_guard_v1_ok`
 - `role_core_memory_close_note_record_prompt_drift_guard_v1_ok`
 
+### 3.5 Close-Readiness Consumption
+
+当前已经进一步锁住：
+
+- `role_core_memory_close_note_record_close_readiness_prompt_v1_ok`
+- `role_core_memory_close_note_record_gap_bucket_consumption_v1_ok`
+- `role_core_memory_close_note_record_gap_structuring_v1_ok`
+- `role_core_memory_close_note_record_close_note_input_readiness_v1_ok`
+
 这意味着 namespace close-note record 当前已经开始进入：
 
 - `buildAgentSystemPrompt(...)`
@@ -99,7 +109,7 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P20-5` 已经从“待开始”推进到“四条 close-note record 主线都已有第一刀并被 gate 锁住，同时 drift guard 也已开始成立”，并且当前价值主要在于把 gate 从第一版合同面继续推进到更明确的 close-readiness consumption / acceptance gap structuring，而不是回头继续补单条 record section。**
+**`P20-5` 已经从“待开始”推进到“四条 close-note record 主线都已有第一刀并被 gate 锁住，同时 drift guard 与 close-readiness consumption 也已开始成立”，并且当前价值主要在于把剩余 acceptance gap 再压清一轮，而不是回头继续补单条 record section。**
 
 ---
 
@@ -107,7 +117,7 @@
 
 当前更合理的下一步是：
 
-- **继续扩 `P20-5` 的 close-readiness consumption / acceptance gap structuring，而不是先写 `P20 close-readiness`**
+- **先完成 `P20` 的最后一轮 acceptance gap 收束，再判断是否进入 `P20 close-readiness`**
 
 ---
 
@@ -115,4 +125,4 @@
 
 一句话结论：
 
-**`P20` 当前已经拥有一版全绿、并以 namespace / retention / knowledge / scenario close-note record 为中心且带 positive contracts / metadata consistency / prompt surface / drift guards 的正式 gate；它已经从 `P19 close-note output` 继续推进成更接近真实记录面的 contract。**
+**`P20` 当前已经拥有一版全绿、并以 namespace / retention / knowledge / scenario close-note record 为中心且带 positive contracts / metadata consistency / prompt surface / drift guards / close-readiness consumption 的正式 gate；它已经从 `P19 close-note output` 继续推进成更接近真实记录面的 contract。**
