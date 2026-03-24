@@ -1393,6 +1393,6 @@
   - assistant metadata / reader
   - runtime debug metadata
   - harness
-  - write target / runtime preview
-  - harness
-- 当前 recall route 与 write fallback 也已开始复用同一层 unified runtime contract
+- 当前 keep/drop decision 也已开始优先复用 unified lifecycle contract
+- 这说明 `P9-2` 已不再只是字段可见，而是开始进入真实 retention decision 主路径
+- 当前更值的下一步，是先对 `P9-2` 做一次小评估，再判断是否切去 `P9-3`

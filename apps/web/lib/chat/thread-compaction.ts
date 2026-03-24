@@ -686,6 +686,7 @@ export function getThreadCompactionRetentionDecision(args: {
     return {
       retain: false,
       reason:
+        summary.keep_drop_unification_summary === "closed_drop_unified" ||
         summary.keep_drop_convergence_summary === "closed_drop_alignment"
           ? ("closed_minimal_pruned" as const)
           : ("minimal_context" as const)
@@ -693,16 +694,20 @@ export function getThreadCompactionRetentionDecision(args: {
   }
 
   if (
-    summary.keep_drop_convergence_summary === "closed_drop_alignment" &&
-    summary.lifecycle_alignment_mode === "closed_governance_aligned"
+    (summary.keep_drop_unification_summary === "closed_drop_unified" &&
+      summary.lifecycle_unification_mode === "closed_runtime_unified") ||
+    (summary.keep_drop_convergence_summary === "closed_drop_alignment" &&
+      summary.lifecycle_alignment_mode === "closed_governance_aligned")
   ) {
     return { retain: false, reason: "closed_minimal_pruned" as const };
   }
 
   if (
     summary.lifecycle_status === "paused" &&
-    summary.keep_drop_convergence_summary === "minimal_decay_alignment" &&
-    summary.lifecycle_alignment_mode === "minimal_governance_aligned" &&
+    ((summary.keep_drop_unification_summary === "minimal_decay_unified" &&
+      summary.lifecycle_unification_mode === "minimal_runtime_unified") ||
+      (summary.keep_drop_convergence_summary === "minimal_decay_alignment" &&
+        summary.lifecycle_alignment_mode === "minimal_governance_aligned")) &&
     summary.retention_budget <= 1
   ) {
     return { retain: false, reason: "minimal_context" as const };
