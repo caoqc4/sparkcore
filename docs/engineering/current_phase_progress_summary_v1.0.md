@@ -1238,11 +1238,11 @@
 
 整体 `P7` 当前大约：
 
-- **`65% - 75%`**
+- **`75% - 80%`**
 
 当前更推荐的下一步：
 
-- **开始进入 `P7 close-readiness` 前置评估**
+- **开始进入正式的 `P7 close-ready` 判断**
 - 当前已成立的 `P7-1` 主事实：
   - namespace boundary 现在开始显式产出 `policy_digest_id`
   - 当前最小 digest 已成立：
