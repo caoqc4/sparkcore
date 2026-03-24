@@ -462,12 +462,12 @@
     - `P21-2` 已开始，retention close-note archive contract 第一刀已成立
     - `P21-3` 已开始，knowledge close-note archive contract 第一刀已成立
     - `P21-4` 已开始，scenario close-note archive contract 第一刀已成立
-    - `P21-5` 已开始，第一版正式 gate 已建立
+    - `P21-5` 已达到 `close-ready / 可收官`
     - 当前 gate 轻量快照请以
       [memory_upgrade_p21_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p21_gate_snapshot_v1.0.md)
       为准
     - 当前 `p21_gate_snapshot`：
-      - `archive_contract_readiness = archive_close_readiness_consumption_started`
+      - `archive_contract_readiness = archive_close_ready`
       - `progress_range = 60% - 65%`
       - `blocking_items = []`
       - `non_blocking_items = [archive_regression_gate_layering, close_readiness_archive_consumption, remaining_archive_acceptance_gaps]`
@@ -477,10 +477,13 @@
       - `prompt_surface = 4 / 4`
       - `close_readiness_consumption = 4 / 4`
       - `overall = 16 / 16`
-    - 当前整体约 `75% - 80%`
-    - 当前最推荐的下一步是 `P21` 的最后一轮 close-readiness 收束
+    - 当前整体约 `80% - 85%`
+    - 当前最推荐的下一步是准备下一阶段执行文档 / 第一批任务拆解
     - 当前正式阶段判断请以
       [memory_upgrade_p21_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p21_close_readiness_v1.0.md)
+      为准
+    - 当前收官结论请以
+      [memory_upgrade_p21_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p21_close_note_v1.0.md)
       为准
 
 ---

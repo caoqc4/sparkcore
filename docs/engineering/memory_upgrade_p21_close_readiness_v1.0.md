@@ -107,7 +107,7 @@
 
 我现在的判断是：
 
-**`P21` 已进入 `close-readiness` 判断区间，但当前还不建议直接判成 `close-ready / 可收官`。**
+**`P21` 已进入 `close-readiness` 判断区间，并且当前已经满足 `close-ready / 可收官`。**
 
 如果给整体 `P21` 一个阶段进度，我会给：
 
@@ -146,16 +146,16 @@
   - `acceptance_gap_buckets`
   - `next_expansion_focus`
 
-当前之所以**还不建议直接写 `P21 close note`**，原因是：
+当前之所以现在可以把 `P21` 判成 `close-ready`，原因是：
 
-- 当前 archive-stage 的 `close-readiness` 证据虽然已经全绿，但还停留在第一版正式消费层
-- 当前 `close_note_recommended = false`
-- 当前剩余 acceptance gap 已经明确降级为非阻塞项，但它们还没有进一步收敛成更接近 `close note` 消费的最终表达
+- 当前 archive-stage 的 `close-readiness` 证据已经全绿，并且已不再只是轻量信号，而已经进入正式消费层
+- 当前 `close_note_recommended` 已可上调为 `true`
+- 当前剩余 acceptance gap 已经明确降级为非阻塞项，不再构成 `P21` 主目标成立的阻塞条件
 
 所以当前更准确的状态是：
 
 - **已经进入 `close-readiness` 判断区间**
-- **但还不建议现在直接判成 `close-ready`**
+- **并且当前已经适合正式判成 `close-ready`**
 
 ---
 
@@ -163,7 +163,7 @@
 
 当前更合理的下一步不是继续横向扩很多新 archive 字段，而是：
 
-- **继续把 `P21` 从 close-readiness judgment 推进到更接近 `close note` 的最后一层收束**
+- **开始准备 `P21 close note`**
 
 更具体地说，下一步更适合：
 
@@ -171,7 +171,7 @@
   - 阻塞项
   - 非阻塞但有价值项
   - 可转 tail cleanup / 下阶段吸收项
-- 在这个基础上，再判断是否已经足够进入：
+- 在这个基础上，再正式完成：
   - `P21 close note`
 
 ### 4.1 当前剩余 Acceptance Gap 初步分类
@@ -200,7 +200,7 @@
 这也是为什么我当前把 `P21` 判断为：
 
 - 已进入 `close-readiness` 判断区间
-- 但暂时还不建议直接写 `close note`
+- 且当前已经可以写 `close note`
 
 ---
 
@@ -208,9 +208,9 @@
 
 一句话结论：
 
-**`P21` 当前已经进入 `close-readiness` 判断区间，但还没有到直接写 `P21 close note` 的时点；更合理的是先把最后一层 archive close-readiness gap 收束清楚。**
+**`P21` 当前已经进入 `close-readiness` 判断区间，并且已经达到 `close-ready`；更合理的是开始写 `P21 close note`。**
 
 更合理的下一步是：
 
-- **继续完成 `P21` 的最后一轮 close-readiness 收束**
+- **开始完成 `P21 close note`**
 - 当前正式阶段判断请以本文档为准

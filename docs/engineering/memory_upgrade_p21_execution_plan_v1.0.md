@@ -156,10 +156,14 @@
 
 当前更推荐的下一步：
 
-- **继续做 `P21` 的最后一轮 close-readiness 收束，而不是回头补 archive 主线单点 contract**
+- **开始准备 `P21 close note`，而不是回头补 archive 主线单点 contract**
 
 当前正式阶段判断请以
 [memory_upgrade_p21_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p21_close_readiness_v1.0.md)
+为准。
+
+当前收官结论请以
+[memory_upgrade_p21_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p21_close_note_v1.0.md)
 为准。
 
 ---

@@ -28,9 +28,9 @@
 
 当前 `p21_gate_snapshot` 的结果为：
 
-- `archive_contract_readiness = archive_close_readiness_consumption_started`
+- `archive_contract_readiness = archive_close_ready`
 - `progress_range = 60% - 65%`
-- `close_note_recommended = false`
+- `close_note_recommended = true`
 - `blocking_items = []`
 - `non_blocking_items = [archive_regression_gate_layering, close_readiness_archive_consumption, remaining_archive_acceptance_gaps]`
 - `tail_candidate_items = [archive_surface_symmetry_cleanup, non_blocking_archive_negative_coverage, record_to_archive_alignment_cleanup]`
@@ -97,7 +97,7 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P21-5` 已经从“待开始”推进到“namespace / retention / knowledge / scenario close-note archive gate + close-readiness consumption 已建立”，并且当前价值主要在于把这套 gate 推到正式的 close-readiness judgment，而不是回头继续补四条主线的单点 contract。**
+**`P21-5` 已经从“待开始”推进到“namespace / retention / knowledge / scenario close-note archive gate + close-readiness consumption 已建立”，并且当前已经具备支撑 `close-ready` 判断的正式证据面。**
 
 ---
 
@@ -105,7 +105,7 @@
 
 当前更合理的下一步是：
 
-- **继续做 `P21 close-readiness judgment` 的前置收束，而不是回头补 archive 主线单点 contract**
+- **开始准备 `P21 close note`，而不是回头补 archive 主线单点 contract**
 
 ---
 
@@ -113,4 +113,4 @@
 
 一句话结论：
 
-**`P21` 当前已经拥有一版全绿、并以 namespace / retention / knowledge / scenario close-note archive 为中心且带 positive contracts / metadata consistency / prompt surface / close-readiness consumption 的正式 gate；它已经从 `P20 close-note record` 继续推进成更接近真实 archive 面的 contract。**
+**`P21` 当前已经拥有一版全绿、并以 namespace / retention / knowledge / scenario close-note archive 为中心且带 positive contracts / metadata consistency / prompt surface / close-readiness consumption 的正式 gate；它已经从 `P20 close-note record` 继续推进成可判定 `close-ready` 的 archive contract。**
