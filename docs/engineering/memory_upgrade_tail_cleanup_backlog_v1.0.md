@@ -2,7 +2,7 @@
 
 ## 1. 文档定位
 
-本文档用于把 `Memory Upgrade P0 ~ P8` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
+本文档用于把 `Memory Upgrade P0 ~ P9` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
 
 - 这些尾项属于什么性质
 - 为什么它们当前不阻塞阶段切换
@@ -12,14 +12,14 @@
 本文档不是新的执行方案，也不是新的 close note，而是：
 
 - 对 `P0 ~ P4` 已收官阶段中遗留尾项的统一归档
-- 对 `P5 ~ P7` 已收官阶段中遗留尾项的统一归档
+- 对 `P5 ~ P9` 已收官阶段中遗留尾项的统一归档
 - 对后续 tail cleanup batch 的最小执行入口
 
 ---
 
 ## 2. 当前总判断
 
-`P0 ~ P8` 当前确实都还存在少量剩余尾项。  
+`P0 ~ P9` 当前确实都还存在少量剩余尾项。  
 但这些尾项的性质已经从：
 
 - 主目标未成立
@@ -80,7 +80,7 @@
 
 ---
 
-## 4. P0 ~ P8 当前典型尾项
+## 4. P0 ~ P9 当前典型尾项
 
 ### 4.1 P0 尾项
 
@@ -209,6 +209,21 @@
 
 - 非阻塞
 - 更偏 convergence 深化与阶段 gate 增强
+
+### 4.10 P9 尾项
+
+典型尾项包括：
+
+- namespace unified governance runtime v4 还可继续向更完整的 runtime reuse / cross-surface alignment 深化
+- retention lifecycle unification v7 还可继续向更细的 keep/drop unified runtime grouping 深化
+- knowledge governance unification v7 还可继续向更完整的 source / budget unified orchestration 深化
+- scenario governance unification v7 还可继续向更细的 strategy unification summary / orchestration contract 深化
+- `P9-5` gate 还可继续补更强的阶段级聚合判断与 unified metadata consistency 校验
+
+当前性质：
+
+- 非阻塞
+- 更偏 unified runtime 深化与阶段 gate 增强
 
 ---
 
