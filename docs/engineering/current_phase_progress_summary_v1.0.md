@@ -1132,15 +1132,24 @@
 - `P6-4`
   - 前中段到中段之间
 - `P6-5`
-  - 待开始
+  - 第一版已成立
 
 整体 `P6` 当前大约：
 
-- **`60% - 70%`**
+- **`65% - 75%`**
 
 当前更推荐的下一步：
 
-- **开始从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 落 `P6-5 Regression / acceptance expansion` 的第一刀**
+- **先做一次 `P6` 小复盘**
+
+当前已成立的 `P6-5` gate：
+
+- [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前已开始显式产出 `p6_regression_gate`
+- 当前第一版 `P6` gate 已开始锁：
+  - `namespace_policy_v4_ok`
+  - `retention_lifecycle_v4_ok`
+  - `knowledge_governance_weighting_v4_ok`
+  - `scenario_strategy_orchestration_v4_ok`
 
 当前已成立的第一刀事实：
 

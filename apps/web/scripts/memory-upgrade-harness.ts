@@ -1869,6 +1869,115 @@ function main() {
     all_green: p5RegressionGateFailedChecks.length === 0,
     close_candidate: p5RegressionGateFailedChecks.length === 0
   } as const;
+  const p6RegressionGateChecks = {
+    namespace_policy_v4_ok:
+      threadBoundary.policy_bundle_id === "thread_strict_focus" &&
+      threadBoundary.route_governance_mode === "thread_strict" &&
+      threadBoundary.retrieval_fallback_mode === "strict_no_timeline" &&
+      threadBoundary.write_escalation_mode ===
+        "thread_outward_escalation" &&
+      projectBoundary.policy_bundle_id === "project_balanced_coordination" &&
+      projectBoundary.route_governance_mode === "project_balanced" &&
+      projectBoundary.retrieval_fallback_mode ===
+        "parallel_timeline_allowed" &&
+      projectBoundary.write_escalation_mode ===
+        "project_world_escalation" &&
+      getAssistantMemoryNamespacePolicyBundleId(assistantMetadata) ===
+        projectBoundary.policy_bundle_id &&
+      getAssistantMemoryNamespaceRouteGovernanceMode(assistantMetadata) ===
+        projectBoundary.route_governance_mode &&
+      getAssistantMemoryNamespaceRetrievalFallbackMode(assistantMetadata) ===
+        projectBoundary.retrieval_fallback_mode &&
+      getAssistantMemoryNamespaceWriteEscalationMode(assistantMetadata) ===
+        projectBoundary.write_escalation_mode &&
+      runtimeDebugMetadata.memory_namespace?.policy_bundle_id ===
+        projectBoundary.policy_bundle_id &&
+      runtimeDebugMetadata.memory_namespace?.route_governance_mode ===
+        projectBoundary.route_governance_mode &&
+      runtimeDebugMetadata.memory_namespace?.retrieval_fallback_mode ===
+        projectBoundary.retrieval_fallback_mode &&
+      runtimeDebugMetadata.memory_namespace?.write_escalation_mode ===
+        projectBoundary.write_escalation_mode &&
+      systemPrompt.includes(
+        "Current namespace policy: project_balanced_coordination; retrieval governance = project_balanced."
+      ),
+    retention_lifecycle_v4_ok:
+      getAssistantThreadRetentionPolicyId(assistantMetadata) ===
+        "focus_continuity_anchor" &&
+      getAssistantThreadCrossLayerSurvivalMode(assistantMetadata) ===
+        "anchor_only" &&
+      getAssistantThreadRetentionDecisionGroup(assistantMetadata) ===
+        "anchor_preserve" &&
+      getAssistantThreadSurvivalRationale(assistantMetadata) ===
+        "focus_anchor_survives" &&
+      runtimeDebugMetadata.thread_compaction?.retention_policy_id ===
+        "focus_continuity_anchor" &&
+      runtimeDebugMetadata.thread_compaction?.cross_layer_survival_mode ===
+        "anchor_only" &&
+      runtimeDebugMetadata.thread_compaction?.retention_decision_group ===
+        "anchor_preserve" &&
+      runtimeDebugMetadata.thread_compaction?.survival_rationale ===
+        "focus_anchor_survives" &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Retention policy: focus_continuity_anchor."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Cross-layer survival: anchor_only."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Retention decision group: anchor_preserve."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Survival rationale: focus_anchor_survives."
+      ),
+    knowledge_governance_weighting_v4_ok:
+      projectKnowledgeWeight.governance_class === "authoritative" &&
+      worldKnowledgeWeight.governance_class === "contextual" &&
+      generalKnowledgeWeight.governance_class === "reference" &&
+      projectKnowledgeWeight.governance_weight >
+        worldKnowledgeWeight.governance_weight &&
+      worldKnowledgeWeight.governance_weight >
+        generalKnowledgeWeight.governance_weight &&
+      knowledgeSummary.governance_classes.join(",") ===
+        "authoritative,contextual,reference" &&
+      runtimeDebugMetadata.knowledge.governance_classes?.join(",") ===
+        "authoritative,contextual,reference" &&
+      scenarioMemoryPack.governance_route_bias === "authoritative" &&
+      scenarioMemoryPack.knowledge_budget_weight === 0.95 &&
+      getAssistantMemoryScenarioPackGovernanceRouteBias(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_route_bias &&
+      systemPrompt.includes(
+        "Current governance route bias = authoritative."
+      ),
+    scenario_strategy_orchestration_v4_ok:
+      scenarioMemoryPack.strategy_policy_id === "project_delivery_policy" &&
+      scenarioMemoryPack.orchestration_mode === "execution_centered" &&
+      getAssistantMemoryScenarioPackStrategyPolicyId(assistantMetadata) ===
+        scenarioMemoryPack.strategy_policy_id &&
+      getAssistantMemoryScenarioPackOrchestrationMode(assistantMetadata) ===
+        scenarioMemoryPack.orchestration_mode &&
+      runtimeDebugMetadata.memory.pack?.strategy_policy_id ===
+        scenarioMemoryPack.strategy_policy_id &&
+      runtimeDebugMetadata.memory.pack?.orchestration_mode ===
+        scenarioMemoryPack.orchestration_mode &&
+      systemPrompt.includes(
+        "Current strategy policy = project_delivery_policy; orchestration mode = execution_centered."
+      )
+  } as const;
+  const p6RegressionGateFailedChecks = Object.entries(
+    p6RegressionGateChecks
+  ).flatMap(([check, passed]) => (passed ? [] : [check]));
+  const p6RegressionGate = {
+    ...p6RegressionGateChecks,
+    checks_passed:
+      Object.keys(p6RegressionGateChecks).length -
+      p6RegressionGateFailedChecks.length,
+    checks_total: Object.keys(p6RegressionGateChecks).length,
+    failed_checks: p6RegressionGateFailedChecks,
+    all_green: p6RegressionGateFailedChecks.length === 0,
+    close_candidate: p6RegressionGateFailedChecks.length === 0
+  } as const;
 
   console.log(
     JSON.stringify(
@@ -2172,6 +2281,7 @@ function main() {
             companionDynamicVsRecordPrompt.includes("2. dynamic_profile:"),
         },
         p5_regression_gate: p5RegressionGate,
+        p6_regression_gate: p6RegressionGate,
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
             "When episode memory is present"
