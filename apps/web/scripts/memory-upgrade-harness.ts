@@ -6979,21 +6979,131 @@ function main() {
     scenario_close_note_persistence_envelope_prompt_surface_v1_ok:
       p23CloseNotePersistenceEnvelopeChecks.scenario_close_note_persistence_envelope_prompt_surface_v1_ok
   });
+  const p23CloseReadinessConsumptionChecks = {
+    role_core_memory_close_note_persistence_envelope_close_readiness_prompt_v1_ok:
+      p23CloseNotePersistenceEnvelopePrompt.includes(
+        p23CloseNotePersistenceEnvelope?.readiness_judgment ?? ""
+      ) &&
+      p23CloseNotePersistenceEnvelopePrompt.includes(
+        p23CloseNotePersistenceEnvelope?.progress_range ?? ""
+      ) &&
+      p23CloseNotePersistenceEnvelopePrompt.includes(
+        p23CloseNotePersistenceEnvelope?.close_note_recommended
+          ? "true"
+          : "false"
+      ) &&
+      p23CloseNotePersistenceEnvelopePrompt.includes(
+        `blocking = ${p23CloseNotePersistenceEnvelope?.acceptance_gap_buckets.blocking ?? 0}`
+      ) &&
+      p23CloseNotePersistenceEnvelopePrompt.includes(
+        "close_readiness_persistence_envelope_consumption"
+      ),
+    role_core_memory_close_note_persistence_envelope_gap_bucket_consumption_v1_ok:
+      assistantCloseNotePersistenceEnvelope?.readiness_judgment ===
+        p23CloseNotePersistenceEnvelope?.readiness_judgment &&
+      assistantCloseNotePersistenceEnvelope?.progress_range ===
+        p23CloseNotePersistenceEnvelope?.progress_range &&
+      assistantCloseNotePersistenceEnvelope?.close_note_recommended ===
+        p23CloseNotePersistenceEnvelope?.close_note_recommended &&
+      assistantCloseNotePersistenceEnvelope?.acceptance_gap_buckets
+        .non_blocking ===
+        p23CloseNotePersistenceEnvelope?.acceptance_gap_buckets.non_blocking &&
+      assistantDiagnosticCloseNotePersistenceEnvelope?.acceptance_gap_buckets
+        .tail_candidate ===
+        p23CloseNotePersistenceEnvelope?.acceptance_gap_buckets
+          .tail_candidate &&
+      runtimeDebugCloseNotePersistenceEnvelope?.readiness_judgment ===
+        p23CloseNotePersistenceEnvelope?.readiness_judgment &&
+      runtimeDebugCloseNotePersistenceEnvelope?.progress_range ===
+        p23CloseNotePersistenceEnvelope?.progress_range &&
+      runtimeDebugCloseNotePersistenceEnvelope?.acceptance_gap_buckets
+        .blocking ===
+        p23CloseNotePersistenceEnvelope?.acceptance_gap_buckets.blocking &&
+      runtimeDebugCloseNotePersistenceEnvelope?.next_expansion_focus.includes(
+        "close_readiness_persistence_envelope_consumption"
+      ),
+    role_core_memory_close_note_persistence_envelope_gap_structuring_v1_ok:
+      (p23CloseNotePersistenceEnvelope?.blocking_items.length ?? 0) ===
+        (p23CloseNotePersistenceEnvelope?.acceptance_gap_buckets.blocking ??
+          -1) &&
+      (p23CloseNotePersistenceEnvelope?.non_blocking_items.length ?? 0) ===
+        (p23CloseNotePersistenceEnvelope?.acceptance_gap_buckets.non_blocking ??
+          -1) &&
+      (p23CloseNotePersistenceEnvelope?.tail_candidate_items.length ?? 0) ===
+        (p23CloseNotePersistenceEnvelope?.acceptance_gap_buckets
+          .tail_candidate ?? -1) &&
+      p23CloseNotePersistenceEnvelope?.next_expansion_focus.includes(
+        "persistence_envelope_regression_gate_layering"
+      ) &&
+      p23CloseNotePersistenceEnvelope?.next_expansion_focus.includes(
+        "close_readiness_persistence_envelope_consumption"
+      ) &&
+      p23CloseNotePersistenceEnvelope?.next_expansion_focus.includes(
+        "remaining_persistence_envelope_acceptance_gaps"
+      ),
+    role_core_memory_close_note_persistence_envelope_close_note_input_readiness_v1_ok:
+      p23CloseNotePersistenceEnvelopePrompt.includes(
+        p23CloseNotePersistenceEnvelope?.non_blocking_items.join(", ") ?? ""
+      ) &&
+      p23CloseNotePersistenceEnvelopePrompt.includes(
+        p23CloseNotePersistenceEnvelope?.tail_candidate_items.join(", ") ?? ""
+      ) &&
+      p23CloseNotePersistenceEnvelopePrompt.includes(
+        p23CloseNotePersistenceEnvelope?.next_expansion_focus.join(", ") ?? ""
+      ) &&
+      systemPrompt.includes(
+        p23CloseNotePersistenceEnvelope?.non_blocking_items.join(", ") ?? ""
+      ) &&
+      systemPrompt.includes(
+        p23CloseNotePersistenceEnvelope?.tail_candidate_items.join(", ") ?? ""
+      ) &&
+      (assistantCloseNotePersistenceEnvelope?.non_blocking_items.length ??
+        -1) ===
+        (p23CloseNotePersistenceEnvelope?.non_blocking_items.length ?? -2) &&
+      (assistantDiagnosticCloseNotePersistenceEnvelope?.tail_candidate_items
+        .length ?? -1) ===
+        (p23CloseNotePersistenceEnvelope?.tail_candidate_items.length ?? -2) &&
+      (runtimeDebugCloseNotePersistenceEnvelope?.next_expansion_focus.length ??
+        -1) ===
+        (p23CloseNotePersistenceEnvelope?.next_expansion_focus.length ?? -2)
+  } as const;
+  const p23CloseReadinessConsumption = summarizeGate(
+    p23CloseReadinessConsumptionChecks
+  );
   const p23RegressionGate = {
     positive_contracts: p23PositiveContracts,
     metadata_consistency: p23MetadataConsistency,
     prompt_surface: p23PromptSurface,
-    ...summarizeGate(p23CloseNotePersistenceEnvelopeChecks)
+    close_readiness_consumption: p23CloseReadinessConsumption,
+    ...summarizeGate({
+      ...p23CloseNotePersistenceEnvelopeChecks,
+      ...p23CloseReadinessConsumptionChecks
+    })
   } as const;
   const p23GateSnapshot = {
-    gate_id: "p23_regression_gate_v1",
+    gate_id: "p23_regression_gate_v2",
     stage: "P23-5",
     focus: "close_note_persistence_envelopeization",
     persistence_envelope_readiness:
-      "scenario_persistence_envelope_started_not_close_ready",
-    progress_range: "40% - 45%",
+      p23CloseNotePersistenceEnvelope?.close_note_recommended === true
+        ? "persistence_envelope_close_ready"
+        : "persistence_envelope_close_readiness_consumption_started",
+    progress_range: p23CloseNotePersistenceEnvelope?.progress_range ?? "unknown",
     close_note_recommended:
       p23CloseNotePersistenceEnvelope?.close_note_recommended ?? false,
+    blocking_items: p23CloseNotePersistenceEnvelope?.blocking_items ?? [],
+    non_blocking_items:
+      p23CloseNotePersistenceEnvelope?.non_blocking_items ?? [],
+    tail_candidate_items:
+      p23CloseNotePersistenceEnvelope?.tail_candidate_items ?? [],
+    acceptance_gap_buckets:
+      p23CloseNotePersistenceEnvelope?.acceptance_gap_buckets ?? {
+        blocking: 0,
+        non_blocking: 0,
+        tail_candidate: 0
+      },
+    next_expansion_focus:
+      p23CloseNotePersistenceEnvelope?.next_expansion_focus ?? [],
     positive_contracts: {
       checks_passed: p23PositiveContracts.checks_passed,
       checks_total: p23PositiveContracts.checks_total,
@@ -7008,6 +7118,11 @@ function main() {
       checks_passed: p23PromptSurface.checks_passed,
       checks_total: p23PromptSurface.checks_total,
       all_green: p23PromptSurface.all_green
+    },
+    close_readiness_consumption: {
+      checks_passed: p23CloseReadinessConsumption.checks_passed,
+      checks_total: p23CloseReadinessConsumption.checks_total,
+      all_green: p23CloseReadinessConsumption.all_green
     },
     overall: {
       checks_passed: p23RegressionGate.checks_passed,

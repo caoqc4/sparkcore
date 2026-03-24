@@ -528,19 +528,25 @@
     - `P23-2` 已开始，retention close-note persistence envelope 第一刀已成立
     - `P23-3` 已开始，knowledge close-note persistence envelope 第一刀已成立
     - `P23-4` 已开始，scenario close-note persistence envelope 第一刀已成立
-    - `P23-5` 已开始，第一版正式 gate 已建立
+    - `P23-5` 已开始，第二版正式 gate 已建立，并已开始显式服务 close-readiness consumption
     - 当前 gate 轻量快照请以
       [memory_upgrade_p23_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p23_gate_snapshot_v1.0.md)
       为准
+    - 当前正式 `close-readiness` 判断请以
+      [memory_upgrade_p23_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p23_close_readiness_v1.0.md)
+      为准
     - 当前 `p23_gate_snapshot`：
-      - `persistence_envelope_readiness = scenario_persistence_envelope_started_not_close_ready`
+      - `persistence_envelope_readiness = persistence_envelope_close_readiness_consumption_started`
       - `progress_range = 40% - 45%`
       - `positive_contracts = 4 / 4`
       - `metadata_consistency = 4 / 4`
       - `prompt_surface = 4 / 4`
-      - `overall = 12 / 12`
-    - 当前整体约 `40% - 45%`
-    - 当前最推荐的下一步是 `P23-5` 的 persistence envelope acceptance layering
+      - `close_readiness_consumption = 4 / 4`
+      - `overall = 16 / 16`
+      - `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
+    - 当前整体约 `70% - 75%`
+    - `P23` 已进入 `close-readiness` 判断区间，但暂不建议直接判成 `close-ready / 可收官`
+    - 当前最推荐的下一步是继续做 `P23` 的最后一轮收束，再决定是否进入 `P23 close note`
 
 ---
 
