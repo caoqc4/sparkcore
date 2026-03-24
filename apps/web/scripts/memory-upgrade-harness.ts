@@ -707,6 +707,8 @@ function main() {
     pack: defaultScenarioMemoryPack,
     replyLanguage: "en"
   });
+  const defaultScenarioGovernanceFabricPlanePhaseSnapshot =
+    resolveScenarioGovernanceFabricPlanePhaseSnapshot(defaultScenarioMemoryPack);
   expect(
     defaultScenarioMemoryPackPrompt.includes(
       "Active Scenario Memory Pack: companion"
@@ -873,6 +875,10 @@ function main() {
       pack: worldKnowledgeDrivenScenarioMemoryPack,
       replyLanguage: "en"
     });
+  const worldKnowledgeDrivenScenarioGovernanceFabricPlanePhaseSnapshot =
+    resolveScenarioGovernanceFabricPlanePhaseSnapshot(
+      worldKnowledgeDrivenScenarioMemoryPack
+    );
   expect(
     worldKnowledgeDrivenScenarioMemoryPack.pack_id === "companion",
     "Expected world-only knowledge context to keep the companion pack active in P4."
@@ -1226,6 +1232,22 @@ function main() {
     activePackId: "project_ops",
     limit: 3
   });
+  const referenceOnlyKnowledgeGovernanceFabricPlaneSummary = buildKnowledgeSummary({
+    knowledge: referenceOnlyProjectOpsSelection,
+    activeNamespace: null
+  });
+  const referenceOnlyKnowledgeGovernanceFabricPlanePhaseSnapshot =
+    resolveKnowledgeGovernanceFabricPlanePhaseSnapshot({
+      governanceFabricPlaneDigest:
+        referenceOnlyKnowledgeGovernanceFabricPlaneSummary.governance_fabric_plane_digest,
+      sourceBudgetGovernanceFabricPlaneSummary:
+        referenceOnlyKnowledgeGovernanceFabricPlaneSummary.source_budget_governance_fabric_plane_summary,
+      governanceFabricPlaneMode:
+        referenceOnlyKnowledgeGovernanceFabricPlaneSummary.governance_fabric_plane_mode,
+      governanceFabricPlaneReuseMode:
+        referenceOnlyKnowledgeGovernanceFabricPlaneSummary.governance_fabric_plane_reuse_mode,
+      applicableKnowledge: referenceOnlyProjectOpsSelection
+    });
   const compactedThreadSummary = buildCompactedThreadSummary({
     threadState: {
       thread_id: "thread-1",
@@ -4576,6 +4598,107 @@ function main() {
         "Current governance fabric plane = project_delivery_governance_fabric_plane; strategy governance fabric plane = project_delivery_strategy_governance_fabric_plane; fabric plane mode = execution_runtime_governance_fabric_plane; fabric plane reuse = execution_runtime_governance_fabric_plane_reuse."
       )
   } as const;
+  const p15DriftGuardChecks = {
+    phase_snapshot_drift_guard_v1_ok:
+      resolveNamespaceGovernanceFabricPlanePhaseSnapshot(threadPrimaryNamespace)
+        .phase_snapshot_id ===
+        "thread_focus_governance_fabric_plane_phase_snapshot" &&
+      resolveNamespaceGovernanceFabricPlanePhaseSnapshot(threadPrimaryNamespace)
+        .phase_snapshot_retrieval_routes.join(",") ===
+        "thread_state,profile,episode" &&
+      !resolveNamespaceGovernanceFabricPlanePhaseSnapshot(threadPrimaryNamespace)
+        .phase_snapshot_retrieval_routes.includes("timeline") &&
+      resolveThreadGovernanceFabricPlanePhaseSnapshot({
+        lifecycle_governance_fabric_plane_digest:
+          compactedThreadSummary!.lifecycle_governance_fabric_plane_digest,
+        keep_drop_governance_fabric_plane_summary:
+          "closed_drop_governance_fabric_plane",
+        lifecycle_governance_fabric_plane_alignment_mode:
+          "closed_governance_fabric_plane_aligned",
+        lifecycle_governance_fabric_plane_reuse_mode:
+          "closed_runtime_governance_fabric_plane_reuse",
+        retention_section_order: [],
+        retained_fields: []
+      }).phase_snapshot_summary ===
+        "closed_drop_governance_fabric_plane_phase_snapshot" &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "closed",
+          retained_fields: [],
+          keep_drop_governance_fabric_plane_summary:
+            "closed_drop_governance_fabric_plane",
+          lifecycle_governance_fabric_plane_alignment_mode:
+            "closed_governance_fabric_plane_aligned",
+          lifecycle_governance_fabric_plane_reuse_mode:
+            "closed_runtime_governance_fabric_plane_reuse"
+        }
+      }).retain === false &&
+      resolveThreadGovernanceFabricPlanePhaseSnapshot({
+        lifecycle_governance_fabric_plane_digest:
+          compactedThreadSummary!.lifecycle_governance_fabric_plane_digest,
+        keep_drop_governance_fabric_plane_summary:
+          "minimal_decay_governance_fabric_plane",
+        lifecycle_governance_fabric_plane_alignment_mode:
+          "minimal_governance_fabric_plane_aligned",
+        lifecycle_governance_fabric_plane_reuse_mode:
+          "minimal_runtime_governance_fabric_plane_reuse",
+        retention_section_order: ["current_language_hint"],
+        retained_fields: ["current_language_hint"]
+      }).phase_snapshot_consumption_mode ===
+        "minimal_runtime_governance_fabric_plane_reuse_phase_consumption" &&
+      getThreadCompactionRetentionDecision({
+        compactedThreadSummary: {
+          ...compactedThreadSummary!,
+          lifecycle_status: "paused",
+          retention_budget: 1,
+          keep_drop_governance_fabric_plane_summary:
+            "minimal_decay_governance_fabric_plane",
+          lifecycle_governance_fabric_plane_alignment_mode:
+            "minimal_governance_fabric_plane_aligned",
+          lifecycle_governance_fabric_plane_reuse_mode:
+            "minimal_runtime_governance_fabric_plane_reuse"
+        }
+      }).retain === false &&
+      referenceOnlyKnowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_titles.join(
+        ","
+      ) === "General delivery note" &&
+      referenceOnlyKnowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_scope_layers.join(
+        ","
+      ) === "general" &&
+      !referenceOnlyKnowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_titles.includes(
+        "Onboarding checklist guide"
+      ) &&
+      selectedKnowledgeForPrompt[0]?.title === "Onboarding checklist guide",
+    scenario_phase_snapshot_drift_guard_v1_ok:
+      defaultScenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id ===
+        "continuity_governance_fabric_plane_phase_snapshot" &&
+      defaultScenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary ===
+        "continuity_strategy_governance_fabric_plane_phase_snapshot" &&
+      defaultScenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode ===
+        "continuity_runtime_governance_fabric_plane_reuse_phase_consumption" &&
+      !defaultScenarioMemoryPackPrompt.includes(
+        "project_delivery_governance_fabric_plane"
+      ) &&
+      worldKnowledgeDrivenScenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id ===
+        "knowledge_guided_governance_fabric_plane_phase_snapshot" &&
+      worldKnowledgeDrivenScenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary ===
+        "knowledge_guided_strategy_governance_fabric_plane_phase_snapshot" &&
+      worldKnowledgeDrivenScenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode ===
+        "knowledge_guided_runtime_governance_fabric_plane_reuse_phase_consumption" &&
+      !worldKnowledgeDrivenScenarioMemoryPackPrompt.includes(
+        "project_delivery_governance_fabric_plane"
+      ) &&
+      scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id ===
+        "project_delivery_governance_fabric_plane_phase_snapshot" &&
+      scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary ===
+        "project_delivery_strategy_governance_fabric_plane_phase_snapshot" &&
+      scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode ===
+        "execution_runtime_governance_fabric_plane_reuse_phase_consumption" &&
+      runtimeDebugPack?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_id ===
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id
+  } as const;
   const p15PositiveContracts = summarizeGate(
     {
       ...p15NamespaceGovernancePlaneContractChecks,
@@ -4585,17 +4708,20 @@ function main() {
     }
   );
   const p15MetadataConsistency = summarizeGate(p15MetadataConsistencyChecks);
+  const p15DriftGuards = summarizeGate(p15DriftGuardChecks);
   const p15RegressionGateChecks = {
     ...p15NamespaceGovernancePlaneContractChecks,
     ...p15RetentionGovernancePlaneConsumptionChecks,
     ...p15KnowledgeGovernancePlaneConsumptionChecks,
     ...p15ScenarioGovernancePlaneConsumptionChecks,
-    ...p15MetadataConsistencyChecks
+    ...p15MetadataConsistencyChecks,
+    ...p15DriftGuardChecks
   } as const;
   const p15RegressionGateSummary = summarizeGate(p15RegressionGateChecks);
   const p15RegressionGate = {
     positive_contracts: p15PositiveContracts,
     metadata_consistency: p15MetadataConsistency,
+    drift_guards: p15DriftGuards,
     ...p15RegressionGateSummary
   } as const;
   const p15GateSnapshot = {
@@ -4604,9 +4730,9 @@ function main() {
     focus: "regression_acceptance_continuation",
     blocking_items: [] as string[],
     next_expansion_focus: [
-      "phase_snapshot_drift_guard",
       "close_readiness_consumption",
-      "acceptance_gap_classification"
+      "acceptance_gap_classification",
+      "remaining_acceptance_gaps"
     ] as const,
     positive_contracts: {
       checks_passed: p15PositiveContracts.checks_passed,
@@ -4617,6 +4743,11 @@ function main() {
       checks_passed: p15MetadataConsistency.checks_passed,
       checks_total: p15MetadataConsistency.checks_total,
       all_green: p15MetadataConsistency.all_green
+    },
+    drift_guards: {
+      checks_passed: p15DriftGuards.checks_passed,
+      checks_total: p15DriftGuards.checks_total,
+      all_green: p15DriftGuards.all_green
     },
     overall: {
       checks_passed: p15RegressionGate.checks_passed,
