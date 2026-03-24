@@ -3681,6 +3681,26 @@ function main() {
         scenarioMemoryPack.governance_fabric_reuse_mode
   } as const;
 
+  const p13RegressionGateChecks = {
+    ...p13NamespaceGovernanceFabricChecks,
+    ...p13RetentionGovernanceFabricChecks,
+    ...p13KnowledgeGovernanceFabricChecks,
+    ...p13ScenarioGovernanceFabricChecks
+  } as const;
+  const p13RegressionGateFailedChecks = Object.entries(
+    p13RegressionGateChecks
+  ).flatMap(([check, passed]) => (passed ? [] : [check]));
+  const p13RegressionGate = {
+    ...p13RegressionGateChecks,
+    checks_passed:
+      Object.keys(p13RegressionGateChecks).length -
+      p13RegressionGateFailedChecks.length,
+    checks_total: Object.keys(p13RegressionGateChecks).length,
+    failed_checks: p13RegressionGateFailedChecks,
+    all_green: p13RegressionGateFailedChecks.length === 0,
+    close_candidate: p13RegressionGateFailedChecks.length === 0
+  } as const;
+
   const p12RegressionGateChecks = {
     ...p12NamespaceGovernancePlaneChecks,
     ...p12RetentionGovernancePlaneChecks,
@@ -4760,6 +4780,7 @@ function main() {
         p11_scenario_coordination: p11ScenarioCoordinationChecks,
         p12_scenario_governance_plane: p12ScenarioGovernancePlaneChecks,
         p13_scenario_governance_fabric: p13ScenarioGovernanceFabricChecks,
+        p13_regression_gate: p13RegressionGate,
         p12_regression_gate: p12RegressionGate,
         p11_regression_gate: p11RegressionGate,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,

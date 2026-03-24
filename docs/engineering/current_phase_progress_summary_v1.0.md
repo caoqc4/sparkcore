@@ -81,6 +81,16 @@
   - `orchestration_governance_fabric_mode`
   - `governance_fabric_reuse_mode`
   - prompt / assistant metadata / runtime debug 当前都已开始复用这层 fabric contract
+- `P13-5 regression / acceptance expansion` 已开始建立第一版正式 gate：
+  - `memory-upgrade-harness.ts` 当前已新增 `p13_regression_gate`
+  - gate 当前已锁住：
+    - namespace governance fabric runtime v8
+    - retention lifecycle governance fabric v11
+    - knowledge governance fabric v11
+    - scenario governance fabric v11
+  - 当前基础验证已通过：
+    - `pnpm --filter @sparkcore/web memory:upgrade:harness`
+    - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`
 
 ---
 
@@ -1535,12 +1545,13 @@
 - `P13-4`
   - 前中段
 - `P13-5`
-  - 待开始
+  - 已开始
+  - 第一版正式 gate 已建立
 
 整体 `P13` 当前大约：
 
-- **`60% - 70%`**
+- **`70% - 75%`**
 
 当前更推荐的下一步：
 
-- **开始 `P13-5 Regression / acceptance expansion` 的第一刀**
+- **继续扩 `P13-5 Regression / acceptance expansion`，把第一版 gate 从 fabric 成立证明继续推进到更完整的 acceptance coverage**
