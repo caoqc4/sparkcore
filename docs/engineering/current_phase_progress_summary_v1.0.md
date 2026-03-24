@@ -1150,6 +1150,7 @@
   - `retention_lifecycle_v4_ok`
   - `knowledge_governance_weighting_v4_ok`
   - `scenario_strategy_orchestration_v4_ok`
+  - `strategy_policy_consistency_v4_ok`
 
 当前已成立的第一刀事实：
 

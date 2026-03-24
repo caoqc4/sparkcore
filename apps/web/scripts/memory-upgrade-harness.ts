@@ -1963,6 +1963,45 @@ function main() {
         scenarioMemoryPack.orchestration_mode &&
       systemPrompt.includes(
         "Current strategy policy = project_delivery_policy; orchestration mode = execution_centered."
+      ),
+    strategy_policy_consistency_v4_ok:
+      getAssistantMemoryScenarioPackId(assistantMetadata) ===
+        scenarioMemoryPack.pack_id &&
+      getAssistantMemoryScenarioPackStrategyPolicyId(assistantMetadata) ===
+        scenarioMemoryPack.strategy_policy_id &&
+      getAssistantMemoryScenarioPackOrchestrationMode(assistantMetadata) ===
+        scenarioMemoryPack.orchestration_mode &&
+      getAssistantMemoryScenarioPackGovernanceRouteBias(assistantMetadata) ===
+        scenarioMemoryPack.governance_route_bias &&
+      getAssistantMemoryScenarioPackStrategyBundleId(assistantMetadata) ===
+        scenarioMemoryPackStrategy.strategy_bundle_id &&
+      getAssistantMemoryScenarioPackStrategyAssemblyOrder(
+        assistantMetadata
+      ).join(",") ===
+        scenarioMemoryPackStrategy.assembly_layer_order.join(",") &&
+      runtimeDebugMetadata.memory.pack?.pack_id === scenarioMemoryPack.pack_id &&
+      runtimeDebugMetadata.memory.pack?.strategy_policy_id ===
+        scenarioMemoryPack.strategy_policy_id &&
+      runtimeDebugMetadata.memory.pack?.orchestration_mode ===
+        scenarioMemoryPack.orchestration_mode &&
+      runtimeDebugMetadata.memory.pack?.governance_route_bias ===
+        scenarioMemoryPack.governance_route_bias &&
+      runtimeDebugMetadata.memory.pack?.strategy_bundle_id ===
+        scenarioMemoryPackStrategy.strategy_bundle_id &&
+      runtimeDebugMetadata.memory.pack?.strategy_assembly_order?.join(",") ===
+        scenarioMemoryPackStrategy.assembly_layer_order.join(",") &&
+      systemPrompt.includes("Active Scenario Memory Pack: project_ops") &&
+      systemPrompt.includes(
+        "Current strategy policy = project_delivery_policy; orchestration mode = execution_centered."
+      ) &&
+      systemPrompt.includes(
+        "Current governance route bias = authoritative."
+      ) &&
+      systemPrompt.includes(
+        "Current strategy bundle = project_execution; relationship/static_profile/memory_record budget = 1/1/2."
+      ) &&
+      systemPrompt.includes(
+        "Current strategy assembly order = memory_record -> static_profile -> relationship -> dynamic_profile."
       )
   } as const;
   const p6RegressionGateFailedChecks = Object.entries(
