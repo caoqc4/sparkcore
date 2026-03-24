@@ -518,6 +518,30 @@
     - 当前整体约 `80% - 85%`
     - 当前最推荐的下一步是开始下一阶段规划，而不是继续扩张 `P22` 范围
 
+- `P23 execution plan` 当前已建立：
+  - 当前执行入口请以
+    [memory_upgrade_p23_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p23_execution_plan_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P23` 的一句话目标是把 `P22 close-note persistence payload` 推进成更接近真实 storage integration 的 `close-note persistence envelope`
+    - `P23-1` 已开始，namespace close-note persistence envelope 第一刀已成立
+    - `P23-2` 已开始，retention close-note persistence envelope 第一刀已成立
+    - `P23-3` 已开始，knowledge close-note persistence envelope 第一刀已成立
+    - `P23-4` 已开始，scenario close-note persistence envelope 第一刀已成立
+    - `P23-5` 已开始，第一版正式 gate 已建立
+    - 当前 gate 轻量快照请以
+      [memory_upgrade_p23_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p23_gate_snapshot_v1.0.md)
+      为准
+    - 当前 `p23_gate_snapshot`：
+      - `persistence_envelope_readiness = scenario_persistence_envelope_started_not_close_ready`
+      - `progress_range = 40% - 45%`
+      - `positive_contracts = 4 / 4`
+      - `metadata_consistency = 4 / 4`
+      - `prompt_surface = 4 / 4`
+      - `overall = 12 / 12`
+    - 当前整体约 `40% - 45%`
+    - 当前最推荐的下一步是 `P23-5` 的 persistence envelope acceptance layering
+
 ---
 
 ## 3. 当前已经完成的事情

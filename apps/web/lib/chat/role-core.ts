@@ -317,6 +317,61 @@ export type RoleCoreMemoryCloseNotePersistencePayload = {
   };
 };
 
+export type RoleCoreMemoryCloseNotePersistenceEnvelope = {
+  envelope_version: "v1";
+  source_payload_version: RoleCoreMemoryCloseNotePersistencePayload["payload_version"];
+  source_archive_version: RoleCoreMemoryCloseNoteArchive["archive_version"];
+  readiness_judgment: string;
+  progress_range: string;
+  close_candidate: boolean;
+  close_note_recommended: boolean;
+  headline: string;
+  envelope_summary: string;
+  blocking_items: string[];
+  non_blocking_items: string[];
+  tail_candidate_items: string[];
+  acceptance_gap_buckets: {
+    blocking: number;
+    non_blocking: number;
+    tail_candidate: number;
+  };
+  next_expansion_focus: string[];
+  namespace: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    persistence_key: string;
+    persistence_scope: string;
+    envelope_summary: string;
+  };
+  retention: {
+    phase_snapshot_id: string | null;
+    phase_snapshot_summary: string | null;
+    decision_group: string | null;
+    retained_fields: string[];
+    persistence_key: string;
+    persistence_scope: string;
+    envelope_summary: string;
+  };
+  knowledge: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    scope_layers: string[];
+    governance_classes: string[];
+    persistence_key: string;
+    persistence_scope: string;
+    envelope_summary: string;
+  };
+  scenario: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    strategy_bundle_id: string | null;
+    orchestration_mode: string | null;
+    persistence_key: string;
+    persistence_scope: string;
+    envelope_summary: string;
+  };
+};
+
 export function getRoleCoreRelationshipStance(
   relationshipRecall: {
     addressStyleMemory: {
@@ -781,6 +836,97 @@ export function buildRoleCoreMemoryCloseNotePersistencePayload(args: {
       strategy_bundle_id: closeNoteArchive.scenario.strategy_bundle_id,
       orchestration_mode: closeNoteArchive.scenario.orchestration_mode,
       persistence_summary: `${closeNoteArchive.scenario.phase_snapshot_id}; ${closeNoteArchive.scenario.phase_snapshot_summary}; strategy_bundle = ${closeNoteArchive.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNoteArchive.scenario.orchestration_mode ?? "none"}`
+    }
+  };
+}
+
+export function buildRoleCoreMemoryCloseNotePersistenceEnvelope(args: {
+  roleCorePacket: RoleCorePacket;
+  closeNotePersistencePayload: RoleCoreMemoryCloseNotePersistencePayload | null;
+  closeNoteArchive: RoleCoreMemoryCloseNoteArchive | null;
+}): RoleCoreMemoryCloseNotePersistenceEnvelope | null {
+  const closeNotePersistencePayload = args.closeNotePersistencePayload;
+  const closeNoteArchive = args.closeNoteArchive;
+
+  if (!closeNotePersistencePayload || !closeNoteArchive) {
+    return null;
+  }
+
+  const blockingItems: string[] = [];
+  const nonBlockingItems = [
+    "persistence_envelope_regression_gate_layering",
+    "close_readiness_persistence_envelope_consumption",
+    "remaining_persistence_envelope_acceptance_gaps"
+  ];
+  const tailCandidateItems = [
+    "persistence_envelope_surface_symmetry_cleanup",
+    "non_blocking_persistence_envelope_negative_coverage",
+    "payload_to_envelope_alignment_cleanup"
+  ];
+  const acceptanceGapBuckets = {
+    blocking: blockingItems.length,
+    non_blocking: nonBlockingItems.length,
+    tail_candidate: tailCandidateItems.length
+  } as const;
+  const nextExpansionFocus = [...nonBlockingItems];
+
+  return {
+    envelope_version: "v1",
+    source_payload_version: closeNotePersistencePayload.payload_version,
+    source_archive_version: closeNoteArchive.archive_version,
+    readiness_judgment: "scenario_persistence_envelope_started_not_close_ready",
+    progress_range: "40% - 45%",
+    close_candidate: closeNotePersistencePayload.close_candidate,
+    close_note_recommended: false,
+    headline: `${args.roleCorePacket.identity.agent_name} close-note persistence envelope`,
+    envelope_summary: `namespace_persistence_envelope_started; retention_persistence_envelope_started; knowledge_persistence_envelope_started; scenario_persistence_envelope_started; source_payload = ${closeNotePersistencePayload.payload_version}; readiness = scenario_persistence_envelope_started_not_close_ready.`,
+    blocking_items: [...blockingItems],
+    non_blocking_items: [...nonBlockingItems],
+    tail_candidate_items: [...tailCandidateItems],
+    acceptance_gap_buckets: { ...acceptanceGapBuckets },
+    next_expansion_focus: nextExpansionFocus,
+    namespace: {
+      phase_snapshot_id: closeNotePersistencePayload.namespace.phase_snapshot_id,
+      phase_snapshot_summary:
+        closeNotePersistencePayload.namespace.phase_snapshot_summary,
+      persistence_key: `close_note.namespace.${closeNotePersistencePayload.namespace.phase_snapshot_id}`,
+      persistence_scope: "agent_session",
+      envelope_summary: `${closeNotePersistencePayload.namespace.phase_snapshot_id}; ${closeNotePersistencePayload.namespace.phase_snapshot_summary}; persistence_key = close_note.namespace.${closeNotePersistencePayload.namespace.phase_snapshot_id}; persistence_scope = agent_session`
+    },
+    retention: {
+      phase_snapshot_id: closeNotePersistencePayload.retention.phase_snapshot_id,
+      phase_snapshot_summary:
+        closeNotePersistencePayload.retention.phase_snapshot_summary,
+      decision_group: closeNotePersistencePayload.retention.decision_group,
+      retained_fields: [...closeNotePersistencePayload.retention.retained_fields],
+      persistence_key: `close_note.retention.${closeNotePersistencePayload.retention.phase_snapshot_id ?? "none"}`,
+      persistence_scope: "agent_session",
+      envelope_summary: closeNotePersistencePayload.retention.phase_snapshot_id
+        ? `${closeNotePersistencePayload.retention.phase_snapshot_id}; ${closeNotePersistencePayload.retention.phase_snapshot_summary ?? "none"}; decision_group = ${closeNotePersistencePayload.retention.decision_group ?? "none"}; retained_fields = ${closeNotePersistencePayload.retention.retained_fields.join(", ") || "none"}; persistence_key = close_note.retention.${closeNotePersistencePayload.retention.phase_snapshot_id}; persistence_scope = agent_session`
+        : "none"
+    },
+    knowledge: {
+      phase_snapshot_id: closeNotePersistencePayload.knowledge.phase_snapshot_id,
+      phase_snapshot_summary:
+        closeNotePersistencePayload.knowledge.phase_snapshot_summary,
+      scope_layers: [...closeNotePersistencePayload.knowledge.scope_layers],
+      governance_classes: [
+        ...closeNotePersistencePayload.knowledge.governance_classes
+      ],
+      persistence_key: `close_note.knowledge.${closeNotePersistencePayload.knowledge.phase_snapshot_id}`,
+      persistence_scope: "agent_session",
+      envelope_summary: `${closeNotePersistencePayload.knowledge.phase_snapshot_id}; ${closeNotePersistencePayload.knowledge.phase_snapshot_summary}; scope_layers = ${closeNotePersistencePayload.knowledge.scope_layers.join(", ") || "none"}; governance_classes = ${closeNotePersistencePayload.knowledge.governance_classes.join(", ") || "none"}; persistence_key = close_note.knowledge.${closeNotePersistencePayload.knowledge.phase_snapshot_id}; persistence_scope = agent_session`
+    },
+    scenario: {
+      phase_snapshot_id: closeNotePersistencePayload.scenario.phase_snapshot_id,
+      phase_snapshot_summary:
+        closeNotePersistencePayload.scenario.phase_snapshot_summary,
+      strategy_bundle_id: closeNotePersistencePayload.scenario.strategy_bundle_id,
+      orchestration_mode:
+        closeNotePersistencePayload.scenario.orchestration_mode,
+      persistence_key: `close_note.scenario.${closeNotePersistencePayload.scenario.phase_snapshot_id}`,
+      persistence_scope: "agent_session",
+      envelope_summary: `${closeNotePersistencePayload.scenario.phase_snapshot_id}; ${closeNotePersistencePayload.scenario.phase_snapshot_summary}; strategy_bundle = ${closeNotePersistencePayload.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNotePersistencePayload.scenario.orchestration_mode ?? "none"}; persistence_key = close_note.scenario.${closeNotePersistencePayload.scenario.phase_snapshot_id}; persistence_scope = agent_session`
     }
   };
 }

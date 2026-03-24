@@ -91,6 +91,7 @@ import {
   type AgentRecord,
   buildRoleCoreMemoryCloseNoteArtifact,
   buildRoleCoreMemoryCloseNoteArchive,
+  buildRoleCoreMemoryCloseNotePersistenceEnvelope,
   buildRoleCoreMemoryCloseNoteHandoffPacket,
   buildRoleCoreMemoryCloseNoteOutput,
   buildRoleCoreMemoryCloseNotePersistencePayload,
@@ -98,6 +99,7 @@ import {
   type RoleCoreMemoryCloseNoteArchive,
   type RoleCoreMemoryCloseNoteArtifact,
   type RoleCoreMemoryCloseNoteHandoffPacket,
+  type RoleCoreMemoryCloseNotePersistenceEnvelope,
   type RoleCoreMemoryCloseNoteRecord,
   type RoleCoreMemoryCloseNoteOutput,
   type RoleCoreMemoryCloseNotePersistencePayload,
@@ -2619,7 +2621,8 @@ function buildAgentSystemPromptInternal(
   closeNoteOutput: RoleCoreMemoryCloseNoteOutput | null = null,
   closeNoteRecord: RoleCoreMemoryCloseNoteRecord | null = null,
   closeNoteArchive: RoleCoreMemoryCloseNoteArchive | null = null,
-  closeNotePersistencePayload: RoleCoreMemoryCloseNotePersistencePayload | null = null
+  closeNotePersistencePayload: RoleCoreMemoryCloseNotePersistencePayload | null = null,
+  closeNotePersistenceEnvelope: RoleCoreMemoryCloseNotePersistenceEnvelope | null = null
 ) {
   const activePack = resolveActiveScenarioMemoryPack({
     activeNamespace: activeMemoryNamespace ?? null,
@@ -2682,6 +2685,10 @@ function buildAgentSystemPromptInternal(
     buildRoleCoreMemoryCloseNoteArchivePrompt(closeNoteArchive, replyLanguage),
     buildRoleCoreMemoryCloseNotePersistencePayloadPrompt(
       closeNotePersistencePayload,
+      replyLanguage
+    ),
+    buildRoleCoreMemoryCloseNotePersistenceEnvelopePrompt(
+      closeNotePersistenceEnvelope,
       replyLanguage
     ),
     agentSystemPrompt,
@@ -3057,6 +3064,57 @@ export function buildRoleCoreMemoryCloseNotePersistencePayloadPrompt(
   return sections.join("\n");
 }
 
+export function buildRoleCoreMemoryCloseNotePersistenceEnvelopePrompt(
+  closeNotePersistenceEnvelope: RoleCoreMemoryCloseNotePersistenceEnvelope | null,
+  replyLanguage: RuntimeReplyLanguage
+) {
+  if (!closeNotePersistenceEnvelope) {
+    return "";
+  }
+
+  const isZh = replyLanguage === "zh-Hans";
+  const sections = [
+    isZh
+      ? `Role core close-note persistence envelope：envelope_version = ${closeNotePersistenceEnvelope.envelope_version}；readiness = ${closeNotePersistenceEnvelope.readiness_judgment}。`
+      : `Role core close-note persistence envelope: envelope_version = ${closeNotePersistenceEnvelope.envelope_version}; readiness = ${closeNotePersistenceEnvelope.readiness_judgment}.`,
+    isZh
+      ? `Close-note persistence envelope progress：${closeNotePersistenceEnvelope.progress_range}；close_candidate = ${closeNotePersistenceEnvelope.close_candidate ? "true" : "false"}；close_note_recommended = ${closeNotePersistenceEnvelope.close_note_recommended ? "true" : "false"}。`
+      : `Close-note persistence envelope progress: ${closeNotePersistenceEnvelope.progress_range}; close_candidate = ${closeNotePersistenceEnvelope.close_candidate ? "true" : "false"}; close_note_recommended = ${closeNotePersistenceEnvelope.close_note_recommended ? "true" : "false"}.`,
+    isZh
+      ? `Close-note persistence envelope headline：${closeNotePersistenceEnvelope.headline}。`
+      : `Close-note persistence envelope headline: ${closeNotePersistenceEnvelope.headline}.`,
+    isZh
+      ? `Namespace persistence envelope section：${closeNotePersistenceEnvelope.namespace.envelope_summary}。`
+      : `Namespace persistence envelope section: ${closeNotePersistenceEnvelope.namespace.envelope_summary}.`,
+    isZh
+      ? `Retention persistence envelope section：${closeNotePersistenceEnvelope.retention.envelope_summary}。`
+      : `Retention persistence envelope section: ${closeNotePersistenceEnvelope.retention.envelope_summary}.`,
+    isZh
+      ? `Knowledge persistence envelope section：${closeNotePersistenceEnvelope.knowledge.envelope_summary}。`
+      : `Knowledge persistence envelope section: ${closeNotePersistenceEnvelope.knowledge.envelope_summary}.`,
+    isZh
+      ? `Scenario persistence envelope section：${closeNotePersistenceEnvelope.scenario.envelope_summary}。`
+      : `Scenario persistence envelope section: ${closeNotePersistenceEnvelope.scenario.envelope_summary}.`,
+    isZh
+      ? `Close-note persistence envelope summary：${closeNotePersistenceEnvelope.envelope_summary}`
+      : `Close-note persistence envelope summary: ${closeNotePersistenceEnvelope.envelope_summary}`,
+    isZh
+      ? `Close-note persistence envelope non-blocking items：${closeNotePersistenceEnvelope.non_blocking_items.join(", ") || "none"}。`
+      : `Close-note persistence envelope non-blocking items: ${closeNotePersistenceEnvelope.non_blocking_items.join(", ") || "none"}.`,
+    isZh
+      ? `Close-note persistence envelope tail candidates：${closeNotePersistenceEnvelope.tail_candidate_items.join(", ") || "none"}。`
+      : `Close-note persistence envelope tail candidates: ${closeNotePersistenceEnvelope.tail_candidate_items.join(", ") || "none"}.`,
+    isZh
+      ? `Close-note persistence envelope gap buckets：blocking = ${closeNotePersistenceEnvelope.acceptance_gap_buckets.blocking}；non_blocking = ${closeNotePersistenceEnvelope.acceptance_gap_buckets.non_blocking}；tail_candidate = ${closeNotePersistenceEnvelope.acceptance_gap_buckets.tail_candidate}。`
+      : `Close-note persistence envelope gap buckets: blocking = ${closeNotePersistenceEnvelope.acceptance_gap_buckets.blocking}; non_blocking = ${closeNotePersistenceEnvelope.acceptance_gap_buckets.non_blocking}; tail_candidate = ${closeNotePersistenceEnvelope.acceptance_gap_buckets.tail_candidate}.`,
+    isZh
+      ? `Close-note persistence envelope next focus：${closeNotePersistenceEnvelope.next_expansion_focus.join(", ") || "none"}。`
+      : `Close-note persistence envelope next focus: ${closeNotePersistenceEnvelope.next_expansion_focus.join(", ") || "none"}.`
+  ];
+
+  return sections.join("\n");
+}
+
 function buildThreadStatePrompt(
   threadState: ThreadStateRecord | null | undefined,
   replyLanguage: RuntimeReplyLanguage
@@ -3269,7 +3327,8 @@ export function buildAgentSystemPrompt(
   closeNoteOutput: RoleCoreMemoryCloseNoteOutput | null = null,
   closeNoteRecord: RoleCoreMemoryCloseNoteRecord | null = null,
   closeNoteArchive: RoleCoreMemoryCloseNoteArchive | null = null,
-  closeNotePersistencePayload: RoleCoreMemoryCloseNotePersistencePayload | null = null
+  closeNotePersistencePayload: RoleCoreMemoryCloseNotePersistencePayload | null = null,
+  closeNotePersistenceEnvelope: RoleCoreMemoryCloseNotePersistenceEnvelope | null = null
 ) {
   return buildAgentSystemPromptInternal(
     roleCorePacket,
@@ -3288,7 +3347,8 @@ export function buildAgentSystemPrompt(
     closeNoteOutput,
     closeNoteRecord,
     closeNoteArchive,
-    closeNotePersistencePayload
+    closeNotePersistencePayload,
+    closeNotePersistenceEnvelope
   );
 }
 
@@ -4475,6 +4535,12 @@ export async function runPreparedRuntimeTurn({
       closeNoteArchive: roleCoreCloseNoteArchive,
       closeNoteRecord: roleCoreCloseNoteRecord
     });
+  const roleCoreCloseNotePersistenceEnvelope =
+    buildRoleCoreMemoryCloseNotePersistenceEnvelope({
+      roleCorePacket: roleCorePacketWithMemoryHandoff,
+      closeNotePersistencePayload: roleCoreCloseNotePersistencePayload,
+      closeNoteArchive: roleCoreCloseNoteArchive
+    });
   const { workspace, thread, messages, assistant_message_id, supabase } =
     preparedRuntimeTurn.resources;
   const runtimeSupabase = supabase as any;
@@ -4498,7 +4564,8 @@ export async function runPreparedRuntimeTurn({
         roleCoreCloseNoteOutput,
         roleCoreCloseNoteRecord,
         roleCoreCloseNoteArchive,
-        roleCoreCloseNotePersistencePayload
+        roleCoreCloseNotePersistencePayload,
+        roleCoreCloseNotePersistenceEnvelope
       )
     },
     ...messages
@@ -4571,6 +4638,8 @@ export async function runPreparedRuntimeTurn({
         role_core_close_note_artifact: roleCoreCloseNoteArtifact,
         role_core_close_note_record: roleCoreCloseNoteRecord,
         role_core_close_note_archive: roleCoreCloseNoteArchive,
+        role_core_close_note_persistence_envelope:
+          roleCoreCloseNotePersistenceEnvelope,
         role_core_close_note_persistence_payload:
           roleCoreCloseNotePersistencePayload,
         role_core_close_note_output: roleCoreCloseNoteOutput,
@@ -4813,6 +4882,8 @@ export async function runPreparedRuntimeTurn({
       role_core_close_note_artifact: roleCoreCloseNoteArtifact,
       role_core_close_note_record: roleCoreCloseNoteRecord,
       role_core_close_note_archive: roleCoreCloseNoteArchive,
+      role_core_close_note_persistence_envelope:
+        roleCoreCloseNotePersistenceEnvelope,
       role_core_close_note_persistence_payload:
         roleCoreCloseNotePersistencePayload,
       role_core_close_note_output: roleCoreCloseNoteOutput
