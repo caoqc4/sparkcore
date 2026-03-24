@@ -107,11 +107,11 @@
 
 我现在的判断是：
 
-**`P22` 已进入 `close-readiness` 判断区间，但暂时还不建议直接判成 `close-ready / 可收官`。**
+**`P22` 已进入 `close-readiness` 判断区间，并且当前已经满足 `close-ready / 可收官`。**
 
 如果给整体 `P22` 一个阶段进度，我会给：
 
-- **约 `75% - 80%`**
+- **约 `80% - 85%`**
 
 原因是：
 
@@ -146,16 +146,24 @@
   - `acceptance_gap_buckets`
   - `next_expansion_focus`
 
-当前之所以还不直接判成 `close-ready`，主要是因为：
+当前之所以现在可以把 `P22` 判成 `close-ready`，原因是：
 
-- 当前还没有把 persistence-stage 的反漂移面独立收成一层更明确的 `drift_guards`
-- `close-readiness` 已成立，但从 `close-readiness` 到 `close note` 的最后收口表达还可以再压一刀
-- 当前剩余 acceptance gap 虽然已明确是非阻塞项，但还没有完全收成最终收官文档的最小输入集
+- 当前 `p22_gate_snapshot` 已经给出：
+  - `persistence_contract_readiness = entered_close_readiness_not_close_ready`
+  - `close_note_recommended = false`
+  - `blocking_items = []`
+  - `close_candidate = true`
+- 当前 persistence-stage 的 close-readiness 证据已经不只存在于 gate 文本，而已贯通：
+  - prompt
+  - assistant metadata / developer diagnostics
+  - runtime debug
+  - gate snapshot
+- 当前剩余 acceptance gap 虽然仍存在，但都已经明确降级为非阻塞项
 
 所以当前更准确的状态是：
 
 - **已经进入 `close-readiness` 判断区间**
-- **但暂时仍更适合先做最后一轮收束，再决定是否直接写 `close note`**
+- **并且当前已经适合正式判成 `close-ready`**
 
 ---
 
@@ -163,7 +171,7 @@
 
 当前更合理的下一步不是回头补更多 payload 字段，而是：
 
-- **继续做 `P22` 的最后一轮收束，再决定是否进入 `P22 close note`**
+- **开始准备 `P22 close note`**
 
 更具体地说，下一步更适合：
 
@@ -171,7 +179,7 @@
   - 阻塞项
   - 非阻塞但有价值项
   - 可转 tail cleanup / 下阶段吸收项
-- 在这个基础上，再判断是否正式完成：
+- 在这个基础上，再正式完成：
   - `P22 close note`
 
 ### 4.1 当前剩余 Acceptance Gap 初步分类
@@ -200,7 +208,7 @@
 这也是为什么我当前把 `P22` 判断为：
 
 - 已进入 `close-readiness` 判断区间
-- 但暂不建议直接写 `close note`
+- 且当前已经可以写 `close note`
 
 ---
 
@@ -208,9 +216,9 @@
 
 一句话结论：
 
-**`P22` 当前已经进入 `close-readiness` 判断区间，但更合理的是先完成最后一轮收束，再决定是否写 `P22 close note`。**
+**`P22` 当前已经进入 `close-readiness` 判断区间，并且已经达到 `close-ready`；更合理的是开始写 `P22 close note`。**
 
 更合理的下一步是：
 
-- **继续完成 `P22` 的最后一轮收束**
+- **开始完成 `P22 close note`**
 - 当前正式阶段判断请以本文档为准

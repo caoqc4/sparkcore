@@ -503,6 +503,9 @@
     - 当前正式阶段判断请以
       [memory_upgrade_p22_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p22_close_readiness_v1.0.md)
       为准
+    - 当前收官结论请以
+      [memory_upgrade_p22_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p22_close_note_v1.0.md)
+      为准
     - 当前 `p22_gate_snapshot`：
       - `persistence_contract_readiness = entered_close_readiness_not_close_ready`
       - `progress_range = 70% - 75%`
@@ -511,8 +514,9 @@
       - `prompt_surface = 4 / 4`
       - `close_readiness_consumption = 4 / 4`
       - `overall = 16 / 16`
-    - 当前整体约 `75% - 80%`
-    - 当前最推荐的下一步是 `P22` 的最后一轮收束，再决定是否进入 `P22 close note`
+    - `P22` 已进入 `close-readiness` 判断区间，并已达到 `close-ready / 可收官`
+    - 当前整体约 `80% - 85%`
+    - 当前最推荐的下一步是开始下一阶段规划，而不是继续扩张 `P22` 范围
 
 ---
 

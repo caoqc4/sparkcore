@@ -154,13 +154,17 @@
 [memory_upgrade_p22_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p22_close_readiness_v1.0.md)
 为准。
 
+当前收官结论请以
+[memory_upgrade_p22_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p22_close_note_v1.0.md)
+为准。
+
 整体 `P22` 当前大约：
 
-- **`75% - 80%`**
+- **`80% - 85%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P22` 的最后一轮收束，再决定是否进入 `P22 close note`**
+- **`P22` 当前已可收官；下一步更适合进入下一阶段规划，而不是继续扩张 `P22` 范围**
 
 ---
 
