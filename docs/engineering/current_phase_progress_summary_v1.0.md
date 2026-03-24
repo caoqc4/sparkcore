@@ -1493,3 +1493,7 @@
 当前正式 `close-readiness` 判断请以
 [memory_upgrade_p12_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p12_close_readiness_v1.0.md)
 为准。
+
+当前正式收官结论请以
+[memory_upgrade_p12_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p12_close_note_v1.0.md)
+为准。
