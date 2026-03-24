@@ -1145,6 +1145,7 @@
 当前对应复盘文档：
 
 - [memory_upgrade_p6_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_close_readiness_v1.0.md)
+- [memory_upgrade_p6_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_close_note_v1.0.md)
 
 当前已成立的 `P6-5` gate：
 
