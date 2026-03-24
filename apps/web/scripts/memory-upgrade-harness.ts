@@ -830,6 +830,11 @@ function main() {
       buildRuntimeKnowledgeSnippet(generalKnowledgeSnapshot)
     ]
   });
+  const worldKnowledgeDrivenScenarioMemoryPackPrompt =
+    buildScenarioMemoryPackPromptSection({
+      pack: worldKnowledgeDrivenScenarioMemoryPack,
+      replyLanguage: "en"
+    });
   expect(
     worldKnowledgeDrivenScenarioMemoryPack.pack_id === "companion",
     "Expected world-only knowledge context to keep the companion pack active in P4."
@@ -848,6 +853,15 @@ function main() {
     worldKnowledgeDrivenScenarioMemoryPack.assembly_order.join(",") ===
       "thread_state,knowledge,dynamic_profile,static_profile,memory_record",
     "Expected world-scoped knowledge to promote knowledge into the effective assembly order in P4."
+  );
+  expect(
+    worldKnowledgeDrivenScenarioMemoryPackPrompt.includes(
+      "Active Scenario Memory Pack: companion"
+    ) &&
+      worldKnowledgeDrivenScenarioMemoryPackPrompt.includes(
+        "Current strategy policy = knowledge_guided_companion_policy; orchestration mode = knowledge_guided."
+      ),
+    "Expected world-knowledge companion prompt section to expose the knowledge-guided companion scenario contract."
   );
   expect(
     scenarioMemoryPack.knowledge_route_weight >= 1 &&
@@ -3790,7 +3804,44 @@ function main() {
       referenceOnlyProjectOpsSelection.length === 1 &&
       referenceOnlyProjectOpsSelection[0]?.title === "General delivery note" &&
       selectedKnowledgeForPrompt[0]?.title === "Onboarding checklist guide" &&
-      !defaultScenarioMemoryPackPrompt.includes("General reply policy")
+      !defaultScenarioMemoryPackPrompt.includes("General reply policy"),
+    scenario_fabric_drift_guard_v11_ok:
+      defaultScenarioMemoryPack.governance_fabric_digest_id ===
+        "continuity_governance_fabric" &&
+      defaultScenarioMemoryPack.strategy_governance_fabric_summary ===
+        "continuity_strategy_governance_fabric" &&
+      defaultScenarioMemoryPack.orchestration_governance_fabric_mode ===
+        "continuity_runtime_governance_fabric" &&
+      defaultScenarioMemoryPack.governance_fabric_reuse_mode ===
+        "continuity_runtime_governance_fabric_reuse" &&
+      !defaultScenarioMemoryPackPrompt.includes(
+        "project_delivery_policy"
+      ) &&
+      !defaultScenarioMemoryPackPrompt.includes(
+        "project_delivery_governance_fabric"
+      ) &&
+      worldKnowledgeDrivenScenarioMemoryPack.pack_id === "companion" &&
+      worldKnowledgeDrivenScenarioMemoryPack.governance_fabric_digest_id ===
+        "knowledge_guided_governance_fabric" &&
+      worldKnowledgeDrivenScenarioMemoryPack.strategy_governance_fabric_summary ===
+        "knowledge_guided_strategy_governance_fabric" &&
+      worldKnowledgeDrivenScenarioMemoryPack.orchestration_governance_fabric_mode ===
+        "knowledge_guided_runtime_governance_fabric" &&
+      worldKnowledgeDrivenScenarioMemoryPack.governance_fabric_reuse_mode ===
+        "knowledge_guided_runtime_governance_fabric_reuse" &&
+      !worldKnowledgeDrivenScenarioMemoryPackPrompt.includes(
+        "project_delivery_policy"
+      ) &&
+      !worldKnowledgeDrivenScenarioMemoryPackPrompt.includes(
+        "project_delivery_governance_fabric"
+      ) &&
+      scenarioMemoryPack.governance_fabric_digest_id ===
+        "project_delivery_governance_fabric" &&
+      getAssistantMemoryScenarioPackGovernanceFabricDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_fabric_digest_id &&
+      runtimeDebugPack?.governance_fabric_digest_id ===
+        scenarioMemoryPack.governance_fabric_digest_id
   } as const;
   const p13RegressionGateFailedChecks = Object.entries(
     p13RegressionGateChecks
