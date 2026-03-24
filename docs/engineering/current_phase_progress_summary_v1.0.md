@@ -1350,7 +1350,9 @@
 
 当前更推荐的下一步：
 
-- **开始进入 `P8 close-readiness` 前置评估**
+- **`P8 close-readiness` 前置评估已成立**
+- 当前更推荐的下一步：
+  - **继续补一层 `P8-5`**
 - 当前 knowledge 最小 convergence 已经进入：
   - `governance_convergence_digest`
   - `source_budget_alignment_summary`
