@@ -1910,6 +1910,41 @@ function main() {
       updated_at: "2026-03-23T00:00:00.000Z"
     }
   );
+  const systemPromptWithoutArtifact = buildAgentSystemPrompt(
+    roleCorePacketForHarness,
+    "Keep answers grounded.",
+    "Help me finish onboarding.",
+    [
+      promptRecalledProfile,
+      {
+        ...promptRecalledProfile,
+        content: "The user prefers a little more directness when discussing schedules."
+      },
+      promptRecalledEpisode,
+      promptRecalledTimeline,
+      recalledRelationship
+    ],
+    runtimeKnowledge,
+    compactedThreadSummary,
+    activeMemoryNamespace,
+    "en",
+    undefined,
+    "",
+    {
+      thread_id: "thread-1",
+      agent_id: "agent-1",
+      state_version: 2,
+      lifecycle_status: "active",
+      focus_mode: plannedThreadState.focus_mode,
+      current_language_hint: "en",
+      recent_turn_window_size: 6,
+      continuity_status: "warm",
+      last_user_message_id: "msg-1",
+      last_assistant_message_id: "msg-2",
+      updated_at: "2026-03-23T00:00:00.000Z"
+    },
+    p17CloseNoteHandoffPacket
+  );
   const p18CloseNoteArtifactPrompt = buildRoleCoreMemoryCloseNoteArtifactPrompt(
     p18CloseNoteArtifact,
     "en"
@@ -5533,11 +5568,28 @@ function main() {
     role_core_memory_close_note_artifact_runtime_consumption_v1_ok:
       p18CloseNoteArtifactChecks.role_core_memory_close_note_artifact_runtime_consumption_v1_ok
   });
+  const p18DriftGuardChecks = {
+    role_core_memory_close_note_artifact_null_guard_v1_ok:
+      buildRoleCoreMemoryCloseNoteArtifact({
+        roleCorePacket: roleCorePacketForHarness,
+        closeNoteHandoffPacket: null
+      }) === null,
+    role_core_memory_close_note_artifact_prompt_drift_guard_v1_ok:
+      !systemPromptWithoutArtifact.includes("Role core close-note artifact") &&
+      !systemPromptWithoutArtifact.includes(p18CloseNoteArtifact?.headline ?? "") &&
+      systemPrompt.includes("Role core close-note artifact") &&
+      systemPrompt.includes(p18CloseNoteArtifact?.acceptance_summary ?? "")
+  } as const;
+  const p18DriftGuards = summarizeGate(p18DriftGuardChecks);
   const p18RegressionGate = {
     positive_contracts: p18PositiveContracts,
     metadata_consistency: p18MetadataConsistency,
     artifact_consumption: p18PacketConsumption,
-    ...summarizeGate(p18CloseNoteArtifactChecks)
+    drift_guards: p18DriftGuards,
+    ...summarizeGate({
+      ...p18CloseNoteArtifactChecks,
+      ...p18DriftGuardChecks
+    })
   } as const;
   const p18GateSnapshot = {
     gate_id: "p18_regression_gate_v1",
@@ -5574,6 +5626,11 @@ function main() {
       checks_passed: p18PacketConsumption.checks_passed,
       checks_total: p18PacketConsumption.checks_total,
       all_green: p18PacketConsumption.all_green
+    },
+    drift_guards: {
+      checks_passed: p18DriftGuards.checks_passed,
+      checks_total: p18DriftGuards.checks_total,
+      all_green: p18DriftGuards.all_green
     },
     overall: {
       checks_passed: p18RegressionGate.checks_passed,

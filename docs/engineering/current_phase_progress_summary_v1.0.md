@@ -338,20 +338,23 @@
       为准
     - 当前 `p18_gate_snapshot`：
       - `artifact_readiness = artifact_contract_started_not_close_ready`
-      - `progress_range = 25% - 30%`
+      - `progress_range = 40% - 45%`
       - `close_note_recommended = true`
       - `blocking_items = []`
       - `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
       - `positive_contracts = 1 / 1`
       - `metadata_consistency = 1 / 1`
+      - `drift_guards = 2 / 2`
       - `artifact_consumption = 2 / 2`
-      - `overall = 4 / 4`
+      - `overall = 6 / 6`
     - 当前 gate 已锁住：
       - role core memory close-note artifact v1
       - role core memory close-note artifact metadata consistency v1
       - role core memory close-note artifact prompt surface v1
       - role core memory close-note artifact runtime consumption v1
-    - 当前整体约 `25% - 30%`
+      - role core memory close-note artifact null guard v1
+      - role core memory close-note artifact prompt drift guard v1
+    - 当前整体约 `40% - 45%`
 
 ---
 
