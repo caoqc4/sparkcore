@@ -144,6 +144,10 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   active_memory_namespace_governance_fabric_runtime_summary?: string | null;
   active_memory_namespace_governance_fabric_alignment_mode?: string | null;
   active_memory_namespace_governance_fabric_reuse_mode?: string | null;
+  active_memory_namespace_governance_fabric_plane_digest_id?: string | null;
+  active_memory_namespace_governance_fabric_plane_summary?: string | null;
+  active_memory_namespace_governance_fabric_plane_alignment_mode?: string | null;
+  active_memory_namespace_governance_fabric_plane_reuse_mode?: string | null;
   active_memory_namespace_retrieval_write_digest_alignment?: string | null;
   compacted_thread_summary_id?: string | null;
   compacted_thread_summary_text?: string | null;
@@ -334,6 +338,10 @@ export type BuildAssistantMessageMetadataInput = {
   active_memory_namespace_governance_fabric_runtime_summary?: string | null;
   active_memory_namespace_governance_fabric_alignment_mode?: string | null;
   active_memory_namespace_governance_fabric_reuse_mode?: string | null;
+  active_memory_namespace_governance_fabric_plane_digest_id?: string | null;
+  active_memory_namespace_governance_fabric_plane_summary?: string | null;
+  active_memory_namespace_governance_fabric_plane_alignment_mode?: string | null;
+  active_memory_namespace_governance_fabric_plane_reuse_mode?: string | null;
   active_memory_namespace_retrieval_write_digest_alignment?: string | null;
   compacted_thread_summary_id?: string | null;
   compacted_thread_summary_text?: string | null;
@@ -675,6 +683,18 @@ export function buildAssistantMetadataSummaryGroups(
             null,
           governance_fabric_reuse_mode:
             input.active_memory_namespace_governance_fabric_reuse_mode ?? null,
+          governance_fabric_plane_digest_id:
+            input.active_memory_namespace_governance_fabric_plane_digest_id ??
+            null,
+          governance_fabric_plane_summary:
+            input.active_memory_namespace_governance_fabric_plane_summary ??
+            null,
+          governance_fabric_plane_alignment_mode:
+            input.active_memory_namespace_governance_fabric_plane_alignment_mode ??
+            null,
+          governance_fabric_plane_reuse_mode:
+            input.active_memory_namespace_governance_fabric_plane_reuse_mode ??
+            null,
           retrieval_write_digest_alignment:
             input.active_memory_namespace_retrieval_write_digest_alignment ??
             null
@@ -980,6 +1000,14 @@ export function buildAssistantMetadataSummaryGroups(
         input.active_memory_namespace_governance_fabric_alignment_mode,
       active_memory_namespace_governance_fabric_reuse_mode:
         input.active_memory_namespace_governance_fabric_reuse_mode,
+      active_memory_namespace_governance_fabric_plane_digest_id:
+        input.active_memory_namespace_governance_fabric_plane_digest_id,
+      active_memory_namespace_governance_fabric_plane_summary:
+        input.active_memory_namespace_governance_fabric_plane_summary,
+      active_memory_namespace_governance_fabric_plane_alignment_mode:
+        input.active_memory_namespace_governance_fabric_plane_alignment_mode,
+      active_memory_namespace_governance_fabric_plane_reuse_mode:
+        input.active_memory_namespace_governance_fabric_plane_reuse_mode,
       active_memory_namespace_retrieval_write_digest_alignment:
         input.active_memory_namespace_retrieval_write_digest_alignment,
       compacted_thread_summary_id: input.compacted_thread_summary_id,

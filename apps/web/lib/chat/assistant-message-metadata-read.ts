@@ -1323,6 +1323,74 @@ export function getAssistantMemoryNamespaceGovernanceFabricReuseMode(
   );
 }
 
+export function getAssistantMemoryNamespaceGovernanceFabricPlaneDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_fabric_plane_digest_id"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_fabric_plane_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernanceFabricPlaneSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_fabric_plane_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_fabric_plane_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernanceFabricPlaneAlignmentMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_fabric_plane_alignment_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_fabric_plane_alignment_mode"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernanceFabricPlaneReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_fabric_plane_reuse_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_fabric_plane_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
   metadata: Record<string, unknown> | null | undefined
 ) {

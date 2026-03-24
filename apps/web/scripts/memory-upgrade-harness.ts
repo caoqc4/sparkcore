@@ -105,6 +105,10 @@ import {
   getAssistantMemoryNamespaceGovernanceFabricRuntimeSummary,
   getAssistantMemoryNamespaceGovernanceFabricAlignmentMode,
   getAssistantMemoryNamespaceGovernanceFabricReuseMode,
+  getAssistantMemoryNamespaceGovernanceFabricPlaneDigestId,
+  getAssistantMemoryNamespaceGovernanceFabricPlaneSummary,
+  getAssistantMemoryNamespaceGovernanceFabricPlaneAlignmentMode,
+  getAssistantMemoryNamespaceGovernanceFabricPlaneReuseMode,
   getAssistantMemoryNamespaceRetrievalFallbackMode,
   getAssistantMemoryNamespaceRouteGovernanceMode,
   getAssistantMemoryNamespaceGovernanceConsistencyMode,
@@ -166,6 +170,7 @@ import {
   buildMemoryNamespaceScopedMetadata,
   isMemoryWithinNamespace,
   type ActiveRuntimeMemoryNamespace,
+  resolveNamespaceGovernanceFabricPlaneContract,
   resolveNamespaceGovernanceFabricRuntimeContract,
   resolveNamespaceGovernancePlaneRuntimeContract,
   resolveNamespaceGovernanceConsolidationContract,
@@ -3101,6 +3106,8 @@ function main() {
     resolveNamespaceGovernancePlaneRuntimeContract(projectPrimaryNamespace);
   const projectGovernanceFabricContract =
     resolveNamespaceGovernanceFabricRuntimeContract(projectPrimaryNamespace);
+  const projectGovernanceFabricPlaneContract =
+    resolveNamespaceGovernanceFabricPlaneContract(projectPrimaryNamespace);
   const p12NamespaceGovernancePlaneChecks = {
     namespace_governance_plane_runtime_v7_ok:
       projectBoundary.governance_plane_runtime_digest_id ===
@@ -3202,6 +3209,59 @@ function main() {
       runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
         ?.namespace_governance_fabric_reuse_mode ===
         projectBoundary.governance_fabric_reuse_mode
+  } as const;
+  const p14NamespaceGovernanceFabricPlaneChecks = {
+    namespace_governance_fabric_plane_v9_ok:
+      projectBoundary.governance_fabric_plane_digest_id ===
+        "project_coordination_governance_fabric_plane" &&
+      projectBoundary.governance_fabric_plane_summary ===
+        "project_coordination_governance_fabric_plane" &&
+      projectBoundary.governance_fabric_plane_alignment_mode ===
+        "project_fabric_plane_aligned" &&
+      projectBoundary.governance_fabric_plane_reuse_mode ===
+        "project_coordination_governance_fabric_plane_reuse" &&
+      projectGovernanceFabricPlaneContract.governance_fabric_plane_digest_id ===
+        projectBoundary.governance_fabric_plane_digest_id &&
+      projectGovernanceFabricPlaneContract.governance_fabric_plane_summary ===
+        projectBoundary.governance_fabric_plane_summary &&
+      projectGovernanceFabricPlaneContract.governance_fabric_plane_alignment_mode ===
+        projectBoundary.governance_fabric_plane_alignment_mode &&
+      projectGovernanceFabricPlaneContract.governance_fabric_plane_reuse_mode ===
+        projectBoundary.governance_fabric_plane_reuse_mode &&
+      getAssistantMemoryNamespaceGovernanceFabricPlaneDigestId(
+        assistantMetadata
+      ) === projectBoundary.governance_fabric_plane_digest_id &&
+      getAssistantMemoryNamespaceGovernanceFabricPlaneSummary(
+        assistantMetadata
+      ) === projectBoundary.governance_fabric_plane_summary &&
+      getAssistantMemoryNamespaceGovernanceFabricPlaneAlignmentMode(
+        assistantMetadata
+      ) === projectBoundary.governance_fabric_plane_alignment_mode &&
+      getAssistantMemoryNamespaceGovernanceFabricPlaneReuseMode(
+        assistantMetadata
+      ) === projectBoundary.governance_fabric_plane_reuse_mode &&
+      runtimeDebugMetadata.memory_namespace?.governance_fabric_plane_digest_id ===
+        projectBoundary.governance_fabric_plane_digest_id &&
+      runtimeDebugMetadata.memory_namespace?.governance_fabric_plane_summary ===
+        projectBoundary.governance_fabric_plane_summary &&
+      runtimeDebugMetadata.memory_namespace
+        ?.governance_fabric_plane_alignment_mode ===
+        projectBoundary.governance_fabric_plane_alignment_mode &&
+      runtimeDebugMetadata.memory_namespace
+        ?.governance_fabric_plane_reuse_mode ===
+        projectBoundary.governance_fabric_plane_reuse_mode &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_fabric_plane_digest_id ===
+        projectBoundary.governance_fabric_plane_digest_id &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_fabric_plane_summary ===
+        projectBoundary.governance_fabric_plane_summary &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_fabric_plane_alignment_mode ===
+        projectBoundary.governance_fabric_plane_alignment_mode &&
+      runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+        ?.namespace_governance_fabric_plane_reuse_mode ===
+        projectBoundary.governance_fabric_plane_reuse_mode
   } as const;
   const p11NamespaceUnifiedConsolidationChecks = {
     namespace_unified_governance_consolidation_v6_ok:
@@ -4208,7 +4268,15 @@ function main() {
             project_governance_fabric_alignment_mode:
               projectGovernanceFabricContract.governance_fabric_alignment_mode,
             project_governance_fabric_reuse_mode:
-              projectGovernanceFabricContract.governance_fabric_reuse_mode
+              projectGovernanceFabricContract.governance_fabric_reuse_mode,
+            project_governance_fabric_plane_digest:
+              projectGovernanceFabricPlaneContract.governance_fabric_plane_digest_id,
+            project_governance_fabric_plane_summary:
+              projectGovernanceFabricPlaneContract.governance_fabric_plane_summary,
+            project_governance_fabric_plane_alignment_mode:
+              projectGovernanceFabricPlaneContract.governance_fabric_plane_alignment_mode,
+            project_governance_fabric_plane_reuse_mode:
+              projectGovernanceFabricPlaneContract.governance_fabric_plane_reuse_mode
           }
         },
         runtime_semantic_summary: semanticSummary,
@@ -4980,6 +5048,8 @@ function main() {
           p11NamespaceUnifiedConsolidationChecks,
         p12_namespace_governance_plane: p12NamespaceGovernancePlaneChecks,
         p13_namespace_governance_fabric: p13NamespaceGovernanceFabricChecks,
+        p14_namespace_governance_fabric_plane:
+          p14NamespaceGovernanceFabricPlaneChecks,
         p10_retention_consolidation: p10RetentionConsolidationChecks,
         p11_retention_coordination: p11RetentionCoordinationChecks,
         p12_retention_governance_plane: p12RetentionGovernancePlaneChecks,

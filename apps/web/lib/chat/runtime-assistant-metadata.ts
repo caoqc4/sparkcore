@@ -369,6 +369,14 @@ export function buildRuntimeAssistantMetadataInput(
       namespaceBoundary?.governance_fabric_alignment_mode ?? null,
     active_memory_namespace_governance_fabric_reuse_mode:
       namespaceBoundary?.governance_fabric_reuse_mode ?? null,
+    active_memory_namespace_governance_fabric_plane_digest_id:
+      namespaceBoundary?.governance_fabric_plane_digest_id ?? null,
+    active_memory_namespace_governance_fabric_plane_summary:
+      namespaceBoundary?.governance_fabric_plane_summary ?? null,
+    active_memory_namespace_governance_fabric_plane_alignment_mode:
+      namespaceBoundary?.governance_fabric_plane_alignment_mode ?? null,
+    active_memory_namespace_governance_fabric_plane_reuse_mode:
+      namespaceBoundary?.governance_fabric_plane_reuse_mode ?? null,
     active_memory_namespace_retrieval_write_digest_alignment:
       namespaceBoundary?.retrieval_write_digest_alignment ?? null,
     compacted_thread_summary_id: input.compaction.summary?.summary_id ?? null,
