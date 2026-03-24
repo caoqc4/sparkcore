@@ -100,11 +100,11 @@
 
 我现在的判断是：
 
-**`P16` 已进入 `close-readiness` 判断区间，但当前还不建议直接判成 `close-ready / 可收官`。**
+**`P16` 已进入 `close-readiness` 判断区间，并且当前已经满足 `close-ready / 可收官`。**
 
 如果给整体 `P16` 一个阶段进度，我会给：
 
-- **约 `75% - 80%`**
+- **约 `80% - 85%`**
 
 原因是：
 
@@ -131,16 +131,21 @@
   联动
 - `role_core_packet.memory_handoff` 当前已经不再只是内部结构，而已开始形成 close-note handoff 的轻量消费面
 
-当前之所以还不直接判成 `close-ready`，不是因为主线没成立，而是因为：
+当前之所以现在可以把 `P16` 判成 `close-ready`，原因是：
 
-- `P16-5` 还缺最后一轮更明确的 acceptance gap 收束
-- 当前 gate 还没有形成足够明确的“剩余 packet gap 已全部可降级”的判断文档
-- 当前更适合先把 `close-readiness` 判断写稳，再决定是否进入 `close note`
+- 当前四条 packet handoff 主线已经都形成稳定复用证据
+- 当前 `p16_regression_gate / p16_gate_snapshot` 已经足以支撑阶段判断
+- 当前 `blocking_items = []` 已不再只是轻量信号，而已经和：
+  - `non_blocking_items`
+  - `tail_candidate_items`
+  - `acceptance_gap_buckets`
+  形成联动
+- 当前剩余 packet gap 经过分类后，已经都可明确降级为非阻塞项
 
 所以当前更准确的状态是：
 
 - **已经进入 `close-readiness` 判断区间**
-- **但还差最后一刀，才更适合正式判成 `close-ready`**
+- **并且当前已经适合正式判成 `close-ready`**
 
 ---
 
@@ -148,7 +153,7 @@
 
 当前更合理的下一步不是继续横向扩很多新 packet 字段，而是：
 
-- **先把 `P16 close-readiness` 的剩余 gap 分类压清楚，再决定是否进入 `P16 close note`**
+- **开始准备 `P16 close note`**
 
 更具体地说，下一步更适合：
 
@@ -185,7 +190,7 @@
 这也是为什么我当前把 `P16` 判断为：
 
 - 已进入 `close-readiness` 判断区间
-- 但还不建议立刻写 `close note`
+- 且当前已经可以写 `close note`
 
 ---
 
@@ -193,9 +198,9 @@
 
 一句话结论：
 
-**`P16` 当前已经进入 `close-readiness` 判断区间，但还不建议立刻写 `P16 close note`；更合理的是先把最后一轮 packet gap 分类与判断收束完成。**
+**`P16` 当前已经进入 `close-readiness` 判断区间，并且已经达到 `close-ready`；更合理的是开始写 `P16 close note`。**
 
 更合理的下一步是：
 
-- **继续完成 `P16 close-readiness` 的最后一轮收束**
+- **开始完成 `P16 close note`**
 - 当前正式阶段判断请以本文档为准

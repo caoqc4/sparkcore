@@ -259,15 +259,22 @@
       - retention decision group / retained fields handoff depth v1
       - scenario strategy bundle / orchestration handoff depth v1
       - knowledge scope layers / governance classes handoff depth v1
-    - 当前整体约 `75% - 80%`
+    - 当前整体约 `80% - 85%`
 - `P16 close-readiness judgment` 当前已建立：
   - 当前判断请以
     [memory_upgrade_p16_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p16_close_readiness_v1.0.md)
     为准
   - 当前结论是：
     - `P16` 已进入 `close-readiness` 判断区间
-    - 但当前还不建议直接判成 `close-ready / 可收官`
-    - 当前整体更接近 `75% - 80%`
+    - 并且当前已经达到 `close-ready / 可收官`
+    - 当前整体更接近 `80% - 85%`
+- `P16 close note` 当前已建立：
+  - 当前收官结论请以
+    [memory_upgrade_p16_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p16_close_note_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P16` 已达到 `close-ready / 可收官`
+    - `P16` 的非阻塞尾项当前已并入统一 backlog
 
 ---
 
