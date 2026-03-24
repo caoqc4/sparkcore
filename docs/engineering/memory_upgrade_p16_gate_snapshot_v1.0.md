@@ -106,12 +106,12 @@
 
 当前这份 gate 还没有正式锁住：
 
-- retention role-core handoff depth
+- close-readiness 最后一轮 gap 分类
 - remaining packet acceptance gaps
 
 因此它当前更像是：
 
-**`P16` gate 已经从第二层继续推进到“packet consumption 已开始成形”，并且开始把 role-core memory handoff 从 packet 内部事实推进到 metadata / prompt / snapshot 可消费 surface，但还不是 close-readiness 级 gate。**
+**`P16` gate 已经从第二层继续推进到“packet consumption 已开始成形”，并且开始把 role-core memory handoff 从 packet 内部事实推进到 metadata / prompt / snapshot 可消费 surface；它已经足够支撑 `close-readiness` 讨论，但还不是 `close-ready` 级 gate。**
 
 ---
 
@@ -134,8 +134,8 @@
 
 当前还不适合直接把它理解成：
 
-- `P16` 已有完整阶段 gate
-- `P16 close-readiness` 已有讨论基础
+- `P16` 已达到 `close-ready / 可收官`
+- `P16 close note` 已有直接编写基础
 
 ---
 
@@ -143,7 +143,7 @@
 
 当前更合理的下一步是：
 
-- **继续扩 `P16-5` 的 retention handoff depth、close-note handoff packet consumption 与 remaining packet acceptance gaps，而不是立刻写 `P16 close-readiness`**
+- **继续完成 `P16 close-readiness` 的最后一轮 gap 分类，而不是立刻写 `P16 close note`**
 
 ---
 

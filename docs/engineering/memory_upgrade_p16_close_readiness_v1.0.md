@@ -167,14 +167,20 @@
   - **当前无明确新增阻塞项**
 
 - 非阻塞但有价值项
-  - `p16_gate_snapshot` 还可以继续把 `close-note handoff packet consumption` 压得更明确
-  - `remaining packet acceptance gaps` 还可以继续压成更明确的结构化表达
-  - `P16 close-ready` 判断与后续 `close note` 之间的衔接还可以继续压得更明确
+  - `close_note_handoff_packet_consumption`
+    - 当前已有轻量消费面，但还可以继续压成更明确的 close-note 输入表达
+  - `packet_acceptance_gap_structuring`
+    - 当前已开始分桶，但还可以继续压成更明确的结构化表达
+  - `P16 close-ready` 判断与后续 `close note` 之间的衔接
+    - 当前已有判断入口，但 close-note 切换阈值还可以继续压得更明确
 
 - 可转 tail cleanup / 下阶段吸收项
-  - gate 输出面的进一步清洁化、对称化
-  - 非阻塞的 prompt / metadata 覆盖补强
-  - 更细颗粒度的 packet negative coverage 扩展
+  - `packet_output_symmetry_cleanup`
+    - gate 输出面的进一步清洁化、对称化
+  - `non_blocking_prompt_coverage_alignment`
+    - 非阻塞的 prompt / metadata 覆盖补强
+  - `packet_negative_coverage_expansion`
+    - 更细颗粒度的 packet negative coverage 扩展
 
 这也是为什么我当前把 `P16` 判断为：
 
