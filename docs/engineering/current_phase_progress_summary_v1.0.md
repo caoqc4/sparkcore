@@ -1432,3 +1432,7 @@
 
 - `P10` 已达到 **`close-ready / 可收官`**
 - 当前下一步已经适合写 `P10 close note`
+
+当前正式收官结论请以
+[memory_upgrade_p10_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p10_close_note_v1.0.md)
+为准。
