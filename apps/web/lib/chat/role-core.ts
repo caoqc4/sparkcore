@@ -71,6 +71,12 @@ export type RoleCoreMemoryCloseNoteHandoffPacket = {
   blocking_items: string[];
   non_blocking_items: string[];
   tail_candidate_items: string[];
+  acceptance_gap_buckets: {
+    blocking: number;
+    non_blocking: number;
+    tail_candidate: number;
+  };
+  next_expansion_focus: string[];
   namespace: {
     phase_snapshot_id: string;
     phase_snapshot_summary: string;
@@ -181,6 +187,12 @@ export function buildRoleCoreMemoryCloseNoteHandoffPacket(args: {
   blockingItems: readonly string[];
   nonBlockingItems: readonly string[];
   tailCandidateItems: readonly string[];
+  acceptanceGapBuckets: {
+    blocking: number;
+    non_blocking: number;
+    tail_candidate: number;
+  };
+  nextExpansionFocus: readonly string[];
 }): RoleCoreMemoryCloseNoteHandoffPacket | null {
   const memoryHandoff = args.roleCorePacket.memory_handoff;
 
@@ -199,6 +211,8 @@ export function buildRoleCoreMemoryCloseNoteHandoffPacket(args: {
     blocking_items: [...args.blockingItems],
     non_blocking_items: [...args.nonBlockingItems],
     tail_candidate_items: [...args.tailCandidateItems],
+    acceptance_gap_buckets: { ...args.acceptanceGapBuckets },
+    next_expansion_focus: [...args.nextExpansionFocus],
     namespace: {
       phase_snapshot_id: memoryHandoff.namespace_phase_snapshot_id,
       phase_snapshot_summary: memoryHandoff.namespace_phase_snapshot_summary

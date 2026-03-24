@@ -291,6 +291,7 @@
       - `progress_range = 60% - 65%`
       - `close_note_recommended = true`
       - `blocking_items = []`
+      - `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
       - `positive_contracts = 1 / 1`
       - `metadata_consistency = 1 / 1`
       - `drift_guards = 2 / 2`
@@ -303,6 +304,8 @@
       - role core memory close-note handoff runtime consumption v1
       - role core memory close-note handoff null guard v1
       - role core memory close-note handoff prompt drift guard v1
+      - close-note acceptance gap buckets v1
+      - close-note next expansion focus v1
       - close-note readiness summary to packet alignment v1
       - namespace / retention / knowledge / scenario section carry-through v1
     - 当前整体约 `60% - 65%`

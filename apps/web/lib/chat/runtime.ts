@@ -2761,7 +2761,13 @@ export function buildRoleCoreMemoryCloseNoteHandoffPrompt(
       : `Scenario close-note section: ${closeNoteHandoffPacket.scenario.phase_snapshot_id}; strategy_bundle = ${closeNoteHandoffPacket.scenario.strategy_bundle_id ?? "none"}.`,
     isZh
       ? `Close-note carry-through：blocking_items = ${closeNoteHandoffPacket.blocking_items.join(", ") || "none"}；non_blocking_items = ${closeNoteHandoffPacket.non_blocking_items.join(", ") || "none"}。`
-      : `Close-note carry-through: blocking_items = ${closeNoteHandoffPacket.blocking_items.join(", ") || "none"}; non_blocking_items = ${closeNoteHandoffPacket.non_blocking_items.join(", ") || "none"}.`
+      : `Close-note carry-through: blocking_items = ${closeNoteHandoffPacket.blocking_items.join(", ") || "none"}; non_blocking_items = ${closeNoteHandoffPacket.non_blocking_items.join(", ") || "none"}.`,
+    isZh
+      ? `Close-note acceptance gaps：blocking = ${closeNoteHandoffPacket.acceptance_gap_buckets.blocking}；non_blocking = ${closeNoteHandoffPacket.acceptance_gap_buckets.non_blocking}；tail_candidate = ${closeNoteHandoffPacket.acceptance_gap_buckets.tail_candidate}。`
+      : `Close-note acceptance gaps: blocking = ${closeNoteHandoffPacket.acceptance_gap_buckets.blocking}; non_blocking = ${closeNoteHandoffPacket.acceptance_gap_buckets.non_blocking}; tail_candidate = ${closeNoteHandoffPacket.acceptance_gap_buckets.tail_candidate}.`,
+    isZh
+      ? `Close-note next expansion focus：${closeNoteHandoffPacket.next_expansion_focus.join(", ") || "none"}。`
+      : `Close-note next expansion focus: ${closeNoteHandoffPacket.next_expansion_focus.join(", ") || "none"}.`
   ];
 
   return sections.join("\n");
@@ -4124,19 +4130,29 @@ export async function runPreparedRuntimeTurn({
     {
       roleCorePacket: roleCorePacketWithMemoryHandoff,
       readinessJudgment: "close_ready",
-      progressRange: "40% - 45%",
+      progressRange: "60% - 65%",
       closeCandidate: true,
       closeNoteRecommended: true,
       blockingItems: [],
       nonBlockingItems: [
-        "runtime_close_note_packet_consumption",
-        "packet_prompt_surface_alignment",
-        "close_note_acceptance_structuring"
+        "close_note_acceptance_structuring",
+        "close_note_gate_snapshot_consumption",
+        "close_readiness_handoff_alignment"
       ],
       tailCandidateItems: [
         "packet_output_symmetry_cleanup",
         "non_blocking_packet_negative_coverage",
         "close_note_tail_cleanup_alignment"
+      ],
+      acceptanceGapBuckets: {
+        blocking: 0,
+        non_blocking: 3,
+        tail_candidate: 3
+      },
+      nextExpansionFocus: [
+        "close_note_acceptance_structuring",
+        "close_note_gate_snapshot_consumption",
+        "close_readiness_handoff_alignment"
       ]
     }
   );

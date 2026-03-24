@@ -1351,6 +1351,16 @@ function main() {
       "packet_output_symmetry_cleanup",
       "non_blocking_packet_negative_coverage",
       "close_note_tail_cleanup_alignment"
+    ] as const,
+    acceptanceGapBuckets: {
+      blocking: 0,
+      non_blocking: 3,
+      tail_candidate: 3
+    },
+    nextExpansionFocus: [
+      "close_note_acceptance_structuring",
+      "close_note_gate_snapshot_consumption",
+      "close_readiness_handoff_alignment"
     ] as const
   } as const;
   const p17CloseNoteHandoffPacket = buildRoleCoreMemoryCloseNoteHandoffPacket({
@@ -5191,6 +5201,12 @@ function main() {
       p17CloseNoteHandoffPacket.close_note_recommended ===
         p17CloseNoteReadinessSnapshot.closeNoteRecommended &&
       p17CloseNoteHandoffPacket.blocking_items.length === 0 &&
+      p17CloseNoteHandoffPacket.acceptance_gap_buckets.blocking ===
+        p17CloseNoteReadinessSnapshot.acceptanceGapBuckets.blocking &&
+      p17CloseNoteHandoffPacket.acceptance_gap_buckets.non_blocking ===
+        p17CloseNoteReadinessSnapshot.acceptanceGapBuckets.non_blocking &&
+      p17CloseNoteHandoffPacket.acceptance_gap_buckets.tail_candidate ===
+        p17CloseNoteReadinessSnapshot.acceptanceGapBuckets.tail_candidate &&
       p17CloseNoteHandoffPacket.namespace.phase_snapshot_id ===
         roleCorePacketForHarness.memory_handoff?.namespace_phase_snapshot_id &&
       p17CloseNoteHandoffPacket.namespace.phase_snapshot_summary ===
@@ -5220,7 +5236,10 @@ function main() {
       p17CloseNoteHandoffPacket.scenario.orchestration_mode ===
         roleCorePacketForHarness.memory_handoff?.scenario_orchestration_mode &&
       p17CloseNoteHandoffPacket.non_blocking_items.includes(
-        "runtime_close_note_packet_consumption"
+        "close_note_acceptance_structuring"
+      ) &&
+      p17CloseNoteHandoffPacket.next_expansion_focus.includes(
+        "close_readiness_handoff_alignment"
       ) &&
       p17CloseNoteHandoffPacket.tail_candidate_items.includes(
         "close_note_tail_cleanup_alignment"
@@ -5297,6 +5316,9 @@ function main() {
       ) &&
       p17CloseNotePrompt.includes(
         p17CloseNoteHandoffPacket?.non_blocking_items.join(", ") ?? ""
+      ) &&
+      p17CloseNotePrompt.includes(
+        p17CloseNoteHandoffPacket?.next_expansion_focus.join(", ") ?? ""
       ),
     role_core_memory_close_note_handoff_runtime_consumption_v1_ok:
       runtimeDebugCloseNoteHandoffPacket?.packet_version === "v1" &&
@@ -5312,6 +5334,11 @@ function main() {
         p17CloseNoteHandoffPacket?.knowledge.phase_snapshot_id &&
       runtimeDebugCloseNoteHandoffPacket.scenario.phase_snapshot_id ===
         p17CloseNoteHandoffPacket?.scenario.phase_snapshot_id &&
+      runtimeDebugCloseNoteHandoffPacket.acceptance_gap_buckets.non_blocking ===
+        p17CloseNoteHandoffPacket?.acceptance_gap_buckets.non_blocking &&
+      runtimeDebugCloseNoteHandoffPacket.next_expansion_focus.includes(
+        "close_readiness_handoff_alignment"
+      ) &&
       systemPrompt.includes("Role core close-note handoff") &&
       systemPrompt.includes(
         p17CloseNoteHandoffPacket?.readiness_judgment ?? ""
@@ -5373,6 +5400,13 @@ function main() {
     blocking_items: p17CloseNoteHandoffPacket?.blocking_items ?? [],
     non_blocking_items: p17CloseNoteHandoffPacket?.non_blocking_items ?? [],
     tail_candidate_items: p17CloseNoteHandoffPacket?.tail_candidate_items ?? [],
+    acceptance_gap_buckets:
+      p17CloseNoteHandoffPacket?.acceptance_gap_buckets ?? {
+        blocking: 0,
+        non_blocking: 0,
+        tail_candidate: 0
+      },
+    next_expansion_focus: p17CloseNoteHandoffPacket?.next_expansion_focus ?? [],
     positive_contracts: {
       checks_passed: p17PositiveContracts.checks_passed,
       checks_total: p17PositiveContracts.checks_total,

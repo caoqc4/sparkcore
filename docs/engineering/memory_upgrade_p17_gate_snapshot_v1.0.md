@@ -38,6 +38,8 @@
 - `blocking_items = []`
 - `non_blocking_items = close_note_acceptance_structuring / close_note_gate_snapshot_consumption / close_readiness_handoff_alignment`
 - `tail_candidate_items = packet_output_symmetry_cleanup / non_blocking_packet_negative_coverage / close_note_tail_cleanup_alignment`
+- `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
+- `next_expansion_focus = close_note_acceptance_structuring / close_note_gate_snapshot_consumption / close_readiness_handoff_alignment`
 - `positive_contracts = 1 / 1`
 - `metadata_consistency = 1 / 1`
 - `drift_guards = 2 / 2`
@@ -132,6 +134,9 @@
   - `close_candidate`
   - `close_note_recommended`
   - `blocking_items / non_blocking_items / tail_candidate_items`
+- close-note packet 当前也已开始显式暴露：
+  - `acceptance_gap_buckets`
+  - `next_expansion_focus`
 - close-note packet 当前也已带上：
   - namespace phase snapshot
   - retention decision group / retained fields
@@ -157,4 +162,4 @@
 
 一句话结论：
 
-**`P17` 当前已经拥有一版全绿、并以 close-note handoff packet 为中心且带 metadata consistency / packet consumption / drift guards 的第二版 gate；它已经不再只是文档判断，而是开始形成可复用且可防漂移的 packet contract。**
+**`P17` 当前已经拥有一版全绿、并以 close-note handoff packet 为中心且带 metadata consistency / packet consumption / drift guards 的第二版 gate；它已经不再只是文档判断，而是开始形成可复用、可防漂移、且可直接承接 acceptance gap 消费的 packet contract。**
