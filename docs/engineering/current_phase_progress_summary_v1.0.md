@@ -75,6 +75,12 @@
   - `governance_fabric_mode`
   - `governance_fabric_reuse_mode`
   - knowledge prompt selection 当前也已开始复用这层 fabric contract
+- `P13-4 scenario governance fabric v11` 已开始把 scenario governance plane 继续推进到 fabric：
+  - `governance_fabric_digest_id`
+  - `strategy_governance_fabric_summary`
+  - `orchestration_governance_fabric_mode`
+  - `governance_fabric_reuse_mode`
+  - prompt / assistant metadata / runtime debug 当前都已开始复用这层 fabric contract
 
 ---
 
@@ -1527,14 +1533,14 @@
 - `P13-3`
   - 前中段
 - `P13-4`
-  - 待开始
+  - 前中段
 - `P13-5`
   - 待开始
 
 整体 `P13` 当前大约：
 
-- **`45% - 55%`**
+- **`60% - 70%`**
 
 当前更推荐的下一步：
 
-- **开始 `P13-4 Scenario governance fabric v11` 的第一刀**
+- **开始 `P13-5 Regression / acceptance expansion` 的第一刀**

@@ -134,6 +134,26 @@ export type ScenarioGovernancePlaneReuseMode =
   | "execution_runtime_governance_plane_reuse"
   | "knowledge_guided_runtime_governance_plane_reuse";
 
+export type ScenarioGovernanceFabricDigestId =
+  | "continuity_governance_fabric"
+  | "project_delivery_governance_fabric"
+  | "knowledge_guided_governance_fabric";
+
+export type ScenarioStrategyGovernanceFabricSummary =
+  | "continuity_strategy_governance_fabric"
+  | "project_delivery_strategy_governance_fabric"
+  | "knowledge_guided_strategy_governance_fabric";
+
+export type ScenarioOrchestrationGovernanceFabricMode =
+  | "continuity_runtime_governance_fabric"
+  | "execution_runtime_governance_fabric"
+  | "knowledge_guided_runtime_governance_fabric";
+
+export type ScenarioGovernanceFabricReuseMode =
+  | "continuity_runtime_governance_fabric_reuse"
+  | "execution_runtime_governance_fabric_reuse"
+  | "knowledge_guided_runtime_governance_fabric_reuse";
+
 export type ScenarioMemoryPack = {
   pack_id: ScenarioMemoryPackId;
   label: string;

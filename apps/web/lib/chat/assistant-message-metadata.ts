@@ -73,6 +73,10 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   scenario_memory_pack_strategy_governance_plane_summary?: string | null;
   scenario_memory_pack_orchestration_governance_plane_mode?: string | null;
   scenario_memory_pack_governance_plane_reuse_mode?: string | null;
+  scenario_memory_pack_governance_fabric_digest_id?: string | null;
+  scenario_memory_pack_strategy_governance_fabric_summary?: string | null;
+  scenario_memory_pack_orchestration_governance_fabric_mode?: string | null;
+  scenario_memory_pack_governance_fabric_reuse_mode?: string | null;
   scenario_memory_pack_strategy_bundle_id?: string | null;
   scenario_memory_pack_strategy_assembly_order?: string[];
   knowledge_count?: number;
@@ -259,6 +263,10 @@ export type BuildAssistantMessageMetadataInput = {
   scenario_memory_pack_strategy_governance_plane_summary?: string | null;
   scenario_memory_pack_orchestration_governance_plane_mode?: string | null;
   scenario_memory_pack_governance_plane_reuse_mode?: string | null;
+  scenario_memory_pack_governance_fabric_digest_id?: string | null;
+  scenario_memory_pack_strategy_governance_fabric_summary?: string | null;
+  scenario_memory_pack_orchestration_governance_fabric_mode?: string | null;
+  scenario_memory_pack_governance_fabric_reuse_mode?: string | null;
   scenario_memory_pack_strategy_bundle_id?: string | null;
   scenario_memory_pack_strategy_assembly_order?: string[];
   knowledge_count?: number;
@@ -492,6 +500,17 @@ export function buildAssistantMetadataSummaryGroups(
             null,
           governance_plane_reuse_mode:
             input.scenario_memory_pack_governance_plane_reuse_mode ?? null,
+          governance_fabric_digest_id:
+            input.scenario_memory_pack_governance_fabric_digest_id ?? null,
+          strategy_governance_fabric_summary:
+            input.scenario_memory_pack_strategy_governance_fabric_summary ??
+            null,
+          orchestration_governance_fabric_mode:
+            input
+              .scenario_memory_pack_orchestration_governance_fabric_mode ??
+            null,
+          governance_fabric_reuse_mode:
+            input.scenario_memory_pack_governance_fabric_reuse_mode ?? null,
           strategy_bundle_id:
             input.scenario_memory_pack_strategy_bundle_id ?? null,
             strategy_assembly_order:
@@ -826,6 +845,14 @@ export function buildAssistantMetadataSummaryGroups(
         input.scenario_memory_pack_orchestration_governance_plane_mode,
       scenario_memory_pack_governance_plane_reuse_mode:
         input.scenario_memory_pack_governance_plane_reuse_mode,
+      scenario_memory_pack_governance_fabric_digest_id:
+        input.scenario_memory_pack_governance_fabric_digest_id,
+      scenario_memory_pack_strategy_governance_fabric_summary:
+        input.scenario_memory_pack_strategy_governance_fabric_summary,
+      scenario_memory_pack_orchestration_governance_fabric_mode:
+        input.scenario_memory_pack_orchestration_governance_fabric_mode,
+      scenario_memory_pack_governance_fabric_reuse_mode:
+        input.scenario_memory_pack_governance_fabric_reuse_mode,
       scenario_memory_pack_strategy_bundle_id:
         input.scenario_memory_pack_strategy_bundle_id,
       scenario_memory_pack_strategy_assembly_order:

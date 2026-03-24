@@ -122,8 +122,11 @@ import {
   getAssistantMemoryScenarioPackGovernanceConsolidationDigestId,
   getAssistantMemoryScenarioPackGovernanceCoordinationDigestId,
   getAssistantMemoryScenarioPackGovernanceCoordinationReuseMode,
+  getAssistantMemoryScenarioPackGovernanceFabricDigestId,
+  getAssistantMemoryScenarioPackGovernanceFabricReuseMode,
   getAssistantMemoryScenarioPackGovernancePlaneDigestId,
   getAssistantMemoryScenarioPackGovernancePlaneReuseMode,
+  getAssistantMemoryScenarioPackOrchestrationGovernanceFabricMode,
   getAssistantMemoryScenarioPackOrchestrationAlignmentMode,
   getAssistantMemoryScenarioPackOrchestrationConsolidationMode,
   getAssistantMemoryScenarioPackOrchestrationCoordinationModeV9,
@@ -133,6 +136,7 @@ import {
   getAssistantMemoryScenarioPackOrchestrationDigestId,
   getAssistantMemoryScenarioPackStrategyConsistencyMode,
   getAssistantMemoryScenarioPackStrategyConsolidationSummary,
+  getAssistantMemoryScenarioPackStrategyGovernanceFabricSummary,
   getAssistantMemoryScenarioPackStrategyGovernancePlaneSummary,
   getAssistantMemoryScenarioPackStrategyRuntimeCoordinationSummary,
   getAssistantMemoryScenarioPackStrategyRuntimeReuseSummary,
@@ -3645,6 +3649,38 @@ function main() {
         scenarioMemoryPack.governance_plane_reuse_mode
   } as const;
 
+  const p13ScenarioGovernanceFabricChecks = {
+    scenario_governance_fabric_v11_ok:
+      scenarioMemoryPack.governance_fabric_digest_id ===
+        "project_delivery_governance_fabric" &&
+      scenarioMemoryPack.strategy_governance_fabric_summary ===
+        "project_delivery_strategy_governance_fabric" &&
+      scenarioMemoryPack.orchestration_governance_fabric_mode ===
+        "execution_runtime_governance_fabric" &&
+      scenarioMemoryPack.governance_fabric_reuse_mode ===
+        "execution_runtime_governance_fabric_reuse" &&
+      getAssistantMemoryScenarioPackGovernanceFabricDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_fabric_digest_id &&
+      getAssistantMemoryScenarioPackStrategyGovernanceFabricSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_governance_fabric_summary &&
+      getAssistantMemoryScenarioPackOrchestrationGovernanceFabricMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_governance_fabric_mode &&
+      getAssistantMemoryScenarioPackGovernanceFabricReuseMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_fabric_reuse_mode &&
+      runtimeDebugMetadata.memory.pack?.governance_fabric_digest_id ===
+        scenarioMemoryPack.governance_fabric_digest_id &&
+      runtimeDebugMetadata.memory.pack?.strategy_governance_fabric_summary ===
+        scenarioMemoryPack.strategy_governance_fabric_summary &&
+      runtimeDebugMetadata.memory.pack?.orchestration_governance_fabric_mode ===
+        scenarioMemoryPack.orchestration_governance_fabric_mode &&
+      runtimeDebugMetadata.memory.pack?.governance_fabric_reuse_mode ===
+        scenarioMemoryPack.governance_fabric_reuse_mode
+  } as const;
+
   const p12RegressionGateChecks = {
     ...p12NamespaceGovernancePlaneChecks,
     ...p12RetentionGovernancePlaneChecks,
@@ -4075,6 +4111,22 @@ function main() {
           governance_plane_reuse_mode:
             getAssistantMemoryScenarioPackGovernancePlaneReuseMode(
               assistantMetadata
+            ),
+          governance_fabric_digest_id:
+            getAssistantMemoryScenarioPackGovernanceFabricDigestId(
+              assistantMetadata
+            ),
+          strategy_governance_fabric_summary:
+            getAssistantMemoryScenarioPackStrategyGovernanceFabricSummary(
+              assistantMetadata
+            ),
+          orchestration_governance_fabric_mode:
+            getAssistantMemoryScenarioPackOrchestrationGovernanceFabricMode(
+              assistantMetadata
+            ),
+          governance_fabric_reuse_mode:
+            getAssistantMemoryScenarioPackGovernanceFabricReuseMode(
+              assistantMetadata
             )
         },
         assistant_metadata_knowledge: {
@@ -4378,6 +4430,17 @@ function main() {
             runtimeDebugPack?.strategy_unification_summary ?? null,
           pack_orchestration_unification_mode:
             runtimeDebugPack?.orchestration_unification_mode ?? null,
+          pack_governance_fabric_digest_id:
+            runtimeDebugMetadata.memory.pack?.governance_fabric_digest_id ?? null,
+          pack_strategy_governance_fabric_summary:
+            runtimeDebugMetadata.memory.pack?.strategy_governance_fabric_summary ??
+            null,
+          pack_orchestration_governance_fabric_mode:
+            runtimeDebugMetadata.memory.pack
+              ?.orchestration_governance_fabric_mode ?? null,
+          pack_governance_fabric_reuse_mode:
+            runtimeDebugMetadata.memory.pack?.governance_fabric_reuse_mode ??
+            null,
           knowledge_count: runtimeDebugMetadata.knowledge.count,
           knowledge_governance_unification_digest:
             runtimeDebugMetadata.knowledge.governance_unification_digest ?? null,
@@ -4556,7 +4619,15 @@ function main() {
           orchestration_governance_plane_mode:
             scenarioMemoryPack.orchestration_governance_plane_mode,
           governance_plane_reuse_mode:
-            scenarioMemoryPack.governance_plane_reuse_mode
+            scenarioMemoryPack.governance_plane_reuse_mode,
+          governance_fabric_digest_id:
+            scenarioMemoryPack.governance_fabric_digest_id,
+          strategy_governance_fabric_summary:
+            scenarioMemoryPack.strategy_governance_fabric_summary,
+          orchestration_governance_fabric_mode:
+            scenarioMemoryPack.orchestration_governance_fabric_mode,
+          governance_fabric_reuse_mode:
+            scenarioMemoryPack.governance_fabric_reuse_mode
         },
         system_prompt_thread_state: {
           includes_focus_mode: systemPrompt.includes(
@@ -4688,6 +4759,7 @@ function main() {
         p13_knowledge_governance_fabric: p13KnowledgeGovernanceFabricChecks,
         p11_scenario_coordination: p11ScenarioCoordinationChecks,
         p12_scenario_governance_plane: p12ScenarioGovernancePlaneChecks,
+        p13_scenario_governance_fabric: p13ScenarioGovernanceFabricChecks,
         p12_regression_gate: p12RegressionGate,
         p11_regression_gate: p11RegressionGate,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,

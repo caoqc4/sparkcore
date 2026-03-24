@@ -1,6 +1,8 @@
 import {
   type ScenarioGovernanceConsolidationDigestId,
   type ScenarioGovernanceCoordinationDigestId,
+  type ScenarioGovernanceFabricDigestId,
+  type ScenarioGovernanceFabricReuseMode,
   type ScenarioGovernancePlaneDigestId,
   type ScenarioGovernancePlaneReuseMode,
   type ScenarioGovernanceConvergenceDigestId,
@@ -8,6 +10,7 @@ import {
   type ScenarioOrchestrationConsolidationMode,
   type ScenarioOrchestrationCoordinationModeV9,
   type ScenarioOrchestrationGovernancePlaneMode,
+  type ScenarioOrchestrationGovernanceFabricMode,
   type ScenarioOrchestrationCoordinationSummary,
   type ScenarioOrchestrationAlignmentMode,
   type ScenarioOrchestrationUnificationMode,
@@ -18,6 +21,7 @@ import {
   type ScenarioMemoryPack,
   type ScenarioStrategyConsolidationSummary,
   type ScenarioStrategyGovernancePlaneSummary,
+  type ScenarioStrategyGovernanceFabricSummary,
   type ScenarioStrategyRuntimeCoordinationSummary,
   type ScenarioStrategyRuntimeReuseSummary,
   type ScenarioStrategyConvergenceSummary,
@@ -91,6 +95,10 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
   strategy_governance_plane_summary: ScenarioStrategyGovernancePlaneSummary;
   orchestration_governance_plane_mode: ScenarioOrchestrationGovernancePlaneMode;
   governance_plane_reuse_mode: ScenarioGovernancePlaneReuseMode;
+  governance_fabric_digest_id: ScenarioGovernanceFabricDigestId;
+  strategy_governance_fabric_summary: ScenarioStrategyGovernanceFabricSummary;
+  orchestration_governance_fabric_mode: ScenarioOrchestrationGovernanceFabricMode;
+  governance_fabric_reuse_mode: ScenarioGovernanceFabricReuseMode;
 };
 
 function resolveKnowledgeGovernanceRouteWeights(args: {
@@ -240,7 +248,15 @@ export function resolveScenarioMemoryPackPolicy(
       orchestration_governance_plane_mode:
         "execution_runtime_governance_plane" as const,
       governance_plane_reuse_mode:
-        "execution_runtime_governance_plane_reuse" as const
+        "execution_runtime_governance_plane_reuse" as const,
+      governance_fabric_digest_id:
+        "project_delivery_governance_fabric" as const,
+      strategy_governance_fabric_summary:
+        "project_delivery_strategy_governance_fabric" as const,
+      orchestration_governance_fabric_mode:
+        "execution_runtime_governance_fabric" as const,
+      governance_fabric_reuse_mode:
+        "execution_runtime_governance_fabric_reuse" as const
     };
   }
 
@@ -292,7 +308,15 @@ export function resolveScenarioMemoryPackPolicy(
       orchestration_governance_plane_mode:
         "knowledge_guided_runtime_governance_plane" as const,
       governance_plane_reuse_mode:
-        "knowledge_guided_runtime_governance_plane_reuse" as const
+        "knowledge_guided_runtime_governance_plane_reuse" as const,
+      governance_fabric_digest_id:
+        "knowledge_guided_governance_fabric" as const,
+      strategy_governance_fabric_summary:
+        "knowledge_guided_strategy_governance_fabric" as const,
+      orchestration_governance_fabric_mode:
+        "knowledge_guided_runtime_governance_fabric" as const,
+      governance_fabric_reuse_mode:
+        "knowledge_guided_runtime_governance_fabric_reuse" as const
     };
   }
 
@@ -335,7 +359,15 @@ export function resolveScenarioMemoryPackPolicy(
     orchestration_governance_plane_mode:
       "continuity_runtime_governance_plane" as const,
     governance_plane_reuse_mode:
-      "continuity_runtime_governance_plane_reuse" as const
+      "continuity_runtime_governance_plane_reuse" as const,
+    governance_fabric_digest_id:
+      "continuity_governance_fabric" as const,
+    strategy_governance_fabric_summary:
+      "continuity_strategy_governance_fabric" as const,
+    orchestration_governance_fabric_mode:
+      "continuity_runtime_governance_fabric" as const,
+    governance_fabric_reuse_mode:
+      "continuity_runtime_governance_fabric_reuse" as const
   };
 }
 
@@ -546,6 +578,9 @@ export function buildScenarioMemoryPackPromptSection(args: {
     isZh
       ? `当前 governance plane = ${args.pack.governance_plane_digest_id}；strategy governance plane = ${args.pack.strategy_governance_plane_summary}；plane mode = ${args.pack.orchestration_governance_plane_mode}；plane reuse = ${args.pack.governance_plane_reuse_mode}。`
       : `Current governance plane = ${args.pack.governance_plane_digest_id}; strategy governance plane = ${args.pack.strategy_governance_plane_summary}; plane mode = ${args.pack.orchestration_governance_plane_mode}; plane reuse = ${args.pack.governance_plane_reuse_mode}.`,
+    isZh
+      ? `当前 governance fabric = ${args.pack.governance_fabric_digest_id}；strategy governance fabric = ${args.pack.strategy_governance_fabric_summary}；fabric mode = ${args.pack.orchestration_governance_fabric_mode}；fabric reuse = ${args.pack.governance_fabric_reuse_mode}。`
+      : `Current governance fabric = ${args.pack.governance_fabric_digest_id}; strategy governance fabric = ${args.pack.strategy_governance_fabric_summary}; fabric mode = ${args.pack.orchestration_governance_fabric_mode}; fabric reuse = ${args.pack.governance_fabric_reuse_mode}.`,
     isZh
       ? `当前 knowledge route weight = ${args.pack.knowledge_route_weight}，knowledge budget weight = ${args.pack.knowledge_budget_weight}。`
       : `Current knowledge route weight = ${args.pack.knowledge_route_weight}; knowledge budget weight = ${args.pack.knowledge_budget_weight}.`,

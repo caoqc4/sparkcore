@@ -695,6 +695,68 @@ export function getAssistantMemoryScenarioPackGovernancePlaneReuseMode(
   );
 }
 
+export function getAssistantMemoryScenarioPackGovernanceFabricDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "governance_fabric_digest_id") ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_governance_fabric_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackStrategyGovernanceFabricSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "strategy_governance_fabric_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_strategy_governance_fabric_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackOrchestrationGovernanceFabricMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "orchestration_governance_fabric_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_orchestration_governance_fabric_mode"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackGovernanceFabricReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "governance_fabric_reuse_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_governance_fabric_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryScenarioPackKnowledgeRouteWeight(
   metadata: Record<string, unknown> | null | undefined
 ) {
