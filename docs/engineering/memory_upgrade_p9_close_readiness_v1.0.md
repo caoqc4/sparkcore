@@ -75,7 +75,7 @@
 
 我现在的判断是：
 
-**`P9` 已进入 `close-ready` 前夕，但还建议先做一次正式的 `close-ready` 判断。**
+**`P9` 已达到 `close-ready / 可收官`。**
 
 如果给整体 `P9` 一个阶段进度，我会给：
 
@@ -87,33 +87,40 @@
 - prompt / assistant metadata / runtime debug / harness 已开始形成稳定的 unified 四面事实
 - `P9-5` 也已经从第一版正式 gate 继续推进到了更像阶段 gate 的形态
 
-但当前还不直接把 `P9` 写成 `close note`，原因也很明确：
+当前之所以可以把 `P9` 判定为 `close-ready`，不是因为所有细节都已经做尽，而是因为：
 
-- `P9-1 ~ P9-4` 当前虽然都已稳定在中段，但还没有被正式压进 close note 结论
-- 当前更缺的不是代码主证据，而是最后一次正式的 close-ready 判断收束
-- 当前整体更像：
-  - `close-ready` 前夕
-  - 还差最后一步文档判断收束
+- `P9-1 ~ P9-4` 都已经形成真实的 unified governance 级代码事实
+- prompt / assistant metadata / runtime debug / harness 已形成稳定的四面证据
+- `P9-5` 已从第一版 gate 继续推进到了更像正式阶段 gate 的形态
+- 当前 gate 已经全绿，并且 `close_candidate = true`
 
 这意味着：
 
 - 当前已经不再缺少 “`P9` 是否成立” 的主证据
-- 当前更像已经接近可以写 `P9 close note`
-- 但最好先做一次正式的 `P9 close-ready` 判断再落笔
+- 当前剩余事项更像：
+  - gate strengthening
+  - unified summary 深化
+  - 清洁度 / 对称性继续补强
+
+这些事项仍然有价值，但它们已经不构成：
+
+- `P9` 主目标成立的阻塞项
 
 ---
 
 ## 4. 下一步建议
 
-当前更合理的下一步已经不是继续补最后一刀，而是：
+当前更合理的下一步已经不是继续做 `P9 close-ready` 判断，而是：
 
-- **直接进入正式的 `P9 close-ready` 判断**
+- **开始准备 `P9 close note`**
 
 原因是：
 
-- `P9-4` 当前没有明显缺口，继续深挖收益已经开始下降
-- `P9-5` 也已经补到 metadata consistency，这一层阶段 gate 的密度已经够用了
-- 当前最缺的是把“close-ready 前夕”的判断正式收成 close-ready 结论
+- `P9` 当前主判断已经清楚
+- 当前剩余项已更适合统一转入：
+  - tail cleanup
+  - gate strengthening
+  - 后续 phase 吸收项
 
 ---
 
@@ -121,8 +128,8 @@
 
 一句话结论：
 
-**`P9` 已进入 `close-ready` 前夕，下一步适合直接做正式的 `P9 close-ready` 判断。**
+**`P9` 已达到 `close-ready / 可收官`，下一步已经适合写 `P9 close note`。**
 
 更合理的下一步是：
 
-- **开始正式的 `P9 close-ready` 判断**
+- **开始正式写 `P9 close note`**
