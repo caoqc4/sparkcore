@@ -331,8 +331,27 @@
   - 当前结论是：
     - `P18` 已从“待定义的下一阶段”推进到“已建立执行计划的下一阶段”
     - `P18` 的一句话目标是把 `P17 close-note handoff packet` 推进成独立 `close-note artifact contract`
-    - `P18-1 ~ P18-5` 当前都仍处于待开始
-    - 当前整体约 `0% - 5%`
+    - `P18-1 ~ P18-4` 已通过独立 `close_note_artifact` 第一刀接通
+    - `P18-5` 已建立第一版 close-note artifact gate
+    - 当前 gate 轻量快照请以
+      [memory_upgrade_p18_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p18_gate_snapshot_v1.0.md)
+      为准
+    - 当前 `p18_gate_snapshot`：
+      - `artifact_readiness = artifact_contract_started_not_close_ready`
+      - `progress_range = 25% - 30%`
+      - `close_note_recommended = true`
+      - `blocking_items = []`
+      - `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
+      - `positive_contracts = 1 / 1`
+      - `metadata_consistency = 1 / 1`
+      - `artifact_consumption = 2 / 2`
+      - `overall = 4 / 4`
+    - 当前 gate 已锁住：
+      - role core memory close-note artifact v1
+      - role core memory close-note artifact metadata consistency v1
+      - role core memory close-note artifact prompt surface v1
+      - role core memory close-note artifact runtime consumption v1
+    - 当前整体约 `25% - 30%`
 
 ---
 

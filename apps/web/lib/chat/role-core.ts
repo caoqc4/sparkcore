@@ -101,6 +101,34 @@ export type RoleCoreMemoryCloseNoteHandoffPacket = {
   };
 };
 
+export type RoleCoreMemoryCloseNoteArtifact = {
+  artifact_version: "v1";
+  source_packet_version: RoleCorePacket["packet_version"];
+  source_handoff_packet_version: RoleCoreMemoryCloseNoteHandoffPacket["packet_version"];
+  readiness_judgment: string;
+  progress_range: string;
+  close_candidate: boolean;
+  close_note_recommended: boolean;
+  headline: string;
+  carry_through_summary: string;
+  acceptance_summary: string;
+  blocking_items: string[];
+  non_blocking_items: string[];
+  tail_candidate_items: string[];
+  acceptance_gap_buckets: {
+    blocking: number;
+    non_blocking: number;
+    tail_candidate: number;
+  };
+  next_expansion_focus: string[];
+  sections: {
+    namespace: string;
+    retention: string;
+    knowledge: string;
+    scenario: string;
+  };
+};
+
 export function getRoleCoreRelationshipStance(
   relationshipRecall: {
     addressStyleMemory: {
@@ -234,6 +262,45 @@ export function buildRoleCoreMemoryCloseNoteHandoffPacket(args: {
       phase_snapshot_summary: memoryHandoff.scenario_phase_snapshot_summary,
       strategy_bundle_id: memoryHandoff.scenario_strategy_bundle_id ?? null,
       orchestration_mode: memoryHandoff.scenario_orchestration_mode ?? null
+    }
+  };
+}
+
+export function buildRoleCoreMemoryCloseNoteArtifact(args: {
+  roleCorePacket: RoleCorePacket;
+  closeNoteHandoffPacket: RoleCoreMemoryCloseNoteHandoffPacket | null;
+}): RoleCoreMemoryCloseNoteArtifact | null {
+  const closeNoteHandoffPacket = args.closeNoteHandoffPacket;
+
+  if (!closeNoteHandoffPacket) {
+    return null;
+  }
+
+  return {
+    artifact_version: "v1",
+    source_packet_version: args.roleCorePacket.packet_version,
+    source_handoff_packet_version: closeNoteHandoffPacket.packet_version,
+    readiness_judgment: closeNoteHandoffPacket.readiness_judgment,
+    progress_range: closeNoteHandoffPacket.progress_range,
+    close_candidate: closeNoteHandoffPacket.close_candidate,
+    close_note_recommended: closeNoteHandoffPacket.close_note_recommended,
+    headline: `${args.roleCorePacket.identity.agent_name} close-note artifact`,
+    carry_through_summary: `blocking_items = ${closeNoteHandoffPacket.blocking_items.join(", ") || "none"}; non_blocking_items = ${closeNoteHandoffPacket.non_blocking_items.join(", ") || "none"}.`,
+    acceptance_summary: `blocking = ${closeNoteHandoffPacket.acceptance_gap_buckets.blocking}; non_blocking = ${closeNoteHandoffPacket.acceptance_gap_buckets.non_blocking}; tail_candidate = ${closeNoteHandoffPacket.acceptance_gap_buckets.tail_candidate}.`,
+    blocking_items: [...closeNoteHandoffPacket.blocking_items],
+    non_blocking_items: [...closeNoteHandoffPacket.non_blocking_items],
+    tail_candidate_items: [...closeNoteHandoffPacket.tail_candidate_items],
+    acceptance_gap_buckets: {
+      ...closeNoteHandoffPacket.acceptance_gap_buckets
+    },
+    next_expansion_focus: [...closeNoteHandoffPacket.next_expansion_focus],
+    sections: {
+      namespace: `${closeNoteHandoffPacket.namespace.phase_snapshot_id}; ${closeNoteHandoffPacket.namespace.phase_snapshot_summary}`,
+      retention: closeNoteHandoffPacket.retention.phase_snapshot_id
+        ? `${closeNoteHandoffPacket.retention.phase_snapshot_id}; ${closeNoteHandoffPacket.retention.phase_snapshot_summary ?? "none"}; decision_group = ${closeNoteHandoffPacket.retention.decision_group ?? "none"}`
+        : "none",
+      knowledge: `${closeNoteHandoffPacket.knowledge.phase_snapshot_id}; scope_layers = ${closeNoteHandoffPacket.knowledge.scope_layers.join(", ") || "none"}; governance_classes = ${closeNoteHandoffPacket.knowledge.governance_classes.join(", ") || "none"}`,
+      scenario: `${closeNoteHandoffPacket.scenario.phase_snapshot_id}; strategy_bundle = ${closeNoteHandoffPacket.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNoteHandoffPacket.scenario.orchestration_mode ?? "none"}`
     }
   };
 }

@@ -117,23 +117,28 @@
 当前阶段判断：
 
 - `P18-1`
-  - 待开始
+  - 已开始
+  - namespace close-note artifact contract 第一刀已成立
 - `P18-2`
-  - 待开始
+  - 已开始
+  - retention close-note artifact contract 第一刀已成立
 - `P18-3`
-  - 待开始
+  - 已开始
+  - knowledge close-note artifact contract 第一刀已成立
 - `P18-4`
-  - 待开始
+  - 已开始
+  - scenario close-note artifact contract 第一刀已成立
 - `P18-5`
-  - 待开始
+  - 已开始
+  - 第一版 gate 已推进到 `positive_contracts + metadata_consistency + artifact_consumption`
 
 整体 `P18` 当前大约：
 
-- **`0% - 5%`**
+- **`25% - 30%`**
 
 当前更推荐的下一步：
 
-- **先建立 `P18 execution plan`，然后直接做 `close-note artifact contract` 的第一刀，而不是继续回头补 `P17`**
+- **继续把 `P18` 从 artifact contract 第一刀，推进到更明确的 drift guard / acceptance layering**
 
 ---
 
