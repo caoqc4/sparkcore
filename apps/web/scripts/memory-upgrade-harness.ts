@@ -200,6 +200,7 @@ import { buildRuntimeMemoryWriteRequestMetadata } from "@/lib/chat/runtime-previ
 import {
   buildCompactedThreadSummary,
   getThreadCompactionRetentionDecision,
+  resolveThreadGovernanceFabricPlanePhaseSnapshot,
   selectRetainedThreadCompactionSummary
 } from "@/lib/chat/thread-compaction";
 import {
@@ -1227,6 +1228,20 @@ function main() {
     recentTurnCount: 4,
     latestUserMessage: "Help me finish onboarding."
   });
+  const compactedThreadGovernanceFabricPlanePhaseSnapshot =
+    resolveThreadGovernanceFabricPlanePhaseSnapshot({
+      lifecycle_governance_fabric_plane_digest:
+        compactedThreadSummary!.lifecycle_governance_fabric_plane_digest,
+      keep_drop_governance_fabric_plane_summary:
+        compactedThreadSummary!.keep_drop_governance_fabric_plane_summary,
+      lifecycle_governance_fabric_plane_alignment_mode:
+        compactedThreadSummary!
+          .lifecycle_governance_fabric_plane_alignment_mode,
+      lifecycle_governance_fabric_plane_reuse_mode:
+        compactedThreadSummary!.lifecycle_governance_fabric_plane_reuse_mode,
+      retention_section_order: compactedThreadSummary!.retention_section_order,
+      retained_fields: compactedThreadSummary!.retained_fields
+    });
   expect(
     compactedThreadSummary?.lifecycle_convergence_digest ===
       "anchor_preservation_convergence" &&
@@ -4391,11 +4406,54 @@ function main() {
         ?.namespace_governance_fabric_plane_phase_snapshot_consumption_mode ===
         projectGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode
   } as const;
+  const p15RetentionGovernancePlaneConsumptionChecks = {
+    retention_governance_plane_consumption_unification_v1_ok:
+      compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id ===
+        "anchor_preservation_governance_fabric_plane_phase_snapshot" &&
+      compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary ===
+        "anchor_keep_governance_fabric_plane_phase_snapshot" &&
+      compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode ===
+        "anchor_runtime_governance_fabric_plane_reuse_phase_consumption" &&
+      compactedThreadGovernanceFabricPlanePhaseSnapshot.lifecycle_governance_fabric_plane_digest ===
+        compactedThreadSummary?.lifecycle_governance_fabric_plane_digest &&
+      compactedThreadGovernanceFabricPlanePhaseSnapshot.keep_drop_governance_fabric_plane_summary ===
+        compactedThreadSummary?.keep_drop_governance_fabric_plane_summary &&
+      compactedThreadGovernanceFabricPlanePhaseSnapshot.lifecycle_governance_fabric_plane_alignment_mode ===
+        compactedThreadSummary
+          ?.lifecycle_governance_fabric_plane_alignment_mode &&
+      compactedThreadGovernanceFabricPlanePhaseSnapshot.lifecycle_governance_fabric_plane_reuse_mode ===
+        compactedThreadSummary?.lifecycle_governance_fabric_plane_reuse_mode &&
+      compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_retention_section_order.join(
+        ","
+      ) === compactedThreadSummary?.retention_section_order.join(",") &&
+      compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_retained_fields.join(
+        ","
+      ) === compactedThreadSummary?.retained_fields.join(",") &&
+      runtimeDebugMetadata.thread_compaction?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_id ===
+        compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      runtimeDebugMetadata.thread_compaction?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_summary ===
+        compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary &&
+      runtimeDebugMetadata.thread_compaction?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_consumption_mode ===
+        compactedThreadGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode &&
+      systemPrompt.includes(
+        "Lifecycle governance fabric plane: anchor_preservation_governance_fabric_plane."
+      ) &&
+      systemPrompt.includes(
+        "Keep/drop governance fabric plane: anchor_keep_governance_fabric_plane."
+      )
+  } as const;
   const p15PositiveContracts = summarizeGate(
-    p15NamespaceGovernancePlaneContractChecks
+    {
+      ...p15NamespaceGovernancePlaneContractChecks,
+      ...p15RetentionGovernancePlaneConsumptionChecks
+    }
   );
   const p15RegressionGateChecks = {
-    ...p15NamespaceGovernancePlaneContractChecks
+    ...p15NamespaceGovernancePlaneContractChecks,
+    ...p15RetentionGovernancePlaneConsumptionChecks
   } as const;
   const p15RegressionGateSummary = summarizeGate(p15RegressionGateChecks);
   const p15RegressionGate = {
@@ -5545,6 +5603,8 @@ function main() {
           p14ScenarioGovernanceFabricPlaneChecks,
         p15_namespace_governance_plane_contract:
           p15NamespaceGovernancePlaneContractChecks,
+        p15_retention_governance_plane_consumption:
+          p15RetentionGovernancePlaneConsumptionChecks,
         p15_regression_gate: p15RegressionGate,
         p15_gate_snapshot: p15GateSnapshot,
         p14_regression_gate: p14RegressionGate,

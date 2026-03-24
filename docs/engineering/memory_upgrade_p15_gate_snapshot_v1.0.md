@@ -38,8 +38,8 @@
 
 - `blocking_items = []`
 - `next_expansion_focus = retention_phase_snapshot / knowledge_phase_snapshot / scenario_phase_snapshot`
-- `positive_contracts = 1 / 1`
-- `overall = 1 / 1`
+- `positive_contracts = 2 / 2`
+- `overall = 2 / 2`
 - `failed_checks = []`
 - `all_green = true`
 - `close_candidate = true`
@@ -53,12 +53,16 @@
 当前已经锁住：
 
 - `namespace_governance_plane_contract_unification_v1_ok`
+- `retention_governance_plane_consumption_unification_v1_ok`
 
-这意味着 `P15` 当前已经不只是“写了 execution plan”，而是已经把 namespace governance fabric plane 收成了更稳定的 phase snapshot / contract surface，并且这个 surface 已经跨以下输出面对齐：
+这意味着 `P15` 当前已经不只是“写了 execution plan”，而是已经把 namespace / retention 两条主线都开始收成更稳定的 phase snapshot / contract surface，并且这些 surface 已经开始跨以下输出面对齐：
 
 - namespace helper contract
 - runtime debug `memory_namespace`
 - runtime write preview
+- retention helper contract
+- runtime debug `thread_compaction`
+- compacted thread summary / prompt surface
 
 ### 3.2 当前还没开始锁的面
 

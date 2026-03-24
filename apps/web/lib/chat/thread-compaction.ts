@@ -1157,6 +1157,31 @@ export function buildCompactedThreadSummary(args: {
   };
 }
 
+export function resolveThreadGovernanceFabricPlanePhaseSnapshot(args: {
+  lifecycle_governance_fabric_plane_digest: ThreadLifecycleGovernanceFabricPlaneDigestId;
+  keep_drop_governance_fabric_plane_summary: ThreadKeepDropGovernanceFabricPlaneSummary;
+  lifecycle_governance_fabric_plane_alignment_mode: ThreadLifecycleGovernanceFabricPlaneAlignmentMode;
+  lifecycle_governance_fabric_plane_reuse_mode: ThreadLifecycleGovernanceFabricPlaneReuseMode;
+  retention_section_order: ThreadRetentionSection[];
+  retained_fields: string[];
+}) {
+  return {
+    phase_snapshot_id: `${args.lifecycle_governance_fabric_plane_digest}_phase_snapshot`,
+    phase_snapshot_summary: `${args.keep_drop_governance_fabric_plane_summary}_phase_snapshot`,
+    phase_snapshot_consumption_mode: `${args.lifecycle_governance_fabric_plane_reuse_mode}_phase_consumption`,
+    lifecycle_governance_fabric_plane_digest:
+      args.lifecycle_governance_fabric_plane_digest,
+    keep_drop_governance_fabric_plane_summary:
+      args.keep_drop_governance_fabric_plane_summary,
+    lifecycle_governance_fabric_plane_alignment_mode:
+      args.lifecycle_governance_fabric_plane_alignment_mode,
+    lifecycle_governance_fabric_plane_reuse_mode:
+      args.lifecycle_governance_fabric_plane_reuse_mode,
+    phase_snapshot_retention_section_order: args.retention_section_order,
+    phase_snapshot_retained_fields: args.retained_fields
+  };
+}
+
 export function shouldRetainCompactedThreadSummary(args: {
   compactedThreadSummary: CompactedThreadSummary | null | undefined;
 }) {
@@ -1405,6 +1430,24 @@ export function buildThreadCompactionSummary(args: {
           lifecycle_governance_fabric_plane_reuse_mode:
             args.compactedThreadSummary
               .lifecycle_governance_fabric_plane_reuse_mode,
+          governance_fabric_plane_phase_snapshot:
+            resolveThreadGovernanceFabricPlanePhaseSnapshot({
+              lifecycle_governance_fabric_plane_digest:
+                args.compactedThreadSummary
+                  .lifecycle_governance_fabric_plane_digest,
+              keep_drop_governance_fabric_plane_summary:
+                args.compactedThreadSummary
+                  .keep_drop_governance_fabric_plane_summary,
+              lifecycle_governance_fabric_plane_alignment_mode:
+                args.compactedThreadSummary
+                  .lifecycle_governance_fabric_plane_alignment_mode,
+              lifecycle_governance_fabric_plane_reuse_mode:
+                args.compactedThreadSummary
+                  .lifecycle_governance_fabric_plane_reuse_mode,
+              retention_section_order:
+                args.compactedThreadSummary.retention_section_order,
+              retained_fields: args.compactedThreadSummary.retained_fields
+            }),
           retention_budget: args.compactedThreadSummary.retention_budget,
           retention_layers: args.compactedThreadSummary.retention_layers,
           retention_layer_budget:
