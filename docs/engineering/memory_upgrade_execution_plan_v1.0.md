@@ -40,7 +40,8 @@
 - 进入下一阶段时，请以 [memory_upgrade_p11_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p11_execution_plan_v1.0.md) 作为执行起点
 - 当 P11 进入 close-readiness 判断区间后，请结合 [memory_upgrade_p11_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p11_close_readiness_v1.0.md) 做收口判断，而不要继续无限扩张 P11 范围
 - 当前 P11 收官结论，请以 [memory_upgrade_p11_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p11_close_note_v1.0.md) 为准
-- `P0 ~ P10` 的非阻塞尾项当前已统一收束到 [memory_upgrade_tail_cleanup_backlog_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_tail_cleanup_backlog_v1.0.md)，后续如需处理，请优先按 batch 方式推进，而不要回头阻塞主线
+- 进入下一阶段时，请以 [memory_upgrade_p12_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p12_execution_plan_v1.0.md) 作为执行起点
+- `P0 ~ P11` 的非阻塞尾项当前已统一收束到 [memory_upgrade_tail_cleanup_backlog_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_tail_cleanup_backlog_v1.0.md)，后续如需处理，请优先按 batch 方式推进，而不要回头阻塞主线
 
 适用阶段：
 

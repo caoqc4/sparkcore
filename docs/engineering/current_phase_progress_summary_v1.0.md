@@ -1464,3 +1464,26 @@
 当前正式收官结论请以
 [memory_upgrade_p11_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p11_close_note_v1.0.md)
 为准。
+
+## Memory Upgrade P12 Snapshot
+
+当前 `P12` 的阶段判断：
+
+- `P12-1`
+  - 待开始
+- `P12-2`
+  - 待开始
+- `P12-3`
+  - 待开始
+- `P12-4`
+  - 待开始
+- `P12-5`
+  - 待开始
+
+整体 `P12` 当前大约：
+
+- **`0% - 10%`**
+
+当前更推荐的下一步：
+
+- **开始 `P12-1 Namespace governance plane runtime v7` 的第一刀**
