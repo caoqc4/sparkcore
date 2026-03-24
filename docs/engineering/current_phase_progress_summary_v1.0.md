@@ -1328,6 +1328,29 @@
     - `failed_checks = []`
     - `all_green = true`
     - `close_candidate = true`
+
+## Memory Upgrade P8 Snapshot
+
+当前 `P8` 的阶段判断：
+
+- `P8-1`
+  - 待开始
+- `P8-2`
+  - 待开始
+- `P8-3`
+  - 待开始
+- `P8-4`
+  - 待开始
+- `P8-5`
+  - 待开始
+
+整体 `P8` 当前大约：
+
+- **`0% - 10%`**
+
+当前更推荐的下一步：
+
+- **开始 `P8-1 Namespace governance convergence v3` 的第一刀**
 - 当前已成立的 `P7-3` 第一刀事实：
   - knowledge summary 现在开始显式产出：
     - `governance_coordination_summary`
