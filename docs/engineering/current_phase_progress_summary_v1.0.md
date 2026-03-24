@@ -1130,17 +1130,17 @@
 - `P6-3`
   - 中段
 - `P6-4`
-  - 前中段
+  - 前中段到中段之间
 - `P6-5`
   - 待开始
 
 整体 `P6` 当前大约：
 
-- **`55% - 65%`**
+- **`60% - 70%`**
 
 当前更推荐的下一步：
 
-- **先对 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 做一次 `P6` 小复盘，再判断是继续补 `P6-4` 第二刀，还是开始 `P6-5`**
+- **开始从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 落 `P6-5 Regression / acceptance expansion` 的第一刀**
 
 当前已成立的第一刀事实：
 
