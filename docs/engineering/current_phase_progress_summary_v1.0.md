@@ -1124,7 +1124,7 @@
 当前 `P6` 的阶段判断：
 
 - `P6-1`
-  - 待开始
+  - 前中段到中段之间
 - `P6-2`
   - 待开始
 - `P6-3`
@@ -1136,11 +1136,11 @@
 
 整体 `P6` 当前大约：
 
-- **`0% - 5%`**
+- **`15% - 25%`**
 
 当前更推荐的下一步：
 
-- **继续顺着 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 推进 `P6-1 Namespace policy orchestration`**
+- **开始判断是否从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 的 `P6-1` 切到 `P6-2`**
 
 当前已成立的第一刀事实：
 
@@ -1164,3 +1164,5 @@
 - 当前也已继续推进到更明确的 fallback policy 输出：
   - `retrieval_fallback_mode`
   - `write_escalation_mode`
+- 同时这层 policy 当前也已进入：
+  - planner metadata / runtime preview
