@@ -200,6 +200,10 @@ export function buildRuntimeAssistantMetadataInput(
       namespaceBoundary?.policy_bundle_id ?? null,
     active_memory_namespace_route_governance_mode:
       namespaceBoundary?.route_governance_mode ?? null,
+    active_memory_retrieval_fallback_mode:
+      namespaceBoundary?.retrieval_fallback_mode ?? null,
+    active_memory_write_escalation_mode:
+      namespaceBoundary?.write_escalation_mode ?? null,
     compacted_thread_summary_id: input.compaction.summary?.summary_id ?? null,
     compacted_thread_summary_text: input.compaction.summary?.summary_text ?? null,
     compacted_thread_summary_lifecycle_status:

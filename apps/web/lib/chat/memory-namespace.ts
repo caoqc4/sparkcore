@@ -22,6 +22,16 @@ export type RuntimeMemoryBoundary = {
     | "project_balanced"
     | "world_expansive"
     | "default_balanced";
+  retrieval_fallback_mode:
+    | "strict_no_timeline"
+    | "parallel_timeline_allowed"
+    | "timeline_preferred"
+    | "balanced_timeline_optional";
+  write_escalation_mode:
+    | "thread_outward_escalation"
+    | "project_world_escalation"
+    | "world_pinned"
+    | "default_pinned";
   retrieval_route_order: MemoryRecallRoute[];
   write_fallback_order: Array<"thread" | "project" | "world" | "default">;
   allow_timeline_fallback: boolean;
@@ -87,6 +97,7 @@ export function buildMemoryNamespacePromptSection(args: {
   }
 
   const isZh = args.replyLanguage === "zh-Hans";
+  const boundary = resolveRuntimeMemoryBoundary(args.namespace);
 
   return [
     isZh
@@ -97,6 +108,12 @@ export function buildMemoryNamespacePromptSection(args: {
           .map((layer) => formatNamespaceLayer(layer, true))
           .join(" -> ")}。`
       : `Active namespace layers: ${args.namespace.active_layers.join(" -> ")}.`,
+    isZh
+      ? `当前 namespace policy：${boundary.policy_bundle_id}；检索治理 = ${boundary.route_governance_mode}。`
+      : `Current namespace policy: ${boundary.policy_bundle_id}; retrieval governance = ${boundary.route_governance_mode}.`,
+    isZh
+      ? `当前 fallback 策略：retrieval = ${boundary.retrieval_fallback_mode}；write = ${boundary.write_escalation_mode}。`
+      : `Current fallback policy: retrieval = ${boundary.retrieval_fallback_mode}; write = ${boundary.write_escalation_mode}.`,
     isZh
       ? "把这些 namespace 当作当前检索和注入的作用域边界，不要把 thread/project/world 的信息误压回单一用户长期偏好。"
       : "Treat these namespaces as the active retrieval and injection boundary; do not collapse thread, project, or world context back into a single long-term user preference."
@@ -118,7 +135,9 @@ export function buildMemoryNamespaceSummary(args: {
     active_layers: args.namespace.active_layers,
     selection_reason: args.namespace.selection_reason,
     policy_bundle_id: boundary.policy_bundle_id,
-    route_governance_mode: boundary.route_governance_mode
+    route_governance_mode: boundary.route_governance_mode,
+    retrieval_fallback_mode: boundary.retrieval_fallback_mode,
+    write_escalation_mode: boundary.write_escalation_mode
   };
 }
 
@@ -132,6 +151,8 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "thread",
         policy_bundle_id: "thread_strict_focus",
         route_governance_mode: "thread_strict",
+        retrieval_fallback_mode: "strict_no_timeline",
+        write_escalation_mode: "thread_outward_escalation",
         retrieval_route_order: ["thread_state", "profile", "episode"],
         write_fallback_order: ["thread", "project", "world", "default"],
         allow_timeline_fallback: false,
@@ -146,6 +167,8 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "project",
         policy_bundle_id: "project_balanced_coordination",
         route_governance_mode: "project_balanced",
+        retrieval_fallback_mode: "parallel_timeline_allowed",
+        write_escalation_mode: "project_world_escalation",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
         write_fallback_order: ["project", "world", "default"],
         allow_timeline_fallback: true,
@@ -160,6 +183,8 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "world",
         policy_bundle_id: "world_reference_exploration",
         route_governance_mode: "world_expansive",
+        retrieval_fallback_mode: "timeline_preferred",
+        write_escalation_mode: "world_pinned",
         retrieval_route_order: ["thread_state", "profile", "timeline", "episode"],
         write_fallback_order: ["world", "default"],
         allow_timeline_fallback: true,
@@ -174,6 +199,8 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "default",
         policy_bundle_id: "default_balanced_memory",
         route_governance_mode: "default_balanced",
+        retrieval_fallback_mode: "balanced_timeline_optional",
+        write_escalation_mode: "default_pinned",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
         write_fallback_order: ["default"],
         allow_timeline_fallback: true,
@@ -202,6 +229,8 @@ export function buildMemoryNamespaceScopedMetadata(args: {
     active_memory_namespace_policy_bundle_id: boundary.policy_bundle_id,
     active_memory_namespace_route_governance_mode:
       boundary.route_governance_mode,
+    active_memory_retrieval_fallback_mode: boundary.retrieval_fallback_mode,
+    active_memory_write_escalation_mode: boundary.write_escalation_mode,
     active_memory_retrieval_boundary: boundary.retrieval_boundary,
     active_memory_write_boundary: boundary.write_boundary,
     active_memory_retrieval_route_order: boundary.retrieval_route_order,

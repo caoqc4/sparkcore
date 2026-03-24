@@ -102,6 +102,12 @@ export function buildRuntimeDebugMetadata(
           route_governance_mode: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).route_governance_mode,
+          retrieval_fallback_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).retrieval_fallback_mode,
+          write_escalation_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).write_escalation_mode,
           refs: input.active_memory_namespace.refs
         }
       : null,

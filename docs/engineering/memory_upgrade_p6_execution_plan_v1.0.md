@@ -100,6 +100,25 @@ P6 首批要把 namespace 从：
   - memory namespace summary
   - [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts)
 
+当前已成立的第二刀代码事实：
+
+- [memory-namespace.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-namespace.ts) 当前已开始把 namespace policy 从“bundle id + governance mode”继续推进成更明确的 fallback policy 输出：
+  - `retrieval_fallback_mode`
+  - `write_escalation_mode`
+- 当前最小规则已经成立：
+  - `thread` primary namespace：
+    - `retrieval_fallback_mode = strict_no_timeline`
+    - `write_escalation_mode = thread_outward_escalation`
+  - `project` primary namespace：
+    - `retrieval_fallback_mode = parallel_timeline_allowed`
+    - `write_escalation_mode = project_world_escalation`
+- [memory-write-targets.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-write-targets.ts) 与 [memory-write-metadata.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-write-metadata.ts) 当前也已开始把这层 policy 带进 write preview / planner metadata，不再只暴露 `fallback_write_boundary`
+- [runtime-preview-metadata.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/runtime-preview-metadata.ts) 当前也已开始把：
+  - `write_escalation_mode`
+  - `namespace_policy_bundle_id`
+  暴露到 runtime preview
+- assistant metadata / runtime debug metadata / harness 当前也已同步接上这层 fallback policy
+
 ### 4.2 Retention lifecycle policy v4
 
 P6 首批要把 retention 从：

@@ -57,6 +57,7 @@ function buildRuntimeMemoryWriteRequestPreview(
       write_boundary: target.writeBoundary,
       write_priority_layer: target.writePriorityLayer,
       fallback_write_boundary: target.fallbackWriteBoundary,
+      write_escalation_mode: target.writeEscalationMode,
       routed_scope: target.routedScope,
       routed_target_agent_id: target.routedTargetAgentId,
       routed_target_thread_id: target.routedTargetThreadId,
@@ -64,6 +65,7 @@ function buildRuntimeMemoryWriteRequestPreview(
       routed_world_id: target.routedWorldId,
       namespace_primary_layer: target.namespacePrimaryLayer,
       target_namespace_id: target.targetNamespaceId,
+      namespace_policy_bundle_id: target.namespacePolicyBundleId,
       thread_state_candidate:
         target.recordTarget === "thread_state_candidate"
           ? buildPlannedThreadStateCandidatePreview({

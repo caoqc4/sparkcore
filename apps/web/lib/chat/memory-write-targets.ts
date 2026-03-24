@@ -28,10 +28,16 @@ export type PlannedMemoryWriteTarget = {
   writeBoundary: PlannedMemoryWriteBoundary;
   writePriorityLayer: PlannedMemoryWriteBoundary;
   fallbackWriteBoundary: PlannedMemoryWriteBoundary | null;
+  writeEscalationMode:
+    | "thread_outward_escalation"
+    | "project_world_escalation"
+    | "world_pinned"
+    | "default_pinned";
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
     | null;
   targetNamespaceId: string | null;
+  namespacePolicyBundleId: string | null;
 };
 
 export type PlannedGenericMemoryWriteTarget = {
@@ -46,10 +52,16 @@ export type PlannedGenericMemoryWriteTarget = {
   writeBoundary: PlannedMemoryWriteBoundary;
   writePriorityLayer: PlannedMemoryWriteBoundary;
   fallbackWriteBoundary: PlannedMemoryWriteBoundary | null;
+  writeEscalationMode:
+    | "thread_outward_escalation"
+    | "project_world_escalation"
+    | "world_pinned"
+    | "default_pinned";
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
     | null;
   targetNamespaceId: string | null;
+  namespacePolicyBundleId: string | null;
 };
 
 export type PlannedRelationshipMemoryWriteTarget = {
@@ -64,10 +76,16 @@ export type PlannedRelationshipMemoryWriteTarget = {
   writeBoundary: PlannedMemoryWriteBoundary;
   writePriorityLayer: PlannedMemoryWriteBoundary;
   fallbackWriteBoundary: PlannedMemoryWriteBoundary | null;
+  writeEscalationMode:
+    | "thread_outward_escalation"
+    | "project_world_escalation"
+    | "world_pinned"
+    | "default_pinned";
   namespacePrimaryLayer:
     | ActiveRuntimeMemoryNamespace["primary_layer"]
     | null;
   targetNamespaceId: string | null;
+  namespacePolicyBundleId: string | null;
 };
 
 function resolveWriteBoundary(
@@ -99,28 +117,36 @@ function resolveNamespaceWriteRouting(
         routedProjectId: projectId,
         routedWorldId: null,
         writePriorityLayer: "project" as const,
-        fallbackWriteBoundary
+        fallbackWriteBoundary,
+        writeEscalationMode: boundary.write_escalation_mode,
+        namespacePolicyBundleId: boundary.policy_bundle_id
       };
     case "world":
       return {
         routedProjectId: null,
         routedWorldId: worldId,
         writePriorityLayer: "world" as const,
-        fallbackWriteBoundary
+        fallbackWriteBoundary,
+        writeEscalationMode: boundary.write_escalation_mode,
+        namespacePolicyBundleId: boundary.policy_bundle_id
       };
     case "thread":
       return {
         routedProjectId: null,
         routedWorldId: null,
         writePriorityLayer: "thread" as const,
-        fallbackWriteBoundary
+        fallbackWriteBoundary,
+        writeEscalationMode: boundary.write_escalation_mode,
+        namespacePolicyBundleId: boundary.policy_bundle_id
       };
     default:
       return {
         routedProjectId: projectId,
         routedWorldId: worldId,
         writePriorityLayer: "default" as const,
-        fallbackWriteBoundary
+        fallbackWriteBoundary,
+        writeEscalationMode: boundary.write_escalation_mode,
+        namespacePolicyBundleId: boundary.policy_bundle_id
       };
   }
 }
@@ -148,7 +174,9 @@ export function resolvePlannedMemoryWriteTarget(
     routedProjectId,
     routedWorldId,
     writePriorityLayer,
-    fallbackWriteBoundary
+    fallbackWriteBoundary,
+    writeEscalationMode,
+    namespacePolicyBundleId
   } = resolveNamespaceWriteRouting(namespace);
 
   if (request.kind === "relationship_memory") {
@@ -164,8 +192,10 @@ export function resolvePlannedMemoryWriteTarget(
       writeBoundary,
       writePriorityLayer,
       fallbackWriteBoundary,
+      writeEscalationMode,
       namespacePrimaryLayer,
-      targetNamespaceId
+      targetNamespaceId,
+      namespacePolicyBundleId
     };
   }
 
@@ -185,8 +215,10 @@ export function resolvePlannedMemoryWriteTarget(
       writeBoundary,
       writePriorityLayer,
       fallbackWriteBoundary,
+      writeEscalationMode,
       namespacePrimaryLayer,
-      targetNamespaceId
+      targetNamespaceId,
+      namespacePolicyBundleId
     };
   }
 
@@ -203,8 +235,10 @@ export function resolvePlannedMemoryWriteTarget(
       writeBoundary,
       writePriorityLayer,
       fallbackWriteBoundary,
+      writeEscalationMode,
       namespacePrimaryLayer,
-      targetNamespaceId
+      targetNamespaceId,
+      namespacePolicyBundleId
     };
   }
 
@@ -224,7 +258,9 @@ export function resolvePlannedMemoryWriteTarget(
     writeBoundary,
     writePriorityLayer,
     fallbackWriteBoundary,
+    writeEscalationMode,
     namespacePrimaryLayer,
-    targetNamespaceId
+    targetNamespaceId,
+    namespacePolicyBundleId
   };
 }

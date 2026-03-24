@@ -1161,3 +1161,6 @@
   - assistant metadata
   - runtime debug metadata
   - harness
+- 当前也已继续推进到更明确的 fallback policy 输出：
+  - `retrieval_fallback_mode`
+  - `write_escalation_mode`

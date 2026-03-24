@@ -23,7 +23,9 @@ import {
   getAssistantKnowledgeScopeLayers,
   getAssistantMemoryNamespacePolicyBundleId,
   getAssistantMemoryNamespacePrimaryLayer,
+  getAssistantMemoryNamespaceRetrievalFallbackMode,
   getAssistantMemoryNamespaceRouteGovernanceMode,
+  getAssistantMemoryNamespaceWriteEscalationMode,
   getAssistantMemoryScenarioPackAssemblyEmphasis,
   getAssistantMemoryScenarioPackStrategyAssemblyOrder,
   getAssistantMemoryScenarioPackStrategyBundleId,
@@ -327,6 +329,8 @@ function main() {
       "thread_state,profile,episode" &&
       threadBoundary.policy_bundle_id === "thread_strict_focus" &&
       threadBoundary.route_governance_mode === "thread_strict" &&
+      threadBoundary.retrieval_fallback_mode === "strict_no_timeline" &&
+      threadBoundary.write_escalation_mode === "thread_outward_escalation" &&
       threadBoundary.write_fallback_order.join(",") ===
         "thread,project,world,default",
     "Expected thread-primary namespace to expose explicit namespace policy facts in P6."
@@ -385,6 +389,10 @@ function main() {
       "thread_state,profile,episode,timeline" &&
       projectBoundary.policy_bundle_id === "project_balanced_coordination" &&
       projectBoundary.route_governance_mode === "project_balanced" &&
+      projectBoundary.retrieval_fallback_mode ===
+        "parallel_timeline_allowed" &&
+      projectBoundary.write_escalation_mode ===
+        "project_world_escalation" &&
       projectBoundary.write_fallback_order.join(",") === "project,world,default",
     "Expected project-primary namespace to expose explicit namespace policy facts in P6."
   );
@@ -1680,6 +1688,9 @@ function main() {
       projectBoundary.policy_bundle_id === "project_balanced_coordination" &&
       threadBoundary.route_governance_mode === "thread_strict" &&
       projectBoundary.route_governance_mode === "project_balanced" &&
+      threadBoundary.retrieval_fallback_mode === "strict_no_timeline" &&
+      projectBoundary.write_escalation_mode ===
+        "project_world_escalation" &&
       Array.isArray(threadBoundary.retrieval_route_order) &&
       threadBoundary.retrieval_route_order.join(",") ===
         "thread_state,profile,episode" &&
@@ -1839,8 +1850,15 @@ function main() {
           namespace_policy: {
             thread_bundle: threadBoundary.policy_bundle_id,
             thread_mode: threadBoundary.route_governance_mode,
+            thread_retrieval_fallback:
+              threadBoundary.retrieval_fallback_mode,
+            thread_write_escalation: threadBoundary.write_escalation_mode,
             project_bundle: projectBoundary.policy_bundle_id,
-            project_mode: projectBoundary.route_governance_mode
+            project_mode: projectBoundary.route_governance_mode,
+            project_retrieval_fallback:
+              projectBoundary.retrieval_fallback_mode,
+            project_write_escalation:
+              projectBoundary.write_escalation_mode
           }
         },
         runtime_semantic_summary: semanticSummary,
@@ -1892,7 +1910,11 @@ function main() {
           policy_bundle_id:
             getAssistantMemoryNamespacePolicyBundleId(assistantMetadata),
           route_governance_mode:
-            getAssistantMemoryNamespaceRouteGovernanceMode(assistantMetadata)
+            getAssistantMemoryNamespaceRouteGovernanceMode(assistantMetadata),
+          retrieval_fallback_mode:
+            getAssistantMemoryNamespaceRetrievalFallbackMode(assistantMetadata),
+          write_escalation_mode:
+            getAssistantMemoryNamespaceWriteEscalationMode(assistantMetadata)
         },
         runtime_debug_metadata: {
           pack_id: runtimeDebugMetadata.memory.pack?.pack_id ?? null,
@@ -1918,7 +1940,12 @@ function main() {
           namespace_policy_bundle_id:
             runtimeDebugMetadata.memory_namespace?.policy_bundle_id ?? null,
           namespace_route_governance_mode:
-            runtimeDebugMetadata.memory_namespace?.route_governance_mode ?? null
+            runtimeDebugMetadata.memory_namespace?.route_governance_mode ?? null,
+          namespace_retrieval_fallback_mode:
+            runtimeDebugMetadata.memory_namespace?.retrieval_fallback_mode ??
+            null,
+          namespace_write_escalation_mode:
+            runtimeDebugMetadata.memory_namespace?.write_escalation_mode ?? null
         },
         scenario_memory_pack: {
           pack_id: scenarioMemoryPack.pack_id,

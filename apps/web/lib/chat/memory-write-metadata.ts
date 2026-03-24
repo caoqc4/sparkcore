@@ -8,10 +8,12 @@ export function buildRelationshipPlannerMemoryMetadata(
     writeBoundary?: string | null;
     writePriorityLayer?: string | null;
     fallbackWriteBoundary?: string | null;
+    writeEscalationMode?: string | null;
     routedProjectId?: string | null;
     routedWorldId?: string | null;
     namespacePrimaryLayer?: string | null;
     targetNamespaceId?: string | null;
+    namespacePolicyBundleId?: string | null;
   }
 ): Record<string, unknown> {
   return {
@@ -23,6 +25,7 @@ export function buildRelationshipPlannerMemoryMetadata(
     write_boundary: targetMetadata?.writeBoundary ?? null,
     write_priority_layer: targetMetadata?.writePriorityLayer ?? null,
     fallback_write_boundary: targetMetadata?.fallbackWriteBoundary ?? null,
+    write_escalation_mode: targetMetadata?.writeEscalationMode ?? null,
     routed_scope: "user_agent",
     routed_target_agent_id: request.target_agent_id,
     routed_target_thread_id: request.target_thread_id ?? null,
@@ -30,6 +33,8 @@ export function buildRelationshipPlannerMemoryMetadata(
     routed_world_id: targetMetadata?.routedWorldId ?? null,
     namespace_primary_layer: targetMetadata?.namespacePrimaryLayer ?? null,
     target_namespace_id: targetMetadata?.targetNamespaceId ?? null,
+    namespace_policy_bundle_id:
+      targetMetadata?.namespacePolicyBundleId ?? null,
     relation_kind: request.relationship_key,
     dedupe_key: request.dedupe_key ?? null,
     write_mode: request.write_mode ?? "upsert",
@@ -49,6 +54,7 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
   writeBoundary?: string | null;
   writePriorityLayer?: string | null;
   fallbackWriteBoundary?: string | null;
+  writeEscalationMode?: string | null;
   routedScope?: string | null;
   routedTargetAgentId?: string | null;
   routedTargetThreadId?: string | null;
@@ -56,6 +62,7 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
   routedWorldId?: string | null;
   namespacePrimaryLayer?: string | null;
   targetNamespaceId?: string | null;
+  namespacePolicyBundleId?: string | null;
 }): Record<string, unknown> {
   return {
     ...(args.namespaceMetadata ?? {}),
@@ -67,6 +74,7 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
     write_boundary: args.writeBoundary ?? null,
     write_priority_layer: args.writePriorityLayer ?? null,
     fallback_write_boundary: args.fallbackWriteBoundary ?? null,
+    write_escalation_mode: args.writeEscalationMode ?? null,
     routed_scope: args.routedScope ?? null,
     routed_target_agent_id: args.routedTargetAgentId ?? null,
     routed_target_thread_id: args.routedTargetThreadId ?? null,
@@ -74,6 +82,7 @@ export function buildGenericPlannerMemoryInsertMetadata(args: {
     routed_world_id: args.routedWorldId ?? null,
     namespace_primary_layer: args.namespacePrimaryLayer ?? null,
     target_namespace_id: args.targetNamespaceId ?? null,
+    namespace_policy_bundle_id: args.namespacePolicyBundleId ?? null,
     threshold: args.threshold,
     dedupe_key: args.dedupeKey ?? null,
     write_mode: args.writeMode ?? "upsert"
@@ -93,6 +102,7 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
   writeBoundary?: string | null;
   writePriorityLayer?: string | null;
   fallbackWriteBoundary?: string | null;
+  writeEscalationMode?: string | null;
   routedScope?: string | null;
   routedTargetAgentId?: string | null;
   routedTargetThreadId?: string | null;
@@ -100,6 +110,7 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
   routedWorldId?: string | null;
   namespacePrimaryLayer?: string | null;
   targetNamespaceId?: string | null;
+  namespacePolicyBundleId?: string | null;
 }): Record<string, unknown> {
   return {
     ...(args.existingMetadata ?? {}),
@@ -112,6 +123,7 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
     write_boundary: args.writeBoundary ?? null,
     write_priority_layer: args.writePriorityLayer ?? null,
     fallback_write_boundary: args.fallbackWriteBoundary ?? null,
+    write_escalation_mode: args.writeEscalationMode ?? null,
     routed_scope: args.routedScope ?? null,
     routed_target_agent_id: args.routedTargetAgentId ?? null,
     routed_target_thread_id: args.routedTargetThreadId ?? null,
@@ -119,6 +131,7 @@ export function buildGenericPlannerMemoryUpdateMetadata(args: {
     routed_world_id: args.routedWorldId ?? null,
     namespace_primary_layer: args.namespacePrimaryLayer ?? null,
     target_namespace_id: args.targetNamespaceId ?? null,
+    namespace_policy_bundle_id: args.namespacePolicyBundleId ?? null,
     threshold: args.threshold,
     convergence_updated_at: args.convergenceUpdatedAt,
     dedupe_key: args.dedupeKey ?? null,

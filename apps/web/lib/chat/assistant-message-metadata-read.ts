@@ -432,6 +432,34 @@ export function getAssistantMemoryNamespaceRouteGovernanceMode(
   );
 }
 
+export function getAssistantMemoryNamespaceRetrievalFallbackMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(namespaceMetadata, "retrieval_fallback_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_retrieval_fallback_mode"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceWriteEscalationMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(namespaceMetadata, "write_escalation_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_write_escalation_mode"
+    )
+  );
+}
+
 export function getAssistantCompactedThreadSummaryText(
   metadata: Record<string, unknown> | null | undefined
 ) {

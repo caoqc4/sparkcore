@@ -47,6 +47,7 @@ import {
 import {
   buildMemoryNamespaceScopedMetadata,
   isMemoryWithinNamespace,
+  resolveRuntimeMemoryBoundary,
   type ActiveRuntimeMemoryNamespace
 } from "@/lib/chat/memory-namespace";
 import {
@@ -780,6 +781,7 @@ export async function executeMemoryWriteRequests({
           : activeNamespace?.primary_layer === "thread"
             ? "thread"
             : "default";
+    const namespaceBoundary = resolveRuntimeMemoryBoundary(activeNamespace);
     const target = matchingRequest
       ? resolvePlannedMemoryWriteTarget(matchingRequest, activeNamespace)
       : {
@@ -805,8 +807,10 @@ export async function executeMemoryWriteRequests({
           writeBoundary: fallbackWriteBoundary,
           writePriorityLayer: fallbackWriteBoundary,
           fallbackWriteBoundary: null,
+          writeEscalationMode: namespaceBoundary.write_escalation_mode,
           namespacePrimaryLayer: activeNamespace?.primary_layer ?? null,
-          targetNamespaceId: activeNamespace?.namespace_id ?? null
+          targetNamespaceId: activeNamespace?.namespace_id ?? null,
+          namespacePolicyBundleId: namespaceBoundary.policy_bundle_id
         };
     const matchingExisting = activeExistingMemories.find(
       (memory) =>
