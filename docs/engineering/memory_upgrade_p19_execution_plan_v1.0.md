@@ -143,15 +143,20 @@
   - 已开始
   - scenario close-note output contract 第一刀已成立
 - `P19-5`
-  - 待开始
+  - 已开始
+  - 第一版正式 gate 已建立
+
+当前 gate 轻量快照请以
+[memory_upgrade_p19_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p19_gate_snapshot_v1.0.md)
+为准。
 
 整体 `P19` 当前大约：
 
-- **`40% - 45%`**
+- **`50% - 55%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P19-5 Regression / acceptance close-note outputization` 第一刀，而不是先写 `P19 close-readiness`**
+- **开始把 `P19` 从第一版 output gate 推进到 close-readiness consumption，而不是先写 `P19 close-readiness`**
 
 ---
 

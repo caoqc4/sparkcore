@@ -5674,6 +5674,93 @@ function main() {
       ) &&
       p19CloseNoteOutputPrompt.includes("Scenario output section")
   } as const;
+  const p19PositiveContracts = summarizeGate({
+    namespace_close_note_output_contract_v1_ok:
+      p19CloseNoteOutputChecks.namespace_close_note_output_contract_v1_ok,
+    retention_close_note_output_contract_v1_ok:
+      p19CloseNoteOutputChecks.retention_close_note_output_contract_v1_ok,
+    knowledge_close_note_output_contract_v1_ok:
+      p19CloseNoteOutputChecks.knowledge_close_note_output_contract_v1_ok,
+    scenario_close_note_output_contract_v1_ok:
+      p19CloseNoteOutputChecks.scenario_close_note_output_contract_v1_ok
+  });
+  const p19MetadataConsistency = summarizeGate({
+    namespace_close_note_output_metadata_consistency_v1_ok:
+      p19CloseNoteOutputChecks.namespace_close_note_output_metadata_consistency_v1_ok,
+    retention_close_note_output_metadata_consistency_v1_ok:
+      p19CloseNoteOutputChecks.retention_close_note_output_metadata_consistency_v1_ok,
+    knowledge_close_note_output_metadata_consistency_v1_ok:
+      p19CloseNoteOutputChecks.knowledge_close_note_output_metadata_consistency_v1_ok,
+    scenario_close_note_output_metadata_consistency_v1_ok:
+      p19CloseNoteOutputChecks.scenario_close_note_output_metadata_consistency_v1_ok
+  });
+  const p19PromptSurface = summarizeGate({
+    namespace_close_note_output_prompt_surface_v1_ok:
+      p19CloseNoteOutputChecks.namespace_close_note_output_prompt_surface_v1_ok,
+    retention_close_note_output_prompt_surface_v1_ok:
+      p19CloseNoteOutputChecks.retention_close_note_output_prompt_surface_v1_ok,
+    knowledge_close_note_output_prompt_surface_v1_ok:
+      p19CloseNoteOutputChecks.knowledge_close_note_output_prompt_surface_v1_ok,
+    scenario_close_note_output_prompt_surface_v1_ok:
+      p19CloseNoteOutputChecks.scenario_close_note_output_prompt_surface_v1_ok
+  });
+  const p19RegressionGate = {
+    positive_contracts: p19PositiveContracts,
+    metadata_consistency: p19MetadataConsistency,
+    prompt_surface: p19PromptSurface,
+    ...summarizeGate(p19CloseNoteOutputChecks)
+  } as const;
+  const p19GateSnapshot = {
+    gate_id: "p19_regression_gate_v1",
+    stage: "P19-5",
+    focus: "close_note_outputization",
+    output_contract_readiness: "scenario_output_started_not_close_ready",
+    progress_range: "50% - 55%",
+    close_note_recommended: false,
+    blocking_items: [] as string[],
+    non_blocking_items: [
+      "output_regression_gate_layering",
+      "close_readiness_output_consumption",
+      "remaining_output_acceptance_gaps"
+    ],
+    tail_candidate_items: [
+      "output_surface_symmetry_cleanup",
+      "non_blocking_output_negative_coverage",
+      "artifact_to_output_alignment_cleanup"
+    ],
+    acceptance_gap_buckets: {
+      blocking: 0,
+      non_blocking: 3,
+      tail_candidate: 3
+    },
+    next_expansion_focus: [
+      "output_regression_gate_layering",
+      "close_readiness_output_consumption",
+      "remaining_output_acceptance_gaps"
+    ],
+    positive_contracts: {
+      checks_passed: p19PositiveContracts.checks_passed,
+      checks_total: p19PositiveContracts.checks_total,
+      all_green: p19PositiveContracts.all_green
+    },
+    metadata_consistency: {
+      checks_passed: p19MetadataConsistency.checks_passed,
+      checks_total: p19MetadataConsistency.checks_total,
+      all_green: p19MetadataConsistency.all_green
+    },
+    prompt_surface: {
+      checks_passed: p19PromptSurface.checks_passed,
+      checks_total: p19PromptSurface.checks_total,
+      all_green: p19PromptSurface.all_green
+    },
+    overall: {
+      checks_passed: p19RegressionGate.checks_passed,
+      checks_total: p19RegressionGate.checks_total,
+      failed_checks: p19RegressionGate.failed_checks,
+      all_green: p19RegressionGate.all_green,
+      close_candidate: p19RegressionGate.close_candidate
+    }
+  } as const;
   const p18PositiveContracts = summarizeGate({
     role_core_memory_close_note_artifact_v1_ok:
       p18CloseNoteArtifactChecks.role_core_memory_close_note_artifact_v1_ok
@@ -6989,6 +7076,8 @@ function main() {
         p17_gate_snapshot: p17GateSnapshot,
         p18_close_note_artifact: p18CloseNoteArtifactChecks,
         p19_close_note_output: p19CloseNoteOutputChecks,
+        p19_regression_gate: p19RegressionGate,
+        p19_gate_snapshot: p19GateSnapshot,
         p18_regression_gate: p18RegressionGate,
         p18_gate_snapshot: p18GateSnapshot,
         p15_regression_gate: p15RegressionGate,
