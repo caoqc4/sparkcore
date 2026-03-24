@@ -1352,14 +1352,12 @@
 
 - **`P8` 已达到 `close-ready / 可收官`**
 - 当前更推荐的下一步：
-  - **开始写 `P8 close note`**
-- 当前 knowledge 最小 convergence 已经进入：
-  - `governance_convergence_digest`
-  - `source_budget_alignment_summary`
-  - `governance_alignment_mode`
-  - knowledge prompt selection 的 route/budget 复用
-- 这层输出已进入：
-  - knowledge prompt section
-  - assistant metadata / reader
-  - runtime debug metadata
-  - harness
+  - **开始下一阶段执行文档 / 第一批任务拆解**
+- 当前 `P8-5` 已开始锁：
+  - `namespace_governance_convergence_v3_ok`
+  - `retention_lifecycle_convergence_v6_ok`
+  - `knowledge_governance_convergence_v6_ok`
+  - `scenario_governance_convergence_v6_ok`
+  - `convergence_metadata_consistency_v6_ok`
+- 当前 gate 已全绿，并且：
+  - `close_candidate = true`
