@@ -768,6 +768,54 @@ export function getAssistantThreadSurvivalConsistencyMode(
   );
 }
 
+export function getAssistantThreadLifecycleConvergenceDigest(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_convergence_digest"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_convergence_digest"
+    )
+  );
+}
+
+export function getAssistantThreadKeepDropConvergenceSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "keep_drop_convergence_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_keep_drop_convergence_summary"
+    )
+  );
+}
+
+export function getAssistantThreadLifecycleAlignmentMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(compactionMetadata, "lifecycle_alignment_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_alignment_mode"
+    )
+  );
+}
+
 export function getAssistantKnowledgeGovernanceCoordinationSummary(
   metadata: Record<string, unknown> | null | undefined
 ) {

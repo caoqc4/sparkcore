@@ -1336,7 +1336,7 @@
 - `P8-1`
   - 前中段到中段之间
 - `P8-2`
-  - 待开始
+  - 已启动
 - `P8-3`
   - 待开始
 - `P8-4`
@@ -1346,21 +1346,17 @@
 
 整体 `P8` 当前大约：
 
-- **`20% - 30%`**
+- **`25% - 35%`**
 
 当前更推荐的下一步：
 
-- **开始 `P8-2 Retention lifecycle convergence v6` 的第一刀**
-- 当前最小 convergence 已成立：
-  - `governance_convergence_digest_id`
-  - `governance_convergence_summary`
-  - `retrieval_write_digest_alignment`
+- **继续补 `P8-2 Retention lifecycle convergence v6`**
+- 当前 retention 最小 convergence 已开始进入：
+  - `lifecycle_convergence_digest`
+  - `keep_drop_convergence_summary`
+  - `lifecycle_alignment_mode`
 - 这层输出已进入：
-  - namespace prompt section
+  - thread compaction summary
   - assistant metadata / reader
   - runtime debug metadata
-  - write target resolution
-  - runtime write preview
-- 当前判断是：
-  - `P8-1` 已经从起步推进到前中段到中段之间
-  - 下一步更值的是把同一层 convergence 方法复制到 retention
+  - harness

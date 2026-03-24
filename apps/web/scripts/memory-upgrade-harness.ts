@@ -26,7 +26,10 @@ import {
   getAssistantKnowledgeSourceGovernanceSummary,
   getAssistantKnowledgeScopeLayers,
   getAssistantThreadCrossLayerSurvivalMode,
+  getAssistantThreadKeepDropConvergenceSummary,
   getAssistantThreadKeepDropGovernanceSummary,
+  getAssistantThreadLifecycleAlignmentMode,
+  getAssistantThreadLifecycleConvergenceDigest,
   getAssistantThreadLifecycleCoordinationSummary,
   getAssistantThreadLifecycleGovernanceDigest,
   getAssistantThreadRetentionDecisionGroup,
@@ -2484,7 +2487,13 @@ function main() {
           lifecycle_coordination_summary:
             getAssistantThreadLifecycleCoordinationSummary(assistantMetadata),
           survival_consistency_mode:
-            getAssistantThreadSurvivalConsistencyMode(assistantMetadata)
+            getAssistantThreadSurvivalConsistencyMode(assistantMetadata),
+          lifecycle_convergence_digest:
+            getAssistantThreadLifecycleConvergenceDigest(assistantMetadata),
+          keep_drop_convergence_summary:
+            getAssistantThreadKeepDropConvergenceSummary(assistantMetadata),
+          lifecycle_alignment_mode:
+            getAssistantThreadLifecycleAlignmentMode(assistantMetadata)
         },
         assistant_metadata_namespace: {
           primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata),
@@ -2555,6 +2564,15 @@ function main() {
           knowledge_count: runtimeDebugMetadata.knowledge.count,
           thread_compaction_summary_id:
             runtimeDebugMetadata.thread_compaction?.summary_id ?? null,
+          thread_lifecycle_convergence_digest:
+            runtimeDebugMetadata.thread_compaction?.lifecycle_convergence_digest ??
+            null,
+          thread_keep_drop_convergence_summary:
+            runtimeDebugMetadata.thread_compaction?.keep_drop_convergence_summary ??
+            null,
+          thread_lifecycle_alignment_mode:
+            runtimeDebugMetadata.thread_compaction?.lifecycle_alignment_mode ??
+            null,
           namespace_primary_layer:
             runtimeDebugMetadata.memory_namespace?.primary_layer ?? null,
           namespace_policy_bundle_id:

@@ -69,6 +69,27 @@ export type ThreadSurvivalConsistencyMode =
   | "minimal_decay_consistent"
   | "closed_drop_consistent";
 
+export type ThreadLifecycleConvergenceDigestId =
+  | "anchor_preservation_convergence"
+  | "continuity_bridge_convergence"
+  | "window_replay_convergence"
+  | "minimal_decay_convergence"
+  | "closed_decay_convergence";
+
+export type ThreadKeepDropConvergenceSummary =
+  | "anchor_keep_alignment"
+  | "bridge_keep_alignment"
+  | "window_keep_alignment"
+  | "minimal_decay_alignment"
+  | "closed_drop_alignment";
+
+export type ThreadLifecycleAlignmentMode =
+  | "anchor_governance_aligned"
+  | "bridge_governance_aligned"
+  | "window_governance_aligned"
+  | "minimal_governance_aligned"
+  | "closed_governance_aligned";
+
 export type ThreadRetentionLayer = "anchor" | "context" | "window";
 
 export type ThreadRetentionLayerBudget = {
@@ -106,6 +127,9 @@ export type CompactedThreadSummary = {
   keep_drop_governance_summary: ThreadKeepDropGovernanceSummary;
   lifecycle_coordination_summary: ThreadLifecycleCoordinationSummary;
   survival_consistency_mode: ThreadSurvivalConsistencyMode;
+  lifecycle_convergence_digest: ThreadLifecycleConvergenceDigestId;
+  keep_drop_convergence_summary: ThreadKeepDropConvergenceSummary;
+  lifecycle_alignment_mode: ThreadLifecycleAlignmentMode;
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;
