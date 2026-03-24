@@ -1375,23 +1375,26 @@
 - `P9-4`
   - 前中段到中段之间
 - `P9-5`
-  - 待开始
+  - 第一版已成立
 
 整体 `P9` 当前大约：
 
-- **`65% - 75%`**
+- **`70% - 75%`**
 
 当前更推荐的下一步：
 
-- **开始 `P9-5 Regression / acceptance expansion` 的第一刀**
-- 当前 `P9-4` 已开始显式产出：
-  - `governance_unification_digest_id`
-  - `strategy_unification_summary`
-  - `orchestration_unification_mode`
-- 这层 unified scenario contract 已开始进入：
-  - scenario pack prompt section
-  - assistant metadata / reader
-  - runtime debug metadata
-  - harness
-- 这说明 `P9-4` 已经不只是 convergence 字段可见，而是开始进入真实的 scenario prompt / metadata 统一输出
-- 这也说明 `P9-4` 已经不再只是第一刀 seam，当前更值的不是继续盲补单点，而是开始把 `P9-5` 的阶段 gate 立起来
+- **先做一次 `P9` 小复盘**
+- 当前 `P9-5` 已开始显式产出：
+  - `p9_regression_gate`
+  - `checks_passed`
+  - `checks_total`
+  - `failed_checks`
+  - `all_green`
+  - `close_candidate`
+- 当前第一版 gate 已开始锁：
+  - `namespace_unified_governance_runtime_v4_ok`
+  - `retention_lifecycle_unification_v7_ok`
+  - `knowledge_governance_unification_v7_ok`
+  - `scenario_governance_unification_v7_ok`
+- 这说明 `P9` 已经不再只是主线代码各自成立，而是开始形成阶段级 `unified runtime + gate` 的组合事实
+- 当前更值的下一步，是先复盘 `P9-1 ~ P9-5` 的相对强弱，再决定继续补 `P9-4 / P9-5`，还是开始进入 `close-readiness` 前置区间

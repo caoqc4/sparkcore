@@ -2652,6 +2652,108 @@ function main() {
     close_candidate: p8RegressionGateFailedChecks.length === 0
   } as const;
 
+  const p9RegressionGateChecks = {
+    namespace_unified_governance_runtime_v4_ok:
+      projectBoundary.unified_governance_runtime_digest_id ===
+        "project_coordination_unified_runtime" &&
+      projectBoundary.unified_governance_runtime_summary ===
+        "project_coordination_runtime_unified" &&
+      projectBoundary.unified_runtime_alignment_mode ===
+        "project_runtime_aligned" &&
+      getAssistantMemoryNamespaceUnifiedGovernanceRuntimeDigestId(
+        assistantMetadata
+      ) === projectBoundary.unified_governance_runtime_digest_id &&
+      getAssistantMemoryNamespaceUnifiedGovernanceRuntimeSummary(
+        assistantMetadata
+      ) === projectBoundary.unified_governance_runtime_summary &&
+      getAssistantMemoryNamespaceUnifiedRuntimeAlignmentMode(
+        assistantMetadata
+      ) === projectBoundary.unified_runtime_alignment_mode &&
+      runtimeDebugMetadata.memory_namespace
+        ?.unified_governance_runtime_digest_id ===
+        projectBoundary.unified_governance_runtime_digest_id &&
+      runtimeDebugMetadata.memory_namespace?.unified_governance_runtime_summary ===
+        projectBoundary.unified_governance_runtime_summary &&
+      runtimeDebugMetadata.memory_namespace?.unified_runtime_alignment_mode ===
+        projectBoundary.unified_runtime_alignment_mode,
+    retention_lifecycle_unification_v7_ok:
+      compactedThreadSummary?.lifecycle_unification_digest ===
+        "anchor_preservation_unification" &&
+      compactedThreadSummary?.keep_drop_unification_summary ===
+        "anchor_keep_unified" &&
+      compactedThreadSummary?.lifecycle_unification_mode ===
+        "anchor_runtime_unified" &&
+      getAssistantThreadLifecycleUnificationDigest(assistantMetadata) ===
+        compactedThreadSummary?.lifecycle_unification_digest &&
+      getAssistantThreadKeepDropUnificationSummary(assistantMetadata) ===
+        compactedThreadSummary?.keep_drop_unification_summary &&
+      getAssistantThreadLifecycleUnificationMode(assistantMetadata) ===
+        compactedThreadSummary?.lifecycle_unification_mode &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_unification_digest ===
+        compactedThreadSummary?.lifecycle_unification_digest &&
+      runtimeDebugMetadata.thread_compaction?.keep_drop_unification_summary ===
+        compactedThreadSummary?.keep_drop_unification_summary &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_unification_mode ===
+        compactedThreadSummary?.lifecycle_unification_mode,
+    knowledge_governance_unification_v7_ok:
+      knowledgeSummary.governance_unification_digest ===
+        "authoritative_governance_unification" &&
+      knowledgeSummary.source_budget_unification_summary ===
+        "authoritative_budget_source_unified" &&
+      knowledgeSummary.governance_unification_mode ===
+        "authoritative_runtime_unified" &&
+      getAssistantKnowledgeGovernanceUnificationDigest(assistantMetadata) ===
+        knowledgeSummary.governance_unification_digest &&
+      getAssistantKnowledgeSourceBudgetUnificationSummary(assistantMetadata) ===
+        knowledgeSummary.source_budget_unification_summary &&
+      getAssistantKnowledgeGovernanceUnificationMode(assistantMetadata) ===
+        knowledgeSummary.governance_unification_mode &&
+      runtimeDebugMetadata.knowledge.governance_unification_digest ===
+        knowledgeSummary.governance_unification_digest &&
+      runtimeDebugMetadata.knowledge.source_budget_unification_summary ===
+        knowledgeSummary.source_budget_unification_summary &&
+      runtimeDebugMetadata.knowledge.governance_unification_mode ===
+        knowledgeSummary.governance_unification_mode,
+    scenario_governance_unification_v7_ok:
+      scenarioMemoryPack.governance_unification_digest_id ===
+        "project_delivery_governance_unification" &&
+      scenarioMemoryPack.strategy_unification_summary ===
+        "project_delivery_strategy_unified" &&
+      scenarioMemoryPack.orchestration_unification_mode ===
+        "execution_runtime_unified" &&
+      getAssistantMemoryScenarioPackGovernanceUnificationDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_unification_digest_id &&
+      getAssistantMemoryScenarioPackStrategyUnificationSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_unification_summary &&
+      getAssistantMemoryScenarioPackOrchestrationUnificationMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_unification_mode &&
+      runtimeDebugPack?.governance_unification_digest_id ===
+        scenarioMemoryPack.governance_unification_digest_id &&
+      runtimeDebugPack?.strategy_unification_summary ===
+        scenarioMemoryPack.strategy_unification_summary &&
+      runtimeDebugPack?.orchestration_unification_mode ===
+        scenarioMemoryPack.orchestration_unification_mode &&
+      systemPrompt.includes(
+        "Current governance unification = project_delivery_governance_unification; strategy unification = project_delivery_strategy_unified; unification mode = execution_runtime_unified."
+      )
+  } as const;
+  const p9RegressionGateFailedChecks = Object.entries(
+    p9RegressionGateChecks
+  ).flatMap(([check, passed]) => (passed ? [] : [check]));
+  const p9RegressionGate = {
+    ...p9RegressionGateChecks,
+    checks_passed:
+      Object.keys(p9RegressionGateChecks).length -
+      p9RegressionGateFailedChecks.length,
+    checks_total: Object.keys(p9RegressionGateChecks).length,
+    failed_checks: p9RegressionGateFailedChecks,
+    all_green: p9RegressionGateFailedChecks.length === 0,
+    close_candidate: p9RegressionGateFailedChecks.length === 0
+  } as const;
+
   console.log(
     JSON.stringify(
       {
@@ -3074,7 +3176,13 @@ function main() {
           strategy_convergence_summary:
             scenarioMemoryPack.strategy_convergence_summary,
           orchestration_alignment_mode:
-            scenarioMemoryPack.orchestration_alignment_mode
+            scenarioMemoryPack.orchestration_alignment_mode,
+          governance_unification_digest_id:
+            scenarioMemoryPack.governance_unification_digest_id,
+          strategy_unification_summary:
+            scenarioMemoryPack.strategy_unification_summary,
+          orchestration_unification_mode:
+            scenarioMemoryPack.orchestration_unification_mode
         },
         system_prompt_thread_state: {
           includes_focus_mode: systemPrompt.includes(
@@ -3191,6 +3299,7 @@ function main() {
         p6_regression_gate: p6RegressionGate,
         p7_regression_gate: p7RegressionGate,
         p8_regression_gate: p8RegressionGate,
+        p9_regression_gate: p9RegressionGate,
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
             "When episode memory is present"
