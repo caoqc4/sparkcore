@@ -120,6 +120,30 @@ export type KnowledgeGovernanceCoordinationReuseMode =
   | "reference_runtime_coordination_reuse"
   | "mixed_runtime_coordination_reuse";
 
+export type KnowledgeGovernancePlaneDigestId =
+  | "authoritative_governance_plane"
+  | "contextual_governance_plane"
+  | "reference_governance_plane"
+  | "mixed_governance_plane";
+
+export type KnowledgeSourceBudgetGovernancePlaneSummary =
+  | "authoritative_budget_source_governance_plane"
+  | "contextual_budget_source_governance_plane"
+  | "reference_budget_source_governance_plane"
+  | "mixed_budget_source_governance_plane";
+
+export type KnowledgeGovernancePlaneMode =
+  | "authoritative_runtime_governance_plane"
+  | "contextual_runtime_governance_plane"
+  | "reference_runtime_governance_plane"
+  | "mixed_runtime_governance_plane";
+
+export type KnowledgeGovernancePlaneReuseMode =
+  | "authoritative_runtime_governance_plane_reuse"
+  | "contextual_runtime_governance_plane_reuse"
+  | "reference_runtime_governance_plane_reuse"
+  | "mixed_runtime_governance_plane_reuse";
+
 export type KnowledgeResource = {
   resource_id: string;
   scope: MemoryScopeRef;

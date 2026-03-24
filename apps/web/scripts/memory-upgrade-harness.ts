@@ -30,11 +30,15 @@ import {
   getAssistantKnowledgeGovernanceConsolidationDigest,
   getAssistantKnowledgeGovernanceConsolidationMode,
   getAssistantKnowledgeGovernanceCoordinationReuseMode,
+  getAssistantKnowledgeGovernancePlaneDigest,
+  getAssistantKnowledgeGovernancePlaneMode,
+  getAssistantKnowledgeGovernancePlaneReuseMode,
   getAssistantKnowledgeGovernanceUnificationDigest,
   getAssistantKnowledgeGovernanceUnificationMode,
   getAssistantKnowledgeSourceBudgetAlignmentSummary,
   getAssistantKnowledgeSourceBudgetCoordinationSummary,
   getAssistantKnowledgeSourceBudgetConsolidationSummary,
+  getAssistantKnowledgeSourceBudgetGovernancePlaneSummary,
   getAssistantKnowledgeSelectionRuntimeCoordinationSummary,
   getAssistantKnowledgeSourceBudgetUnificationSummary,
   getAssistantKnowledgeSourceGovernanceSummary,
@@ -3365,6 +3369,37 @@ function main() {
         "General delivery note"
   } as const;
 
+  const p12KnowledgeGovernancePlaneChecks = {
+    knowledge_governance_plane_v10_ok:
+      knowledgeSummary.governance_plane_digest ===
+        "authoritative_governance_plane" &&
+      knowledgeSummary.source_budget_governance_plane_summary ===
+        "authoritative_budget_source_governance_plane" &&
+      knowledgeSummary.governance_plane_mode ===
+        "authoritative_runtime_governance_plane" &&
+      knowledgeSummary.governance_plane_reuse_mode ===
+        "authoritative_runtime_governance_plane_reuse" &&
+      getAssistantKnowledgeGovernancePlaneDigest(assistantMetadata) ===
+        knowledgeSummary.governance_plane_digest &&
+      getAssistantKnowledgeSourceBudgetGovernancePlaneSummary(
+        assistantMetadata
+      ) === knowledgeSummary.source_budget_governance_plane_summary &&
+      getAssistantKnowledgeGovernancePlaneMode(assistantMetadata) ===
+        knowledgeSummary.governance_plane_mode &&
+      getAssistantKnowledgeGovernancePlaneReuseMode(assistantMetadata) ===
+        knowledgeSummary.governance_plane_reuse_mode &&
+      runtimeDebugMetadata.knowledge.governance_plane_digest ===
+        knowledgeSummary.governance_plane_digest &&
+      runtimeDebugMetadata.knowledge.source_budget_governance_plane_summary ===
+        knowledgeSummary.source_budget_governance_plane_summary &&
+      runtimeDebugMetadata.knowledge.governance_plane_mode ===
+        knowledgeSummary.governance_plane_mode &&
+      runtimeDebugMetadata.knowledge.governance_plane_reuse_mode ===
+        knowledgeSummary.governance_plane_reuse_mode &&
+      selectedKnowledgeForPrompt[0]?.title === "Onboarding checklist guide" &&
+      referenceOnlyProjectOpsSelection.length === 1
+  } as const;
+
   const p11ScenarioCoordinationChecks = {
     scenario_governance_coordination_v9_ok:
       scenarioMemoryPack.governance_coordination_digest_id ===
@@ -3865,7 +3900,17 @@ function main() {
           governance_coordination_reuse_mode:
             getAssistantKnowledgeGovernanceCoordinationReuseMode(
               assistantMetadata
-            )
+            ),
+          governance_plane_digest:
+            getAssistantKnowledgeGovernancePlaneDigest(assistantMetadata),
+          source_budget_governance_plane_summary:
+            getAssistantKnowledgeSourceBudgetGovernancePlaneSummary(
+              assistantMetadata
+            ),
+          governance_plane_mode:
+            getAssistantKnowledgeGovernancePlaneMode(assistantMetadata),
+          governance_plane_reuse_mode:
+            getAssistantKnowledgeGovernancePlaneReuseMode(assistantMetadata)
         },
         filtered_knowledge_summary: knowledgeSummary,
         assistant_metadata_thread_compaction: {
@@ -4353,6 +4398,7 @@ function main() {
         p11_retention_coordination: p11RetentionCoordinationChecks,
         p12_retention_governance_plane: p12RetentionGovernancePlaneChecks,
         p11_knowledge_coordination: p11KnowledgeCoordinationChecks,
+        p12_knowledge_governance_plane: p12KnowledgeGovernancePlaneChecks,
         p11_scenario_coordination: p11ScenarioCoordinationChecks,
         p11_regression_gate: p11RegressionGate,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,

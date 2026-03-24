@@ -1877,6 +1877,62 @@ export function getAssistantKnowledgeGovernanceCoordinationReuseMode(
   );
 }
 
+export function getAssistantKnowledgeGovernancePlaneDigest(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(knowledgeMetadata, "governance_plane_digest") ??
+    getAssistantMetadataString(metadata, "knowledge_governance_plane_digest")
+  );
+}
+
+export function getAssistantKnowledgeSourceBudgetGovernancePlaneSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "source_budget_governance_plane_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_source_budget_governance_plane_summary"
+    )
+  );
+}
+
+export function getAssistantKnowledgeGovernancePlaneMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(knowledgeMetadata, "governance_plane_mode") ??
+    getAssistantMetadataString(metadata, "knowledge_governance_plane_mode")
+  );
+}
+
+export function getAssistantKnowledgeGovernancePlaneReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "governance_plane_reuse_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_governance_plane_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryTypesUsed(
   metadata: Record<string, unknown> | null | undefined
 ) {
