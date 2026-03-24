@@ -83,6 +83,7 @@
   - prompt / assistant metadata / runtime debug 当前都已开始复用这层 fabric contract
 - `P13-5 regression / acceptance expansion` 已开始建立第一版正式 gate：
   - `memory-upgrade-harness.ts` 当前已新增 `p13_regression_gate`
+  - `memory-upgrade-harness.ts` 当前也已新增 `p13_gate_snapshot`，用于更轻量地消费当前 gate 分层状态
   - gate 当前已开始按三层 acceptance 面输出：
     - `positive_contracts`
     - `metadata_consistency`

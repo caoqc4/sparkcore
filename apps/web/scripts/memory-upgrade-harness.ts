@@ -3877,6 +3877,33 @@ function main() {
     drift_guards: p13DriftGuards,
     ...p13RegressionGateSummary
   } as const;
+  const p13GateSnapshot = {
+    gate_id: "p13_regression_gate_v1",
+    stage: "P13-5",
+    focus: "regression_acceptance_expansion",
+    positive_contracts: {
+      checks_passed: p13PositiveContracts.checks_passed,
+      checks_total: p13PositiveContracts.checks_total,
+      all_green: p13PositiveContracts.all_green
+    },
+    metadata_consistency: {
+      checks_passed: p13MetadataConsistency.checks_passed,
+      checks_total: p13MetadataConsistency.checks_total,
+      all_green: p13MetadataConsistency.all_green
+    },
+    drift_guards: {
+      checks_passed: p13DriftGuards.checks_passed,
+      checks_total: p13DriftGuards.checks_total,
+      all_green: p13DriftGuards.all_green
+    },
+    overall: {
+      checks_passed: p13RegressionGate.checks_passed,
+      checks_total: p13RegressionGate.checks_total,
+      failed_checks: p13RegressionGate.failed_checks,
+      all_green: p13RegressionGate.all_green,
+      close_candidate: p13RegressionGate.close_candidate
+    }
+  } as const;
 
   const p12RegressionGateChecks = {
     ...p12NamespaceGovernancePlaneChecks,
@@ -4958,6 +4985,7 @@ function main() {
         p12_scenario_governance_plane: p12ScenarioGovernancePlaneChecks,
         p13_scenario_governance_fabric: p13ScenarioGovernanceFabricChecks,
         p13_regression_gate: p13RegressionGate,
+        p13_gate_snapshot: p13GateSnapshot,
         p12_regression_gate: p12RegressionGate,
         p11_regression_gate: p11RegressionGate,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,
