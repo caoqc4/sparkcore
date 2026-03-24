@@ -1369,7 +1369,7 @@
 - `P9-1`
   - 中段
 - `P9-2`
-  - 前中段
+  - 中段
 - `P9-3`
   - 待开始
 - `P9-4`
@@ -1379,11 +1379,11 @@
 
 整体 `P9` 当前大约：
 
-- **`35% - 45%`**
+- **`40% - 50%`**
 
 当前更推荐的下一步：
 
-- **继续补 `P9-2 Retention lifecycle unification v7` 的第二刀**
+- **开始 `P9-3 Knowledge governance unification v7` 的第一刀**
 - 当前 `P9-2` 已开始显式产出：
   - `lifecycle_unification_digest`
   - `keep_drop_unification_summary`
@@ -1394,5 +1394,6 @@
   - runtime debug metadata
   - harness
 - 当前 keep/drop decision 也已开始优先复用 unified lifecycle contract
-- 这说明 `P9-2` 已不再只是字段可见，而是开始进入真实 retention decision 主路径
-- 当前更值的下一步，是先对 `P9-2` 做一次小评估，再判断是否切去 `P9-3`
+- 这说明 `P9-2` 已不再只是字段可见，而是已经进入真实 retention decision 主路径
+- 当前更值的下一步，已经不是继续深挖 `P9-2`，而是开始：
+  - `P9-3 Knowledge governance unification v7`
