@@ -41,9 +41,9 @@
 - `blocking_items = []`
 - `next_expansion_focus = plane_negative_coverage / close_readiness_consumption / remaining_acceptance_gaps`
 - `positive_contracts = 4 / 4`
-- `metadata_consistency = 1 / 1`
+- `metadata_consistency = 2 / 2`
 - `drift_guards = 2 / 2`
-- `overall = 7 / 7`
+- `overall = 8 / 8`
 - `failed_checks = []`
 - `all_green = true`
 - `close_candidate = true`
@@ -68,12 +68,14 @@
 当前已经锁住：
 
 - `fabric_plane_metadata_consistency_v12_ok`
+- `fabric_plane_prompt_surface_v12_ok`
 
 这意味着 namespace / retention / knowledge / scenario 的 fabric plane 事实已经不只停在单点输出，而开始具备：
 
 - assistant metadata
 - runtime debug
 - namespace write preview
+- prompt surface / system prompt
 
 之间的 cross-surface 一致性证明。
 
@@ -104,6 +106,7 @@
 - 主线成立证明
 - cross-surface consistency 证明
 - 最小 drift guard
+- prompt surface 消费证明
 
 当前之所以还不直接写成 `P14 close readiness`，不是因为 gate 不成立，而是因为：
 

@@ -246,14 +246,15 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
     - `positive_contracts`
     - `metadata_consistency`
     - `drift_guards`
-  - 当前 gate 已锁住：
-    - namespace governance fabric plane v9
-    - retention lifecycle governance fabric plane v12
-    - knowledge governance fabric plane v12
-    - scenario governance fabric plane v12
-    - plane-level metadata consistency v12
-    - plane-level drift guard v12
-    - scenario fabric plane drift guard v12
+- 当前 gate 已锁住：
+  - namespace governance fabric plane v9
+  - retention lifecycle governance fabric plane v12
+  - knowledge governance fabric plane v12
+  - scenario governance fabric plane v12
+  - plane-level metadata consistency v12
+  - plane-level prompt surface consistency v12
+  - plane-level drift guard v12
+  - scenario fabric plane drift guard v12
   - `apps/web/scripts/memory-upgrade-harness.ts` 当前也已新增 `p14_gate_snapshot`，用于更轻量地消费当前 gate 状态
   - 当前 gate 轻量快照请以
     [memory_upgrade_p14_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_gate_snapshot_v1.0.md)

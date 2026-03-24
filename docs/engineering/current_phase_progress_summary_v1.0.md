@@ -143,15 +143,16 @@
     - `drift_guards`
   - 当前 `p14_gate_snapshot`：
     - `positive_contracts = 4 / 4`
-    - `metadata_consistency = 1 / 1`
+    - `metadata_consistency = 2 / 2`
     - `drift_guards = 2 / 2`
-    - `overall = 7 / 7`
+    - `overall = 8 / 8`
   - gate 当前已锁住：
     - namespace governance fabric plane v9
     - retention lifecycle governance fabric plane v12
     - knowledge governance fabric plane v12
     - scenario governance fabric plane v12
     - plane-level metadata consistency v12
+    - plane-level prompt surface consistency v12
     - plane-level drift guard v12
     - scenario fabric plane drift guard v12
   - 当前基础验证已通过：

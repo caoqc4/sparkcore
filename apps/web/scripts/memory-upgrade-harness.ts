@@ -4210,6 +4210,26 @@ function main() {
       getAssistantMemoryScenarioPackGovernanceFabricPlaneReuseMode(
         assistantMetadata
       ) === runtimeDebugPack?.governance_fabric_plane_reuse_mode
+    ,
+    fabric_plane_prompt_surface_v12_ok:
+      scenarioMemoryPackPrompt.includes(
+        "Current governance fabric plane = project_delivery_governance_fabric_plane; strategy governance fabric plane = project_delivery_strategy_governance_fabric_plane; fabric plane mode = execution_runtime_governance_fabric_plane; fabric plane reuse = execution_runtime_governance_fabric_plane_reuse."
+      ) &&
+      defaultScenarioMemoryPackPrompt.includes(
+        "Current governance fabric plane = continuity_governance_fabric_plane; strategy governance fabric plane = continuity_strategy_governance_fabric_plane; fabric plane mode = continuity_runtime_governance_fabric_plane; fabric plane reuse = continuity_runtime_governance_fabric_plane_reuse."
+      ) &&
+      worldKnowledgeDrivenScenarioMemoryPackPrompt.includes(
+        "Current governance fabric plane = knowledge_guided_governance_fabric_plane; strategy governance fabric plane = knowledge_guided_strategy_governance_fabric_plane; fabric plane mode = knowledge_guided_runtime_governance_fabric_plane; fabric plane reuse = knowledge_guided_runtime_governance_fabric_plane_reuse."
+      ) &&
+      systemPrompt.includes(
+        "Current governance fabric plane = authoritative_governance_fabric_plane; budget/source governance fabric plane = authoritative_budget_source_governance_fabric_plane; fabric plane mode = authoritative_runtime_governance_fabric_plane; fabric plane reuse = authoritative_runtime_governance_fabric_plane_reuse."
+      ) &&
+      systemPrompt.includes(
+        "Lifecycle governance fabric plane: anchor_preservation_governance_fabric_plane."
+      ) &&
+      systemPrompt.includes(
+        "Keep/drop governance fabric plane: anchor_keep_governance_fabric_plane."
+      )
   } as const;
   const p14DriftGuardChecks = {
     fabric_plane_drift_guard_v12_ok:
