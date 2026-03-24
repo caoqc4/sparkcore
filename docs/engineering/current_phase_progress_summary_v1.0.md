@@ -1572,7 +1572,11 @@
 
 当前更推荐的下一步：
 
-- **开始切到下一阶段执行文档 / 第一批任务拆解，或只做少量 tail cleanup**
+- **开始 `P14` 执行文档对应的第一批任务拆解，或只做少量 tail cleanup**
+
+当前下一阶段执行入口请以
+[memory_upgrade_p14_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_execution_plan_v1.0.md)
+为准。
 
 当前正式 `close-readiness` 判断请以
 [memory_upgrade_p13_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p13_close_readiness_v1.0.md)
