@@ -5625,7 +5625,29 @@ function main() {
       ) &&
       p18CloseNoteArtifact?.next_expansion_focus.includes(
         "close_readiness_handoff_alignment"
-      )
+      ),
+    role_core_memory_close_note_artifact_close_note_input_readiness_v1_ok:
+      p18CloseNoteArtifactPrompt.includes(
+        p18CloseNoteArtifact?.non_blocking_items.join(", ") ?? ""
+      ) &&
+      p18CloseNoteArtifactPrompt.includes(
+        p18CloseNoteArtifact?.tail_candidate_items.join(", ") ?? ""
+      ) &&
+      p18CloseNoteArtifactPrompt.includes(
+        p18CloseNoteArtifact?.next_expansion_focus.join(", ") ?? ""
+      ) &&
+      systemPrompt.includes(
+        p18CloseNoteArtifact?.non_blocking_items.join(", ") ?? ""
+      ) &&
+      systemPrompt.includes(
+        p18CloseNoteArtifact?.tail_candidate_items.join(", ") ?? ""
+      ) &&
+      (assistantCloseNoteArtifact?.non_blocking_items.length ?? -1) ===
+        (p18CloseNoteArtifact?.non_blocking_items.length ?? -2) &&
+      (assistantDiagnosticCloseNoteArtifact?.tail_candidate_items.length ?? -1) ===
+        (p18CloseNoteArtifact?.tail_candidate_items.length ?? -2) &&
+      (runtimeDebugCloseNoteArtifact?.next_expansion_focus.length ?? -1) ===
+        (p18CloseNoteArtifact?.next_expansion_focus.length ?? -2)
   } as const;
   const p18CloseReadinessConsumption = summarizeGate(
     p18CloseReadinessConsumptionChecks
@@ -5656,14 +5678,14 @@ function main() {
     })
   } as const;
   const p18GateSnapshot = {
-    gate_id: "p18_regression_gate_v2",
+    gate_id: "p18_regression_gate_v3",
     stage: "P18-5",
     focus: "close_note_artifactization",
     artifact_readiness:
       p18CloseNoteArtifact?.close_note_recommended === true
         ? "artifact_close_readiness_handoff_started"
         : "not_started",
-    progress_range: "65% - 70%",
+    progress_range: "80% - 85%",
     close_note_recommended:
       p18CloseNoteArtifact?.close_note_recommended ?? false,
     blocking_items: p18CloseNoteArtifact?.blocking_items ?? [],

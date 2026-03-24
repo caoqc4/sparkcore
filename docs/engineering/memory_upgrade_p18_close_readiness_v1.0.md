@@ -76,7 +76,7 @@
     - `drift_guards`
   - `p18_gate_snapshot` 当前已形成轻量消费面：
     - `artifact_readiness = artifact_close_readiness_handoff_started`
-    - `progress_range = 65% - 70%`
+    - `progress_range = 80% - 85%`
     - `close_note_recommended = true`
     - `blocking_items = []`
     - `non_blocking_items` 已显式列出
@@ -86,9 +86,9 @@
     - `positive_contracts = 1 / 1`
     - `metadata_consistency = 1 / 1`
     - `artifact_consumption = 2 / 2`
-    - `close_readiness_consumption = 3 / 3`
+    - `close_readiness_consumption = 4 / 4`
     - `drift_guards = 2 / 2`
-    - `overall = 9 / 9`
+    - `overall = 10 / 10`
     - `failed_checks = []`
     - `all_green = true`
     - `close_candidate = true`
@@ -99,11 +99,11 @@
 
 我现在的判断是：
 
-**`P18` 已进入 `close-readiness` 判断区间，但当前还不建议直接判成 `close-ready / 可收官`。**
+**`P18` 已进入 `close-readiness` 判断区间，并且当前已经满足 `close-ready / 可收官`。**
 
 如果给整体 `P18` 一个阶段进度，我会给：
 
-- **约 `75% - 80%`**
+- **约 `80% - 85%`**
 
 原因是：
 
@@ -133,16 +133,24 @@
   形成联动
 - `close_note_artifact` 当前已经不再只是 prompt 附加段，而已开始形成 `close-readiness` 可直接消费的统一 payload
 
-当前之所以还不建议直接判成 `close-ready`，原因是：
+当前之所以现在可以把 `P18` 判成 `close-ready`，原因是：
 
-- 当前 `close_readiness_consumption` 虽然已经建立，但还偏“第一版正式消费面”
-- 剩余 acceptance gap 虽然都已是非阻塞项，但还需要进一步压成更适合 `close note` 消费的结构化表达
-- `P18 close-readiness` 到后续 `close note` 的映射还没有被正式收束成最终结论
+- 当前 `close_readiness_consumption` 已经不再只是第一版轻量信号，而已经出现：
+  - gap bucket consumption
+  - gap structuring
+  - close-note input readiness
+- 当前 `close_note_artifact` 已经跨：
+  - runtime main path
+  - assistant metadata / developer diagnostics
+  - system prompt
+  - harness
+  形成稳定复用
+- 当前剩余 acceptance gap 虽然仍存在，但都已经明确降级为非阻塞项
 
 所以当前更准确的状态是：
 
 - **已经进入 `close-readiness` 判断区间**
-- **但当前更适合先完成 gap 分类，再决定是否进入 `close note`**
+- **并且当前已经适合正式判成 `close-ready`**
 
 ---
 
@@ -150,7 +158,7 @@
 
 当前更合理的下一步不是继续横向扩很多新 artifact 面，而是：
 
-- **继续把 `P18` 的剩余 acceptance gap 压成正式分类表达**
+- **开始准备 `P18 close note`**
 
 更具体地说，下一步更适合：
 
@@ -158,7 +166,7 @@
   - 阻塞项
   - 非阻塞但有价值项
   - 可转 tail cleanup / 下阶段吸收项
-- 在这个基础上，再判断是否已经足够进入：
+- 在这个基础上，再正式完成：
   - `P18 close note`
 
 ### 4.1 当前剩余 Acceptance Gap 初步分类
@@ -187,7 +195,7 @@
 这也是为什么我当前把 `P18` 判断为：
 
 - 已进入 `close-readiness` 判断区间
-- 但暂不建议直接写 `close note`
+- 且当前已经可以写 `close note`
 
 ---
 
@@ -195,9 +203,9 @@
 
 一句话结论：
 
-**`P18` 当前已经进入 `close-readiness` 判断区间，但尚未达到 `close-ready`；更合理的是先完成 acceptance gap 的正式分类，再决定是否进入 `P18 close note`。**
+**`P18` 当前已经进入 `close-readiness` 判断区间，并且已经达到 `close-ready`；更合理的是开始写 `P18 close note`。**
 
 更合理的下一步是：
 
-- **先完成 `P18` 的 close-readiness gap 分类**
+- **开始完成 `P18 close note`**
 - 当前正式阶段判断请以本文档为准

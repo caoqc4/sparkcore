@@ -134,11 +134,11 @@
 
 整体 `P18` 当前大约：
 
-- **`65% - 70%`**
+- **`80% - 85%`**
 
 当前更推荐的下一步：
 
-- **开始把 `P18` 从第三版 gate 推进到正式 `close-readiness judgment`**
+- **开始把 `P18` 从 `close-readiness judgment` 推进到正式 `close note`**
 
 当前正式 `close-readiness` 判断请以
 [memory_upgrade_p18_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p18_close_readiness_v1.0.md)

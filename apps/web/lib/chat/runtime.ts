@@ -2818,6 +2818,12 @@ export function buildRoleCoreMemoryCloseNoteArtifactPrompt(
       ? `Close-note artifact acceptance：${closeNoteArtifact.acceptance_summary}`
       : `Close-note artifact acceptance: ${closeNoteArtifact.acceptance_summary}`,
     isZh
+      ? `Close-note artifact non-blocking items：${closeNoteArtifact.non_blocking_items.join(", ") || "none"}。`
+      : `Close-note artifact non-blocking items: ${closeNoteArtifact.non_blocking_items.join(", ") || "none"}.`,
+    isZh
+      ? `Close-note artifact tail candidates：${closeNoteArtifact.tail_candidate_items.join(", ") || "none"}。`
+      : `Close-note artifact tail candidates: ${closeNoteArtifact.tail_candidate_items.join(", ") || "none"}.`,
+    isZh
       ? `Close-note artifact gap buckets：blocking = ${closeNoteArtifact.acceptance_gap_buckets.blocking}；non_blocking = ${closeNoteArtifact.acceptance_gap_buckets.non_blocking}；tail_candidate = ${closeNoteArtifact.acceptance_gap_buckets.tail_candidate}。`
       : `Close-note artifact gap buckets: blocking = ${closeNoteArtifact.acceptance_gap_buckets.blocking}; non_blocking = ${closeNoteArtifact.acceptance_gap_buckets.non_blocking}; tail_candidate = ${closeNoteArtifact.acceptance_gap_buckets.tail_candidate}.`,
     isZh

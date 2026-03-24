@@ -28,7 +28,7 @@
 当前 `p18_gate_snapshot` 的结果为：
 
 - `artifact_readiness = artifact_close_readiness_handoff_started`
-- `progress_range = 65% - 70%`
+- `progress_range = 80% - 85%`
 - `close_note_recommended = true`
 - `blocking_items = []`
 - `non_blocking_items = close_note_acceptance_structuring / close_note_gate_snapshot_consumption / close_readiness_handoff_alignment`
@@ -37,10 +37,10 @@
 - `next_expansion_focus = close_note_acceptance_structuring / close_note_gate_snapshot_consumption / close_readiness_handoff_alignment`
 - `positive_contracts = 1 / 1`
 - `metadata_consistency = 1 / 1`
-- `close_readiness_consumption = 3 / 3`
+- `close_readiness_consumption = 4 / 4`
 - `drift_guards = 2 / 2`
 - `artifact_consumption = 2 / 2`
-- `overall = 9 / 9`
+- `overall = 10 / 10`
 - `failed_checks = []`
 - `all_green = true`
 - `close_candidate = true`
@@ -87,6 +87,7 @@
 - `role_core_memory_close_note_artifact_close_readiness_prompt_v1_ok`
 - `role_core_memory_close_note_artifact_gap_bucket_consumption_v1_ok`
 - `role_core_memory_close_note_artifact_gap_structuring_v1_ok`
+- `role_core_memory_close_note_artifact_close_note_input_readiness_v1_ok`
 
 这意味着 close-note artifact 当前不只“能被 prompt / debug 看见”，还已经开始把以下 close-readiness 判断项作为正式消费面暴露：
 
@@ -104,7 +105,7 @@
 
 因此它当前更像是：
 
-**`P18` gate 已经从零推进到“close-note artifact contract + metadata consistency + artifact consumption + close-readiness consumption + drift guards 已成立”，并开始把 `P17` 的 handoff packet 推进成更可消费的 artifact payload；它已是更像正式 acceptance gate 的第三版，但还不是收官级 gate。**
+**`P18` gate 已经从零推进到“close-note artifact contract + metadata consistency + artifact consumption + close-readiness consumption + drift guards 已成立”，并开始把 `P17` 的 handoff packet 推进成更可消费的 artifact payload；它当前已经接近收官级 gate。**
 
 ---
 
@@ -112,7 +113,7 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P18-5` 已经从“待开始”推进到“close-note artifact gate 已建立并出现 metadata consistency + artifact consumption + close-readiness consumption + drift guards”，并且 gap bucket 与 next-focus 已开始被 gate 正式锁住；当前价值主要在于把这层消费面继续收束成正式的 `P18 close-readiness` 判断，而不是继续横向扩 artifact 类型。**
+**`P18-5` 已经从“待开始”推进到“close-note artifact gate 已建立并出现 metadata consistency + artifact consumption + close-readiness consumption + drift guards”，并且 gap bucket / next-focus / close-note input readiness 都已开始被 gate 正式锁住；当前价值主要在于完成最终的 `P18 close-ready` 判断，而不是继续横向扩 artifact 类型。**
 
 ---
 
@@ -120,7 +121,7 @@
 
 当前更合理的下一步是：
 
-- **开始把 `P18` 从第三版 gate 推进到正式 `close-readiness judgment`，而不是继续横向扩 artifact 面**
+- **开始把 `P18` 从 close-readiness judgment 推进到正式 `close note`，而不是继续横向扩 artifact 面**
 
 ---
 
@@ -128,4 +129,4 @@
 
 一句话结论：
 
-**`P18` 当前已经拥有一版全绿、并以 close-note artifact 为中心且带 metadata consistency / artifact consumption / close-readiness consumption / drift guards 的第三版 gate；它已经不再只是 `P17` handoff packet 的别名，而是开始形成独立且可被 close-readiness 直接消费的 artifact contract。**
+**`P18` 当前已经拥有一版全绿、并以 close-note artifact 为中心且带 metadata consistency / artifact consumption / close-readiness consumption / drift guards 的收官前 gate；它已经不再只是 `P17` handoff packet 的别名，而是开始形成独立且可被 close note 直接消费的 artifact contract。**
