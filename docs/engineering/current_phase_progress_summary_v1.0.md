@@ -324,6 +324,15 @@
   - 当前结论是：
     - `P17` 已达到 `close-ready / 可收官`
     - `P17` 的非阻塞尾项当前已并入统一 backlog
+- `P18 execution plan` 当前已建立下一阶段执行入口：
+  - 当前执行起点请以
+    [memory_upgrade_p18_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p18_execution_plan_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P18` 已从“待定义的下一阶段”推进到“已建立执行计划的下一阶段”
+    - `P18` 的一句话目标是把 `P17 close-note handoff packet` 推进成独立 `close-note artifact contract`
+    - `P18-1 ~ P18-5` 当前都仍处于待开始
+    - 当前整体约 `0% - 5%`
 
 ---
 
