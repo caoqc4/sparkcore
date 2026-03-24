@@ -195,6 +195,34 @@ export type ThreadLifecycleGovernancePlaneReuseMode =
   | "minimal_runtime_governance_plane_reuse"
   | "closed_runtime_governance_plane_reuse";
 
+export type ThreadLifecycleGovernanceFabricDigestId =
+  | "anchor_preservation_governance_fabric"
+  | "continuity_bridge_governance_fabric"
+  | "window_replay_governance_fabric"
+  | "minimal_decay_governance_fabric"
+  | "closed_decay_governance_fabric";
+
+export type ThreadKeepDropGovernanceFabricSummary =
+  | "anchor_keep_governance_fabric"
+  | "bridge_keep_governance_fabric"
+  | "window_keep_governance_fabric"
+  | "minimal_decay_governance_fabric"
+  | "closed_drop_governance_fabric";
+
+export type ThreadLifecycleGovernanceFabricAlignmentMode =
+  | "anchor_governance_fabric_aligned"
+  | "bridge_governance_fabric_aligned"
+  | "window_governance_fabric_aligned"
+  | "minimal_governance_fabric_aligned"
+  | "closed_governance_fabric_aligned";
+
+export type ThreadLifecycleGovernanceFabricReuseMode =
+  | "anchor_runtime_governance_fabric_reuse"
+  | "bridge_runtime_governance_fabric_reuse"
+  | "window_runtime_governance_fabric_reuse"
+  | "minimal_runtime_governance_fabric_reuse"
+  | "closed_runtime_governance_fabric_reuse";
+
 export type ThreadRetentionLayer = "anchor" | "context" | "window";
 
 export type ThreadRetentionLayerBudget = {
@@ -250,6 +278,10 @@ export type CompactedThreadSummary = {
   keep_drop_governance_plane_summary: ThreadKeepDropGovernancePlaneSummary;
   lifecycle_governance_plane_alignment_mode: ThreadLifecycleGovernancePlaneAlignmentMode;
   lifecycle_governance_plane_reuse_mode: ThreadLifecycleGovernancePlaneReuseMode;
+  lifecycle_governance_fabric_digest: ThreadLifecycleGovernanceFabricDigestId;
+  keep_drop_governance_fabric_summary: ThreadKeepDropGovernanceFabricSummary;
+  lifecycle_governance_fabric_alignment_mode: ThreadLifecycleGovernanceFabricAlignmentMode;
+  lifecycle_governance_fabric_reuse_mode: ThreadLifecycleGovernanceFabricReuseMode;
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;

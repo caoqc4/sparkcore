@@ -63,6 +63,12 @@
   - `governance_fabric_alignment_mode`
   - `governance_fabric_reuse_mode`
   - recall / write 当前也已开始复用这层 fabric contract
+- `P13-2 retention lifecycle governance fabric v11` 已开始把 retention governance plane 继续推进到 fabric：
+  - `lifecycle_governance_fabric_digest`
+  - `keep_drop_governance_fabric_summary`
+  - `lifecycle_governance_fabric_alignment_mode`
+  - `lifecycle_governance_fabric_reuse_mode`
+  - keep/drop decision 当前也已开始复用这层 fabric contract
 
 ---
 

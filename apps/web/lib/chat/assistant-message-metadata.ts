@@ -169,6 +169,10 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   compacted_thread_keep_drop_governance_plane_summary?: string | null;
   compacted_thread_lifecycle_governance_plane_alignment_mode?: string | null;
   compacted_thread_lifecycle_governance_plane_reuse_mode?: string | null;
+  compacted_thread_lifecycle_governance_fabric_digest?: string | null;
+  compacted_thread_keep_drop_governance_fabric_summary?: string | null;
+  compacted_thread_lifecycle_governance_fabric_alignment_mode?: string | null;
+  compacted_thread_lifecycle_governance_fabric_reuse_mode?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -347,6 +351,10 @@ export type BuildAssistantMessageMetadataInput = {
   compacted_thread_keep_drop_governance_plane_summary?: string | null;
   compacted_thread_lifecycle_governance_plane_alignment_mode?: string | null;
   compacted_thread_lifecycle_governance_plane_reuse_mode?: string | null;
+  compacted_thread_lifecycle_governance_fabric_digest?: string | null;
+  compacted_thread_keep_drop_governance_fabric_summary?: string | null;
+  compacted_thread_lifecycle_governance_fabric_alignment_mode?: string | null;
+  compacted_thread_lifecycle_governance_fabric_reuse_mode?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -707,6 +715,16 @@ export function buildAssistantMetadataSummaryGroups(
           lifecycle_governance_plane_reuse_mode:
             input.compacted_thread_lifecycle_governance_plane_reuse_mode ??
             null,
+          lifecycle_governance_fabric_digest:
+            input.compacted_thread_lifecycle_governance_fabric_digest ?? null,
+          keep_drop_governance_fabric_summary:
+            input.compacted_thread_keep_drop_governance_fabric_summary ?? null,
+          lifecycle_governance_fabric_alignment_mode:
+            input.compacted_thread_lifecycle_governance_fabric_alignment_mode ??
+            null,
+          lifecycle_governance_fabric_reuse_mode:
+            input.compacted_thread_lifecycle_governance_fabric_reuse_mode ??
+            null,
           retained_fields:
             input.compacted_thread_retained_fields ?? []
         }
@@ -975,6 +993,14 @@ export function buildAssistantMetadataSummaryGroups(
         input.compacted_thread_lifecycle_governance_plane_alignment_mode,
       compacted_thread_lifecycle_governance_plane_reuse_mode:
         input.compacted_thread_lifecycle_governance_plane_reuse_mode,
+      compacted_thread_lifecycle_governance_fabric_digest:
+        input.compacted_thread_lifecycle_governance_fabric_digest,
+      compacted_thread_keep_drop_governance_fabric_summary:
+        input.compacted_thread_keep_drop_governance_fabric_summary,
+      compacted_thread_lifecycle_governance_fabric_alignment_mode:
+        input.compacted_thread_lifecycle_governance_fabric_alignment_mode,
+      compacted_thread_lifecycle_governance_fabric_reuse_mode:
+        input.compacted_thread_lifecycle_governance_fabric_reuse_mode,
       compacted_thread_retained_fields:
         input.compacted_thread_retained_fields,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,

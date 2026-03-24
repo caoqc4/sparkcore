@@ -1707,6 +1707,74 @@ export function getAssistantThreadLifecycleGovernancePlaneReuseMode(
   );
 }
 
+export function getAssistantThreadLifecycleGovernanceFabricDigest(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_governance_fabric_digest"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_governance_fabric_digest"
+    )
+  );
+}
+
+export function getAssistantThreadKeepDropGovernanceFabricSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "keep_drop_governance_fabric_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_keep_drop_governance_fabric_summary"
+    )
+  );
+}
+
+export function getAssistantThreadLifecycleGovernanceFabricAlignmentMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_governance_fabric_alignment_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_governance_fabric_alignment_mode"
+    )
+  );
+}
+
+export function getAssistantThreadLifecycleGovernanceFabricReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_governance_fabric_reuse_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_governance_fabric_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantKnowledgeGovernanceCoordinationSummary(
   metadata: Record<string, unknown> | null | undefined
 ) {

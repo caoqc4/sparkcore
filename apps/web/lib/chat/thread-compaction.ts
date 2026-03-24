@@ -4,6 +4,7 @@ import type {
   CompactedThreadSummary,
   ThreadCrossLayerSurvivalMode,
   ThreadKeepDropGovernanceSummary,
+  ThreadKeepDropGovernanceFabricSummary,
   ThreadKeepDropGovernancePlaneSummary,
   ThreadKeepDropConsolidationCoordinationSummary,
   ThreadKeepDropRuntimeCoordinationSummary,
@@ -17,8 +18,11 @@ import type {
   ThreadLifecycleConvergenceDigestId,
   ThreadLifecycleConsolidationDigestId,
   ThreadLifecycleGovernanceDigestId,
+  ThreadLifecycleGovernanceFabricDigestId,
   ThreadLifecycleGovernancePlaneDigestId,
+  ThreadLifecycleGovernanceFabricAlignmentMode,
   ThreadLifecycleGovernancePlaneAlignmentMode,
+  ThreadLifecycleGovernanceFabricReuseMode,
   ThreadLifecycleGovernancePlaneReuseMode,
   ThreadLifecycleAlignmentMode,
   ThreadLifecycleConsolidationMode,
@@ -709,6 +713,74 @@ function resolveThreadLifecycleGovernancePlaneReuseMode(args: {
   }
 }
 
+function resolveThreadLifecycleGovernanceFabricDigest(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadLifecycleGovernanceFabricDigestId {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_preservation_governance_fabric";
+    case "continuity_bridge":
+      return "continuity_bridge_governance_fabric";
+    case "window_replay":
+      return "window_replay_governance_fabric";
+    case "minimal_decay":
+      return "minimal_decay_governance_fabric";
+    case "closed_decay_prune":
+      return "closed_decay_governance_fabric";
+  }
+}
+
+function resolveThreadKeepDropGovernanceFabricSummary(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadKeepDropGovernanceFabricSummary {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_keep_governance_fabric";
+    case "continuity_bridge":
+      return "bridge_keep_governance_fabric";
+    case "window_replay":
+      return "window_keep_governance_fabric";
+    case "minimal_decay":
+      return "minimal_decay_governance_fabric";
+    case "closed_decay_prune":
+      return "closed_drop_governance_fabric";
+  }
+}
+
+function resolveThreadLifecycleGovernanceFabricAlignmentMode(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadLifecycleGovernanceFabricAlignmentMode {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_governance_fabric_aligned";
+    case "continuity_bridge":
+      return "bridge_governance_fabric_aligned";
+    case "window_replay":
+      return "window_governance_fabric_aligned";
+    case "minimal_decay":
+      return "minimal_governance_fabric_aligned";
+    case "closed_decay_prune":
+      return "closed_governance_fabric_aligned";
+  }
+}
+
+function resolveThreadLifecycleGovernanceFabricReuseMode(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadLifecycleGovernanceFabricReuseMode {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_runtime_governance_fabric_reuse";
+    case "continuity_bridge":
+      return "bridge_runtime_governance_fabric_reuse";
+    case "window_replay":
+      return "window_runtime_governance_fabric_reuse";
+    case "minimal_decay":
+      return "minimal_runtime_governance_fabric_reuse";
+    case "closed_decay_prune":
+      return "closed_runtime_governance_fabric_reuse";
+  }
+}
+
 export function buildCompactedThreadSummary(args: {
   threadState: ThreadStateRecord | null | undefined;
   recentTurnCount: number;
@@ -846,6 +918,22 @@ export function buildCompactedThreadSummary(args: {
     resolveThreadLifecycleGovernancePlaneReuseMode({
       retentionDecisionGroup
     });
+  const lifecycleGovernanceFabricDigest =
+    resolveThreadLifecycleGovernanceFabricDigest({
+      retentionDecisionGroup
+    });
+  const keepDropGovernanceFabricSummary =
+    resolveThreadKeepDropGovernanceFabricSummary({
+      retentionDecisionGroup
+    });
+  const lifecycleGovernanceFabricAlignmentMode =
+    resolveThreadLifecycleGovernanceFabricAlignmentMode({
+      retentionDecisionGroup
+    });
+  const lifecycleGovernanceFabricReuseMode =
+    resolveThreadLifecycleGovernanceFabricReuseMode({
+      retentionDecisionGroup
+    });
   const retainedFields = buildRetainedFields({
     threadState: args.threadState,
     retentionReason,
@@ -906,6 +994,10 @@ export function buildCompactedThreadSummary(args: {
     `Keep/drop governance plane: ${keepDropGovernancePlaneSummary}.`,
     `Lifecycle governance plane alignment: ${lifecycleGovernancePlaneAlignmentMode}.`,
     `Lifecycle governance plane reuse: ${lifecycleGovernancePlaneReuseMode}.`,
+    `Lifecycle governance fabric: ${lifecycleGovernanceFabricDigest}.`,
+    `Keep/drop governance fabric: ${keepDropGovernanceFabricSummary}.`,
+    `Lifecycle governance fabric alignment: ${lifecycleGovernanceFabricAlignmentMode}.`,
+    `Lifecycle governance fabric reuse: ${lifecycleGovernanceFabricReuseMode}.`,
   ].filter((part): part is string => Boolean(part));
 
   return {
@@ -948,6 +1040,12 @@ export function buildCompactedThreadSummary(args: {
     lifecycle_governance_plane_alignment_mode:
       lifecycleGovernancePlaneAlignmentMode,
     lifecycle_governance_plane_reuse_mode: lifecycleGovernancePlaneReuseMode,
+    lifecycle_governance_fabric_digest: lifecycleGovernanceFabricDigest,
+    keep_drop_governance_fabric_summary: keepDropGovernanceFabricSummary,
+    lifecycle_governance_fabric_alignment_mode:
+      lifecycleGovernanceFabricAlignmentMode,
+    lifecycle_governance_fabric_reuse_mode:
+      lifecycleGovernanceFabricReuseMode,
     retention_budget: retentionBudget,
     retention_layers: retentionLayers,
     retention_layer_budget: retentionLayerBudget,
@@ -992,6 +1090,12 @@ export function getThreadCompactionRetentionDecision(args: {
           "closed_governance_plane_aligned" ||
         summary.lifecycle_governance_plane_reuse_mode ===
           "closed_runtime_governance_plane_reuse" ||
+        summary.keep_drop_governance_fabric_summary ===
+          "closed_drop_governance_fabric" ||
+        summary.lifecycle_governance_fabric_alignment_mode ===
+          "closed_governance_fabric_aligned" ||
+        summary.lifecycle_governance_fabric_reuse_mode ===
+          "closed_runtime_governance_fabric_reuse" ||
         summary.keep_drop_consolidation_summary === "closed_drop_consolidated" ||
         summary.keep_drop_unification_summary === "closed_drop_unified" ||
         summary.keep_drop_convergence_summary === "closed_drop_alignment"
@@ -1015,6 +1119,12 @@ export function getThreadCompactionRetentionDecision(args: {
         "closed_governance_plane_aligned") ||
     summary.lifecycle_governance_plane_reuse_mode ===
       "closed_runtime_governance_plane_reuse" ||
+    (summary.keep_drop_governance_fabric_summary ===
+      "closed_drop_governance_fabric" &&
+      summary.lifecycle_governance_fabric_alignment_mode ===
+        "closed_governance_fabric_aligned") ||
+    summary.lifecycle_governance_fabric_reuse_mode ===
+      "closed_runtime_governance_fabric_reuse" ||
     (summary.keep_drop_consolidation_summary === "closed_drop_consolidated" &&
       summary.lifecycle_consolidation_mode === "closed_runtime_consolidated") ||
     (summary.keep_drop_unification_summary === "closed_drop_unified" &&
@@ -1041,6 +1151,12 @@ export function getThreadCompactionRetentionDecision(args: {
           "minimal_governance_plane_aligned") ||
       summary.lifecycle_governance_plane_reuse_mode ===
         "minimal_runtime_governance_plane_reuse" ||
+      (summary.keep_drop_governance_fabric_summary ===
+        "minimal_decay_governance_fabric" &&
+        summary.lifecycle_governance_fabric_alignment_mode ===
+          "minimal_governance_fabric_aligned") ||
+      summary.lifecycle_governance_fabric_reuse_mode ===
+        "minimal_runtime_governance_fabric_reuse" ||
       (summary.keep_drop_consolidation_summary ===
         "minimal_decay_consolidated" &&
         summary.lifecycle_consolidation_mode ===
@@ -1079,7 +1195,7 @@ export function buildThreadCompactionPromptSection(args: {
     isZh ? "线程压缩摘要：" : "Compacted thread summary:",
     isZh
       ? `${args.compactedThreadSummary.summary_text} 当前 retention mode = ${args.compactedThreadSummary.retention_mode}，retention reason = ${args.compactedThreadSummary.retention_reason}，section 顺序：${args.compactedThreadSummary.retention_section_order.join("、") || "无"}，保留字段：${args.compactedThreadSummary.retained_fields.join("、") || "无"}。把这段摘要当作线程历史压缩结果，而不是新的长期画像或外部知识。`
-      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; decision group = ${args.compactedThreadSummary.retention_decision_group}; survival rationale = ${args.compactedThreadSummary.survival_rationale}; lifecycle governance digest = ${args.compactedThreadSummary.lifecycle_governance_digest}; keep/drop governance = ${args.compactedThreadSummary.keep_drop_governance_summary}; lifecycle coordination = ${args.compactedThreadSummary.lifecycle_coordination_summary}; survival consistency = ${args.compactedThreadSummary.survival_consistency_mode}; lifecycle convergence = ${args.compactedThreadSummary.lifecycle_convergence_digest}; keep/drop convergence = ${args.compactedThreadSummary.keep_drop_convergence_summary}; lifecycle alignment = ${args.compactedThreadSummary.lifecycle_alignment_mode}; lifecycle unification = ${args.compactedThreadSummary.lifecycle_unification_digest}; keep/drop unification = ${args.compactedThreadSummary.keep_drop_unification_summary}; lifecycle unification mode = ${args.compactedThreadSummary.lifecycle_unification_mode}; lifecycle consolidation = ${args.compactedThreadSummary.lifecycle_consolidation_digest}; keep/drop consolidation = ${args.compactedThreadSummary.keep_drop_consolidation_summary}; lifecycle consolidation mode = ${args.compactedThreadSummary.lifecycle_consolidation_mode}; lifecycle coordination digest = ${args.compactedThreadSummary.lifecycle_coordination_digest}; keep/drop consolidation coordination = ${args.compactedThreadSummary.keep_drop_consolidation_coordination_summary}; lifecycle coordination alignment = ${args.compactedThreadSummary.lifecycle_coordination_alignment_mode}; keep/drop runtime coordination = ${args.compactedThreadSummary.keep_drop_runtime_coordination_summary}; lifecycle coordination reuse mode = ${args.compactedThreadSummary.lifecycle_coordination_reuse_mode}; lifecycle governance plane digest = ${args.compactedThreadSummary.lifecycle_governance_plane_digest}; keep/drop governance plane = ${args.compactedThreadSummary.keep_drop_governance_plane_summary}; lifecycle governance plane alignment = ${args.compactedThreadSummary.lifecycle_governance_plane_alignment_mode}; lifecycle governance plane reuse = ${args.compactedThreadSummary.lifecycle_governance_plane_reuse_mode}; section order: ${args.compactedThreadSummary.retention_section_order.join(", ") || "none"}; retention layers: ${args.compactedThreadSummary.retention_layers.join(", ") || "none"}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
+      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; decision group = ${args.compactedThreadSummary.retention_decision_group}; survival rationale = ${args.compactedThreadSummary.survival_rationale}; lifecycle governance digest = ${args.compactedThreadSummary.lifecycle_governance_digest}; keep/drop governance = ${args.compactedThreadSummary.keep_drop_governance_summary}; lifecycle coordination = ${args.compactedThreadSummary.lifecycle_coordination_summary}; survival consistency = ${args.compactedThreadSummary.survival_consistency_mode}; lifecycle convergence = ${args.compactedThreadSummary.lifecycle_convergence_digest}; keep/drop convergence = ${args.compactedThreadSummary.keep_drop_convergence_summary}; lifecycle alignment = ${args.compactedThreadSummary.lifecycle_alignment_mode}; lifecycle unification = ${args.compactedThreadSummary.lifecycle_unification_digest}; keep/drop unification = ${args.compactedThreadSummary.keep_drop_unification_summary}; lifecycle unification mode = ${args.compactedThreadSummary.lifecycle_unification_mode}; lifecycle consolidation = ${args.compactedThreadSummary.lifecycle_consolidation_digest}; keep/drop consolidation = ${args.compactedThreadSummary.keep_drop_consolidation_summary}; lifecycle consolidation mode = ${args.compactedThreadSummary.lifecycle_consolidation_mode}; lifecycle coordination digest = ${args.compactedThreadSummary.lifecycle_coordination_digest}; keep/drop consolidation coordination = ${args.compactedThreadSummary.keep_drop_consolidation_coordination_summary}; lifecycle coordination alignment = ${args.compactedThreadSummary.lifecycle_coordination_alignment_mode}; keep/drop runtime coordination = ${args.compactedThreadSummary.keep_drop_runtime_coordination_summary}; lifecycle coordination reuse mode = ${args.compactedThreadSummary.lifecycle_coordination_reuse_mode}; lifecycle governance plane digest = ${args.compactedThreadSummary.lifecycle_governance_plane_digest}; keep/drop governance plane = ${args.compactedThreadSummary.keep_drop_governance_plane_summary}; lifecycle governance plane alignment = ${args.compactedThreadSummary.lifecycle_governance_plane_alignment_mode}; lifecycle governance plane reuse = ${args.compactedThreadSummary.lifecycle_governance_plane_reuse_mode}; lifecycle governance fabric digest = ${args.compactedThreadSummary.lifecycle_governance_fabric_digest}; keep/drop governance fabric = ${args.compactedThreadSummary.keep_drop_governance_fabric_summary}; lifecycle governance fabric alignment = ${args.compactedThreadSummary.lifecycle_governance_fabric_alignment_mode}; lifecycle governance fabric reuse = ${args.compactedThreadSummary.lifecycle_governance_fabric_reuse_mode}; section order: ${args.compactedThreadSummary.retention_section_order.join(", ") || "none"}; retention layers: ${args.compactedThreadSummary.retention_layers.join(", ") || "none"}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
   ].join("\n");
 }
 
@@ -1150,6 +1266,15 @@ export function buildThreadCompactionSummary(args: {
               .lifecycle_governance_plane_alignment_mode,
           lifecycle_governance_plane_reuse_mode:
             args.compactedThreadSummary.lifecycle_governance_plane_reuse_mode,
+          lifecycle_governance_fabric_digest:
+            args.compactedThreadSummary.lifecycle_governance_fabric_digest,
+          keep_drop_governance_fabric_summary:
+            args.compactedThreadSummary.keep_drop_governance_fabric_summary,
+          lifecycle_governance_fabric_alignment_mode:
+            args.compactedThreadSummary
+              .lifecycle_governance_fabric_alignment_mode,
+          lifecycle_governance_fabric_reuse_mode:
+            args.compactedThreadSummary.lifecycle_governance_fabric_reuse_mode,
           retention_budget: args.compactedThreadSummary.retention_budget,
           retention_layers: args.compactedThreadSummary.retention_layers,
           retention_layer_budget:
