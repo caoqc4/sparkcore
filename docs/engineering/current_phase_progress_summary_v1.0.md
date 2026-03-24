@@ -288,21 +288,24 @@
       为准
     - 当前 `p17_gate_snapshot`：
       - `readiness_judgment = close_ready`
-      - `progress_range = 50% - 55%`
+      - `progress_range = 60% - 65%`
       - `close_note_recommended = true`
       - `blocking_items = []`
       - `positive_contracts = 1 / 1`
       - `metadata_consistency = 1 / 1`
+      - `drift_guards = 2 / 2`
       - `packet_consumption = 2 / 2`
-      - `overall = 4 / 4`
+      - `overall = 6 / 6`
     - 当前 gate 已锁住：
       - role core memory close-note handoff packet v1
       - role core memory close-note handoff metadata consistency v1
       - role core memory close-note handoff prompt surface v1
       - role core memory close-note handoff runtime consumption v1
+      - role core memory close-note handoff null guard v1
+      - role core memory close-note handoff prompt drift guard v1
       - close-note readiness summary to packet alignment v1
       - namespace / retention / knowledge / scenario section carry-through v1
-    - 当前整体约 `50% - 55%`
+    - 当前整体约 `60% - 65%`
 
 ---
 

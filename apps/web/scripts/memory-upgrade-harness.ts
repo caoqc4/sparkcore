@@ -1338,14 +1338,14 @@ function main() {
   });
   const p17CloseNoteReadinessSnapshot = {
     readinessJudgment: "close_ready",
-    progressRange: "40% - 45%",
+    progressRange: "60% - 65%",
     closeCandidate: true,
     closeNoteRecommended: true,
     blockingItems: [] as string[],
     nonBlockingItems: [
-      "runtime_close_note_packet_consumption",
-      "packet_prompt_surface_alignment",
-      "close_note_acceptance_structuring"
+      "close_note_acceptance_structuring",
+      "close_note_gate_snapshot_consumption",
+      "close_readiness_handoff_alignment"
     ] as const,
     tailCandidateItems: [
       "packet_output_symmetry_cleanup",
@@ -1845,6 +1845,40 @@ function main() {
       updated_at: "2026-03-23T00:00:00.000Z"
     },
     p17CloseNoteHandoffPacket
+  );
+  const systemPromptWithoutCloseNote = buildAgentSystemPrompt(
+    roleCorePacketForHarness,
+    "Keep answers grounded.",
+    "Help me finish onboarding.",
+    [
+      promptRecalledProfile,
+      {
+        ...promptRecalledProfile,
+        content: "The user prefers a little more directness when discussing schedules."
+      },
+      promptRecalledEpisode,
+      promptRecalledTimeline,
+      recalledRelationship
+    ],
+    runtimeKnowledge,
+    compactedThreadSummary,
+    activeMemoryNamespace,
+    "en",
+    undefined,
+    "",
+    {
+      thread_id: "thread-1",
+      agent_id: "agent-1",
+      state_version: 2,
+      lifecycle_status: "active",
+      focus_mode: plannedThreadState.focus_mode,
+      current_language_hint: "en",
+      recent_turn_window_size: 6,
+      continuity_status: "warm",
+      last_user_message_id: "msg-1",
+      last_assistant_message_id: "msg-2",
+      updated_at: "2026-03-23T00:00:00.000Z"
+    }
   );
   expect(
     systemPrompt.includes("focus_mode = Finish the onboarding checklist this week."),
@@ -5297,11 +5331,34 @@ function main() {
     role_core_memory_close_note_handoff_runtime_consumption_v1_ok:
       p17CloseNoteHandoffPacketChecks.role_core_memory_close_note_handoff_runtime_consumption_v1_ok
   });
+  const p17DriftGuardChecks = {
+    role_core_memory_close_note_handoff_null_guard_v1_ok:
+      buildRoleCoreMemoryCloseNoteHandoffPacket({
+        roleCorePacket: {
+          ...roleCorePacketForHarness,
+          packet_version: "v1",
+          memory_handoff: null
+        },
+        ...p17CloseNoteReadinessSnapshot
+      }) === null,
+    role_core_memory_close_note_handoff_prompt_drift_guard_v1_ok:
+      !systemPromptWithoutCloseNote.includes("Role core close-note handoff") &&
+      !systemPromptWithoutCloseNote.includes(
+        p17CloseNoteHandoffPacket?.readiness_judgment ?? ""
+      ) &&
+      systemPrompt.includes("Role core close-note handoff") &&
+      systemPrompt.includes(p17CloseNoteHandoffPacket?.progress_range ?? "")
+  } as const;
+  const p17DriftGuards = summarizeGate(p17DriftGuardChecks);
   const p17RegressionGate = {
     positive_contracts: p17PositiveContracts,
     metadata_consistency: p17MetadataConsistency,
     packet_consumption: p17PacketConsumption,
-    ...summarizeGate(p17CloseNoteHandoffPacketChecks)
+    drift_guards: p17DriftGuards,
+    ...summarizeGate({
+      ...p17CloseNoteHandoffPacketChecks,
+      ...p17DriftGuardChecks
+    })
   } as const;
   const p17GateSnapshot = {
     gate_id: "p17_regression_gate_v1",
@@ -5330,6 +5387,11 @@ function main() {
       checks_passed: p17PacketConsumption.checks_passed,
       checks_total: p17PacketConsumption.checks_total,
       all_green: p17PacketConsumption.all_green
+    },
+    drift_guards: {
+      checks_passed: p17DriftGuards.checks_passed,
+      checks_total: p17DriftGuards.checks_total,
+      all_green: p17DriftGuards.all_green
     },
     overall: {
       checks_passed: p17RegressionGate.checks_passed,

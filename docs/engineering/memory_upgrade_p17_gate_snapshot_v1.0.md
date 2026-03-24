@@ -33,15 +33,16 @@
 当前 `p17_gate_snapshot` 的结果为：
 
 - `readiness_judgment = close_ready`
-- `progress_range = 50% - 55%`
+- `progress_range = 60% - 65%`
 - `close_note_recommended = true`
 - `blocking_items = []`
-- `non_blocking_items = runtime_close_note_packet_consumption / packet_prompt_surface_alignment / close_note_acceptance_structuring`
+- `non_blocking_items = close_note_acceptance_structuring / close_note_gate_snapshot_consumption / close_readiness_handoff_alignment`
 - `tail_candidate_items = packet_output_symmetry_cleanup / non_blocking_packet_negative_coverage / close_note_tail_cleanup_alignment`
 - `positive_contracts = 1 / 1`
 - `metadata_consistency = 1 / 1`
+- `drift_guards = 2 / 2`
 - `packet_consumption = 2 / 2`
-- `overall = 4 / 4`
+- `overall = 6 / 6`
 - `failed_checks = []`
 - `all_green = true`
 - `close_candidate = true`
@@ -86,15 +87,27 @@
 
 ### 3.4 当前还没开始锁的面
 
+当前已经进一步锁住：
+
+- `role_core_memory_close_note_handoff_null_guard_v1_ok`
+- `role_core_memory_close_note_handoff_prompt_drift_guard_v1_ok`
+
+这意味着当前 gate 已经开始显式压住两类反漂移事实：
+
+- 当上游 `role_core_packet.memory_handoff = null` 时，不会误产出伪 close-note handoff packet
+- 当 runtime prompt 未接入 close-note handoff packet 时，不会误暴露 close-note handoff section
+
+### 3.5 当前还没开始锁的面
+
 当前这份 gate 还没有正式锁住：
 
-- close-note handoff packet 的 metadata consistency
-- close-note handoff packet 的 runtime prompt / diagnostics consumption
-- close-note packet 的 drift guard / negative coverage
+- close-note acceptance gap 的结构化消费
+- close-readiness handoff 与 close-note packet 的显式衔接
+- 更细颗粒度的 packet negative coverage / output symmetry
 
 因此它当前更像是：
 
-**`P17` gate 已经从零推进到“close-note handoff packet contract + metadata consistency + packet consumption 已成立，并开始进入 runtime main-path consumption”，并且开始把 `P16` 的 close-note 判断输入从文档自述推进成独立 packet；它是 `P17` 的正式起点，但还远不是收官级 gate。**
+**`P17` gate 已经从零推进到“close-note handoff packet contract + metadata consistency + packet consumption + drift guard 已成立”，并且开始把 `P16` 的 close-note 判断输入从文档自述推进成独立 packet；它已是更像正式 acceptance gate 的第二版，但还不是收官级 gate。**
 
 ---
 
@@ -102,7 +115,7 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P17-5` 已经从“待开始”推进到“第一版 close-note packet gate 已建立，并开始出现 metadata consistency + packet consumption + runtime main-path consumption”，当前价值主要在于继续把 close-note handoff packet 推到 acceptance layering / drift guard，而不是立刻进入 close-readiness 判断。**
+**`P17-5` 已经从“待开始”推进到“close-note packet gate 已建立并出现 metadata consistency + packet consumption + drift guards”，当前价值主要在于继续把 close-note handoff packet 推到 acceptance gap structuring / close-readiness handoff，而不是立刻进入 close-readiness 判断。**
 
 当前已经成立的是：
 
@@ -112,6 +125,7 @@
 - close-note packet 当前也已开始拥有一版标准 prompt surface builder
 - close-note packet 当前也已进入 assistant metadata / runtime debug metadata 的可消费 surface
 - close-note packet 当前也已由 runtime main path 主动构建并传递
+- close-note packet 当前也已显式具备 null guard 与 prompt drift guard
 - close-note packet 当前已开始显式暴露：
   - `readiness_judgment`
   - `progress_range`
@@ -135,7 +149,7 @@
 
 当前更合理的下一步是：
 
-- **继续完成 `P17` 的 acceptance layering / drift guard，而不是立刻写 `P17 close-readiness`**
+- **继续把 `P17` 从 drift guard 推进到 acceptance gap structuring / close-readiness handoff，而不是立刻写 `P17 close-readiness`**
 
 ---
 
@@ -143,4 +157,4 @@
 
 一句话结论：
 
-**`P17` 当前已经拥有一版全绿、并以 close-note handoff packet 为中心且带 metadata consistency / packet consumption / runtime main-path consumption 的第一版 gate；它已经不再只是文档判断，而是开始形成可复用 packet contract。**
+**`P17` 当前已经拥有一版全绿、并以 close-note handoff packet 为中心且带 metadata consistency / packet consumption / drift guards 的第二版 gate；它已经不再只是文档判断，而是开始形成可复用且可防漂移的 packet contract。**

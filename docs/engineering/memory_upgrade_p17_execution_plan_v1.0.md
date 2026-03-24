@@ -145,15 +145,15 @@ P17 首批必须让阶段 gate 跟着 close-note packet 主线生长，而不是
   - scenario close-note handoff packet 第一刀已成立
 - `P17-5`
   - 已开始
-  - 第一版 gate 已推进到 `positive_contracts + metadata_consistency + packet_consumption`，并已出现 runtime main-path close-note packet consumption
+  - gate 已推进到 `positive_contracts + metadata_consistency + packet_consumption + drift_guards`，并已出现 runtime main-path close-note packet consumption
 
 整体 `P17` 当前大约：
 
-- **`50% - 55%`**
+- **`60% - 65%`**
 
 当前更推荐的下一步：
 
-- **继续把 `P17` 从 runtime main-path close-note packet consumption，推进到更明确的 acceptance layering / drift guard**
+- **继续把 `P17` 从 drift guards，推进到更明确的 acceptance gap structuring / close-readiness handoff**
 
 ---
 
