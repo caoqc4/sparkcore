@@ -2410,6 +2410,107 @@ function main() {
     close_candidate: p7RegressionGateFailedChecks.length === 0
   } as const;
 
+  const p8RegressionGateChecks = {
+    namespace_governance_convergence_v3_ok:
+      projectBoundary.governance_convergence_digest_id ===
+        "project_coordination_governance_convergence" &&
+      projectBoundary.governance_convergence_summary ===
+        "project_coordination_alignment" &&
+      projectBoundary.retrieval_write_digest_alignment ===
+        "project_parallel_balanced_aligned" &&
+      getAssistantMemoryNamespaceGovernanceConvergenceDigestId(
+        assistantMetadata
+      ) === projectBoundary.governance_convergence_digest_id &&
+      getAssistantMemoryNamespaceGovernanceConvergenceSummary(
+        assistantMetadata
+      ) === projectBoundary.governance_convergence_summary &&
+      getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
+        assistantMetadata
+      ) === projectBoundary.retrieval_write_digest_alignment &&
+      runtimeDebugMetadata.memory_namespace?.governance_convergence_digest_id ===
+        projectBoundary.governance_convergence_digest_id &&
+      runtimeDebugMetadata.memory_namespace?.governance_convergence_summary ===
+        projectBoundary.governance_convergence_summary &&
+      runtimeDebugMetadata.memory_namespace?.retrieval_write_digest_alignment ===
+        projectBoundary.retrieval_write_digest_alignment,
+    retention_lifecycle_convergence_v6_ok:
+      compactedThreadSummary?.lifecycle_convergence_digest ===
+        "anchor_preservation_convergence" &&
+      compactedThreadSummary?.keep_drop_convergence_summary ===
+        "anchor_keep_alignment" &&
+      compactedThreadSummary?.lifecycle_alignment_mode ===
+        "anchor_governance_aligned" &&
+      getAssistantThreadLifecycleConvergenceDigest(assistantMetadata) ===
+        compactedThreadSummary?.lifecycle_convergence_digest &&
+      getAssistantThreadKeepDropConvergenceSummary(assistantMetadata) ===
+        compactedThreadSummary?.keep_drop_convergence_summary &&
+      getAssistantThreadLifecycleAlignmentMode(assistantMetadata) ===
+        compactedThreadSummary?.lifecycle_alignment_mode &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_convergence_digest ===
+        compactedThreadSummary?.lifecycle_convergence_digest &&
+      runtimeDebugMetadata.thread_compaction?.keep_drop_convergence_summary ===
+        compactedThreadSummary?.keep_drop_convergence_summary &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_alignment_mode ===
+        compactedThreadSummary?.lifecycle_alignment_mode,
+    knowledge_governance_convergence_v6_ok:
+      knowledgeSummary.governance_convergence_digest ===
+        "authoritative_governance_convergence" &&
+      knowledgeSummary.source_budget_alignment_summary ===
+        "authoritative_budget_source_aligned" &&
+      knowledgeSummary.governance_alignment_mode ===
+        "authoritative_convergence_aligned" &&
+      getAssistantKnowledgeGovernanceConvergenceDigest(assistantMetadata) ===
+        knowledgeSummary.governance_convergence_digest &&
+      getAssistantKnowledgeSourceBudgetAlignmentSummary(assistantMetadata) ===
+        knowledgeSummary.source_budget_alignment_summary &&
+      getAssistantKnowledgeGovernanceAlignmentMode(assistantMetadata) ===
+        knowledgeSummary.governance_alignment_mode &&
+      runtimeDebugMetadata.knowledge.governance_convergence_digest ===
+        knowledgeSummary.governance_convergence_digest &&
+      runtimeDebugMetadata.knowledge.source_budget_alignment_summary ===
+        knowledgeSummary.source_budget_alignment_summary &&
+      runtimeDebugMetadata.knowledge.governance_alignment_mode ===
+        knowledgeSummary.governance_alignment_mode,
+    scenario_governance_convergence_v6_ok:
+      scenarioMemoryPack.governance_convergence_digest_id ===
+        "project_delivery_governance_convergence" &&
+      scenarioMemoryPack.strategy_convergence_summary ===
+        "project_delivery_strategy_alignment" &&
+      scenarioMemoryPack.orchestration_alignment_mode ===
+        "execution_convergence_aligned" &&
+      getAssistantMemoryScenarioPackGovernanceConvergenceDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_convergence_digest_id &&
+      getAssistantMemoryScenarioPackStrategyConvergenceSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_convergence_summary &&
+      getAssistantMemoryScenarioPackOrchestrationAlignmentMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_alignment_mode &&
+      runtimeDebugPack?.governance_convergence_digest_id ===
+        scenarioMemoryPack.governance_convergence_digest_id &&
+      runtimeDebugPack?.strategy_convergence_summary ===
+        scenarioMemoryPack.strategy_convergence_summary &&
+      runtimeDebugPack?.orchestration_alignment_mode ===
+        scenarioMemoryPack.orchestration_alignment_mode &&
+      systemPrompt.includes(
+        "Current governance convergence = project_delivery_governance_convergence; strategy convergence = project_delivery_strategy_alignment; alignment mode = execution_convergence_aligned."
+      )
+  } as const;
+  const p8RegressionGateFailedChecks = Object.entries(
+    p8RegressionGateChecks
+  ).flatMap(([check, passed]) => (passed ? [] : [check]));
+  const p8RegressionGate = {
+    ...p8RegressionGateChecks,
+    checks_passed:
+      Object.keys(p8RegressionGateChecks).length -
+      p8RegressionGateFailedChecks.length,
+    checks_total: Object.keys(p8RegressionGateChecks).length,
+    failed_checks: p8RegressionGateFailedChecks,
+    all_green: p8RegressionGateFailedChecks.length === 0,
+    close_candidate: p8RegressionGateFailedChecks.length === 0
+  } as const;
+
   console.log(
     JSON.stringify(
       {
@@ -2875,6 +2976,7 @@ function main() {
         p5_regression_gate: p5RegressionGate,
         p6_regression_gate: p6RegressionGate,
         p7_regression_gate: p7RegressionGate,
+        p8_regression_gate: p8RegressionGate,
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
             "When episode memory is present"

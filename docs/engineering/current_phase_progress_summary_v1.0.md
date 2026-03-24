@@ -1342,15 +1342,15 @@
 - `P8-4`
   - 前中段
 - `P8-5`
-  - 待开始
+  - 第一版已成立
 
 整体 `P8` 当前大约：
 
-- **`60% - 70%`**
+- **`65% - 75%`**
 
 当前更推荐的下一步：
 
-- **开始 `P8-5 Regression / acceptance expansion` 的第一刀**
+- **先做一次 `P8` 小复盘**
 - 当前 knowledge 最小 convergence 已经进入：
   - `governance_convergence_digest`
   - `source_budget_alignment_summary`
