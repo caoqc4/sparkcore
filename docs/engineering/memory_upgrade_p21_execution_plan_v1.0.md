@@ -134,7 +134,8 @@
   - 已开始
   - namespace close-note archive contract 第一刀已成立
 - `P21-2`
-  - 待开始
+  - 已开始
+  - retention close-note archive contract 第一刀已成立
 - `P21-3`
   - 待开始
 - `P21-4`
@@ -149,11 +150,11 @@
 
 整体 `P21` 当前大约：
 
-- **`10% - 15%`**
+- **`20% - 25%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P21-2 Retention close-note archive contract v1`，而不是先写 `P21 close-readiness`**
+- **继续做 `P21-3 Knowledge close-note archive contract v1`，而不是先写 `P21 close-readiness`**
 
 ---
 

@@ -6215,19 +6215,48 @@ function main() {
         p21CloseNoteArchive?.namespace.archive_summary ?? ""
       ) &&
       systemPrompt.includes("Role core close-note archive") &&
-      systemPrompt.includes(p21CloseNoteArchive?.headline ?? "")
+      systemPrompt.includes(p21CloseNoteArchive?.headline ?? ""),
+    retention_close_note_archive_contract_v1_ok:
+      p21CloseNoteArchive?.retention.phase_snapshot_id ===
+        p20CloseNoteRecord?.retention.phase_snapshot_id &&
+      p21CloseNoteArchive?.retention.decision_group ===
+        p20CloseNoteRecord?.retention.decision_group &&
+      p21CloseNoteArchive?.retention.archive_summary.includes(
+        p20CloseNoteRecord?.retention.retained_fields.join(", ") ?? ""
+      ),
+    retention_close_note_archive_metadata_consistency_v1_ok:
+      assistantCloseNoteArchive?.retention.archive_summary ===
+        p21CloseNoteArchive?.retention.archive_summary &&
+      assistantDiagnosticCloseNoteArchive?.retention.decision_group ===
+        p21CloseNoteArchive?.retention.decision_group &&
+      runtimeDebugCloseNoteArchive?.retention.phase_snapshot_summary ===
+        p21CloseNoteArchive?.retention.phase_snapshot_summary,
+    retention_close_note_archive_prompt_surface_v1_ok:
+      p21CloseNoteArchivePrompt.includes(
+        p21CloseNoteArchive?.retention.archive_summary ?? ""
+      ) &&
+      systemPrompt.includes(
+        p21CloseNoteArchive?.retention.archive_summary ?? ""
+      ) &&
+      p21CloseNoteArchivePrompt.includes("Retention archive section")
   } as const;
   const p21PositiveContracts = summarizeGate({
     namespace_close_note_archive_contract_v1_ok:
-      p21CloseNoteArchiveChecks.namespace_close_note_archive_contract_v1_ok
+      p21CloseNoteArchiveChecks.namespace_close_note_archive_contract_v1_ok,
+    retention_close_note_archive_contract_v1_ok:
+      p21CloseNoteArchiveChecks.retention_close_note_archive_contract_v1_ok
   });
   const p21MetadataConsistency = summarizeGate({
     namespace_close_note_archive_metadata_consistency_v1_ok:
-      p21CloseNoteArchiveChecks.namespace_close_note_archive_metadata_consistency_v1_ok
+      p21CloseNoteArchiveChecks.namespace_close_note_archive_metadata_consistency_v1_ok,
+    retention_close_note_archive_metadata_consistency_v1_ok:
+      p21CloseNoteArchiveChecks.retention_close_note_archive_metadata_consistency_v1_ok
   });
   const p21PromptSurface = summarizeGate({
     namespace_close_note_archive_prompt_surface_v1_ok:
-      p21CloseNoteArchiveChecks.namespace_close_note_archive_prompt_surface_v1_ok
+      p21CloseNoteArchiveChecks.namespace_close_note_archive_prompt_surface_v1_ok,
+    retention_close_note_archive_prompt_surface_v1_ok:
+      p21CloseNoteArchiveChecks.retention_close_note_archive_prompt_surface_v1_ok
   });
   const p21RegressionGate = {
     positive_contracts: p21PositiveContracts,
@@ -6239,8 +6268,8 @@ function main() {
     gate_id: "p21_regression_gate_v1",
     stage: "P21-5",
     focus: "close_note_archiveization",
-    archive_contract_readiness: "namespace_archive_started_not_close_ready",
-    progress_range: "10% - 15%",
+    archive_contract_readiness: "retention_archive_started_not_close_ready",
+    progress_range: "20% - 25%",
     close_note_recommended: p21CloseNoteArchive?.close_note_recommended ?? false,
     positive_contracts: {
       checks_passed: p21PositiveContracts.checks_passed,

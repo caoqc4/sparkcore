@@ -28,13 +28,13 @@
 
 当前 `p21_gate_snapshot` 的结果为：
 
-- `archive_contract_readiness = namespace_archive_started_not_close_ready`
-- `progress_range = 10% - 15%`
+- `archive_contract_readiness = retention_archive_started_not_close_ready`
+- `progress_range = 20% - 25%`
 - `close_note_recommended = true`
-- `positive_contracts = 1 / 1`
-- `metadata_consistency = 1 / 1`
-- `prompt_surface = 1 / 1`
-- `overall = 3 / 3`
+- `positive_contracts = 2 / 2`
+- `metadata_consistency = 2 / 2`
+- `prompt_surface = 2 / 2`
+- `overall = 6 / 6`
 - `failed_checks = []`
 - `all_green = true`
 - `close_candidate = true`
@@ -48,12 +48,14 @@
 当前已经锁住：
 
 - `namespace_close_note_archive_contract_v1_ok`
+- `retention_close_note_archive_contract_v1_ok`
 
 ### 3.2 Metadata Consistency
 
 当前已经进一步锁住：
 
 - `namespace_close_note_archive_metadata_consistency_v1_ok`
+- `retention_close_note_archive_metadata_consistency_v1_ok`
 
 这意味着 namespace close-note archive 当前不只存在于 harness 主路径，还已经开始跨以下输出面对齐：
 
@@ -66,6 +68,7 @@
 当前已经进一步锁住：
 
 - `namespace_close_note_archive_prompt_surface_v1_ok`
+- `retention_close_note_archive_prompt_surface_v1_ok`
 
 这意味着 namespace close-note archive 当前已经开始进入：
 
@@ -74,7 +77,7 @@
 
 因此它当前更像是：
 
-**`P21` gate 已经从零推进到“namespace close-note archive contract + metadata consistency + prompt surface 已成立”的第一版正式 gate；它已不再只是 `P20 record` 的旁路拼接，而开始形成独立 archive acceptance 面。**
+**`P21` gate 已经从零推进到“namespace / retention close-note archive contract + metadata consistency + prompt surface 已成立”的第一版正式 gate；它已不再只是 `P20 record` 的旁路拼接，而开始形成独立 archive acceptance 面。**
 
 ---
 
@@ -82,7 +85,7 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P21-5` 已经从“待开始”推进到“namespace close-note archive gate 已建立”，并且当前价值主要在于继续推进 retention / knowledge / scenario 三条 archive 主线，而不是回头继续补 namespace 单点。**
+**`P21-5` 已经从“待开始”推进到“namespace / retention close-note archive gate 已建立”，并且当前价值主要在于继续推进 knowledge / scenario 两条 archive 主线，而不是回头继续补 namespace / retention 单点。**
 
 ---
 
@@ -90,7 +93,7 @@
 
 当前更合理的下一步是：
 
-- **继续做 `P21-2 Retention close-note archive contract v1`，而不是先写 `P21 close-readiness`**
+- **继续做 `P21-3 Knowledge close-note archive contract v1`，而不是先写 `P21 close-readiness`**
 
 ---
 
@@ -98,4 +101,4 @@
 
 一句话结论：
 
-**`P21` 当前已经拥有一版全绿、并以 namespace close-note archive 为中心且带 positive contracts / metadata consistency / prompt surface 的正式 gate；它已经从 `P20 close-note record` 继续推进成更接近真实 archive 面的 contract。**
+**`P21` 当前已经拥有一版全绿、并以 namespace / retention close-note archive 为中心且带 positive contracts / metadata consistency / prompt surface 的正式 gate；它已经从 `P20 close-note record` 继续推进成更接近真实 archive 面的 contract。**
