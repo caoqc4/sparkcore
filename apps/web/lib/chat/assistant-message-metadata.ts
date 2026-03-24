@@ -107,6 +107,9 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   compacted_thread_lifecycle_convergence_digest?: string | null;
   compacted_thread_keep_drop_convergence_summary?: string | null;
   compacted_thread_lifecycle_alignment_mode?: string | null;
+  compacted_thread_lifecycle_unification_digest?: string | null;
+  compacted_thread_keep_drop_unification_summary?: string | null;
+  compacted_thread_lifecycle_unification_mode?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -223,6 +226,9 @@ export type BuildAssistantMessageMetadataInput = {
   compacted_thread_lifecycle_convergence_digest?: string | null;
   compacted_thread_keep_drop_convergence_summary?: string | null;
   compacted_thread_lifecycle_alignment_mode?: string | null;
+  compacted_thread_lifecycle_unification_digest?: string | null;
+  compacted_thread_keep_drop_unification_summary?: string | null;
+  compacted_thread_lifecycle_unification_mode?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -430,6 +436,12 @@ export function buildAssistantMetadataSummaryGroups(
             input.compacted_thread_keep_drop_convergence_summary ?? null,
           lifecycle_alignment_mode:
             input.compacted_thread_lifecycle_alignment_mode ?? null,
+          lifecycle_unification_digest:
+            input.compacted_thread_lifecycle_unification_digest ?? null,
+          keep_drop_unification_summary:
+            input.compacted_thread_keep_drop_unification_summary ?? null,
+          lifecycle_unification_mode:
+            input.compacted_thread_lifecycle_unification_mode ?? null,
           retained_fields:
             input.compacted_thread_retained_fields ?? []
         }
@@ -574,6 +586,12 @@ export function buildAssistantMetadataSummaryGroups(
         input.compacted_thread_keep_drop_convergence_summary,
       compacted_thread_lifecycle_alignment_mode:
         input.compacted_thread_lifecycle_alignment_mode,
+      compacted_thread_lifecycle_unification_digest:
+        input.compacted_thread_lifecycle_unification_digest,
+      compacted_thread_keep_drop_unification_summary:
+        input.compacted_thread_keep_drop_unification_summary,
+      compacted_thread_lifecycle_unification_mode:
+        input.compacted_thread_lifecycle_unification_mode,
       compacted_thread_retained_fields:
         input.compacted_thread_retained_fields,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,

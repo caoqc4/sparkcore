@@ -30,9 +30,12 @@ import {
   getAssistantKnowledgeScopeLayers,
   getAssistantThreadCrossLayerSurvivalMode,
   getAssistantThreadKeepDropConvergenceSummary,
+  getAssistantThreadKeepDropUnificationSummary,
   getAssistantThreadKeepDropGovernanceSummary,
   getAssistantThreadLifecycleAlignmentMode,
   getAssistantThreadLifecycleConvergenceDigest,
+  getAssistantThreadLifecycleUnificationDigest,
+  getAssistantThreadLifecycleUnificationMode,
   getAssistantThreadLifecycleCoordinationSummary,
   getAssistantThreadLifecycleGovernanceDigest,
   getAssistantThreadRetentionDecisionGroup,
@@ -1029,8 +1032,14 @@ function main() {
       compactedThreadSummary?.keep_drop_convergence_summary ===
         "anchor_keep_alignment" &&
       compactedThreadSummary?.lifecycle_alignment_mode ===
-        "anchor_governance_aligned",
-    "Expected focus-anchor compaction summary to expose lifecycle convergence facts in P8."
+        "anchor_governance_aligned" &&
+      compactedThreadSummary?.lifecycle_unification_digest ===
+        "anchor_preservation_unification" &&
+      compactedThreadSummary?.keep_drop_unification_summary ===
+        "anchor_keep_unified" &&
+      compactedThreadSummary?.lifecycle_unification_mode ===
+        "anchor_runtime_unified",
+    "Expected focus-anchor compaction summary to expose lifecycle convergence and unification facts in P8/P9."
   );
   const droppedCompactedThreadSummary = selectRetainedThreadCompactionSummary({
     compactedThreadSummary: buildCompactedThreadSummary({
@@ -2574,6 +2583,12 @@ function main() {
         runtimeDebugMetadata.thread_compaction?.keep_drop_convergence_summary &&
       getAssistantThreadLifecycleAlignmentMode(assistantMetadata) ===
         runtimeDebugMetadata.thread_compaction?.lifecycle_alignment_mode &&
+      getAssistantThreadLifecycleUnificationDigest(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.lifecycle_unification_digest &&
+      getAssistantThreadKeepDropUnificationSummary(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.keep_drop_unification_summary &&
+      getAssistantThreadLifecycleUnificationMode(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.lifecycle_unification_mode &&
       getAssistantMemoryScenarioPackGovernanceConvergenceDigestId(
         assistantMetadata
       ) === runtimeDebugPack?.governance_convergence_digest_id &&
@@ -2801,7 +2816,13 @@ function main() {
           keep_drop_convergence_summary:
             getAssistantThreadKeepDropConvergenceSummary(assistantMetadata),
           lifecycle_alignment_mode:
-            getAssistantThreadLifecycleAlignmentMode(assistantMetadata)
+            getAssistantThreadLifecycleAlignmentMode(assistantMetadata),
+          lifecycle_unification_digest:
+            getAssistantThreadLifecycleUnificationDigest(assistantMetadata),
+          keep_drop_unification_summary:
+            getAssistantThreadKeepDropUnificationSummary(assistantMetadata),
+          lifecycle_unification_mode:
+            getAssistantThreadLifecycleUnificationMode(assistantMetadata)
         },
         assistant_metadata_namespace: {
           primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata),
@@ -2898,6 +2919,15 @@ function main() {
             null,
           thread_lifecycle_alignment_mode:
             runtimeDebugMetadata.thread_compaction?.lifecycle_alignment_mode ??
+            null,
+          thread_lifecycle_unification_digest:
+            runtimeDebugMetadata.thread_compaction?.lifecycle_unification_digest ??
+            null,
+          thread_keep_drop_unification_summary:
+            runtimeDebugMetadata.thread_compaction?.keep_drop_unification_summary ??
+            null,
+          thread_lifecycle_unification_mode:
+            runtimeDebugMetadata.thread_compaction?.lifecycle_unification_mode ??
             null,
           namespace_primary_layer:
             runtimeDebugMetadata.memory_namespace?.primary_layer ?? null,

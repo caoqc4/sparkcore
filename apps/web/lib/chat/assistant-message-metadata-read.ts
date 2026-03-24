@@ -923,6 +923,57 @@ export function getAssistantThreadLifecycleAlignmentMode(
   );
 }
 
+export function getAssistantThreadLifecycleUnificationDigest(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_unification_digest"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_unification_digest"
+    )
+  );
+}
+
+export function getAssistantThreadKeepDropUnificationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "keep_drop_unification_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_keep_drop_unification_summary"
+    )
+  );
+}
+
+export function getAssistantThreadLifecycleUnificationMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_unification_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_unification_mode"
+    )
+  );
+}
+
 export function getAssistantKnowledgeGovernanceCoordinationSummary(
   metadata: Record<string, unknown> | null | undefined
 ) {

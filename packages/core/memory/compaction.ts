@@ -90,6 +90,27 @@ export type ThreadLifecycleAlignmentMode =
   | "minimal_governance_aligned"
   | "closed_governance_aligned";
 
+export type ThreadLifecycleUnificationDigestId =
+  | "anchor_preservation_unification"
+  | "continuity_bridge_unification"
+  | "window_replay_unification"
+  | "minimal_decay_unification"
+  | "closed_decay_unification";
+
+export type ThreadKeepDropUnificationSummary =
+  | "anchor_keep_unified"
+  | "bridge_keep_unified"
+  | "window_keep_unified"
+  | "minimal_decay_unified"
+  | "closed_drop_unified";
+
+export type ThreadLifecycleUnificationMode =
+  | "anchor_runtime_unified"
+  | "bridge_runtime_unified"
+  | "window_runtime_unified"
+  | "minimal_runtime_unified"
+  | "closed_runtime_unified";
+
 export type ThreadRetentionLayer = "anchor" | "context" | "window";
 
 export type ThreadRetentionLayerBudget = {
@@ -130,6 +151,9 @@ export type CompactedThreadSummary = {
   lifecycle_convergence_digest: ThreadLifecycleConvergenceDigestId;
   keep_drop_convergence_summary: ThreadKeepDropConvergenceSummary;
   lifecycle_alignment_mode: ThreadLifecycleAlignmentMode;
+  lifecycle_unification_digest: ThreadLifecycleUnificationDigestId;
+  keep_drop_unification_summary: ThreadKeepDropUnificationSummary;
+  lifecycle_unification_mode: ThreadLifecycleUnificationMode;
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;

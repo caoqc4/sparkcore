@@ -1369,7 +1369,7 @@
 - `P9-1`
   - 中段
 - `P9-2`
-  - 待开始
+  - 前中段
 - `P9-3`
   - 待开始
 - `P9-4`
@@ -1379,20 +1379,20 @@
 
 整体 `P9` 当前大约：
 
-- **`25% - 35%`**
+- **`35% - 45%`**
 
 当前更推荐的下一步：
 
-- **开始 `P9-2 Retention lifecycle unification v7` 的第一刀**
-- 当前 `P9-1` 已成立：
-  - `unified_governance_runtime_digest_id`
-  - `unified_governance_runtime_summary`
-  - `unified_runtime_alignment_mode`
-  - `unified_runtime_reuse_mode`
-- 这层 unified runtime contract 已开始进入：
-  - namespace prompt section
+- **继续补 `P9-2 Retention lifecycle unification v7` 的第二刀**
+- 当前 `P9-2` 已开始显式产出：
+  - `lifecycle_unification_digest`
+  - `keep_drop_unification_summary`
+  - `lifecycle_unification_mode`
+- 这层 unified lifecycle contract 已开始进入：
+  - thread compaction summary text
   - assistant metadata / reader
   - runtime debug metadata
+  - harness
   - write target / runtime preview
   - harness
 - 当前 recall route 与 write fallback 也已开始复用同一层 unified runtime contract
