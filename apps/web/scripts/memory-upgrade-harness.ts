@@ -5609,6 +5609,22 @@ function main() {
         p18CloseNoteArtifact?.acceptance_gap_buckets.blocking &&
       runtimeDebugCloseNoteArtifact?.next_expansion_focus.includes(
         "close_readiness_handoff_alignment"
+      ),
+    role_core_memory_close_note_artifact_gap_structuring_v1_ok:
+      (p18CloseNoteArtifact?.blocking_items.length ?? 0) ===
+        (p18CloseNoteArtifact?.acceptance_gap_buckets.blocking ?? -1) &&
+      (p18CloseNoteArtifact?.non_blocking_items.length ?? 0) ===
+        (p18CloseNoteArtifact?.acceptance_gap_buckets.non_blocking ?? -1) &&
+      (p18CloseNoteArtifact?.tail_candidate_items.length ?? 0) ===
+        (p18CloseNoteArtifact?.acceptance_gap_buckets.tail_candidate ?? -1) &&
+      p18CloseNoteArtifact?.next_expansion_focus.includes(
+        "close_note_acceptance_structuring"
+      ) &&
+      p18CloseNoteArtifact?.next_expansion_focus.includes(
+        "close_note_gate_snapshot_consumption"
+      ) &&
+      p18CloseNoteArtifact?.next_expansion_focus.includes(
+        "close_readiness_handoff_alignment"
       )
   } as const;
   const p18CloseReadinessConsumption = summarizeGate(
@@ -5647,7 +5663,7 @@ function main() {
       p18CloseNoteArtifact?.close_note_recommended === true
         ? "artifact_close_readiness_handoff_started"
         : "not_started",
-    progress_range: "55% - 60%",
+    progress_range: "65% - 70%",
     close_note_recommended:
       p18CloseNoteArtifact?.close_note_recommended ?? false,
     blocking_items: p18CloseNoteArtifact?.blocking_items ?? [],

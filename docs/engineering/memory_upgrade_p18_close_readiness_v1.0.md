@@ -76,7 +76,7 @@
     - `drift_guards`
   - `p18_gate_snapshot` 当前已形成轻量消费面：
     - `artifact_readiness = artifact_close_readiness_handoff_started`
-    - `progress_range = 55% - 60%`
+    - `progress_range = 65% - 70%`
     - `close_note_recommended = true`
     - `blocking_items = []`
     - `non_blocking_items` 已显式列出
@@ -86,9 +86,9 @@
     - `positive_contracts = 1 / 1`
     - `metadata_consistency = 1 / 1`
     - `artifact_consumption = 2 / 2`
-    - `close_readiness_consumption = 2 / 2`
+    - `close_readiness_consumption = 3 / 3`
     - `drift_guards = 2 / 2`
-    - `overall = 8 / 8`
+    - `overall = 9 / 9`
     - `failed_checks = []`
     - `all_green = true`
     - `close_candidate = true`
@@ -103,7 +103,7 @@
 
 如果给整体 `P18` 一个阶段进度，我会给：
 
-- **约 `70% - 75%`**
+- **约 `75% - 80%`**
 
 原因是：
 
@@ -136,8 +136,8 @@
 当前之所以还不建议直接判成 `close-ready`，原因是：
 
 - 当前 `close_readiness_consumption` 虽然已经建立，但还偏“第一版正式消费面”
-- `P18` 还缺一份把当前 gate 结果正式收成阶段判断的文档闭环
-- 剩余 acceptance gap 虽然都已是非阻塞项，但还没有完成正式分类与收束表达
+- 剩余 acceptance gap 虽然都已是非阻塞项，但还需要进一步压成更适合 `close note` 消费的结构化表达
+- `P18 close-readiness` 到后续 `close note` 的映射还没有被正式收束成最终结论
 
 所以当前更准确的状态是：
 
