@@ -14,6 +14,7 @@ import {
   type ActiveScenarioMemoryPack
 } from "@/lib/chat/memory-packs";
 import {
+  resolveKnowledgeGovernanceClass,
   resolveKnowledgeScopeLayer,
   type RuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
@@ -187,6 +188,13 @@ export function buildRuntimeAssistantMetadataInput(
     ),
     knowledge_scope_layers: Array.from(
       new Set(input.knowledge.snippets.map((item) => resolveKnowledgeScopeLayer(item)))
+    ),
+    knowledge_governance_classes: Array.from(
+      new Set(
+        input.knowledge.snippets.map((item) =>
+          resolveKnowledgeGovernanceClass(item)
+        )
+      )
     ),
     active_memory_namespace_id:
       input.namespace.active_namespace?.namespace_id ?? null,

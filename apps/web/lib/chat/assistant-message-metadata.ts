@@ -54,6 +54,7 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
   knowledge_scope_layers?: string[];
+  knowledge_governance_classes?: string[];
   active_memory_namespace_id?: string | null;
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
@@ -135,6 +136,7 @@ export type BuildAssistantMessageMetadataInput = {
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
   knowledge_scope_layers?: string[];
+  knowledge_governance_classes?: string[];
   active_memory_namespace_id?: string | null;
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
@@ -245,7 +247,8 @@ export function buildAssistantMetadataSummaryGroups(
       count: input.knowledge_count ?? 0,
       titles: input.knowledge_titles ?? [],
       source_kinds: input.knowledge_source_kinds ?? [],
-      scope_layers: input.knowledge_scope_layers ?? []
+      scope_layers: input.knowledge_scope_layers ?? [],
+      governance_classes: input.knowledge_governance_classes ?? []
     },
     memory_namespace: input.active_memory_namespace_id
       ? {
@@ -327,6 +330,7 @@ export function buildAssistantMetadataSummaryGroups(
       knowledge_titles: input.knowledge_titles,
       knowledge_source_kinds: input.knowledge_source_kinds,
       knowledge_scope_layers: input.knowledge_scope_layers,
+      knowledge_governance_classes: input.knowledge_governance_classes,
       active_memory_namespace_id: input.active_memory_namespace_id,
       active_memory_namespace_primary_layer:
         input.active_memory_namespace_primary_layer,

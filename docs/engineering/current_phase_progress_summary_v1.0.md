@@ -1128,7 +1128,7 @@
 - `P6-2`
   - 中段
 - `P6-3`
-  - 待开始
+  - 前中段
 - `P6-4`
   - 待开始
 - `P6-5`
@@ -1180,3 +1180,12 @@
 - keep/drop 主路径当前也已开始优先复用这层 lifecycle grouping：
   - `anchor_preserve`
   - `closed_decay_prune`
+- `P6-3` 当前也已开始有第一刀事实：
+  - `KnowledgeGovernanceClass`
+  - `governance_class`
+  - `governance_weight`
+- knowledge weighting 当前也已开始进入：
+  - knowledge prompt selection
+  - assistant metadata
+  - runtime debug metadata
+  - harness

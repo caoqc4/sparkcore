@@ -7,6 +7,11 @@ export type KnowledgeSourceKind =
 
 export type KnowledgeScopeLayer = "project" | "world" | "general";
 
+export type KnowledgeGovernanceClass =
+  | "authoritative"
+  | "contextual"
+  | "reference";
+
 export type KnowledgeResource = {
   resource_id: string;
   scope: MemoryScopeRef;

@@ -1205,6 +1205,12 @@ function main() {
     activePackId: scenarioMemoryPack.pack_id
   });
   expect(
+    projectKnowledgeWeight.governance_class === "authoritative" &&
+      worldKnowledgeWeight.governance_class === "contextual" &&
+      generalKnowledgeWeight.governance_class === "reference",
+    "Expected knowledge governance classes to map project_document/workspace_note/external_reference to authoritative/contextual/reference in P6."
+  );
+  expect(
     projectKnowledgeWeight.total_weight > worldKnowledgeWeight.total_weight &&
       worldKnowledgeWeight.total_weight > generalKnowledgeWeight.total_weight,
     "Expected knowledge route weighting to rank project > world > general under a project_ops context in P5."
@@ -1765,8 +1771,13 @@ function main() {
       scenarioMemoryPack.knowledge_budget_weight === 0.9 &&
       scenarioMemoryPack.route_influence_reason ===
         "project_namespace_bias" &&
+      projectKnowledgeWeight.governance_class === "authoritative" &&
+      worldKnowledgeWeight.governance_class === "contextual" &&
+      generalKnowledgeWeight.governance_class === "reference" &&
       projectKnowledgeWeight.total_weight > worldKnowledgeWeight.total_weight &&
       worldKnowledgeWeight.total_weight > generalKnowledgeWeight.total_weight &&
+      knowledgeSummary.governance_classes.join(",") ===
+        "authoritative,contextual,reference" &&
       systemPrompt.includes(
         "Current knowledge route weight = 1; knowledge budget weight = 0.9."
       ),
@@ -1933,7 +1944,10 @@ function main() {
         },
         assistant_metadata_knowledge: {
           count: getAssistantKnowledgeCount(assistantMetadata),
-          scope_layers: getAssistantKnowledgeScopeLayers(assistantMetadata)
+          scope_layers: getAssistantKnowledgeScopeLayers(assistantMetadata),
+          governance_classes:
+            (assistantMetadata?.knowledge as { governance_classes?: string[] } | undefined)
+              ?.governance_classes ?? []
         },
         filtered_knowledge_summary: knowledgeSummary,
         assistant_metadata_thread_compaction: {
@@ -1968,6 +1982,8 @@ function main() {
             runtimeDebugMetadata.memory.pack?.knowledge_route_weight ?? null,
           pack_knowledge_budget_weight:
             runtimeDebugMetadata.memory.pack?.knowledge_budget_weight ?? null,
+          knowledge_governance_classes:
+            runtimeDebugMetadata.knowledge.governance_classes ?? [],
           pack_strategy_bundle_id:
             runtimeDebugMetadata.memory.pack?.strategy_bundle_id ?? null,
           pack_strategy_assembly_order:

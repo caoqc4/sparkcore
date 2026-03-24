@@ -1,6 +1,7 @@
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type {
   ActiveMemoryNamespace,
+  KnowledgeGovernanceClass,
   KnowledgeSnapshot,
   KnowledgeScopeLayer,
   KnowledgeSourceKind,
@@ -17,9 +18,11 @@ export type RuntimeKnowledgeSnippet = {
 };
 
 export type KnowledgeRouteWeighting = {
+  governance_class: KnowledgeGovernanceClass;
   scope_weight: number;
   namespace_weight: number;
   pack_weight: number;
+  governance_weight: number;
   total_weight: number;
 };
 
@@ -35,6 +38,20 @@ export function resolveKnowledgeScopeLayer(
   }
 
   return "general";
+}
+
+export function resolveKnowledgeGovernanceClass(
+  snippet: RuntimeKnowledgeSnippet
+): KnowledgeGovernanceClass {
+  switch (snippet.source_kind) {
+    case "project_document":
+      return "authoritative";
+    case "workspace_note":
+      return "contextual";
+    case "external_reference":
+    default:
+      return "reference";
+  }
 }
 
 export function buildKnowledgeSnapshot(args: {
@@ -173,6 +190,7 @@ export function buildKnowledgeRouteWeighting(args: {
   activePackId?: ScenarioMemoryPackId | null;
 }): KnowledgeRouteWeighting {
   const layer = resolveKnowledgeScopeLayer(args.snippet);
+  const governanceClass = resolveKnowledgeGovernanceClass(args.snippet);
   const namespacePriority = getKnowledgeScopePriorityForNamespace({
     layer,
     namespace: args.activeNamespace
@@ -198,12 +216,20 @@ export function buildKnowledgeRouteWeighting(args: {
         : layer === "project"
           ? 12
           : 2;
+  const governanceWeight =
+    governanceClass === "authoritative"
+      ? 24
+      : governanceClass === "contextual"
+        ? 14
+        : 6;
 
   return {
+    governance_class: governanceClass,
     scope_weight: scopeWeight,
     namespace_weight: namespaceWeight,
     pack_weight: packWeight,
-    total_weight: scopeWeight + namespaceWeight + packWeight
+    governance_weight: governanceWeight,
+    total_weight: scopeWeight + namespaceWeight + packWeight + governanceWeight
   };
 }
 
@@ -309,6 +335,11 @@ export function buildKnowledgeSummary(args: {
     scope_layers: Array.from(
       new Set(applicableKnowledge.map((item) => resolveKnowledgeScopeLayer(item)))
     ),
+    governance_classes: Array.from(
+      new Set(
+        applicableKnowledge.map((item) => resolveKnowledgeGovernanceClass(item))
+      )
+    ),
     scope_counts: {
       project: applicableKnowledge.filter(
         (item) => resolveKnowledgeScopeLayer(item) === "project"
@@ -318,6 +349,17 @@ export function buildKnowledgeSummary(args: {
       ).length,
       general: applicableKnowledge.filter(
         (item) => resolveKnowledgeScopeLayer(item) === "general"
+      ).length
+    },
+    governance_counts: {
+      authoritative: applicableKnowledge.filter(
+        (item) => resolveKnowledgeGovernanceClass(item) === "authoritative"
+      ).length,
+      contextual: applicableKnowledge.filter(
+        (item) => resolveKnowledgeGovernanceClass(item) === "contextual"
+      ).length,
+      reference: applicableKnowledge.filter(
+        (item) => resolveKnowledgeGovernanceClass(item) === "reference"
       ).length
     }
   };
