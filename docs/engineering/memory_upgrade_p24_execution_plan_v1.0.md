@@ -8,7 +8,7 @@
 
 - 长期 persistence / storage 总纲
 - 完整 persistence executor 方案
-- `P24 close-readiness`
+- `P24 close note`
 
 它只回答一件事：
 
@@ -94,19 +94,23 @@
   - scenario close-note persistence manifest 第一刀已成立
 - `P24-5`
   - 已开始
-  - 第一版正式 gate 已建立
+  - 第二版正式 gate 已建立，并已开始显式服务 close-readiness consumption
 
 当前 gate 轻量快照请以
 [memory_upgrade_p24_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p24_gate_snapshot_v1.0.md)
 为准。
 
+当前正式 `close-readiness` 判断请以
+[memory_upgrade_p24_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p24_close_readiness_v1.0.md)
+为准。
+
 整体 `P24` 当前大约：
 
-- **`30% - 35%`**
+- **`70% - 75%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P24-5` 的 persistence manifest acceptance layering，而不是先写 `P24 close-readiness`**
+- **继续做 `P24` 的最后一轮收束，再决定是否进入 `P24 close note`**
 
 ---
 

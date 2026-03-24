@@ -2,11 +2,10 @@
 
 ## 1. 文档定位
 
-本文档用于在 `P24-5 Regression / acceptance close-note persistence manifestization` 建立第一刀之后，把当前 gate 的结构、覆盖面与当前状态收成一份轻量快照。
+本文档用于在 `P24-5 Regression / acceptance close-note persistence manifestization` 已推进到 `close-readiness consumption` 之后，把当前 gate 的结构、覆盖面与当前状态收成一份轻量快照。
 
 本文档不等于：
 
-- `P24 close-readiness`
 - `P24 close note`
 - 下一阶段执行文档
 
@@ -20,16 +19,21 @@
 
 当前 `p24_gate_snapshot` 的结果为：
 
-- `persistence_manifest_readiness = scenario_persistence_manifest_started_not_close_ready`
+- `persistence_manifest_readiness = persistence_manifest_close_readiness_consumption_started`
 - `progress_range = 30% - 35%`
 - `close_note_recommended = false`
 - `positive_contracts = 4 / 4`
 - `metadata_consistency = 4 / 4`
 - `prompt_surface = 4 / 4`
-- `overall = 12 / 12`
+- `close_readiness_consumption = 4 / 4`
+- `overall = 16 / 16`
 - `failed_checks = []`
 - `all_green = true`
 - `close_candidate = true`
+- `blocking_items = []`
+- `non_blocking_items = [persistence_manifest_regression_gate_layering, close_readiness_persistence_manifest_consumption, remaining_persistence_manifest_acceptance_gaps]`
+- `tail_candidate_items = [persistence_manifest_surface_symmetry_cleanup, non_blocking_persistence_manifest_negative_coverage, envelope_to_manifest_alignment_cleanup]`
+- `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
 
 ---
 
@@ -75,7 +79,23 @@
 
 因此它当前更像是：
 
-**`P24` gate 已经从零推进到“namespace / retention / knowledge / scenario close-note persistence manifest contract + metadata consistency + prompt surface 已成立”的第一版正式 gate；它已不再只是 `P23 persistence envelope` 的旁路拼接，而开始形成独立 persistence-manifest acceptance 面。**
+**`P24` gate 已经从零推进到“namespace / retention / knowledge / scenario close-note persistence manifest contract + metadata consistency + prompt surface + close-readiness consumption 已成立”的第二版正式 gate；它已不再只是 `P23 persistence envelope` 的旁路拼接，而开始形成独立 persistence-manifest acceptance 面。**
+
+### 3.4 Close-Readiness Consumption
+
+当前已锁：
+
+- `role_core_memory_close_note_persistence_manifest_close_readiness_prompt_v1_ok`
+- `role_core_memory_close_note_persistence_manifest_gap_bucket_consumption_v1_ok`
+- `role_core_memory_close_note_persistence_manifest_gap_structuring_v1_ok`
+- `role_core_memory_close_note_persistence_manifest_close_note_input_readiness_v1_ok`
+
+这意味着 `P24` 当前已经开始显式服务：
+
+- readiness / progress 判断
+- gap bucket 消费
+- next expansion focus 暴露
+- close-note 输入对齐
 
 ---
 
@@ -83,7 +103,7 @@
 
 我当前对这份 gate snapshot 的判断是：
 
-**`P24-5` 已经从“待开始”推进到“namespace / retention / knowledge / scenario close-note persistence manifest gate 已建立”，并且当前价值主要在于继续把 acceptance layering 也接进来，而不是回头继续补已成立的单点。**
+**`P24-5` 已经从“待开始”推进到“namespace / retention / knowledge / scenario close-note persistence manifest 第二版 gate 已建立，并已进入 close-readiness consumption”。**
 
 ---
 
@@ -91,10 +111,10 @@
 
 当前更合理的下一步是：
 
-- **继续做 `P24-5` 的 persistence manifest acceptance layering，而不是先写 `P24 close-readiness`**
+- **继续做 `P24` 的最后一轮收束，再决定是否进入 `P24 close note`**
 
 ---
 
 ## 6. 一句话结论
 
-**`P24` 当前已经拥有一版全绿、并以 namespace / retention / knowledge / scenario close-note persistence manifest 为中心且带 positive contracts / metadata consistency / prompt surface 的正式 gate；它已经从 `P23 close-note persistence envelope` 继续推进成更接近真实 persistence write contract 的前中段。**
+**`P24` 当前已经拥有一版全绿、并以 namespace / retention / knowledge / scenario close-note persistence manifest 为中心且带 positive contracts / metadata consistency / prompt surface / close-readiness consumption 的正式 gate；它已经进入 `close-readiness` 判断区间，但还不适合直接判定 `close-ready`。**
