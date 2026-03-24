@@ -151,7 +151,8 @@ P15 首批必须继续让阶段 gate 跟着主线生长，而不是等 phase-lev
   - 已开始
   - retention governance plane consumption unification 第一刀已成立
 - `P15-3`
-  - 待开始
+  - 已开始
+  - knowledge governance plane consumption unification 第一刀已成立
 - `P15-4`
   - 待开始
 - `P15-5`
@@ -160,7 +161,7 @@ P15 首批必须继续让阶段 gate 跟着主线生长，而不是等 phase-lev
 
 整体 `P15` 当前大约：
 
-- **`20% - 25%`**
+- **`30% - 35%`**
 
 当前更推荐的下一步：
 
@@ -190,6 +191,10 @@ P15 首批必须继续让阶段 gate 跟着主线生长，而不是等 phase-lev
   - [thread-compaction.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-compaction.ts) 已新增 `resolveThreadGovernanceFabricPlanePhaseSnapshot(...)`，把 retention governance fabric plane 收成更直接可消费的 phase snapshot surface
   - [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 已新增 `p15_retention_governance_plane_consumption.retention_governance_plane_consumption_unification_v1_ok`
   - 当前 `p15_regression_gate` 已从 `1 / 1` 推进到 `2 / 2`
+- `P15-3 Knowledge governance plane consumption unification` 的第一刀当前也已经成立：
+  - [memory-knowledge.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/memory-knowledge.ts) 已新增 `resolveKnowledgeGovernanceFabricPlanePhaseSnapshot(...)`，把 knowledge governance fabric plane 收成更直接可消费的 phase snapshot surface
+  - [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 已新增 `p15_knowledge_governance_plane_consumption.knowledge_governance_plane_consumption_unification_v1_ok`
+  - 当前 `p15_regression_gate` 已从 `2 / 2` 推进到 `3 / 3`
   - 当前基础验证已通过：
     - `pnpm --filter @sparkcore/web memory:upgrade:harness`
     - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`

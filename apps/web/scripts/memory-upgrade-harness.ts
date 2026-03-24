@@ -174,6 +174,7 @@ import {
   buildKnowledgeSnapshot,
   buildKnowledgeRouteWeighting,
   buildKnowledgeSummary,
+  resolveKnowledgeGovernanceFabricPlanePhaseSnapshot,
   filterKnowledgeByActiveNamespace,
   buildRuntimeKnowledgeSnippet,
   selectKnowledgeForPrompt
@@ -1085,6 +1086,17 @@ function main() {
     knowledge: runtimeKnowledge,
     activeNamespace: activeMemoryNamespace
   });
+  const knowledgeGovernanceFabricPlanePhaseSnapshot =
+    resolveKnowledgeGovernanceFabricPlanePhaseSnapshot({
+      governanceFabricPlaneDigest:
+        knowledgeSummary.governance_fabric_plane_digest,
+      sourceBudgetGovernanceFabricPlaneSummary:
+        knowledgeSummary.source_budget_governance_fabric_plane_summary,
+      governanceFabricPlaneMode: knowledgeSummary.governance_fabric_plane_mode,
+      governanceFabricPlaneReuseMode:
+        knowledgeSummary.governance_fabric_plane_reuse_mode,
+      applicableKnowledge
+    });
   const selectedKnowledgeForPrompt = selectKnowledgeForPrompt({
     knowledge: runtimeKnowledge,
     activeNamespace: activeMemoryNamespace,
@@ -4445,15 +4457,54 @@ function main() {
         "Keep/drop governance fabric plane: anchor_keep_governance_fabric_plane."
       )
   } as const;
+  const p15KnowledgeGovernancePlaneConsumptionChecks = {
+    knowledge_governance_plane_consumption_unification_v1_ok:
+      knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id ===
+        "authoritative_governance_fabric_plane_phase_snapshot" &&
+      knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary ===
+        "authoritative_budget_source_governance_fabric_plane_phase_snapshot" &&
+      knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode ===
+        "authoritative_runtime_governance_fabric_plane_reuse_phase_consumption" &&
+      knowledgeGovernanceFabricPlanePhaseSnapshot.governance_fabric_plane_digest ===
+        knowledgeSummary.governance_fabric_plane_digest &&
+      knowledgeGovernanceFabricPlanePhaseSnapshot
+        .source_budget_governance_fabric_plane_summary ===
+        knowledgeSummary.source_budget_governance_fabric_plane_summary &&
+      knowledgeGovernanceFabricPlanePhaseSnapshot.governance_fabric_plane_mode ===
+        knowledgeSummary.governance_fabric_plane_mode &&
+      knowledgeGovernanceFabricPlanePhaseSnapshot
+        .governance_fabric_plane_reuse_mode ===
+        knowledgeSummary.governance_fabric_plane_reuse_mode &&
+      knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_titles.join(
+        ","
+      ) === knowledgeSummary.titles.join(",") &&
+      knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_scope_layers.join(
+        ","
+      ) === knowledgeSummary.scope_layers.join(",") &&
+      runtimeDebugMetadata.knowledge.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_id ===
+        knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      runtimeDebugMetadata.knowledge.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_summary ===
+        knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary &&
+      runtimeDebugMetadata.knowledge.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_consumption_mode ===
+        knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode &&
+      systemPrompt.includes(
+        "Current governance fabric plane = authoritative_governance_fabric_plane; budget/source governance fabric plane = authoritative_budget_source_governance_fabric_plane; fabric plane mode = authoritative_runtime_governance_fabric_plane; fabric plane reuse = authoritative_runtime_governance_fabric_plane_reuse."
+      )
+  } as const;
   const p15PositiveContracts = summarizeGate(
     {
       ...p15NamespaceGovernancePlaneContractChecks,
-      ...p15RetentionGovernancePlaneConsumptionChecks
+      ...p15RetentionGovernancePlaneConsumptionChecks,
+      ...p15KnowledgeGovernancePlaneConsumptionChecks
     }
   );
   const p15RegressionGateChecks = {
     ...p15NamespaceGovernancePlaneContractChecks,
-    ...p15RetentionGovernancePlaneConsumptionChecks
+    ...p15RetentionGovernancePlaneConsumptionChecks,
+    ...p15KnowledgeGovernancePlaneConsumptionChecks
   } as const;
   const p15RegressionGateSummary = summarizeGate(p15RegressionGateChecks);
   const p15RegressionGate = {
@@ -5605,6 +5656,8 @@ function main() {
           p15NamespaceGovernancePlaneContractChecks,
         p15_retention_governance_plane_consumption:
           p15RetentionGovernancePlaneConsumptionChecks,
+        p15_knowledge_governance_plane_consumption:
+          p15KnowledgeGovernancePlaneConsumptionChecks,
         p15_regression_gate: p15RegressionGate,
         p15_gate_snapshot: p15GateSnapshot,
         p14_regression_gate: p14RegressionGate,
