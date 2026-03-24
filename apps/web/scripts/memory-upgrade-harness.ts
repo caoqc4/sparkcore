@@ -2495,7 +2495,40 @@ function main() {
         scenarioMemoryPack.orchestration_alignment_mode &&
       systemPrompt.includes(
         "Current governance convergence = project_delivery_governance_convergence; strategy convergence = project_delivery_strategy_alignment; alignment mode = execution_convergence_aligned."
-      )
+      ),
+    convergence_metadata_consistency_v6_ok:
+      getAssistantMemoryNamespaceGovernanceConvergenceDigestId(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace?.governance_convergence_digest_id &&
+      getAssistantMemoryNamespaceGovernanceConvergenceSummary(
+        assistantMetadata
+      ) === runtimeDebugMetadata.memory_namespace?.governance_convergence_summary &&
+      getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace?.retrieval_write_digest_alignment &&
+      getAssistantKnowledgeGovernanceConvergenceDigest(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.governance_convergence_digest &&
+      getAssistantKnowledgeSourceBudgetAlignmentSummary(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.source_budget_alignment_summary &&
+      getAssistantKnowledgeGovernanceAlignmentMode(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.governance_alignment_mode &&
+      getAssistantThreadLifecycleConvergenceDigest(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.lifecycle_convergence_digest &&
+      getAssistantThreadKeepDropConvergenceSummary(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.keep_drop_convergence_summary &&
+      getAssistantThreadLifecycleAlignmentMode(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.lifecycle_alignment_mode &&
+      getAssistantMemoryScenarioPackGovernanceConvergenceDigestId(
+        assistantMetadata
+      ) === runtimeDebugPack?.governance_convergence_digest_id &&
+      getAssistantMemoryScenarioPackStrategyConvergenceSummary(
+        assistantMetadata
+      ) === runtimeDebugPack?.strategy_convergence_summary &&
+      getAssistantMemoryScenarioPackOrchestrationAlignmentMode(
+        assistantMetadata
+      ) === runtimeDebugPack?.orchestration_alignment_mode
   } as const;
   const p8RegressionGateFailedChecks = Object.entries(
     p8RegressionGateChecks

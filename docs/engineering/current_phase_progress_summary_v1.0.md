@@ -1342,17 +1342,15 @@
 - `P8-4`
   - 前中段到中段之间
 - `P8-5`
-  - 第一版已成立
+  - 第一版已成立，并开始接近更像正式阶段 gate 的形态
 
 整体 `P8` 当前大约：
 
-- **`70% - 75%`**
+- **`75% - 80%`**
 
 当前更推荐的下一步：
 
-- **`P8 close-readiness` 前置评估已成立**
-- 当前更推荐的下一步：
-  - **继续补一层 `P8-5`**
+- **开始进入正式的 `P8 close-ready` 判断**
 - 当前 knowledge 最小 convergence 已经进入：
   - `governance_convergence_digest`
   - `source_budget_alignment_summary`
