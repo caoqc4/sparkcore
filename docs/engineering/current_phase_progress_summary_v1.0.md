@@ -1219,6 +1219,10 @@
 
 ## Memory Upgrade P7 Snapshot
 
+关联文档：
+
+- [memory_upgrade_p7_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p7_close_readiness_v1.0.md)
+
 当前 `P7` 的阶段判断：
 
 - `P7-1`
