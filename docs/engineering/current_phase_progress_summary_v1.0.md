@@ -1338,7 +1338,7 @@
 - `P8-2`
   - 前中段到中段之间
 - `P8-3`
-  - 已启动
+  - 前中段
 - `P8-4`
   - 待开始
 - `P8-5`
@@ -1346,15 +1346,16 @@
 
 整体 `P8` 当前大约：
 
-- **`40% - 50%`**
+- **`45% - 55%`**
 
 当前更推荐的下一步：
 
-- **继续补 `P8-3 Knowledge governance convergence v6`**
+- **先对 `P8-3 Knowledge governance convergence v6` 做一次小评估**
 - 当前 knowledge 最小 convergence 已开始进入：
   - `governance_convergence_digest`
   - `source_budget_alignment_summary`
   - `governance_alignment_mode`
+  - knowledge prompt selection 的 route/budget 复用
 - 这层输出已进入：
   - knowledge prompt section
   - assistant metadata / reader

@@ -33,6 +33,11 @@ export type KnowledgeRouteWeighting = {
   total_weight: number;
 };
 
+type KnowledgeGovernanceSelectionPolicy = {
+  prompt_limit: number;
+  route_alignment_bonus_by_class: Record<KnowledgeGovernanceClass, number>;
+};
+
 function resolveKnowledgeGovernanceCoordinationSummary(args: {
   knowledge: RuntimeKnowledgeSnippet[];
 }): KnowledgeGovernanceCoordinationSummary {
@@ -163,6 +168,56 @@ function resolveKnowledgeGovernanceAlignmentMode(args: {
     case "mixed_governance_coordination":
     default:
       return "mixed_convergence_aligned";
+  }
+}
+
+function resolveKnowledgeGovernanceSelectionPolicy(args: {
+  applicableKnowledge: RuntimeKnowledgeSnippet[];
+  activePackId?: ScenarioMemoryPackId | null;
+}): KnowledgeGovernanceSelectionPolicy {
+  const coordinationSummary = resolveKnowledgeGovernanceCoordinationSummary({
+    knowledge: args.applicableKnowledge
+  });
+  const baseLimit = args.activePackId === "project_ops" ? 3 : 2;
+
+  switch (coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return {
+        prompt_limit: baseLimit,
+        route_alignment_bonus_by_class: {
+          authoritative: 18,
+          contextual: 6,
+          reference: 0
+        }
+      };
+    case "contextual_balance_coordination":
+      return {
+        prompt_limit: baseLimit,
+        route_alignment_bonus_by_class: {
+          authoritative: 6,
+          contextual: 16,
+          reference: 2
+        }
+      };
+    case "reference_support_coordination":
+      return {
+        prompt_limit: Math.max(1, baseLimit - 1),
+        route_alignment_bonus_by_class: {
+          authoritative: 0,
+          contextual: 4,
+          reference: 14
+        }
+      };
+    case "mixed_governance_coordination":
+    default:
+      return {
+        prompt_limit: baseLimit,
+        route_alignment_bonus_by_class: {
+          authoritative: 10,
+          contextual: 8,
+          reference: 4
+        }
+      };
   }
 }
 
@@ -383,9 +438,11 @@ export function selectKnowledgeForPrompt(args: {
     knowledge: args.knowledge,
     namespace: args.activeNamespace
   });
-  const limit =
-    args.limit ??
-    (args.activePackId === "project_ops" ? 3 : 2);
+  const selectionPolicy = resolveKnowledgeGovernanceSelectionPolicy({
+    applicableKnowledge,
+    activePackId: args.activePackId
+  });
+  const limit = args.limit ?? selectionPolicy.prompt_limit;
 
   return [...applicableKnowledge]
     .sort((left, right) => {
@@ -399,9 +456,19 @@ export function selectKnowledgeForPrompt(args: {
         activeNamespace: args.activeNamespace,
         activePackId: args.activePackId
       });
+      const leftTotal =
+        leftWeighting.total_weight +
+        selectionPolicy.route_alignment_bonus_by_class[
+          leftWeighting.governance_class
+        ];
+      const rightTotal =
+        rightWeighting.total_weight +
+        selectionPolicy.route_alignment_bonus_by_class[
+          rightWeighting.governance_class
+        ];
 
-      if (leftWeighting.total_weight !== rightWeighting.total_weight) {
-        return rightWeighting.total_weight - leftWeighting.total_weight;
+      if (leftTotal !== rightTotal) {
+        return rightTotal - leftTotal;
       }
 
       return left.title.localeCompare(right.title);

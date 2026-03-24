@@ -934,6 +934,51 @@ function main() {
     },
     limit: 2
   });
+  const referenceOnlySelection = selectKnowledgeForPrompt({
+    knowledge: [
+      buildRuntimeKnowledgeSnippet(
+        buildKnowledgeSnapshot({
+          snapshotId: "knowledge-ref-1",
+          resourceId: "resource-ref-1",
+          scope: {
+            user_id: "user-1"
+          },
+          title: "General protocol note",
+          summary: "A general note for safe reference usage.",
+          sourceKind: "external_reference",
+          capturedAt: "2026-03-23T00:00:00.000Z"
+        })
+      ),
+      buildRuntimeKnowledgeSnippet(
+        buildKnowledgeSnapshot({
+          snapshotId: "knowledge-ref-2",
+          resourceId: "resource-ref-2",
+          scope: {
+            user_id: "user-1"
+          },
+          title: "General routing note",
+          summary: "A general note for routing fallback.",
+          sourceKind: "external_reference",
+          capturedAt: "2026-03-23T00:00:00.000Z"
+        })
+      ),
+      buildRuntimeKnowledgeSnippet(
+        buildKnowledgeSnapshot({
+          snapshotId: "knowledge-ref-3",
+          resourceId: "resource-ref-3",
+          scope: {
+            user_id: "user-1"
+          },
+          title: "General memory note",
+          summary: "A general note for memory handling.",
+          sourceKind: "external_reference",
+          capturedAt: "2026-03-23T00:00:00.000Z"
+        })
+      )
+    ],
+    activeNamespace: null,
+    activePackId: "companion"
+  });
   const compactedThreadSummary = buildCompactedThreadSummary({
     threadState: {
       thread_id: "thread-1",
@@ -1259,6 +1304,11 @@ function main() {
     worldPrimarySelection.map((item) => item.title).join(",") ===
       "Workspace operating norms,Onboarding checklist guide",
     "Expected knowledge prompt selection to prioritize world-scoped knowledge first when the active namespace primary layer is world in P3."
+  );
+  expect(
+    referenceOnlySelection.length === 1 &&
+      referenceOnlySelection[0]?.title === "General memory note",
+    "Expected reference-heavy knowledge convergence to tighten companion prompt budget to one item in P8."
   );
   const projectKnowledgeWeight = buildKnowledgeRouteWeighting({
     snippet: buildRuntimeKnowledgeSnippet(knowledgeSnapshot),
@@ -2087,6 +2137,7 @@ function main() {
         "authoritative_convergence_aligned" &&
       scenarioMemoryPack.governance_route_bias === "authoritative" &&
       scenarioMemoryPack.knowledge_budget_weight === 0.95 &&
+      selectedKnowledgeForPrompt.length === 3 &&
       getAssistantMemoryScenarioPackGovernanceRouteBias(
         assistantMetadata
       ) === scenarioMemoryPack.governance_route_bias &&
