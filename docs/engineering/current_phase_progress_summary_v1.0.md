@@ -158,6 +158,13 @@
   - 当前基础验证已通过：
     - `pnpm --filter @sparkcore/web memory:upgrade:harness`
     - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`
+- `P14 close-readiness` 当前已进入正式判断区间：
+  - 当前正式判断请以
+    [memory_upgrade_p14_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p14_close_readiness_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P14` 已进入 `close-readiness` 判断区间
+    - 但暂时还不建议直接写 `P14 close note`
 
 ---
 
