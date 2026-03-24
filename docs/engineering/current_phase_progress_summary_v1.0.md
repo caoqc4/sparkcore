@@ -338,16 +338,16 @@
       为准
     - 当前 `p18_gate_snapshot`：
       - `artifact_readiness = artifact_close_readiness_handoff_started`
-      - `progress_range = 65% - 70%`
+      - `progress_range = 80% - 85%`
       - `close_note_recommended = true`
       - `blocking_items = []`
       - `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
       - `positive_contracts = 1 / 1`
       - `metadata_consistency = 1 / 1`
-      - `close_readiness_consumption = 3 / 3`
+      - `close_readiness_consumption = 4 / 4`
       - `drift_guards = 2 / 2`
       - `artifact_consumption = 2 / 2`
-      - `overall = 9 / 9`
+      - `overall = 10 / 10`
     - 当前 gate 已锁住：
       - role core memory close-note artifact v1
       - role core memory close-note artifact metadata consistency v1
@@ -356,18 +356,26 @@
       - role core memory close-note artifact close-readiness prompt v1
       - role core memory close-note artifact gap bucket consumption v1
       - role core memory close-note artifact gap structuring v1
+      - role core memory close-note artifact close-note input readiness v1
       - role core memory close-note artifact null guard v1
       - role core memory close-note artifact prompt drift guard v1
-    - 当前整体约 `65% - 70%`
+    - 当前整体约 `80% - 85%`
 - `P18 close-readiness judgment` 当前已建立：
   - 当前阶段判断请以
     [memory_upgrade_p18_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p18_close_readiness_v1.0.md)
     为准
   - 当前结论是：
     - `P18` 已进入 `close-readiness` 判断区间
-    - 但暂时还不建议直接判成 `close-ready / 可收官`
-    - 当前整体更接近 `75% - 80%`
+    - 当前已达到 `close-ready / 可收官`
+    - 当前整体更接近 `80% - 85%`
     - 当前无明确新增阻塞项
+- `P18 close note` 当前已建立：
+  - 当前收官结论请以
+    [memory_upgrade_p18_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p18_close_note_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P18` 已达到 `close-ready / 可收官`
+    - `P18` 的非阻塞尾项当前已并入统一 backlog
 
 ---
 
