@@ -1409,13 +1409,15 @@
   - 中段
 - `P10-2`
   - 中段
-- `P10-3 ~ P10-5`
+- `P10-3`
+  - 前中段
+- `P10-4 ~ P10-5`
   - 待开始
 
 整体 `P10` 当前大约：
 
-- **`45% - 55%`**
+- **`55% - 65%`**
 
 当前更推荐的下一步：
 
-- **开始 `P10-3 Knowledge governance consolidation v8` 的第一刀**
+- **继续补 `P10-3 Knowledge governance consolidation v8` 的第二刀**

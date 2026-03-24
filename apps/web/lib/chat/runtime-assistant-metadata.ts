@@ -237,6 +237,12 @@ export function buildRuntimeAssistantMetadataInput(
       knowledgeSummary.source_budget_unification_summary,
     knowledge_governance_unification_mode:
       knowledgeSummary.governance_unification_mode,
+    knowledge_governance_consolidation_digest:
+      knowledgeSummary.governance_consolidation_digest,
+    knowledge_source_budget_consolidation_summary:
+      knowledgeSummary.source_budget_consolidation_summary,
+    knowledge_governance_consolidation_mode:
+      knowledgeSummary.governance_consolidation_mode,
     active_memory_namespace_id:
       input.namespace.active_namespace?.namespace_id ?? null,
     active_memory_namespace_primary_layer:

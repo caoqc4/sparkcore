@@ -25,9 +25,12 @@ import {
   getAssistantKnowledgeGovernanceConvergenceDigest,
   getAssistantKnowledgeGovernanceConsistencyMode,
   getAssistantKnowledgeGovernanceCoordinationSummary,
+  getAssistantKnowledgeGovernanceConsolidationDigest,
+  getAssistantKnowledgeGovernanceConsolidationMode,
   getAssistantKnowledgeGovernanceUnificationDigest,
   getAssistantKnowledgeGovernanceUnificationMode,
   getAssistantKnowledgeSourceBudgetAlignmentSummary,
+  getAssistantKnowledgeSourceBudgetConsolidationSummary,
   getAssistantKnowledgeSourceBudgetUnificationSummary,
   getAssistantKnowledgeSourceGovernanceSummary,
   getAssistantKnowledgeScopeLayers,
@@ -1641,6 +1644,25 @@ function main() {
     "Expected retention lifecycle consolidation to be consistent across prompt, assistant metadata, and runtime debug metadata in P10."
   );
   expect(
+    getAssistantKnowledgeGovernanceConsolidationDigest(assistantMetadata) ===
+      "authoritative_governance_consolidation" &&
+      getAssistantKnowledgeSourceBudgetConsolidationSummary(
+        assistantMetadata
+      ) === "authoritative_budget_source_consolidated" &&
+      getAssistantKnowledgeGovernanceConsolidationMode(assistantMetadata) ===
+        "authoritative_runtime_consolidated" &&
+      runtimeDebugMetadata.knowledge.governance_consolidation_digest ===
+        "authoritative_governance_consolidation" &&
+      runtimeDebugMetadata.knowledge.source_budget_consolidation_summary ===
+        "authoritative_budget_source_consolidated" &&
+      runtimeDebugMetadata.knowledge.governance_consolidation_mode ===
+        "authoritative_runtime_consolidated" &&
+      systemPrompt.includes(
+        "Current governance consolidation = authoritative_governance_consolidation; budget/source consolidation = authoritative_budget_source_consolidated; consolidation mode = authoritative_runtime_consolidated."
+      ),
+    "Expected knowledge governance consolidation to be consistent across prompt, assistant metadata, and runtime debug metadata in P10."
+  );
+  expect(
     systemPrompt.includes("Active Memory Namespace: primary_layer = project."),
     "Expected system prompt assembly to include the active memory namespace in P2."
   );
@@ -2950,6 +2972,31 @@ function main() {
       }).retain === false
   } as const;
 
+  const p10KnowledgeConsolidationChecks = {
+    knowledge_governance_consolidation_v8_ok:
+      knowledgeSummary.governance_consolidation_digest ===
+        "authoritative_governance_consolidation" &&
+      knowledgeSummary.source_budget_consolidation_summary ===
+        "authoritative_budget_source_consolidated" &&
+      knowledgeSummary.governance_consolidation_mode ===
+        "authoritative_runtime_consolidated" &&
+      getAssistantKnowledgeGovernanceConsolidationDigest(
+        assistantMetadata
+      ) === knowledgeSummary.governance_consolidation_digest &&
+      getAssistantKnowledgeSourceBudgetConsolidationSummary(
+        assistantMetadata
+      ) === knowledgeSummary.source_budget_consolidation_summary &&
+      getAssistantKnowledgeGovernanceConsolidationMode(
+        assistantMetadata
+      ) === knowledgeSummary.governance_consolidation_mode &&
+      runtimeDebugMetadata.knowledge.governance_consolidation_digest ===
+        knowledgeSummary.governance_consolidation_digest &&
+      runtimeDebugMetadata.knowledge.source_budget_consolidation_summary ===
+        knowledgeSummary.source_budget_consolidation_summary &&
+      runtimeDebugMetadata.knowledge.governance_consolidation_mode ===
+        knowledgeSummary.governance_consolidation_mode
+  } as const;
+
   console.log(
     JSON.stringify(
       {
@@ -3156,6 +3203,18 @@ function main() {
             ),
           governance_unification_mode:
             getAssistantKnowledgeGovernanceUnificationMode(
+              assistantMetadata
+            ),
+          governance_consolidation_digest:
+            getAssistantKnowledgeGovernanceConsolidationDigest(
+              assistantMetadata
+            ),
+          source_budget_consolidation_summary:
+            getAssistantKnowledgeSourceBudgetConsolidationSummary(
+              assistantMetadata
+            ),
+          governance_consolidation_mode:
+            getAssistantKnowledgeGovernanceConsolidationMode(
               assistantMetadata
             )
         },
@@ -3531,6 +3590,7 @@ function main() {
         p9_regression_gate: p9RegressionGate,
         p10_namespace_consolidation: p10NamespaceConsolidationChecks,
         p10_retention_consolidation: p10RetentionConsolidationChecks,
+        p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
             "When episode memory is present"

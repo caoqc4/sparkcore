@@ -5,6 +5,8 @@ import type {
   KnowledgeGovernanceClass,
   KnowledgeGovernanceConvergenceDigestId,
   KnowledgeGovernanceCoordinationSummary,
+  KnowledgeGovernanceConsolidationDigestId,
+  KnowledgeGovernanceConsolidationMode,
   KnowledgeGovernanceConsistencyMode,
   KnowledgeGovernanceAlignmentMode,
   KnowledgeGovernanceUnificationDigestId,
@@ -12,6 +14,7 @@ import type {
   KnowledgeSnapshot,
   KnowledgeScopeLayer,
   KnowledgeSourceBudgetAlignmentSummary,
+  KnowledgeSourceBudgetConsolidationSummary,
   KnowledgeSourceBudgetUnificationSummary,
   KnowledgeSourceGovernanceSummary,
   KnowledgeSourceKind,
@@ -219,6 +222,54 @@ function resolveKnowledgeGovernanceUnificationMode(args: {
     case "mixed_governance_coordination":
     default:
       return "mixed_runtime_unified";
+  }
+}
+
+function resolveKnowledgeGovernanceConsolidationDigest(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeGovernanceConsolidationDigestId {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_governance_consolidation";
+    case "contextual_balance_coordination":
+      return "contextual_governance_consolidation";
+    case "reference_support_coordination":
+      return "reference_governance_consolidation";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_governance_consolidation";
+  }
+}
+
+function resolveKnowledgeSourceBudgetConsolidationSummary(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeSourceBudgetConsolidationSummary {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_budget_source_consolidated";
+    case "contextual_balance_coordination":
+      return "contextual_budget_source_consolidated";
+    case "reference_support_coordination":
+      return "reference_budget_source_consolidated";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_budget_source_consolidated";
+  }
+}
+
+function resolveKnowledgeGovernanceConsolidationMode(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeGovernanceConsolidationMode {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_runtime_consolidated";
+    case "contextual_balance_coordination":
+      return "contextual_runtime_consolidated";
+    case "reference_support_coordination":
+      return "reference_runtime_consolidated";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_runtime_consolidated";
   }
 }
 
@@ -584,6 +635,18 @@ export function buildKnowledgePromptSection(args: {
   const governanceUnificationMode = resolveKnowledgeGovernanceUnificationMode({
     coordinationSummary: governanceCoordinationSummary
   });
+  const governanceConsolidationDigest =
+    resolveKnowledgeGovernanceConsolidationDigest({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const sourceBudgetConsolidationSummary =
+    resolveKnowledgeSourceBudgetConsolidationSummary({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const governanceConsolidationMode =
+    resolveKnowledgeGovernanceConsolidationMode({
+      coordinationSummary: governanceCoordinationSummary
+    });
   const lines = [
     isZh ? "相关 Knowledge Layer：" : "Relevant Knowledge Layer:",
     ...selectedKnowledge.map((item, index) =>
@@ -614,6 +677,9 @@ export function buildKnowledgePromptSection(args: {
     isZh
       ? `当前 governance unification = ${governanceUnificationDigest}；budget/source unification = ${sourceBudgetUnificationSummary}；unification mode = ${governanceUnificationMode}。`
       : `Current governance unification = ${governanceUnificationDigest}; budget/source unification = ${sourceBudgetUnificationSummary}; unification mode = ${governanceUnificationMode}.`,
+    isZh
+      ? `当前 governance consolidation = ${governanceConsolidationDigest}；budget/source consolidation = ${sourceBudgetConsolidationSummary}；consolidation mode = ${governanceConsolidationMode}。`
+      : `Current governance consolidation = ${governanceConsolidationDigest}; budget/source consolidation = ${sourceBudgetConsolidationSummary}; consolidation mode = ${governanceConsolidationMode}.`,
     isZh
       ? args.activePackId === "project_ops"
         ? "把这些内容当作按 project/world/general 分层的外部知识来源；当前 project_ops prompt budget 会优先保留 project/world，并允许在预算内带入一条 general knowledge。不要把它们误写成用户长期偏好或线程即时状态。"
@@ -669,6 +735,18 @@ export function buildKnowledgeSummary(args: {
   const governanceUnificationMode = resolveKnowledgeGovernanceUnificationMode({
     coordinationSummary: governanceCoordinationSummary
   });
+  const governanceConsolidationDigest =
+    resolveKnowledgeGovernanceConsolidationDigest({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const sourceBudgetConsolidationSummary =
+    resolveKnowledgeSourceBudgetConsolidationSummary({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const governanceConsolidationMode =
+    resolveKnowledgeGovernanceConsolidationMode({
+      coordinationSummary: governanceCoordinationSummary
+    });
 
   return {
     count: applicableKnowledge.length,
@@ -694,6 +772,10 @@ export function buildKnowledgeSummary(args: {
     governance_unification_digest: governanceUnificationDigest,
     source_budget_unification_summary: sourceBudgetUnificationSummary,
     governance_unification_mode: governanceUnificationMode,
+    governance_consolidation_digest: governanceConsolidationDigest,
+    source_budget_consolidation_summary:
+      sourceBudgetConsolidationSummary,
+    governance_consolidation_mode: governanceConsolidationMode,
     scope_counts: {
       project: applicableKnowledge.filter(
         (item) => resolveKnowledgeScopeLayer(item) === "project"
