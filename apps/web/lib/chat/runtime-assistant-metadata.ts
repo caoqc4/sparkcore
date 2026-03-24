@@ -175,6 +175,8 @@ export function buildRuntimeAssistantMetadataInput(
       input.memory.scenario_pack?.knowledge_budget_weight ?? null,
     scenario_memory_pack_route_influence_reason:
       input.memory.scenario_pack?.route_influence_reason ?? null,
+    scenario_memory_pack_governance_route_bias:
+      input.memory.scenario_pack?.governance_route_bias ?? null,
     scenario_memory_pack_strategy_bundle_id:
       scenarioPackStrategy?.strategy_bundle_id ?? null,
     scenario_memory_pack_strategy_assembly_order:

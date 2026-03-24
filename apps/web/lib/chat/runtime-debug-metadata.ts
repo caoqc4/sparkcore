@@ -78,6 +78,8 @@ export function buildRuntimeDebugMetadata(
               input.scenario_memory_pack.knowledge_budget_weight,
             route_influence_reason:
               input.scenario_memory_pack.route_influence_reason,
+            governance_route_bias:
+              input.scenario_memory_pack.governance_route_bias,
             strategy_bundle_id:
               scenarioPackStrategy?.strategy_bundle_id ?? null,
             strategy_assembly_order:

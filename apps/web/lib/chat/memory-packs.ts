@@ -5,7 +5,10 @@ import {
 } from "../../../../packages/core/memory";
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
-import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
+import {
+  resolveKnowledgeGovernanceClass,
+  type RuntimeKnowledgeSnippet
+} from "@/lib/chat/memory-knowledge";
 import type { RecalledMemory } from "@/lib/chat/memory-shared";
 
 export type ScenarioMemoryPackStrategy = {
@@ -39,7 +42,66 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
     | "project_namespace_bias"
     | "project_knowledge_bias"
     | "world_knowledge_bias";
+  governance_route_bias: "authoritative" | "contextual" | "reference" | null;
 };
+
+function resolveKnowledgeGovernanceRouteWeights(args: {
+  relevantKnowledge?: RuntimeKnowledgeSnippet[];
+  defaultRouteWeight: number;
+  defaultBudgetWeight: number;
+}) {
+  const governanceCounts = {
+    authoritative:
+      args.relevantKnowledge?.filter(
+        (item) => resolveKnowledgeGovernanceClass(item) === "authoritative"
+      ).length ?? 0,
+    contextual:
+      args.relevantKnowledge?.filter(
+        (item) => resolveKnowledgeGovernanceClass(item) === "contextual"
+      ).length ?? 0,
+    reference:
+      args.relevantKnowledge?.filter(
+        (item) => resolveKnowledgeGovernanceClass(item) === "reference"
+      ).length ?? 0
+  };
+
+  if (
+    governanceCounts.authoritative >= governanceCounts.contextual &&
+    governanceCounts.authoritative >= governanceCounts.reference &&
+    governanceCounts.authoritative > 0
+  ) {
+    return {
+      governance_route_bias: "authoritative" as const,
+      knowledge_route_weight: Math.max(args.defaultRouteWeight, 1),
+      knowledge_budget_weight: Math.max(args.defaultBudgetWeight, 0.95)
+    };
+  }
+
+  if (
+    governanceCounts.contextual >= governanceCounts.reference &&
+    governanceCounts.contextual > 0
+  ) {
+    return {
+      governance_route_bias: "contextual" as const,
+      knowledge_route_weight: Math.max(args.defaultRouteWeight, 0.85),
+      knowledge_budget_weight: Math.max(args.defaultBudgetWeight, 0.75)
+    };
+  }
+
+  if (governanceCounts.reference > 0) {
+    return {
+      governance_route_bias: "reference" as const,
+      knowledge_route_weight: Math.max(args.defaultRouteWeight, 0.4),
+      knowledge_budget_weight: Math.max(args.defaultBudgetWeight, 0.3)
+    };
+  }
+
+  return {
+    governance_route_bias: null,
+    knowledge_route_weight: args.defaultRouteWeight,
+    knowledge_budget_weight: args.defaultBudgetWeight
+  };
+}
 
 export function resolveScenarioMemoryPackStrategy(
   pack: Pick<ActiveScenarioMemoryPack, "pack_id">
@@ -82,8 +144,14 @@ export function resolveScenarioMemoryPackStrategy(
 }
 
 function withWorldKnowledgeInfluence(
-  pack: ScenarioMemoryPack
+  pack: ScenarioMemoryPack,
+  relevantKnowledge?: RuntimeKnowledgeSnippet[]
 ): ActiveScenarioMemoryPack {
+  const governanceWeights = resolveKnowledgeGovernanceRouteWeights({
+    relevantKnowledge,
+    defaultRouteWeight: 0.75,
+    defaultBudgetWeight: 0.65
+  });
   const preferredRoutes = [
     "thread_state",
     "knowledge",
@@ -105,9 +173,10 @@ function withWorldKnowledgeInfluence(
     selection_reason: "world_knowledge_influence",
     knowledge_priority_layer: "world",
     assembly_emphasis: "knowledge_first",
-    knowledge_route_weight: 0.75,
-    knowledge_budget_weight: 0.65,
-    route_influence_reason: "world_knowledge_bias"
+    knowledge_route_weight: governanceWeights.knowledge_route_weight,
+    knowledge_budget_weight: governanceWeights.knowledge_budget_weight,
+    route_influence_reason: "world_knowledge_bias",
+    governance_route_bias: governanceWeights.governance_route_bias
   };
 }
 
@@ -116,14 +185,20 @@ export function resolveActiveScenarioMemoryPack(args?: {
   relevantKnowledge?: RuntimeKnowledgeSnippet[];
 }): ActiveScenarioMemoryPack {
   if (args?.activeNamespace?.primary_layer === "project") {
+    const governanceWeights = resolveKnowledgeGovernanceRouteWeights({
+      relevantKnowledge: args?.relevantKnowledge,
+      defaultRouteWeight: 1,
+      defaultBudgetWeight: 0.9
+    });
     return {
       ...resolveBuiltInScenarioMemoryPack("project_ops"),
       selection_reason: "project_namespace_priority",
       knowledge_priority_layer: "project",
       assembly_emphasis: "knowledge_first",
-      knowledge_route_weight: 1,
-      knowledge_budget_weight: 0.9,
-      route_influence_reason: "project_namespace_bias"
+      knowledge_route_weight: governanceWeights.knowledge_route_weight,
+      knowledge_budget_weight: governanceWeights.knowledge_budget_weight,
+      route_influence_reason: "project_namespace_bias",
+      governance_route_bias: governanceWeights.governance_route_bias
     };
   }
 
@@ -135,30 +210,43 @@ export function resolveActiveScenarioMemoryPack(args?: {
       .length ?? 0;
 
   if (projectKnowledgeCount > 0 && projectKnowledgeCount >= worldKnowledgeCount) {
+    const governanceWeights = resolveKnowledgeGovernanceRouteWeights({
+      relevantKnowledge: args?.relevantKnowledge,
+      defaultRouteWeight: 0.9,
+      defaultBudgetWeight: 0.85
+    });
     return {
       ...resolveBuiltInScenarioMemoryPack("project_ops"),
       selection_reason: "project_knowledge_priority",
       knowledge_priority_layer: "project",
       assembly_emphasis: "knowledge_first",
-      knowledge_route_weight: 0.9,
-      knowledge_budget_weight: 0.85,
-      route_influence_reason: "project_knowledge_bias"
+      knowledge_route_weight: governanceWeights.knowledge_route_weight,
+      knowledge_budget_weight: governanceWeights.knowledge_budget_weight,
+      route_influence_reason: "project_knowledge_bias",
+      governance_route_bias: governanceWeights.governance_route_bias
     };
   }
 
   if (worldKnowledgeCount > 0 && worldKnowledgeCount > projectKnowledgeCount) {
     return withWorldKnowledgeInfluence(
-      resolveBuiltInScenarioMemoryPack("companion")
+      resolveBuiltInScenarioMemoryPack("companion"),
+      args?.relevantKnowledge
     );
   }
 
+  const governanceWeights = resolveKnowledgeGovernanceRouteWeights({
+    relevantKnowledge: args?.relevantKnowledge,
+    defaultRouteWeight: 0.3,
+    defaultBudgetWeight: 0.25
+  });
   return {
     ...resolveBuiltInScenarioMemoryPack("companion"),
     knowledge_priority_layer: null,
     assembly_emphasis: "default",
-    knowledge_route_weight: 0.3,
-    knowledge_budget_weight: 0.25,
+    knowledge_route_weight: governanceWeights.knowledge_route_weight,
+    knowledge_budget_weight: governanceWeights.knowledge_budget_weight,
     route_influence_reason: "default_continuity_bias",
+    governance_route_bias: governanceWeights.governance_route_bias,
     selection_reason: "default_companion_phase",
   };
 }
@@ -212,6 +300,9 @@ export function buildScenarioMemoryPackPromptSection(args: {
     isZh
       ? `当前 route 影响原因：${args.pack.route_influence_reason}。`
       : `Current route influence reason: ${args.pack.route_influence_reason}.`,
+    isZh
+      ? `当前 governance route bias = ${args.pack.governance_route_bias ?? "none"}。`
+      : `Current governance route bias = ${args.pack.governance_route_bias ?? "none"}.`,
     isZh
       ? `当前 knowledge route weight = ${args.pack.knowledge_route_weight}，knowledge budget weight = ${args.pack.knowledge_budget_weight}。`
       : `Current knowledge route weight = ${args.pack.knowledge_route_weight}; knowledge budget weight = ${args.pack.knowledge_budget_weight}.`,

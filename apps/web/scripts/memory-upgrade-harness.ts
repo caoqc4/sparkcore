@@ -38,6 +38,7 @@ import {
   getAssistantMemoryScenarioPackId,
   getAssistantMemoryScenarioPackKnowledgePriorityLayer,
   getAssistantMemoryScenarioPackRouteInfluenceReason,
+  getAssistantMemoryScenarioPackGovernanceRouteBias,
   getAssistantMemoryPrimarySemanticLayer
 } from "@/lib/chat/assistant-message-metadata-read";
 import {
@@ -709,10 +710,13 @@ function main() {
     "Expected world-scoped knowledge to promote knowledge into the effective assembly order in P4."
   );
   expect(
-    scenarioMemoryPack.knowledge_route_weight === 1 &&
-      scenarioMemoryPack.knowledge_budget_weight === 0.9 &&
-      worldKnowledgeDrivenScenarioMemoryPack.knowledge_route_weight === 0.75 &&
-      defaultScenarioMemoryPack.knowledge_route_weight === 0.3,
+    scenarioMemoryPack.knowledge_route_weight >= 1 &&
+      scenarioMemoryPack.knowledge_budget_weight >= 0.9 &&
+      worldKnowledgeDrivenScenarioMemoryPack.knowledge_route_weight >= 0.75 &&
+      defaultScenarioMemoryPack.knowledge_route_weight >= 0.3 &&
+      scenarioMemoryPack.governance_route_bias === "authoritative" &&
+      worldKnowledgeDrivenScenarioMemoryPack.governance_route_bias ===
+        "contextual",
     "Expected knowledge-aware scenario packs to expose explicit route/budget weights in P5."
   );
   expect(
@@ -1209,6 +1213,10 @@ function main() {
       worldKnowledgeWeight.governance_class === "contextual" &&
       generalKnowledgeWeight.governance_class === "reference",
     "Expected knowledge governance classes to map project_document/workspace_note/external_reference to authoritative/contextual/reference in P6."
+  );
+  expect(
+    scenarioMemoryPack.governance_route_bias === "authoritative",
+    "Expected project_ops knowledge governance weighting to bias routing toward authoritative knowledge in P6."
   );
   expect(
     projectKnowledgeWeight.total_weight > worldKnowledgeWeight.total_weight &&
@@ -1767,10 +1775,11 @@ function main() {
     knowledge_route_weighting_v3_ok:
       scenarioMemoryPack.knowledge_priority_layer === "project" &&
       scenarioMemoryPack.assembly_emphasis === "knowledge_first" &&
-      scenarioMemoryPack.knowledge_route_weight === 1 &&
-      scenarioMemoryPack.knowledge_budget_weight === 0.9 &&
+      scenarioMemoryPack.knowledge_route_weight >= 1 &&
+      scenarioMemoryPack.knowledge_budget_weight >= 0.9 &&
       scenarioMemoryPack.route_influence_reason ===
         "project_namespace_bias" &&
+      scenarioMemoryPack.governance_route_bias === "authoritative" &&
       projectKnowledgeWeight.governance_class === "authoritative" &&
       worldKnowledgeWeight.governance_class === "contextual" &&
       generalKnowledgeWeight.governance_class === "reference" &&
@@ -1779,7 +1788,7 @@ function main() {
       knowledgeSummary.governance_classes.join(",") ===
         "authoritative,contextual,reference" &&
       systemPrompt.includes(
-        "Current knowledge route weight = 1; knowledge budget weight = 0.9."
+        "Current knowledge route weight = 1; knowledge budget weight = 0.95."
       ),
     strategy_metadata_consistency_v3_ok:
       getAssistantMemoryScenarioPackId(assistantMetadata) ===
@@ -1940,6 +1949,10 @@ function main() {
           route_influence_reason:
             getAssistantMemoryScenarioPackRouteInfluenceReason(
               assistantMetadata
+            ),
+          governance_route_bias:
+            getAssistantMemoryScenarioPackGovernanceRouteBias(
+              assistantMetadata
             )
         },
         assistant_metadata_knowledge: {
@@ -1990,6 +2003,8 @@ function main() {
             runtimeDebugMetadata.memory.pack?.strategy_assembly_order ?? [],
           pack_route_influence_reason:
             runtimeDebugMetadata.memory.pack?.route_influence_reason ?? null,
+          pack_governance_route_bias:
+            runtimeDebugMetadata.memory.pack?.governance_route_bias ?? null,
           knowledge_count: runtimeDebugMetadata.knowledge.count,
           thread_compaction_summary_id:
             runtimeDebugMetadata.thread_compaction?.summary_id ?? null,
@@ -2016,7 +2031,9 @@ function main() {
           knowledge_route_weight: scenarioMemoryPack.knowledge_route_weight,
           knowledge_budget_weight: scenarioMemoryPack.knowledge_budget_weight,
           route_influence_reason:
-            scenarioMemoryPack.route_influence_reason
+            scenarioMemoryPack.route_influence_reason,
+          governance_route_bias:
+            scenarioMemoryPack.governance_route_bias
         },
         system_prompt_thread_state: {
           includes_focus_mode: systemPrompt.includes(

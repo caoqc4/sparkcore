@@ -324,6 +324,14 @@ export function getAssistantMemoryScenarioPackRouteInfluenceReason(
   return getAssistantMetadataString(packMetadata, "route_influence_reason");
 }
 
+export function getAssistantMemoryScenarioPackGovernanceRouteBias(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return getAssistantMetadataString(packMetadata, "governance_route_bias");
+}
+
 export function getAssistantMemoryScenarioPackKnowledgeRouteWeight(
   metadata: Record<string, unknown> | null | undefined
 ) {
