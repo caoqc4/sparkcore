@@ -633,6 +633,68 @@ export function getAssistantMemoryScenarioPackGovernanceCoordinationReuseMode(
   );
 }
 
+export function getAssistantMemoryScenarioPackGovernancePlaneDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "governance_plane_digest_id") ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_governance_plane_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackStrategyGovernancePlaneSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "strategy_governance_plane_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_strategy_governance_plane_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackOrchestrationGovernancePlaneMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "orchestration_governance_plane_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_orchestration_governance_plane_mode"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackGovernancePlaneReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "governance_plane_reuse_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_governance_plane_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryScenarioPackKnowledgeRouteWeight(
   metadata: Record<string, unknown> | null | undefined
 ) {

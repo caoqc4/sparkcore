@@ -110,14 +110,18 @@ import {
   getAssistantMemoryScenarioPackGovernanceConsolidationDigestId,
   getAssistantMemoryScenarioPackGovernanceCoordinationDigestId,
   getAssistantMemoryScenarioPackGovernanceCoordinationReuseMode,
+  getAssistantMemoryScenarioPackGovernancePlaneDigestId,
+  getAssistantMemoryScenarioPackGovernancePlaneReuseMode,
   getAssistantMemoryScenarioPackOrchestrationAlignmentMode,
   getAssistantMemoryScenarioPackOrchestrationConsolidationMode,
   getAssistantMemoryScenarioPackOrchestrationCoordinationModeV9,
   getAssistantMemoryScenarioPackOrchestrationCoordinationSummary,
+  getAssistantMemoryScenarioPackOrchestrationGovernancePlaneMode,
   getAssistantMemoryScenarioPackOrchestrationMode,
   getAssistantMemoryScenarioPackOrchestrationDigestId,
   getAssistantMemoryScenarioPackStrategyConsistencyMode,
   getAssistantMemoryScenarioPackStrategyConsolidationSummary,
+  getAssistantMemoryScenarioPackStrategyGovernancePlaneSummary,
   getAssistantMemoryScenarioPackStrategyRuntimeCoordinationSummary,
   getAssistantMemoryScenarioPackStrategyRuntimeReuseSummary,
   getAssistantMemoryScenarioPackStrategyConvergenceSummary,
@@ -130,6 +134,7 @@ import {
 } from "@/lib/chat/assistant-message-metadata-read";
 import {
   buildScenarioMemoryPackPromptSection,
+  type ActiveScenarioMemoryPack,
   resolveActiveScenarioMemoryPack,
   resolveScenarioMemoryPackStrategy
 } from "@/lib/chat/memory-packs";
@@ -715,7 +720,7 @@ function main() {
     threadId: "thread-1",
     relevantKnowledge: runtimeKnowledge
   });
-  const scenarioMemoryPack = resolveActiveScenarioMemoryPack({
+  const scenarioMemoryPack: ActiveScenarioMemoryPack = resolveActiveScenarioMemoryPack({
     activeNamespace: activeMemoryNamespace,
     relevantKnowledge: runtimeKnowledge
   });
@@ -3439,6 +3444,38 @@ function main() {
         scenarioMemoryPack.governance_coordination_reuse_mode
   } as const;
 
+  const p12ScenarioGovernancePlaneChecks = {
+    scenario_governance_plane_v10_ok:
+      scenarioMemoryPack.governance_plane_digest_id ===
+        "project_delivery_governance_plane" &&
+      scenarioMemoryPack.strategy_governance_plane_summary ===
+        "project_delivery_strategy_governance_plane" &&
+      scenarioMemoryPack.orchestration_governance_plane_mode ===
+        "execution_runtime_governance_plane" &&
+      scenarioMemoryPack.governance_plane_reuse_mode ===
+        "execution_runtime_governance_plane_reuse" &&
+      getAssistantMemoryScenarioPackGovernancePlaneDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_plane_digest_id &&
+      getAssistantMemoryScenarioPackStrategyGovernancePlaneSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_governance_plane_summary &&
+      getAssistantMemoryScenarioPackOrchestrationGovernancePlaneMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_governance_plane_mode &&
+      getAssistantMemoryScenarioPackGovernancePlaneReuseMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_plane_reuse_mode &&
+      runtimeDebugMetadata.memory.pack?.governance_plane_digest_id ===
+        scenarioMemoryPack.governance_plane_digest_id &&
+      runtimeDebugMetadata.memory.pack?.strategy_governance_plane_summary ===
+        scenarioMemoryPack.strategy_governance_plane_summary &&
+      runtimeDebugMetadata.memory.pack?.orchestration_governance_plane_mode ===
+        scenarioMemoryPack.orchestration_governance_plane_mode &&
+      runtimeDebugMetadata.memory.pack?.governance_plane_reuse_mode ===
+        scenarioMemoryPack.governance_plane_reuse_mode
+  } as const;
+
   const p11RegressionGateChecks = {
     ...p11NamespaceUnifiedConsolidationChecks,
     ...p11RetentionCoordinationChecks,
@@ -3824,6 +3861,22 @@ function main() {
             ),
           governance_coordination_reuse_mode:
             getAssistantMemoryScenarioPackGovernanceCoordinationReuseMode(
+              assistantMetadata
+            ),
+          governance_plane_digest_id:
+            getAssistantMemoryScenarioPackGovernancePlaneDigestId(
+              assistantMetadata
+            ),
+          strategy_governance_plane_summary:
+            getAssistantMemoryScenarioPackStrategyGovernancePlaneSummary(
+              assistantMetadata
+            ),
+          orchestration_governance_plane_mode:
+            getAssistantMemoryScenarioPackOrchestrationGovernancePlaneMode(
+              assistantMetadata
+            ),
+          governance_plane_reuse_mode:
+            getAssistantMemoryScenarioPackGovernancePlaneReuseMode(
               assistantMetadata
             )
         },
@@ -4272,7 +4325,15 @@ function main() {
           strategy_runtime_reuse_summary:
             scenarioMemoryPack.strategy_runtime_reuse_summary,
           governance_coordination_reuse_mode:
-            scenarioMemoryPack.governance_coordination_reuse_mode
+            scenarioMemoryPack.governance_coordination_reuse_mode,
+          governance_plane_digest_id:
+            scenarioMemoryPack.governance_plane_digest_id,
+          strategy_governance_plane_summary:
+            scenarioMemoryPack.strategy_governance_plane_summary,
+          orchestration_governance_plane_mode:
+            scenarioMemoryPack.orchestration_governance_plane_mode,
+          governance_plane_reuse_mode:
+            scenarioMemoryPack.governance_plane_reuse_mode
         },
         system_prompt_thread_state: {
           includes_focus_mode: systemPrompt.includes(
@@ -4400,6 +4461,7 @@ function main() {
         p11_knowledge_coordination: p11KnowledgeCoordinationChecks,
         p12_knowledge_governance_plane: p12KnowledgeGovernancePlaneChecks,
         p11_scenario_coordination: p11ScenarioCoordinationChecks,
+        p12_scenario_governance_plane: p12ScenarioGovernancePlaneChecks,
         p11_regression_gate: p11RegressionGate,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,
         p10_scenario_consolidation: p10ScenarioConsolidationChecks,
