@@ -2,11 +2,13 @@ import type { ThreadStateRecord } from "@/lib/chat/thread-state";
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type {
   CompactedThreadSummary,
+  ThreadCrossLayerSurvivalMode,
   ThreadRetentionLayer,
   ThreadRetentionLayerBudget,
   ThreadRetentionSection,
   ThreadRetentionSectionWeights,
   ThreadRetentionMode,
+  ThreadRetentionPolicyId,
   ThreadRetentionReason
 } from "../../../../packages/core/memory";
 
@@ -236,6 +238,38 @@ function resolveThreadRetentionReason(args: {
   return "minimal_context";
 }
 
+function resolveThreadRetentionPolicyId(args: {
+  retentionMode: ThreadRetentionMode;
+}): ThreadRetentionPolicyId {
+  switch (args.retentionMode) {
+    case "focus_anchor":
+      return "focus_continuity_anchor";
+    case "continuity_anchor":
+      return "engaged_continuity_bridge";
+    case "recent_window":
+      return "recent_window_replay";
+    case "minimal":
+    default:
+      return "minimal_context_decay";
+  }
+}
+
+function resolveThreadCrossLayerSurvivalMode(args: {
+  retentionMode: ThreadRetentionMode;
+}): ThreadCrossLayerSurvivalMode {
+  switch (args.retentionMode) {
+    case "focus_anchor":
+      return "anchor_only";
+    case "continuity_anchor":
+      return "anchor_then_context";
+    case "recent_window":
+      return "context_window_bias";
+    case "minimal":
+    default:
+      return "context_only";
+  }
+}
+
 export function buildCompactedThreadSummary(args: {
   threadState: ThreadStateRecord | null | undefined;
   recentTurnCount: number;
@@ -271,6 +305,9 @@ export function buildCompactedThreadSummary(args: {
     retentionReason,
     retentionBudget
   });
+  const retentionPolicyId = resolveThreadRetentionPolicyId({
+    retentionMode
+  });
   const retentionSectionOrder = resolveThreadRetentionSectionOrder({
     retentionReason
   });
@@ -280,6 +317,9 @@ export function buildCompactedThreadSummary(args: {
   });
   const retentionLayers = resolveThreadRetentionLayers({
     retentionLayerBudget
+  });
+  const crossLayerSurvivalMode = resolveThreadCrossLayerSurvivalMode({
+    retentionMode
   });
   const retainedFields = buildRetainedFields({
     threadState: args.threadState,
@@ -315,6 +355,8 @@ export function buildCompactedThreadSummary(args: {
       .join(",") || "none"}.`,
     `Retention mode: ${retentionMode}.`,
     `Retention reason: ${retentionReason}.`,
+    `Retention policy: ${retentionPolicyId}.`,
+    `Cross-layer survival: ${crossLayerSurvivalMode}.`,
   ].filter((part): part is string => Boolean(part));
 
   return {
@@ -327,6 +369,8 @@ export function buildCompactedThreadSummary(args: {
     current_language_hint: args.threadState.current_language_hint ?? null,
     retention_mode: retentionMode,
     retention_reason: retentionReason,
+    retention_policy_id: retentionPolicyId,
+    cross_layer_survival_mode: crossLayerSurvivalMode,
     retention_budget: retentionBudget,
     retention_layers: retentionLayers,
     retention_layer_budget: retentionLayerBudget,
@@ -414,6 +458,9 @@ export function buildThreadCompactionSummary(args: {
             args.compactedThreadSummary.current_language_hint,
           retention_mode: args.compactedThreadSummary.retention_mode,
           retention_reason: args.compactedThreadSummary.retention_reason,
+          retention_policy_id: args.compactedThreadSummary.retention_policy_id,
+          cross_layer_survival_mode:
+            args.compactedThreadSummary.cross_layer_survival_mode,
           retention_budget: args.compactedThreadSummary.retention_budget,
           retention_layers: args.compactedThreadSummary.retention_layers,
           retention_layer_budget:

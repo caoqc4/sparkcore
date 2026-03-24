@@ -1140,7 +1140,7 @@
 
 当前更推荐的下一步：
 
-- **开始判断是否从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 的 `P6-1` 切到 `P6-2`**
+- **开始从 [memory_upgrade_p6_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p6_execution_plan_v1.0.md) 落 `P6-2 Retention lifecycle policy v4` 的第一刀**
 
 当前已成立的第一刀事实：
 
@@ -1166,3 +1166,6 @@
   - `write_escalation_mode`
 - 同时这层 policy 当前也已进入：
   - planner metadata / runtime preview
+- `P6-2` 当前也已开始有第一刀事实：
+  - `retention_policy_id`
+  - `cross_layer_survival_mode`

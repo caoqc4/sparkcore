@@ -15,6 +15,18 @@ export type ThreadRetentionReason =
   | "minimal_context"
   | "closed_minimal_pruned";
 
+export type ThreadRetentionPolicyId =
+  | "focus_continuity_anchor"
+  | "engaged_continuity_bridge"
+  | "recent_window_replay"
+  | "minimal_context_decay";
+
+export type ThreadCrossLayerSurvivalMode =
+  | "anchor_only"
+  | "anchor_then_context"
+  | "context_window_bias"
+  | "context_only";
+
 export type ThreadRetentionLayer = "anchor" | "context" | "window";
 
 export type ThreadRetentionLayerBudget = {
@@ -44,6 +56,8 @@ export type CompactedThreadSummary = {
   current_language_hint: string | null;
   retention_mode: ThreadRetentionMode;
   retention_reason: ThreadRetentionReason;
+  retention_policy_id: ThreadRetentionPolicyId;
+  cross_layer_survival_mode: ThreadCrossLayerSurvivalMode;
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;

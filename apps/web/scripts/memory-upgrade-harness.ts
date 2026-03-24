@@ -21,6 +21,8 @@ import {
   getAssistantCompactedThreadSummaryText,
   getAssistantKnowledgeCount,
   getAssistantKnowledgeScopeLayers,
+  getAssistantThreadCrossLayerSurvivalMode,
+  getAssistantThreadRetentionPolicyId,
   getAssistantMemoryNamespacePolicyBundleId,
   getAssistantMemoryNamespacePrimaryLayer,
   getAssistantMemoryNamespaceRetrievalFallbackMode,
@@ -1220,6 +1222,16 @@ function main() {
     "Expected runtime debug metadata to expose the retention reason in P3."
   );
   expect(
+    runtimeDebugMetadata.thread_compaction?.retention_policy_id ===
+      "focus_continuity_anchor",
+    "Expected runtime debug metadata to expose the retention policy id in P6."
+  );
+  expect(
+    runtimeDebugMetadata.thread_compaction?.cross_layer_survival_mode ===
+      "anchor_only",
+    "Expected runtime debug metadata to expose the cross-layer survival mode in P6."
+  );
+  expect(
     runtimeDebugMetadata.thread_compaction?.retention_budget === 2,
     "Expected runtime debug metadata to expose the retention budget in P4."
   );
@@ -1903,7 +1915,11 @@ function main() {
         },
         filtered_knowledge_summary: knowledgeSummary,
         assistant_metadata_thread_compaction: {
-          summary_text: getAssistantCompactedThreadSummaryText(assistantMetadata)
+          summary_text: getAssistantCompactedThreadSummaryText(assistantMetadata),
+          retention_policy_id:
+            getAssistantThreadRetentionPolicyId(assistantMetadata),
+          cross_layer_survival_mode:
+            getAssistantThreadCrossLayerSurvivalMode(assistantMetadata)
         },
         assistant_metadata_namespace: {
           primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata),
@@ -2005,13 +2021,17 @@ function main() {
               "project"
             ),
           retention_strategy_ok:
-            runtimeDebugMetadata.thread_compaction?.retention_mode ===
-              "focus_anchor" &&
-            runtimeDebugMetadata.thread_compaction?.retention_reason ===
-              "focus_mode_present" &&
-            !getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
-              "Latest user message:"
-            ),
+      runtimeDebugMetadata.thread_compaction?.retention_mode ===
+        "focus_anchor" &&
+      runtimeDebugMetadata.thread_compaction?.retention_reason ===
+        "focus_mode_present" &&
+      runtimeDebugMetadata.thread_compaction?.retention_policy_id ===
+        "focus_continuity_anchor" &&
+      runtimeDebugMetadata.thread_compaction?.cross_layer_survival_mode ===
+        "anchor_only" &&
+      !getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Latest user message:"
+      ),
           knowledge_scope_ok:
             knowledgeSummary.count === 3 &&
             knowledgeSummary.scope_layers.join(",") ===

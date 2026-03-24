@@ -138,6 +138,25 @@ P6 首批要把 retention 从：
 - 至少一条 retention decision 开始显式输出 lifecycle policy id
 - 至少一条 keep/drop 行为开始按 lifecycle policy 聚合，而不再只看单一 budget/weight
 
+当前已成立的第一刀代码事实：
+
+- [compaction.ts](/Users/caoq/git/sparkcore/packages/core/memory/compaction.ts) 当前已开始把 retention 从 layered pruning 进一步上提成 policy contract：
+  - `retention_policy_id`
+  - `cross_layer_survival_mode`
+- [thread-compaction.ts](/Users/caoq/git/sparkcore/apps/web/lib/chat/thread-compaction.ts) 当前已开始让 compaction summary 不只输出：
+  - `retention_mode`
+  - `retention_reason`
+  - `retention_layers`
+
+  还会显式输出：
+  - `retention_policy_id`
+  - `cross_layer_survival_mode`
+- 当前最小规则已经成立：
+  - `focus_anchor` 下：
+    - `retention_policy_id = focus_continuity_anchor`
+    - `cross_layer_survival_mode = anchor_only`
+- assistant metadata / runtime debug metadata / [memory-upgrade-harness.ts](/Users/caoq/git/sparkcore/apps/web/scripts/memory-upgrade-harness.ts) 当前也已同步接上这层 retention lifecycle policy
+
 ### 4.3 Knowledge governance weighting v4
 
 P6 首批要把 knowledge 从：

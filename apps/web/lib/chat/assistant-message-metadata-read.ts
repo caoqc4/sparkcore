@@ -471,6 +471,31 @@ export function getAssistantCompactedThreadSummaryText(
   );
 }
 
+export function getAssistantThreadRetentionPolicyId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(compactionMetadata, "retention_policy_id") ??
+    getAssistantMetadataString(metadata, "compacted_thread_retention_policy_id")
+  );
+}
+
+export function getAssistantThreadCrossLayerSurvivalMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(compactionMetadata, "cross_layer_survival_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_cross_layer_survival_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryTypesUsed(
   metadata: Record<string, unknown> | null | undefined
 ) {
