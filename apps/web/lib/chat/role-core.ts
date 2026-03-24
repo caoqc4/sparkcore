@@ -155,6 +155,13 @@ export type RoleCoreMemoryCloseNoteOutput = {
     governance_classes: string[];
     output_summary: string;
   };
+  scenario: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    strategy_bundle_id: string | null;
+    orchestration_mode: string | null;
+    output_summary: string;
+  };
 };
 
 export function getRoleCoreRelationshipStance(
@@ -351,7 +358,7 @@ export function buildRoleCoreMemoryCloseNoteOutput(args: {
     source_handoff_packet_version: closeNoteHandoffPacket.packet_version,
     readiness_judgment: closeNoteArtifact.readiness_judgment,
     headline: `${args.roleCorePacket.identity.agent_name} close-note output`,
-    emission_summary: `namespace_output_started; retention_output_started; knowledge_output_started; source_artifact = ${closeNoteArtifact.artifact_version}; blocking_items = ${closeNoteArtifact.blocking_items.join(", ") || "none"}.`,
+    emission_summary: `namespace_output_started; retention_output_started; knowledge_output_started; scenario_output_started; source_artifact = ${closeNoteArtifact.artifact_version}; blocking_items = ${closeNoteArtifact.blocking_items.join(", ") || "none"}.`,
     namespace: {
       phase_snapshot_id: closeNoteHandoffPacket.namespace.phase_snapshot_id,
       phase_snapshot_summary:
@@ -377,6 +384,14 @@ export function buildRoleCoreMemoryCloseNoteOutput(args: {
         ...closeNoteHandoffPacket.knowledge.governance_classes
       ],
       output_summary: `${closeNoteHandoffPacket.knowledge.phase_snapshot_id}; ${closeNoteHandoffPacket.knowledge.phase_snapshot_summary}; scope_layers = ${closeNoteHandoffPacket.knowledge.scope_layers.join(", ") || "none"}; governance_classes = ${closeNoteHandoffPacket.knowledge.governance_classes.join(", ") || "none"}`
+    },
+    scenario: {
+      phase_snapshot_id: closeNoteHandoffPacket.scenario.phase_snapshot_id,
+      phase_snapshot_summary:
+        closeNoteHandoffPacket.scenario.phase_snapshot_summary,
+      strategy_bundle_id: closeNoteHandoffPacket.scenario.strategy_bundle_id,
+      orchestration_mode: closeNoteHandoffPacket.scenario.orchestration_mode,
+      output_summary: `${closeNoteHandoffPacket.scenario.phase_snapshot_id}; ${closeNoteHandoffPacket.scenario.phase_snapshot_summary}; strategy_bundle = ${closeNoteHandoffPacket.scenario.strategy_bundle_id ?? "none"}; orchestration_mode = ${closeNoteHandoffPacket.scenario.orchestration_mode ?? "none"}`
     }
   };
 }

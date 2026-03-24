@@ -140,17 +140,18 @@
   - 已开始
   - knowledge close-note output contract 第一刀已成立
 - `P19-4`
-  - 待开始
+  - 已开始
+  - scenario close-note output contract 第一刀已成立
 - `P19-5`
   - 待开始
 
 整体 `P19` 当前大约：
 
-- **`30% - 35%`**
+- **`40% - 45%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P19-4 Scenario close-note output contract v1` 第一刀，而不是先写 `P19 close-readiness`**
+- **继续做 `P19-5 Regression / acceptance close-note outputization` 第一刀，而不是先写 `P19 close-readiness`**
 
 ---
 

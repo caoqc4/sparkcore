@@ -385,6 +385,7 @@
     - `P19-1` 已开始，namespace close-note output contract 第一刀已成立
     - `P19-2` 已开始，retention close-note output contract 第一刀已成立
     - `P19-3` 已开始，knowledge close-note output contract 第一刀已成立
+    - `P19-4` 已开始，scenario close-note output contract 第一刀已成立
     - `p19_close_note_output` 当前已锁住：
       - namespace close-note output contract v1
       - namespace close-note output metadata consistency v1
@@ -395,9 +396,12 @@
       - knowledge close-note output contract v1
       - knowledge close-note output metadata consistency v1
       - knowledge close-note output prompt surface v1
-    - `P19-4 ~ P19-5` 当前仍待开始
-    - 当前整体约 `30% - 35%`
-    - 当前最推荐的下一步是 `P19-4 Scenario close-note output contract v1`
+      - scenario close-note output contract v1
+      - scenario close-note output metadata consistency v1
+      - scenario close-note output prompt surface v1
+    - `P19-5` 当前仍待开始
+    - 当前整体约 `40% - 45%`
+    - 当前最推荐的下一步是 `P19-5 Regression / acceptance close-note outputization`
 
 ---
 

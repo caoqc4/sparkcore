@@ -5650,7 +5650,29 @@ function main() {
       systemPrompt.includes(
         p19CloseNoteOutput?.knowledge.output_summary ?? ""
       ) &&
-      p19CloseNoteOutputPrompt.includes("Knowledge output section")
+      p19CloseNoteOutputPrompt.includes("Knowledge output section"),
+    scenario_close_note_output_contract_v1_ok:
+      p19CloseNoteOutput?.scenario.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.scenario.phase_snapshot_id &&
+      p19CloseNoteOutput?.scenario.strategy_bundle_id ===
+        p17CloseNoteHandoffPacket?.scenario.strategy_bundle_id &&
+      p19CloseNoteOutput?.scenario.orchestration_mode ===
+        p17CloseNoteHandoffPacket?.scenario.orchestration_mode,
+    scenario_close_note_output_metadata_consistency_v1_ok:
+      assistantCloseNoteOutput?.scenario.output_summary ===
+        p19CloseNoteOutput?.scenario.output_summary &&
+      assistantDiagnosticCloseNoteOutput?.scenario.strategy_bundle_id ===
+        p19CloseNoteOutput?.scenario.strategy_bundle_id &&
+      runtimeDebugCloseNoteOutput?.scenario.orchestration_mode ===
+        p19CloseNoteOutput?.scenario.orchestration_mode,
+    scenario_close_note_output_prompt_surface_v1_ok:
+      p19CloseNoteOutputPrompt.includes(
+        p19CloseNoteOutput?.scenario.output_summary ?? ""
+      ) &&
+      systemPrompt.includes(
+        p19CloseNoteOutput?.scenario.output_summary ?? ""
+      ) &&
+      p19CloseNoteOutputPrompt.includes("Scenario output section")
   } as const;
   const p18PositiveContracts = summarizeGate({
     role_core_memory_close_note_artifact_v1_ok:
