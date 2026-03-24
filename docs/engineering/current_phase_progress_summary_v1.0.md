@@ -1228,17 +1228,17 @@
 - `P7-3`
   - 前中段到中段之间
 - `P7-4`
-  - 前中段
+  - 前中段到中段之间
 - `P7-5`
   - 待开始
 
 整体 `P7` 当前大约：
 
-- **`50% - 60%`**
+- **`55% - 65%`**
 
 当前更推荐的下一步：
 
-- **继续补 `P7-4 Scenario orchestration digest v5`**
+- **开始 `P7-5 Regression / acceptance expansion` 的第一刀**
 - 当前已成立的 `P7-1` 主事实：
   - namespace boundary 现在开始显式产出 `policy_digest_id`
   - 当前最小 digest 已成立：
