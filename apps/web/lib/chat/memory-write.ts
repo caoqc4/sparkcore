@@ -839,6 +839,14 @@ export async function executeMemoryWriteRequests({
             namespaceBoundary.governance_consolidation_summary,
           namespaceRuntimeConsolidationMode:
             namespaceBoundary.runtime_consolidation_mode,
+          namespaceUnifiedGovernanceConsolidationDigestId:
+            namespaceBoundary.unified_governance_consolidation_digest_id,
+          namespaceUnifiedGovernanceConsolidationSummary:
+            namespaceBoundary.unified_governance_consolidation_summary,
+          namespaceUnifiedConsolidationAlignmentMode:
+            namespaceBoundary.unified_consolidation_alignment_mode,
+          namespaceUnifiedConsolidationReuseMode:
+            namespaceBoundary.unified_consolidation_reuse_mode,
           retrievalWriteDigestAlignment:
             namespaceBoundary.retrieval_write_digest_alignment
         };

@@ -35,7 +35,7 @@ import {
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import {
   isMemoryWithinNamespace,
-  resolveNamespaceGovernanceConsolidationContract,
+  resolveNamespaceUnifiedGovernanceConsolidationContract,
   resolveRuntimeMemoryBoundary
 } from "@/lib/chat/memory-namespace";
 import { createClient } from "@/lib/supabase/server";
@@ -52,10 +52,10 @@ export function selectMemoryRecallRoutes(args: {
     args.activeNamespace ?? null
   );
   const consolidationContract =
-    resolveNamespaceGovernanceConsolidationContract(
+    resolveNamespaceUnifiedGovernanceConsolidationContract(
       args.activeNamespace ?? null
     );
-  return consolidationContract.consolidation_retrieval_routes.filter((route) => {
+  return consolidationContract.unified_consolidation_retrieval_routes.filter((route) => {
     if (route === "thread_state") {
       return args.hasThreadState;
     }

@@ -1442,7 +1442,7 @@
 当前 `P11` 的阶段判断：
 
 - `P11-1`
-  - 待开始
+  - 前中段
 - `P11-2`
   - 待开始
 - `P11-3`
@@ -1454,8 +1454,8 @@
 
 整体 `P11` 当前大约：
 
-- **`0%`**
+- **`15% - 25%`**
 
 当前更推荐的下一步：
 
-- **开始 `P11-1 Namespace unified governance consolidation v6` 的第一刀实现**
+- **继续补 `P11-1 Namespace unified governance consolidation v6` 的第二刀**

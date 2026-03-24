@@ -876,6 +876,74 @@ export function getAssistantMemoryNamespaceRuntimeConsolidationMode(
   );
 }
 
+export function getAssistantMemoryNamespaceUnifiedGovernanceConsolidationDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "unified_governance_consolidation_digest_id"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_unified_governance_consolidation_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceUnifiedGovernanceConsolidationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "unified_governance_consolidation_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_unified_governance_consolidation_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceUnifiedConsolidationAlignmentMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "unified_consolidation_alignment_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_unified_consolidation_alignment_mode"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceUnifiedConsolidationReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "unified_consolidation_reuse_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_unified_consolidation_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
   metadata: Record<string, unknown> | null | undefined
 ) {

@@ -180,6 +180,18 @@ export function buildRuntimeDebugMetadata(
           runtime_consolidation_mode: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).runtime_consolidation_mode,
+          unified_governance_consolidation_digest_id:
+            resolveRuntimeMemoryBoundary(input.active_memory_namespace)
+              .unified_governance_consolidation_digest_id,
+          unified_governance_consolidation_summary:
+            resolveRuntimeMemoryBoundary(input.active_memory_namespace)
+              .unified_governance_consolidation_summary,
+          unified_consolidation_alignment_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).unified_consolidation_alignment_mode,
+          unified_consolidation_reuse_mode: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).unified_consolidation_reuse_mode,
           retrieval_write_digest_alignment: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).retrieval_write_digest_alignment,
