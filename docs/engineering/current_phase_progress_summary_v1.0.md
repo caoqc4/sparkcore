@@ -1371,7 +1371,7 @@
 - `P9-2`
   - 中段
 - `P9-3`
-  - 前中段
+  - 中段
 - `P9-4`
   - 待开始
 - `P9-5`
@@ -1379,11 +1379,11 @@
 
 整体 `P9` 当前大约：
 
-- **`55% - 65%`**
+- **`60% - 70%`**
 
 当前更推荐的下一步：
 
-- **先对 `P9-3 Knowledge governance unification v7` 做一次小评估**
+- **开始 `P9-4 Scenario governance unification v7` 的第一刀**
 - 当前 `P9-3` 已开始显式产出：
   - `governance_unification_digest`
   - `source_budget_unification_summary`
@@ -1394,3 +1394,5 @@
   - runtime debug metadata
   - harness
 - 这说明 `P9-3` 已经不只是 convergence 字段可见，而是开始进入真实的 knowledge prompt / metadata 统一输出
+- 当前更值的下一步，已经不是继续深挖 `P9-3`，而是开始：
+  - `P9-4 Scenario governance unification v7`
