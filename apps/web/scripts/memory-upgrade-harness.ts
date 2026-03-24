@@ -3881,6 +3881,12 @@ function main() {
     gate_id: "p13_regression_gate_v1",
     stage: "P13-5",
     focus: "regression_acceptance_expansion",
+    blocking_items: [] as string[],
+    next_expansion_focus: [
+      "scenario_negative_coverage",
+      "close_readiness_consumption",
+      "remaining_acceptance_gaps"
+    ] as const,
     positive_contracts: {
       checks_passed: p13PositiveContracts.checks_passed,
       checks_total: p13PositiveContracts.checks_total,

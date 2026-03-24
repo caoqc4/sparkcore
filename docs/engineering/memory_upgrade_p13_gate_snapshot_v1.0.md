@@ -38,6 +38,8 @@
 
 当前 `p13_gate_snapshot` 的结果为：
 
+- `blocking_items = []`
+- `next_expansion_focus = scenario_negative_coverage / close_readiness_consumption / remaining_acceptance_gaps`
 - `positive_contracts = 4 / 4`
 - `metadata_consistency = 1 / 1`
 - `drift_guards = 2 / 2`
