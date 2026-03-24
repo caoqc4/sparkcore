@@ -55,15 +55,16 @@
   - 并已进入 prompt / assistant metadata / runtime debug / harness
 
 - `P8-5 Regression / acceptance expansion`
-  - 第一版已成立
+  - 第一版已成立，并开始接近更像正式阶段 gate 的形态
   - `p8_regression_gate` 已开始锁：
     - `namespace_governance_convergence_v3_ok`
     - `retention_lifecycle_convergence_v6_ok`
     - `knowledge_governance_convergence_v6_ok`
     - `scenario_governance_convergence_v6_ok`
+    - `convergence_metadata_consistency_v6_ok`
   - 当前结果：
-    - `checks_passed = 4`
-    - `checks_total = 4`
+    - `checks_passed = 5`
+    - `checks_total = 5`
     - `failed_checks = []`
     - `all_green = true`
     - `close_candidate = true`
@@ -74,46 +75,40 @@
 
 我现在的判断是：
 
-**`P8` 已经进入 `close-readiness` 前置区间。**
+**`P8` 已经从 `close-readiness` 前置区间推进到了更明确的后段。**
 
 如果给整体 `P8` 一个阶段进度，我会给：
 
-- **约 `75% - 80%`**
+- **约 `80%`**
 
 原因是：
 
 - 四条 convergence 主线都已经不再只是类型或文案存在
 - prompt / assistant metadata / runtime debug / harness 已形成较完整的四面事实
-- `P8-5` 也已经从待开始推进成阶段级第一版 gate
+- `P8-5` 也已经从第一版 gate 继续推进到了更像正式阶段 gate 的形态
 
-但同时，当前也还没到可以直接无条件写 `P8 close note` 的程度。
+但同时，当前也还没到“完全无需再判断就直接写 `P8 close note`”的程度。
 
 原因是：
 
 - `P8-1 ~ P8-4` 多数仍更接近“中段偏后”而不是“接近完成”
-- `P8-5` 虽然已经是第一版正式 gate，但还没有到明显“足够厚”的收官强度
+- `P8-1 ~ P8-4` 虽然都已进入 convergence 层，但多数仍更接近“中段偏后”而不是“接近完成”
 
 ---
 
 ## 4. 下一步建议
 
-当前更合理的不是直接写 `P8 close note`。
+当前更合理的已经不再是继续盲补单点。
 
 更合理的是：
 
-- 先做一次更明确的 `P8 close-ready` 判断前复盘
-- 判断是否还需要最后 `1` 刀：
-  - 继续补 `P8-4`
-  - 或继续补 `P8-5`
-
-我当前更倾向：
-
-- **优先再补 `P8-5` 一刀**
+- **开始进入正式的 `P8 close-ready` 判断**
 
 原因是：
 
-- 当前 `P8` 最缺的不是单点概念，而是阶段 gate 的厚度
-- 再补一刀 `P8-5`，会比继续深挖任一单线更有阶段收益
+- `P8-5` 当前已经不只是一版浅 gate，而开始具备阶段 gate 的密度
+- `P8-1 ~ P8-4` 也已经都进入了 prompt / assistant metadata / runtime debug / harness 的四面事实
+- 再继续盲补某一条单线，边际收益已经开始下降
 
 ---
 
@@ -121,9 +116,8 @@
 
 一句话结论：
 
-**`P8` 已进入 `close-readiness` 前置区间，但还不建议现在直接写 `P8 close note`。**
+**`P8` 已进入 `close-ready` 前夕，下一步已经适合做正式的 `close-ready` 判断。**
 
 更合理的下一步是：
 
-- **继续补一层 `P8-5`**
-- 然后再做正式的 `P8 close-ready` 判断
+- **开始正式判断是否可以写 `P8 close note`**
