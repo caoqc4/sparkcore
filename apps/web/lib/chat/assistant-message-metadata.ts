@@ -60,6 +60,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   knowledge_governance_classes?: string[];
   knowledge_governance_coordination_summary?: string | null;
   knowledge_budget_coordination_mode?: string | null;
+  knowledge_source_governance_summary?: string | null;
+  knowledge_governance_consistency_mode?: string | null;
   active_memory_namespace_id?: string | null;
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
@@ -154,6 +156,8 @@ export type BuildAssistantMessageMetadataInput = {
   knowledge_governance_classes?: string[];
   knowledge_governance_coordination_summary?: string | null;
   knowledge_budget_coordination_mode?: string | null;
+  knowledge_source_governance_summary?: string | null;
+  knowledge_governance_consistency_mode?: string | null;
   active_memory_namespace_id?: string | null;
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
@@ -282,7 +286,11 @@ export function buildAssistantMetadataSummaryGroups(
       governance_coordination_summary:
         input.knowledge_governance_coordination_summary ?? null,
       budget_coordination_mode:
-        input.knowledge_budget_coordination_mode ?? null
+        input.knowledge_budget_coordination_mode ?? null,
+      source_governance_summary:
+        input.knowledge_source_governance_summary ?? null,
+      governance_consistency_mode:
+        input.knowledge_governance_consistency_mode ?? null
     },
     memory_namespace: input.active_memory_namespace_id
       ? {
@@ -389,6 +397,10 @@ export function buildAssistantMetadataSummaryGroups(
         input.knowledge_governance_coordination_summary,
       knowledge_budget_coordination_mode:
         input.knowledge_budget_coordination_mode,
+      knowledge_source_governance_summary:
+        input.knowledge_source_governance_summary,
+      knowledge_governance_consistency_mode:
+        input.knowledge_governance_consistency_mode,
       active_memory_namespace_id: input.active_memory_namespace_id,
       active_memory_namespace_primary_layer:
         input.active_memory_namespace_primary_layer,

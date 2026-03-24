@@ -1288,3 +1288,9 @@
     - assistant metadata / reader
     - runtime debug metadata
     - harness
+  - knowledge summary 现在也开始显式产出：
+    - `source_governance_summary`
+    - `governance_consistency_mode`
+  - 当前最小 orchestration / consistency 已成立：
+    - `authoritative_source_priority`
+    - `authoritative_governance_aligned`

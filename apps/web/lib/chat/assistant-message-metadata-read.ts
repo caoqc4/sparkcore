@@ -689,6 +689,37 @@ export function getAssistantKnowledgeBudgetCoordinationMode(
   );
 }
 
+export function getAssistantKnowledgeSourceGovernanceSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(knowledgeMetadata, "source_governance_summary") ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_source_governance_summary"
+    )
+  );
+}
+
+export function getAssistantKnowledgeGovernanceConsistencyMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "governance_consistency_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_governance_consistency_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryTypesUsed(
   metadata: Record<string, unknown> | null | undefined
 ) {

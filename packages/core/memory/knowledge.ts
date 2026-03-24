@@ -24,6 +24,18 @@ export type KnowledgeBudgetCoordinationMode =
   | "reference_budget_support"
   | "mixed_budget_balance";
 
+export type KnowledgeSourceGovernanceSummary =
+  | "authoritative_source_priority"
+  | "contextual_source_balance"
+  | "reference_source_support"
+  | "mixed_source_orchestration";
+
+export type KnowledgeGovernanceConsistencyMode =
+  | "authoritative_governance_aligned"
+  | "contextual_governance_aligned"
+  | "reference_governance_aligned"
+  | "mixed_governance_aligned";
+
 export type KnowledgeResource = {
   resource_id: string;
   scope: MemoryScopeRef;

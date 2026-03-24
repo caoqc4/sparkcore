@@ -4,8 +4,10 @@ import type {
   KnowledgeBudgetCoordinationMode,
   KnowledgeGovernanceClass,
   KnowledgeGovernanceCoordinationSummary,
+  KnowledgeGovernanceConsistencyMode,
   KnowledgeSnapshot,
   KnowledgeScopeLayer,
+  KnowledgeSourceGovernanceSummary,
   KnowledgeSourceKind,
   ScenarioMemoryPackId,
 } from "../../../../packages/core/memory";
@@ -78,6 +80,38 @@ function resolveKnowledgeBudgetCoordinationMode(args: {
     case "mixed_governance_coordination":
     default:
       return "mixed_budget_balance";
+  }
+}
+
+function resolveKnowledgeSourceGovernanceSummary(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeSourceGovernanceSummary {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_source_priority";
+    case "contextual_balance_coordination":
+      return "contextual_source_balance";
+    case "reference_support_coordination":
+      return "reference_source_support";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_source_orchestration";
+  }
+}
+
+function resolveKnowledgeGovernanceConsistencyMode(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeGovernanceConsistencyMode {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_governance_aligned";
+    case "contextual_balance_coordination":
+      return "contextual_governance_aligned";
+    case "reference_support_coordination":
+      return "reference_governance_aligned";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_governance_aligned";
   }
 }
 
@@ -353,6 +387,12 @@ export function buildKnowledgePromptSection(args: {
   const budgetCoordinationMode = resolveKnowledgeBudgetCoordinationMode({
     coordinationSummary: governanceCoordinationSummary
   });
+  const sourceGovernanceSummary = resolveKnowledgeSourceGovernanceSummary({
+    coordinationSummary: governanceCoordinationSummary
+  });
+  const governanceConsistencyMode = resolveKnowledgeGovernanceConsistencyMode({
+    coordinationSummary: governanceCoordinationSummary
+  });
   const lines = [
     isZh ? "相关 Knowledge Layer：" : "Relevant Knowledge Layer:",
     ...selectedKnowledge.map((item, index) =>
@@ -374,6 +414,9 @@ export function buildKnowledgePromptSection(args: {
     isZh
       ? `当前 knowledge governance coordination = ${governanceCoordinationSummary}；budget coordination = ${budgetCoordinationMode}。`
       : `Current knowledge governance coordination = ${governanceCoordinationSummary}; budget coordination = ${budgetCoordinationMode}.`,
+    isZh
+      ? `当前 source orchestration = ${sourceGovernanceSummary}；consistency = ${governanceConsistencyMode}。`
+      : `Current source orchestration = ${sourceGovernanceSummary}; consistency = ${governanceConsistencyMode}.`,
     isZh
       ? args.activePackId === "project_ops"
         ? "把这些内容当作按 project/world/general 分层的外部知识来源；当前 project_ops prompt budget 会优先保留 project/world，并允许在预算内带入一条 general knowledge。不要把它们误写成用户长期偏好或线程即时状态。"
@@ -401,6 +444,12 @@ export function buildKnowledgeSummary(args: {
   const budgetCoordinationMode = resolveKnowledgeBudgetCoordinationMode({
     coordinationSummary: governanceCoordinationSummary
   });
+  const sourceGovernanceSummary = resolveKnowledgeSourceGovernanceSummary({
+    coordinationSummary: governanceCoordinationSummary
+  });
+  const governanceConsistencyMode = resolveKnowledgeGovernanceConsistencyMode({
+    coordinationSummary: governanceCoordinationSummary
+  });
 
   return {
     count: applicableKnowledge.length,
@@ -418,6 +467,8 @@ export function buildKnowledgeSummary(args: {
     ),
     governance_coordination_summary: governanceCoordinationSummary,
     budget_coordination_mode: budgetCoordinationMode,
+    source_governance_summary: sourceGovernanceSummary,
+    governance_consistency_mode: governanceConsistencyMode,
     scope_counts: {
       project: applicableKnowledge.filter(
         (item) => resolveKnowledgeScopeLayer(item) === "project"

@@ -21,7 +21,9 @@ import {
   getAssistantCompactedThreadSummaryText,
   getAssistantKnowledgeCount,
   getAssistantKnowledgeBudgetCoordinationMode,
+  getAssistantKnowledgeGovernanceConsistencyMode,
   getAssistantKnowledgeGovernanceCoordinationSummary,
+  getAssistantKnowledgeSourceGovernanceSummary,
   getAssistantKnowledgeScopeLayers,
   getAssistantThreadCrossLayerSurvivalMode,
   getAssistantThreadKeepDropGovernanceSummary,
@@ -2012,16 +2014,28 @@ function main() {
         "authoritative_priority_coordination" &&
       knowledgeSummary.budget_coordination_mode ===
         "authoritative_budget_priority" &&
+      knowledgeSummary.source_governance_summary ===
+        "authoritative_source_priority" &&
+      knowledgeSummary.governance_consistency_mode ===
+        "authoritative_governance_aligned" &&
       runtimeDebugMetadata.knowledge.governance_classes?.join(",") ===
         "authoritative,contextual,reference" &&
       runtimeDebugMetadata.knowledge.governance_coordination_summary ===
         "authoritative_priority_coordination" &&
       runtimeDebugMetadata.knowledge.budget_coordination_mode ===
         "authoritative_budget_priority" &&
+      runtimeDebugMetadata.knowledge.source_governance_summary ===
+        "authoritative_source_priority" &&
+      runtimeDebugMetadata.knowledge.governance_consistency_mode ===
+        "authoritative_governance_aligned" &&
       getAssistantKnowledgeGovernanceCoordinationSummary(assistantMetadata) ===
         "authoritative_priority_coordination" &&
       getAssistantKnowledgeBudgetCoordinationMode(assistantMetadata) ===
         "authoritative_budget_priority" &&
+      getAssistantKnowledgeSourceGovernanceSummary(assistantMetadata) ===
+        "authoritative_source_priority" &&
+      getAssistantKnowledgeGovernanceConsistencyMode(assistantMetadata) ===
+        "authoritative_governance_aligned" &&
       scenarioMemoryPack.governance_route_bias === "authoritative" &&
       scenarioMemoryPack.knowledge_budget_weight === 0.95 &&
       getAssistantMemoryScenarioPackGovernanceRouteBias(
@@ -2029,6 +2043,9 @@ function main() {
       ) === scenarioMemoryPack.governance_route_bias &&
       systemPrompt.includes(
         "Current knowledge governance coordination = authoritative_priority_coordination; budget coordination = authoritative_budget_priority."
+      ) &&
+      systemPrompt.includes(
+        "Current source orchestration = authoritative_source_priority; consistency = authoritative_governance_aligned."
       ) &&
       systemPrompt.includes(
         "Current governance route bias = authoritative."
@@ -2220,7 +2237,13 @@ function main() {
               assistantMetadata
             ),
           budget_coordination_mode:
-            getAssistantKnowledgeBudgetCoordinationMode(assistantMetadata)
+            getAssistantKnowledgeBudgetCoordinationMode(assistantMetadata),
+          source_governance_summary:
+            getAssistantKnowledgeSourceGovernanceSummary(assistantMetadata),
+          governance_consistency_mode:
+            getAssistantKnowledgeGovernanceConsistencyMode(
+              assistantMetadata
+            )
         },
         filtered_knowledge_summary: knowledgeSummary,
         assistant_metadata_thread_compaction: {

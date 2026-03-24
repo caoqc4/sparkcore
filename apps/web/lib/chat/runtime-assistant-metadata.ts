@@ -201,6 +201,10 @@ export function buildRuntimeAssistantMetadataInput(
       knowledgeSummary.governance_coordination_summary,
     knowledge_budget_coordination_mode:
       knowledgeSummary.budget_coordination_mode,
+    knowledge_source_governance_summary:
+      knowledgeSummary.source_governance_summary,
+    knowledge_governance_consistency_mode:
+      knowledgeSummary.governance_consistency_mode,
     active_memory_namespace_id:
       input.namespace.active_namespace?.namespace_id ?? null,
     active_memory_namespace_primary_layer:

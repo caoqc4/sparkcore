@@ -237,6 +237,18 @@ P7 首批要把 knowledge 从：
   - assistant metadata / metadata reader
   - runtime debug metadata
   - harness
+- 第二刀已成立的 orchestration 事实：
+  - knowledge summary 现在还会显式产出：
+    - `source_governance_summary`
+    - `governance_consistency_mode`
+  - 当前最小 orchestration / consistency 已成立：
+    - `authoritative_source_priority`
+    - `authoritative_governance_aligned`
+  - 这层输出已进入：
+    - knowledge prompt section
+    - assistant metadata / metadata reader
+    - runtime debug metadata
+    - harness
 
 当前阶段判断：
 
@@ -245,6 +257,8 @@ P7 首批要把 knowledge 从：
 - 当前已成立的主事实：
   - `governance_coordination_summary`
   - `budget_coordination_mode`
+  - `source_governance_summary`
+  - `governance_consistency_mode`
 - 这些事实已经进入：
   - knowledge prompt section
   - assistant metadata / metadata reader
