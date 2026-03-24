@@ -2692,6 +2692,12 @@ function buildRoleCoreMemoryHandoffPrompt(
     isZh
       ? `Knowledge phase snapshot：${handoff.knowledge_phase_snapshot_id}；${handoff.knowledge_phase_snapshot_summary}。`
       : `Knowledge phase snapshot: ${handoff.knowledge_phase_snapshot_id}; ${handoff.knowledge_phase_snapshot_summary}.`,
+    handoff.knowledge_scope_layers?.length ||
+    handoff.knowledge_governance_classes?.length
+      ? isZh
+        ? `Knowledge handoff depth：scope_layers = ${handoff.knowledge_scope_layers?.join(", ") || "none"}；governance_classes = ${handoff.knowledge_governance_classes?.join(", ") || "none"}。`
+        : `Knowledge handoff depth: scope_layers = ${handoff.knowledge_scope_layers?.join(", ") || "none"}; governance_classes = ${handoff.knowledge_governance_classes?.join(", ") || "none"}.`
+      : "",
     isZh
       ? `Scenario phase snapshot：${handoff.scenario_phase_snapshot_id}；${handoff.scenario_phase_snapshot_summary}。`
       : `Scenario phase snapshot: ${handoff.scenario_phase_snapshot_id}; ${handoff.scenario_phase_snapshot_summary}.`,
@@ -4053,6 +4059,8 @@ export async function runPreparedRuntimeTurn({
         knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
       knowledge_phase_snapshot_summary:
         knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary,
+      knowledge_scope_layers: knowledgeSummary.scope_layers,
+      knowledge_governance_classes: knowledgeSummary.governance_classes,
       scenario_phase_snapshot_id:
         scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
       scenario_phase_snapshot_summary:

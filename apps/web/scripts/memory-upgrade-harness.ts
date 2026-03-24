@@ -1319,6 +1319,8 @@ function main() {
         knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
       knowledge_phase_snapshot_summary:
         knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary,
+      knowledge_scope_layers: knowledgeSummary.scope_layers,
+      knowledge_governance_classes: knowledgeSummary.governance_classes,
       scenario_phase_snapshot_id:
         scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
       scenario_phase_snapshot_summary:
@@ -4809,6 +4811,12 @@ function main() {
       ) === compactedThreadSummary?.retained_fields.join(",") &&
       roleCorePacketForHarness.memory_handoff?.knowledge_phase_snapshot_id ===
         knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      roleCorePacketForHarness.memory_handoff?.knowledge_scope_layers?.join(
+        ","
+      ) === knowledgeSummary.scope_layers.join(",") &&
+      roleCorePacketForHarness.memory_handoff?.knowledge_governance_classes?.join(
+        ","
+      ) === knowledgeSummary.governance_classes.join(",") &&
       roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_id ===
         scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
       roleCorePacketForHarness.memory_handoff?.scenario_strategy_bundle_id ===
@@ -4827,6 +4835,12 @@ function main() {
       ) === compactedThreadSummary?.retained_fields.join(",") &&
       assistantRoleCorePacket.memory_handoff?.knowledge_phase_snapshot_summary ===
         knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary &&
+      assistantRoleCorePacket.memory_handoff?.knowledge_scope_layers?.join(
+        ","
+      ) === knowledgeSummary.scope_layers.join(",") &&
+      assistantRoleCorePacket.memory_handoff?.knowledge_governance_classes?.join(
+        ","
+      ) === knowledgeSummary.governance_classes.join(",") &&
       assistantRoleCorePacket.memory_handoff?.scenario_phase_snapshot_summary ===
         scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary &&
       assistantRoleCorePacket.memory_handoff?.scenario_strategy_bundle_id ===
@@ -4842,6 +4856,18 @@ function main() {
         roleCorePacketForHarness.memory_handoff?.retention_decision_group &&
       assistantDiagnosticRoleCorePacket.memory_handoff?.knowledge_phase_snapshot_id ===
         roleCorePacketForHarness.memory_handoff?.knowledge_phase_snapshot_id &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.knowledge_scope_layers?.join(
+        ","
+      ) ===
+        roleCorePacketForHarness.memory_handoff?.knowledge_scope_layers?.join(
+          ","
+        ) &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.knowledge_governance_classes?.join(
+        ","
+      ) ===
+        roleCorePacketForHarness.memory_handoff?.knowledge_governance_classes?.join(
+          ","
+        ) &&
       assistantDiagnosticRoleCorePacket.memory_handoff?.scenario_phase_snapshot_id ===
         roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_id &&
       assistantDiagnosticRoleCorePacket.memory_handoff?.scenario_strategy_bundle_id ===
@@ -4868,6 +4894,18 @@ function main() {
         ) &&
       assistantRoleCorePacket.memory_handoff?.knowledge_phase_snapshot_id ===
         roleCorePacketForHarness.memory_handoff?.knowledge_phase_snapshot_id &&
+      assistantRoleCorePacket.memory_handoff?.knowledge_scope_layers?.join(
+        ","
+      ) ===
+        roleCorePacketForHarness.memory_handoff?.knowledge_scope_layers?.join(
+          ","
+        ) &&
+      assistantRoleCorePacket.memory_handoff?.knowledge_governance_classes?.join(
+        ","
+      ) ===
+        roleCorePacketForHarness.memory_handoff?.knowledge_governance_classes?.join(
+          ","
+        ) &&
       assistantRoleCorePacket.memory_handoff?.scenario_phase_snapshot_id ===
         roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_id &&
       assistantRoleCorePacket.memory_handoff?.scenario_strategy_bundle_id ===
@@ -4886,6 +4924,18 @@ function main() {
         ) &&
       assistantDiagnosticRoleCorePacket.memory_handoff?.knowledge_phase_snapshot_summary ===
         roleCorePacketForHarness.memory_handoff?.knowledge_phase_snapshot_summary &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.knowledge_scope_layers?.join(
+        ","
+      ) ===
+        roleCorePacketForHarness.memory_handoff?.knowledge_scope_layers?.join(
+          ","
+        ) &&
+      assistantDiagnosticRoleCorePacket.memory_handoff?.knowledge_governance_classes?.join(
+        ","
+      ) ===
+        roleCorePacketForHarness.memory_handoff?.knowledge_governance_classes?.join(
+          ","
+        ) &&
       assistantDiagnosticRoleCorePacket.memory_handoff?.scenario_phase_snapshot_summary ===
         roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_summary &&
       assistantDiagnosticRoleCorePacket.memory_handoff?.scenario_strategy_bundle_id ===
@@ -4927,6 +4977,16 @@ function main() {
           ""
       ) &&
       systemPrompt.includes(
+        roleCorePacketForHarness.memory_handoff?.knowledge_scope_layers?.join(
+          ", "
+        ) ?? ""
+      ) &&
+      systemPrompt.includes(
+        roleCorePacketForHarness.memory_handoff?.knowledge_governance_classes?.join(
+          ", "
+        ) ?? ""
+      ) &&
+      systemPrompt.includes(
         roleCorePacketForHarness.memory_handoff?.scenario_phase_snapshot_id ??
           ""
       ) &&
@@ -4949,14 +5009,14 @@ function main() {
   );
   const p16PacketConsumptionSnapshot = {
     packet_handoff_readiness:
-      "scenario_depth_started_not_close_ready" as const,
-    progress_range: "55% - 60%" as const,
+      "knowledge_depth_started_not_close_ready" as const,
+    progress_range: "65% - 70%" as const,
     close_note_recommended: false,
     blocking_items: [] as string[],
     non_blocking_items: [
       "close_note_handoff_packet_consumption",
       "packet_acceptance_gap_structuring",
-      "remaining_knowledge_depth_alignment"
+      "remaining_packet_gap_cleanup"
     ] as const,
     tail_candidate_items: [
       "packet_output_symmetry_cleanup",
@@ -4977,8 +5037,8 @@ function main() {
   const p16PacketConsumptionChecks = {
     role_core_memory_handoff_close_note_consumption_v1_ok:
       p16PacketConsumptionSnapshot.packet_handoff_readiness ===
-        "scenario_depth_started_not_close_ready" &&
-      p16PacketConsumptionSnapshot.progress_range === "55% - 60%" &&
+        "knowledge_depth_started_not_close_ready" &&
+      p16PacketConsumptionSnapshot.progress_range === "65% - 70%" &&
       p16PacketConsumptionSnapshot.close_note_recommended === false &&
       p16PacketConsumptionSnapshot.blocking_items.length === 0 &&
       p16PacketConsumptionSnapshot.acceptance_gap_buckets.blocking === 0 &&

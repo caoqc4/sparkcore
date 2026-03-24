@@ -32,11 +32,11 @@
 
 当前 `p16_gate_snapshot` 的结果为：
 
-- `packet_handoff_readiness = scenario_depth_started_not_close_ready`
-- `progress_range = 55% - 60%`
+- `packet_handoff_readiness = knowledge_depth_started_not_close_ready`
+- `progress_range = 65% - 70%`
 - `close_note_recommended = false`
 - `blocking_items = []`
-- `non_blocking_items = close_note_handoff_packet_consumption / packet_acceptance_gap_structuring / remaining_knowledge_depth_alignment`
+- `non_blocking_items = close_note_handoff_packet_consumption / packet_acceptance_gap_structuring / remaining_packet_gap_cleanup`
 - `tail_candidate_items = packet_output_symmetry_cleanup / non_blocking_prompt_coverage_alignment / packet_negative_coverage_expansion`
 - `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
 - `next_expansion_focus = retention_role_core_handoff_depth / close_note_handoff_packet / remaining_packet_acceptance_gaps`
@@ -97,6 +97,11 @@
 - `scenario_strategy_bundle_id`
 - `scenario_orchestration_mode`
 
+当前 knowledge handoff 也已经从单纯 phase snapshot summary 继续推进到了更细的 role-core depth：
+
+- `knowledge_scope_layers`
+- `knowledge_governance_classes`
+
 ### 3.4 当前还没开始锁的面
 
 当前这份 gate 还没有正式锁住：
@@ -124,6 +129,7 @@
 - `system prompt` 当前也已开始消费同一组 handoff summary
 - `retention_decision_group / retention_retained_fields` 当前也已进入 packet / metadata / prompt 对齐
 - `scenario_strategy_bundle_id / scenario_orchestration_mode` 当前也已进入 packet / metadata / prompt 对齐
+- `knowledge_scope_layers / knowledge_governance_classes` 当前也已进入 packet / metadata / prompt 对齐
 - `p16_gate_snapshot` 当前也已开始显式暴露 `packet_handoff_readiness / acceptance_gap_buckets`
 
 当前还不适合直接把它理解成：

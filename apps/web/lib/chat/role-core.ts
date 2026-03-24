@@ -51,6 +51,8 @@ export type RoleCorePacket = {
     retention_retained_fields?: string[];
     knowledge_phase_snapshot_id: string;
     knowledge_phase_snapshot_summary: string;
+    knowledge_scope_layers?: string[];
+    knowledge_governance_classes?: string[];
     scenario_phase_snapshot_id: string;
     scenario_phase_snapshot_summary: string;
     scenario_strategy_bundle_id?: string | null;
