@@ -1571,6 +1571,91 @@ export function getAssistantKnowledgeGovernanceConsolidationMode(
   );
 }
 
+export function getAssistantKnowledgeGovernanceCoordinationDigest(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "governance_coordination_digest"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_governance_coordination_digest"
+    )
+  );
+}
+
+export function getAssistantKnowledgeSourceBudgetCoordinationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "source_budget_coordination_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_source_budget_coordination_summary"
+    )
+  );
+}
+
+export function getAssistantKnowledgeGovernanceCoordinationModeV9(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "governance_coordination_mode_v9"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_governance_coordination_mode_v9"
+    )
+  );
+}
+
+export function getAssistantKnowledgeSelectionRuntimeCoordinationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "selection_runtime_coordination_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_selection_runtime_coordination_summary"
+    )
+  );
+}
+
+export function getAssistantKnowledgeGovernanceCoordinationReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "governance_coordination_reuse_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_governance_coordination_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryTypesUsed(
   metadata: Record<string, unknown> | null | undefined
 ) {

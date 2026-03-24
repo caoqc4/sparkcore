@@ -7,15 +7,20 @@ import type {
   KnowledgeGovernanceCoordinationSummary,
   KnowledgeGovernanceConsolidationDigestId,
   KnowledgeGovernanceConsolidationMode,
+  KnowledgeGovernanceCoordinationDigestId,
+  KnowledgeGovernanceCoordinationMode,
   KnowledgeGovernanceConsistencyMode,
   KnowledgeGovernanceAlignmentMode,
+  KnowledgeGovernanceCoordinationReuseMode,
   KnowledgeGovernanceUnificationDigestId,
   KnowledgeGovernanceUnificationMode,
   KnowledgeSnapshot,
   KnowledgeScopeLayer,
   KnowledgeSourceBudgetAlignmentSummary,
+  KnowledgeSourceBudgetCoordinationSummary,
   KnowledgeSourceBudgetConsolidationSummary,
   KnowledgeSourceBudgetUnificationSummary,
+  KnowledgeSelectionRuntimeCoordinationSummary,
   KnowledgeSourceGovernanceSummary,
   KnowledgeSourceKind,
   ScenarioMemoryPackId,
@@ -43,6 +48,7 @@ type KnowledgeGovernanceSelectionPolicy = {
   prompt_limit: number;
   route_alignment_bonus_by_class: Record<KnowledgeGovernanceClass, number>;
   consolidation_bonus_by_class: Record<KnowledgeGovernanceClass, number>;
+  coordination_bonus_by_class: Record<KnowledgeGovernanceClass, number>;
 };
 
 function resolveKnowledgeGovernanceCoordinationSummary(args: {
@@ -274,6 +280,86 @@ function resolveKnowledgeGovernanceConsolidationMode(args: {
   }
 }
 
+function resolveKnowledgeGovernanceCoordinationDigest(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeGovernanceCoordinationDigestId {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_governance_coordination";
+    case "contextual_balance_coordination":
+      return "contextual_governance_coordination";
+    case "reference_support_coordination":
+      return "reference_governance_coordination";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_governance_coordination";
+  }
+}
+
+function resolveKnowledgeSourceBudgetCoordinationSummary(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeSourceBudgetCoordinationSummary {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_budget_source_coordination";
+    case "contextual_balance_coordination":
+      return "contextual_budget_source_coordination";
+    case "reference_support_coordination":
+      return "reference_budget_source_coordination";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_budget_source_coordination";
+  }
+}
+
+function resolveKnowledgeGovernanceCoordinationModeV9(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeGovernanceCoordinationMode {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_runtime_coordination";
+    case "contextual_balance_coordination":
+      return "contextual_runtime_coordination";
+    case "reference_support_coordination":
+      return "reference_runtime_coordination";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_runtime_coordination";
+  }
+}
+
+function resolveKnowledgeSelectionRuntimeCoordinationSummary(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeSelectionRuntimeCoordinationSummary {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_selection_runtime_coordination";
+    case "contextual_balance_coordination":
+      return "contextual_selection_runtime_coordination";
+    case "reference_support_coordination":
+      return "reference_selection_runtime_coordination";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_selection_runtime_coordination";
+  }
+}
+
+function resolveKnowledgeGovernanceCoordinationReuseMode(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeGovernanceCoordinationReuseMode {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_runtime_coordination_reuse";
+    case "contextual_balance_coordination":
+      return "contextual_runtime_coordination_reuse";
+    case "reference_support_coordination":
+      return "reference_runtime_coordination_reuse";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_runtime_coordination_reuse";
+  }
+}
+
 function resolveKnowledgeGovernanceSelectionPolicy(args: {
   applicableKnowledge: RuntimeKnowledgeSnippet[];
   activePackId?: ScenarioMemoryPackId | null;
@@ -296,6 +382,11 @@ function resolveKnowledgeGovernanceSelectionPolicy(args: {
           authoritative: 6,
           contextual: 2,
           reference: 0
+        },
+        coordination_bonus_by_class: {
+          authoritative: 7,
+          contextual: 2,
+          reference: 0
         }
       };
     case "contextual_balance_coordination":
@@ -310,6 +401,11 @@ function resolveKnowledgeGovernanceSelectionPolicy(args: {
           authoritative: 1,
           contextual: 5,
           reference: 0
+        },
+        coordination_bonus_by_class: {
+          authoritative: 1,
+          contextual: 6,
+          reference: 1
         }
       };
     case "reference_support_coordination":
@@ -324,6 +420,11 @@ function resolveKnowledgeGovernanceSelectionPolicy(args: {
           authoritative: 0,
           contextual: 1,
           reference: 5
+        },
+        coordination_bonus_by_class: {
+          authoritative: 0,
+          contextual: 1,
+          reference: 6
         }
       };
     case "mixed_governance_coordination":
@@ -339,6 +440,11 @@ function resolveKnowledgeGovernanceSelectionPolicy(args: {
           authoritative: 3,
           contextual: 3,
           reference: 2
+        },
+        coordination_bonus_by_class: {
+          authoritative: 3,
+          contextual: 3,
+          reference: 3
         }
       };
   }
@@ -587,12 +693,18 @@ export function selectKnowledgeForPrompt(args: {
         selectionPolicy.consolidation_bonus_by_class[
           leftWeighting.governance_class
         ] +
+        selectionPolicy.coordination_bonus_by_class[
+          leftWeighting.governance_class
+        ] +
         selectionPolicy.route_alignment_bonus_by_class[
           leftWeighting.governance_class
         ];
       const rightTotal =
         rightWeighting.total_weight +
         selectionPolicy.consolidation_bonus_by_class[
+          rightWeighting.governance_class
+        ] +
+        selectionPolicy.coordination_bonus_by_class[
           rightWeighting.governance_class
         ] +
         selectionPolicy.route_alignment_bonus_by_class[
@@ -677,6 +789,26 @@ export function buildKnowledgePromptSection(args: {
     resolveKnowledgeGovernanceConsolidationMode({
       coordinationSummary: governanceCoordinationSummary
     });
+  const governanceCoordinationDigest =
+    resolveKnowledgeGovernanceCoordinationDigest({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const sourceBudgetCoordinationSummary =
+    resolveKnowledgeSourceBudgetCoordinationSummary({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const governanceCoordinationModeV9 =
+    resolveKnowledgeGovernanceCoordinationModeV9({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const selectionRuntimeCoordinationSummary =
+    resolveKnowledgeSelectionRuntimeCoordinationSummary({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const governanceCoordinationReuseMode =
+    resolveKnowledgeGovernanceCoordinationReuseMode({
+      coordinationSummary: governanceCoordinationSummary
+    });
   const lines = [
     isZh ? "相关 Knowledge Layer：" : "Relevant Knowledge Layer:",
     ...selectedKnowledge.map((item, index) =>
@@ -710,6 +842,12 @@ export function buildKnowledgePromptSection(args: {
     isZh
       ? `当前 governance consolidation = ${governanceConsolidationDigest}；budget/source consolidation = ${sourceBudgetConsolidationSummary}；consolidation mode = ${governanceConsolidationMode}。`
       : `Current governance consolidation = ${governanceConsolidationDigest}; budget/source consolidation = ${sourceBudgetConsolidationSummary}; consolidation mode = ${governanceConsolidationMode}.`,
+    isZh
+      ? `当前 governance coordination digest = ${governanceCoordinationDigest}；budget/source coordination = ${sourceBudgetCoordinationSummary}；coordination mode = ${governanceCoordinationModeV9}。`
+      : `Current governance coordination digest = ${governanceCoordinationDigest}; budget/source coordination = ${sourceBudgetCoordinationSummary}; coordination mode = ${governanceCoordinationModeV9}.`,
+    isZh
+      ? `当前 selection runtime coordination = ${selectionRuntimeCoordinationSummary}；coordination reuse = ${governanceCoordinationReuseMode}。`
+      : `Current selection runtime coordination = ${selectionRuntimeCoordinationSummary}; coordination reuse = ${governanceCoordinationReuseMode}.`,
     isZh
       ? args.activePackId === "project_ops"
         ? "把这些内容当作按 project/world/general 分层的外部知识来源；当前 project_ops prompt budget 会优先保留 project/world，并允许在预算内带入一条 general knowledge。不要把它们误写成用户长期偏好或线程即时状态。"
@@ -777,6 +915,26 @@ export function buildKnowledgeSummary(args: {
     resolveKnowledgeGovernanceConsolidationMode({
       coordinationSummary: governanceCoordinationSummary
     });
+  const governanceCoordinationDigest =
+    resolveKnowledgeGovernanceCoordinationDigest({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const sourceBudgetCoordinationSummary =
+    resolveKnowledgeSourceBudgetCoordinationSummary({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const governanceCoordinationModeV9 =
+    resolveKnowledgeGovernanceCoordinationModeV9({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const selectionRuntimeCoordinationSummary =
+    resolveKnowledgeSelectionRuntimeCoordinationSummary({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const governanceCoordinationReuseMode =
+    resolveKnowledgeGovernanceCoordinationReuseMode({
+      coordinationSummary: governanceCoordinationSummary
+    });
 
   return {
     count: applicableKnowledge.length,
@@ -806,6 +964,12 @@ export function buildKnowledgeSummary(args: {
     source_budget_consolidation_summary:
       sourceBudgetConsolidationSummary,
     governance_consolidation_mode: governanceConsolidationMode,
+    governance_coordination_digest: governanceCoordinationDigest,
+    source_budget_coordination_summary: sourceBudgetCoordinationSummary,
+    governance_coordination_mode_v9: governanceCoordinationModeV9,
+    selection_runtime_coordination_summary:
+      selectionRuntimeCoordinationSummary,
+    governance_coordination_reuse_mode: governanceCoordinationReuseMode,
     scope_counts: {
       project: applicableKnowledge.filter(
         (item) => resolveKnowledgeScopeLayer(item) === "project"

@@ -84,6 +84,11 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   knowledge_governance_consolidation_digest?: string | null;
   knowledge_source_budget_consolidation_summary?: string | null;
   knowledge_governance_consolidation_mode?: string | null;
+  knowledge_governance_coordination_digest?: string | null;
+  knowledge_source_budget_coordination_summary?: string | null;
+  knowledge_governance_coordination_mode_v9?: string | null;
+  knowledge_selection_runtime_coordination_summary?: string | null;
+  knowledge_governance_coordination_reuse_mode?: string | null;
   active_memory_namespace_id?: string | null;
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
@@ -232,6 +237,11 @@ export type BuildAssistantMessageMetadataInput = {
   knowledge_governance_consolidation_digest?: string | null;
   knowledge_source_budget_consolidation_summary?: string | null;
   knowledge_governance_consolidation_mode?: string | null;
+  knowledge_governance_coordination_digest?: string | null;
+  knowledge_source_budget_coordination_summary?: string | null;
+  knowledge_governance_coordination_mode_v9?: string | null;
+  knowledge_selection_runtime_coordination_summary?: string | null;
+  knowledge_governance_coordination_reuse_mode?: string | null;
   active_memory_namespace_id?: string | null;
   active_memory_namespace_primary_layer?: string | null;
   active_memory_namespace_layers?: string[];
@@ -442,7 +452,17 @@ export function buildAssistantMetadataSummaryGroups(
       source_budget_consolidation_summary:
         input.knowledge_source_budget_consolidation_summary ?? null,
       governance_consolidation_mode:
-        input.knowledge_governance_consolidation_mode ?? null
+        input.knowledge_governance_consolidation_mode ?? null,
+      governance_coordination_digest:
+        input.knowledge_governance_coordination_digest ?? null,
+      source_budget_coordination_summary:
+        input.knowledge_source_budget_coordination_summary ?? null,
+      governance_coordination_mode_v9:
+        input.knowledge_governance_coordination_mode_v9 ?? null,
+      selection_runtime_coordination_summary:
+        input.knowledge_selection_runtime_coordination_summary ?? null,
+      governance_coordination_reuse_mode:
+        input.knowledge_governance_coordination_reuse_mode ?? null
     },
     memory_namespace: input.active_memory_namespace_id
       ? {
@@ -674,6 +694,16 @@ export function buildAssistantMetadataSummaryGroups(
         input.knowledge_source_budget_consolidation_summary,
       knowledge_governance_consolidation_mode:
         input.knowledge_governance_consolidation_mode,
+      knowledge_governance_coordination_digest:
+        input.knowledge_governance_coordination_digest,
+      knowledge_source_budget_coordination_summary:
+        input.knowledge_source_budget_coordination_summary,
+      knowledge_governance_coordination_mode_v9:
+        input.knowledge_governance_coordination_mode_v9,
+      knowledge_selection_runtime_coordination_summary:
+        input.knowledge_selection_runtime_coordination_summary,
+      knowledge_governance_coordination_reuse_mode:
+        input.knowledge_governance_coordination_reuse_mode,
       active_memory_namespace_id: input.active_memory_namespace_id,
       active_memory_namespace_primary_layer:
         input.active_memory_namespace_primary_layer,

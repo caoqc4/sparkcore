@@ -25,12 +25,17 @@ import {
   getAssistantKnowledgeGovernanceConvergenceDigest,
   getAssistantKnowledgeGovernanceConsistencyMode,
   getAssistantKnowledgeGovernanceCoordinationSummary,
+  getAssistantKnowledgeGovernanceCoordinationDigest,
+  getAssistantKnowledgeGovernanceCoordinationModeV9,
   getAssistantKnowledgeGovernanceConsolidationDigest,
   getAssistantKnowledgeGovernanceConsolidationMode,
+  getAssistantKnowledgeGovernanceCoordinationReuseMode,
   getAssistantKnowledgeGovernanceUnificationDigest,
   getAssistantKnowledgeGovernanceUnificationMode,
   getAssistantKnowledgeSourceBudgetAlignmentSummary,
+  getAssistantKnowledgeSourceBudgetCoordinationSummary,
   getAssistantKnowledgeSourceBudgetConsolidationSummary,
+  getAssistantKnowledgeSelectionRuntimeCoordinationSummary,
   getAssistantKnowledgeSourceBudgetUnificationSummary,
   getAssistantKnowledgeSourceGovernanceSummary,
   getAssistantKnowledgeScopeLayers,
@@ -3182,6 +3187,48 @@ function main() {
       }).retain === false
   } as const;
 
+  const p11KnowledgeCoordinationChecks = {
+    knowledge_governance_coordination_v9_ok:
+      knowledgeSummary.governance_coordination_digest ===
+        "authoritative_governance_coordination" &&
+      knowledgeSummary.source_budget_coordination_summary ===
+        "authoritative_budget_source_coordination" &&
+      knowledgeSummary.governance_coordination_mode_v9 ===
+        "authoritative_runtime_coordination" &&
+      knowledgeSummary.selection_runtime_coordination_summary ===
+        "authoritative_selection_runtime_coordination" &&
+      knowledgeSummary.governance_coordination_reuse_mode ===
+        "authoritative_runtime_coordination_reuse" &&
+      getAssistantKnowledgeGovernanceCoordinationDigest(assistantMetadata) ===
+        knowledgeSummary.governance_coordination_digest &&
+      getAssistantKnowledgeSourceBudgetCoordinationSummary(
+        assistantMetadata
+      ) === knowledgeSummary.source_budget_coordination_summary &&
+      getAssistantKnowledgeGovernanceCoordinationModeV9(
+        assistantMetadata
+      ) === knowledgeSummary.governance_coordination_mode_v9 &&
+      getAssistantKnowledgeSelectionRuntimeCoordinationSummary(
+        assistantMetadata
+      ) === knowledgeSummary.selection_runtime_coordination_summary &&
+      getAssistantKnowledgeGovernanceCoordinationReuseMode(
+        assistantMetadata
+      ) === knowledgeSummary.governance_coordination_reuse_mode &&
+      runtimeDebugMetadata.knowledge.governance_coordination_digest ===
+        knowledgeSummary.governance_coordination_digest &&
+      runtimeDebugMetadata.knowledge.source_budget_coordination_summary ===
+        knowledgeSummary.source_budget_coordination_summary &&
+      runtimeDebugMetadata.knowledge.governance_coordination_mode_v9 ===
+        knowledgeSummary.governance_coordination_mode_v9 &&
+      runtimeDebugMetadata.knowledge.selection_runtime_coordination_summary ===
+        knowledgeSummary.selection_runtime_coordination_summary &&
+      runtimeDebugMetadata.knowledge.governance_coordination_reuse_mode ===
+        knowledgeSummary.governance_coordination_reuse_mode &&
+      selectedKnowledgeForPrompt[0]?.title === "Onboarding checklist guide" &&
+      referenceOnlyProjectOpsSelection.length === 1 &&
+      referenceOnlyProjectOpsSelection[0]?.title ===
+        "General delivery note"
+  } as const;
+
   const p10RetentionConsolidationChecks = {
     retention_lifecycle_consolidation_v8_ok:
       compactedThreadSummary?.lifecycle_consolidation_digest ===
@@ -3574,6 +3621,26 @@ function main() {
             ),
           governance_consolidation_mode:
             getAssistantKnowledgeGovernanceConsolidationMode(
+              assistantMetadata
+            ),
+          governance_coordination_digest:
+            getAssistantKnowledgeGovernanceCoordinationDigest(
+              assistantMetadata
+            ),
+          source_budget_coordination_summary:
+            getAssistantKnowledgeSourceBudgetCoordinationSummary(
+              assistantMetadata
+            ),
+          governance_coordination_mode_v9:
+            getAssistantKnowledgeGovernanceCoordinationModeV9(
+              assistantMetadata
+            ),
+          selection_runtime_coordination_summary:
+            getAssistantKnowledgeSelectionRuntimeCoordinationSummary(
+              assistantMetadata
+            ),
+          governance_coordination_reuse_mode:
+            getAssistantKnowledgeGovernanceCoordinationReuseMode(
               assistantMetadata
             )
         },
@@ -3994,6 +4061,7 @@ function main() {
           p11NamespaceUnifiedConsolidationChecks,
         p10_retention_consolidation: p10RetentionConsolidationChecks,
         p11_retention_coordination: p11RetentionCoordinationChecks,
+        p11_knowledge_coordination: p11KnowledgeCoordinationChecks,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,
         p10_scenario_consolidation: p10ScenarioConsolidationChecks,
         p10_regression_gate: p10RegressionGate,

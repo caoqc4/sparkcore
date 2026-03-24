@@ -90,6 +90,36 @@ export type KnowledgeGovernanceConsolidationMode =
   | "reference_runtime_consolidated"
   | "mixed_runtime_consolidated";
 
+export type KnowledgeGovernanceCoordinationDigestId =
+  | "authoritative_governance_coordination"
+  | "contextual_governance_coordination"
+  | "reference_governance_coordination"
+  | "mixed_governance_coordination";
+
+export type KnowledgeSourceBudgetCoordinationSummary =
+  | "authoritative_budget_source_coordination"
+  | "contextual_budget_source_coordination"
+  | "reference_budget_source_coordination"
+  | "mixed_budget_source_coordination";
+
+export type KnowledgeGovernanceCoordinationMode =
+  | "authoritative_runtime_coordination"
+  | "contextual_runtime_coordination"
+  | "reference_runtime_coordination"
+  | "mixed_runtime_coordination";
+
+export type KnowledgeSelectionRuntimeCoordinationSummary =
+  | "authoritative_selection_runtime_coordination"
+  | "contextual_selection_runtime_coordination"
+  | "reference_selection_runtime_coordination"
+  | "mixed_selection_runtime_coordination";
+
+export type KnowledgeGovernanceCoordinationReuseMode =
+  | "authoritative_runtime_coordination_reuse"
+  | "contextual_runtime_coordination_reuse"
+  | "reference_runtime_coordination_reuse"
+  | "mixed_runtime_coordination_reuse";
+
 export type KnowledgeResource = {
   resource_id: string;
   scope: MemoryScopeRef;
