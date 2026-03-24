@@ -178,7 +178,8 @@
     - `P15-1 Namespace governance plane contract unification` 第一刀已成立
     - `P15-2 Retention governance plane consumption unification` 第一刀已成立
     - `P15-3 Knowledge governance plane consumption unification` 第一刀已成立
-    - 当前整体约 `30% - 35%`
+    - `P15-4 Scenario governance plane consumption unification` 第一刀已成立
+    - 当前整体约 `40% - 45%`
 - `P15-1 namespace governance plane contract unification` 当前已开始把 namespace fabric plane 继续推进到 phase snapshot / contract：
   - `resolveNamespaceGovernanceFabricPlanePhaseSnapshot(...)` 当前已把 namespace governance fabric plane 收成 phase snapshot surface
   - runtime debug / runtime write preview 当前都已开始复用这组 namespace phase snapshot 字段
@@ -193,12 +194,13 @@
     [memory_upgrade_p15_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p15_gate_snapshot_v1.0.md)
     为准
   - 当前 `p15_gate_snapshot`：
-    - `positive_contracts = 3 / 3`
-    - `overall = 3 / 3`
+    - `positive_contracts = 4 / 4`
+    - `overall = 4 / 4`
   - 当前 gate 已锁住：
     - namespace governance plane contract unification v1
     - retention governance plane consumption unification v1
     - knowledge governance plane consumption unification v1
+    - scenario governance plane consumption unification v1
 
 ---
 

@@ -166,6 +166,7 @@ import {
 } from "@/lib/chat/assistant-message-metadata-read";
 import {
   buildScenarioMemoryPackPromptSection,
+  resolveScenarioGovernanceFabricPlanePhaseSnapshot,
   type ActiveScenarioMemoryPack,
   resolveActiveScenarioMemoryPack,
   resolveScenarioMemoryPackStrategy
@@ -778,6 +779,8 @@ function main() {
   });
   const scenarioMemoryPackStrategy =
     resolveScenarioMemoryPackStrategy(scenarioMemoryPack);
+  const scenarioGovernanceFabricPlanePhaseSnapshot =
+    resolveScenarioGovernanceFabricPlanePhaseSnapshot(scenarioMemoryPack);
   expect(
     scenarioMemoryPack.pack_id === "project_ops",
     "Expected project-primary namespace to switch the active scenario memory pack to project_ops in P3."
@@ -4494,17 +4497,58 @@ function main() {
         "Current governance fabric plane = authoritative_governance_fabric_plane; budget/source governance fabric plane = authoritative_budget_source_governance_fabric_plane; fabric plane mode = authoritative_runtime_governance_fabric_plane; fabric plane reuse = authoritative_runtime_governance_fabric_plane_reuse."
       )
   } as const;
+  const p15ScenarioGovernancePlaneConsumptionChecks = {
+    scenario_governance_plane_consumption_unification_v1_ok:
+      scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id ===
+        "project_delivery_governance_fabric_plane_phase_snapshot" &&
+      scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary ===
+        "project_delivery_strategy_governance_fabric_plane_phase_snapshot" &&
+      scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode ===
+        "execution_runtime_governance_fabric_plane_reuse_phase_consumption" &&
+      scenarioGovernanceFabricPlanePhaseSnapshot
+        .governance_fabric_plane_digest_id ===
+        scenarioMemoryPack.governance_fabric_plane_digest_id &&
+      scenarioGovernanceFabricPlanePhaseSnapshot
+        .strategy_governance_fabric_plane_summary ===
+        scenarioMemoryPack.strategy_governance_fabric_plane_summary &&
+      scenarioGovernanceFabricPlanePhaseSnapshot
+        .orchestration_governance_fabric_plane_mode ===
+        scenarioMemoryPack.orchestration_governance_fabric_plane_mode &&
+      scenarioGovernanceFabricPlanePhaseSnapshot
+        .governance_fabric_plane_reuse_mode ===
+        scenarioMemoryPack.governance_fabric_plane_reuse_mode &&
+      scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_preferred_routes.join(
+        ","
+      ) === scenarioMemoryPack.preferred_routes.join(",") &&
+      scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_assembly_order.join(
+        ","
+      ) === scenarioMemoryPack.assembly_order.join(",") &&
+      runtimeDebugPack?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_id ===
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id &&
+      runtimeDebugPack?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_summary ===
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_summary &&
+      runtimeDebugPack?.governance_fabric_plane_phase_snapshot
+        ?.phase_snapshot_consumption_mode ===
+        scenarioGovernanceFabricPlanePhaseSnapshot.phase_snapshot_consumption_mode &&
+      scenarioMemoryPackPrompt.includes(
+        "Current governance fabric plane = project_delivery_governance_fabric_plane; strategy governance fabric plane = project_delivery_strategy_governance_fabric_plane; fabric plane mode = execution_runtime_governance_fabric_plane; fabric plane reuse = execution_runtime_governance_fabric_plane_reuse."
+      )
+  } as const;
   const p15PositiveContracts = summarizeGate(
     {
       ...p15NamespaceGovernancePlaneContractChecks,
       ...p15RetentionGovernancePlaneConsumptionChecks,
-      ...p15KnowledgeGovernancePlaneConsumptionChecks
+      ...p15KnowledgeGovernancePlaneConsumptionChecks,
+      ...p15ScenarioGovernancePlaneConsumptionChecks
     }
   );
   const p15RegressionGateChecks = {
     ...p15NamespaceGovernancePlaneContractChecks,
     ...p15RetentionGovernancePlaneConsumptionChecks,
-    ...p15KnowledgeGovernancePlaneConsumptionChecks
+    ...p15KnowledgeGovernancePlaneConsumptionChecks,
+    ...p15ScenarioGovernancePlaneConsumptionChecks
   } as const;
   const p15RegressionGateSummary = summarizeGate(p15RegressionGateChecks);
   const p15RegressionGate = {
@@ -5658,6 +5702,8 @@ function main() {
           p15RetentionGovernancePlaneConsumptionChecks,
         p15_knowledge_governance_plane_consumption:
           p15KnowledgeGovernancePlaneConsumptionChecks,
+        p15_scenario_governance_plane_consumption:
+          p15ScenarioGovernancePlaneConsumptionChecks,
         p15_regression_gate: p15RegressionGate,
         p15_gate_snapshot: p15GateSnapshot,
         p14_regression_gate: p14RegressionGate,

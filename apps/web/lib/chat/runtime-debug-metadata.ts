@@ -3,6 +3,7 @@ import type { RuntimeThreadStateRecall } from "@/lib/chat/memory-recall";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
 import {
+  resolveScenarioGovernanceFabricPlanePhaseSnapshot,
   resolveScenarioMemoryPackPolicy,
   resolveScenarioMemoryPackStrategy,
   type ActiveScenarioMemoryPack
@@ -47,6 +48,11 @@ export function buildRuntimeDebugMetadata(
     : null;
   const scenarioPackPolicy = input.scenario_memory_pack
     ? resolveScenarioMemoryPackPolicy(input.scenario_memory_pack)
+    : null;
+  const scenarioPackPhaseSnapshot = input.scenario_memory_pack
+    ? resolveScenarioGovernanceFabricPlanePhaseSnapshot(
+        input.scenario_memory_pack
+      )
     : null;
   const namespacePhaseSnapshot = input.active_memory_namespace
     ? resolveNamespaceGovernanceFabricPlanePhaseSnapshot(
@@ -156,6 +162,7 @@ export function buildRuntimeDebugMetadata(
                 .orchestration_governance_fabric_plane_mode,
             governance_fabric_plane_reuse_mode:
               input.scenario_memory_pack.governance_fabric_plane_reuse_mode,
+            governance_fabric_plane_phase_snapshot: scenarioPackPhaseSnapshot,
             strategy_bundle_id:
               scenarioPackStrategy?.strategy_bundle_id ?? null,
             strategy_assembly_order:

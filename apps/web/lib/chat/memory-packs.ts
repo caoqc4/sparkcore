@@ -403,6 +403,33 @@ export function resolveScenarioMemoryPackPolicy(
   };
 }
 
+export function resolveScenarioGovernanceFabricPlanePhaseSnapshot(
+  pack: Pick<
+    ActiveScenarioMemoryPack,
+    | "governance_fabric_plane_digest_id"
+    | "strategy_governance_fabric_plane_summary"
+    | "orchestration_governance_fabric_plane_mode"
+    | "governance_fabric_plane_reuse_mode"
+    | "preferred_routes"
+    | "assembly_order"
+  >
+) {
+  return {
+    phase_snapshot_id: `${pack.governance_fabric_plane_digest_id}_phase_snapshot`,
+    phase_snapshot_summary: `${pack.strategy_governance_fabric_plane_summary}_phase_snapshot`,
+    phase_snapshot_consumption_mode: `${pack.governance_fabric_plane_reuse_mode}_phase_consumption`,
+    governance_fabric_plane_digest_id: pack.governance_fabric_plane_digest_id,
+    strategy_governance_fabric_plane_summary:
+      pack.strategy_governance_fabric_plane_summary,
+    orchestration_governance_fabric_plane_mode:
+      pack.orchestration_governance_fabric_plane_mode,
+    governance_fabric_plane_reuse_mode:
+      pack.governance_fabric_plane_reuse_mode,
+    phase_snapshot_preferred_routes: pack.preferred_routes,
+    phase_snapshot_assembly_order: pack.assembly_order
+  };
+}
+
 function withWorldKnowledgeInfluence(
   pack: ScenarioMemoryPack,
   relevantKnowledge?: RuntimeKnowledgeSnippet[]
