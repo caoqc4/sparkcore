@@ -1234,7 +1234,7 @@
 
 整体 `P7` 当前大约：
 
-- **`45% - 55%`**
+- **`50% - 60%`**
 
 当前更推荐的下一步：
 
@@ -1273,6 +1273,34 @@
     - `anchor_keep_consistent`
   - 这层输出已进入：
     - thread compaction summary text
+    - assistant metadata / reader
+    - runtime debug metadata
+    - harness
+- 当前已成立的 `P7-3` 主事实：
+  - knowledge 现在开始显式产出：
+    - `governance_coordination_summary`
+    - `budget_coordination_mode`
+    - `source_governance_summary`
+    - `governance_consistency_mode`
+  - 当前最小 orchestration / consistency 已成立：
+    - `authoritative_priority_coordination`
+    - `authoritative_budget_priority`
+    - `authoritative_source_priority`
+    - `authoritative_governance_aligned`
+  - 这层输出已进入：
+    - knowledge prompt section
+    - assistant metadata / reader
+    - runtime debug metadata
+    - harness
+- 当前已成立的 `P7-4` 主事实：
+  - scenario pack 现在开始显式产出：
+    - `orchestration_digest_id`
+    - `strategy_rationale_summary`
+  - 当前最小 digest / rationale 已成立：
+    - `project_delivery_orchestration`
+    - `execution_priority_alignment`
+  - 这层输出已进入：
+    - prompt
     - assistant metadata / reader
     - runtime debug metadata
     - harness
