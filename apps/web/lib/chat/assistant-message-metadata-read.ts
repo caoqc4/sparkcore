@@ -1322,6 +1322,40 @@ export function getAssistantThreadLifecycleCoordinationAlignmentMode(
   );
 }
 
+export function getAssistantThreadKeepDropRuntimeCoordinationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "keep_drop_runtime_coordination_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_keep_drop_runtime_coordination_summary"
+    )
+  );
+}
+
+export function getAssistantThreadLifecycleCoordinationReuseMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const compactionMetadata = getAssistantThreadCompactionMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      compactionMetadata,
+      "lifecycle_coordination_reuse_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "compacted_thread_lifecycle_coordination_reuse_mode"
+    )
+  );
+}
+
 export function getAssistantKnowledgeGovernanceCoordinationSummary(
   metadata: Record<string, unknown> | null | undefined
 ) {

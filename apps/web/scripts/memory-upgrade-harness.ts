@@ -46,11 +46,13 @@ import {
   getAssistantThreadLifecycleConsolidationMode,
   getAssistantThreadLifecycleCoordinationAlignmentMode,
   getAssistantThreadLifecycleCoordinationDigest,
+  getAssistantThreadLifecycleCoordinationReuseMode,
   getAssistantThreadLifecycleCoordinationSummary,
   getAssistantThreadLifecycleGovernanceDigest,
   getAssistantThreadRetentionDecisionGroup,
   getAssistantThreadKeepDropConsolidationSummary,
   getAssistantThreadKeepDropConsolidationCoordinationSummary,
+  getAssistantThreadKeepDropRuntimeCoordinationSummary,
   getAssistantThreadRetentionPolicyId,
   getAssistantThreadSurvivalConsistencyMode,
   getAssistantThreadSurvivalRationale,
@@ -3101,6 +3103,10 @@ function main() {
         "anchor_keep_consolidation_coordination" &&
       compactedThreadSummary?.lifecycle_coordination_alignment_mode ===
         "anchor_consolidation_aligned" &&
+      compactedThreadSummary?.keep_drop_runtime_coordination_summary ===
+        "anchor_keep_runtime_coordination" &&
+      compactedThreadSummary?.lifecycle_coordination_reuse_mode ===
+        "anchor_runtime_coordination_reuse" &&
       getAssistantThreadLifecycleCoordinationDigest(assistantMetadata) ===
         compactedThreadSummary?.lifecycle_coordination_digest &&
       getAssistantThreadKeepDropConsolidationCoordinationSummary(
@@ -3109,6 +3115,12 @@ function main() {
       getAssistantThreadLifecycleCoordinationAlignmentMode(
         assistantMetadata
       ) === compactedThreadSummary?.lifecycle_coordination_alignment_mode &&
+      getAssistantThreadKeepDropRuntimeCoordinationSummary(
+        assistantMetadata
+      ) === compactedThreadSummary?.keep_drop_runtime_coordination_summary &&
+      getAssistantThreadLifecycleCoordinationReuseMode(
+        assistantMetadata
+      ) === compactedThreadSummary?.lifecycle_coordination_reuse_mode &&
       runtimeDebugMetadata.thread_compaction?.lifecycle_coordination_digest ===
         compactedThreadSummary?.lifecycle_coordination_digest &&
       runtimeDebugMetadata.thread_compaction
@@ -3117,6 +3129,12 @@ function main() {
       runtimeDebugMetadata.thread_compaction
         ?.lifecycle_coordination_alignment_mode ===
         compactedThreadSummary?.lifecycle_coordination_alignment_mode &&
+      runtimeDebugMetadata.thread_compaction
+        ?.keep_drop_runtime_coordination_summary ===
+        compactedThreadSummary?.keep_drop_runtime_coordination_summary &&
+      runtimeDebugMetadata.thread_compaction
+        ?.lifecycle_coordination_reuse_mode ===
+        compactedThreadSummary?.lifecycle_coordination_reuse_mode &&
       getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
         "Lifecycle coordination digest: anchor_preservation_coordination."
       ) &&
@@ -3126,6 +3144,12 @@ function main() {
       getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
         "Lifecycle coordination alignment: anchor_consolidation_aligned."
       ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Keep/drop runtime coordination: anchor_keep_runtime_coordination."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Lifecycle coordination reuse mode: anchor_runtime_coordination_reuse."
+      ) &&
       getThreadCompactionRetentionDecision({
         compactedThreadSummary: {
           ...compactedThreadSummary!,
@@ -3134,7 +3158,11 @@ function main() {
           keep_drop_consolidation_coordination_summary:
             "closed_drop_consolidation_coordination",
           lifecycle_coordination_alignment_mode:
-            "closed_consolidation_aligned"
+            "closed_consolidation_aligned",
+          keep_drop_runtime_coordination_summary:
+            "closed_drop_runtime_coordination",
+          lifecycle_coordination_reuse_mode:
+            "closed_runtime_coordination_reuse"
         }
       }).retain === false &&
       getThreadCompactionRetentionDecision({
@@ -3145,7 +3173,11 @@ function main() {
           keep_drop_consolidation_coordination_summary:
             "minimal_decay_consolidation_coordination",
           lifecycle_coordination_alignment_mode:
-            "minimal_consolidation_aligned"
+            "minimal_consolidation_aligned",
+          keep_drop_runtime_coordination_summary:
+            "minimal_decay_runtime_coordination",
+          lifecycle_coordination_reuse_mode:
+            "minimal_runtime_coordination_reuse"
         }
       }).retain === false
   } as const;
@@ -3590,6 +3622,14 @@ function main() {
             ),
           lifecycle_coordination_alignment_mode:
             getAssistantThreadLifecycleCoordinationAlignmentMode(
+              assistantMetadata
+            ),
+          keep_drop_runtime_coordination_summary:
+            getAssistantThreadKeepDropRuntimeCoordinationSummary(
+              assistantMetadata
+            ),
+          lifecycle_coordination_reuse_mode:
+            getAssistantThreadLifecycleCoordinationReuseMode(
               assistantMetadata
             )
         },

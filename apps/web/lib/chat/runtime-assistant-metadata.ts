@@ -354,6 +354,10 @@ export function buildRuntimeAssistantMetadataInput(
       null,
     compacted_thread_lifecycle_coordination_alignment_mode:
       input.compaction.summary?.lifecycle_coordination_alignment_mode ?? null,
+    compacted_thread_keep_drop_runtime_coordination_summary:
+      input.compaction.summary?.keep_drop_runtime_coordination_summary ?? null,
+    compacted_thread_lifecycle_coordination_reuse_mode:
+      input.compaction.summary?.lifecycle_coordination_reuse_mode ?? null,
     compacted_thread_retained_fields:
       input.compaction.summary?.retained_fields ?? [],
     follow_up_request_count: input.follow_up.request_count,

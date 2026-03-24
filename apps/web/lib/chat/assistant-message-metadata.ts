@@ -137,6 +137,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   compacted_thread_lifecycle_coordination_digest?: string | null;
   compacted_thread_keep_drop_consolidation_coordination_summary?: string | null;
   compacted_thread_lifecycle_coordination_alignment_mode?: string | null;
+  compacted_thread_keep_drop_runtime_coordination_summary?: string | null;
+  compacted_thread_lifecycle_coordination_reuse_mode?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -283,6 +285,8 @@ export type BuildAssistantMessageMetadataInput = {
   compacted_thread_lifecycle_coordination_digest?: string | null;
   compacted_thread_keep_drop_consolidation_coordination_summary?: string | null;
   compacted_thread_lifecycle_coordination_alignment_mode?: string | null;
+  compacted_thread_keep_drop_runtime_coordination_summary?: string | null;
+  compacted_thread_lifecycle_coordination_reuse_mode?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -563,6 +567,11 @@ export function buildAssistantMetadataSummaryGroups(
           lifecycle_coordination_alignment_mode:
             input.compacted_thread_lifecycle_coordination_alignment_mode ??
             null,
+          keep_drop_runtime_coordination_summary:
+            input.compacted_thread_keep_drop_runtime_coordination_summary ??
+            null,
+          lifecycle_coordination_reuse_mode:
+            input.compacted_thread_lifecycle_coordination_reuse_mode ?? null,
           retained_fields:
             input.compacted_thread_retained_fields ?? []
         }
@@ -767,6 +776,10 @@ export function buildAssistantMetadataSummaryGroups(
         input.compacted_thread_keep_drop_consolidation_coordination_summary,
       compacted_thread_lifecycle_coordination_alignment_mode:
         input.compacted_thread_lifecycle_coordination_alignment_mode,
+      compacted_thread_keep_drop_runtime_coordination_summary:
+        input.compacted_thread_keep_drop_runtime_coordination_summary,
+      compacted_thread_lifecycle_coordination_reuse_mode:
+        input.compacted_thread_lifecycle_coordination_reuse_mode,
       compacted_thread_retained_fields:
         input.compacted_thread_retained_fields,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,
