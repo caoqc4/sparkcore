@@ -13,7 +13,11 @@ import {
   isStoredMemoryRelationshipMemoryRecord,
   isStoredMemoryStaticProfile
 } from "@/lib/chat/memory-records";
-import { buildAgentSystemPrompt, buildVisibleMemoryRecord } from "@/lib/chat/runtime";
+import {
+  buildAgentSystemPrompt,
+  buildRoleCoreMemoryCloseNoteHandoffPrompt,
+  buildVisibleMemoryRecord
+} from "@/lib/chat/runtime";
 import {
   buildRoleCoreMemoryCloseNoteHandoffPacket,
   withRoleCoreMemoryHandoff
@@ -5102,7 +5106,7 @@ function main() {
   } as const;
   const p17CloseNoteReadinessSnapshot = {
     readinessJudgment: "close_ready",
-    progressRange: "20% - 25%",
+    progressRange: "30% - 35%",
     closeCandidate: p16RegressionGate.close_candidate,
     closeNoteRecommended: true,
     blockingItems: [] as string[],
@@ -5135,6 +5139,10 @@ function main() {
           ...p17CloseNoteReadinessSnapshot
         })
       : null;
+  const p17CloseNotePrompt = buildRoleCoreMemoryCloseNoteHandoffPrompt(
+    p17CloseNoteHandoffPacket,
+    "en"
+  );
   const p17CloseNoteHandoffPacketChecks = {
     role_core_memory_close_note_handoff_packet_v1_ok:
       p17CloseNoteHandoffPacket?.packet_version === "v1" &&
@@ -5232,7 +5240,30 @@ function main() {
       p17DiagnosticCloseNoteHandoffPacket.scenario.strategy_bundle_id ===
         p17CloseNoteHandoffPacket?.scenario.strategy_bundle_id &&
       p17DiagnosticCloseNoteHandoffPacket.scenario.orchestration_mode ===
-        p17CloseNoteHandoffPacket?.scenario.orchestration_mode
+        p17CloseNoteHandoffPacket?.scenario.orchestration_mode,
+    role_core_memory_close_note_handoff_prompt_surface_v1_ok:
+      p17CloseNotePrompt.includes("Role core close-note handoff") &&
+      p17CloseNotePrompt.includes(
+        p17CloseNoteHandoffPacket?.readiness_judgment ?? ""
+      ) &&
+      p17CloseNotePrompt.includes(
+        p17CloseNoteHandoffPacket?.progress_range ?? ""
+      ) &&
+      p17CloseNotePrompt.includes(
+        p17CloseNoteHandoffPacket?.namespace.phase_snapshot_id ?? ""
+      ) &&
+      p17CloseNotePrompt.includes(
+        p17CloseNoteHandoffPacket?.retention.phase_snapshot_id ?? ""
+      ) &&
+      p17CloseNotePrompt.includes(
+        p17CloseNoteHandoffPacket?.knowledge.phase_snapshot_id ?? ""
+      ) &&
+      p17CloseNotePrompt.includes(
+        p17CloseNoteHandoffPacket?.scenario.phase_snapshot_id ?? ""
+      ) &&
+      p17CloseNotePrompt.includes(
+        p17CloseNoteHandoffPacket?.non_blocking_items.join(", ") ?? ""
+      )
   } as const;
   const p17PositiveContracts = summarizeGate({
     role_core_memory_close_note_handoff_packet_v1_ok:
@@ -5242,9 +5273,14 @@ function main() {
     role_core_memory_close_note_handoff_metadata_consistency_v1_ok:
       p17CloseNoteHandoffPacketChecks.role_core_memory_close_note_handoff_metadata_consistency_v1_ok
   });
+  const p17PacketConsumption = summarizeGate({
+    role_core_memory_close_note_handoff_prompt_surface_v1_ok:
+      p17CloseNoteHandoffPacketChecks.role_core_memory_close_note_handoff_prompt_surface_v1_ok
+  });
   const p17RegressionGate = {
     positive_contracts: p17PositiveContracts,
     metadata_consistency: p17MetadataConsistency,
+    packet_consumption: p17PacketConsumption,
     ...summarizeGate(p17CloseNoteHandoffPacketChecks)
   } as const;
   const p17GateSnapshot = {
@@ -5269,6 +5305,11 @@ function main() {
       checks_passed: p17MetadataConsistency.checks_passed,
       checks_total: p17MetadataConsistency.checks_total,
       all_green: p17MetadataConsistency.all_green
+    },
+    packet_consumption: {
+      checks_passed: p17PacketConsumption.checks_passed,
+      checks_total: p17PacketConsumption.checks_total,
+      all_green: p17PacketConsumption.all_green
     },
     overall: {
       checks_passed: p17RegressionGate.checks_passed,

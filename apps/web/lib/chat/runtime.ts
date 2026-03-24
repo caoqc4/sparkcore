@@ -89,6 +89,7 @@ import {
 } from "@/lib/chat/session-context";
 import {
   type AgentRecord,
+  type RoleCoreMemoryCloseNoteHandoffPacket,
   type ReplyLanguageSource,
   type RoleCorePacket,
   type RuntimeReplyLanguage,
@@ -2714,6 +2715,47 @@ function buildRoleCoreMemoryHandoffPrompt(
     isZh
       ? "将这些 phase snapshot 视为当前 role-core 记忆交接基线；回答时保持 handoff 与 runtime memory surface 一致，不要把它们回退成更旧的散点 summary。"
       : "Treat these phase snapshots as the current role-core memory handoff baseline; keep responses aligned with the handoff and runtime memory surfaces instead of falling back to older fragmented summaries."
+  ];
+
+  return sections.join("\n");
+}
+
+export function buildRoleCoreMemoryCloseNoteHandoffPrompt(
+  closeNoteHandoffPacket: RoleCoreMemoryCloseNoteHandoffPacket | null,
+  replyLanguage: RuntimeReplyLanguage
+) {
+  if (!closeNoteHandoffPacket) {
+    return "";
+  }
+
+  const isZh = replyLanguage === "zh-Hans";
+  const sections = [
+    isZh
+      ? `Role core close-note handoff：packet_version = ${closeNoteHandoffPacket.packet_version}；readiness = ${closeNoteHandoffPacket.readiness_judgment}。`
+      : `Role core close-note handoff: packet_version = ${closeNoteHandoffPacket.packet_version}; readiness = ${closeNoteHandoffPacket.readiness_judgment}.`,
+    isZh
+      ? `Close-note progress：${closeNoteHandoffPacket.progress_range}；close_note_recommended = ${closeNoteHandoffPacket.close_note_recommended ? "true" : "false"}。`
+      : `Close-note progress: ${closeNoteHandoffPacket.progress_range}; close_note_recommended = ${closeNoteHandoffPacket.close_note_recommended ? "true" : "false"}.`,
+    isZh
+      ? `Namespace close-note section：${closeNoteHandoffPacket.namespace.phase_snapshot_id}；${closeNoteHandoffPacket.namespace.phase_snapshot_summary}。`
+      : `Namespace close-note section: ${closeNoteHandoffPacket.namespace.phase_snapshot_id}; ${closeNoteHandoffPacket.namespace.phase_snapshot_summary}.`,
+    closeNoteHandoffPacket.retention.phase_snapshot_id &&
+    closeNoteHandoffPacket.retention.phase_snapshot_summary
+      ? isZh
+        ? `Retention close-note section：${closeNoteHandoffPacket.retention.phase_snapshot_id}；${closeNoteHandoffPacket.retention.phase_snapshot_summary}；decision_group = ${closeNoteHandoffPacket.retention.decision_group ?? "none"}。`
+        : `Retention close-note section: ${closeNoteHandoffPacket.retention.phase_snapshot_id}; ${closeNoteHandoffPacket.retention.phase_snapshot_summary}; decision_group = ${closeNoteHandoffPacket.retention.decision_group ?? "none"}.`
+      : isZh
+        ? "Retention close-note section：none。"
+        : "Retention close-note section: none.",
+    isZh
+      ? `Knowledge close-note section：${closeNoteHandoffPacket.knowledge.phase_snapshot_id}；scope_layers = ${closeNoteHandoffPacket.knowledge.scope_layers.join(", ") || "none"}。`
+      : `Knowledge close-note section: ${closeNoteHandoffPacket.knowledge.phase_snapshot_id}; scope_layers = ${closeNoteHandoffPacket.knowledge.scope_layers.join(", ") || "none"}.`,
+    isZh
+      ? `Scenario close-note section：${closeNoteHandoffPacket.scenario.phase_snapshot_id}；strategy_bundle = ${closeNoteHandoffPacket.scenario.strategy_bundle_id ?? "none"}。`
+      : `Scenario close-note section: ${closeNoteHandoffPacket.scenario.phase_snapshot_id}; strategy_bundle = ${closeNoteHandoffPacket.scenario.strategy_bundle_id ?? "none"}.`,
+    isZh
+      ? `Close-note carry-through：blocking_items = ${closeNoteHandoffPacket.blocking_items.join(", ") || "none"}；non_blocking_items = ${closeNoteHandoffPacket.non_blocking_items.join(", ") || "none"}。`
+      : `Close-note carry-through: blocking_items = ${closeNoteHandoffPacket.blocking_items.join(", ") || "none"}; non_blocking_items = ${closeNoteHandoffPacket.non_blocking_items.join(", ") || "none"}.`
   ];
 
   return sections.join("\n");
