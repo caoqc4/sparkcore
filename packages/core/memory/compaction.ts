@@ -55,6 +55,20 @@ export type ThreadKeepDropGovernanceSummary =
   | "minimal_decay_priority"
   | "closed_drop_priority";
 
+export type ThreadLifecycleCoordinationSummary =
+  | "anchor_only_coordination"
+  | "anchor_context_bridge_coordination"
+  | "context_window_coordination"
+  | "minimal_context_coordination"
+  | "closed_decay_coordination";
+
+export type ThreadSurvivalConsistencyMode =
+  | "anchor_keep_consistent"
+  | "bridge_keep_consistent"
+  | "window_keep_consistent"
+  | "minimal_decay_consistent"
+  | "closed_drop_consistent";
+
 export type ThreadRetentionLayer = "anchor" | "context" | "window";
 
 export type ThreadRetentionLayerBudget = {
@@ -90,6 +104,8 @@ export type CompactedThreadSummary = {
   survival_rationale: ThreadSurvivalRationale;
   lifecycle_governance_digest: ThreadLifecycleGovernanceDigestId;
   keep_drop_governance_summary: ThreadKeepDropGovernanceSummary;
+  lifecycle_coordination_summary: ThreadLifecycleCoordinationSummary;
+  survival_consistency_mode: ThreadSurvivalConsistencyMode;
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;

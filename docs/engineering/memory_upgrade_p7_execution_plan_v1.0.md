@@ -166,6 +166,18 @@ P7 首批要把 retention 从：
   - assistant metadata / metadata reader
   - runtime debug metadata
   - harness
+- 第二刀已成立的 coordination 事实：
+  - retention 现在还会显式产出：
+    - `lifecycle_coordination_summary`
+    - `survival_consistency_mode`
+  - 当前最小 coordination / consistency 已成立：
+    - `anchor_only_coordination`
+    - `anchor_keep_consistent`
+  - 这层输出已进入：
+    - thread compaction summary text
+    - assistant metadata / metadata reader
+    - runtime debug metadata
+    - harness
 
 最小要求：
 

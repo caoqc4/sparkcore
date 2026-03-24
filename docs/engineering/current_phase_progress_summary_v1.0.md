@@ -1224,7 +1224,7 @@
 - `P7-1`
   - 前中段到中段之间
 - `P7-2`
-  - 前中段
+  - 前中段到中段之间
 - `P7-3`
   - 待开始
 - `P7-4`
@@ -1234,7 +1234,7 @@
 
 整体 `P7` 当前大约：
 
-- **`20% - 30%`**
+- **`25% - 35%`**
 
 当前更推荐的下一步：
 
@@ -1265,6 +1265,12 @@
   - 当前最小 digest / summary 已成立：
     - `anchor_preservation_governance`
     - `anchor_keep_priority`
+  - retention 现在也开始显式产出：
+    - `lifecycle_coordination_summary`
+    - `survival_consistency_mode`
+  - 当前最小 coordination / consistency 已成立：
+    - `anchor_only_coordination`
+    - `anchor_keep_consistent`
   - 这层输出已进入：
     - thread compaction summary text
     - assistant metadata / reader

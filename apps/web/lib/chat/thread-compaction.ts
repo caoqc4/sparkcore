@@ -4,6 +4,7 @@ import type {
   CompactedThreadSummary,
   ThreadCrossLayerSurvivalMode,
   ThreadKeepDropGovernanceSummary,
+  ThreadLifecycleCoordinationSummary,
   ThreadLifecycleGovernanceDigestId,
   ThreadRetentionDecisionGroup,
   ThreadRetentionLayer,
@@ -13,6 +14,7 @@ import type {
   ThreadRetentionMode,
   ThreadRetentionPolicyId,
   ThreadRetentionReason,
+  ThreadSurvivalConsistencyMode,
   ThreadSurvivalRationale
 } from "../../../../packages/core/memory";
 
@@ -349,6 +351,40 @@ function resolveThreadKeepDropGovernanceSummary(args: {
   }
 }
 
+function resolveThreadLifecycleCoordinationSummary(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadLifecycleCoordinationSummary {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_only_coordination";
+    case "continuity_bridge":
+      return "anchor_context_bridge_coordination";
+    case "window_replay":
+      return "context_window_coordination";
+    case "minimal_decay":
+      return "minimal_context_coordination";
+    case "closed_decay_prune":
+      return "closed_decay_coordination";
+  }
+}
+
+function resolveThreadSurvivalConsistencyMode(args: {
+  retentionDecisionGroup: ThreadRetentionDecisionGroup;
+}): ThreadSurvivalConsistencyMode {
+  switch (args.retentionDecisionGroup) {
+    case "anchor_preserve":
+      return "anchor_keep_consistent";
+    case "continuity_bridge":
+      return "bridge_keep_consistent";
+    case "window_replay":
+      return "window_keep_consistent";
+    case "minimal_decay":
+      return "minimal_decay_consistent";
+    case "closed_decay_prune":
+      return "closed_drop_consistent";
+  }
+}
+
 export function buildCompactedThreadSummary(args: {
   threadState: ThreadStateRecord | null | undefined;
   recentTurnCount: number;
@@ -413,6 +449,13 @@ export function buildCompactedThreadSummary(args: {
   const keepDropGovernanceSummary = resolveThreadKeepDropGovernanceSummary({
     retentionDecisionGroup
   });
+  const lifecycleCoordinationSummary =
+    resolveThreadLifecycleCoordinationSummary({
+      retentionDecisionGroup
+    });
+  const survivalConsistencyMode = resolveThreadSurvivalConsistencyMode({
+    retentionDecisionGroup
+  });
   const retainedFields = buildRetainedFields({
     threadState: args.threadState,
     retentionReason,
@@ -453,6 +496,8 @@ export function buildCompactedThreadSummary(args: {
     `Survival rationale: ${survivalRationale}.`,
     `Lifecycle governance digest: ${lifecycleGovernanceDigest}.`,
     `Keep/drop governance: ${keepDropGovernanceSummary}.`,
+    `Lifecycle coordination: ${lifecycleCoordinationSummary}.`,
+    `Survival consistency: ${survivalConsistencyMode}.`,
   ].filter((part): part is string => Boolean(part));
 
   return {
@@ -471,6 +516,8 @@ export function buildCompactedThreadSummary(args: {
     survival_rationale: survivalRationale,
     lifecycle_governance_digest: lifecycleGovernanceDigest,
     keep_drop_governance_summary: keepDropGovernanceSummary,
+    lifecycle_coordination_summary: lifecycleCoordinationSummary,
+    survival_consistency_mode: survivalConsistencyMode,
     retention_budget: retentionBudget,
     retention_layers: retentionLayers,
     retention_layer_budget: retentionLayerBudget,
@@ -540,7 +587,7 @@ export function buildThreadCompactionPromptSection(args: {
     isZh ? "线程压缩摘要：" : "Compacted thread summary:",
     isZh
       ? `${args.compactedThreadSummary.summary_text} 当前 retention mode = ${args.compactedThreadSummary.retention_mode}，retention reason = ${args.compactedThreadSummary.retention_reason}，section 顺序：${args.compactedThreadSummary.retention_section_order.join("、") || "无"}，保留字段：${args.compactedThreadSummary.retained_fields.join("、") || "无"}。把这段摘要当作线程历史压缩结果，而不是新的长期画像或外部知识。`
-      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; decision group = ${args.compactedThreadSummary.retention_decision_group}; survival rationale = ${args.compactedThreadSummary.survival_rationale}; lifecycle governance digest = ${args.compactedThreadSummary.lifecycle_governance_digest}; keep/drop governance = ${args.compactedThreadSummary.keep_drop_governance_summary}; section order: ${args.compactedThreadSummary.retention_section_order.join(", ") || "none"}; retention layers: ${args.compactedThreadSummary.retention_layers.join(", ") || "none"}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
+      : `${args.compactedThreadSummary.summary_text} Current retention mode = ${args.compactedThreadSummary.retention_mode}; retention reason = ${args.compactedThreadSummary.retention_reason}; decision group = ${args.compactedThreadSummary.retention_decision_group}; survival rationale = ${args.compactedThreadSummary.survival_rationale}; lifecycle governance digest = ${args.compactedThreadSummary.lifecycle_governance_digest}; keep/drop governance = ${args.compactedThreadSummary.keep_drop_governance_summary}; lifecycle coordination = ${args.compactedThreadSummary.lifecycle_coordination_summary}; survival consistency = ${args.compactedThreadSummary.survival_consistency_mode}; section order: ${args.compactedThreadSummary.retention_section_order.join(", ") || "none"}; retention layers: ${args.compactedThreadSummary.retention_layers.join(", ") || "none"}; retained fields: ${args.compactedThreadSummary.retained_fields.join(", ") || "none"}. Treat this as compacted thread history, not as a new long-term profile or external knowledge.`
   ].join("\n");
 }
 
@@ -568,6 +615,10 @@ export function buildThreadCompactionSummary(args: {
             args.compactedThreadSummary.lifecycle_governance_digest,
           keep_drop_governance_summary:
             args.compactedThreadSummary.keep_drop_governance_summary,
+          lifecycle_coordination_summary:
+            args.compactedThreadSummary.lifecycle_coordination_summary,
+          survival_consistency_mode:
+            args.compactedThreadSummary.survival_consistency_mode,
           retention_budget: args.compactedThreadSummary.retention_budget,
           retention_layers: args.compactedThreadSummary.retention_layers,
           retention_layer_budget:

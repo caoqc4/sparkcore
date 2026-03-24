@@ -23,9 +23,11 @@ import {
   getAssistantKnowledgeScopeLayers,
   getAssistantThreadCrossLayerSurvivalMode,
   getAssistantThreadKeepDropGovernanceSummary,
+  getAssistantThreadLifecycleCoordinationSummary,
   getAssistantThreadLifecycleGovernanceDigest,
   getAssistantThreadRetentionDecisionGroup,
   getAssistantThreadRetentionPolicyId,
+  getAssistantThreadSurvivalConsistencyMode,
   getAssistantThreadSurvivalRationale,
   getAssistantMemoryNamespacePolicyBundleId,
   getAssistantMemoryNamespacePolicyCoordinationSummary,
@@ -1950,6 +1952,10 @@ function main() {
         "anchor_preservation_governance" &&
       getAssistantThreadKeepDropGovernanceSummary(assistantMetadata) ===
         "anchor_keep_priority" &&
+      getAssistantThreadLifecycleCoordinationSummary(assistantMetadata) ===
+        "anchor_only_coordination" &&
+      getAssistantThreadSurvivalConsistencyMode(assistantMetadata) ===
+        "anchor_keep_consistent" &&
       runtimeDebugMetadata.thread_compaction?.retention_policy_id ===
         "focus_continuity_anchor" &&
       runtimeDebugMetadata.thread_compaction?.cross_layer_survival_mode ===
@@ -1962,6 +1968,10 @@ function main() {
         "anchor_preservation_governance" &&
       runtimeDebugMetadata.thread_compaction?.keep_drop_governance_summary ===
         "anchor_keep_priority" &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_coordination_summary ===
+        "anchor_only_coordination" &&
+      runtimeDebugMetadata.thread_compaction?.survival_consistency_mode ===
+        "anchor_keep_consistent" &&
       getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
         "Retention policy: focus_continuity_anchor."
       ) &&
@@ -1979,6 +1989,12 @@ function main() {
       ) &&
       getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
         "Keep/drop governance: anchor_keep_priority."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Lifecycle coordination: anchor_only_coordination."
+      ) &&
+      getAssistantCompactedThreadSummaryText(assistantMetadata)?.includes(
+        "Survival consistency: anchor_keep_consistent."
       ),
     knowledge_governance_weighting_v4_ok:
       projectKnowledgeWeight.governance_class === "authoritative" &&
@@ -2197,7 +2213,11 @@ function main() {
           lifecycle_governance_digest:
             getAssistantThreadLifecycleGovernanceDigest(assistantMetadata),
           keep_drop_governance_summary:
-            getAssistantThreadKeepDropGovernanceSummary(assistantMetadata)
+            getAssistantThreadKeepDropGovernanceSummary(assistantMetadata),
+          lifecycle_coordination_summary:
+            getAssistantThreadLifecycleCoordinationSummary(assistantMetadata),
+          survival_consistency_mode:
+            getAssistantThreadSurvivalConsistencyMode(assistantMetadata)
         },
         assistant_metadata_namespace: {
           primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata),

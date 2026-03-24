@@ -81,6 +81,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   compacted_thread_survival_rationale?: string | null;
   compacted_thread_lifecycle_governance_digest?: string | null;
   compacted_thread_keep_drop_governance_summary?: string | null;
+  compacted_thread_lifecycle_coordination_summary?: string | null;
+  compacted_thread_survival_consistency_mode?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -171,6 +173,8 @@ export type BuildAssistantMessageMetadataInput = {
   compacted_thread_survival_rationale?: string | null;
   compacted_thread_lifecycle_governance_digest?: string | null;
   compacted_thread_keep_drop_governance_summary?: string | null;
+  compacted_thread_lifecycle_coordination_summary?: string | null;
+  compacted_thread_survival_consistency_mode?: string | null;
   compacted_thread_retained_fields?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
@@ -319,6 +323,10 @@ export function buildAssistantMetadataSummaryGroups(
             input.compacted_thread_lifecycle_governance_digest ?? null,
           keep_drop_governance_summary:
             input.compacted_thread_keep_drop_governance_summary ?? null,
+          lifecycle_coordination_summary:
+            input.compacted_thread_lifecycle_coordination_summary ?? null,
+          survival_consistency_mode:
+            input.compacted_thread_survival_consistency_mode ?? null,
           retained_fields:
             input.compacted_thread_retained_fields ?? []
         }
@@ -411,6 +419,10 @@ export function buildAssistantMetadataSummaryGroups(
         input.compacted_thread_lifecycle_governance_digest,
       compacted_thread_keep_drop_governance_summary:
         input.compacted_thread_keep_drop_governance_summary,
+      compacted_thread_lifecycle_coordination_summary:
+        input.compacted_thread_lifecycle_coordination_summary,
+      compacted_thread_survival_consistency_mode:
+        input.compacted_thread_survival_consistency_mode,
       compacted_thread_retained_fields:
         input.compacted_thread_retained_fields,
       hidden_memory_exclusion_count: input.hidden_memory_exclusion_count,
