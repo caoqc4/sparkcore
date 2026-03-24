@@ -521,6 +521,23 @@ export function getAssistantMemoryNamespacePolicyDigestId(
   );
 }
 
+export function getAssistantMemoryNamespaceGovernanceConvergenceDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_convergence_digest_id"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_convergence_digest_id"
+    )
+  );
+}
+
 export function getAssistantMemoryNamespacePolicyCoordinationSummary(
   metadata: Record<string, unknown> | null | undefined
 ) {
@@ -587,6 +604,40 @@ export function getAssistantMemoryNamespaceWriteEscalationMode(
     getAssistantMetadataString(
       metadata,
       "active_memory_write_escalation_mode"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceGovernanceConvergenceSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "governance_convergence_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_governance_convergence_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const namespaceMetadata = getAssistantMemoryNamespaceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      namespaceMetadata,
+      "retrieval_write_digest_alignment"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "active_memory_namespace_retrieval_write_digest_alignment"
     )
   );
 }

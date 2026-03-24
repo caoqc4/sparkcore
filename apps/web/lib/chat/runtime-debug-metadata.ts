@@ -120,6 +120,9 @@ export function buildRuntimeDebugMetadata(
           policy_digest_id: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).policy_digest_id,
+          governance_convergence_digest_id: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_convergence_digest_id,
           policy_coordination_summary: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).policy_coordination_summary,
@@ -135,6 +138,12 @@ export function buildRuntimeDebugMetadata(
           write_escalation_mode: resolveRuntimeMemoryBoundary(
             input.active_memory_namespace
           ).write_escalation_mode,
+          governance_convergence_summary: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).governance_convergence_summary,
+          retrieval_write_digest_alignment: resolveRuntimeMemoryBoundary(
+            input.active_memory_namespace
+          ).retrieval_write_digest_alignment,
           refs: input.active_memory_namespace.refs
         }
       : null,

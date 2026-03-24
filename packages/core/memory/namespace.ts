@@ -29,6 +29,12 @@ export type MemoryNamespacePolicyDigestId =
   | "world_reference_orchestration"
   | "default_memory_orchestration";
 
+export type MemoryNamespaceGovernanceConvergenceDigestId =
+  | "thread_focus_governance_convergence"
+  | "project_coordination_governance_convergence"
+  | "world_reference_governance_convergence"
+  | "default_memory_governance_convergence";
+
 function getPrimaryNamespaceLayer(
   layers: MemoryNamespaceLayer[]
 ): MemoryNamespaceLayer {

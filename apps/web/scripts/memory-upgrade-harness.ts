@@ -34,9 +34,12 @@ import {
   getAssistantThreadSurvivalConsistencyMode,
   getAssistantThreadSurvivalRationale,
   getAssistantMemoryNamespacePolicyBundleId,
+  getAssistantMemoryNamespaceGovernanceConvergenceDigestId,
+  getAssistantMemoryNamespaceGovernanceConvergenceSummary,
   getAssistantMemoryNamespacePolicyCoordinationSummary,
   getAssistantMemoryNamespacePolicyDigestId,
   getAssistantMemoryNamespacePrimaryLayer,
+  getAssistantMemoryNamespaceRetrievalWriteDigestAlignment,
   getAssistantMemoryNamespaceRetrievalFallbackMode,
   getAssistantMemoryNamespaceRouteGovernanceMode,
   getAssistantMemoryNamespaceGovernanceConsistencyMode,
@@ -2340,21 +2343,33 @@ function main() {
           namespace_policy: {
             thread_bundle: threadBoundary.policy_bundle_id,
             thread_digest: threadBoundary.policy_digest_id,
+            thread_convergence_digest:
+              threadBoundary.governance_convergence_digest_id,
             thread_coordination: threadBoundary.policy_coordination_summary,
             thread_consistency: threadBoundary.governance_consistency_mode,
             thread_mode: threadBoundary.route_governance_mode,
             thread_retrieval_fallback:
               threadBoundary.retrieval_fallback_mode,
             thread_write_escalation: threadBoundary.write_escalation_mode,
+            thread_convergence_summary:
+              threadBoundary.governance_convergence_summary,
+            thread_digest_alignment:
+              threadBoundary.retrieval_write_digest_alignment,
             project_bundle: projectBoundary.policy_bundle_id,
             project_digest: projectBoundary.policy_digest_id,
+            project_convergence_digest:
+              projectBoundary.governance_convergence_digest_id,
             project_coordination: projectBoundary.policy_coordination_summary,
             project_consistency: projectBoundary.governance_consistency_mode,
             project_mode: projectBoundary.route_governance_mode,
             project_retrieval_fallback:
               projectBoundary.retrieval_fallback_mode,
             project_write_escalation:
-              projectBoundary.write_escalation_mode
+              projectBoundary.write_escalation_mode,
+            project_convergence_summary:
+              projectBoundary.governance_convergence_summary,
+            project_digest_alignment:
+              projectBoundary.retrieval_write_digest_alignment
           }
         },
         runtime_semantic_summary: semanticSummary,
@@ -2462,6 +2477,10 @@ function main() {
             getAssistantMemoryNamespacePolicyBundleId(assistantMetadata),
           policy_digest_id:
             getAssistantMemoryNamespacePolicyDigestId(assistantMetadata),
+          governance_convergence_digest_id:
+            getAssistantMemoryNamespaceGovernanceConvergenceDigestId(
+              assistantMetadata
+            ),
           policy_coordination_summary:
             getAssistantMemoryNamespacePolicyCoordinationSummary(
               assistantMetadata
@@ -2475,7 +2494,15 @@ function main() {
           retrieval_fallback_mode:
             getAssistantMemoryNamespaceRetrievalFallbackMode(assistantMetadata),
           write_escalation_mode:
-            getAssistantMemoryNamespaceWriteEscalationMode(assistantMetadata)
+            getAssistantMemoryNamespaceWriteEscalationMode(assistantMetadata),
+          governance_convergence_summary:
+            getAssistantMemoryNamespaceGovernanceConvergenceSummary(
+              assistantMetadata
+            ),
+          retrieval_write_digest_alignment:
+            getAssistantMemoryNamespaceRetrievalWriteDigestAlignment(
+              assistantMetadata
+            )
         },
         runtime_debug_metadata: {
           pack_id: runtimeDebugMetadata.memory.pack?.pack_id ?? null,
@@ -2519,6 +2546,9 @@ function main() {
             runtimeDebugMetadata.memory_namespace?.policy_bundle_id ?? null,
           namespace_policy_digest_id:
             runtimeDebugMetadata.memory_namespace?.policy_digest_id ?? null,
+          namespace_governance_convergence_digest_id:
+            runtimeDebugMetadata.memory_namespace?.governance_convergence_digest_id ??
+            null,
           namespace_policy_coordination_summary:
             runtimeDebugMetadata.memory_namespace?.policy_coordination_summary ??
             null,
@@ -2531,7 +2561,13 @@ function main() {
             runtimeDebugMetadata.memory_namespace?.retrieval_fallback_mode ??
             null,
           namespace_write_escalation_mode:
-            runtimeDebugMetadata.memory_namespace?.write_escalation_mode ?? null
+            runtimeDebugMetadata.memory_namespace?.write_escalation_mode ?? null,
+          namespace_governance_convergence_summary:
+            runtimeDebugMetadata.memory_namespace?.governance_convergence_summary ??
+            null,
+          namespace_retrieval_write_digest_alignment:
+            runtimeDebugMetadata.memory_namespace?.retrieval_write_digest_alignment ??
+            null
         },
         scenario_memory_pack: {
           pack_id: scenarioMemoryPack.pack_id,

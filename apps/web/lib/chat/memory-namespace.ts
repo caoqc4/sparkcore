@@ -5,6 +5,7 @@ import type { MemoryRecallRoute } from "@/lib/chat/memory-shared";
 import {
   buildActiveMemoryNamespace,
   type ActiveMemoryNamespace,
+  type MemoryNamespaceGovernanceConvergenceDigestId,
   type MemoryNamespaceLayer,
   type MemoryNamespacePolicyDigestId,
   type MemoryNamespacePolicyBundleId
@@ -19,6 +20,7 @@ export type RuntimeMemoryBoundary = {
   write_boundary: "default" | "thread" | "project" | "world";
   policy_bundle_id: MemoryNamespacePolicyBundleId;
   policy_digest_id: MemoryNamespacePolicyDigestId;
+  governance_convergence_digest_id: MemoryNamespaceGovernanceConvergenceDigestId;
   policy_coordination_summary:
     | "thread_focus_no_timeline"
     | "project_parallel_coordination"
@@ -44,6 +46,16 @@ export type RuntimeMemoryBoundary = {
     | "project_world_escalation"
     | "world_pinned"
     | "default_pinned";
+  governance_convergence_summary:
+    | "thread_focus_alignment"
+    | "project_coordination_alignment"
+    | "world_reference_alignment"
+    | "default_memory_alignment";
+  retrieval_write_digest_alignment:
+    | "thread_strict_outward_aligned"
+    | "project_parallel_balanced_aligned"
+    | "world_reference_pinned_aligned"
+    | "default_balanced_aligned";
   retrieval_route_order: MemoryRecallRoute[];
   write_fallback_order: Array<"thread" | "project" | "world" | "default">;
   allow_timeline_fallback: boolean;
@@ -127,11 +139,17 @@ export function buildMemoryNamespacePromptSection(args: {
       ? `当前 namespace policy digest：${boundary.policy_digest_id}。`
       : `Current namespace policy digest: ${boundary.policy_digest_id}.`,
     isZh
+      ? `当前 namespace governance convergence：${boundary.governance_convergence_digest_id}；alignment = ${boundary.governance_convergence_summary}。`
+      : `Current namespace governance convergence: ${boundary.governance_convergence_digest_id}; alignment = ${boundary.governance_convergence_summary}.`,
+    isZh
       ? `当前 coordination 摘要：${boundary.policy_coordination_summary}；consistency = ${boundary.governance_consistency_mode}。`
       : `Current coordination summary: ${boundary.policy_coordination_summary}; consistency = ${boundary.governance_consistency_mode}.`,
     isZh
       ? `当前 fallback 策略：retrieval = ${boundary.retrieval_fallback_mode}；write = ${boundary.write_escalation_mode}。`
       : `Current fallback policy: retrieval = ${boundary.retrieval_fallback_mode}; write = ${boundary.write_escalation_mode}.`,
+    isZh
+      ? `当前 retrieval/write digest alignment：${boundary.retrieval_write_digest_alignment}。`
+      : `Current retrieval/write digest alignment: ${boundary.retrieval_write_digest_alignment}.`,
     isZh
       ? "把这些 namespace 当作当前检索和注入的作用域边界，不要把 thread/project/world 的信息误压回单一用户长期偏好。"
       : "Treat these namespaces as the active retrieval and injection boundary; do not collapse thread, project, or world context back into a single long-term user preference."
@@ -154,11 +172,16 @@ export function buildMemoryNamespaceSummary(args: {
     selection_reason: args.namespace.selection_reason,
     policy_bundle_id: boundary.policy_bundle_id,
     policy_digest_id: boundary.policy_digest_id,
+    governance_convergence_digest_id:
+      boundary.governance_convergence_digest_id,
     policy_coordination_summary: boundary.policy_coordination_summary,
     governance_consistency_mode: boundary.governance_consistency_mode,
     route_governance_mode: boundary.route_governance_mode,
     retrieval_fallback_mode: boundary.retrieval_fallback_mode,
-    write_escalation_mode: boundary.write_escalation_mode
+    write_escalation_mode: boundary.write_escalation_mode,
+    governance_convergence_summary: boundary.governance_convergence_summary,
+    retrieval_write_digest_alignment:
+      boundary.retrieval_write_digest_alignment
   };
 }
 
@@ -172,11 +195,15 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "thread",
         policy_bundle_id: "thread_strict_focus",
         policy_digest_id: "thread_focus_orchestration",
+        governance_convergence_digest_id:
+          "thread_focus_governance_convergence",
         policy_coordination_summary: "thread_focus_no_timeline",
         governance_consistency_mode: "retrieval_strict_write_outward",
         route_governance_mode: "thread_strict",
         retrieval_fallback_mode: "strict_no_timeline",
         write_escalation_mode: "thread_outward_escalation",
+        governance_convergence_summary: "thread_focus_alignment",
+        retrieval_write_digest_alignment: "thread_strict_outward_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode"],
         write_fallback_order: ["thread", "project", "world", "default"],
         allow_timeline_fallback: false,
@@ -191,11 +218,16 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "project",
         policy_bundle_id: "project_balanced_coordination",
         policy_digest_id: "project_coordination_orchestration",
+        governance_convergence_digest_id:
+          "project_coordination_governance_convergence",
         policy_coordination_summary: "project_parallel_coordination",
         governance_consistency_mode: "retrieval_write_balanced",
         route_governance_mode: "project_balanced",
         retrieval_fallback_mode: "parallel_timeline_allowed",
         write_escalation_mode: "project_world_escalation",
+        governance_convergence_summary: "project_coordination_alignment",
+        retrieval_write_digest_alignment:
+          "project_parallel_balanced_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
         write_fallback_order: ["project", "world", "default"],
         allow_timeline_fallback: true,
@@ -210,11 +242,15 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "world",
         policy_bundle_id: "world_reference_exploration",
         policy_digest_id: "world_reference_orchestration",
+        governance_convergence_digest_id:
+          "world_reference_governance_convergence",
         policy_coordination_summary: "world_timeline_reference",
         governance_consistency_mode: "retrieval_timeline_write_pinned",
         route_governance_mode: "world_expansive",
         retrieval_fallback_mode: "timeline_preferred",
         write_escalation_mode: "world_pinned",
+        governance_convergence_summary: "world_reference_alignment",
+        retrieval_write_digest_alignment: "world_reference_pinned_aligned",
         retrieval_route_order: ["thread_state", "profile", "timeline", "episode"],
         write_fallback_order: ["world", "default"],
         allow_timeline_fallback: true,
@@ -229,11 +265,15 @@ export function resolveRuntimeMemoryBoundary(
         write_boundary: "default",
         policy_bundle_id: "default_balanced_memory",
         policy_digest_id: "default_memory_orchestration",
+        governance_convergence_digest_id:
+          "default_memory_governance_convergence",
         policy_coordination_summary: "default_balanced_coordination",
         governance_consistency_mode: "retrieval_write_default",
         route_governance_mode: "default_balanced",
         retrieval_fallback_mode: "balanced_timeline_optional",
         write_escalation_mode: "default_pinned",
+        governance_convergence_summary: "default_memory_alignment",
+        retrieval_write_digest_alignment: "default_balanced_aligned",
         retrieval_route_order: ["thread_state", "profile", "episode", "timeline"],
         write_fallback_order: ["default"],
         allow_timeline_fallback: true,
@@ -261,6 +301,8 @@ export function buildMemoryNamespaceScopedMetadata(args: {
     active_memory_namespace_selection_reason: args.namespace.selection_reason,
     active_memory_namespace_policy_bundle_id: boundary.policy_bundle_id,
     active_memory_namespace_policy_digest_id: boundary.policy_digest_id,
+    active_memory_namespace_governance_convergence_digest_id:
+      boundary.governance_convergence_digest_id,
     active_memory_namespace_policy_coordination_summary:
       boundary.policy_coordination_summary,
     active_memory_namespace_governance_consistency_mode:
@@ -269,6 +311,10 @@ export function buildMemoryNamespaceScopedMetadata(args: {
       boundary.route_governance_mode,
     active_memory_retrieval_fallback_mode: boundary.retrieval_fallback_mode,
     active_memory_write_escalation_mode: boundary.write_escalation_mode,
+    active_memory_namespace_governance_convergence_summary:
+      boundary.governance_convergence_summary,
+    active_memory_namespace_retrieval_write_digest_alignment:
+      boundary.retrieval_write_digest_alignment,
     active_memory_retrieval_boundary: boundary.retrieval_boundary,
     active_memory_write_boundary: boundary.write_boundary,
     active_memory_retrieval_route_order: boundary.retrieval_route_order,

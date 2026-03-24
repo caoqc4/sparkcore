@@ -1334,7 +1334,7 @@
 当前 `P8` 的阶段判断：
 
 - `P8-1`
-  - 待开始
+  - 已启动
 - `P8-2`
   - 待开始
 - `P8-3`
@@ -1346,23 +1346,20 @@
 
 整体 `P8` 当前大约：
 
-- **`0% - 10%`**
+- **`10% - 20%`**
 
 当前更推荐的下一步：
 
-- **开始 `P8-1 Namespace governance convergence v3` 的第一刀**
-- 当前已成立的 `P7-3` 第一刀事实：
-  - knowledge summary 现在开始显式产出：
-    - `governance_coordination_summary`
-    - `budget_coordination_mode`
-  - 当前最小 coordination / budget 已成立：
-    - `authoritative_priority_coordination`
-    - `authoritative_budget_priority`
-  - 这层输出已进入：
-    - knowledge prompt section
-    - assistant metadata / reader
-    - runtime debug metadata
-    - harness
+- **继续补 `P8-1 Namespace governance convergence v3`**
+- 当前最小 convergence 已成立：
+  - `governance_convergence_digest_id`
+  - `governance_convergence_summary`
+  - `retrieval_write_digest_alignment`
+- 这层输出已进入：
+  - namespace prompt section
+  - assistant metadata / reader
+  - runtime debug metadata
+  - harness
   - knowledge summary 现在也开始显式产出：
     - `source_governance_summary`
     - `governance_consistency_mode`
