@@ -182,7 +182,8 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
   - 已开始
   - retention lifecycle governance fabric plane v12 第一刀已成立
 - `P14-3`
-  - 待开始
+  - 已开始
+  - knowledge governance fabric plane v12 第一刀已成立
 - `P14-4`
   - 待开始
 - `P14-5`
@@ -190,11 +191,11 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
 
 整体 `P14` 当前大约：
 
-- **`20% - 25%`**
+- **`30% - 35%`**
 
 当前更推荐的下一步：
 
-- **继续扩 `P14-2 Retention lifecycle governance fabric plane v12`，或开始 `P14-3 Knowledge governance fabric plane v12`**
+- **继续做 `P14-4 Scenario governance fabric plane v12`，随后再进入 `P14-5 Regression / acceptance expansion`**
 
 ---
 
@@ -220,7 +221,15 @@ P14 首批必须让阶段 gate 继续跟着主线生长，而不是等 plane 事
   - 当前基础验证已通过：
     - `pnpm --filter @sparkcore/web memory:upgrade:harness`
     - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`
-- 下一步最合理的是继续扩 `P14-2` 或开始 `P14-3`，而不是继续停留在 `P13` 内横向补强
+- `P14-3 Knowledge governance fabric plane v12` 的第一刀当前已经成立：
+  - `packages/core/memory/knowledge.ts` 已新增 knowledge governance fabric plane digest / summary / mode / reuse type
+  - `apps/web/lib/chat/memory-knowledge.ts` 已把 fabric plane 事实接入 prompt section 与 knowledge summary
+  - `apps/web/lib/chat/runtime-assistant-metadata.ts`、`assistant-message-metadata.ts`、`assistant-message-metadata-read.ts` 已把 knowledge fabric plane 事实接入 assistant metadata 与 reader
+  - `apps/web/scripts/memory-upgrade-harness.ts` 已新增 `p14_knowledge_governance_fabric_plane.knowledge_governance_fabric_plane_v12_ok`
+  - 当前基础验证已通过：
+    - `pnpm --filter @sparkcore/web memory:upgrade:harness`
+    - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`
+- 下一步最合理的是继续做 `P14-4`，随后把 `P14-5` 的第一版阶段 gate 收起来，而不是继续停留在 `P13` 内横向补强
 
 当前正式收官结论请以
 [memory_upgrade_p13_close_note_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p13_close_note_v1.0.md)

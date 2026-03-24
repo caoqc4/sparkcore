@@ -301,6 +301,14 @@ export function buildRuntimeAssistantMetadataInput(
       knowledgeSummary.governance_fabric_mode,
     knowledge_governance_fabric_reuse_mode:
       knowledgeSummary.governance_fabric_reuse_mode,
+    knowledge_governance_fabric_plane_digest:
+      knowledgeSummary.governance_fabric_plane_digest,
+    knowledge_source_budget_governance_fabric_plane_summary:
+      knowledgeSummary.source_budget_governance_fabric_plane_summary,
+    knowledge_governance_fabric_plane_mode:
+      knowledgeSummary.governance_fabric_plane_mode,
+    knowledge_governance_fabric_plane_reuse_mode:
+      knowledgeSummary.governance_fabric_plane_reuse_mode,
     active_memory_namespace_id:
       input.namespace.active_namespace?.namespace_id ?? null,
     active_memory_namespace_primary_layer:

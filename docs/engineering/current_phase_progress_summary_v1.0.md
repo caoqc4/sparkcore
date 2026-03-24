@@ -119,6 +119,12 @@
   - `lifecycle_governance_fabric_plane_alignment_mode`
   - `lifecycle_governance_fabric_plane_reuse_mode`
   - thread compaction summary / assistant metadata / runtime debug / harness 当前都已开始复用这层 fabric plane contract
+- `P14-3 knowledge governance fabric plane v12` 已开始把 knowledge governance fabric 继续推进到 fabric plane：
+  - `governance_fabric_plane_digest`
+  - `source_budget_governance_fabric_plane_summary`
+  - `governance_fabric_plane_mode`
+  - `governance_fabric_plane_reuse_mode`
+  - knowledge prompt / assistant metadata / runtime debug / harness 当前都已开始复用这层 fabric plane contract
 
 ---
 

@@ -11,8 +11,11 @@ import type {
   KnowledgeGovernanceCoordinationMode,
   KnowledgeGovernanceConsistencyMode,
   KnowledgeGovernanceFabricDigestId,
+  KnowledgeGovernanceFabricPlaneDigestId,
   KnowledgeGovernanceFabricMode,
+  KnowledgeGovernanceFabricPlaneMode,
   KnowledgeGovernanceFabricReuseMode,
+  KnowledgeGovernanceFabricPlaneReuseMode,
   KnowledgeGovernancePlaneDigestId,
   KnowledgeGovernancePlaneMode,
   KnowledgeGovernancePlaneReuseMode,
@@ -25,6 +28,7 @@ import type {
   KnowledgeSourceBudgetAlignmentSummary,
   KnowledgeSourceBudgetCoordinationSummary,
   KnowledgeSourceBudgetGovernanceFabricSummary,
+  KnowledgeSourceBudgetGovernanceFabricPlaneSummary,
   KnowledgeSourceBudgetGovernancePlaneSummary,
   KnowledgeSourceBudgetConsolidationSummary,
   KnowledgeSourceBudgetUnificationSummary,
@@ -495,6 +499,70 @@ function resolveKnowledgeGovernanceFabricReuseMode(args: {
     case "mixed_governance_coordination":
     default:
       return "mixed_runtime_governance_fabric_reuse";
+  }
+}
+
+function resolveKnowledgeGovernanceFabricPlaneDigest(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeGovernanceFabricPlaneDigestId {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_governance_fabric_plane";
+    case "contextual_balance_coordination":
+      return "contextual_governance_fabric_plane";
+    case "reference_support_coordination":
+      return "reference_governance_fabric_plane";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_governance_fabric_plane";
+  }
+}
+
+function resolveKnowledgeSourceBudgetGovernanceFabricPlaneSummary(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeSourceBudgetGovernanceFabricPlaneSummary {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_budget_source_governance_fabric_plane";
+    case "contextual_balance_coordination":
+      return "contextual_budget_source_governance_fabric_plane";
+    case "reference_support_coordination":
+      return "reference_budget_source_governance_fabric_plane";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_budget_source_governance_fabric_plane";
+  }
+}
+
+function resolveKnowledgeGovernanceFabricPlaneMode(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeGovernanceFabricPlaneMode {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_runtime_governance_fabric_plane";
+    case "contextual_balance_coordination":
+      return "contextual_runtime_governance_fabric_plane";
+    case "reference_support_coordination":
+      return "reference_runtime_governance_fabric_plane";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_runtime_governance_fabric_plane";
+  }
+}
+
+function resolveKnowledgeGovernanceFabricPlaneReuseMode(args: {
+  coordinationSummary: KnowledgeGovernanceCoordinationSummary;
+}): KnowledgeGovernanceFabricPlaneReuseMode {
+  switch (args.coordinationSummary) {
+    case "authoritative_priority_coordination":
+      return "authoritative_runtime_governance_fabric_plane_reuse";
+    case "contextual_balance_coordination":
+      return "contextual_runtime_governance_fabric_plane_reuse";
+    case "reference_support_coordination":
+      return "reference_runtime_governance_fabric_plane_reuse";
+    case "mixed_governance_coordination":
+    default:
+      return "mixed_runtime_governance_fabric_plane_reuse";
   }
 }
 
@@ -1025,6 +1093,21 @@ export function buildKnowledgePromptSection(args: {
   const governanceFabricReuseMode = resolveKnowledgeGovernanceFabricReuseMode({
     coordinationSummary: governanceCoordinationSummary
   });
+  const governanceFabricPlaneDigest =
+    resolveKnowledgeGovernanceFabricPlaneDigest({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const sourceBudgetGovernanceFabricPlaneSummary =
+    resolveKnowledgeSourceBudgetGovernanceFabricPlaneSummary({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const governanceFabricPlaneMode = resolveKnowledgeGovernanceFabricPlaneMode({
+    coordinationSummary: governanceCoordinationSummary
+  });
+  const governanceFabricPlaneReuseMode =
+    resolveKnowledgeGovernanceFabricPlaneReuseMode({
+      coordinationSummary: governanceCoordinationSummary
+    });
   const lines = [
     isZh ? "相关 Knowledge Layer：" : "Relevant Knowledge Layer:",
     ...selectedKnowledge.map((item, index) =>
@@ -1070,6 +1153,9 @@ export function buildKnowledgePromptSection(args: {
     isZh
       ? `当前 governance fabric = ${governanceFabricDigest}；budget/source governance fabric = ${sourceBudgetGovernanceFabricSummary}；fabric mode = ${governanceFabricMode}；fabric reuse = ${governanceFabricReuseMode}。`
       : `Current governance fabric = ${governanceFabricDigest}; budget/source governance fabric = ${sourceBudgetGovernanceFabricSummary}; fabric mode = ${governanceFabricMode}; fabric reuse = ${governanceFabricReuseMode}.`,
+    isZh
+      ? `当前 governance fabric plane = ${governanceFabricPlaneDigest}；budget/source governance fabric plane = ${sourceBudgetGovernanceFabricPlaneSummary}；fabric plane mode = ${governanceFabricPlaneMode}；fabric plane reuse = ${governanceFabricPlaneReuseMode}。`
+      : `Current governance fabric plane = ${governanceFabricPlaneDigest}; budget/source governance fabric plane = ${sourceBudgetGovernanceFabricPlaneSummary}; fabric plane mode = ${governanceFabricPlaneMode}; fabric plane reuse = ${governanceFabricPlaneReuseMode}.`,
     isZh
       ? args.activePackId === "project_ops"
         ? "把这些内容当作按 project/world/general 分层的外部知识来源；当前 project_ops prompt budget 会优先保留 project/world，并允许在预算内带入一条 general knowledge。不要把它们误写成用户长期偏好或线程即时状态。"
@@ -1183,6 +1269,21 @@ export function buildKnowledgeSummary(args: {
   const governanceFabricReuseMode = resolveKnowledgeGovernanceFabricReuseMode({
     coordinationSummary: governanceCoordinationSummary
   });
+  const governanceFabricPlaneDigest =
+    resolveKnowledgeGovernanceFabricPlaneDigest({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const sourceBudgetGovernanceFabricPlaneSummary =
+    resolveKnowledgeSourceBudgetGovernanceFabricPlaneSummary({
+      coordinationSummary: governanceCoordinationSummary
+    });
+  const governanceFabricPlaneMode = resolveKnowledgeGovernanceFabricPlaneMode({
+    coordinationSummary: governanceCoordinationSummary
+  });
+  const governanceFabricPlaneReuseMode =
+    resolveKnowledgeGovernanceFabricPlaneReuseMode({
+      coordinationSummary: governanceCoordinationSummary
+    });
 
   return {
     count: applicableKnowledge.length,
@@ -1228,6 +1329,11 @@ export function buildKnowledgeSummary(args: {
       sourceBudgetGovernanceFabricSummary,
     governance_fabric_mode: governanceFabricMode,
     governance_fabric_reuse_mode: governanceFabricReuseMode,
+    governance_fabric_plane_digest: governanceFabricPlaneDigest,
+    source_budget_governance_fabric_plane_summary:
+      sourceBudgetGovernanceFabricPlaneSummary,
+    governance_fabric_plane_mode: governanceFabricPlaneMode,
+    governance_fabric_plane_reuse_mode: governanceFabricPlaneReuseMode,
     scope_counts: {
       project: applicableKnowledge.filter(
         (item) => resolveKnowledgeScopeLayer(item) === "project"

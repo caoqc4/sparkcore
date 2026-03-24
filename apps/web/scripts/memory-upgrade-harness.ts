@@ -31,6 +31,9 @@ import {
   getAssistantKnowledgeGovernanceConsolidationMode,
   getAssistantKnowledgeGovernanceCoordinationReuseMode,
   getAssistantKnowledgeGovernanceFabricDigest,
+  getAssistantKnowledgeGovernanceFabricPlaneDigest,
+  getAssistantKnowledgeGovernanceFabricPlaneMode,
+  getAssistantKnowledgeGovernanceFabricPlaneReuseMode,
   getAssistantKnowledgeGovernanceFabricMode,
   getAssistantKnowledgeGovernanceFabricReuseMode,
   getAssistantKnowledgeGovernancePlaneDigest,
@@ -42,6 +45,7 @@ import {
   getAssistantKnowledgeSourceBudgetCoordinationSummary,
   getAssistantKnowledgeSourceBudgetConsolidationSummary,
   getAssistantKnowledgeSourceBudgetGovernanceFabricSummary,
+  getAssistantKnowledgeSourceBudgetGovernanceFabricPlaneSummary,
   getAssistantKnowledgeSourceBudgetGovernancePlaneSummary,
   getAssistantKnowledgeSelectionRuntimeCoordinationSummary,
   getAssistantKnowledgeSourceBudgetUnificationSummary,
@@ -3748,6 +3752,36 @@ function main() {
       referenceOnlyProjectOpsSelection.length === 1
   } as const;
 
+  const p14KnowledgeGovernanceFabricPlaneChecks = {
+    knowledge_governance_fabric_plane_v12_ok:
+      knowledgeSummary.governance_fabric_plane_digest ===
+        "authoritative_governance_fabric_plane" &&
+      knowledgeSummary.source_budget_governance_fabric_plane_summary ===
+        "authoritative_budget_source_governance_fabric_plane" &&
+      knowledgeSummary.governance_fabric_plane_mode ===
+        "authoritative_runtime_governance_fabric_plane" &&
+      knowledgeSummary.governance_fabric_plane_reuse_mode ===
+        "authoritative_runtime_governance_fabric_plane_reuse" &&
+      getAssistantKnowledgeGovernanceFabricPlaneDigest(assistantMetadata) ===
+        knowledgeSummary.governance_fabric_plane_digest &&
+      getAssistantKnowledgeSourceBudgetGovernanceFabricPlaneSummary(
+        assistantMetadata
+      ) === knowledgeSummary.source_budget_governance_fabric_plane_summary &&
+      getAssistantKnowledgeGovernanceFabricPlaneMode(assistantMetadata) ===
+        knowledgeSummary.governance_fabric_plane_mode &&
+      getAssistantKnowledgeGovernanceFabricPlaneReuseMode(assistantMetadata) ===
+        knowledgeSummary.governance_fabric_plane_reuse_mode &&
+      runtimeDebugMetadata.knowledge.governance_fabric_plane_digest ===
+        knowledgeSummary.governance_fabric_plane_digest &&
+      runtimeDebugMetadata.knowledge
+        .source_budget_governance_fabric_plane_summary ===
+        knowledgeSummary.source_budget_governance_fabric_plane_summary &&
+      runtimeDebugMetadata.knowledge.governance_fabric_plane_mode ===
+        knowledgeSummary.governance_fabric_plane_mode &&
+      runtimeDebugMetadata.knowledge.governance_fabric_plane_reuse_mode ===
+        knowledgeSummary.governance_fabric_plane_reuse_mode
+  } as const;
+
   const p11ScenarioCoordinationChecks = {
     scenario_governance_coordination_v9_ok:
       scenarioMemoryPack.governance_coordination_digest_id ===
@@ -5156,6 +5190,8 @@ function main() {
         p11_knowledge_coordination: p11KnowledgeCoordinationChecks,
         p12_knowledge_governance_plane: p12KnowledgeGovernancePlaneChecks,
         p13_knowledge_governance_fabric: p13KnowledgeGovernanceFabricChecks,
+        p14_knowledge_governance_fabric_plane:
+          p14KnowledgeGovernanceFabricPlaneChecks,
         p11_scenario_coordination: p11ScenarioCoordinationChecks,
         p12_scenario_governance_plane: p12ScenarioGovernancePlaneChecks,
         p13_scenario_governance_fabric: p13ScenarioGovernanceFabricChecks,

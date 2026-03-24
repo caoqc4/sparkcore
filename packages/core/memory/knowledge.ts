@@ -168,6 +168,30 @@ export type KnowledgeGovernanceFabricReuseMode =
   | "reference_runtime_governance_fabric_reuse"
   | "mixed_runtime_governance_fabric_reuse";
 
+export type KnowledgeGovernanceFabricPlaneDigestId =
+  | "authoritative_governance_fabric_plane"
+  | "contextual_governance_fabric_plane"
+  | "reference_governance_fabric_plane"
+  | "mixed_governance_fabric_plane";
+
+export type KnowledgeSourceBudgetGovernanceFabricPlaneSummary =
+  | "authoritative_budget_source_governance_fabric_plane"
+  | "contextual_budget_source_governance_fabric_plane"
+  | "reference_budget_source_governance_fabric_plane"
+  | "mixed_budget_source_governance_fabric_plane";
+
+export type KnowledgeGovernanceFabricPlaneMode =
+  | "authoritative_runtime_governance_fabric_plane"
+  | "contextual_runtime_governance_fabric_plane"
+  | "reference_runtime_governance_fabric_plane"
+  | "mixed_runtime_governance_fabric_plane";
+
+export type KnowledgeGovernanceFabricPlaneReuseMode =
+  | "authoritative_runtime_governance_fabric_plane_reuse"
+  | "contextual_runtime_governance_fabric_plane_reuse"
+  | "reference_runtime_governance_fabric_plane_reuse"
+  | "mixed_runtime_governance_fabric_plane_reuse";
+
 export type KnowledgeResource = {
   resource_id: string;
   scope: MemoryScopeRef;
