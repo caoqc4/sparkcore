@@ -207,6 +207,10 @@
 
 - [memory_upgrade_tail_cleanup_backlog_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_tail_cleanup_backlog_v1.0.md)
 
+当前这份 backlog 也已扩展承接到：
+
+- `P0 ~ P6`
+
 它们不再作为 `P6` 主施工阻塞条件。
 
 ---

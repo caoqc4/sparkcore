@@ -2,7 +2,7 @@
 
 ## 1. 文档定位
 
-本文档用于把 `Memory Upgrade P0 ~ P5` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
+本文档用于把 `Memory Upgrade P0 ~ P6` 当前已经明确识别出的**非阻塞尾项**统一收束成一份 backlog，明确：
 
 - 这些尾项属于什么性质
 - 为什么它们当前不阻塞阶段切换
@@ -12,14 +12,14 @@
 本文档不是新的执行方案，也不是新的 close note，而是：
 
 - 对 `P0 ~ P4` 已收官阶段中遗留尾项的统一归档
-- 对 `P5` 已收官阶段中遗留尾项的统一归档
+- 对 `P5 ~ P6` 已收官阶段中遗留尾项的统一归档
 - 对后续 tail cleanup batch 的最小执行入口
 
 ---
 
 ## 2. 当前总判断
 
-`P0 ~ P5` 当前确实都还存在少量剩余尾项。  
+`P0 ~ P6` 当前确实都还存在少量剩余尾项。  
 但这些尾项的性质已经从：
 
 - 主目标未成立
@@ -80,7 +80,7 @@
 
 ---
 
-## 4. P0 ~ P5 当前典型尾项
+## 4. P0 ~ P6 当前典型尾项
 
 ### 4.1 P0 尾项
 
@@ -165,6 +165,21 @@
 - 非阻塞
 - 更偏 v3 深化与阶段 gate 增强
 
+### 4.7 P6 尾项
+
+典型尾项包括：
+
+- namespace policy orchestration 还可继续向更完整的 policy bundle / escalation governance 深化
+- retention lifecycle policy v4 还可继续向更细的 lifecycle grouping / survival rationale 深化
+- knowledge governance weighting v4 还可继续向更完整的 governance orchestration / budget bias 深化
+- scenario strategy orchestration v4 还可继续向更明确的 orchestration summary / governance digest 深化
+- `P6-5` gate 还可继续补更强的阶段级聚合判断与跨 prompt / metadata / debug 一致性校验
+
+当前性质：
+
+- 非阻塞
+- 更偏 policy / orchestration 深化与阶段 gate 增强
+
 ---
 
 ## 5. 处理原则
@@ -218,7 +233,7 @@
 
 ## 7. 最终结论
 
-`P0 ~ P5` 当前确实都还存在少量尾项。  
+`P0 ~ P6` 当前确实都还存在少量尾项。  
 但这些尾项已经被明确识别为：
 
 - **非阻塞尾项**
