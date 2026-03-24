@@ -1561,13 +1561,14 @@
 - `P13-4`
   - 前中段
 - `P13-5`
-  - 已开始
-  - 第一版正式 gate 已建立
+  - 前中段
+  - 结构化正式 gate 已建立
+  - gate snapshot 已成立
 
 整体 `P13` 当前大约：
 
-- **`70% - 75%`**
+- **`75% - 80%`**
 
 当前更推荐的下一步：
 
-- **继续扩 `P13-5 Regression / acceptance expansion`，把第一版 gate 从 fabric 成立证明继续推进到更完整的 acceptance coverage**
+- **继续扩 `P13-5 Regression / acceptance expansion`，把当前结构化 gate 从第一版正式成立推进到更接近 close-readiness 的 acceptance coverage**
