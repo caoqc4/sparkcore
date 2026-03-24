@@ -131,6 +131,28 @@
 - 如果这轮分类后仍然没有新的真实阻塞项，再开始准备：
   - `P13 close note`
 
+### 4.1 当前剩余 Acceptance Gap 初步分类
+
+按我当前的判断，剩余 acceptance gap 已可先做如下初步分类：
+
+- 阻塞项
+  - **当前无明确新增阻塞项**
+
+- 非阻塞但有价值项
+  - `P13-5` 还可以继续补一轮更清楚的 acceptance gap 分类表达
+  - `p13_gate_snapshot` 还可以继续补更明确的“哪些事项转 tail cleanup”消费面
+  - `close-ready` 判断与后续 `close note` 之间的衔接还可以再压得更明确
+
+- 可转 tail cleanup / 下阶段吸收项
+  - 更细颗粒度的 scenario negative coverage 扩展
+  - gate 输出面进一步清洁化、对称化
+  - 非阻塞的 coverage 补强与文案对齐
+
+这也是为什么我当前把 `P13` 判断为：
+
+- 已进入 `close-readiness` 判断区间
+- 但还不建议立刻写 `close note`
+
 ---
 
 ## 5. 当前结论
