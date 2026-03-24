@@ -3476,6 +3476,26 @@ function main() {
         scenarioMemoryPack.governance_plane_reuse_mode
   } as const;
 
+  const p12RegressionGateChecks = {
+    ...p12NamespaceGovernancePlaneChecks,
+    ...p12RetentionGovernancePlaneChecks,
+    ...p12KnowledgeGovernancePlaneChecks,
+    ...p12ScenarioGovernancePlaneChecks
+  } as const;
+  const p12RegressionGateFailedChecks = Object.entries(
+    p12RegressionGateChecks
+  ).flatMap(([check, passed]) => (passed ? [] : [check]));
+  const p12RegressionGate = {
+    ...p12RegressionGateChecks,
+    checks_passed:
+      Object.keys(p12RegressionGateChecks).length -
+      p12RegressionGateFailedChecks.length,
+    checks_total: Object.keys(p12RegressionGateChecks).length,
+    failed_checks: p12RegressionGateFailedChecks,
+    all_green: p12RegressionGateFailedChecks.length === 0,
+    close_candidate: p12RegressionGateFailedChecks.length === 0
+  } as const;
+
   const p11RegressionGateChecks = {
     ...p11NamespaceUnifiedConsolidationChecks,
     ...p11RetentionCoordinationChecks,
@@ -4462,6 +4482,7 @@ function main() {
         p12_knowledge_governance_plane: p12KnowledgeGovernancePlaneChecks,
         p11_scenario_coordination: p11ScenarioCoordinationChecks,
         p12_scenario_governance_plane: p12ScenarioGovernancePlaneChecks,
+        p12_regression_gate: p12RegressionGate,
         p11_regression_gate: p11RegressionGate,
         p10_knowledge_consolidation: p10KnowledgeConsolidationChecks,
         p10_scenario_consolidation: p10ScenarioConsolidationChecks,
