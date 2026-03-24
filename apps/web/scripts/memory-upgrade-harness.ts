@@ -4876,24 +4876,77 @@ function main() {
           ""
       )
   } as const;
-  const p16RegressionGate = summarizeGate({
-    ...p16RoleCoreMemoryHandoffChecks,
-    ...p16RoleCoreMemoryHandoffMetadataConsistencyChecks
-  });
   const p16PositiveContracts = summarizeGate(p16RoleCoreMemoryHandoffChecks);
   const p16MetadataConsistency = summarizeGate(
     p16RoleCoreMemoryHandoffMetadataConsistencyChecks
   );
-  const p16GateSnapshot = {
-    gate_id: "p16_regression_gate_v1",
-    stage: "P16-5",
-    focus: "role_core_memory_handoff_packetization",
+  const p16PacketConsumptionSnapshot = {
+    packet_handoff_readiness:
+      "packet_surface_ready_not_close_ready" as const,
+    progress_range: "35% - 40%" as const,
+    close_note_recommended: false,
     blocking_items: [] as string[],
+    non_blocking_items: [
+      "retention_role_core_handoff_depth",
+      "close_note_handoff_packet_consumption",
+      "packet_acceptance_gap_structuring"
+    ] as const,
+    tail_candidate_items: [
+      "packet_output_symmetry_cleanup",
+      "non_blocking_prompt_coverage_alignment",
+      "packet_negative_coverage_expansion"
+    ] as const,
+    acceptance_gap_buckets: {
+      blocking: 0,
+      non_blocking: 3,
+      tail_candidate: 3
+    },
     next_expansion_focus: [
       "retention_role_core_handoff_depth",
       "close_note_handoff_packet",
       "remaining_packet_acceptance_gaps"
-    ] as const,
+    ] as const
+  } as const;
+  const p16PacketConsumptionChecks = {
+    role_core_memory_handoff_close_note_consumption_v1_ok:
+      p16PacketConsumptionSnapshot.packet_handoff_readiness ===
+        "packet_surface_ready_not_close_ready" &&
+      p16PacketConsumptionSnapshot.progress_range === "35% - 40%" &&
+      p16PacketConsumptionSnapshot.close_note_recommended === false &&
+      p16PacketConsumptionSnapshot.blocking_items.length === 0 &&
+      p16PacketConsumptionSnapshot.acceptance_gap_buckets.blocking === 0 &&
+      p16PacketConsumptionSnapshot.acceptance_gap_buckets.non_blocking ===
+        p16PacketConsumptionSnapshot.non_blocking_items.length &&
+      p16PacketConsumptionSnapshot.acceptance_gap_buckets.tail_candidate ===
+        p16PacketConsumptionSnapshot.tail_candidate_items.length &&
+      p16PacketConsumptionSnapshot.next_expansion_focus.includes(
+        "close_note_handoff_packet"
+      )
+  } as const;
+  const p16PacketConsumption = summarizeGate(p16PacketConsumptionChecks);
+  const p16RegressionGateSummary = summarizeGate({
+    ...p16RoleCoreMemoryHandoffChecks,
+    ...p16RoleCoreMemoryHandoffMetadataConsistencyChecks,
+    ...p16PacketConsumptionChecks
+  });
+  const p16RegressionGate = {
+    positive_contracts: p16PositiveContracts,
+    metadata_consistency: p16MetadataConsistency,
+    packet_consumption: p16PacketConsumption,
+    ...p16RegressionGateSummary
+  } as const;
+  const p16GateSnapshot = {
+    gate_id: "p16_regression_gate_v1",
+    stage: "P16-5",
+    focus: "role_core_memory_handoff_packetization",
+    packet_handoff_readiness: p16PacketConsumptionSnapshot.packet_handoff_readiness,
+    progress_range: p16PacketConsumptionSnapshot.progress_range,
+    close_note_recommended: p16PacketConsumptionSnapshot.close_note_recommended,
+    blocking_items: p16PacketConsumptionSnapshot.blocking_items,
+    non_blocking_items: p16PacketConsumptionSnapshot.non_blocking_items,
+    tail_candidate_items: p16PacketConsumptionSnapshot.tail_candidate_items,
+    acceptance_gap_buckets: p16PacketConsumptionSnapshot.acceptance_gap_buckets,
+    next_expansion_focus: p16PacketConsumptionSnapshot.next_expansion_focus,
     positive_contracts: {
       checks_passed: p16PositiveContracts.checks_passed,
       checks_total: p16PositiveContracts.checks_total,
@@ -4903,6 +4956,11 @@ function main() {
       checks_passed: p16MetadataConsistency.checks_passed,
       checks_total: p16MetadataConsistency.checks_total,
       all_green: p16MetadataConsistency.all_green
+    },
+    packet_consumption: {
+      checks_passed: p16PacketConsumption.checks_passed,
+      checks_total: p16PacketConsumption.checks_total,
+      all_green: p16PacketConsumption.all_green
     },
     overall: {
       checks_passed: p16RegressionGate.checks_passed,
@@ -6041,6 +6099,8 @@ function main() {
         p16_role_core_memory_handoff: p16RoleCoreMemoryHandoffChecks,
         p16_role_core_memory_handoff_metadata_consistency:
           p16RoleCoreMemoryHandoffMetadataConsistencyChecks,
+        p16_role_core_memory_handoff_packet_consumption:
+          p16PacketConsumptionChecks,
         p16_regression_gate: p16RegressionGate,
         p16_gate_snapshot: p16GateSnapshot,
         p15_regression_gate: p15RegressionGate,

@@ -134,15 +134,15 @@ P16 首批必须让阶段 gate 跟着 packet 主线生长，而不是等 handoff
   - scenario handoff 已进入同一 packet 第一刀
 - `P16-5`
   - 已开始
-  - 第一版 gate 已从 scaffold 推进到 `positive_contracts + metadata_consistency`
+  - 第一版 gate 已从 scaffold 推进到 `positive_contracts + metadata_consistency + packet_consumption`
 
 整体 `P16` 当前大约：
 
-- **`25% - 30%`**
+- **`35% - 40%`**
 
 当前更推荐的下一步：
 
-- **继续把 `P16-5 Regression / acceptance packetization` 从 metadata consistency 扩到 retention handoff depth / close-note handoff packet consumption，而不是立刻写 `P16 close-readiness`**
+- **继续把 `P16-5 Regression / acceptance packetization` 从 packet consumption 扩到 retention handoff depth / remaining packet acceptance gaps，而不是立刻写 `P16 close-readiness`**
 
 ---
 
