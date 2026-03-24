@@ -47,6 +47,8 @@ export type RoleCorePacket = {
     namespace_phase_snapshot_summary: string;
     retention_phase_snapshot_id: string | null;
     retention_phase_snapshot_summary: string | null;
+    retention_decision_group?: string | null;
+    retention_retained_fields?: string[];
     knowledge_phase_snapshot_id: string;
     knowledge_phase_snapshot_summary: string;
     scenario_phase_snapshot_id: string;

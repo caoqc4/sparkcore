@@ -2695,6 +2695,11 @@ function buildRoleCoreMemoryHandoffPrompt(
     isZh
       ? `Scenario phase snapshot：${handoff.scenario_phase_snapshot_id}；${handoff.scenario_phase_snapshot_summary}。`
       : `Scenario phase snapshot: ${handoff.scenario_phase_snapshot_id}; ${handoff.scenario_phase_snapshot_summary}.`,
+    handoff.retention_decision_group
+      ? isZh
+        ? `Retention handoff depth：decision_group = ${handoff.retention_decision_group}；retained_fields = ${handoff.retention_retained_fields?.join(", ") || "none"}。`
+        : `Retention handoff depth: decision_group = ${handoff.retention_decision_group}; retained_fields = ${handoff.retention_retained_fields?.join(", ") || "none"}.`
+      : "",
     isZh
       ? "将这些 phase snapshot 视为当前 role-core 记忆交接基线；回答时保持 handoff 与 runtime memory surface 一致，不要把它们回退成更旧的散点 summary。"
       : "Treat these phase snapshots as the current role-core memory handoff baseline; keep responses aligned with the handoff and runtime memory surfaces instead of falling back to older fragmented summaries."
@@ -4034,6 +4039,9 @@ export async function runPreparedRuntimeTurn({
         retentionGovernanceFabricPlanePhaseSnapshot?.phase_snapshot_id ?? null,
       retention_phase_snapshot_summary:
         retentionGovernanceFabricPlanePhaseSnapshot?.phase_snapshot_summary ?? null,
+      retention_decision_group:
+        compactedThreadSummary?.retention_decision_group ?? null,
+      retention_retained_fields: compactedThreadSummary?.retained_fields ?? [],
       knowledge_phase_snapshot_id:
         knowledgeGovernanceFabricPlanePhaseSnapshot.phase_snapshot_id,
       knowledge_phase_snapshot_summary:

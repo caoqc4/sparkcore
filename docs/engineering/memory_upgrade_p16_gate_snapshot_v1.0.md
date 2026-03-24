@@ -32,11 +32,11 @@
 
 当前 `p16_gate_snapshot` 的结果为：
 
-- `packet_handoff_readiness = packet_surface_ready_not_close_ready`
-- `progress_range = 35% - 40%`
+- `packet_handoff_readiness = retention_depth_started_not_close_ready`
+- `progress_range = 45% - 50%`
 - `close_note_recommended = false`
 - `blocking_items = []`
-- `non_blocking_items = retention_role_core_handoff_depth / close_note_handoff_packet_consumption / packet_acceptance_gap_structuring`
+- `non_blocking_items = close_note_handoff_packet_consumption / packet_acceptance_gap_structuring / remaining_retention_depth_alignment`
 - `tail_candidate_items = packet_output_symmetry_cleanup / non_blocking_prompt_coverage_alignment / packet_negative_coverage_expansion`
 - `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
 - `next_expansion_focus = retention_role_core_handoff_depth / close_note_handoff_packet / remaining_packet_acceptance_gaps`
@@ -87,6 +87,11 @@
 - `blocking_items / non_blocking_items / tail_candidate_items`
 - `acceptance_gap_buckets`
 
+当前 retention handoff 也已经从单纯 phase snapshot summary 继续推进到了更细的 role-core depth：
+
+- `retention_decision_group`
+- `retention_retained_fields`
+
 ### 3.4 当前还没开始锁的面
 
 当前这份 gate 还没有正式锁住：
@@ -112,6 +117,7 @@
 - 四条主线都已通过同一个 `role_core_packet.memory_handoff` 接通
 - `metadata_consistency` 已开始成形
 - `system prompt` 当前也已开始消费同一组 handoff summary
+- `retention_decision_group / retention_retained_fields` 当前也已进入 packet / metadata / prompt 对齐
 - `p16_gate_snapshot` 当前也已开始显式暴露 `packet_handoff_readiness / acceptance_gap_buckets`
 
 当前还不适合直接把它理解成：

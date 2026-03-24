@@ -242,8 +242,8 @@
       [memory_upgrade_p16_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p16_gate_snapshot_v1.0.md)
       为准
     - 当前 `p16_gate_snapshot`：
-      - `packet_handoff_readiness = packet_surface_ready_not_close_ready`
-      - `progress_range = 35% - 40%`
+      - `packet_handoff_readiness = retention_depth_started_not_close_ready`
+      - `progress_range = 45% - 50%`
       - `close_note_recommended = false`
       - `blocking_items = []`
       - `acceptance_gap_buckets = blocking: 0 / non_blocking: 3 / tail_candidate: 3`
@@ -256,7 +256,8 @@
       - role core memory handoff metadata consistency v1
       - role core memory handoff prompt surface v1
       - role core memory handoff close-note consumption v1
-    - 当前整体约 `35% - 40%`
+      - retention decision group / retained fields handoff depth v1
+    - 当前整体约 `45% - 50%`
 
 ---
 
