@@ -878,6 +878,57 @@ export function getAssistantKnowledgeGovernanceConsistencyMode(
   );
 }
 
+export function getAssistantKnowledgeGovernanceConvergenceDigest(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "governance_convergence_digest"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_governance_convergence_digest"
+    )
+  );
+}
+
+export function getAssistantKnowledgeSourceBudgetAlignmentSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "source_budget_alignment_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_source_budget_alignment_summary"
+    )
+  );
+}
+
+export function getAssistantKnowledgeGovernanceAlignmentMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantKnowledgeMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      knowledgeMetadata,
+      "governance_alignment_mode"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_governance_alignment_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryTypesUsed(
   metadata: Record<string, unknown> | null | undefined
 ) {

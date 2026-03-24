@@ -36,6 +36,24 @@ export type KnowledgeGovernanceConsistencyMode =
   | "reference_governance_aligned"
   | "mixed_governance_aligned";
 
+export type KnowledgeGovernanceConvergenceDigestId =
+  | "authoritative_governance_convergence"
+  | "contextual_governance_convergence"
+  | "reference_governance_convergence"
+  | "mixed_governance_convergence";
+
+export type KnowledgeSourceBudgetAlignmentSummary =
+  | "authoritative_budget_source_aligned"
+  | "contextual_budget_source_aligned"
+  | "reference_budget_source_aligned"
+  | "mixed_budget_source_aligned";
+
+export type KnowledgeGovernanceAlignmentMode =
+  | "authoritative_convergence_aligned"
+  | "contextual_convergence_aligned"
+  | "reference_convergence_aligned"
+  | "mixed_convergence_aligned";
+
 export type KnowledgeResource = {
   resource_id: string;
   scope: MemoryScopeRef;

@@ -21,8 +21,11 @@ import {
   getAssistantCompactedThreadSummaryText,
   getAssistantKnowledgeCount,
   getAssistantKnowledgeBudgetCoordinationMode,
+  getAssistantKnowledgeGovernanceAlignmentMode,
+  getAssistantKnowledgeGovernanceConvergenceDigest,
   getAssistantKnowledgeGovernanceConsistencyMode,
   getAssistantKnowledgeGovernanceCoordinationSummary,
+  getAssistantKnowledgeSourceBudgetAlignmentSummary,
   getAssistantKnowledgeSourceGovernanceSummary,
   getAssistantKnowledgeScopeLayers,
   getAssistantThreadCrossLayerSurvivalMode,
@@ -2076,6 +2079,12 @@ function main() {
         "authoritative_source_priority" &&
       getAssistantKnowledgeGovernanceConsistencyMode(assistantMetadata) ===
         "authoritative_governance_aligned" &&
+      getAssistantKnowledgeGovernanceConvergenceDigest(assistantMetadata) ===
+        "authoritative_governance_convergence" &&
+      getAssistantKnowledgeSourceBudgetAlignmentSummary(assistantMetadata) ===
+        "authoritative_budget_source_aligned" &&
+      getAssistantKnowledgeGovernanceAlignmentMode(assistantMetadata) ===
+        "authoritative_convergence_aligned" &&
       scenarioMemoryPack.governance_route_bias === "authoritative" &&
       scenarioMemoryPack.knowledge_budget_weight === 0.95 &&
       getAssistantMemoryScenarioPackGovernanceRouteBias(
@@ -2475,6 +2484,18 @@ function main() {
             getAssistantKnowledgeSourceGovernanceSummary(assistantMetadata),
           governance_consistency_mode:
             getAssistantKnowledgeGovernanceConsistencyMode(
+              assistantMetadata
+            ),
+          governance_convergence_digest:
+            getAssistantKnowledgeGovernanceConvergenceDigest(
+              assistantMetadata
+            ),
+          source_budget_alignment_summary:
+            getAssistantKnowledgeSourceBudgetAlignmentSummary(
+              assistantMetadata
+            ),
+          governance_alignment_mode:
+            getAssistantKnowledgeGovernanceAlignmentMode(
               assistantMetadata
             )
         },

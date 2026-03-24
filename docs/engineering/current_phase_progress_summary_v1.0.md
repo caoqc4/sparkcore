@@ -1338,7 +1338,7 @@
 - `P8-2`
   - 前中段到中段之间
 - `P8-3`
-  - 待开始
+  - 已启动
 - `P8-4`
   - 待开始
 - `P8-5`
@@ -1346,20 +1346,17 @@
 
 整体 `P8` 当前大约：
 
-- **`35% - 45%`**
+- **`40% - 50%`**
 
 当前更推荐的下一步：
 
-- **开始 `P8-3 Knowledge governance convergence v6` 的第一刀**
-- 当前 retention 最小 convergence 已开始进入：
-  - `lifecycle_convergence_digest`
-  - `keep_drop_convergence_summary`
-  - `lifecycle_alignment_mode`
+- **继续补 `P8-3 Knowledge governance convergence v6`**
+- 当前 knowledge 最小 convergence 已开始进入：
+  - `governance_convergence_digest`
+  - `source_budget_alignment_summary`
+  - `governance_alignment_mode`
 - 这层输出已进入：
-  - thread compaction summary
+  - knowledge prompt section
   - assistant metadata / reader
   - runtime debug metadata
   - harness
-- 当前判断是：
-  - `P8-2` 已经从启动推进到前中段到中段之间
-  - 下一步更值的是把同一层 convergence 方法复制到 knowledge
