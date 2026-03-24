@@ -1458,7 +1458,7 @@
 
 当前更推荐的下一步：
 
-- **开始进入正式的 `P11 close-ready` 判断**
+- **开始写 `P11 close note`**
 
 当前更正式的阶段判断请以
 [memory_upgrade_p11_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p11_close_readiness_v1.0.md)

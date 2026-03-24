@@ -82,7 +82,7 @@
 
 我现在的判断是：
 
-**`P11` 还不建议直接写 `close note`，但已经进入 `close-readiness` 后段 / close-ready 前夕。**
+**`P11` 已达到 `close-ready / 可收官`。**
 
 如果给整体 `P11` 一个阶段进度，我会给：
 
@@ -94,40 +94,40 @@
 - prompt / assistant metadata / runtime debug / harness 已开始形成稳定的 coordination 四面事实
 - `P11-5` 已形成第一版正式 gate，并且当前全绿
 
-但当前我还不直接把 `P11` 判成 `close-ready`，原因也很明确：
+当前之所以可以把 `P11` 判成 `close-ready`，不是因为所有细节都已经做尽，而是因为：
 
-- `P11-1 ~ P11-4` 虽然整体已经更接近“中后段到接近完成之间”，但文档上还没有必要直接把它们判到完成区
-- `P11-5` 当前已经更像正式阶段 gate 的早期形态，但我仍然保留最后一层谨慎，不直接跳到收官
-- 当前更像是：
-  - 主目标已明显成立
-  - close-readiness 已经进入后段
-  - 但正式收官判断还值得再压最后一轮
+- `P11-1 ~ P11-4` 都已经形成真实的 coordination 级代码事实
+- prompt / assistant metadata / runtime debug / harness 已形成稳定的四面证据
+- `P11-5` 已经形成第一版正式 gate，并且当前全绿
+- `close_candidate = true`，当前结论已经不再摇摆
 
 这意味着：
 
 - 当前已经不再缺少 “`P11` 是否成立” 的主证据
-- 但当前仍然保留一层合理空间，用于继续判断：
-  - 是否还需要再补最后一层 gate 密度
-  - 是否已经可以不再摇摆地进入正式 close-ready 判断
+- 当前剩余事项更像：
+  - gate strengthening
+  - coordination summary 深化
+  - 清洁度 / 对称性继续补强
+
+这些事项仍然有价值，但它们已经不构成：
+
+- `P11` 主目标成立的阻塞项
 
 ---
 
 ## 4. 下一步建议
 
-当前更合理的下一步不是直接写 `P11 close note`，而是：
+当前更合理的下一步已经不是继续做 `P11 close-ready` 判断，而是：
 
-- **开始进入正式的 `P11 close-ready` 判断**
-
-更具体地说：
-
-- 可以先做最后一轮是否还需要补刀的判断
-- 如果结论不再摇摆，就可以直接准备 close note
+- **开始准备 `P11 close note`**
 
 原因是：
 
-- 当前 `P11` 已经明显不在前中段
-- 当前更缺的不是主线实现，而是最后一层收官判断
-- 现在最值的是把阶段判断从 “前置区间” 压到 “close-ready 前夕”
+- `P11` 当前主判断已经清楚
+- 当前剩余项已更适合统一转入：
+  - tail cleanup
+  - gate strengthening
+  - 后续 phase 吸收项
 
 ---
 
@@ -135,9 +135,9 @@
 
 一句话结论：
 
-**`P11` 已进入 `close-readiness` 后段 / close-ready 前夕，但还不建议直接写 `P11 close note`。**
+**`P11` 已达到 `close-ready / 可收官`，下一步已经适合写 `P11 close note`。**
 
 更合理的下一步是：
 
-- **开始进入正式的 `P11 close-ready` 判断**
+- **开始正式写 `P11 close note`**
 - 当前正式收官结论请以后续 `P11 close note` 为准
