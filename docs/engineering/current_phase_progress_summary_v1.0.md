@@ -275,6 +275,29 @@
   - 当前结论是：
     - `P16` 已达到 `close-ready / 可收官`
     - `P16` 的非阻塞尾项当前已并入统一 backlog
+- `P17 execution plan` 当前已建立下一阶段执行入口：
+  - 当前执行起点请以
+    [memory_upgrade_p17_execution_plan_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p17_execution_plan_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P17` 已从“待定义的下一阶段”推进到“已建立执行计划的下一阶段”
+    - `P17-1 ~ P17-4` 已通过独立 `close_note_handoff_packet` 第一刀接通
+    - `P17-5` 已建立第一版 close-note packet gate
+    - 当前 gate 轻量快照请以
+      [memory_upgrade_p17_gate_snapshot_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p17_gate_snapshot_v1.0.md)
+      为准
+    - 当前 `p17_gate_snapshot`：
+      - `readiness_judgment = close_ready`
+      - `progress_range = 10% - 15%`
+      - `close_note_recommended = true`
+      - `blocking_items = []`
+      - `positive_contracts = 1 / 1`
+      - `overall = 1 / 1`
+    - 当前 gate 已锁住：
+      - role core memory close-note handoff packet v1
+      - close-note readiness summary to packet alignment v1
+      - namespace / retention / knowledge / scenario section carry-through v1
+    - 当前整体约 `10% - 15%`
 
 ---
 

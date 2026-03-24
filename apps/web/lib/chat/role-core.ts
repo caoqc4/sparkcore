@@ -60,6 +60,41 @@ export type RoleCorePacket = {
   } | null;
 };
 
+export type RoleCoreMemoryCloseNoteHandoffPacket = {
+  packet_version: "v1";
+  source_packet_version: RoleCorePacket["packet_version"];
+  handoff_version: NonNullable<RoleCorePacket["memory_handoff"]>["handoff_version"];
+  readiness_judgment: string;
+  progress_range: string;
+  close_candidate: boolean;
+  close_note_recommended: boolean;
+  blocking_items: string[];
+  non_blocking_items: string[];
+  tail_candidate_items: string[];
+  namespace: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+  };
+  retention: {
+    phase_snapshot_id: string | null;
+    phase_snapshot_summary: string | null;
+    decision_group: string | null;
+    retained_fields: string[];
+  };
+  knowledge: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    scope_layers: string[];
+    governance_classes: string[];
+  };
+  scenario: {
+    phase_snapshot_id: string;
+    phase_snapshot_summary: string;
+    strategy_bundle_id: string | null;
+    orchestration_mode: string | null;
+  };
+};
+
 export function getRoleCoreRelationshipStance(
   relationshipRecall: {
     addressStyleMemory: {
@@ -134,5 +169,57 @@ export function withRoleCoreMemoryHandoff(args: {
     ...args.packet,
     packet_version: "v2",
     memory_handoff: args.memoryHandoff
+  };
+}
+
+export function buildRoleCoreMemoryCloseNoteHandoffPacket(args: {
+  roleCorePacket: RoleCorePacket;
+  readinessJudgment: string;
+  progressRange: string;
+  closeCandidate: boolean;
+  closeNoteRecommended: boolean;
+  blockingItems: string[];
+  nonBlockingItems: string[];
+  tailCandidateItems: string[];
+}): RoleCoreMemoryCloseNoteHandoffPacket | null {
+  const memoryHandoff = args.roleCorePacket.memory_handoff;
+
+  if (!memoryHandoff) {
+    return null;
+  }
+
+  return {
+    packet_version: "v1",
+    source_packet_version: args.roleCorePacket.packet_version,
+    handoff_version: memoryHandoff.handoff_version,
+    readiness_judgment: args.readinessJudgment,
+    progress_range: args.progressRange,
+    close_candidate: args.closeCandidate,
+    close_note_recommended: args.closeNoteRecommended,
+    blocking_items: args.blockingItems,
+    non_blocking_items: args.nonBlockingItems,
+    tail_candidate_items: args.tailCandidateItems,
+    namespace: {
+      phase_snapshot_id: memoryHandoff.namespace_phase_snapshot_id,
+      phase_snapshot_summary: memoryHandoff.namespace_phase_snapshot_summary
+    },
+    retention: {
+      phase_snapshot_id: memoryHandoff.retention_phase_snapshot_id,
+      phase_snapshot_summary: memoryHandoff.retention_phase_snapshot_summary,
+      decision_group: memoryHandoff.retention_decision_group ?? null,
+      retained_fields: memoryHandoff.retention_retained_fields ?? []
+    },
+    knowledge: {
+      phase_snapshot_id: memoryHandoff.knowledge_phase_snapshot_id,
+      phase_snapshot_summary: memoryHandoff.knowledge_phase_snapshot_summary,
+      scope_layers: memoryHandoff.knowledge_scope_layers ?? [],
+      governance_classes: memoryHandoff.knowledge_governance_classes ?? []
+    },
+    scenario: {
+      phase_snapshot_id: memoryHandoff.scenario_phase_snapshot_id,
+      phase_snapshot_summary: memoryHandoff.scenario_phase_snapshot_summary,
+      strategy_bundle_id: memoryHandoff.scenario_strategy_bundle_id ?? null,
+      orchestration_mode: memoryHandoff.scenario_orchestration_mode ?? null
+    }
   };
 }
