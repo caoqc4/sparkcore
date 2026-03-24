@@ -1572,3 +1572,7 @@
 当前更推荐的下一步：
 
 - **继续扩 `P13-5 Regression / acceptance expansion`，把当前结构化 gate 从第一版正式成立推进到更接近 close-readiness 的 acceptance coverage**
+
+当前正式 `close-readiness` 判断请以
+[memory_upgrade_p13_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p13_close_readiness_v1.0.md)
+为准。
