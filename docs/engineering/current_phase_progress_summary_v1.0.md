@@ -1222,7 +1222,7 @@
 当前 `P7` 的阶段判断：
 
 - `P7-1`
-  - 前中段
+  - 前中段到中段之间
 - `P7-2`
   - 待开始
 - `P7-3`
@@ -1234,12 +1234,12 @@
 
 整体 `P7` 当前大约：
 
-- **`10% - 20%`**
+- **`15% - 25%`**
 
 当前更推荐的下一步：
 
-- **继续补 `P7-1 Namespace policy orchestration v2`，让 policy 输出更明确进入 coordination / consistency contract**
-- 当前已成立的前两刀事实：
+- **开始 `P7-2 Retention lifecycle governance v5` 的第一刀**
+- 当前已成立的 `P7-1` 主事实：
   - namespace boundary 现在开始显式产出 `policy_digest_id`
   - 当前最小 digest 已成立：
     - `thread_focus_orchestration`

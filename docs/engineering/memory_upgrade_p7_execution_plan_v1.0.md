@@ -105,16 +105,33 @@ P7 首批要把 namespace 从：
     - `project_parallel_coordination`
     - `world_timeline_reference`
     - `default_balanced_coordination`
-  - 当前最小 consistency 已成立：
-    - `retrieval_strict_write_outward`
-    - `retrieval_write_balanced`
-    - `retrieval_timeline_write_pinned`
-    - `retrieval_write_default`
-  - 这层输出已进入：
-    - prompt
-    - assistant metadata / reader
-    - runtime debug metadata
-    - harness
+- 当前最小 consistency 已成立：
+  - `retrieval_strict_write_outward`
+  - `retrieval_write_balanced`
+  - `retrieval_timeline_write_pinned`
+  - `retrieval_write_default`
+- 这层输出已进入：
+  - prompt
+  - assistant metadata / reader
+  - runtime debug metadata
+  - harness
+
+当前阶段判断：
+
+- `P7-1` 已经从“待开始”推进到：
+  - **前中段到中段之间**
+- 当前已成立的主事实：
+  - `policy_digest_id`
+  - `policy_coordination_summary`
+  - `governance_consistency_mode`
+- 这些事实已经进入：
+  - namespace prompt section
+  - assistant metadata / reader
+  - runtime debug metadata
+  - harness
+- 下一步更合理的选择开始变成：
+  - **转去 `P7-2 Retention lifecycle governance v5`**
+  - 而不是继续深挖 `P7-1` 很多刀
 
 ### 4.2 Retention lifecycle governance v5
 
