@@ -39,9 +39,12 @@ import {
   getAssistantThreadLifecycleConvergenceDigest,
   getAssistantThreadLifecycleUnificationDigest,
   getAssistantThreadLifecycleUnificationMode,
+  getAssistantThreadLifecycleConsolidationDigest,
+  getAssistantThreadLifecycleConsolidationMode,
   getAssistantThreadLifecycleCoordinationSummary,
   getAssistantThreadLifecycleGovernanceDigest,
   getAssistantThreadRetentionDecisionGroup,
+  getAssistantThreadKeepDropConsolidationSummary,
   getAssistantThreadRetentionPolicyId,
   getAssistantThreadSurvivalConsistencyMode,
   getAssistantThreadSurvivalRationale,
@@ -1613,6 +1616,30 @@ function main() {
     "Expected system prompt assembly to include compacted thread focus context in P2."
   );
   expect(
+    getAssistantThreadLifecycleConsolidationDigest(assistantMetadata) ===
+      "anchor_preservation_consolidation" &&
+      getAssistantThreadKeepDropConsolidationSummary(assistantMetadata) ===
+        "anchor_keep_consolidated" &&
+      getAssistantThreadLifecycleConsolidationMode(assistantMetadata) ===
+        "anchor_runtime_consolidated" &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_consolidation_digest ===
+        "anchor_preservation_consolidation" &&
+      runtimeDebugMetadata.thread_compaction?.keep_drop_consolidation_summary ===
+        "anchor_keep_consolidated" &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_consolidation_mode ===
+        "anchor_runtime_consolidated" &&
+      systemPrompt.includes(
+        "Lifecycle consolidation: anchor_preservation_consolidation."
+      ) &&
+      systemPrompt.includes(
+        "Keep/drop consolidation: anchor_keep_consolidated."
+      ) &&
+      systemPrompt.includes(
+        "Lifecycle consolidation mode: anchor_runtime_consolidated."
+      ),
+    "Expected retention lifecycle consolidation to be consistent across prompt, assistant metadata, and runtime debug metadata in P10."
+  );
+  expect(
     systemPrompt.includes("Active Memory Namespace: primary_layer = project."),
     "Expected system prompt assembly to include the active memory namespace in P2."
   );
@@ -2882,6 +2909,28 @@ function main() {
         projectBoundary.runtime_consolidation_mode
   } as const;
 
+  const p10RetentionConsolidationChecks = {
+    retention_lifecycle_consolidation_v8_ok:
+      compactedThreadSummary?.lifecycle_consolidation_digest ===
+        "anchor_preservation_consolidation" &&
+      compactedThreadSummary?.keep_drop_consolidation_summary ===
+        "anchor_keep_consolidated" &&
+      compactedThreadSummary?.lifecycle_consolidation_mode ===
+        "anchor_runtime_consolidated" &&
+      getAssistantThreadLifecycleConsolidationDigest(assistantMetadata) ===
+        compactedThreadSummary?.lifecycle_consolidation_digest &&
+      getAssistantThreadKeepDropConsolidationSummary(assistantMetadata) ===
+        compactedThreadSummary?.keep_drop_consolidation_summary &&
+      getAssistantThreadLifecycleConsolidationMode(assistantMetadata) ===
+        compactedThreadSummary?.lifecycle_consolidation_mode &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_consolidation_digest ===
+        compactedThreadSummary?.lifecycle_consolidation_digest &&
+      runtimeDebugMetadata.thread_compaction?.keep_drop_consolidation_summary ===
+        compactedThreadSummary?.keep_drop_consolidation_summary &&
+      runtimeDebugMetadata.thread_compaction?.lifecycle_consolidation_mode ===
+        compactedThreadSummary?.lifecycle_consolidation_mode
+  } as const;
+
   console.log(
     JSON.stringify(
       {
@@ -3121,7 +3170,13 @@ function main() {
           keep_drop_unification_summary:
             getAssistantThreadKeepDropUnificationSummary(assistantMetadata),
           lifecycle_unification_mode:
-            getAssistantThreadLifecycleUnificationMode(assistantMetadata)
+            getAssistantThreadLifecycleUnificationMode(assistantMetadata),
+          lifecycle_consolidation_digest:
+            getAssistantThreadLifecycleConsolidationDigest(assistantMetadata),
+          keep_drop_consolidation_summary:
+            getAssistantThreadKeepDropConsolidationSummary(assistantMetadata),
+          lifecycle_consolidation_mode:
+            getAssistantThreadLifecycleConsolidationMode(assistantMetadata)
         },
         assistant_metadata_namespace: {
           primary_layer: getAssistantMemoryNamespacePrimaryLayer(assistantMetadata),
@@ -3456,6 +3511,7 @@ function main() {
         p8_regression_gate: p8RegressionGate,
         p9_regression_gate: p9RegressionGate,
         p10_namespace_consolidation: p10NamespaceConsolidationChecks,
+        p10_retention_consolidation: p10RetentionConsolidationChecks,
         system_prompt_route_guidance: {
           includes_episode_guidance: routeAwarePrompt.includes(
             "When episode memory is present"

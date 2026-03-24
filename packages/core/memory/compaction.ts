@@ -111,6 +111,27 @@ export type ThreadLifecycleUnificationMode =
   | "minimal_runtime_unified"
   | "closed_runtime_unified";
 
+export type ThreadLifecycleConsolidationDigestId =
+  | "anchor_preservation_consolidation"
+  | "continuity_bridge_consolidation"
+  | "window_replay_consolidation"
+  | "minimal_decay_consolidation"
+  | "closed_decay_consolidation";
+
+export type ThreadKeepDropConsolidationSummary =
+  | "anchor_keep_consolidated"
+  | "bridge_keep_consolidated"
+  | "window_keep_consolidated"
+  | "minimal_decay_consolidated"
+  | "closed_drop_consolidated";
+
+export type ThreadLifecycleConsolidationMode =
+  | "anchor_runtime_consolidated"
+  | "bridge_runtime_consolidated"
+  | "window_runtime_consolidated"
+  | "minimal_runtime_consolidated"
+  | "closed_runtime_consolidated";
+
 export type ThreadRetentionLayer = "anchor" | "context" | "window";
 
 export type ThreadRetentionLayerBudget = {
@@ -154,6 +175,9 @@ export type CompactedThreadSummary = {
   lifecycle_unification_digest: ThreadLifecycleUnificationDigestId;
   keep_drop_unification_summary: ThreadKeepDropUnificationSummary;
   lifecycle_unification_mode: ThreadLifecycleUnificationMode;
+  lifecycle_consolidation_digest: ThreadLifecycleConsolidationDigestId;
+  keep_drop_consolidation_summary: ThreadKeepDropConsolidationSummary;
+  lifecycle_consolidation_mode: ThreadLifecycleConsolidationMode;
   retention_budget: number;
   retention_layers: ThreadRetentionLayer[];
   retention_layer_budget: ThreadRetentionLayerBudget;
