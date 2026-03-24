@@ -1057,6 +1057,52 @@ function main() {
     activeNamespace: null,
     activePackId: "companion"
   });
+  const referenceOnlyProjectOpsSelection = selectKnowledgeForPrompt({
+    knowledge: [
+      buildRuntimeKnowledgeSnippet(
+        buildKnowledgeSnapshot({
+          snapshotId: "knowledge-ref-po-1",
+          resourceId: "resource-ref-po-1",
+          scope: {
+            user_id: "user-1"
+          },
+          title: "General execution note",
+          summary: "A general note for execution fallback.",
+          sourceKind: "external_reference",
+          capturedAt: "2026-03-23T00:00:00.000Z"
+        })
+      ),
+      buildRuntimeKnowledgeSnippet(
+        buildKnowledgeSnapshot({
+          snapshotId: "knowledge-ref-po-2",
+          resourceId: "resource-ref-po-2",
+          scope: {
+            user_id: "user-1"
+          },
+          title: "General delivery note",
+          summary: "A general note for delivery handling.",
+          sourceKind: "external_reference",
+          capturedAt: "2026-03-23T00:00:00.000Z"
+        })
+      ),
+      buildRuntimeKnowledgeSnippet(
+        buildKnowledgeSnapshot({
+          snapshotId: "knowledge-ref-po-3",
+          resourceId: "resource-ref-po-3",
+          scope: {
+            user_id: "user-1"
+          },
+          title: "General routing note",
+          summary: "A general note for routing fallback.",
+          sourceKind: "external_reference",
+          capturedAt: "2026-03-23T00:00:00.000Z"
+        })
+      )
+    ],
+    activeNamespace: null,
+    activePackId: "project_ops",
+    limit: 3
+  });
   const compactedThreadSummary = buildCompactedThreadSummary({
     threadState: {
       thread_id: "thread-1",
@@ -1393,6 +1439,11 @@ function main() {
     referenceOnlySelection.length === 1 &&
       referenceOnlySelection[0]?.title === "General memory note",
     "Expected reference-heavy knowledge convergence to tighten companion prompt budget to one item in P8."
+  );
+  expect(
+    referenceOnlyProjectOpsSelection.length === 1 &&
+      referenceOnlyProjectOpsSelection[0]?.title === "General delivery note",
+    "Expected reference-heavy knowledge consolidation to tighten project_ops prompt budget to one item in P10."
   );
   expect(
     knowledgeSummary.governance_unification_digest ===
@@ -2994,7 +3045,11 @@ function main() {
       runtimeDebugMetadata.knowledge.source_budget_consolidation_summary ===
         knowledgeSummary.source_budget_consolidation_summary &&
       runtimeDebugMetadata.knowledge.governance_consolidation_mode ===
-        knowledgeSummary.governance_consolidation_mode
+        knowledgeSummary.governance_consolidation_mode &&
+      selectedKnowledgeForPrompt[0]?.title === "Onboarding checklist guide" &&
+      referenceOnlyProjectOpsSelection.length === 1 &&
+      referenceOnlyProjectOpsSelection[0]?.title ===
+        "General delivery note"
   } as const;
 
   console.log(

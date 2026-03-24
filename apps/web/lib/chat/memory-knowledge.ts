@@ -42,6 +42,7 @@ export type KnowledgeRouteWeighting = {
 type KnowledgeGovernanceSelectionPolicy = {
   prompt_limit: number;
   route_alignment_bonus_by_class: Record<KnowledgeGovernanceClass, number>;
+  consolidation_bonus_by_class: Record<KnowledgeGovernanceClass, number>;
 };
 
 function resolveKnowledgeGovernanceCoordinationSummary(args: {
@@ -290,6 +291,11 @@ function resolveKnowledgeGovernanceSelectionPolicy(args: {
           authoritative: 18,
           contextual: 6,
           reference: 0
+        },
+        consolidation_bonus_by_class: {
+          authoritative: 6,
+          contextual: 2,
+          reference: 0
         }
       };
     case "contextual_balance_coordination":
@@ -299,15 +305,25 @@ function resolveKnowledgeGovernanceSelectionPolicy(args: {
           authoritative: 6,
           contextual: 16,
           reference: 2
+        },
+        consolidation_bonus_by_class: {
+          authoritative: 1,
+          contextual: 5,
+          reference: 0
         }
       };
     case "reference_support_coordination":
       return {
-        prompt_limit: Math.max(1, baseLimit - 1),
+        prompt_limit: 1,
         route_alignment_bonus_by_class: {
           authoritative: 0,
           contextual: 4,
           reference: 14
+        },
+        consolidation_bonus_by_class: {
+          authoritative: 0,
+          contextual: 1,
+          reference: 5
         }
       };
     case "mixed_governance_coordination":
@@ -318,6 +334,11 @@ function resolveKnowledgeGovernanceSelectionPolicy(args: {
           authoritative: 10,
           contextual: 8,
           reference: 4
+        },
+        consolidation_bonus_by_class: {
+          authoritative: 3,
+          contextual: 3,
+          reference: 2
         }
       };
   }
@@ -544,7 +565,10 @@ export function selectKnowledgeForPrompt(args: {
     applicableKnowledge,
     activePackId: args.activePackId
   });
-  const limit = args.limit ?? selectionPolicy.prompt_limit;
+  const limit =
+    args.limit == null
+      ? selectionPolicy.prompt_limit
+      : Math.min(args.limit, selectionPolicy.prompt_limit);
 
   return [...applicableKnowledge]
     .sort((left, right) => {
@@ -560,11 +584,17 @@ export function selectKnowledgeForPrompt(args: {
       });
       const leftTotal =
         leftWeighting.total_weight +
+        selectionPolicy.consolidation_bonus_by_class[
+          leftWeighting.governance_class
+        ] +
         selectionPolicy.route_alignment_bonus_by_class[
           leftWeighting.governance_class
         ];
       const rightTotal =
         rightWeighting.total_weight +
+        selectionPolicy.consolidation_bonus_by_class[
+          rightWeighting.governance_class
+        ] +
         selectionPolicy.route_alignment_bonus_by_class[
           rightWeighting.governance_class
         ];
