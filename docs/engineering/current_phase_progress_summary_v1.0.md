@@ -1234,11 +1234,11 @@
 
 整体 `P7` 当前大约：
 
-- **`25% - 35%`**
+- **`30% - 40%`**
 
 当前更推荐的下一步：
 
-- **继续补 `P7-2 Retention lifecycle governance v5`，把 governance digest 再推进到更稳定的 keep/drop coordination**
+- **开始 `P7-3 Knowledge governance coordination v5` 的第一刀**
 - 当前已成立的 `P7-1` 主事实：
   - namespace boundary 现在开始显式产出 `policy_digest_id`
   - 当前最小 digest 已成立：
@@ -1258,7 +1258,7 @@
     - assistant metadata / reader
     - runtime debug metadata
     - harness
-- 当前已成立的 `P7-2` 第一刀事实：
+- 当前已成立的 `P7-2` 主事实：
   - retention 现在开始显式产出：
     - `lifecycle_governance_digest`
     - `keep_drop_governance_summary`

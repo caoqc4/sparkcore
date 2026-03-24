@@ -179,6 +179,24 @@ P7 首批要把 retention 从：
     - runtime debug metadata
     - harness
 
+当前阶段判断：
+
+- `P7-2` 已经从“待开始”推进到：
+  - **前中段到中段之间**
+- 当前已成立的主事实：
+  - `lifecycle_governance_digest`
+  - `keep_drop_governance_summary`
+  - `lifecycle_coordination_summary`
+  - `survival_consistency_mode`
+- 这些事实已经进入：
+  - thread compaction summary text
+  - assistant metadata / metadata reader
+  - runtime debug metadata
+  - harness
+- 下一步更合理的选择开始变成：
+  - **转去 `P7-3 Knowledge governance coordination v5`**
+  - 而不是继续深挖 `P7-2` 很多刀
+
 最小要求：
 
 - 至少一条 retention decision 不再只输出 policy / group，而开始输出更明确的 governance digest
