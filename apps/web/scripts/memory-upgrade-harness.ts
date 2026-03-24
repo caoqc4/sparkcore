@@ -3685,7 +3685,79 @@ function main() {
     ...p13NamespaceGovernanceFabricChecks,
     ...p13RetentionGovernanceFabricChecks,
     ...p13KnowledgeGovernanceFabricChecks,
-    ...p13ScenarioGovernanceFabricChecks
+    ...p13ScenarioGovernanceFabricChecks,
+    fabric_metadata_consistency_v11_ok:
+      getAssistantMemoryNamespaceGovernanceFabricRuntimeDigestId(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace?.governance_fabric_runtime_digest_id &&
+      getAssistantMemoryNamespaceGovernanceFabricRuntimeSummary(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.memory_namespace?.governance_fabric_runtime_summary &&
+      getAssistantMemoryNamespaceGovernanceFabricAlignmentMode(
+        assistantMetadata
+      ) === runtimeDebugMetadata.memory_namespace?.governance_fabric_alignment_mode &&
+      getAssistantMemoryNamespaceGovernanceFabricReuseMode(
+        assistantMetadata
+      ) === runtimeDebugMetadata.memory_namespace?.governance_fabric_reuse_mode &&
+      getAssistantMemoryNamespaceGovernanceFabricRuntimeDigestId(
+        assistantMetadata
+      ) ===
+        runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+          ?.namespace_governance_fabric_runtime_digest_id &&
+      getAssistantMemoryNamespaceGovernanceFabricRuntimeSummary(
+        assistantMetadata
+      ) ===
+        runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+          ?.namespace_governance_fabric_runtime_summary &&
+      getAssistantMemoryNamespaceGovernanceFabricAlignmentMode(
+        assistantMetadata
+      ) ===
+        runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+          ?.namespace_governance_fabric_alignment_mode &&
+      getAssistantMemoryNamespaceGovernanceFabricReuseMode(
+        assistantMetadata
+      ) ===
+        runtimeWritePreview.runtime_memory_write_requests_preview?.[0]
+          ?.namespace_governance_fabric_reuse_mode &&
+      getAssistantThreadLifecycleGovernanceFabricDigest(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.lifecycle_governance_fabric_digest &&
+      getAssistantThreadKeepDropGovernanceFabricSummary(assistantMetadata) ===
+        runtimeDebugMetadata.thread_compaction?.keep_drop_governance_fabric_summary &&
+      getAssistantThreadLifecycleGovernanceFabricAlignmentMode(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.thread_compaction
+          ?.lifecycle_governance_fabric_alignment_mode &&
+      getAssistantThreadLifecycleGovernanceFabricReuseMode(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.thread_compaction
+          ?.lifecycle_governance_fabric_reuse_mode &&
+      getAssistantKnowledgeGovernanceFabricDigest(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.governance_fabric_digest &&
+      getAssistantKnowledgeSourceBudgetGovernanceFabricSummary(
+        assistantMetadata
+      ) ===
+        runtimeDebugMetadata.knowledge
+          .source_budget_governance_fabric_summary &&
+      getAssistantKnowledgeGovernanceFabricMode(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.governance_fabric_mode &&
+      getAssistantKnowledgeGovernanceFabricReuseMode(assistantMetadata) ===
+        runtimeDebugMetadata.knowledge.governance_fabric_reuse_mode &&
+      getAssistantMemoryScenarioPackGovernanceFabricDigestId(
+        assistantMetadata
+      ) === runtimeDebugPack?.governance_fabric_digest_id &&
+      getAssistantMemoryScenarioPackStrategyGovernanceFabricSummary(
+        assistantMetadata
+      ) === runtimeDebugPack?.strategy_governance_fabric_summary &&
+      getAssistantMemoryScenarioPackOrchestrationGovernanceFabricMode(
+        assistantMetadata
+      ) === runtimeDebugPack?.orchestration_governance_fabric_mode &&
+      getAssistantMemoryScenarioPackGovernanceFabricReuseMode(
+        assistantMetadata
+      ) === runtimeDebugPack?.governance_fabric_reuse_mode
   } as const;
   const p13RegressionGateFailedChecks = Object.entries(
     p13RegressionGateChecks

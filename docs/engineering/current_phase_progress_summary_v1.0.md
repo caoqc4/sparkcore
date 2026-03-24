@@ -88,6 +88,7 @@
     - retention lifecycle governance fabric v11
     - knowledge governance fabric v11
     - scenario governance fabric v11
+    - cross-surface fabric metadata consistency v11
   - 当前基础验证已通过：
     - `pnpm --filter @sparkcore/web memory:upgrade:harness`
     - `./apps/web/node_modules/.bin/tsc --pretty false --noEmit -p apps/web/tsconfig.json`
