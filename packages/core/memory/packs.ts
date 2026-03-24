@@ -34,6 +34,16 @@ export type ScenarioStrategyRationaleSummary =
   | "execution_priority_alignment"
   | "knowledge_guided_alignment";
 
+export type ScenarioOrchestrationCoordinationSummary =
+  | "continuity_companion_coordination"
+  | "project_delivery_coordination"
+  | "knowledge_guided_companion_coordination";
+
+export type ScenarioStrategyConsistencyMode =
+  | "continuity_governance_aligned"
+  | "execution_governance_aligned"
+  | "knowledge_guidance_aligned";
+
 export type ScenarioMemoryPack = {
   pack_id: ScenarioMemoryPackId;
   label: string;

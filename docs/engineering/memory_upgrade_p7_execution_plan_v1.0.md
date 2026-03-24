@@ -296,6 +296,9 @@ P7 首批要把 scenario strategy 从：
 - scenario pack 已开始显式产出：
   - `orchestration_digest_id`
   - `strategy_rationale_summary`
+- scenario pack 现在也开始显式产出：
+  - `orchestration_coordination_summary`
+  - `strategy_consistency_mode`
 - 这层事实已经进入：
   - prompt
   - assistant metadata / reader

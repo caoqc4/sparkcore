@@ -1296,9 +1296,14 @@
   - scenario pack 现在开始显式产出：
     - `orchestration_digest_id`
     - `strategy_rationale_summary`
+    - `orchestration_coordination_summary`
+    - `strategy_consistency_mode`
   - 当前最小 digest / rationale 已成立：
     - `project_delivery_orchestration`
     - `execution_priority_alignment`
+  - 当前最小 coordination / consistency 已成立：
+    - `project_delivery_coordination`
+    - `execution_governance_aligned`
   - 这层输出已进入：
     - prompt
     - assistant metadata / reader

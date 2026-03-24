@@ -382,6 +382,37 @@ export function getAssistantMemoryScenarioPackStrategyRationaleSummary(
   );
 }
 
+export function getAssistantMemoryScenarioPackOrchestrationCoordinationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      packMetadata,
+      "orchestration_coordination_summary"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_orchestration_coordination_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackStrategyConsistencyMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "strategy_consistency_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_strategy_consistency_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryScenarioPackKnowledgeRouteWeight(
   metadata: Record<string, unknown> | null | undefined
 ) {

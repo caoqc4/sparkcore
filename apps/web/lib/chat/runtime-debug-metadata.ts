@@ -92,6 +92,10 @@ export function buildRuntimeDebugMetadata(
               input.scenario_memory_pack.orchestration_digest_id,
             strategy_rationale_summary:
               input.scenario_memory_pack.strategy_rationale_summary,
+            orchestration_coordination_summary:
+              input.scenario_memory_pack.orchestration_coordination_summary,
+            strategy_consistency_mode:
+              input.scenario_memory_pack.strategy_consistency_mode,
             strategy_bundle_id:
               scenarioPackStrategy?.strategy_bundle_id ?? null,
             strategy_assembly_order:
