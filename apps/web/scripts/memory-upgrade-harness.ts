@@ -5100,34 +5100,54 @@ function main() {
       close_candidate: p16RegressionGate.close_candidate
     }
   } as const;
-  const p17CloseNoteHandoffPacket = buildRoleCoreMemoryCloseNoteHandoffPacket({
-    roleCorePacket: roleCorePacketForHarness,
+  const p17CloseNoteReadinessSnapshot = {
     readinessJudgment: "close_ready",
-    progressRange: "10% - 15%",
+    progressRange: "20% - 25%",
     closeCandidate: p16RegressionGate.close_candidate,
     closeNoteRecommended: true,
-    blockingItems: [],
+    blockingItems: [] as string[],
     nonBlockingItems: [
       "runtime_close_note_packet_consumption",
       "packet_prompt_surface_alignment",
       "close_note_acceptance_structuring"
-    ],
+    ] as const,
     tailCandidateItems: [
       "packet_output_symmetry_cleanup",
       "non_blocking_packet_negative_coverage",
       "close_note_tail_cleanup_alignment"
-    ]
+    ] as const
+  } as const;
+  const p17CloseNoteHandoffPacket = buildRoleCoreMemoryCloseNoteHandoffPacket({
+    roleCorePacket: roleCorePacketForHarness,
+    ...p17CloseNoteReadinessSnapshot
   });
+  const p17AssistantCloseNoteHandoffPacket =
+    assistantRoleCorePacket
+      ? buildRoleCoreMemoryCloseNoteHandoffPacket({
+          roleCorePacket: assistantRoleCorePacket,
+          ...p17CloseNoteReadinessSnapshot
+        })
+      : null;
+  const p17DiagnosticCloseNoteHandoffPacket =
+    assistantDiagnosticRoleCorePacket
+      ? buildRoleCoreMemoryCloseNoteHandoffPacket({
+          roleCorePacket: assistantDiagnosticRoleCorePacket,
+          ...p17CloseNoteReadinessSnapshot
+        })
+      : null;
   const p17CloseNoteHandoffPacketChecks = {
     role_core_memory_close_note_handoff_packet_v1_ok:
       p17CloseNoteHandoffPacket?.packet_version === "v1" &&
       p17CloseNoteHandoffPacket.source_packet_version === "v2" &&
       p17CloseNoteHandoffPacket.handoff_version === "v1" &&
-      p17CloseNoteHandoffPacket.readiness_judgment === "close_ready" &&
-      p17CloseNoteHandoffPacket.progress_range === "10% - 15%" &&
+      p17CloseNoteHandoffPacket.readiness_judgment ===
+        p17CloseNoteReadinessSnapshot.readinessJudgment &&
+      p17CloseNoteHandoffPacket.progress_range ===
+        p17CloseNoteReadinessSnapshot.progressRange &&
       p17CloseNoteHandoffPacket.close_candidate ===
         p16RegressionGate.close_candidate &&
-      p17CloseNoteHandoffPacket.close_note_recommended === true &&
+      p17CloseNoteHandoffPacket.close_note_recommended ===
+        p17CloseNoteReadinessSnapshot.closeNoteRecommended &&
       p17CloseNoteHandoffPacket.blocking_items.length === 0 &&
       p17CloseNoteHandoffPacket.namespace.phase_snapshot_id ===
         roleCorePacketForHarness.memory_handoff?.namespace_phase_snapshot_id &&
@@ -5162,25 +5182,93 @@ function main() {
       ) &&
       p17CloseNoteHandoffPacket.tail_candidate_items.includes(
         "close_note_tail_cleanup_alignment"
-      )
+      ),
+    role_core_memory_close_note_handoff_metadata_consistency_v1_ok:
+      p17AssistantCloseNoteHandoffPacket?.packet_version === "v1" &&
+      p17DiagnosticCloseNoteHandoffPacket?.packet_version === "v1" &&
+      p17AssistantCloseNoteHandoffPacket.readiness_judgment ===
+        p17CloseNoteHandoffPacket?.readiness_judgment &&
+      p17AssistantCloseNoteHandoffPacket.progress_range ===
+        p17CloseNoteHandoffPacket?.progress_range &&
+      p17AssistantCloseNoteHandoffPacket.close_candidate ===
+        p17CloseNoteHandoffPacket?.close_candidate &&
+      p17AssistantCloseNoteHandoffPacket.close_note_recommended ===
+        p17CloseNoteHandoffPacket?.close_note_recommended &&
+      p17AssistantCloseNoteHandoffPacket.namespace.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.namespace.phase_snapshot_id &&
+      p17AssistantCloseNoteHandoffPacket.retention.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.retention.phase_snapshot_id &&
+      p17AssistantCloseNoteHandoffPacket.retention.retained_fields.join(",") ===
+        p17CloseNoteHandoffPacket?.retention.retained_fields.join(",") &&
+      p17AssistantCloseNoteHandoffPacket.knowledge.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.knowledge.phase_snapshot_id &&
+      p17AssistantCloseNoteHandoffPacket.knowledge.scope_layers.join(",") ===
+        p17CloseNoteHandoffPacket?.knowledge.scope_layers.join(",") &&
+      p17AssistantCloseNoteHandoffPacket.knowledge.governance_classes.join(
+        ","
+      ) === p17CloseNoteHandoffPacket?.knowledge.governance_classes.join(",") &&
+      p17AssistantCloseNoteHandoffPacket.scenario.phase_snapshot_id ===
+        p17CloseNoteHandoffPacket?.scenario.phase_snapshot_id &&
+      p17AssistantCloseNoteHandoffPacket.scenario.strategy_bundle_id ===
+        p17CloseNoteHandoffPacket?.scenario.strategy_bundle_id &&
+      p17AssistantCloseNoteHandoffPacket.scenario.orchestration_mode ===
+        p17CloseNoteHandoffPacket?.scenario.orchestration_mode &&
+      p17DiagnosticCloseNoteHandoffPacket.readiness_judgment ===
+        p17CloseNoteHandoffPacket?.readiness_judgment &&
+      p17DiagnosticCloseNoteHandoffPacket.progress_range ===
+        p17CloseNoteHandoffPacket?.progress_range &&
+      p17DiagnosticCloseNoteHandoffPacket.namespace.phase_snapshot_summary ===
+        p17CloseNoteHandoffPacket?.namespace.phase_snapshot_summary &&
+      p17DiagnosticCloseNoteHandoffPacket.retention.phase_snapshot_summary ===
+        p17CloseNoteHandoffPacket?.retention.phase_snapshot_summary &&
+      p17DiagnosticCloseNoteHandoffPacket.retention.decision_group ===
+        p17CloseNoteHandoffPacket?.retention.decision_group &&
+      p17DiagnosticCloseNoteHandoffPacket.knowledge.phase_snapshot_summary ===
+        p17CloseNoteHandoffPacket?.knowledge.phase_snapshot_summary &&
+      p17DiagnosticCloseNoteHandoffPacket.knowledge.scope_layers.join(",") ===
+        p17CloseNoteHandoffPacket?.knowledge.scope_layers.join(",") &&
+      p17DiagnosticCloseNoteHandoffPacket.scenario.phase_snapshot_summary ===
+        p17CloseNoteHandoffPacket?.scenario.phase_snapshot_summary &&
+      p17DiagnosticCloseNoteHandoffPacket.scenario.strategy_bundle_id ===
+        p17CloseNoteHandoffPacket?.scenario.strategy_bundle_id &&
+      p17DiagnosticCloseNoteHandoffPacket.scenario.orchestration_mode ===
+        p17CloseNoteHandoffPacket?.scenario.orchestration_mode
   } as const;
-  const p17RegressionGate = summarizeGate(p17CloseNoteHandoffPacketChecks);
+  const p17PositiveContracts = summarizeGate({
+    role_core_memory_close_note_handoff_packet_v1_ok:
+      p17CloseNoteHandoffPacketChecks.role_core_memory_close_note_handoff_packet_v1_ok
+  });
+  const p17MetadataConsistency = summarizeGate({
+    role_core_memory_close_note_handoff_metadata_consistency_v1_ok:
+      p17CloseNoteHandoffPacketChecks.role_core_memory_close_note_handoff_metadata_consistency_v1_ok
+  });
+  const p17RegressionGate = {
+    positive_contracts: p17PositiveContracts,
+    metadata_consistency: p17MetadataConsistency,
+    ...summarizeGate(p17CloseNoteHandoffPacketChecks)
+  } as const;
   const p17GateSnapshot = {
     gate_id: "p17_regression_gate_v1",
     stage: "P17-5",
     focus: "close_note_handoff_packetization",
     readiness_judgment:
       p17CloseNoteHandoffPacket?.readiness_judgment ?? "not_started",
-    progress_range: p17CloseNoteHandoffPacket?.progress_range ?? "0% - 0%",
+    progress_range:
+      p17CloseNoteReadinessSnapshot.progressRange,
     close_note_recommended:
       p17CloseNoteHandoffPacket?.close_note_recommended ?? false,
     blocking_items: p17CloseNoteHandoffPacket?.blocking_items ?? [],
     non_blocking_items: p17CloseNoteHandoffPacket?.non_blocking_items ?? [],
     tail_candidate_items: p17CloseNoteHandoffPacket?.tail_candidate_items ?? [],
     positive_contracts: {
-      checks_passed: p17RegressionGate.checks_passed,
-      checks_total: p17RegressionGate.checks_total,
-      all_green: p17RegressionGate.all_green
+      checks_passed: p17PositiveContracts.checks_passed,
+      checks_total: p17PositiveContracts.checks_total,
+      all_green: p17PositiveContracts.all_green
+    },
+    metadata_consistency: {
+      checks_passed: p17MetadataConsistency.checks_passed,
+      checks_total: p17MetadataConsistency.checks_total,
+      all_green: p17MetadataConsistency.all_green
     },
     overall: {
       checks_passed: p17RegressionGate.checks_passed,

@@ -178,9 +178,9 @@ export function buildRoleCoreMemoryCloseNoteHandoffPacket(args: {
   progressRange: string;
   closeCandidate: boolean;
   closeNoteRecommended: boolean;
-  blockingItems: string[];
-  nonBlockingItems: string[];
-  tailCandidateItems: string[];
+  blockingItems: readonly string[];
+  nonBlockingItems: readonly string[];
+  tailCandidateItems: readonly string[];
 }): RoleCoreMemoryCloseNoteHandoffPacket | null {
   const memoryHandoff = args.roleCorePacket.memory_handoff;
 
@@ -196,9 +196,9 @@ export function buildRoleCoreMemoryCloseNoteHandoffPacket(args: {
     progress_range: args.progressRange,
     close_candidate: args.closeCandidate,
     close_note_recommended: args.closeNoteRecommended,
-    blocking_items: args.blockingItems,
-    non_blocking_items: args.nonBlockingItems,
-    tail_candidate_items: args.tailCandidateItems,
+    blocking_items: [...args.blockingItems],
+    non_blocking_items: [...args.nonBlockingItems],
+    tail_candidate_items: [...args.tailCandidateItems],
     namespace: {
       phase_snapshot_id: memoryHandoff.namespace_phase_snapshot_id,
       phase_snapshot_summary: memoryHandoff.namespace_phase_snapshot_summary
