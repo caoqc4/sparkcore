@@ -189,6 +189,13 @@ export type RoleCoreMemoryCloseNoteRecord = {
     phase_snapshot_summary: string;
     record_summary: string;
   };
+  retention: {
+    phase_snapshot_id: string | null;
+    phase_snapshot_summary: string | null;
+    decision_group: string | null;
+    retained_fields: string[];
+    record_summary: string;
+  };
 };
 
 export function getRoleCoreRelationshipStance(
@@ -473,6 +480,15 @@ export function buildRoleCoreMemoryCloseNoteRecord(args: {
       phase_snapshot_id: closeNoteOutput.namespace.phase_snapshot_id,
       phase_snapshot_summary: closeNoteOutput.namespace.phase_snapshot_summary,
       record_summary: `${closeNoteOutput.namespace.phase_snapshot_id}; ${closeNoteOutput.namespace.phase_snapshot_summary}; output_headline = ${closeNoteOutput.headline}`
+    },
+    retention: {
+      phase_snapshot_id: closeNoteOutput.retention.phase_snapshot_id,
+      phase_snapshot_summary: closeNoteOutput.retention.phase_snapshot_summary,
+      decision_group: closeNoteOutput.retention.decision_group,
+      retained_fields: [...closeNoteOutput.retention.retained_fields],
+      record_summary: closeNoteOutput.retention.phase_snapshot_id
+        ? `${closeNoteOutput.retention.phase_snapshot_id}; ${closeNoteOutput.retention.phase_snapshot_summary ?? "none"}; decision_group = ${closeNoteOutput.retention.decision_group ?? "none"}; retained_fields = ${closeNoteOutput.retention.retained_fields.join(", ") || "none"}`
+        : "none"
     }
   };
 }

@@ -134,7 +134,8 @@
   - 已开始
   - namespace close-note record contract 第一刀已成立
 - `P20-2`
-  - 待开始
+  - 已开始
+  - retention close-note record contract 第一刀已成立
 - `P20-3`
   - 待开始
 - `P20-4`
@@ -149,11 +150,11 @@
 
 整体 `P20` 当前大约：
 
-- **`10% - 15%`**
+- **`20% - 25%`**
 
 当前更推荐的下一步：
 
-- **继续做 `P20-2 Retention close-note record contract v1`，而不是先写 `P20 close-readiness`**
+- **继续做 `P20-3 Knowledge close-note record contract v1`，而不是先写 `P20 close-readiness`**
 
 ---
 

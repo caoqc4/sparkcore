@@ -2913,6 +2913,9 @@ export function buildRoleCoreMemoryCloseNoteRecordPrompt(
       ? `Namespace record section：${closeNoteRecord.namespace.record_summary}。`
       : `Namespace record section: ${closeNoteRecord.namespace.record_summary}.`,
     isZh
+      ? `Retention record section：${closeNoteRecord.retention.record_summary}。`
+      : `Retention record section: ${closeNoteRecord.retention.record_summary}.`,
+    isZh
       ? `Close-note record summary：${closeNoteRecord.record_summary}`
       : `Close-note record summary: ${closeNoteRecord.record_summary}`
   ];
