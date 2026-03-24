@@ -76,6 +76,9 @@ import {
   getAssistantMemoryScenarioPackOrchestrationDigestId,
   getAssistantMemoryScenarioPackStrategyConsistencyMode,
   getAssistantMemoryScenarioPackStrategyConvergenceSummary,
+  getAssistantMemoryScenarioPackGovernanceUnificationDigestId,
+  getAssistantMemoryScenarioPackStrategyUnificationSummary,
+  getAssistantMemoryScenarioPackOrchestrationUnificationMode,
   getAssistantMemoryScenarioPackStrategyPolicyId,
   getAssistantMemoryScenarioPackStrategyRationaleSummary,
   getAssistantMemoryPrimarySemanticLayer
@@ -2245,6 +2248,12 @@ function main() {
         "project_delivery_strategy_alignment" &&
       scenarioMemoryPack.orchestration_alignment_mode ===
         "execution_convergence_aligned" &&
+      scenarioMemoryPack.governance_unification_digest_id ===
+        "project_delivery_governance_unification" &&
+      scenarioMemoryPack.strategy_unification_summary ===
+        "project_delivery_strategy_unified" &&
+      scenarioMemoryPack.orchestration_unification_mode ===
+        "execution_runtime_unified" &&
       getAssistantMemoryScenarioPackStrategyPolicyId(assistantMetadata) ===
         scenarioMemoryPack.strategy_policy_id &&
       getAssistantMemoryScenarioPackOrchestrationMode(assistantMetadata) ===
@@ -2270,6 +2279,15 @@ function main() {
       getAssistantMemoryScenarioPackOrchestrationAlignmentMode(
         assistantMetadata
       ) === scenarioMemoryPack.orchestration_alignment_mode &&
+      getAssistantMemoryScenarioPackGovernanceUnificationDigestId(
+        assistantMetadata
+      ) === scenarioMemoryPack.governance_unification_digest_id &&
+      getAssistantMemoryScenarioPackStrategyUnificationSummary(
+        assistantMetadata
+      ) === scenarioMemoryPack.strategy_unification_summary &&
+      getAssistantMemoryScenarioPackOrchestrationUnificationMode(
+        assistantMetadata
+      ) === scenarioMemoryPack.orchestration_unification_mode &&
       runtimeDebugMetadata.memory.pack?.strategy_policy_id ===
         scenarioMemoryPack.strategy_policy_id &&
       runtimeDebugMetadata.memory.pack?.orchestration_mode ===
@@ -2288,6 +2306,12 @@ function main() {
         scenarioMemoryPack.strategy_convergence_summary &&
       runtimeDebugPack?.orchestration_alignment_mode ===
         scenarioMemoryPack.orchestration_alignment_mode &&
+      runtimeDebugPack?.governance_unification_digest_id ===
+        scenarioMemoryPack.governance_unification_digest_id &&
+      runtimeDebugPack?.strategy_unification_summary ===
+        scenarioMemoryPack.strategy_unification_summary &&
+      runtimeDebugPack?.orchestration_unification_mode ===
+        scenarioMemoryPack.orchestration_unification_mode &&
       systemPrompt.includes(
         "Current strategy policy = project_delivery_policy; orchestration mode = execution_centered."
       ) &&
@@ -2299,6 +2323,9 @@ function main() {
       ) &&
       systemPrompt.includes(
         "Current governance convergence = project_delivery_governance_convergence; strategy convergence = project_delivery_strategy_alignment; alignment mode = execution_convergence_aligned."
+      ) &&
+      systemPrompt.includes(
+        "Current governance unification = project_delivery_governance_unification; strategy unification = project_delivery_strategy_unified; unification mode = execution_runtime_unified."
       ),
     strategy_policy_consistency_v4_ok:
       getAssistantMemoryScenarioPackId(assistantMetadata) ===
@@ -2771,6 +2798,18 @@ function main() {
           orchestration_alignment_mode:
             getAssistantMemoryScenarioPackOrchestrationAlignmentMode(
               assistantMetadata
+            ),
+          governance_unification_digest_id:
+            getAssistantMemoryScenarioPackGovernanceUnificationDigestId(
+              assistantMetadata
+            ),
+          strategy_unification_summary:
+            getAssistantMemoryScenarioPackStrategyUnificationSummary(
+              assistantMetadata
+            ),
+          orchestration_unification_mode:
+            getAssistantMemoryScenarioPackOrchestrationUnificationMode(
+              assistantMetadata
             )
         },
         assistant_metadata_knowledge: {
@@ -2932,6 +2971,12 @@ function main() {
             runtimeDebugPack?.strategy_convergence_summary ?? null,
           pack_orchestration_alignment_mode:
             runtimeDebugPack?.orchestration_alignment_mode ?? null,
+          pack_governance_unification_digest_id:
+            runtimeDebugPack?.governance_unification_digest_id ?? null,
+          pack_strategy_unification_summary:
+            runtimeDebugPack?.strategy_unification_summary ?? null,
+          pack_orchestration_unification_mode:
+            runtimeDebugPack?.orchestration_unification_mode ?? null,
           knowledge_count: runtimeDebugMetadata.knowledge.count,
           knowledge_governance_unification_digest:
             runtimeDebugMetadata.knowledge.governance_unification_digest ?? null,

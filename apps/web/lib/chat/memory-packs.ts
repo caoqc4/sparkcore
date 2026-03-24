@@ -1,7 +1,9 @@
 import {
   type ScenarioGovernanceConvergenceDigestId,
+  type ScenarioGovernanceUnificationDigestId,
   type ScenarioOrchestrationCoordinationSummary,
   type ScenarioOrchestrationAlignmentMode,
+  type ScenarioOrchestrationUnificationMode,
   resolveBuiltInScenarioMemoryPack,
   type ScenarioOrchestrationDigestId,
   type ScenarioOrchestrationMode,
@@ -11,6 +13,7 @@ import {
   type ScenarioStrategyConsistencyMode,
   type ScenarioStrategyRationaleSummary,
   type ScenarioStrategyPolicyId,
+  type ScenarioStrategyUnificationSummary,
 } from "../../../../packages/core/memory";
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
@@ -61,6 +64,9 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
   governance_convergence_digest_id: ScenarioGovernanceConvergenceDigestId;
   strategy_convergence_summary: ScenarioStrategyConvergenceSummary;
   orchestration_alignment_mode: ScenarioOrchestrationAlignmentMode;
+  governance_unification_digest_id: ScenarioGovernanceUnificationDigestId;
+  strategy_unification_summary: ScenarioStrategyUnificationSummary;
+  orchestration_unification_mode: ScenarioOrchestrationUnificationMode;
 };
 
 function resolveKnowledgeGovernanceRouteWeights(args: {
@@ -181,7 +187,12 @@ export function resolveScenarioMemoryPackPolicy(
       strategy_convergence_summary:
         "project_delivery_strategy_alignment" as const,
       orchestration_alignment_mode:
-        "execution_convergence_aligned" as const
+        "execution_convergence_aligned" as const,
+      governance_unification_digest_id:
+        "project_delivery_governance_unification" as const,
+      strategy_unification_summary:
+        "project_delivery_strategy_unified" as const,
+      orchestration_unification_mode: "execution_runtime_unified" as const
     };
   }
 
@@ -203,7 +214,13 @@ export function resolveScenarioMemoryPackPolicy(
       strategy_convergence_summary:
         "knowledge_guided_strategy_alignment" as const,
       orchestration_alignment_mode:
-        "knowledge_guided_convergence_aligned" as const
+        "knowledge_guided_convergence_aligned" as const,
+      governance_unification_digest_id:
+        "knowledge_guided_governance_unification" as const,
+      strategy_unification_summary:
+        "knowledge_guided_strategy_unified" as const,
+      orchestration_unification_mode:
+        "knowledge_guided_runtime_unified" as const
     };
   }
 
@@ -218,7 +235,11 @@ export function resolveScenarioMemoryPackPolicy(
     governance_convergence_digest_id:
       "continuity_governance_convergence" as const,
     strategy_convergence_summary: "continuity_strategy_alignment" as const,
-    orchestration_alignment_mode: "continuity_convergence_aligned" as const
+    orchestration_alignment_mode: "continuity_convergence_aligned" as const,
+    governance_unification_digest_id:
+      "continuity_governance_unification" as const,
+    strategy_unification_summary: "continuity_strategy_unified" as const,
+    orchestration_unification_mode: "continuity_runtime_unified" as const
   };
 }
 
@@ -414,6 +435,9 @@ export function buildScenarioMemoryPackPromptSection(args: {
     isZh
       ? `当前 governance convergence = ${args.pack.governance_convergence_digest_id}；strategy convergence = ${args.pack.strategy_convergence_summary}；alignment mode = ${args.pack.orchestration_alignment_mode}。`
       : `Current governance convergence = ${args.pack.governance_convergence_digest_id}; strategy convergence = ${args.pack.strategy_convergence_summary}; alignment mode = ${args.pack.orchestration_alignment_mode}.`,
+    isZh
+      ? `当前 governance unification = ${args.pack.governance_unification_digest_id}；strategy unification = ${args.pack.strategy_unification_summary}；unification mode = ${args.pack.orchestration_unification_mode}。`
+      : `Current governance unification = ${args.pack.governance_unification_digest_id}; strategy unification = ${args.pack.strategy_unification_summary}; unification mode = ${args.pack.orchestration_unification_mode}.`,
     isZh
       ? `当前 knowledge route weight = ${args.pack.knowledge_route_weight}，knowledge budget weight = ${args.pack.knowledge_budget_weight}。`
       : `Current knowledge route weight = ${args.pack.knowledge_route_weight}; knowledge budget weight = ${args.pack.knowledge_budget_weight}.`,

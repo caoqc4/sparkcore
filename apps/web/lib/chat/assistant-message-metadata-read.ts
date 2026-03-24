@@ -455,6 +455,48 @@ export function getAssistantMemoryScenarioPackOrchestrationAlignmentMode(
   );
 }
 
+export function getAssistantMemoryScenarioPackGovernanceUnificationDigestId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "governance_unification_digest_id") ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_governance_unification_digest_id"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackStrategyUnificationSummary(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "strategy_unification_summary") ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_strategy_unification_summary"
+    )
+  );
+}
+
+export function getAssistantMemoryScenarioPackOrchestrationUnificationMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const packMetadata = getAssistantMemoryPackMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(packMetadata, "orchestration_unification_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "scenario_memory_pack_orchestration_unification_mode"
+    )
+  );
+}
+
 export function getAssistantMemoryScenarioPackKnowledgeRouteWeight(
   metadata: Record<string, unknown> | null | undefined
 ) {

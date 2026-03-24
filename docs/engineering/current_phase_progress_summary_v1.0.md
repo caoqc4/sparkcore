@@ -1373,26 +1373,26 @@
 - `P9-3`
   - 中段
 - `P9-4`
-  - 待开始
+  - 前中段
 - `P9-5`
   - 待开始
 
 整体 `P9` 当前大约：
 
-- **`60% - 70%`**
+- **`65% - 75%`**
 
 当前更推荐的下一步：
 
-- **开始 `P9-4 Scenario governance unification v7` 的第一刀**
-- 当前 `P9-3` 已开始显式产出：
-  - `governance_unification_digest`
-  - `source_budget_unification_summary`
-  - `governance_unification_mode`
-- 这层 unified knowledge contract 已开始进入：
-  - knowledge prompt section
+- **先对 `P9-4 Scenario governance unification v7` 做一次小评估**
+- 当前 `P9-4` 已开始显式产出：
+  - `governance_unification_digest_id`
+  - `strategy_unification_summary`
+  - `orchestration_unification_mode`
+- 这层 unified scenario contract 已开始进入：
+  - scenario pack prompt section
   - assistant metadata / reader
   - runtime debug metadata
   - harness
-- 这说明 `P9-3` 已经不只是 convergence 字段可见，而是开始进入真实的 knowledge prompt / metadata 统一输出
-- 当前更值的下一步，已经不是继续深挖 `P9-3`，而是开始：
-  - `P9-4 Scenario governance unification v7`
+- 这说明 `P9-4` 已经不只是 convergence 字段可见，而是开始进入真实的 scenario prompt / metadata 统一输出
+- 当前更值的下一步，是先判断 `P9-4` 现在处在前中段还是已经接近中段
+- 然后再决定继续补第二刀，还是切去 `P9-5`
