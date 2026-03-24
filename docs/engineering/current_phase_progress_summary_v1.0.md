@@ -358,6 +358,15 @@
       - role core memory close-note artifact null guard v1
       - role core memory close-note artifact prompt drift guard v1
     - 当前整体约 `55% - 60%`
+- `P18 close-readiness judgment` 当前已建立：
+  - 当前阶段判断请以
+    [memory_upgrade_p18_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p18_close_readiness_v1.0.md)
+    为准
+  - 当前结论是：
+    - `P18` 已进入 `close-readiness` 判断区间
+    - 但暂时还不建议直接判成 `close-ready / 可收官`
+    - 当前整体更接近 `70% - 75%`
+    - 当前无明确新增阻塞项
 
 ---
 

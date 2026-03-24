@@ -140,6 +140,10 @@
 
 - **开始把 `P18` 从第三版 gate 推进到正式 `close-readiness judgment`**
 
+当前正式 `close-readiness` 判断请以
+[memory_upgrade_p18_close_readiness_v1.0.md](/Users/caoq/git/sparkcore/docs/engineering/memory_upgrade_p18_close_readiness_v1.0.md)
+为准。
+
 ---
 
 ## 6. 当前结论
