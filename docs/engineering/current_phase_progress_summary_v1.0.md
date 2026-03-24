@@ -1340,17 +1340,17 @@
 - `P8-3`
   - 前中段到中段之间
 - `P8-4`
-  - 前中段
+  - 前中段到中段之间
 - `P8-5`
   - 第一版已成立
 
 整体 `P8` 当前大约：
 
-- **`65% - 75%`**
+- **`70% - 75%`**
 
 当前更推荐的下一步：
 
-- **先做一次 `P8` 小复盘**
+- **开始进入 `P8 close-readiness` 前置评估**
 - 当前 knowledge 最小 convergence 已经进入：
   - `governance_convergence_digest`
   - `source_budget_alignment_summary`
