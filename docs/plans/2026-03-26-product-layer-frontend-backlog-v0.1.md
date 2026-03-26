@@ -757,6 +757,39 @@ contract 任务：
 3. `C2` 深化：继续降低 IM 绑定门槛，减少手工输入成本
 4. 继续扩张 alternatives / category 页面矩阵
 
+### 13.1 近期 2-3 周最小行动建议
+
+建议当前阶段先按“验证已有主线，再决定下一批加码方向”的方式推进。
+
+第 1 周：
+
+- 正式跑现有公开层页面，重点观察 `/`、`/ai-companion`、`/ai-girlfriend`、`/ai-roleplay-chat`、`/alternatives/character-ai`、`/alternatives/replika`
+- 确认 `PostHog / Clarity` 中现有事件是否稳定进入
+- 人工走通 3 条公开层转化链路：
+  - `home -> create`
+  - `alternative page -> create`
+  - `roleplay page -> create`
+- 人工走通 1 条完整产品链路：
+  - `create -> connect-im -> dashboard`
+
+第 2 周：
+
+- 只做公开层轻量优化，不继续大面积扩页
+- 优先微调：
+  - 首页入口分流文案
+  - alternatives 页 CTA 顺序
+  - roleplay 页到 `companion / girlfriend / create` 的导流强度
+- 产品层只做一类小深化：
+  - dashboard continuity / trace 表达增强
+  - 或 `connect-im` 的下一轮低成本降摩擦
+
+第 3 周：
+
+- 根据真实点击、链路完成度和回访情况，再决定下一批偏向：
+  - 增长扩张：继续做 alternatives / category 页面矩阵
+  - 产品深化：继续做 `F2` trace / continuity 和 dashboard 回访体验
+- 如果信号仍不清晰，优先稳住已有主线，不继续大面积开新战线
+
 ---
 
 ## 12. 建议的首批开发批次
