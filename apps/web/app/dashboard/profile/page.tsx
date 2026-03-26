@@ -108,6 +108,7 @@ export default async function DashboardProfilePage({
                 >
                   <option value="companion">Companion</option>
                   <option value="girlfriend">Girlfriend</option>
+                  <option value="boyfriend">Boyfriend</option>
                 </select>
               </div>
 

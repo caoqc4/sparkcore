@@ -8,6 +8,7 @@ type ProductRoleSetupProps = {
   loginNext: string;
   reviewHref?: string;
   shellClassName?: string;
+  defaultMode?: "companion" | "girlfriend" | "boyfriend";
 };
 
 export function ProductRoleSetup({
@@ -15,8 +16,18 @@ export function ProductRoleSetup({
   surface,
   loginNext,
   reviewHref = "/how-it-works",
-  shellClassName
+  shellClassName,
+  defaultMode = "companion"
 }: ProductRoleSetupProps) {
+  const defaultName =
+    defaultMode === "girlfriend" ? "Luna" : defaultMode === "boyfriend" ? "Atlas" : "Nova";
+  const defaultRelationshipMode =
+    defaultMode === "girlfriend"
+      ? "long-term girlfriend"
+      : defaultMode === "boyfriend"
+        ? "long-term boyfriend"
+        : "long-term companion";
+
   return (
     <div className={shellClassName ?? "product-role-shell"}>
       <section className="product-role-card">
@@ -32,12 +43,13 @@ export function ProductRoleSetup({
             </label>
             <select
               className="input"
-              defaultValue="companion"
+              defaultValue={defaultMode}
               id={`${surface}-mode`}
               name="mode"
             >
               <option value="companion">Companion</option>
               <option value="girlfriend">Girlfriend</option>
+              <option value="boyfriend">Boyfriend</option>
             </select>
           </div>
 
@@ -49,7 +61,7 @@ export function ProductRoleSetup({
               className="input"
               id={`${surface}-name`}
               name="name"
-              placeholder="Luna"
+              placeholder={defaultName}
             />
           </div>
 
@@ -75,7 +87,7 @@ export function ProductRoleSetup({
             </label>
             <input
               className="input"
-              defaultValue="long-term companion"
+              defaultValue={defaultRelationshipMode}
               id={`${surface}-relationship-mode`}
               name="relationship_mode"
             />

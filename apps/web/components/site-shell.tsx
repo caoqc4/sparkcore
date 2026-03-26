@@ -19,11 +19,24 @@ export function SiteShell({ children }: SiteShellProps) {
           </Link>
 
           <nav className="site-nav" aria-label="Primary">
-            {siteConfig.nav.map((item) => (
-              <Link key={item.href} href={item.href}>
-                {item.label}
-              </Link>
-            ))}
+            {siteConfig.nav.map((item) =>
+              "items" in item ? (
+                <details className="site-nav-group" key={item.label}>
+                  <summary>{item.label}</summary>
+                  <div className="site-nav-menu">
+                    {item.items.map((subItem) => (
+                      <Link key={subItem.href} href={subItem.href}>
+                        {subItem.label}
+                      </Link>
+                    ))}
+                  </div>
+                </details>
+              ) : (
+                <Link key={item.href} href={item.href}>
+                  {item.label}
+                </Link>
+              )
+            )}
           </nav>
 
           <div className="site-actions">
@@ -173,4 +186,3 @@ export function ProtectedPlaceholder({
     </main>
   );
 }
-

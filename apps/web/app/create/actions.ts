@@ -30,7 +30,9 @@ export async function createProductRole(formData: FormData) {
   }
 
   const mode = safeProductRoleMode(trimProductText(formData.get("mode")));
-  const name = trimProductText(formData.get("name")) || (mode === "girlfriend" ? "Luna" : "Nova");
+  const name =
+    trimProductText(formData.get("name")) ||
+    (mode === "girlfriend" ? "Luna" : mode === "boyfriend" ? "Atlas" : "Nova");
   const tone = safeProductRoleTone(trimProductText(formData.get("tone")));
   const relationshipMode =
     trimProductText(formData.get("relationship_mode")) || "long-term companion";

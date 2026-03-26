@@ -29,7 +29,7 @@ export default function AiCompanionPage() {
           <TrackedLink
             className="button"
             event="landing_cta_click"
-            href="/create"
+            href="/create?mode=companion"
             payload={{ source: "ai_companion_create" }}
           >
             Create your companion
@@ -49,6 +49,14 @@ export default function AiCompanionPage() {
             payload={{ source: "ai_companion_to_girlfriend" }}
           >
             Looking for a relationship-first angle?
+          </TrackedLink>
+          <TrackedLink
+            className="site-inline-link"
+            event="landing_cta_click"
+            href="/ai-boyfriend"
+            payload={{ source: "ai_companion_to_boyfriend" }}
+          >
+            Looking for an AI boyfriend path?
           </TrackedLink>
         </div>
       </PageFrame>

@@ -1,6 +1,6 @@
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 
-export type ProductRoleMode = "companion" | "girlfriend";
+export type ProductRoleMode = "companion" | "girlfriend" | "boyfriend";
 export type ProductRoleTone = "warm" | "playful" | "steady";
 export type ProductRoleProactivity = "low" | "balanced" | "active";
 
@@ -19,7 +19,11 @@ export function trimProductText(value: unknown) {
 }
 
 export function safeProductRoleMode(value: string): ProductRoleMode {
-  return value === "girlfriend" ? "girlfriend" : "companion";
+  if (value === "girlfriend" || value === "boyfriend") {
+    return value;
+  }
+
+  return "companion";
 }
 
 export function safeProductRoleTone(value: string): ProductRoleTone {
@@ -79,9 +83,12 @@ function detectModeFromMetadata(metadata: unknown): ProductRoleMode {
     metadata &&
     typeof metadata === "object" &&
     typeof (metadata as UnknownRecord).source_slug === "string" &&
-    (metadata as UnknownRecord).source_slug === "product_girlfriend"
+    ((metadata as UnknownRecord).source_slug === "product_girlfriend" ||
+      (metadata as UnknownRecord).source_slug === "product_boyfriend")
   ) {
-    return "girlfriend";
+    return (metadata as UnknownRecord).source_slug === "product_boyfriend"
+      ? "boyfriend"
+      : "girlfriend";
   }
 
   return "companion";
@@ -143,6 +150,8 @@ export function buildProductPersonaSummary(args: {
   const modeCopy =
     args.mode === "girlfriend"
       ? "Relationship-first, emotionally continuous, and attentive."
+      : args.mode === "boyfriend"
+        ? "Relationship-first, grounded, emotionally available, and consistent."
       : "Companion-first, steady, and supportive over time.";
   const toneCopy =
     args.tone === "playful"

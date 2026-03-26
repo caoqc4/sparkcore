@@ -5,12 +5,15 @@ import { getOptionalUser } from "@/lib/auth-redirect";
 type CreatePageProps = {
   searchParams: Promise<{
     error?: string;
+    mode?: string;
   }>;
 };
 
 export default async function CreatePage({ searchParams }: CreatePageProps) {
   const params = await searchParams;
   const user = await getOptionalUser();
+  const defaultMode =
+    params.mode === "girlfriend" || params.mode === "boyfriend" ? params.mode : "companion";
 
   return (
     <SiteShell>
@@ -34,6 +37,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
 
         <div className="page-frame-body">
           <ProductRoleSetup
+            defaultMode={defaultMode}
             loginNext="/create"
             reviewHref="/how-it-works"
             surface="create_page"

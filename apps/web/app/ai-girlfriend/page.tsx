@@ -29,7 +29,7 @@ export default function AiGirlfriendPage() {
           <TrackedLink
             className="button"
             event="landing_cta_click"
-            href="/create"
+            href="/create?mode=girlfriend"
             payload={{ source: "ai_girlfriend_create" }}
           >
             Create your AI girlfriend

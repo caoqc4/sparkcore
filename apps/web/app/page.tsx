@@ -193,6 +193,14 @@ export default async function HomePage() {
             <TrackedLink
               className="site-inline-link"
               event="landing_cta_click"
+              href="/ai-boyfriend"
+              payload={{ source: "home_entry_boyfriend" }}
+            >
+              Explore AI boyfriend
+            </TrackedLink>
+            <TrackedLink
+              className="site-inline-link"
+              event="landing_cta_click"
               href="/ai-roleplay-chat"
               payload={{ source: "home_entry_roleplay" }}
             >
