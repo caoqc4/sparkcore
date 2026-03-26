@@ -14,9 +14,9 @@
 
 ### 1.2 当前实现状态（2026-03-26）
 
-截至当前代码状态，产品层前端已经完成了 P0 主闭环的最小可用版，并已落地两块 P1 增强能力：
+截至当前代码状态，产品层前端已经完成了 P0 主闭环的最小可用版，并已落地多块 P1 增强能力与增长承接页：
 
-- Public Layer 基础页已落地：`/`、`/ai-companion`、`/ai-girlfriend`、`/features/memory-center`、`/features/im-chat`、`/how-it-works`、`/pricing`、`/safety`、`/faq`
+- Public Layer 基础页已落地：`/`、`/ai-companion`、`/ai-girlfriend`、`/alternatives/character-ai`、`/alternatives/replika`、`/features/memory-center`、`/features/im-chat`、`/how-it-works`、`/pricing`、`/safety`、`/faq`
 - Product Layer 主闭环已落地：`/create`、`/connect-im`、`/dashboard`、`/dashboard/memory`、`/dashboard/profile`、`/dashboard/channels`
 - P1 已落地：`/dashboard/chat`、`/dashboard/privacy`、`/features/privacy-controls`
 - 产品事件已接入统一事件层，并已接入 `PostHog + Clarity`
@@ -25,7 +25,7 @@
 因此，当前阶段判断应更新为：
 
 - P0 已从“待实现”进入“最小可用版已完成”
-- 下一阶段重点不再是继续搭壳，而是补信任、连续性与增长承接
+- 下一阶段重点不再是继续搭壳，而是继续深化增长承接、来源可见性和转化效率
 - 后续实现必须继续守住“网站是关系控制台与补充入口，不是第二个网页聊天工作台”
 
 ### 1.1 三层结构约束

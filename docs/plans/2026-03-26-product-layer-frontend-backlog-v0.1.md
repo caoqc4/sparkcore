@@ -16,7 +16,7 @@
 截至当前版本，以下 backlog 项已从“待做”变为“已落地最小版”：
 
 - Track A：A1 / A2 / A3 / A4 已完成
-- Track B：B1、B2、B3、B5、B6 已完成最小版，B4 尚未开始
+- Track B：B1、B2、B3、B4、B5、B6 已完成最小版
 - Track C：C1、C2 已完成最小真流
 - Track D：D1、D2、D3、D4、D5 已完成最小版
 - Track F：F1 已完成最小版，F2 已完成浅版 drill-down
@@ -130,7 +130,7 @@
 - CTA 与基础埋点
 - metadata / sitemap / internal linking
 
-状态：已基本完成，剩余项主要在公开层扩页与 SEO 扩张
+状态：已基本完成，剩余项主要在更深的 SEO 扩张与公开层新增主题页
 
 ### Phase 2
 
@@ -324,7 +324,7 @@
 
 状态：
 
-- 未开始
+- 已完成第一版 comparison-led alternatives 页面
 
 ### B5. 差异页
 
@@ -752,10 +752,10 @@ contract 任务：
 
 当前建议按以下顺序继续：
 
-1. `B4`：补 alternatives 页，开始承接更强商业意图搜索
+1. 视增长节奏决定是否提前做 `/ai-roleplay-chat`
 2. `F2` 深化：继续增强来源 drill-down、continuity context 与 trace depth
 3. `C2` 深化：继续降低 IM 绑定门槛，减少手工输入成本
-4. 视增长节奏决定是否提前做 `/ai-roleplay-chat`
+4. 继续扩张 alternatives / category 页面矩阵
 
 ---
 
