@@ -271,6 +271,33 @@ a {
   margin: 0;
 }
 
+.privacy-memory-list {
+  display: grid;
+  gap: 16px;
+}
+
+.privacy-trace-shell {
+  border-top: 1px solid rgba(148, 163, 184, 0.24);
+  padding-top: 12px;
+}
+
+.privacy-trace-summary {
+  cursor: pointer;
+  color: #0f766e;
+  font-weight: 600;
+}
+
+.privacy-trace-details {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.privacy-trace-details p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .list {
   margin: 0;
   padding-left: 18px;

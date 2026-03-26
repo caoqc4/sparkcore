@@ -76,7 +76,7 @@ test.describe("product flow smoke", () => {
         name: "See what you can control now, without pretending hidden systems already exist."
       })
     ).toBeVisible();
-    await expect(page.getByText("Current privacy controls")).toBeVisible();
+    await expect(page.getByText("Memory source drill-down")).toBeVisible();
     await page.goto("/dashboard");
     await page.getByRole("link", { name: "Open supplementary chat" }).click();
     await expect(page).toHaveURL(/\/dashboard\/chat/);

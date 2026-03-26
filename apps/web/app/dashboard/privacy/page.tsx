@@ -1,8 +1,69 @@
 import Link from "next/link";
+import { FormSubmitButton } from "@/components/form-submit-button";
 import { ProductEventTracker } from "@/components/product-event-tracker";
+import {
+  hideProductMemory,
+  markProductMemoryIncorrect,
+  restoreProductMemory
+} from "@/app/dashboard/memory/actions";
 import { requireUser } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
 import { loadProductPrivacyPageData } from "@/lib/product/privacy";
+
+function PrivacyMemoryAction({
+  action,
+  memoryId
+}: {
+  action: "hide" | "incorrect" | "restore" | null;
+  memoryId: string;
+}) {
+  if (action === "hide") {
+    return (
+      <form action={hideProductMemory} className="memory-card-actions">
+        <input name="memory_id" type="hidden" value={memoryId} />
+        <FormSubmitButton
+          className="button button-secondary memory-hide-button"
+          eventName="memory_action_hide"
+          eventPayload={{ memory_id: memoryId, surface: "dashboard_privacy" }}
+          idleText="Hide"
+          pendingText="Hiding..."
+        />
+      </form>
+    );
+  }
+
+  if (action === "incorrect") {
+    return (
+      <form action={markProductMemoryIncorrect} className="memory-card-actions">
+        <input name="memory_id" type="hidden" value={memoryId} />
+        <FormSubmitButton
+          className="button button-secondary memory-hide-button"
+          eventName="memory_action_incorrect"
+          eventPayload={{ memory_id: memoryId, surface: "dashboard_privacy" }}
+          idleText="Mark incorrect"
+          pendingText="Saving..."
+        />
+      </form>
+    );
+  }
+
+  if (action === "restore") {
+    return (
+      <form action={restoreProductMemory} className="memory-card-actions">
+        <input name="memory_id" type="hidden" value={memoryId} />
+        <FormSubmitButton
+          className="button button-secondary memory-hide-button"
+          eventName="memory_action_restore"
+          eventPayload={{ memory_id: memoryId, surface: "dashboard_privacy" }}
+          idleText="Restore"
+          pendingText="Restoring..."
+        />
+      </form>
+    );
+  }
+
+  return null;
+}
 
 export default async function DashboardPrivacyPage() {
   const user = await requireUser("/dashboard/privacy");
@@ -54,21 +115,71 @@ export default async function DashboardPrivacyPage() {
 
         <section className="privacy-section">
           <div className="privacy-section-header">
-            <h2>Current privacy controls</h2>
+            <h2>Memory source drill-down</h2>
             <p className="helper-copy">
-              These entries are real control surfaces, not placeholders for future systems.
+              Start with real memory rows and shallow trace, then branch to the deeper memory page
+              when you need a fuller repair workflow.
             </p>
           </div>
-          <div className="site-card-grid">
-            {data.availableNow.map((item) => (
-              <article className="site-card" key={item.title}>
-                <h2>{item.title}</h2>
-                <p>{item.body}</p>
-                <Link className="site-inline-link" href={item.href}>
-                  {item.cta}
-                </Link>
+          <div className="privacy-memory-list">
+            {data.drillDownItems.map((item) => (
+              <article className="memory-card" key={item.id}>
+                <div className="memory-card-row">
+                  <div className="memory-badges">
+                    <span className="thread-badge">{item.categoryLabel}</span>
+                    <span className="thread-badge thread-badge-muted">{item.scopeLabel}</span>
+                    <span className="thread-badge thread-badge-muted">{item.statusLabel}</span>
+                  </div>
+                  <span className="memory-confidence memory-confidence-medium">
+                    confidence · {item.confidence.toFixed(2)}
+                  </span>
+                </div>
+                <p className="memory-content">{item.content}</p>
+                <p className="memory-effect-copy">{item.effectHint}</p>
+                <p className="thread-link-meta">
+                  Source time:{" "}
+                  {item.sourceTimestamp
+                    ? new Date(item.sourceTimestamp).toLocaleString()
+                    : "Not linked yet"}
+                </p>
+                <p className="thread-link-meta">
+                  Source thread: {item.sourceThreadTitle ?? "No source thread recorded"}
+                </p>
+                {item.targetAgentName ? (
+                  <p className="thread-link-meta">Affects role: {item.targetAgentName}</p>
+                ) : null}
+                <details className="privacy-trace-shell">
+                  <summary className="privacy-trace-summary">Open source drill-down</summary>
+                  <div className="privacy-trace-details">
+                    <p>
+                      {item.sourceRole
+                        ? `Extracted from a ${item.sourceRole} message.`
+                        : "The exact source message role is not currently available."}
+                    </p>
+                    <p>
+                      {item.sourceExcerpt
+                        ? `Excerpt: ${item.sourceExcerpt}`
+                        : "No source excerpt is currently stored for this row."}
+                    </p>
+                    <p>Current effect: {item.effectHint}</p>
+                    {item.sourceThreadId ? (
+                      <Link
+                        className="memory-trace-link"
+                        href={`/chat?thread=${encodeURIComponent(item.sourceThreadId)}`}
+                      >
+                        Open source thread
+                      </Link>
+                    ) : null}
+                  </div>
+                </details>
+                <PrivacyMemoryAction action={item.action} memoryId={item.id} />
               </article>
             ))}
+          </div>
+          <div className="toolbar">
+            <Link className="site-inline-link" href="/dashboard/memory">
+              Open full memory center
+            </Link>
           </div>
         </section>
 

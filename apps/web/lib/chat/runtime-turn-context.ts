@@ -467,7 +467,7 @@ export async function loadSourceMessagesByIds(args: {
     supabase: args.supabase,
     messageIds: args.sourceMessageIds,
     workspaceId: args.workspaceId,
-    select: "id, thread_id, created_at"
+    select: "id, thread_id, role, content, status, created_at"
   });
 }
 

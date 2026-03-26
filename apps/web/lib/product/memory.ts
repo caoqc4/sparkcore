@@ -22,6 +22,8 @@ export type ProductMemoryItem = StoredMemory & {
   sourceThreadTitle: string | null;
   sourceThreadId: string | null;
   sourceTimestamp: string | null;
+  sourceExcerpt: string | null;
+  sourceRole: "user" | "assistant" | null;
   targetAgentName: string | null;
 };
 
@@ -33,6 +35,9 @@ export type ProductMemoryPageData = {
 type SourceMessageRow = {
   id: string;
   thread_id: string;
+  role: "user" | "assistant";
+  content: string;
+  status: string;
   created_at: string | null;
 };
 
@@ -231,6 +236,8 @@ export async function loadProductMemoryPageData(args: {
         sourceMessage?.thread_id ? threadTitleMap.get(sourceMessage.thread_id) ?? null : null,
       sourceThreadId: sourceMessage?.thread_id ?? null,
       sourceTimestamp: sourceMessage?.created_at ?? null,
+      sourceExcerpt: sourceMessage?.content?.trim() ? sourceMessage.content.trim() : null,
+      sourceRole: sourceMessage?.role ?? null,
       targetAgentName:
         typeof memory.target_agent_id === "string"
           ? targetAgentMap.get(memory.target_agent_id) ?? null

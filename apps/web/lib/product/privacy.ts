@@ -1,6 +1,10 @@
 import { loadPrimaryWorkspace } from "@/lib/chat/runtime-turn-context";
 import { loadOwnedChannelBindings } from "@/lib/product/channels";
-import { loadProductMemoryPageData } from "@/lib/product/memory";
+import {
+  getMemoryEffectHint,
+  loadProductMemoryPageData,
+  type ProductMemoryItem
+} from "@/lib/product/memory";
 
 export type ProductPrivacyPageData = {
   memory: {
@@ -16,17 +20,43 @@ export type ProductPrivacyPageData = {
     inactive: number;
     platforms: string[];
   };
-  availableNow: Array<{
-    title: string;
-    body: string;
-    href: string;
-    cta: string;
+  drillDownItems: Array<{
+    id: string;
+    content: string;
+    categoryLabel: string;
+    scopeLabel: string;
+    statusLabel: string;
+    effectHint: string;
+    confidence: number;
+    sourceTimestamp: string | null;
+    sourceThreadTitle: string | null;
+    sourceThreadId: string | null;
+    sourceExcerpt: string | null;
+    sourceRole: "user" | "assistant" | null;
+    targetAgentName: string | null;
+    action: "hide" | "incorrect" | "restore" | null;
   }>;
   boundaries: Array<{
     title: string;
     body: string;
   }>;
 };
+
+function getPrivacyAction(memory: ProductMemoryItem): "hide" | "incorrect" | "restore" | null {
+  if (memory.status === "active" && memory.scope === "thread_local") {
+    return "incorrect";
+  }
+
+  if (memory.status === "active") {
+    return "hide";
+  }
+
+  if (memory.status === "hidden" || memory.status === "incorrect") {
+    return "restore";
+  }
+
+  return null;
+}
 
 export async function loadProductPrivacyPageData(args: {
   supabase: any;
@@ -76,51 +106,37 @@ export async function loadProductPrivacyPageData(args: {
       inactive: inactiveBindings.length,
       platforms
     },
-    availableNow: [
-      {
-        title: "Memory visibility and repair",
-        body:
-          "Inspect what is being retained, hide entries from recall, mark incorrect rows, and restore them when needed.",
-        href: "/dashboard/memory",
-        cta: "Open memory controls"
-      },
-      {
-        title: "Source trace and thread context",
-        body:
-          "Follow memory back to its source thread so continuity can be inspected instead of guessed.",
-        href: "/dashboard/memory",
-        cta: "Review memory trace"
-      },
-      {
-        title: "IM channel boundaries",
-        body:
-          "See which channels are attached to the relationship and set a binding inactive when that entry should stop being used.",
-        href: "/dashboard/channels",
-        cta: "Open channel controls"
-      },
-      {
-        title: "Relationship setup boundaries",
-        body:
-          "Review tone, relationship mode, and boundary-related role settings without pretending there is a separate privacy rule engine already live.",
-        href: "/dashboard/profile",
-        cta: "Open role profile"
-      }
-    ],
+    drillDownItems: memoryItems.slice(0, 8).map((item) => ({
+      id: item.id,
+      content: item.content,
+      categoryLabel: item.categoryLabel,
+      scopeLabel: item.scopeLabel,
+      statusLabel: item.statusLabel,
+      effectHint: getMemoryEffectHint(item),
+      confidence: item.confidence,
+      sourceTimestamp: item.sourceTimestamp,
+      sourceThreadTitle: item.sourceThreadTitle,
+      sourceThreadId: item.sourceThreadId,
+      sourceExcerpt: item.sourceExcerpt,
+      sourceRole: item.sourceRole,
+      targetAgentName: item.targetAgentName,
+      action: getPrivacyAction(item)
+    })),
     boundaries: [
       {
         title: "Available now",
         body:
-          "The current control center covers memory visibility, memory correction, source trace review, and channel management."
+          "The current control center covers visible memory, correction actions, source trace review, and channel management."
       },
       {
         title: "Not yet exposed here",
         body:
-          "Fine-grained export, delete, and automation rules are not presented as self-serve controls yet, so this page does not render fake switches or disabled controls."
+          "Fine-grained export, delete, and automation rules are not presented as self-serve controls yet, so this page does not render fake switches or fake delete buttons."
       },
       {
         title: "What comes next",
         body:
-          "The next privacy iteration should deepen trace visibility and add explicit data-boundary explanations before heavier account-level controls appear."
+          "The next privacy iteration should deepen trace visibility and add richer continuity context before heavier account-level controls appear."
       }
     ]
   };
