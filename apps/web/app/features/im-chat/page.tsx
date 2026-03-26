@@ -1,4 +1,5 @@
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
+import { TrackedLink } from "@/components/tracked-link";
 
 export default function ImChatFeaturePage() {
   return (
@@ -24,8 +25,25 @@ export default function ImChatFeaturePage() {
             }
           ]}
         />
+        <div className="toolbar">
+          <TrackedLink
+            className="button"
+            event="landing_cta_click"
+            href="/create"
+            payload={{ source: "feature_im_create" }}
+          >
+            Create your companion
+          </TrackedLink>
+          <TrackedLink
+            className="button button-secondary"
+            event="landing_cta_click"
+            href="/connect-im"
+            payload={{ source: "feature_im_connect" }}
+          >
+            See the connect flow
+          </TrackedLink>
+        </div>
       </PageFrame>
     </SiteShell>
   );
 }
-

@@ -1,4 +1,5 @@
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
+import { TrackedLink } from "@/components/tracked-link";
 
 export default function PrivacyControlsFeaturePage() {
   return (
@@ -24,6 +25,24 @@ export default function PrivacyControlsFeaturePage() {
             }
           ]}
         />
+        <div className="toolbar">
+          <TrackedLink
+            className="button"
+            event="landing_cta_click"
+            href="/create"
+            payload={{ source: "feature_privacy_create" }}
+          >
+            Create your companion
+          </TrackedLink>
+          <TrackedLink
+            className="button button-secondary"
+            event="landing_cta_click"
+            href="/ai-girlfriend"
+            payload={{ source: "feature_privacy_girlfriend" }}
+          >
+            Explore AI girlfriend
+          </TrackedLink>
+        </div>
       </PageFrame>
     </SiteShell>
   );

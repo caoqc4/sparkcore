@@ -1,4 +1,5 @@
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
+import { TrackedLink } from "@/components/tracked-link";
 
 export default function AiGirlfriendPage() {
   return (
@@ -24,8 +25,33 @@ export default function AiGirlfriendPage() {
             }
           ]}
         />
+        <div className="toolbar">
+          <TrackedLink
+            className="button"
+            event="landing_cta_click"
+            href="/create"
+            payload={{ source: "ai_girlfriend_create" }}
+          >
+            Create your AI girlfriend
+          </TrackedLink>
+          <TrackedLink
+            className="button button-secondary"
+            event="landing_cta_click"
+            href="/features/privacy-controls"
+            payload={{ source: "ai_girlfriend_privacy" }}
+          >
+            Review privacy controls
+          </TrackedLink>
+          <TrackedLink
+            className="site-inline-link"
+            event="landing_cta_click"
+            href="/ai-companion"
+            payload={{ source: "ai_girlfriend_to_companion" }}
+          >
+            Want the broader companion overview?
+          </TrackedLink>
+        </div>
       </PageFrame>
     </SiteShell>
   );
 }
-

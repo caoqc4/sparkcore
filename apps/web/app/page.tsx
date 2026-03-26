@@ -67,6 +67,63 @@ export default function HomePage() {
         />
       </section>
 
+      <section className="site-section">
+        <div className="site-section-copy">
+          <p className="eyebrow">Choose Your Entry</p>
+          <h2 className="section-title">
+            Start from the path that best matches why you came here.
+          </h2>
+        </div>
+
+        <div className="site-card-grid">
+          <article className="site-card">
+            <h2>AI Companion</h2>
+            <p>
+              Best when you want the clearest explanation of long memory, IM continuity, and the
+              ongoing companion loop.
+            </p>
+            <TrackedLink
+              className="site-inline-link"
+              event="landing_cta_click"
+              href="/ai-companion"
+              payload={{ source: "home_choose_companion" }}
+            >
+              Explore AI companion
+            </TrackedLink>
+          </article>
+          <article className="site-card">
+            <h2>AI Girlfriend</h2>
+            <p>
+              Best when you are specifically looking for a relationship-first AI girlfriend
+              experience with more continuity and control.
+            </p>
+            <TrackedLink
+              className="site-inline-link"
+              event="landing_cta_click"
+              href="/ai-girlfriend"
+              payload={{ source: "home_choose_girlfriend" }}
+            >
+              Explore AI girlfriend
+            </TrackedLink>
+          </article>
+          <article className="site-card">
+            <h2>AI Roleplay Chat</h2>
+            <p>
+              Best when you came for character chat or roleplay, but still want memory and an
+              ongoing relationship loop.
+            </p>
+            <TrackedLink
+              className="site-inline-link"
+              event="landing_cta_click"
+              href="/ai-roleplay-chat"
+              payload={{ source: "home_choose_roleplay" }}
+            >
+              Explore AI roleplay chat
+            </TrackedLink>
+          </article>
+        </div>
+      </section>
+
       <section className="site-section site-section-accent">
         <div className="site-card-grid">
           <article className="site-card">
@@ -93,6 +150,24 @@ export default function HomePage() {
               every conversation back into the browser.
             </p>
           </article>
+        </div>
+        <div className="toolbar">
+          <TrackedLink
+            className="button"
+            event="landing_cta_click"
+            href="/create"
+            payload={{ source: "home_bottom_create" }}
+          >
+            Create your companion
+          </TrackedLink>
+          <TrackedLink
+            className="button button-secondary"
+            event="landing_cta_click"
+            href="/features/im-chat"
+            payload={{ source: "home_bottom_im_feature" }}
+          >
+            See how IM works
+          </TrackedLink>
         </div>
       </section>
     </SiteShell>

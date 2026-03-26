@@ -1,4 +1,5 @@
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
+import { TrackedLink } from "@/components/tracked-link";
 
 export default function MemoryCenterFeaturePage() {
   return (
@@ -24,8 +25,25 @@ export default function MemoryCenterFeaturePage() {
             }
           ]}
         />
+        <div className="toolbar">
+          <TrackedLink
+            className="button"
+            event="landing_cta_click"
+            href="/create"
+            payload={{ source: "feature_memory_create" }}
+          >
+            Create your companion
+          </TrackedLink>
+          <TrackedLink
+            className="button button-secondary"
+            event="landing_cta_click"
+            href="/ai-companion"
+            payload={{ source: "feature_memory_companion" }}
+          >
+            See the companion overview
+          </TrackedLink>
+        </div>
       </PageFrame>
     </SiteShell>
   );
 }
-

@@ -1,4 +1,5 @@
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
+import { TrackedLink } from "@/components/tracked-link";
 
 export default function AiCompanionPage() {
   return (
@@ -24,8 +25,33 @@ export default function AiCompanionPage() {
             }
           ]}
         />
+        <div className="toolbar">
+          <TrackedLink
+            className="button"
+            event="landing_cta_click"
+            href="/create"
+            payload={{ source: "ai_companion_create" }}
+          >
+            Create your companion
+          </TrackedLink>
+          <TrackedLink
+            className="button button-secondary"
+            event="landing_cta_click"
+            href="/features/memory-center"
+            payload={{ source: "ai_companion_memory" }}
+          >
+            Explore memory center
+          </TrackedLink>
+          <TrackedLink
+            className="site-inline-link"
+            event="landing_cta_click"
+            href="/ai-girlfriend"
+            payload={{ source: "ai_companion_to_girlfriend" }}
+          >
+            Looking for a relationship-first angle?
+          </TrackedLink>
+        </div>
       </PageFrame>
     </SiteShell>
   );
 }
-
