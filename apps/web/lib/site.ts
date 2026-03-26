@@ -10,6 +10,7 @@ export const siteConfig = {
     { href: "/ai-girlfriend", label: "AI Girlfriend" },
     { href: "/features/memory-center", label: "Memory" },
     { href: "/features/im-chat", label: "IM Chat" },
+    { href: "/features/privacy-controls", label: "Privacy" },
     { href: "/pricing", label: "Pricing" },
     { href: "/faq", label: "FAQ" }
   ],
@@ -39,4 +40,3 @@ export function buildPageTitle(title?: string) {
 export function buildPageDescription(description?: string) {
   return description ?? siteConfig.description;
 }
-

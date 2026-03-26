@@ -142,6 +142,16 @@ export default async function DashboardPage() {
               </Link>
             ) : null}
           </article>
+          <article className="site-card">
+            <h2>Privacy controls</h2>
+            <p>
+              Review which controls are already real today: memory visibility, correction flows,
+              source trace, and channel boundaries.
+            </p>
+            <Link className="site-inline-link" href="/dashboard/privacy">
+              Open privacy page
+            </Link>
+          </article>
         </div>
       </section>
     </main>

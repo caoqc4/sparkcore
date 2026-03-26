@@ -9,6 +9,35 @@ export type SmokeConfigLike = {
   password: string;
 };
 
+async function retrySmokeAdminCall<T>(
+  run: () => Promise<T>,
+  options?: {
+    retries?: number;
+    delayMs?: number;
+  }
+) {
+  const retries = options?.retries ?? 2;
+  const delayMs = options?.delayMs ?? 600;
+
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await run();
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === retries) {
+        break;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+
+  throw lastError;
+}
+
 export async function ensureSmokeAuthUser(
   admin: SupabaseClient,
   config: SmokeConfigLike,
@@ -16,11 +45,13 @@ export async function ensureSmokeAuthUser(
     resetPassword?: boolean;
   }
 ) {
-  const { data: listedUsersData, error: listError } =
-    await admin.auth.admin.listUsers({
-      page: 1,
-      perPage: 200
-    });
+  const { data: listedUsersData, error: listError } = await retrySmokeAdminCall(
+    () =>
+      admin.auth.admin.listUsers({
+        page: 1,
+        perPage: 200
+      })
+  );
 
   if (listError) {
     throw new Error(`Failed to list auth users: ${listError.message}`);
@@ -32,13 +63,15 @@ export async function ensureSmokeAuthUser(
   let ensuredUser = existingUser;
 
   if (!ensuredUser) {
-    const { data: createdUserData, error: createUserError } =
-      await admin.auth.admin.createUser({
-        email: config.email,
-        password: config.password,
-        email_confirm: true,
-        user_metadata: buildSmokeSeedMetadata()
-      });
+    const { data: createdUserData, error: createUserError } = await retrySmokeAdminCall(
+      () =>
+        admin.auth.admin.createUser({
+          email: config.email,
+          password: config.password,
+          email_confirm: true,
+          user_metadata: buildSmokeSeedMetadata()
+        })
+    );
 
     if (createUserError) {
       throw new Error(`Failed to create the smoke user: ${createUserError.message}`);
@@ -52,13 +85,12 @@ export async function ensureSmokeAuthUser(
   }
 
   if (existingUser && options?.resetPassword) {
-    const { error: updateError } = await admin.auth.admin.updateUserById(
-      existingUser.id,
-      {
+    const { error: updateError } = await retrySmokeAdminCall(() =>
+      admin.auth.admin.updateUserById(existingUser.id, {
         password: config.password,
         email_confirm: true,
         user_metadata: mergeSmokeSeedMetadata(existingUser.user_metadata)
-      }
+      })
     );
 
     if (updateError) {

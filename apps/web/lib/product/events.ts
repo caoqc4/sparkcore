@@ -9,6 +9,7 @@ export type ProductEventName =
   | "im_bind_started"
   | "im_bind_success"
   | "first_dashboard_view"
+  | "first_privacy_view"
   | "relationship_summary_view"
   | "first_supplementary_chat_view"
   | "supplementary_chat_send"
