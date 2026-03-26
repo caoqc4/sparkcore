@@ -1,174 +1,233 @@
-import {
-  FeatureCardGrid,
-  MarketingHero,
-  SiteShell
-} from "@/components/site-shell";
+import { ProductRoleSetup } from "@/components/product-role-setup";
+import { SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
+import { getOptionalUser } from "@/lib/auth-redirect";
+import { loadDashboardOverview } from "@/lib/product/dashboard";
+import { createClient } from "@/lib/supabase/server";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const user = await getOptionalUser();
+  const supabase = user ? await createClient() : null;
+  const overview =
+    user && supabase
+      ? await loadDashboardOverview({
+          supabase,
+          userId: user.id
+        })
+      : null;
+
+  const hasExistingRole = Boolean(overview?.currentRole);
+
   return (
     <SiteShell>
-      <MarketingHero
-        eyebrow="IM-native companion"
-        title="AI companion that remembers you and stays with you in IM."
-        description="SparkCore is building a relationship-first companion product on top of a long-memory core. IM carries the daily conversation. The website acts as the control center for memory, channels, and continuity."
-        aside={
-          <div className="site-hero-stack">
-            <div className="site-inline-pill">Batch 1 public shell</div>
-            <h2>Two product promises, one center of gravity</h2>
-            <ul className="site-bullet-list">
-              <li>Long memory that users can inspect and repair</li>
-              <li>IM-native interaction instead of browser-first chat</li>
-            </ul>
+      <section className="home-stage">
+        <div className="home-stage-copy">
+          <p className="home-kicker">Relationship-first companion product</p>
+          <h1 className="home-display">
+            Create the role once. Let the relationship continue in IM.
+          </h1>
+          <p className="home-lead">
+            SparkCore is not another browser chat toy. It is a long-memory
+            companion flow with IM as the daily surface and the website as the
+            control center for memory, profile, privacy, and continuity.
+          </p>
+
+          <div className="home-proof-strip">
+            <div className="home-proof-chip">
+              <span>Long memory</span>
+              <strong>Visible and repairable</strong>
+            </div>
+            <div className="home-proof-chip">
+              <span>IM-native loop</span>
+              <strong>Carry the relationship outside the browser</strong>
+            </div>
+            <div className="home-proof-chip">
+              <span>Control center</span>
+              <strong>Profile, channels, privacy, and supplementary chat</strong>
+            </div>
+          </div>
+        </div>
+
+        {hasExistingRole && overview ? (
+          <section className="home-continue-shell">
+            <div className="site-inline-pill">{overview.relationshipSummary.label}</div>
+            <h2>Welcome back to {overview.currentRole?.name}.</h2>
+            <p className="home-continue-copy">
+              {overview.relationshipSummary.body}
+            </p>
+
+            <div className="home-continue-stats">
+              <article className="home-continue-stat">
+                <span>Current role</span>
+                <strong>{overview.currentRole?.name}</strong>
+              </article>
+              <article className="home-continue-stat">
+                <span>Active memories</span>
+                <strong>{overview.memorySummary.active}</strong>
+              </article>
+              <article className="home-continue-stat">
+                <span>Live channels</span>
+                <strong>{overview.channelSummary.active}</strong>
+              </article>
+            </div>
+
+            <div className="home-continue-next">
+              <p className="home-continue-next-label">Best next step</p>
+              <h3>{overview.nextStep.title}</h3>
+              <p>{overview.nextStep.body}</p>
+            </div>
+
+            <div className="toolbar">
+              <TrackedLink
+                className="button button-primary button-large"
+                event="landing_cta_click"
+                href={overview.nextStep.href}
+                payload={{ source: "home_existing_role_primary" }}
+              >
+                Continue relationship flow
+              </TrackedLink>
+              <TrackedLink
+                className="button button-ghost button-large"
+                event="landing_cta_click"
+                href="/dashboard"
+                payload={{ source: "home_existing_role_dashboard" }}
+              >
+                Open dashboard
+              </TrackedLink>
+            </div>
+
             <TrackedLink
               className="site-inline-link"
               event="landing_cta_click"
               href="/create"
-              payload={{ source: "home_hero" }}
+              payload={{ source: "home_existing_role_create_another" }}
             >
-              Create your companion
+              Create another role
             </TrackedLink>
-            <TrackedLink
-              className="site-inline-link"
-              event="landing_cta_click"
-              href="/features/memory-center"
-              payload={{ source: "home_memory_link" }}
-            >
-              Explore memory center
-            </TrackedLink>
-          </div>
-        }
-      />
+          </section>
+        ) : (
+          <section className="home-setup-shell">
+            <div className="home-setup-heading">
+              <p className="home-kicker">Create</p>
+              <h2>Create your companion and move straight into IM setup.</h2>
+              <p>
+                Browsing stays public. Submission is gated by login. Once the
+                role exists, the flow hands off into IM setup and then returns
+                you to the relationship control center.
+              </p>
+            </div>
 
-      <section className="site-section">
-        <div className="site-section-copy">
-          <p className="eyebrow">Why SparkCore</p>
-          <h2 className="section-title">
-            Public site for trust and conversion. Product shell for relationship
-            control.
-          </h2>
-        </div>
-
-        <FeatureCardGrid
-          items={[
-            {
-              title: "Long-memory relationship",
-              body: "The companion is designed to feel like the same presence over time, backed by visible long-term state."
-            },
-            {
-              title: "Website as control center",
-              body: "The website is where you configure the role, inspect memory, manage channels, and later tune privacy."
-            },
-            {
-              title: "IM as the main surface",
-              body: "The main interaction loop belongs in IM, where daily conversation is lighter and more habitual."
-            }
-          ]}
-        />
+            <ProductRoleSetup
+              loginNext="/"
+              reviewHref="/how-it-works"
+              shellClassName="product-role-shell product-role-shell-home"
+              surface="home_hero"
+              user={user ? { id: user.id } : null}
+            />
+          </section>
+        )}
       </section>
 
-      <section className="site-section">
-        <div className="site-section-copy">
-          <p className="eyebrow">Choose Your Entry</p>
-          <h2 className="section-title">
-            Start from the path that best matches why you came here.
+      <section className="home-ribbon">
+        <div className="home-ribbon-copy">
+          <p className="home-kicker">Why it feels different</p>
+          <h2>
+            Less like a generic chatbox. More like a designed product loop.
           </h2>
         </div>
 
-        <div className="site-card-grid">
-          <article className="site-card">
-            <h2>AI Companion</h2>
+        <div className="home-ribbon-grid">
+          <article className="home-ribbon-card">
+            <span>01</span>
+            <h3>Memory stays inspectable</h3>
             <p>
-              Best when you want the clearest explanation of long memory, IM continuity, and the
-              ongoing companion loop.
+              You can see what the system retained, where it came from, and
+              repair it instead of trusting a hidden blob.
             </p>
+          </article>
+          <article className="home-ribbon-card">
+            <span>02</span>
+            <h3>IM stays the daily surface</h3>
+            <p>
+              The main rhythm belongs in Telegram-style channels instead of
+              forcing every conversation back into the browser.
+            </p>
+          </article>
+          <article className="home-ribbon-card">
+            <span>03</span>
+            <h3>Web stays the control center</h3>
+            <p>
+              Return here to tune the role core, audit memory, manage channels,
+              review privacy, and continue the same thread when needed.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section className="home-editorial-grid">
+        <article className="home-editorial-panel home-editorial-panel-dark">
+          <p className="home-kicker">Choose your entry</p>
+          <h2>Start from the promise that matches why you came here.</h2>
+          <p>
+            The site should feel like a polished landing experience, but the
+            destination stays product-led: companion, girlfriend, or roleplay as
+            an entry into one relationship system.
+          </p>
+          <div className="home-editorial-links">
             <TrackedLink
               className="site-inline-link"
               event="landing_cta_click"
               href="/ai-companion"
-              payload={{ source: "home_choose_companion" }}
+              payload={{ source: "home_entry_companion" }}
             >
               Explore AI companion
             </TrackedLink>
-          </article>
-          <article className="site-card">
-            <h2>AI Girlfriend</h2>
-            <p>
-              Best when you are specifically looking for a relationship-first AI girlfriend
-              experience with more continuity and control.
-            </p>
             <TrackedLink
               className="site-inline-link"
               event="landing_cta_click"
               href="/ai-girlfriend"
-              payload={{ source: "home_choose_girlfriend" }}
+              payload={{ source: "home_entry_girlfriend" }}
             >
               Explore AI girlfriend
             </TrackedLink>
-          </article>
-          <article className="site-card">
-            <h2>AI Roleplay Chat</h2>
-            <p>
-              Best when you came for character chat or roleplay, but still want memory and an
-              ongoing relationship loop.
-            </p>
             <TrackedLink
               className="site-inline-link"
               event="landing_cta_click"
               href="/ai-roleplay-chat"
-              payload={{ source: "home_choose_roleplay" }}
+              payload={{ source: "home_entry_roleplay" }}
             >
               Explore AI roleplay chat
             </TrackedLink>
-          </article>
-        </div>
-      </section>
+          </div>
+        </article>
 
-      <section className="site-section site-section-accent">
-        <div className="site-card-grid">
-          <article className="site-card">
-            <p className="eyebrow">Step 1</p>
-            <h2>Create your companion</h2>
-            <p>
-              Start from a relationship-first mode and shape the initial role
-              core without turning setup into a heavy builder.
-            </p>
-          </article>
-          <article className="site-card">
-            <p className="eyebrow">Step 2</p>
-            <h2>Connect your IM</h2>
-            <p>
-              Bind the companion to the channel where the main relationship loop
-              can actually continue.
-            </p>
-          </article>
-          <article className="site-card">
-            <p className="eyebrow">Step 3</p>
-            <h2>Return to the control center</h2>
-            <p>
-              Review memory, relationship state, and channels without forcing
-              every conversation back into the browser.
-            </p>
-          </article>
-        </div>
-        <div className="toolbar">
-          <TrackedLink
-            className="button"
-            event="landing_cta_click"
-            href="/create"
-            payload={{ source: "home_bottom_create" }}
-          >
-            Create your companion
-          </TrackedLink>
-          <TrackedLink
-            className="button button-secondary"
-            event="landing_cta_click"
-            href="/features/im-chat"
-            payload={{ source: "home_bottom_im_feature" }}
-          >
-            See how IM works
-          </TrackedLink>
-        </div>
+        <article className="home-editorial-panel">
+          <p className="home-kicker">High-intent alternatives</p>
+          <h2>Comparison pages for users already looking to switch.</h2>
+          <p>
+            We now meet Character.AI and Replika search intent with
+            comparison-led landings instead of trying to explain the whole
+            product from scratch every time.
+          </p>
+          <div className="home-editorial-links">
+            <TrackedLink
+              className="site-inline-link"
+              event="landing_cta_click"
+              href="/alternatives/character-ai"
+              payload={{ source: "home_alt_character_ai" }}
+            >
+              Character.AI alternative
+            </TrackedLink>
+            <TrackedLink
+              className="site-inline-link"
+              event="landing_cta_click"
+              href="/alternatives/replika"
+              payload={{ source: "home_alt_replika" }}
+            >
+              Replika alternative
+            </TrackedLink>
+          </div>
+        </article>
       </section>
     </SiteShell>
   );
