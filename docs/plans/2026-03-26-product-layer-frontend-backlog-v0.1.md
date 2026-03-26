@@ -18,8 +18,8 @@
 - Track A：A1 / A2 / A3 / A4 已完成
 - Track B：B1、B2、B3、B5、B6 已完成最小版，B4 尚未开始
 - Track C：C1、C2 已完成最小真流
-- Track D：D1、D2、D3、D4 已完成最小版，D5 尚未开始
-- Track F：F1 已完成最小版，F2 尚未开始
+- Track D：D1、D2、D3、D4、D5 已完成最小版
+- Track F：F1 已完成最小版，F2 已完成浅版 drill-down
 - Track G：G1、G2、G3、G4 已具备真实验收基础
 
 因此本文档的主要用途，已从“启动 backlog”转为“继续指导 P1 收尾与扩展优先级”。
@@ -150,7 +150,7 @@
 - Web 补充对话
 - 关系轨迹 / 来源上下文 / 线程可见性增强
 
-状态：已部分开始，`Web 补充对话` 最小版已落地
+状态：已部分完成，`/dashboard/privacy`、`/features/privacy-controls`、`Web 补充对话` 与浅版来源 drill-down 已落地
 
 ---
 
@@ -347,8 +347,7 @@
 
 状态：
 
-- `/features/memory-center`、`/features/im-chat` 已完成最小版
-- `/features/privacy-controls` 仍为 P1 待做
+- `/features/memory-center`、`/features/im-chat`、`/features/privacy-controls` 已完成最小版
 
 ### B6. 支撑页
 
@@ -623,7 +622,7 @@ contract 任务：
 
 状态：
 
-- 未开始
+- 已完成最小版
 
 ---
 
@@ -705,7 +704,7 @@ contract 任务：
 
 状态：
 
-- 未开始
+- 已完成浅版 drill-down
 
 ---
 
@@ -742,6 +741,7 @@ contract 任务：
 - `im_bind_started`
 - `im_bind_success`
 - `first_dashboard_view`
+- `first_privacy_view`
 - `first_memory_view`
 - `first_supplementary_chat_view`
 - `supplementary_chat_send`
@@ -752,10 +752,10 @@ contract 任务：
 
 当前建议按以下顺序继续：
 
-1. `D5 / B5 P1`：补 `/dashboard/privacy` 与 `/features/privacy-controls`
-2. `F2`：补来源与线程可见性，增强 memory trace 与连续性说明
-3. `B4`：补 alternatives 页，开始承接更强商业意图搜索
-4. `C2` 深化：继续降低 IM 绑定门槛，减少手工输入成本
+1. `B4`：补 alternatives 页，开始承接更强商业意图搜索
+2. `F2` 深化：继续增强来源 drill-down、continuity context 与 trace depth
+3. `C2` 深化：继续降低 IM 绑定门槛，减少手工输入成本
+4. 视增长节奏决定是否提前做 `/ai-roleplay-chat`
 
 ---
 
