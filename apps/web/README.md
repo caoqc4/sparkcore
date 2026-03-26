@@ -43,7 +43,18 @@ LITELLM_BASE_URL=
 LITELLM_API_KEY=
 REPLICATE_API_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_POSTHOG_KEY=
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+NEXT_PUBLIC_CLARITY_PROJECT_ID=
 ```
+
+Analytics variables are optional:
+
+- `NEXT_PUBLIC_POSTHOG_KEY` enables product-event delivery to PostHog
+- `NEXT_PUBLIC_POSTHOG_HOST` overrides the PostHog ingest host
+- `NEXT_PUBLIC_CLARITY_PROJECT_ID` enables Microsoft Clarity
+
+If you do not set them, the app will skip analytics bootstrap silently.
 
 ## Recommended Local Startup
 
@@ -103,6 +114,38 @@ npm run telegram:binding:delete -- --channel-id <channel_id> --peer-id <peer_id>
 npm run smoke:test
 npm run quality:eval
 ```
+
+## Product Analytics
+
+The product-layer frontend currently emits a small manual event set through
+`apps/web/lib/product/events.ts`.
+
+Current event names:
+
+- `landing_cta_click`
+- `create_started`
+- `create_completed`
+- `im_bind_started`
+- `im_bind_success`
+- `first_dashboard_view`
+- `relationship_summary_view`
+- `first_memory_view`
+- `memory_action_hide`
+- `memory_action_incorrect`
+- `memory_action_restore`
+
+Delivery behavior:
+
+- PostHog is initialized only when `NEXT_PUBLIC_POSTHOG_KEY` is present
+- Clarity is initialized only when `NEXT_PUBLIC_CLARITY_PROJECT_ID` is present
+- PostHog runs in manual mode with `autocapture`, `pageview`, `pageleave`, and session recording disabled
+- Clarity receives lightweight session tags derived from product events
+
+Current privacy guardrails:
+
+- event payloads strip keys containing `thread`, `agent`, `content`, or `message`
+- analytics payloads only send `pathname`, not query-string values
+- no raw chat content is intentionally forwarded to analytics
 
 ## Notes
 

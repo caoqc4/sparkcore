@@ -77,3 +77,29 @@ export function getFollowUpCronEnv() {
     enableTelegramSend
   };
 }
+
+export function getOptionalPostHogEnv() {
+  const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  const apiHost = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
+
+  if (!apiKey) {
+    return null;
+  }
+
+  return {
+    apiKey,
+    apiHost
+  };
+}
+
+export function getOptionalClarityEnv() {
+  const projectId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID;
+
+  if (!projectId) {
+    return null;
+  }
+
+  return {
+    projectId
+  };
+}

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ClarityBootstrap } from "@/components/clarity-bootstrap";
+import { PostHogBootstrap } from "@/components/posthog-bootstrap";
+import { getOptionalClarityEnv, getOptionalPostHogEnv } from "@/lib/env";
 import { buildPageDescription, buildPageTitle, getMetadataBase } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -23,9 +26,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const clarity = getOptionalClarityEnv();
+  const posthog = getOptionalPostHogEnv();
+
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {clarity ? <ClarityBootstrap projectId={clarity.projectId} /> : null}
+        {posthog ? (
+          <PostHogBootstrap apiHost={posthog.apiHost} apiKey={posthog.apiKey} />
+        ) : null}
+        {children}
+      </body>
     </html>
   );
 }
