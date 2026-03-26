@@ -1,4 +1,4 @@
-# SparkCore 产品层前端开发 Backlog v0.1
+# SparkCore 产品层前端开发 Backlog v0.2
 
 ## 1. 文档定位
 
@@ -10,6 +10,19 @@
 - 对外产品层采用 `sistine` 壳思路
 - 现有 `apps/web` 暂保留为能力工作台与过渡接线层
 - 第一阶段优先验证 IM-native companion 闭环，而不是网页聊天主工作台
+
+### 1.1 当前实现快照（2026-03-26）
+
+截至当前版本，以下 backlog 项已从“待做”变为“已落地最小版”：
+
+- Track A：A1 / A2 / A3 / A4 已完成
+- Track B：B1、B2、B3、B5、B6 已完成最小版，B4 尚未开始
+- Track C：C1、C2 已完成最小真流
+- Track D：D1、D2、D3、D4 已完成最小版，D5 尚未开始
+- Track F：F1 已完成最小版，F2 尚未开始
+- Track G：G1、G2、G3、G4 已具备真实验收基础
+
+因此本文档的主要用途，已从“启动 backlog”转为“继续指导 P1 收尾与扩展优先级”。
 
 ---
 
@@ -109,11 +122,15 @@
 - 鉴权与配置接入
 - 可复用能力盘点
 
+状态：已完成
+
 ### Phase 1
 
 - 公开层首批页面
 - CTA 与基础埋点
 - metadata / sitemap / internal linking
+
+状态：已基本完成，剩余项主要在公开层扩页与 SEO 扩张
 
 ### Phase 2
 
@@ -124,12 +141,16 @@
 - `/dashboard/profile`
 - `/dashboard/channels`
 
+状态：已完成最小可用版
+
 ### Phase 3
 
 - `/features/privacy-controls`
 - `/dashboard/privacy`
 - Web 补充对话
 - 关系轨迹 / 来源上下文 / 线程可见性增强
+
+状态：已部分开始，`Web 补充对话` 最小版已落地
 
 ---
 
@@ -157,6 +178,10 @@
 
 - 确认采用 `sistine shell + SparkCore capability`
 
+状态：
+
+- 已完成
+
 ### A2. 站点配置与品牌占位
 
 目标：
@@ -174,6 +199,10 @@
 
 - site config
 - metadata / sitemap 基础实现
+
+状态：
+
+- 已完成
 
 ### A3. Auth 与 session 接入
 
@@ -193,6 +222,10 @@
 - auth flow 定义
 - protected route 行为定义
 
+状态：
+
+- 已完成
+
 ### A4. 埋点基础设施
 
 目标：
@@ -209,6 +242,10 @@
 
 - event taxonomy
 - 前端埋点 helper
+
+状态：
+
+- 已完成，并已接入 `PostHog + Clarity`
 
 ---
 
@@ -285,6 +322,10 @@
 - control / privacy 对比
 - CTA
 
+状态：
+
+- 未开始
+
 ### B5. 差异页
 
 页面：
@@ -304,6 +345,11 @@
 - screenshots / conceptual diagrams
 - CTA to create
 
+状态：
+
+- `/features/memory-center`、`/features/im-chat` 已完成最小版
+- `/features/privacy-controls` 仍为 P1 待做
+
 ### B6. 支撑页
 
 页面：
@@ -321,6 +367,10 @@
 
 - 按 SparkCore 产品叙事改写内容
 - 复用 `sistine` 静态页壳
+
+状态：
+
+- 已完成最小版
 
 ---
 
@@ -362,6 +412,10 @@ contract 任务：
 
 - 新用户可在最短路径内完成一次角色创建
 
+状态：
+
+- 已完成最小真流
+
 ### C2. IM 绑定 `/connect-im`
 
 目标：
@@ -400,6 +454,10 @@ contract 任务：
 
 - 至少一个 IM 平台可跑通真实绑定流程
 
+状态：
+
+- 已完成 Telegram 首个真实绑定流
+
 ---
 
 ## 8. Track D：Dashboard 与关系控制台 Backlog
@@ -437,6 +495,10 @@ contract 任务：
 - `first_dashboard_view`
 - `dashboard_return_view`
 - `relationship_summary_view`
+
+状态：
+
+- 已完成最小版，并已加入 relationship summary / next step / recent activity
 
 ### D2. 记忆中心 `/dashboard/memory`
 
@@ -480,6 +542,10 @@ contract 任务：
 
 - 优先复用现有 `apps/web` 已有 memory 可见与修正能力
 
+状态：
+
+- 已完成最小版
+
 ### D3. 角色资料页 `/dashboard/profile`
 
 目标：
@@ -506,6 +572,10 @@ contract 任务：
 - 读取 role core
 - 更新 role core
 
+状态：
+
+- 已完成最小版
+
 ### D4. 渠道页 `/dashboard/channels`
 
 目标：
@@ -530,6 +600,10 @@ contract 任务：
 - 获取 channel 状态
 - bind / unbind / refresh state
 
+状态：
+
+- 已完成最小版
+
 ### D5. 隐私页 `/dashboard/privacy`（P1）
 
 目标：
@@ -546,6 +620,10 @@ contract 任务：
 contract 任务：
 
 - 先明确系统真实支持的控制项，再设计 UI
+
+状态：
+
+- 未开始
 
 ---
 
@@ -609,6 +687,10 @@ contract 任务：
 - web message 写入
 - thread state 同步
 
+状态：
+
+- 已完成最小版，页面为 `/dashboard/chat`
+
 ### F2. 来源与线程可见性
 
 目标：
@@ -620,6 +702,10 @@ contract 任务：
 - memory trace drill-down
 - related turns preview
 - thread continuity explanation
+
+状态：
+
+- 未开始
 
 ---
 
@@ -637,6 +723,11 @@ contract 任务：
 - 可完成至少一个 IM 绑定
 - 可进入 dashboard 并看到 relationship summary
 - 可查看并操作 memory
+- 可进入 `/dashboard/chat` 并继续同一 canonical thread
+
+状态：
+
+- 已纳入 Playwright smoke 主路径
 
 ### G3. 自动化验收
 
@@ -652,6 +743,19 @@ contract 任务：
 - `im_bind_success`
 - `first_dashboard_view`
 - `first_memory_view`
+- `first_supplementary_chat_view`
+- `supplementary_chat_send`
+
+---
+
+## 13. 下一批建议优先级
+
+当前建议按以下顺序继续：
+
+1. `D5 / B5 P1`：补 `/dashboard/privacy` 与 `/features/privacy-controls`
+2. `F2`：补来源与线程可见性，增强 memory trace 与连续性说明
+3. `B4`：补 alternatives 页，开始承接更强商业意图搜索
+4. `C2` 深化：继续降低 IM 绑定门槛，减少手工输入成本
 
 ---
 
