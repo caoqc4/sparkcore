@@ -67,10 +67,15 @@ test.describe("product flow smoke", () => {
 
     await page.getByRole("link", { name: "Open dashboard" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(
-      page.getByRole("heading", { name: "Relationship control center shell is ready." })
-    ).toBeVisible();
+    await expect(page.getByText("Relationship summary")).toBeVisible();
     await expect(page.getByText(/1 active \/ 1 total binding\(s\)/)).toBeVisible();
+    await page.getByRole("link", { name: "Open supplementary chat" }).click();
+    await expect(page).toHaveURL(/\/dashboard\/chat/);
+    await expect(
+      page.getByRole("heading", { name: "Continue the same relationship thread from the web." })
+    ).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Message" })).toBeVisible();
+    await expect(page.getByText("1 active channel(s)")).toBeVisible();
 
     const bindings = await getActiveSmokeBindings();
     expect(bindings).toHaveLength(1);

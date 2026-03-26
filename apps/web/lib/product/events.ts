@@ -10,6 +10,8 @@ export type ProductEventName =
   | "im_bind_success"
   | "first_dashboard_view"
   | "relationship_summary_view"
+  | "first_supplementary_chat_view"
+  | "supplementary_chat_send"
   | "first_memory_view"
   | "memory_action_hide"
   | "memory_action_incorrect"

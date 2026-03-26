@@ -136,6 +136,11 @@ export default async function DashboardPage() {
                 ? `Next trigger: ${new Date(overview.followUpSummary.nextTriggerAt).toLocaleString()}`
                 : "No scheduled follow-up yet."}
             </p>
+            {overview.currentThread ? (
+              <Link className="site-inline-link" href="/dashboard/chat">
+                Open supplementary chat
+              </Link>
+            ) : null}
           </article>
         </div>
       </section>
