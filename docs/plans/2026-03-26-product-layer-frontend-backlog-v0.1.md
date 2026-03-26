@@ -16,7 +16,7 @@
 截至当前版本，以下 backlog 项已从“待做”变为“已落地最小版”：
 
 - Track A：A1 / A2 / A3 / A4 已完成
-- Track B：B1、B2、B3、B4、B5、B6 已完成最小版
+- Track B：B1、B2、B3、B4、B5、B6 已完成最小版，`/ai-roleplay-chat` 入口页已落地
 - Track C：C1、C2 已完成最小真流
 - Track D：D1、D2、D3、D4、D5 已完成最小版
 - Track F：F1 已完成最小版，F2 已完成浅版 drill-down
@@ -166,7 +166,7 @@
 
 - 建立 public layer 路由分组
 - 建立 auth / protected / dashboard 路由分组
-- 预留 `/ai-roleplay-chat` 路由位
+- `/ai-roleplay-chat` 入口页
 - 统一 404 / not-found / loading 基础行为
 
 产出：
@@ -752,7 +752,7 @@ contract 任务：
 
 当前建议按以下顺序继续：
 
-1. 视增长节奏决定是否提前做 `/ai-roleplay-chat`
+1. 深化 `/ai-roleplay-chat` 的定位与转化效率
 2. `F2` 深化：继续增强来源 drill-down、continuity context 与 trace depth
 3. `C2` 深化：继续降低 IM 绑定门槛，减少手工输入成本
 4. 继续扩张 alternatives / category 页面矩阵

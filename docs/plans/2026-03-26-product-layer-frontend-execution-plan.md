@@ -16,7 +16,7 @@
 
 截至当前代码状态，产品层前端已经完成了 P0 主闭环的最小可用版，并已落地多块 P1 增强能力与增长承接页：
 
-- Public Layer 基础页已落地：`/`、`/ai-companion`、`/ai-girlfriend`、`/alternatives/character-ai`、`/alternatives/replika`、`/features/memory-center`、`/features/im-chat`、`/how-it-works`、`/pricing`、`/safety`、`/faq`
+- Public Layer 基础页已落地：`/`、`/ai-companion`、`/ai-girlfriend`、`/ai-roleplay-chat`、`/alternatives/character-ai`、`/alternatives/replika`、`/features/memory-center`、`/features/im-chat`、`/how-it-works`、`/pricing`、`/safety`、`/faq`
 - Product Layer 主闭环已落地：`/create`、`/connect-im`、`/dashboard`、`/dashboard/memory`、`/dashboard/profile`、`/dashboard/channels`
 - P1 已落地：`/dashboard/chat`、`/dashboard/privacy`、`/features/privacy-controls`
 - 产品事件已接入统一事件层，并已接入 `PostHog + Clarity`
@@ -169,7 +169,7 @@
 - `/`
 - `/ai-companion`
 - `/ai-girlfriend`
-- `/ai-roleplay-chat` 的信息架构预留位
+- `/ai-roleplay-chat` 入口页
 - `/alternatives/character-ai`
 - `/alternatives/replika`
 - `/features/memory-center`
@@ -249,10 +249,6 @@
 - `/safety`
 - `/faq`
 
-#### P0 同步预留但不必立即上线
-
-- `/ai-roleplay-chat` 的导航位、内链位、sitemap 结构位
-
 #### Product Layer
 
 - `/login` / `/signup` 或等价鉴权入口
@@ -268,7 +264,7 @@
 - `/features/privacy-controls`
 - `/dashboard/privacy`
 - `/dashboard/chat` 的体验深化与线程可见性增强
-- `/ai-roleplay-chat`
+- `/ai-roleplay-chat` 的定位深化与转化优化
 
 ### 5.3 P2 后续
 
