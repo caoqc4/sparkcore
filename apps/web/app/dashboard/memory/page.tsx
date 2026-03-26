@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
 import { FormSubmitButton } from "@/components/form-submit-button";
+import { ProductEventTracker } from "@/components/product-event-tracker";
 import type { ProductMemoryItem } from "@/lib/product/memory";
 import { loadProductMemoryPageData, getMemoryEffectHint } from "@/lib/product/memory";
 import {
@@ -75,6 +76,8 @@ function MemoryCard({
           <input name="memory_id" type="hidden" value={item.id} />
           <FormSubmitButton
             className="button button-secondary memory-hide-button"
+            eventName="memory_action_hide"
+            eventPayload={{ memory_id: item.id }}
             idleText="Hide"
             pendingText="Hiding..."
           />
@@ -85,6 +88,8 @@ function MemoryCard({
           <input name="memory_id" type="hidden" value={item.id} />
           <FormSubmitButton
             className="button button-secondary memory-hide-button"
+            eventName="memory_action_incorrect"
+            eventPayload={{ memory_id: item.id }}
             idleText="Mark incorrect"
             pendingText="Saving..."
           />
@@ -95,6 +100,8 @@ function MemoryCard({
           <input name="memory_id" type="hidden" value={item.id} />
           <FormSubmitButton
             className="button button-secondary memory-hide-button"
+            eventName="memory_action_restore"
+            eventPayload={{ memory_id: item.id }}
             idleText="Restore"
             pendingText="Restoring..."
           />
@@ -124,6 +131,12 @@ export default async function DashboardMemoryPage({
   return (
     <main className="shell">
       <section className="card card-wide">
+        <ProductEventTracker
+          event="first_memory_view"
+          payload={{
+            active_memory_count: groups.activeLongTerm.length + groups.activeThreadLocal.length
+          }}
+        />
         <p className="eyebrow">Dashboard Memory</p>
         <h1 className="title">Long-term memory is now visible from the product control center.</h1>
         <p className="lead">

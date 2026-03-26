@@ -1,9 +1,9 @@
-import Link from "next/link";
 import {
   FeatureCardGrid,
   MarketingHero,
   SiteShell
 } from "@/components/site-shell";
+import { TrackedLink } from "@/components/tracked-link";
 
 export default function HomePage() {
   return (
@@ -20,9 +20,22 @@ export default function HomePage() {
               <li>Long memory that users can inspect and repair</li>
               <li>IM-native interaction instead of browser-first chat</li>
             </ul>
-            <Link className="site-inline-link" href="/features/memory-center">
+            <TrackedLink
+              className="site-inline-link"
+              event="landing_cta_click"
+              href="/create"
+              payload={{ source: "home_hero" }}
+            >
+              Create your companion
+            </TrackedLink>
+            <TrackedLink
+              className="site-inline-link"
+              event="landing_cta_click"
+              href="/features/memory-center"
+              payload={{ source: "home_memory_link" }}
+            >
               Explore memory center
-            </Link>
+            </TrackedLink>
           </div>
         }
       />

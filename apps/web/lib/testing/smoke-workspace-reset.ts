@@ -6,6 +6,17 @@ export async function resetSmokeWorkspaceStateByUser(args: {
   admin: SupabaseClient;
   userId: string;
 }) {
+  const { error: deleteBindingsError } = await args.admin
+    .from("channel_bindings")
+    .delete()
+    .eq("user_id", args.userId);
+
+  if (deleteBindingsError) {
+    throw new Error(
+      `Failed to clear smoke channel bindings: ${deleteBindingsError.message}`
+    );
+  }
+
   const { error: deleteThreadsError } = await deleteOwnedThreads({
     supabase: args.admin,
     userId: args.userId

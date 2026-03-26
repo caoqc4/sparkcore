@@ -489,6 +489,7 @@ export async function loadCompletedMessagesForThreads(args: {
   supabase: any;
   threadIds: string[];
   workspaceId: string;
+  select?: string;
 }) {
   return loadCompletedThreadMessages(args);
 }

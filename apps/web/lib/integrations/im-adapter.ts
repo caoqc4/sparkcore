@@ -407,8 +407,14 @@ export function buildBindingNotFoundOutboundMessage(args: {
       channel_id: args.inbound.channel_id,
       peer_id: args.inbound.peer_id,
       message_type: "text",
-      content:
-        "This channel is not bound to a SparkCore role yet. Complete the binding flow first, then try again.",
+      content: [
+        "This channel is not bound to a SparkCore role yet.",
+        "Open the SparkCore connect flow, then paste these Telegram values:",
+        `channel_id: ${args.inbound.channel_id}`,
+        `peer_id: ${args.inbound.peer_id}`,
+        `platform_user_id: ${args.inbound.platform_user_id}`,
+        "After saving the binding, send your message again."
+      ].join("\n"),
       send_mode: "reply",
       metadata: buildBindingNotFoundMetadata({
         reason: args.reason ?? null

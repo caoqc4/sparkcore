@@ -40,6 +40,7 @@ export function getSupabaseAdminEnv() {
 export function getTelegramBotEnv() {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET ?? null;
+  const botUsername = process.env.TELEGRAM_BOT_USERNAME ?? null;
 
   if (!botToken) {
     throw new Error("Missing Telegram bot token. Set TELEGRAM_BOT_TOKEN.");
@@ -47,7 +48,8 @@ export function getTelegramBotEnv() {
 
   return {
     botToken,
-    webhookSecret
+    webhookSecret,
+    botUsername
   };
 }
 

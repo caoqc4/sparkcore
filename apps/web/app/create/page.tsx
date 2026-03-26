@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FormSubmitButton } from "@/components/form-submit-button";
 import { MarketingHero, SiteShell } from "@/components/site-shell";
 import { getOptionalUser } from "@/lib/auth-redirect";
 import { createProductRole } from "@/app/create/actions";
@@ -91,9 +92,13 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
               </div>
 
               {user ? (
-                <button className="button" type="submit">
-                  Create and continue
-                </button>
+                <FormSubmitButton
+                  className="button"
+                  eventName="create_started"
+                  eventPayload={{ surface: "create_page" }}
+                  idleText="Create and continue"
+                  pendingText="Creating..."
+                />
               ) : (
                 <Link className="button site-action-link" href="/login?next=%2Fcreate">
                   Sign in to create
