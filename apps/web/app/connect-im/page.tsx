@@ -53,8 +53,8 @@ export default async function ConnectImPage({ searchParams }: ConnectImPageProps
         <p className="eyebrow">Connect IM</p>
         <h1 className="title">Attach your relationship thread to a real channel.</h1>
         <p className="lead">
-          This flow now supports a real Telegram binding write. It keeps the product layer focused
-          on relationship setup while the webhook runtime continues to live in the integration layer.
+          Bind Telegram in three steps, then continue the same relationship loop where daily chat
+          already happens.
         </p>
 
         {params.created === "1" ? (
@@ -69,6 +69,26 @@ export default async function ConnectImPage({ searchParams }: ConnectImPageProps
             }`}
           >
             {params.feedback}
+          </div>
+        ) : null}
+
+        {params.feedback_type === "success" &&
+        params.feedback?.includes("binding saved") ? (
+          <div className="site-card-grid">
+            <article className="site-card">
+              <h2>Binding saved</h2>
+              <p>
+                Your Telegram identity is now attached to the selected role and canonical thread.
+              </p>
+              <div className="toolbar">
+                <Link className="button" href="/dashboard">
+                  Open dashboard
+                </Link>
+                <Link className="button button-secondary" href="/dashboard/chat">
+                  Open supplementary chat
+                </Link>
+              </div>
+            </article>
           </div>
         ) : null}
 
@@ -98,27 +118,10 @@ export default async function ConnectImPage({ searchParams }: ConnectImPageProps
 
         <div className="site-card-grid">
           <article className="site-card">
-            <h2>Telegram setup</h2>
-            {telegramBot?.botUsername ? (
-              <>
-                <p>1. Open Telegram and message @{telegramBot.botUsername} from the account you want to bind.</p>
-                <p>2. Send any message before binding. The bot will reply with your Telegram identity values.</p>
-                <p>3. Paste those values below to attach that identity to this role thread.</p>
-              </>
-            ) : (
-              <>
-                <p>1. Open your Telegram bot and send it a message from the account you want to bind.</p>
-                <p>2. The unbound reply now includes your `channel_id`, `peer_id`, and `platform_user_id`.</p>
-                <p>3. Paste those values below to attach the binding.</p>
-              </>
-            )}
-          </article>
-
-          <article className="site-card">
             <h2>Where to go next</h2>
             <p>
-              Once Telegram is saved, incoming messages on that identity can resolve to the
-              selected role and canonical thread.
+              Once Telegram is saved, messages on that identity can continue the same role thread
+              instead of starting from scratch.
             </p>
             <Link className="site-inline-link" href="/dashboard">
               Open dashboard
@@ -127,6 +130,34 @@ export default async function ConnectImPage({ searchParams }: ConnectImPageProps
         </div>
 
         <div className="page-frame-body">
+          <section className="site-card connect-im-step-shell">
+            <h2>Telegram setup</h2>
+            <div className="connect-im-step-list">
+              <article className="connect-im-step-card">
+                <span className="site-inline-pill">Step 1</span>
+                <p>
+                  {telegramBot?.botUsername
+                    ? `Open Telegram and message @${telegramBot.botUsername} from the account you want to bind.`
+                    : "Open your Telegram bot from the account you want to bind."}
+                </p>
+              </article>
+              <article className="connect-im-step-card">
+                <span className="site-inline-pill">Step 2</span>
+                <p>
+                  Send any message first. The bot will reply with the identity values you need for
+                  binding.
+                </p>
+              </article>
+              <article className="connect-im-step-card">
+                <span className="site-inline-pill">Step 3</span>
+                <p>
+                  Paste those values below and save. In most 1:1 chats, only `channel_id` and
+                  `peer_id` need your attention.
+                </p>
+              </article>
+            </div>
+          </section>
+
           <section className="site-card">
             <h2>Bind Telegram identity</h2>
             {data.role && data.thread ? (
@@ -165,7 +196,7 @@ export default async function ConnectImPage({ searchParams }: ConnectImPageProps
             ) : (
               <p className="helper-copy">
                 No IM binding is attached yet. Once saved, this section will reflect the real
-                channel rows from `channel_bindings`.
+                channel state for this account.
               </p>
             )}
           </section>
