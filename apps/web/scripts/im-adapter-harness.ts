@@ -5,7 +5,7 @@ import {
   handleInboundChannelMessage,
   type AdapterRuntimePort,
   type InboundChannelMessage
-} from "../../../packages/integrations/im-adapter";
+} from "@sparkcore/im-adapter";
 
 loadEnvConfig(process.cwd());
 

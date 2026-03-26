@@ -15,7 +15,7 @@ import {
   type MemoryNamespacePolicyBundleId,
   type MemoryNamespaceUnifiedGovernanceConsolidationDigestId,
   type MemoryNamespaceUnifiedGovernanceRuntimeDigestId
-} from "../../../../packages/core/memory";
+} from "@sparkcore/core-memory";
 
 export type ActiveRuntimeMemoryNamespace = ActiveMemoryNamespace & {
   selection_reason: "session_and_knowledge_scope";

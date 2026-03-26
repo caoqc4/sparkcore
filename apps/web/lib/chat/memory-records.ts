@@ -11,7 +11,7 @@ import {
   type MemoryRecord,
   type MemoryScopeRef,
   type StaticProfileRecord
-} from "../../../../packages/core/memory/records";
+} from "@sparkcore/core-memory/records";
 
 export type ChatMemoryRecord = MemoryRecord;
 export type ChatStaticProfileRecord = StaticProfileRecord;

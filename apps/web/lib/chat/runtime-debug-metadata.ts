@@ -25,7 +25,7 @@ import {
   type ActiveRuntimeMemoryNamespace
 } from "@/lib/chat/memory-namespace";
 import { buildKnowledgeSummary } from "@/lib/chat/memory-knowledge";
-import type { CompactedThreadSummary } from "../../../../packages/core/memory";
+import type { CompactedThreadSummary } from "@sparkcore/core-memory";
 import { buildThreadCompactionSummary } from "@/lib/chat/thread-compaction";
 
 export type BuildRuntimeDebugMetadataInput = {

@@ -42,7 +42,7 @@ import type {
   ThreadRetentionReason,
   ThreadSurvivalConsistencyMode,
   ThreadSurvivalRationale
-} from "../../../../packages/core/memory";
+} from "@sparkcore/core-memory";
 
 function resolveThreadRetentionMode(args: {
   threadState: ThreadStateRecord;

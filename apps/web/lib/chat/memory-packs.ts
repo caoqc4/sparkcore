@@ -34,7 +34,7 @@ import {
   type ScenarioStrategyRationaleSummary,
   type ScenarioStrategyPolicyId,
   type ScenarioStrategyUnificationSummary,
-} from "../../../../packages/core/memory";
+} from "@sparkcore/core-memory";
 import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import {

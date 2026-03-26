@@ -36,8 +36,8 @@ import type {
   KnowledgeSourceGovernanceSummary,
   KnowledgeSourceKind,
   ScenarioMemoryPackId,
-} from "../../../../packages/core/memory";
-import type { MemoryScopeRef } from "../../../../packages/core/memory/records";
+} from "@sparkcore/core-memory";
+import type { MemoryScopeRef } from "@sparkcore/core-memory/records";
 
 export type RuntimeKnowledgeSnippet = {
   knowledge_id: string;

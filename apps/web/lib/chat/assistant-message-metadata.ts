@@ -15,7 +15,10 @@ import type {
 } from "@/lib/chat/role-core";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { buildRuntimeMemorySemanticSummary } from "@/lib/chat/memory-records";
-import type { ScenarioMemoryLayer, ScenarioMemoryRoute } from "../../../../packages/core/memory";
+import type {
+  ScenarioMemoryLayer,
+  ScenarioMemoryRoute
+} from "@sparkcore/core-memory";
 
 type RecalledMemoryMetadataItem = {
   memory_type: string | null;

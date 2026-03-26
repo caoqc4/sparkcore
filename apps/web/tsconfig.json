@@ -22,9 +22,22 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@sparkcore/core-memory": [
+        "../../packages/core/memory/index.ts"
+      ],
+      "@sparkcore/core-memory/*": [
+        "../../packages/core/memory/*"
+      ],
+      "@sparkcore/im-adapter": [
+        "../../packages/integrations/im-adapter/index.ts"
+      ],
+      "@sparkcore/im-adapter/*": [
+        "../../packages/integrations/im-adapter/*"
       ]
     }
   },

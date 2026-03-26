@@ -7,11 +7,26 @@ function getAppUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 }
 
+function getSafeNextPath(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return "/dashboard";
+  }
+
+  if (!value.startsWith("/") || value.startsWith("//")) {
+    return "/dashboard";
+  }
+
+  return value;
+}
+
 export async function requestMagicLink(formData: FormData) {
   const email = formData.get("email");
+  const next = getSafeNextPath(formData.get("next"));
 
   if (typeof email !== "string" || email.trim().length === 0) {
-    redirect("/login?error=Please+enter+an+email+address.");
+    redirect(
+      `/login?error=Please+enter+an+email+address.&next=${encodeURIComponent(next)}`
+    );
   }
 
   const supabase = await createClient();
@@ -19,18 +34,24 @@ export async function requestMagicLink(formData: FormData) {
     email: email.trim(),
     options: {
       shouldCreateUser: true,
-      emailRedirectTo: `${getAppUrl()}/auth/confirm`
+      emailRedirectTo: `${getAppUrl()}/auth/confirm?next=${encodeURIComponent(
+        next
+      )}`
     }
   });
 
   if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}`);
+    redirect(
+      `/login?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(
+        next
+      )}`
+    );
   }
 
   redirect(
     `/login?message=${encodeURIComponent(
       "Magic link sent. Check your inbox to continue."
-    )}`
+    )}&next=${encodeURIComponent(next)}`
   );
 }
 

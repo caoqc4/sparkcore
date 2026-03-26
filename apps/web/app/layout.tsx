@@ -1,9 +1,21 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { buildPageDescription, buildPageTitle, getMetadataBase } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "SparkCore",
-  description: "Long-memory, persona-driven AI agent runtime."
+  metadataBase: getMetadataBase(),
+  title: {
+    default: buildPageTitle(),
+    template: "%s"
+  },
+  description: buildPageDescription(),
+  openGraph: {
+    title: buildPageTitle(),
+    description: buildPageDescription(),
+    url: "/",
+    siteName: "SparkCore",
+    type: "website"
+  }
 };
 
 export default function RootLayout({

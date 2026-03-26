@@ -7,6 +7,7 @@ type LoginPageProps = {
   searchParams: Promise<{
     error?: string;
     message?: string;
+    next?: string;
   }>;
 };
 
@@ -16,9 +17,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const {
     data: { user }
   } = await supabase.auth.getUser();
+  const nextPath =
+    typeof params.next === "string" && params.next.startsWith("/")
+      ? params.next
+      : "/dashboard";
 
   if (user) {
-    redirect("/workspace");
+    redirect(nextPath);
   }
 
   return (
@@ -41,6 +46,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           ) : null}
 
           <form action={requestMagicLink} className="stack">
+            <input name="next" type="hidden" value={nextPath} />
             <div className="field">
               <label className="label" htmlFor="email">
                 Email address
@@ -52,17 +58,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 name="email"
                 placeholder="you@example.com"
                 required
-                type="email"
-              />
-            </div>
-
-            <FormSubmitButton
-              idleText="Send magic link"
-              pendingText="Sending magic link..."
+              type="email"
             />
-          </form>
-        </div>
-      </section>
-    </main>
+          </div>
+
+          <FormSubmitButton
+            idleText="Send magic link"
+            pendingText="Sending magic link..."
+          />
+        </form>
+      </div>
+    </section>
+  </main>
   );
 }

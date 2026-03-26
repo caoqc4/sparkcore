@@ -31,7 +31,7 @@ import {
   resolveRuntimeMemoryBoundary,
   type ActiveRuntimeMemoryNamespace
 } from "@/lib/chat/memory-namespace";
-import type { CompactedThreadSummary } from "../../../../packages/core/memory";
+import type { CompactedThreadSummary } from "@sparkcore/core-memory";
 
 type RecalledMemoryMetadataItem = BuildAssistantMessageMetadataInput["recalled_memories"][number];
 
