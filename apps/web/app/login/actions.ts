@@ -9,11 +9,11 @@ function getAppUrl() {
 
 function getSafeNextPath(value: FormDataEntryValue | null) {
   if (typeof value !== "string" || value.trim().length === 0) {
-    return "/dashboard";
+    return "/app";
   }
 
   if (!value.startsWith("/") || value.startsWith("//")) {
-    return "/dashboard";
+    return "/app";
   }
 
   return value;

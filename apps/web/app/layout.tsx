@@ -1,9 +1,23 @@
 import type { Metadata } from "next";
+import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import "./marketing-refresh.css";
 import { ClarityBootstrap } from "@/components/clarity-bootstrap";
 import { PostHogBootstrap } from "@/components/posthog-bootstrap";
 import { getOptionalClarityEnv, getOptionalPostHogEnv } from "@/lib/env";
 import { buildPageDescription, buildPageTitle, getMetadataBase } from "@/lib/site";
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-ui",
+  display: "swap"
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap"
+});
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
@@ -30,7 +44,7 @@ export default function RootLayout({
   const posthog = getOptionalPostHogEnv();
 
   return (
-    <html lang="en">
+    <html className={`${plusJakartaSans.variable} ${fraunces.variable}`} lang="en">
       <body>
         {clarity ? <ClarityBootstrap projectId={clarity.projectId} /> : null}
         {posthog ? (

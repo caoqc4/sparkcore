@@ -1,5 +1,14 @@
+import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
+import { buildPageMetadata } from "@/lib/site";
+
+export const metadata = buildPageMetadata({
+  title: "Memory Center for Long-Term AI Companion Relationships",
+  description:
+    "See how SparkCore memory center makes long-term AI companion memory visible, correctable, and trustworthy enough to support relationship continuity.",
+  path: "/features/memory-center"
+});
 
 export default function MemoryCenterFeaturePage() {
   return (
@@ -26,14 +35,20 @@ export default function MemoryCenterFeaturePage() {
           ]}
         />
         <div className="toolbar">
-          <TrackedLink
+          <AdaptiveTrackedLink
             className="button"
             event="landing_cta_click"
-            href="/create"
             payload={{ source: "feature_memory_create" }}
+            intent="memory_action"
+            labels={{
+              anonymous: "Create your companion",
+              signed_in_empty: "Create your first role",
+              signed_in_role_only: "Open memory center",
+              signed_in_connected: "Open memory center"
+            }}
           >
             Create your companion
-          </TrackedLink>
+          </AdaptiveTrackedLink>
           <TrackedLink
             className="button button-secondary"
             event="landing_cta_click"

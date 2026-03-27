@@ -1,9 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FormSubmitButton } from "@/components/form-submit-button";
+import { ProductConsoleShell } from "@/components/product-console-shell";
 import { loadPrimaryWorkspace } from "@/lib/chat/runtime-turn-context";
+import { buildPageMetadata } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
+
+export const metadata = buildPageMetadata({
+  title: "Workspace",
+  description: "Protected SparkCore workspace shell used to bootstrap authenticated product access.",
+  path: "/workspace",
+  noIndex: true
+});
 
 export default async function WorkspacePage() {
   const supabase = await createClient();
@@ -21,74 +30,78 @@ export default async function WorkspacePage() {
   });
 
   return (
-    <main className="shell">
-      <div className="app-shell">
-        <div className="topbar">
-          <div>
-            <p className="eyebrow">Authenticated</p>
-            <h1 className="title">Workspace shell is ready</h1>
-          </div>
-
+    <ProductConsoleShell
+      actions={
+        <>
           <form action={signOut}>
             <FormSubmitButton
-              className="button button-secondary"
+              className="button button-secondary site-action-link"
               idleText="Sign out"
               pendingText="Signing out..."
             />
           </form>
-        </div>
-
-        <section className="hero">
-          <h2>Supabase Auth is working</h2>
+          <Link className="button button-primary" href="/chat">
+            Open chat workspace
+          </Link>
+        </>
+      }
+      currentHref="/workspace"
+      description="This protected route confirms session state, workspace bootstrap, and the product shell that all user-scoped chat data hangs off."
+      eyebrow="Authenticated"
+      title="Workspace shell is ready"
+    >
+      <div className="product-glance-grid">
+        <article className="site-card product-highlight-card">
+          <h2>Current session</h2>
           <p>
-            This is the first protected page for SparkCore. Users who reach this
-            screen already have a valid Supabase session stored in cookies, and
-            unauthenticated visitors are redirected to the login page.
+            Signed in as <strong>{user.email}</strong>
           </p>
-          <div className="hero-actions">
-            <Link className="button button-secondary" href="/chat">
-              Open chat foundation
-            </Link>
-          </div>
+          <p>
+            Users who reach this screen already have a valid Supabase session stored in cookies.
+          </p>
+        </article>
+
+        <article className="product-stat-card">
+          <h2>Chat access</h2>
+          <p>Protected chat routes are unlocked from here.</p>
+          <p>Use this as the jump point into advanced chat and dashboard flows.</p>
+        </article>
+
+        <article className="product-stat-card">
+          <h2>Relationship data</h2>
+          <p>User-scoped threads, messages, and memory attach to this workspace layer.</p>
+        </article>
+      </div>
+
+      <div className="product-dual-grid">
+        <section className="site-card product-form-card">
+          <h2>Workspace bootstrap</h2>
+          {workspace ? (
+            <ul className="list">
+              <li>
+                Personal workspace: <strong>{workspace.name}</strong>
+              </li>
+              <li>Workspace type: {workspace.kind}</li>
+              <li>Workspace ID: {workspace.id}</li>
+            </ul>
+          ) : (
+            <div className="notice notice-error">
+              {workspaceError
+                ? `Workspace lookup failed: ${workspaceError.message}`
+                : "No workspace was found yet. Apply the Supabase migration, then sign in again to trigger automatic workspace creation."}
+            </div>
+          )}
         </section>
 
-        <section className="grid">
-          <article className="panel">
-            <h3>Current session</h3>
-            <p className="lead">
-              Signed in as <strong>{user.email}</strong>
-            </p>
-          </article>
-
-          <article className="panel">
-            <h3>Workspace bootstrap</h3>
-            {workspace ? (
-              <ul className="list">
-                <li>
-                  Personal workspace: <strong>{workspace.name}</strong>
-                </li>
-                <li>Workspace type: {workspace.kind}</li>
-                <li>Workspace ID: {workspace.id}</li>
-              </ul>
-            ) : (
-              <div className="notice notice-error">
-                {workspaceError
-                  ? `Workspace lookup failed: ${workspaceError.message}`
-                  : "No workspace was found yet. Apply the Supabase migration, then sign in again to trigger automatic workspace creation."}
-              </div>
-            )}
-          </article>
-
-          <article className="panel">
-            <h3>What this unlocks next</h3>
-            <ul className="list">
-              <li>Protected chat routes</li>
-              <li>User-scoped thread and message data</li>
-              <li>Agent memory attached to a personal workspace</li>
-            </ul>
-          </article>
+        <section className="site-card product-preview-card">
+          <h2>What this unlocks next</h2>
+          <ul className="list">
+            <li>Protected chat routes</li>
+            <li>User-scoped thread and message data</li>
+            <li>Agent memory attached to a personal workspace</li>
+          </ul>
         </section>
       </div>
-    </main>
+    </ProductConsoleShell>
   );
 }

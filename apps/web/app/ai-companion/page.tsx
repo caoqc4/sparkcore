@@ -1,5 +1,14 @@
+import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
+import { buildPageMetadata } from "@/lib/site";
+
+export const metadata = buildPageMetadata({
+  title: "AI Companion With Long Memory and IM Continuity",
+  description:
+    "Learn how SparkCore turns AI companion into a long-memory, IM-native relationship loop with a web control center for memory and privacy.",
+  path: "/ai-companion"
+});
 
 export default function AiCompanionPage() {
   return (
@@ -26,22 +35,34 @@ export default function AiCompanionPage() {
           ]}
         />
         <div className="toolbar">
-          <TrackedLink
+          <AdaptiveTrackedLink
             className="button"
             event="landing_cta_click"
-            href="/create?mode=companion"
             payload={{ source: "ai_companion_create" }}
+            intent="create_companion"
+            labels={{
+              anonymous: "Create your companion",
+              signed_in_empty: "Create your companion",
+              signed_in_role_only: "Continue relationship flow",
+              signed_in_connected: "Continue relationship flow"
+            }}
           >
             Create your companion
-          </TrackedLink>
-          <TrackedLink
+          </AdaptiveTrackedLink>
+          <AdaptiveTrackedLink
             className="button button-secondary"
             event="landing_cta_click"
-            href="/features/memory-center"
             payload={{ source: "ai_companion_memory" }}
+            intent="memory"
+            labels={{
+              anonymous: "Explore memory center",
+              signed_in_empty: "Create a role first",
+              signed_in_role_only: "Open memory center",
+              signed_in_connected: "Open memory center"
+            }}
           >
             Explore memory center
-          </TrackedLink>
+          </AdaptiveTrackedLink>
           <TrackedLink
             className="site-inline-link"
             event="landing_cta_click"

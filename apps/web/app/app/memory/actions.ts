@@ -16,20 +16,37 @@ import {
 } from "@/lib/chat/memory-item-read";
 import { updateMemoryItem } from "@/lib/chat/memory-item-persistence";
 
+function resolveRedirectPath(formData: FormData, fallbackPath: string) {
+  const redirectTarget = formData.get("redirect_to");
+
+  if (typeof redirectTarget !== "string" || redirectTarget.length === 0) {
+    return fallbackPath;
+  }
+
+  if (!redirectTarget.startsWith("/") || redirectTarget.includes("://")) {
+    return fallbackPath;
+  }
+
+  return redirectTarget;
+}
+
 function redirectWithMessage(
+  redirectPath: string,
   message: string,
   type: "error" | "success"
 ): never {
+  const separator = redirectPath.includes("?") ? "&" : "?";
   redirect(
-    `/dashboard/memory?feedback=${encodeURIComponent(message)}&feedback_type=${type}`
+    `${redirectPath}${separator}feedback=${encodeURIComponent(message)}&feedback_type=${type}`
   );
 }
 
 export async function hideProductMemory(formData: FormData) {
+  const redirectPath = resolveRedirectPath(formData, "/app/memory");
   const memoryId = formData.get("memory_id");
 
   if (typeof memoryId !== "string" || memoryId.trim().length === 0) {
-    redirectWithMessage("The memory to hide could not be determined.", "error");
+    redirectWithMessage(redirectPath, "The memory to hide could not be determined.", "error");
   }
   const memoryItemId = memoryId;
 
@@ -39,7 +56,7 @@ export async function hideProductMemory(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?next=%2Fdashboard%2Fmemory");
+    redirect(`/login?next=${encodeURIComponent(redirectPath)}`);
   }
 
   const { data: memoryItem } = await loadOwnedMemoryItemById({
@@ -50,11 +67,15 @@ export async function hideProductMemory(formData: FormData) {
   });
 
   if (!memoryItem) {
-    redirectWithMessage("The selected memory is unavailable.", "error");
+    redirectWithMessage(redirectPath, "The selected memory is unavailable.", "error");
   }
 
   if (!canTransitionMemoryStatus(getMemoryStatus(memoryItem), "hidden")) {
-    redirectWithMessage("This memory cannot be hidden from its current state.", "error");
+    redirectWithMessage(
+      redirectPath,
+      "This memory cannot be hidden from its current state.",
+      "error"
+    );
   }
 
   const nextMetadata = { ...(memoryItem.metadata ?? {}) } as Record<string, unknown>;
@@ -73,20 +94,26 @@ export async function hideProductMemory(formData: FormData) {
   }).eq("user_id", user.id);
 
   if (error) {
-    redirectWithMessage(error.message, "error");
+    redirectWithMessage(redirectPath, error.message, "error");
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/memory");
+  revalidatePath("/app");
+  revalidatePath("/app/memory");
+  revalidatePath("/app/settings");
   revalidatePath("/chat");
-  redirectWithMessage("Memory hidden from recall.", "success");
+  redirectWithMessage(redirectPath, "Memory hidden from recall.", "success");
 }
 
 export async function markProductMemoryIncorrect(formData: FormData) {
+  const redirectPath = resolveRedirectPath(formData, "/app/memory");
   const memoryId = formData.get("memory_id");
 
   if (typeof memoryId !== "string" || memoryId.trim().length === 0) {
-    redirectWithMessage("The memory to correct could not be determined.", "error");
+    redirectWithMessage(
+      redirectPath,
+      "The memory to correct could not be determined.",
+      "error"
+    );
   }
   const memoryItemId = memoryId;
 
@@ -96,7 +123,7 @@ export async function markProductMemoryIncorrect(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?next=%2Fdashboard%2Fmemory");
+    redirect(`/login?next=${encodeURIComponent(redirectPath)}`);
   }
 
   const { data: memoryItem } = await loadOwnedMemoryItemById({
@@ -107,11 +134,12 @@ export async function markProductMemoryIncorrect(formData: FormData) {
   });
 
   if (!memoryItem) {
-    redirectWithMessage("The selected memory is unavailable.", "error");
+    redirectWithMessage(redirectPath, "The selected memory is unavailable.", "error");
   }
 
   if (!canTransitionMemoryStatus(getMemoryStatus(memoryItem), "incorrect")) {
     redirectWithMessage(
+      redirectPath,
       "This memory cannot be marked incorrect from its current state.",
       "error"
     );
@@ -135,20 +163,30 @@ export async function markProductMemoryIncorrect(formData: FormData) {
   }).eq("user_id", user.id);
 
   if (error) {
-    redirectWithMessage(error.message, "error");
+    redirectWithMessage(redirectPath, error.message, "error");
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/memory");
+  revalidatePath("/app");
+  revalidatePath("/app/memory");
+  revalidatePath("/app/settings");
   revalidatePath("/chat");
-  redirectWithMessage("Memory marked incorrect and removed from recall.", "success");
+  redirectWithMessage(
+    redirectPath,
+    "Memory marked incorrect and removed from recall.",
+    "success"
+  );
 }
 
 export async function restoreProductMemory(formData: FormData) {
+  const redirectPath = resolveRedirectPath(formData, "/app/memory");
   const memoryId = formData.get("memory_id");
 
   if (typeof memoryId !== "string" || memoryId.trim().length === 0) {
-    redirectWithMessage("The memory to restore could not be determined.", "error");
+    redirectWithMessage(
+      redirectPath,
+      "The memory to restore could not be determined.",
+      "error"
+    );
   }
   const memoryItemId = memoryId;
 
@@ -158,7 +196,7 @@ export async function restoreProductMemory(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?next=%2Fdashboard%2Fmemory");
+    redirect(`/login?next=${encodeURIComponent(redirectPath)}`);
   }
 
   const { data: memoryItem } = await loadOwnedMemoryItemById({
@@ -170,11 +208,15 @@ export async function restoreProductMemory(formData: FormData) {
   });
 
   if (!memoryItem) {
-    redirectWithMessage("The selected memory is unavailable.", "error");
+    redirectWithMessage(redirectPath, "The selected memory is unavailable.", "error");
   }
 
   if (!canTransitionMemoryStatus(getMemoryStatus(memoryItem), "active")) {
-    redirectWithMessage("This memory cannot be restored from its current state.", "error");
+    redirectWithMessage(
+      redirectPath,
+      "This memory cannot be restored from its current state.",
+      "error"
+    );
   }
 
   const singleSlotTarget = resolveSupportedSingleSlotTarget(memoryItem);
@@ -195,7 +237,7 @@ export async function restoreProductMemory(formData: FormData) {
       });
 
     if (conflictingRowsError) {
-      redirectWithMessage(conflictingRowsError.message, "error");
+      redirectWithMessage(redirectPath, conflictingRowsError.message, "error");
     }
 
     for (const row of conflictingActiveRows ?? []) {
@@ -217,7 +259,7 @@ export async function restoreProductMemory(formData: FormData) {
       }).eq("user_id", user.id);
 
       if (supersedeError) {
-        redirectWithMessage(supersedeError.message, "error");
+        redirectWithMessage(redirectPath, supersedeError.message, "error");
       }
     }
   }
@@ -251,11 +293,12 @@ export async function restoreProductMemory(formData: FormData) {
   }).eq("user_id", user.id);
 
   if (error) {
-    redirectWithMessage(error.message, "error");
+    redirectWithMessage(redirectPath, error.message, "error");
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/memory");
+  revalidatePath("/app");
+  revalidatePath("/app/memory");
+  revalidatePath("/app/settings");
   revalidatePath("/chat");
-  redirectWithMessage("Memory restored to recall.", "success");
+  redirectWithMessage(redirectPath, "Memory restored to recall.", "success");
 }

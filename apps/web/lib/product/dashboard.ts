@@ -145,7 +145,7 @@ function summarizeNextStep(args: {
     return {
       title: "Check follow-up readiness",
       body: "There are follow-up actions queued. Make sure the active channel stays healthy so proactive continuity can land.",
-      href: "/dashboard/channels"
+      href: "/app/settings?tab=channels"
     };
   }
 
@@ -153,14 +153,14 @@ function summarizeNextStep(args: {
     return {
       title: "Review memory quality",
       body: "The relationship loop is active. Now the highest-leverage task is making sure memory stays correct and visible.",
-      href: "/dashboard/memory"
+      href: "/app/memory"
     };
   }
 
   return {
     title: "Refine the role core",
     body: "Tune tone, relationship mode, and boundaries so the ongoing interaction feels more intentional and consistent.",
-    href: "/dashboard/profile"
+    href: "/app/settings?tab=role"
   };
 }
 

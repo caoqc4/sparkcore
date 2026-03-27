@@ -66,20 +66,20 @@ test.describe("product flow smoke", () => {
     ).toBeVisible();
 
     await page.getByRole("link", { name: "Open dashboard" }).click();
-    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page).toHaveURL(/\/app/);
     await expect(page.getByText("Relationship summary")).toBeVisible();
     await expect(page.getByText(/1 active \/ 1 total binding\(s\)/)).toBeVisible();
     await page.getByRole("link", { name: "Open privacy page" }).click();
-    await expect(page).toHaveURL(/\/dashboard\/privacy/);
+    await expect(page).toHaveURL(/\/app\/privacy/);
     await expect(
       page.getByRole("heading", {
         name: "See what you can control now, without pretending hidden systems already exist."
       })
     ).toBeVisible();
     await expect(page.getByText("Memory source drill-down")).toBeVisible();
-    await page.goto("/dashboard");
+    await page.goto("/app");
     await page.getByRole("link", { name: "Open supplementary chat" }).click();
-    await expect(page).toHaveURL(/\/dashboard\/chat/);
+    await expect(page).toHaveURL(/\/app\/chat/);
     await expect(
       page.getByRole("heading", { name: "Continue the same relationship thread from the web." })
     ).toBeVisible();

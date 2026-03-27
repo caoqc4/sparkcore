@@ -1,5 +1,14 @@
+import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
+import { buildPageMetadata } from "@/lib/site";
+
+export const metadata = buildPageMetadata({
+  title: "Privacy Controls for Long-Memory AI Companion Products",
+  description:
+    "SparkCore privacy controls focus on visible memory, explicit boundaries, and channel awareness so companion continuity stays inspectable.",
+  path: "/features/privacy-controls"
+});
 
 export default function PrivacyControlsFeaturePage() {
   return (
@@ -26,14 +35,20 @@ export default function PrivacyControlsFeaturePage() {
           ]}
         />
         <div className="toolbar">
-          <TrackedLink
+          <AdaptiveTrackedLink
             className="button"
             event="landing_cta_click"
-            href="/create"
             payload={{ source: "feature_privacy_create" }}
+            intent="privacy_action"
+            labels={{
+              anonymous: "Create your companion",
+              signed_in_empty: "Create your first role",
+              signed_in_role_only: "Open settings",
+              signed_in_connected: "Open settings"
+            }}
           >
             Create your companion
-          </TrackedLink>
+          </AdaptiveTrackedLink>
           <TrackedLink
             className="button button-secondary"
             event="landing_cta_click"

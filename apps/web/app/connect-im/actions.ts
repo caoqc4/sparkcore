@@ -183,8 +183,9 @@ export async function connectTelegramBinding(formData: FormData) {
   }
 
   revalidatePath("/connect-im");
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/channels");
+  revalidatePath("/app");
+  revalidatePath("/app/channels");
+  revalidatePath("/app/settings");
   redirectWithMessage({
     threadId,
     agentId,

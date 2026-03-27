@@ -1,4 +1,12 @@
 import { AlternativeLanding } from "@/components/alternative-landing";
+import { buildPageMetadata } from "@/lib/site";
+
+export const metadata = buildPageMetadata({
+  title: "Replika Alternative With More Memory Visibility and IM Continuity",
+  description:
+    "Compare SparkCore with Replika when you want a companion relationship with more visible memory, clearer controls, and IM-native continuity.",
+  path: "/alternatives/replika"
+});
 
 export default function ReplikaAlternativePage() {
   return (

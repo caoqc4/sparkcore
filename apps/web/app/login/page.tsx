@@ -1,7 +1,15 @@
 import { redirect } from "next/navigation";
 import { FormSubmitButton } from "@/components/form-submit-button";
+import { buildPageMetadata } from "@/lib/site";
 import { requestMagicLink } from "./actions";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata = buildPageMetadata({
+  title: "Sign In",
+  description: "Protected SparkCore sign-in flow for existing users.",
+  path: "/login",
+  noIndex: true
+});
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -20,7 +28,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const nextPath =
     typeof params.next === "string" && params.next.startsWith("/")
       ? params.next
-      : "/dashboard";
+      : "/app";
 
   if (user) {
     redirect(nextPath);

@@ -1,5 +1,14 @@
+import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
+import { buildPageMetadata } from "@/lib/site";
+
+export const metadata = buildPageMetadata({
+  title: "IM Chat for AI Companion Continuity",
+  description:
+    "Understand why SparkCore keeps the main companion relationship in IM while the website stays focused on setup, memory, and control.",
+  path: "/features/im-chat"
+});
 
 export default function ImChatFeaturePage() {
   return (
@@ -26,22 +35,34 @@ export default function ImChatFeaturePage() {
           ]}
         />
         <div className="toolbar">
-          <TrackedLink
+          <AdaptiveTrackedLink
             className="button"
             event="landing_cta_click"
-            href="/create"
             payload={{ source: "feature_im_create" }}
+            intent="im_action"
+            labels={{
+              anonymous: "Create your companion",
+              signed_in_empty: "Create your first role",
+              signed_in_role_only: "Connect an IM channel",
+              signed_in_connected: "Open supplementary chat"
+            }}
           >
             Create your companion
-          </TrackedLink>
-          <TrackedLink
+          </AdaptiveTrackedLink>
+          <AdaptiveTrackedLink
             className="button button-secondary"
             event="landing_cta_click"
-            href="/connect-im"
             payload={{ source: "feature_im_connect" }}
+            intent="im_action"
+            labels={{
+              anonymous: "See the connect flow",
+              signed_in_empty: "Create a role first",
+              signed_in_role_only: "Connect an IM channel",
+              signed_in_connected: "Open supplementary chat"
+            }}
           >
             See the connect flow
-          </TrackedLink>
+          </AdaptiveTrackedLink>
         </div>
       </PageFrame>
     </SiteShell>

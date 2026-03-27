@@ -1,9 +1,18 @@
+import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import {
   FeatureCardGrid,
   MarketingHero,
   SiteShell
 } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
+import { buildPageMetadata } from "@/lib/site";
+
+export const metadata = buildPageMetadata({
+  title: "AI Roleplay Chat That Remembers You",
+  description:
+    "SparkCore is a relationship-first take on AI roleplay chat with persistent memory, IM continuity, and a web control center for repair and settings.",
+  path: "/ai-roleplay-chat"
+});
 
 export default function AiRoleplayChatPage() {
   return (
@@ -135,14 +144,20 @@ export default function AiRoleplayChatPage() {
               create a companion, connect IM, and keep the same thread going.
             </p>
             <div className="toolbar">
-              <TrackedLink
+              <AdaptiveTrackedLink
                 className="button"
                 event="landing_cta_click"
-                href="/create"
                 payload={{ source: "roleplay_entry_create" }}
+                intent="create_companion"
+                labels={{
+                  anonymous: "Create your companion",
+                  signed_in_empty: "Create your companion",
+                  signed_in_role_only: "Continue relationship flow",
+                  signed_in_connected: "Continue relationship flow"
+                }}
               >
                 Create your companion
-              </TrackedLink>
+              </AdaptiveTrackedLink>
               <TrackedLink
                 className="button button-secondary"
                 event="landing_cta_click"

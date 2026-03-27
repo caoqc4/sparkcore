@@ -19,9 +19,28 @@ import {
   trimProductText
 } from "@/lib/product/role-core";
 
-function redirectWithMessage(message: string, type: "error" | "success"): never {
+function resolveRedirectPath(formData: FormData, fallbackPath: string) {
+  const redirectTarget = formData.get("redirect_to");
+
+  if (typeof redirectTarget !== "string" || redirectTarget.length === 0) {
+    return fallbackPath;
+  }
+
+  if (!redirectTarget.startsWith("/") || redirectTarget.includes("://")) {
+    return fallbackPath;
+  }
+
+  return redirectTarget;
+}
+
+function redirectWithMessage(
+  redirectPath: string,
+  message: string,
+  type: "error" | "success"
+): never {
+  const separator = redirectPath.includes("?") ? "&" : "?";
   redirect(
-    `/dashboard/profile?feedback=${encodeURIComponent(message)}&feedback_type=${type}`
+    `${redirectPath}${separator}feedback=${encodeURIComponent(message)}&feedback_type=${type}`
   );
 }
 
@@ -65,10 +84,11 @@ function normalizeBoundaries(value: string) {
 }
 
 export async function updateProductRoleProfile(formData: FormData) {
+  const redirectPath = resolveRedirectPath(formData, "/app/profile");
   const agentId = formData.get("agent_id");
 
   if (typeof agentId !== "string" || agentId.trim().length === 0) {
-    redirectWithMessage("The role to update could not be determined.", "error");
+    redirectWithMessage(redirectPath, "The role to update could not be determined.", "error");
   }
 
   const supabase = await createClient();
@@ -77,7 +97,7 @@ export async function updateProductRoleProfile(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?next=%2Fdashboard%2Fprofile");
+    redirect(`/login?next=${encodeURIComponent(redirectPath)}`);
   }
 
   const { data: workspace } = await loadPrimaryWorkspace({
@@ -86,7 +106,7 @@ export async function updateProductRoleProfile(formData: FormData) {
   });
 
   if (!workspace) {
-    redirectWithMessage("No workspace is available for this account.", "error");
+    redirectWithMessage(redirectPath, "No workspace is available for this account.", "error");
   }
 
   const { data: agent } = await loadOwnedActiveAgent({
@@ -97,7 +117,7 @@ export async function updateProductRoleProfile(formData: FormData) {
   });
 
   if (!agent) {
-    redirectWithMessage("The selected role is unavailable.", "error");
+    redirectWithMessage(redirectPath, "The selected role is unavailable.", "error");
   }
 
   const name = normalizeRoleName(trimProductText(formData.get("name")), agent.name);
@@ -148,13 +168,14 @@ export async function updateProductRoleProfile(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage(error.message, "error");
+    redirectWithMessage(redirectPath, error.message, "error");
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/profile");
+  revalidatePath("/app");
+  revalidatePath("/app/profile");
+  revalidatePath("/app/settings");
   revalidatePath("/create");
   revalidatePath("/connect-im");
   revalidatePath("/chat");
-  redirectWithMessage("Role core updated.", "success");
+  redirectWithMessage(redirectPath, "Role core updated.", "success");
 }

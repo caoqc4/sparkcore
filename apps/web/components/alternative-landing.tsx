@@ -1,5 +1,6 @@
 "use client";
 
+import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
 
@@ -51,14 +52,20 @@ export function AlternativeLanding({
             <h1 className="title">{title}</h1>
             <p className="lead">{description}</p>
             <div className="hero-actions">
-              <TrackedLink
+              <AdaptiveTrackedLink
                 className="button"
                 event="landing_cta_click"
-                href="/create"
                 payload={{ source: `${rivalSlug}_alternative_create` }}
+                intent="create_companion"
+                labels={{
+                  anonymous: "Create your companion",
+                  signed_in_empty: "Create your companion",
+                  signed_in_role_only: "Continue relationship flow",
+                  signed_in_connected: "Continue relationship flow"
+                }}
               >
                 Create your companion
-              </TrackedLink>
+              </AdaptiveTrackedLink>
               <TrackedLink
                 className="button button-secondary"
                 event="landing_cta_click"
@@ -67,14 +74,20 @@ export function AlternativeLanding({
               >
                 {createLabel}
               </TrackedLink>
-              <TrackedLink
+              <AdaptiveTrackedLink
                 className="site-inline-link"
                 event="landing_cta_click"
-                href="/connect-im"
                 payload={{ source: `${rivalSlug}_alternative_connect_im` }}
+                intent="im_chat"
+                labels={{
+                  anonymous: "Connect in IM",
+                  signed_in_empty: "Create a role first",
+                  signed_in_role_only: "Connect an IM channel",
+                  signed_in_connected: "Open supplementary chat"
+                }}
               >
                 Connect in IM
-              </TrackedLink>
+              </AdaptiveTrackedLink>
             </div>
           </div>
 
@@ -157,22 +170,34 @@ export function AlternativeLanding({
             <p>{closingBody}</p>
           </div>
           <div className="hero-actions">
-            <TrackedLink
+            <AdaptiveTrackedLink
               className="button"
               event="landing_cta_click"
-              href="/create"
               payload={{ source: `${rivalSlug}_alternative_footer_create` }}
+              intent="create_companion"
+              labels={{
+                anonymous: "Create your companion",
+                signed_in_empty: "Create your companion",
+                signed_in_role_only: "Continue relationship flow",
+                signed_in_connected: "Continue relationship flow"
+              }}
             >
               Create your companion
-            </TrackedLink>
-            <TrackedLink
+            </AdaptiveTrackedLink>
+            <AdaptiveTrackedLink
               className="button button-secondary"
               event="landing_cta_click"
-              href="/connect-im"
               payload={{ source: `${rivalSlug}_alternative_footer_connect_im` }}
+              intent="im_chat"
+              labels={{
+                anonymous: "Connect in IM",
+                signed_in_empty: "Create a role first",
+                signed_in_role_only: "Connect an IM channel",
+                signed_in_connected: "Open supplementary chat"
+              }}
             >
               Connect in IM
-            </TrackedLink>
+            </AdaptiveTrackedLink>
           </div>
         </section>
       </section>

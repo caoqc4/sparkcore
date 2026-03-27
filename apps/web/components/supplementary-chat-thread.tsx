@@ -77,10 +77,15 @@ export function SupplementaryChatThread({
   return (
     <section className="site-card supplementary-chat-shell">
       <div className="supplementary-chat-header">
+        <div className="supplementary-chat-meta-strip">
+          <span className="site-inline-pill">Canonical thread</span>
+          <span className="supplementary-chat-count">
+            {optimisticMessages.length} message{optimisticMessages.length === 1 ? "" : "s"}
+          </span>
+        </div>
         <h2>Supplementary chat</h2>
         <p className="helper-copy">
-          This writes into the same relationship thread rather than creating a second web-first
-          workspace.
+          Send from web when you need corrective continuation, not a second inbox.
         </p>
       </div>
 
@@ -131,6 +136,9 @@ export function SupplementaryChatThread({
             rows={4}
           />
         </div>
+        <p className="helper-copy supplementary-chat-form-note">
+          This writes into the same relationship state already carried by the canonical thread.
+        </p>
         <FormSubmitButton idleText="Send to this thread" pendingText="Sending..." />
       </form>
     </section>

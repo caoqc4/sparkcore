@@ -1,5 +1,14 @@
+import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
+import { buildPageMetadata } from "@/lib/site";
+
+export const metadata = buildPageMetadata({
+  title: "AI Boyfriend With Memory and IM-Native Continuity",
+  description:
+    "SparkCore frames AI boyfriend as an ongoing relationship experience with long memory, IM-native contact, and visible web controls.",
+  path: "/ai-boyfriend"
+});
 
 export default function AiBoyfriendPage() {
   return (
@@ -26,22 +35,34 @@ export default function AiBoyfriendPage() {
           ]}
         />
         <div className="toolbar">
-          <TrackedLink
+          <AdaptiveTrackedLink
             className="button"
             event="landing_cta_click"
-            href="/create?mode=boyfriend"
             payload={{ source: "ai_boyfriend_create" }}
+            intent="create_boyfriend"
+            labels={{
+              anonymous: "Create your AI boyfriend",
+              signed_in_empty: "Create your AI boyfriend",
+              signed_in_role_only: "Continue relationship flow",
+              signed_in_connected: "Continue relationship flow"
+            }}
           >
             Create your AI boyfriend
-          </TrackedLink>
-          <TrackedLink
+          </AdaptiveTrackedLink>
+          <AdaptiveTrackedLink
             className="button button-secondary"
             event="landing_cta_click"
-            href="/features/im-chat"
             payload={{ source: "ai_boyfriend_im" }}
+            intent="im_chat"
+            labels={{
+              anonymous: "See how IM continuity works",
+              signed_in_empty: "Create a role first",
+              signed_in_role_only: "Connect an IM channel",
+              signed_in_connected: "Open supplementary chat"
+            }}
           >
             See how IM continuity works
-          </TrackedLink>
+          </AdaptiveTrackedLink>
           <TrackedLink
             className="site-inline-link"
             event="landing_cta_click"

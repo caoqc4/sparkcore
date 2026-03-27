@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 export const siteConfig = {
   name: "SparkCore",
   tagline: "AI companion that remembers you and stays with you in IM.",
@@ -6,42 +8,17 @@ export const siteConfig = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   canonicalHost: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   nav: [
-    {
-      label: "AI Companion",
-      href: "/ai-companion",
-      items: [
-        { href: "/ai-companion", label: "AI Companion" },
-        { href: "/ai-girlfriend", label: "AI Girlfriend" },
-        { href: "/ai-boyfriend", label: "AI Boyfriend" },
-        { href: "/ai-roleplay-chat", label: "AI Roleplay Chat" }
-      ]
-    },
-    {
-      label: "Features",
-      href: "/features/memory-center",
-      items: [
-        { href: "/features/memory-center", label: "Memory" },
-        { href: "/features/im-chat", label: "IM Chat" },
-        { href: "/features/privacy-controls", label: "Privacy" },
-        { href: "/how-it-works", label: "How it works" }
-      ]
-    },
-    {
-      label: "Alternatives",
-      href: "/alternatives/character-ai",
-      items: [
-        { href: "/alternatives/character-ai", label: "Character.AI Alternative" },
-        { href: "/alternatives/replika", label: "Replika Alternative" }
-      ]
-    },
+    { href: "/#home-im-chat", label: "IM Chat" },
     { href: "/pricing", label: "Pricing" },
-    { href: "/faq", label: "FAQ" }
+    { href: "/blog", label: "Blog" },
   ],
   footer: [
     { href: "/how-it-works", label: "How it works" },
+    { href: "/features/privacy-controls", label: "Privacy" },
+    { href: "/blog", label: "Blog" },
     { href: "/safety", label: "Safety" },
-    { href: "/faq", label: "FAQ" }
-  ]
+    { href: "/faq", label: "FAQ" },
+  ],
 } as const;
 
 export function getSiteUrl() {
@@ -62,4 +39,54 @@ export function buildPageTitle(title?: string) {
 
 export function buildPageDescription(description?: string) {
   return description ?? siteConfig.description;
+}
+
+type PageMetadataOptions = {
+  title: string;
+  description: string;
+  path: string;
+  keywords?: string[];
+  noIndex?: boolean;
+};
+
+export function buildPageMetadata({
+  title,
+  description,
+  path,
+  keywords,
+  noIndex = false,
+}: PageMetadataOptions): Metadata {
+  const resolvedTitle = buildPageTitle(title);
+  const resolvedDescription = buildPageDescription(description);
+
+  return {
+    title: resolvedTitle,
+    description: resolvedDescription,
+    keywords,
+    alternates: {
+      canonical: path,
+    },
+    openGraph: {
+      title: resolvedTitle,
+      description: resolvedDescription,
+      url: path,
+      siteName: siteConfig.name,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: resolvedTitle,
+      description: resolvedDescription,
+    },
+    robots: noIndex
+      ? {
+          index: false,
+          follow: false,
+          googleBot: {
+            index: false,
+            follow: false,
+          },
+        }
+      : undefined,
+  };
 }

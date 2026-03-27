@@ -4,17 +4,41 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-function redirectWithMessage(message: string, type: "error" | "success"): never {
+function resolveRedirectPath(formData: FormData, fallbackPath: string) {
+  const redirectTarget = formData.get("redirect_to");
+
+  if (typeof redirectTarget !== "string" || redirectTarget.length === 0) {
+    return fallbackPath;
+  }
+
+  if (!redirectTarget.startsWith("/") || redirectTarget.includes("://")) {
+    return fallbackPath;
+  }
+
+  return redirectTarget;
+}
+
+function redirectWithMessage(
+  redirectPath: string,
+  message: string,
+  type: "error" | "success"
+): never {
+  const separator = redirectPath.includes("?") ? "&" : "?";
   redirect(
-    `/dashboard/channels?feedback=${encodeURIComponent(message)}&feedback_type=${type}`
+    `${redirectPath}${separator}feedback=${encodeURIComponent(message)}&feedback_type=${type}`
   );
 }
 
 export async function unbindProductChannel(formData: FormData) {
+  const redirectPath = resolveRedirectPath(formData, "/app/channels");
   const bindingId = formData.get("binding_id");
 
   if (typeof bindingId !== "string" || bindingId.trim().length === 0) {
-    redirectWithMessage("The channel binding to remove could not be determined.", "error");
+    redirectWithMessage(
+      redirectPath,
+      "The channel binding to remove could not be determined.",
+      "error"
+    );
   }
 
   const supabase = await createClient();
@@ -23,7 +47,7 @@ export async function unbindProductChannel(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?next=%2Fdashboard%2Fchannels");
+    redirect(`/login?next=${encodeURIComponent(redirectPath)}`);
   }
 
   const { data: existingBinding, error: existingError } = await supabase
@@ -34,11 +58,11 @@ export async function unbindProductChannel(formData: FormData) {
     .maybeSingle();
 
   if (existingError) {
-    redirectWithMessage(existingError.message, "error");
+    redirectWithMessage(redirectPath, existingError.message, "error");
   }
 
   if (!existingBinding) {
-    redirectWithMessage("The selected channel binding is unavailable.", "error");
+    redirectWithMessage(redirectPath, "The selected channel binding is unavailable.", "error");
   }
 
   const existingMetadata =
@@ -63,11 +87,12 @@ export async function unbindProductChannel(formData: FormData) {
     .eq("user_id", user.id);
 
   if (error) {
-    redirectWithMessage(error.message, "error");
+    redirectWithMessage(redirectPath, error.message, "error");
   }
 
   revalidatePath("/connect-im");
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/channels");
-  redirectWithMessage("Channel binding set to inactive.", "success");
+  revalidatePath("/app");
+  revalidatePath("/app/channels");
+  revalidatePath("/app/settings");
+  redirectWithMessage(redirectPath, "Channel binding set to inactive.", "success");
 }

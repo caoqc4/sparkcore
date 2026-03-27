@@ -1,241 +1,338 @@
-import { ProductRoleSetup } from "@/components/product-role-setup";
+import { redirect } from "next/navigation";
+import { LandingRoleStudio } from "@/components/landing-role-studio";
 import { SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
 import { getOptionalUser } from "@/lib/auth-redirect";
+import { blogFeaturedPosts } from "@/lib/blog";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
+import { buildPageMetadata } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function HomePage() {
+export const metadata = buildPageMetadata({
+  title: "AI Companion That Remembers You and Stays With You in IM",
+  description:
+    "SparkCore is an IM-native AI companion with long memory, relationship continuity, and a web control center for memory, privacy, and channel management.",
+  path: "/",
+});
+
+type HomePageProps = {
+  searchParams: Promise<{
+    preview?: string;
+  }>;
+};
+
+const memoryPreviewCards = [
+  {
+    label: "Visible memory",
+    title: "Favorite late-night voice notes calm her down.",
+    body: "Rows stay inspectable instead of hiding inside a vague black-box feeling of continuity.",
+  },
+  {
+    label: "Source trace",
+    title: "Linked back to the exact relationship thread that created it.",
+    body: "When something drifts, you can verify where it came from before deciding what to keep.",
+  },
+  {
+    label: "Repair actions",
+    title: "Hide, mark incorrect, or restore without starting over.",
+    body: "The relationship can stay emotionally consistent while the control layer stays repairable.",
+  },
+] as const;
+
+const imConversationPreview = [
+  {
+    role: "You",
+    body: "I only have ten minutes, but I still wanted to check in before bed.",
+  },
+  {
+    role: "Companion",
+    body: "Then let's keep this light and close. I still remember what mattered from yesterday.",
+  },
+  {
+    role: "System",
+    body: "The same role, the same thread, and the same relationship continue in IM instead of resetting on web.",
+  },
+] as const;
+
+const supportRoutes = [
+  {
+    label: "Pricing",
+    href: "/pricing",
+    source: "home_support_pricing",
+  },
+  {
+    label: "FAQ",
+    href: "/faq",
+    source: "home_support_faq",
+  },
+  {
+    label: "Safety",
+    href: "/safety",
+    source: "home_support_safety",
+  },
+] as const;
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams;
   const user = await getOptionalUser();
   const supabase = user ? await createClient() : null;
   const overview =
     user && supabase
       ? await loadDashboardOverview({
           supabase,
-          userId: user.id
+          userId: user.id,
         })
       : null;
+  const hasConsoleReady = Boolean(
+    overview?.currentRole && overview?.currentThread,
+  );
+  const allowLandingPreview = params.preview === "landing";
+  const blogHighlights = blogFeaturedPosts.slice(0, 4);
 
-  const hasExistingRole = Boolean(overview?.currentRole);
+  if (hasConsoleReady && !allowLandingPreview) {
+    redirect("/app");
+  }
 
   return (
     <SiteShell>
-      <section className="home-stage">
-        <div className="home-stage-copy">
-          <p className="home-kicker">Relationship-first companion product</p>
-          <h1 className="home-display">
-            Create the role once. Let the relationship continue in IM.
-          </h1>
-          <p className="home-lead">
-            SparkCore is not another browser chat toy. It is a long-memory
-            companion flow with IM as the daily surface and the website as the
-            control center for memory, profile, privacy, and continuity.
-          </p>
-
-          <div className="home-proof-strip">
-            <div className="home-proof-chip">
-              <span>Long memory</span>
-              <strong>Visible and repairable</strong>
-            </div>
-            <div className="home-proof-chip">
-              <span>IM-native loop</span>
-              <strong>Carry the relationship outside the browser</strong>
-            </div>
-            <div className="home-proof-chip">
-              <span>Control center</span>
-              <strong>Profile, channels, privacy, and supplementary chat</strong>
-            </div>
-          </div>
-        </div>
-
-        {hasExistingRole && overview ? (
-          <section className="home-continue-shell">
-            <div className="site-inline-pill">{overview.relationshipSummary.label}</div>
-            <h2>Welcome back to {overview.currentRole?.name}.</h2>
-            <p className="home-continue-copy">
-              {overview.relationshipSummary.body}
+      <section className="home-stage" id="home-top">
+        <div className="home-landing-shell">
+          <section className="home-slogan-band">
+            <p className="home-kicker">SparkCore slogan</p>
+            <h1 className="home-display home-display-centered">
+              Create a companion that remembers.
+            </h1>
+            <p className="home-lead home-lead-centered">
+              Choose the role, tone, and bond on web. Keep the same relationship
+              moving in IM after setup, then return only when memory, privacy,
+              or channel repair needs operator control.
             </p>
-
-            <div className="home-continue-stats">
-              <article className="home-continue-stat">
-                <span>Current role</span>
-                <strong>{overview.currentRole?.name}</strong>
-              </article>
-              <article className="home-continue-stat">
-                <span>Active memories</span>
-                <strong>{overview.memorySummary.active}</strong>
-              </article>
-              <article className="home-continue-stat">
-                <span>Live channels</span>
-                <strong>{overview.channelSummary.active}</strong>
-              </article>
+            <div className="home-hero-proof-row">
+              <span className="site-inline-pill">Long memory</span>
+              <span className="site-inline-pill">IM-native continuity</span>
+              <span className="site-inline-pill">Web control center</span>
             </div>
-
-            <div className="home-continue-next">
-              <p className="home-continue-next-label">Best next step</p>
-              <h3>{overview.nextStep.title}</h3>
-              <p>{overview.nextStep.body}</p>
-            </div>
-
-            <div className="toolbar">
-              <TrackedLink
-                className="button button-primary button-large"
-                event="landing_cta_click"
-                href={overview.nextStep.href}
-                payload={{ source: "home_existing_role_primary" }}
-              >
-                Continue relationship flow
-              </TrackedLink>
-              <TrackedLink
-                className="button button-ghost button-large"
-                event="landing_cta_click"
-                href="/dashboard"
-                payload={{ source: "home_existing_role_dashboard" }}
-              >
-                Open dashboard
-              </TrackedLink>
-            </div>
-
-            <TrackedLink
-              className="site-inline-link"
-              event="landing_cta_click"
-              href="/create"
-              payload={{ source: "home_existing_role_create_another" }}
-            >
-              Create another role
-            </TrackedLink>
           </section>
-        ) : (
-          <section className="home-setup-shell">
-            <div className="home-setup-heading">
-              <p className="home-kicker">Create</p>
-              <h2>Create your companion and move straight into IM setup.</h2>
-              <p>
-                Browsing stays public. Submission is gated by login. Once the
-                role exists, the flow hands off into IM setup and then returns
-                you to the relationship control center.
-              </p>
-            </div>
 
-            <ProductRoleSetup
-              loginNext="/"
-              reviewHref="/how-it-works"
-              shellClassName="product-role-shell product-role-shell-home"
-              surface="home_hero"
-              user={user ? { id: user.id } : null}
-            />
-          </section>
-        )}
+          <LandingRoleStudio
+            dashboardHref="/app"
+            loginNext="/"
+            reviewHref="/how-it-works"
+            user={user ? { id: user.id } : null}
+          />
+        </div>
       </section>
 
-      <section className="home-ribbon">
-        <div className="home-ribbon-copy">
-          <p className="home-kicker">Why it feels different</p>
+      <section className="home-feature-spotlight" id="home-memory">
+        <div className="home-section-heading">
+          <p className="home-kicker">Memory</p>
           <h2>
-            Less like a generic chatbox. More like a designed product loop.
+            Memory should stay visible enough to inspect, not magical enough to
+            hide.
           </h2>
+          <p>
+            This is one of the core reasons to choose SparkCore: the
+            relationship can keep continuity without asking you to trust an
+            opaque memory blob.
+          </p>
         </div>
 
-        <div className="home-ribbon-grid">
-          <article className="home-ribbon-card">
-            <span>01</span>
-            <h3>Memory stays inspectable</h3>
+        <div className="home-feature-grid">
+          <article className="home-feature-panel home-feature-panel-dark">
+            <h3>
+              The relationship can remember you without trapping that memory in
+              black box logic.
+            </h3>
             <p>
-              You can see what the system retained, where it came from, and
-              repair it instead of trusting a hidden blob.
+              SparkCore gives the web layer a real job: inspect memory, trace it
+              back to source, and repair it when the record drifts.
             </p>
+            <ul className="site-bullet-list">
+              <li>Visible rows that affect continuity.</li>
+              <li>Source trace when you need to verify provenance.</li>
+              <li>Repair actions instead of forced resets.</li>
+            </ul>
+            <TrackedLink
+              className="site-inline-link"
+              event="landing_cta_click"
+              href="/features/memory-center"
+              payload={{ source: "home_memory_section_guide" }}
+            >
+              Explore the memory guide
+            </TrackedLink>
           </article>
-          <article className="home-ribbon-card">
-            <span>02</span>
-            <h3>IM stays the daily surface</h3>
+
+          <aside className="home-memory-preview">
+            {memoryPreviewCards.map((card) => (
+              <article className="home-memory-preview-card" key={card.title}>
+                <p className="home-discovery-label">{card.label}</p>
+                <h3>{card.title}</h3>
+                <p>{card.body}</p>
+              </article>
+            ))}
+          </aside>
+        </div>
+      </section>
+
+      <section className="home-feature-spotlight" id="home-im-chat">
+        <div className="home-section-heading">
+          <p className="home-kicker">IM Chat</p>
+          <h2>The daily relationship loop belongs in IM after setup.</h2>
+          <p>
+            The website should create and control the relationship. IM should
+            carry the day-to-day rhythm. That separation keeps the product
+            cleaner and easier to understand.
+          </p>
+        </div>
+
+        <div className="home-feature-grid home-feature-grid-reverse">
+          <aside className="home-im-preview">
+            {imConversationPreview.map((message) => (
+              <article
+                className={`home-im-bubble ${
+                  message.role === "Companion"
+                    ? "home-im-bubble-assistant"
+                    : message.role === "System"
+                      ? "home-im-bubble-system"
+                      : "home-im-bubble-user"
+                }`}
+                key={`${message.role}-${message.body}`}
+              >
+                <span>{message.role}</span>
+                <p>{message.body}</p>
+              </article>
+            ))}
+          </aside>
+
+          <article className="home-feature-panel">
+            <h3>
+              Create on web first. Bind IM second. Let the same bond continue
+              there.
+            </h3>
             <p>
-              The main rhythm belongs in Telegram-style channels instead of
-              forcing every conversation back into the browser.
+              SparkCore does not treat the website as the forever chat inbox. It
+              treats web as setup plus control, then hands the relationship into
+              IM where return behavior feels natural.
             </p>
-          </article>
-          <article className="home-ribbon-card">
-            <span>03</span>
-            <h3>Web stays the control center</h3>
-            <p>
-              Return here to tune the role core, audit memory, manage channels,
-              review privacy, and continue the same thread when needed.
-            </p>
+            <ul className="site-bullet-list">
+              <li>Create the role and canonical thread once.</li>
+              <li>Bind Telegram after setup, not before.</li>
+              <li>Keep supplementary web chat only for careful corrections.</li>
+            </ul>
+            <TrackedLink
+              className="site-inline-link"
+              event="landing_cta_click"
+              href="/features/im-chat"
+              payload={{ source: "home_im_section_guide" }}
+            >
+              Read the IM chat guide
+            </TrackedLink>
           </article>
         </div>
       </section>
 
-      <section className="home-editorial-grid">
-        <article className="home-editorial-panel home-editorial-panel-dark">
-          <p className="home-kicker">Choose your entry</p>
-          <h2>Start from the promise that matches why you came here.</h2>
+      <section className="home-routes-wrap">
+        <div className="home-section-heading home-section-heading-compact">
+          <p className="home-kicker">Blog and pricing</p>
+          <h2>
+            Keep public reading and transaction pages separate from the core
+            landing flow.
+          </h2>
           <p>
-            The site should feel like a polished landing experience, but the
-            destination stays product-led: companion, girlfriend, or roleplay as
-            an entry into one relationship system.
+            Pricing deserves its own page because it is a high-intent decision
+            surface. Compare content now lives under blog so the header can stay
+            cleaner.
           </p>
-          <div className="home-editorial-links">
-            <TrackedLink
-              className="site-inline-link"
-              event="landing_cta_click"
-              href="/ai-companion"
-              payload={{ source: "home_entry_companion" }}
-            >
-              Explore AI companion
-            </TrackedLink>
-            <TrackedLink
-              className="site-inline-link"
-              event="landing_cta_click"
-              href="/ai-girlfriend"
-              payload={{ source: "home_entry_girlfriend" }}
-            >
-              Explore AI girlfriend
-            </TrackedLink>
-            <TrackedLink
-              className="site-inline-link"
-              event="landing_cta_click"
-              href="/ai-boyfriend"
-              payload={{ source: "home_entry_boyfriend" }}
-            >
-              Explore AI boyfriend
-            </TrackedLink>
-            <TrackedLink
-              className="site-inline-link"
-              event="landing_cta_click"
-              href="/ai-roleplay-chat"
-              payload={{ source: "home_entry_roleplay" }}
-            >
-              Explore AI roleplay chat
-            </TrackedLink>
-          </div>
-        </article>
+        </div>
 
-        <article className="home-editorial-panel">
-          <p className="home-kicker">High-intent alternatives</p>
-          <h2>Comparison pages for users already looking to switch.</h2>
+        <div className="home-routes home-routes-compact">
+          <article className="home-route-panel home-route-panel-dark">
+            <p className="home-kicker">Blog</p>
+            <h2>Guides and compare articles now live in one hub.</h2>
+            <p className="home-route-copy">
+              Use blog for compare content, feature explainers, and future
+              product stories instead of scattering those routes through the
+              header.
+            </p>
+            <div className="home-route-chip-grid">
+              {blogHighlights.map((route) => (
+                <TrackedLink
+                  key={route.href}
+                  className="home-route-chip"
+                  event="landing_cta_click"
+                  href={route.href}
+                  payload={{ source: `home_blog_${route.href}` }}
+                >
+                  {route.title}
+                </TrackedLink>
+              ))}
+            </div>
+          </article>
+
+          <article className="home-route-panel">
+            <p className="home-kicker">Pricing</p>
+            <h2>
+              Pricing should stay a dedicated page, not a crowded landing
+              section.
+            </h2>
+            <p className="home-route-copy">
+              People reaching pricing usually have higher commercial intent.
+              That page should stay clean, expandable, and independently
+              optimizable.
+            </p>
+            <div className="home-route-chip-grid">
+              <TrackedLink
+                className="home-route-chip"
+                event="landing_cta_click"
+                href="/pricing"
+                payload={{ source: "home_pricing_route" }}
+              >
+                Pricing
+              </TrackedLink>
+              {supportRoutes
+                .filter((route) => route.href !== "/pricing")
+                .map((route) => (
+                  <TrackedLink
+                    key={route.href}
+                    className="home-route-chip"
+                    event="landing_cta_click"
+                    href={route.href}
+                    payload={{ source: route.source }}
+                  >
+                    {route.label}
+                  </TrackedLink>
+                ))}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="home-cta-band">
+        <div>
+          <p className="home-kicker">Start here</p>
+          <h2>
+            Create on web first. Move the relationship into IM after that.
+          </h2>
           <p>
-            We now meet Character.AI and Replika search intent with
-            comparison-led landings instead of trying to explain the whole
-            product from scratch every time.
+            The first page should stay simple: create the role, decide the bond,
+            preview the portrait slot, and continue into the deeper loop only
+            when you are ready.
           </p>
-          <div className="home-editorial-links">
-            <TrackedLink
-              className="site-inline-link"
-              event="landing_cta_click"
-              href="/alternatives/character-ai"
-              payload={{ source: "home_alt_character_ai" }}
-            >
-              Character.AI alternative
-            </TrackedLink>
-            <TrackedLink
-              className="site-inline-link"
-              event="landing_cta_click"
-              href="/alternatives/replika"
-              payload={{ source: "home_alt_replika" }}
-            >
-              Replika alternative
-            </TrackedLink>
-          </div>
-        </article>
+        </div>
+
+        <div className="home-cta-actions">
+          <a className="button button-primary button-large" href="#home-top">
+            Back to create
+          </a>
+          <TrackedLink
+            className="button button-secondary button-large"
+            event="landing_cta_click"
+            href="/blog"
+            payload={{ source: "home_final_blog" }}
+          >
+            Read blog
+          </TrackedLink>
+        </div>
       </section>
     </SiteShell>
   );

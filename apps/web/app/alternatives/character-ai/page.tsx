@@ -1,4 +1,12 @@
 import { AlternativeLanding } from "@/components/alternative-landing";
+import { buildPageMetadata } from "@/lib/site";
+
+export const metadata = buildPageMetadata({
+  title: "Character.AI Alternative for Long-Memory Companion Relationships",
+  description:
+    "Compare SparkCore with Character.AI when you want stronger memory continuity, IM-native chat, and a clearer relationship control center.",
+  path: "/alternatives/character-ai"
+});
 
 export default function CharacterAiAlternativePage() {
   return (

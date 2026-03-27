@@ -25,6 +25,14 @@ import {
   getChatCopy,
   resolveChatLocale
 } from "@/lib/i18n/chat-ui";
+import { buildPageMetadata } from "@/lib/site";
+
+export const metadata = buildPageMetadata({
+  title: "Chat Workspace",
+  description: "Protected SparkCore chat workspace for supplementary web conversation, memory review, and agent controls.",
+  path: "/chat",
+  noIndex: true
+});
 
 function getMemoryConfidenceView(confidence: number) {
   if (confidence >= 0.9) {
