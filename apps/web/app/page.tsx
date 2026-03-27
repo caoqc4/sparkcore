@@ -115,13 +115,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 style={{
                   padding: "6px 16px",
                   borderRadius: "999px",
-                  background: "hsl(217.2 91.2% 59.8% / 0.12)",
-                  color: "hsl(217.2 91.2% 59.8%)",
+                  background: "hsl(235 75% 62% / 0.12)",
+                  color: "hsl(235 75% 62%)",
                   fontSize: "0.75rem",
                   fontWeight: 700,
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
-                  border: "1px solid hsl(217.2 91.2% 59.8% / 0.2)",
+                  border: "1px solid hsl(235 75% 62% / 0.2)",
                 }}
               >
                 SparkCore

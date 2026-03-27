@@ -76,13 +76,7 @@ a {
 .home-route-panel,
 .home-cta-band {
   border: 1px solid hsl(230 25% 8% / 0.09);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.88),
-      rgba(250, 244, 238, 0.74)
-    ),
-    rgba(255, 255, 255, 0.78);
+  background: hsl(235 25% 14%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -180,22 +174,15 @@ textarea.input {
   border: 1px solid hsl(230 25% 8% / 0.12);
   border-radius: 20px;
   padding: 16px 18px;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.98),
-      rgba(246, 240, 235, 0.86)
-    ),
-    rgba(255, 255, 255, 0.9);
-  color: var(--text);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 1px 2px hsl(230 25% 8% / 0.04);
+  background: hsl(235 25% 14%);
+  border: 1px solid hsl(230 15% 20%);
+  color: hsl(240 10% 96%);
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.05);
 }
 
 .input:focus {
-  outline: 2px solid rgba(201, 107, 69, 0.18);
-  border-color: rgba(201, 107, 69, 0.5);
+  outline: 2px solid hsl(235 75% 62% / 0.3);
+  border-color: hsl(235 75% 62%);
 }
 
 .button {
@@ -618,7 +605,7 @@ textarea.input {
 .home-returning-hero-band .home-kicker,
 .home-returning-hero-band .home-lead,
 .home-returning-hero-band .site-inline-link {
-  color: rgba(248, 251, 255, 0.84);
+  color: hsl(240 15% 70%);
 }
 
 .home-returning-hero-band .home-inline-status {
@@ -1185,7 +1172,7 @@ textarea.input {
 .home-feature-panel-dark p,
 .home-feature-panel-dark .site-bullet-list,
 .home-feature-panel-dark .site-inline-link {
-  color: rgba(248, 251, 255, 0.84);
+  color: hsl(240 15% 70%);
 }
 
 .home-feature-panel h3 {
@@ -2281,7 +2268,7 @@ textarea.input {
 
 .home-cta-band p,
 .home-cta-band .home-kicker {
-  color: rgba(248, 251, 255, 0.84);
+  color: hsl(240 15% 70%);
 }
 
 .home-cta-band .button-secondary,
@@ -3150,7 +3137,7 @@ textarea.input {
 }
 
 .hero p {
-  color: rgba(248, 251, 255, 0.84);
+  color: hsl(240 15% 70%);
 }
 
 .panel,
