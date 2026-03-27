@@ -75,7 +75,7 @@ a {
 .home-metric-shell,
 .home-route-panel,
 .home-cta-band {
-  border: 1px solid rgba(15, 23, 42, 0.09);
+  border: 1px solid hsl(230 25% 8% / 0.09);
   background:
     linear-gradient(
       180deg,
@@ -177,7 +177,7 @@ a {
 .input,
 select.input,
 textarea.input {
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid hsl(230 25% 8% / 0.12);
   border-radius: 20px;
   padding: 16px 18px;
   background:
@@ -190,7 +190,7 @@ textarea.input {
   color: var(--text);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 1px 2px rgba(15, 23, 42, 0.04);
+    0 1px 2px hsl(230 25% 8% / 0.04);
 }
 
 .input:focus {
@@ -207,17 +207,17 @@ textarea.input {
     radial-gradient(circle at top, rgba(255, 255, 255, 0.18), transparent 45%),
     linear-gradient(135deg, hsl(230 25% 8%) 0%, hsl(230 25% 14%) 100%);
   color: hsl(240 10% 96%);
-  box-shadow: 0 20px 34px rgba(16, 23, 40, 0.2);
+  box-shadow: 0 20px 34px hsl(230 25% 7% / 0.2);
 }
 
 .button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 24px 42px rgba(16, 23, 40, 0.24);
+  box-shadow: 0 24px 42px hsl(230 25% 7% / 0.24);
 }
 
 .button-secondary,
 .button-ghost {
-  border-color: rgba(15, 23, 42, 0.08);
+  border-color: hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -298,7 +298,7 @@ textarea.input {
   position: sticky;
   top: 0;
   z-index: 30;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid hsl(230 25% 8% / 0.08);
   background: rgba(252, 247, 241, 0.75);
   backdrop-filter: blur(22px);
 }
@@ -354,7 +354,7 @@ textarea.input {
   font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  box-shadow: 0 18px 34px rgba(16, 23, 40, 0.18);
+  box-shadow: 0 18px 34px hsl(230 25% 7% / 0.18);
 }
 
 .site-brand strong {
@@ -374,10 +374,10 @@ textarea.input {
   gap: 6px;
   flex-wrap: wrap;
   padding: 8px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.58);
-  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 16px 30px hsl(230 25% 8% / 0.06);
 }
 
 .site-nav a,
@@ -436,10 +436,10 @@ textarea.input {
   display: grid;
   gap: 6px;
   padding: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.1);
+  border: 1px solid hsl(230 25% 8% / 0.1);
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 24px 54px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 24px 54px hsl(230 25% 8% / 0.12);
 }
 
 .site-nav-menu a {
@@ -481,7 +481,7 @@ textarea.input {
 .page-frame-header {
   padding: 36px 40px;
   border-radius: 34px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     radial-gradient(
       circle at top left,
@@ -603,7 +603,7 @@ textarea.input {
   gap: 18px;
   padding: 28px 30px;
   border-radius: 38px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     radial-gradient(
       circle at top right,
@@ -612,7 +612,7 @@ textarea.input {
     ),
     linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
   color: hsl(240 10% 96%);
-  box-shadow: 0 28px 60px rgba(16, 23, 40, 0.18);
+  box-shadow: 0 28px 60px hsl(230 25% 7% / 0.18);
 }
 
 .home-returning-hero-band .home-kicker,
@@ -671,7 +671,7 @@ textarea.input {
   gap: 8px;
   padding: 18px 20px;
   border-radius: 24px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -706,7 +706,7 @@ textarea.input {
   justify-items: center;
   padding: 16px 24px 14px;
   border-radius: 30px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     radial-gradient(
       circle at top center,
@@ -753,7 +753,7 @@ textarea.input {
   gap: 16px;
   padding: 22px 24px;
   border-radius: 30px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -798,7 +798,7 @@ textarea.input {
   min-height: 100%;
   padding: 28px;
   border-radius: 32px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   box-shadow: var(--shadow-soft);
 }
 
@@ -850,7 +850,7 @@ textarea.input {
   gap: 8px;
   padding: 16px 18px;
   border-radius: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -918,7 +918,7 @@ textarea.input {
   justify-content: center;
   padding: 0 16px;
   border-radius: 18px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -1073,7 +1073,7 @@ textarea.input {
   inset: 12% 22% 26%;
   border-radius: 999px 999px 24px 24px;
   background:
-    linear-gradient(180deg, rgba(16, 23, 40, 0.18), rgba(16, 23, 40, 0.44)),
+    linear-gradient(180deg, hsl(230 25% 7% / 0.18), rgba(16, 23, 40, 0.44)),
     rgba(255, 255, 255, 0.06);
 }
 
@@ -1160,7 +1160,7 @@ textarea.input {
   gap: 16px;
   padding: 30px;
   border-radius: 34px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -1212,7 +1212,7 @@ textarea.input {
   gap: 10px;
   padding: 22px;
   border-radius: 28px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -1238,7 +1238,7 @@ textarea.input {
 .home-im-preview {
   padding: 18px;
   border-radius: 34px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     radial-gradient(circle at top, rgba(201, 107, 69, 0.14), transparent 26%),
     linear-gradient(
@@ -1295,7 +1295,7 @@ textarea.input {
 
 .home-returning-focus,
 .home-returning-routes-card {
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   box-shadow: var(--shadow-soft);
 }
 
@@ -1350,7 +1350,7 @@ textarea.input {
   position: relative;
   overflow: hidden;
   border-radius: 38px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   box-shadow: var(--shadow-soft);
 }
 
@@ -1400,7 +1400,7 @@ textarea.input {
   min-height: 34px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background: rgba(255, 255, 255, 0.66);
   color: var(--text);
   letter-spacing: 0.1em;
@@ -1467,7 +1467,7 @@ textarea.input {
   display: grid;
   gap: 8px;
   padding: 18px 18px 16px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.62);
 }
@@ -1489,7 +1489,7 @@ textarea.input {
   display: grid;
   gap: 8px;
   padding: 18px 18px 16px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.56);
   backdrop-filter: blur(10px);
@@ -1564,7 +1564,7 @@ textarea.input {
   gap: 8px;
   padding: 18px;
   border-radius: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background: rgba(255, 255, 255, 0.62);
 }
 
@@ -1589,7 +1589,7 @@ textarea.input {
   gap: 10px;
   padding: 22px;
   border-radius: 24px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -1616,7 +1616,7 @@ textarea.input {
   gap: 16px;
   padding: 24px;
   border-radius: 28px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -1677,7 +1677,7 @@ textarea.input {
   min-height: 36px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background: rgba(255, 255, 255, 0.72);
   color: var(--accent-strong);
   font-size: 0.78rem;
@@ -1762,7 +1762,7 @@ textarea.input {
   min-height: 100%;
   padding: 18px;
   border-radius: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -1826,7 +1826,7 @@ textarea.input {
 .settings-console-switcher {
   padding: 22px 24px;
   border-radius: 30px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -1852,7 +1852,7 @@ textarea.input {
   gap: 14px;
   padding: 18px;
   border-radius: 24px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -1947,7 +1947,7 @@ textarea.input {
 }
 
 .privacy-trace-shell {
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  border-top: 1px solid hsl(230 25% 8% / 0.08);
   padding-top: 12px;
 }
 
@@ -2220,7 +2220,7 @@ textarea.input {
   gap: 10px;
   padding: 0 18px;
   border-radius: 20px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -2347,7 +2347,7 @@ textarea.input {
   align-items: center;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background: rgba(248, 245, 241, 0.92);
   color: var(--text);
   font-size: 0.76rem;
@@ -2366,7 +2366,7 @@ textarea.input {
   gap: 12px;
   padding: 16px;
   border-radius: 26px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -2550,7 +2550,7 @@ textarea.input {
   justify-content: space-between;
   padding: 0 14px;
   border-radius: 18px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background: rgba(250, 247, 243, 0.84);
   color: var(--text);
   font-size: 0.84rem;
@@ -2576,7 +2576,7 @@ textarea.input {
   align-items: center;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background: rgba(255, 255, 255, 0.68);
   color: var(--accent-strong);
   font-size: 0.74rem;
@@ -2596,7 +2596,7 @@ textarea.input {
   align-items: end;
   padding: 28px 30px;
   border-radius: 34px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     radial-gradient(
       circle at top left,
@@ -2632,7 +2632,7 @@ textarea.input {
 
 .product-console-hero-actions .button-secondary,
 .product-console-hero-actions .button-ghost {
-  border-color: rgba(15, 23, 42, 0.08);
+  border-color: hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -2670,7 +2670,7 @@ textarea.input {
   display: grid;
   gap: 14px;
   padding: 24px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   border-radius: 28px;
   background:
     radial-gradient(
@@ -2697,7 +2697,7 @@ textarea.input {
   gap: 10px;
   min-height: 100%;
   padding: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   border-radius: 28px;
   background:
     linear-gradient(
@@ -2756,7 +2756,7 @@ textarea.input {
 }
 
 .product-status-card-neutral {
-  border-color: rgba(15, 23, 42, 0.1);
+  border-color: hsl(230 25% 8% / 0.1);
 }
 
 .product-status-card-head {
@@ -2870,7 +2870,7 @@ textarea.input {
   display: grid;
   gap: 12px;
   padding: 26px 28px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   border-radius: 28px;
   background:
     linear-gradient(
@@ -2902,7 +2902,7 @@ textarea.input {
   gap: 8px;
   padding: 18px;
   border-radius: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -2944,7 +2944,7 @@ textarea.input {
   gap: 8px;
   padding: 16px 18px;
   border-radius: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -2990,7 +2990,7 @@ textarea.input {
   gap: 8px;
   padding: 16px 18px;
   border-radius: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -3020,7 +3020,7 @@ textarea.input {
   gap: 10px;
   min-height: 100%;
   padding: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   border-radius: 24px;
   background:
     linear-gradient(
@@ -3054,7 +3054,7 @@ textarea.input {
   gap: 12px;
   min-height: 100%;
   padding: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   border-radius: 28px;
   background:
     radial-gradient(
@@ -3107,7 +3107,7 @@ textarea.input {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 18px;
   padding: 22px 24px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   border-radius: 30px;
   background:
     linear-gradient(
@@ -3139,7 +3139,7 @@ textarea.input {
     ),
     linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
   color: hsl(240 10% 96%);
-  box-shadow: 0 28px 60px rgba(16, 23, 40, 0.18);
+  box-shadow: 0 28px 60px hsl(230 25% 7% / 0.18);
 }
 
 .hero h2 {
@@ -3157,7 +3157,7 @@ textarea.input {
 .chat-sidebar,
 .chat-panel,
 .thread-state-card {
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -3268,7 +3268,7 @@ textarea.input {
 .sheet-panel {
   width: min(100%, 620px);
   border-radius: 30px;
-  border-color: rgba(15, 23, 42, 0.08);
+  border-color: hsl(230 25% 8% / 0.08);
   background:
     linear-gradient(
       180deg,
@@ -3305,7 +3305,7 @@ textarea.input {
 .site-footer {
   position: relative;
   overflow: clip;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  border-top: 1px solid hsl(230 25% 8% / 0.08);
   background: rgba(255, 255, 255, 0.48);
 }
 
@@ -3354,7 +3354,7 @@ textarea.input {
 .site-footer-bottom {
   margin-top: 28px;
   padding-top: 22px;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  border-top: 1px solid hsl(230 25% 8% / 0.08);
   display: flex;
   flex-wrap: wrap;
   gap: 12px 20px;
@@ -3372,8 +3372,8 @@ textarea.input {
   color: transparent;
   background: linear-gradient(
     180deg,
-    rgba(15, 23, 42, 0.12),
-    rgba(15, 23, 42, 0.02)
+    hsl(230 25% 8% / 0.12),
+    hsl(230 25% 8% / 0.02)
   );
   -webkit-background-clip: text;
   background-clip: text;
