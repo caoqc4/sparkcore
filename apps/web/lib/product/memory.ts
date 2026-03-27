@@ -139,6 +139,8 @@ export function getMemoryEffectHint(memory: StoredMemory) {
 export async function loadProductMemoryPageData(args: {
   supabase: any;
   userId: string;
+  roleId?: string | null;
+  threadId?: string | null;
 }) : Promise<ProductMemoryPageData | null> {
   const { data: workspace } = await loadPrimaryWorkspace({
     supabase: args.supabase,
@@ -156,9 +158,34 @@ export async function loadProductMemoryPageData(args: {
     limit: 120
   });
 
+  const requestedRoleId =
+    typeof args.roleId === "string" && args.roleId.length > 0 ? args.roleId : null;
+  const requestedThreadId =
+    typeof args.threadId === "string" && args.threadId.length > 0 ? args.threadId : null;
+
+  const filteredMemories = (memories ?? []).filter((item: StoredMemory) => {
+    if (requestedThreadId) {
+      return item.target_thread_id === requestedThreadId;
+    }
+
+    if (!requestedRoleId) {
+      return true;
+    }
+
+    if (item.scope === "thread_local") {
+      return item.target_agent_id === requestedRoleId;
+    }
+
+    if (item.scope === "user_agent") {
+      return item.target_agent_id === requestedRoleId;
+    }
+
+    return true;
+  });
+
   const sourceMessageIds: string[] = Array.from(
     new Set(
-      (memories ?? [])
+      filteredMemories
         .map((item: any) => item.source_message_id)
         .filter((value: unknown): value is string => typeof value === "string" && value.length > 0)
     )
@@ -183,7 +210,7 @@ export async function loadProductMemoryPageData(args: {
 
   const targetAgentIds: string[] = Array.from(
     new Set(
-      (memories ?? [])
+      filteredMemories
         .map((item: any) => item.target_agent_id)
         .filter((value: unknown): value is string => typeof value === "string" && value.length > 0)
     )
@@ -218,7 +245,7 @@ export async function loadProductMemoryPageData(args: {
     (targetAgents ?? []).map((item: AgentNameRow) => [item.id, item.name])
   );
 
-  const items = (memories ?? []).map((memory: StoredMemory) => {
+  const items = filteredMemories.map((memory: StoredMemory) => {
     const status = getMemoryStatus(memory);
     const sourceMessage =
       typeof memory.source_message_id === "string"

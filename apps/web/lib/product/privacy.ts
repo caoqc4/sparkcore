@@ -61,6 +61,8 @@ function getPrivacyAction(memory: ProductMemoryItem): "hide" | "incorrect" | "re
 export async function loadProductPrivacyPageData(args: {
   supabase: any;
   userId: string;
+  roleId?: string | null;
+  threadId?: string | null;
 }): Promise<ProductPrivacyPageData | null> {
   const { data: workspace } = await loadPrimaryWorkspace({
     supabase: args.supabase,
@@ -74,7 +76,9 @@ export async function loadProductPrivacyPageData(args: {
   const [memoryData, bindings] = await Promise.all([
     loadProductMemoryPageData({
       supabase: args.supabase,
-      userId: args.userId
+      userId: args.userId,
+      roleId: args.roleId,
+      threadId: args.threadId
     }),
     loadOwnedChannelBindings({
       supabase: args.supabase,
@@ -83,14 +87,31 @@ export async function loadProductPrivacyPageData(args: {
     })
   ]);
 
+  const requestedRoleId =
+    typeof args.roleId === "string" && args.roleId.length > 0 ? args.roleId : null;
+  const requestedThreadId =
+    typeof args.threadId === "string" && args.threadId.length > 0 ? args.threadId : null;
+
+  const scopedBindings = bindings.filter((binding) => {
+    if (requestedThreadId) {
+      return binding.threadId === requestedThreadId;
+    }
+
+    if (requestedRoleId) {
+      return binding.agentId === requestedRoleId;
+    }
+
+    return true;
+  });
+
   const memoryItems = memoryData?.items ?? [];
   const activeMemory = memoryItems.filter((item) => item.status === "active");
   const hiddenMemory = memoryItems.filter((item) => item.status === "hidden");
   const incorrectMemory = memoryItems.filter((item) => item.status === "incorrect");
   const traceAvailableCount = memoryItems.filter((item) => item.sourceThreadId).length;
-  const activeBindings = bindings.filter((item) => item.status === "active");
-  const inactiveBindings = bindings.filter((item) => item.status === "inactive");
-  const platforms = Array.from(new Set(bindings.map((item) => item.platform)));
+  const activeBindings = scopedBindings.filter((item) => item.status === "active");
+  const inactiveBindings = scopedBindings.filter((item) => item.status === "inactive");
+  const platforms = Array.from(new Set(scopedBindings.map((item) => item.platform)));
 
   return {
     memory: {
@@ -101,7 +122,7 @@ export async function loadProductPrivacyPageData(args: {
       traceAvailable: traceAvailableCount
     },
     channels: {
-      total: bindings.length,
+      total: scopedBindings.length,
       active: activeBindings.length,
       inactive: inactiveBindings.length,
       platforms

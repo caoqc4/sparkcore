@@ -1,18 +1,18 @@
 :root {
-  --bg: #f4ede4;
-  --panel: rgba(255, 252, 247, 0.78);
-  --panel-strong: rgba(255, 255, 255, 0.92);
-  --panel-border: rgba(15, 23, 42, 0.1);
-  --text: #0f1728;
-  --muted: #5c6472;
-  --ink-soft: #344256;
-  --accent: #c96b45;
-  --accent-strong: #a8502d;
-  --accent-soft: #f7e4da;
-  --shadow-soft: 0 28px 80px rgba(15, 23, 42, 0.1);
-  --surface-dark: #101a2d;
-  --surface-dark-strong: #18263f;
-  --surface-tint: rgba(232, 238, 249, 0.7);
+  --bg: hsl(230 25% 10%);
+  --panel: hsl(230 25% 12%);
+  --panel-strong: hsl(230 25% 14%);
+  --panel-border: hsl(230 15% 20%);
+  --text: hsl(240 10% 96%);
+  --muted: hsl(240 15% 60%);
+  --ink-soft: hsl(240 15% 60%);
+  --accent: hsl(235 75% 62%);
+  --accent-strong: hsl(235 80% 55%);
+  --accent-soft: hsl(235 30% 18%);
+  --shadow-soft: 0 28px 70px hsl(0 0% 0% / 0.3);
+  --surface-dark: hsl(230 25% 10%);
+  --surface-dark-strong: hsl(230 25% 14%);
+  --surface-tint: hsl(235 75% 62% / 0.1);
   --font-sans: var(--font-ui), "Avenir Next", "Helvetica Neue", sans-serif;
   --font-serif: var(--font-display), "Iowan Old Style", Georgia, serif;
 
@@ -25,21 +25,21 @@
   --popover-foreground: var(--text);
   --muted-foreground: var(--muted);
   --primary: var(--accent);
-  --primary-foreground: #fff7f3;
-  --secondary: var(--panel-strong);
+  --primary-foreground: hsl(240 10% 96%);
+  --secondary: hsl(235 25% 16%);
   --secondary-foreground: var(--text);
   --accent-foreground: var(--accent-strong);
   --border: var(--panel-border);
   --input: var(--panel-border);
-  --ring: rgba(201, 107, 69, 0.24);
-  --navbar-bg: rgba(255, 255, 255, 0.92);
-  --navbar-bg-scrolled: rgba(255, 255, 255, 0.97);
-  --hover-bg: rgba(255, 255, 255, 0.96);
+  --ring: hsl(235 75% 62% / 0.5);
+  --navbar-bg: hsl(230 25% 10%);
+  --navbar-bg-scrolled: hsl(230 25% 10% / 0.95);
+  --hover-bg: hsl(235 20% 16%);
   --radius: 22px;
   --radius-sm: 16px;
   --radius-md: 20px;
   --radius-lg: 30px;
-  --shadow-navbar: 0 20px 44px rgba(16, 23, 40, 0.08);
+  --shadow-navbar: 0 20px 44px hsl(0 0% 0% / 0.2);
   --shadow-card: var(--shadow-soft);
 }
 
@@ -50,7 +50,7 @@ html {
 body {
   position: relative;
   color: var(--text);
-  background: hsl(222.2 84% 4.9%);
+  background: hsl(230 25% 10%);
 }
 
 a {
@@ -1905,7 +1905,7 @@ textarea.input {
   border-radius: var(--radius-md);
   border: 1px solid hsl(217.2 32.6% 25%);
   background: hsl(217.2 32.6% 12.5%);
-  color: hsl(215 20.2% 65.1%);
+  color: hsl(240 15% 60%);
   transition:
     transform 160ms ease,
     border-color 160ms ease,
@@ -1916,7 +1916,7 @@ textarea.input {
 .settings-console-tab span {
   font-size: 0.96rem;
   font-weight: 700;
-  color: hsl(210 40% 98%);
+  color: hsl(240 10% 96%);
 }
 
 .settings-console-tab small {
@@ -1927,12 +1927,12 @@ textarea.input {
 .settings-console-tab:hover {
   transform: translateY(-1px);
   border-color: hsl(217.2 91.2% 59.8% / 0.3);
-  background: hsl(217.2 32.6% 17.5%);
-  color: hsl(210 40% 98%);
+  background: hsl(235 25% 16%);
+  color: hsl(240 10% 96%);
 }
 
 .settings-console-tab-active {
-  border-color: hsl(217.2 91.2% 59.8%);
+  border-color: hsl(235 75% 62%);
   background: hsl(217.2 91.2% 59.8% / 0.15);
   box-shadow: 0 18px 32px hsl(217.2 91.2% 59.8% / 0.2);
 }
@@ -2301,7 +2301,7 @@ textarea.input {
   border-radius: calc(var(--radius-lg) + 4px);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-card);
-  background: hsl(222.2 84% 4.9%);
+  background: hsl(230 25% 10%);
 }
 
 .product-console-layout {
@@ -2441,7 +2441,7 @@ textarea.input {
   border-radius: calc(var(--radius-md) + 2px);
   border: 1px solid transparent;
   background: transparent;
-  color: hsl(215 20.2% 65.1%);
+  color: hsl(240 15% 60%);
   transition:
     transform 160ms ease,
     background 160ms ease,
@@ -2450,9 +2450,9 @@ textarea.input {
 }
 
 .product-console-nav-link:hover {
-  background: hsl(217.2 32.6% 17.5%);
+  background: hsl(235 25% 16%);
   border-color: transparent;
-  color: hsl(210 40% 98%);
+  color: hsl(240 10% 96%);
 }
 
 .product-console-nav-link span {
@@ -2485,13 +2485,13 @@ textarea.input {
 }
 
 .product-console-status-dot-muted {
-  background: hsl(217.2 32.6% 17.5%);
+  background: hsl(235 25% 16%);
 }
 
 .product-console-nav-link-active {
   border-color: hsl(217.2 91.2% 59.8% / 0.3);
   background: hsl(217.2 91.2% 59.8% / 0.12);
-  color: hsl(217.2 91.2% 59.8%);
+  color: hsl(235 75% 62%);
   box-shadow: 0 10px 24px hsl(217.2 91.2% 59.8% / 0.15);
 }
 
@@ -2785,25 +2785,25 @@ textarea.input {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
-  background: hsl(217.2 32.6% 17.5%);
-  color: hsl(215 20.2% 65.1%);
+  background: hsl(235 25% 16%);
+  color: hsl(240 15% 60%);
 }
 
 .product-status-pill-warning {
   border-color: hsl(217.2 91.2% 59.8% / 0.4);
   background: hsl(217.2 91.2% 59.8% / 0.15);
-  color: hsl(217.2 91.2% 59.8%);
+  color: hsl(235 75% 62%);
 }
 
 .product-status-pill-ready {
   border-color: hsl(217.2 91.2% 59.8% / 0.4);
   background: hsl(217.2 91.2% 59.8% / 0.15);
-  color: hsl(217.2 91.2% 59.8%);
+  color: hsl(235 75% 62%);
 }
 
 .product-status-pill-neutral {
-  background: hsl(217.2 32.6% 17.5%);
-  color: hsl(215 20.2% 65.1%);
+  background: hsl(235 25% 16%);
+  color: hsl(240 15% 60%);
 }
 
 .product-status-meta {
@@ -3686,9 +3686,9 @@ textarea.input {
 }
 
 .role-type-option.active {
-  border-color: hsl(217.2 91.2% 59.8%);
+  border-color: hsl(235 75% 62%);
   background: hsl(217.2 91.2% 59.8% / 0.12);
-  color: hsl(217.2 91.2% 59.8%);
+  color: hsl(235 75% 62%);
 }
 
 .role-type-icon {
@@ -3748,9 +3748,9 @@ textarea.input {
 }
 
 .tone-option.active {
-  border-color: hsl(217.2 91.2% 59.8%);
+  border-color: hsl(235 75% 62%);
   background: hsl(217.2 91.2% 59.8% / 0.15);
-  color: hsl(217.2 91.2% 59.8%);
+  color: hsl(235 75% 62%);
   font-weight: 600;
 }
 
@@ -3873,7 +3873,7 @@ textarea.input {
 
 .tag-type {
   background: hsl(217.2 91.2% 59.8% / 0.15);
-  color: hsl(217.2 91.2% 59.8%);
+  color: hsl(235 75% 62%);
   border: 1px solid hsl(217.2 91.2% 59.8% / 0.25);
 }
 
@@ -3949,7 +3949,7 @@ textarea.input {
   padding: 4px 12px;
   border-radius: 999px;
   background: hsl(217.2 91.2% 59.8% / 0.12);
-  color: hsl(217.2 91.2% 59.8%);
+  color: hsl(235 75% 62%);
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.06em;

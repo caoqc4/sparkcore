@@ -10,6 +10,7 @@ import { loadOwnedChannelBindings } from "@/lib/product/channels";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { loadProductPrivacyPageData } from "@/lib/product/privacy";
 import { loadProductProfilePageData } from "@/lib/product/profile";
+import { resolveProductAppRoute } from "@/lib/product/route-resolution";
 import { createClient } from "@/lib/supabase/server";
 
 type SettingsTabId = "role" | "channels" | "boundaries";
@@ -19,6 +20,8 @@ type DashboardSettingsPageProps = {
     feedback?: string;
     feedback_type?: string;
     tab?: string;
+    role?: string;
+    thread?: string;
   }>;
 };
 
@@ -59,8 +62,8 @@ function resolveSettingsTab(value: string | undefined): SettingsTabId {
   return "role";
 }
 
-function buildSettingsTabHref(tab: SettingsTabId) {
-  return `/app/settings?tab=${tab}`;
+function buildSettingsTabHref(tab: SettingsTabId, roleQuerySuffix: string) {
+  return `/app/settings${roleQuerySuffix}${roleQuerySuffix ? "&" : "?"}tab=${tab}`;
 }
 
 function truncateCopy(value: string | null | undefined, maxLength: number) {
@@ -86,7 +89,16 @@ export default async function DashboardSettingsPage({
   const user = await requireUser("/app/settings");
   const supabase = await createClient();
 
-  const [{ data: workspace }, overview, profileData, privacyData] =
+  const roleId =
+    typeof params.role === "string" && params.role.length > 0
+      ? params.role
+      : null;
+  const threadId =
+    typeof params.thread === "string" && params.thread.length > 0
+      ? params.thread
+      : null;
+
+  const [{ data: workspace }, overview, profileData, privacyData, resolution] =
     await Promise.all([
       loadPrimaryWorkspace({
         supabase,
@@ -95,12 +107,21 @@ export default async function DashboardSettingsPage({
       loadDashboardOverview({
         supabase,
         userId: user.id,
+        roleId,
+        threadId,
       }),
       loadProductProfilePageData({
         supabase,
         userId: user.id,
+        agentId: roleId,
       }),
       loadProductPrivacyPageData({
+        supabase,
+        userId: user.id,
+        roleId,
+        threadId,
+      }),
+      resolveProductAppRoute({
         supabase,
         userId: user.id,
       }),
@@ -110,19 +131,40 @@ export default async function DashboardSettingsPage({
     return null;
   }
 
+  const resolvedRoleId = roleId ?? resolution?.roleId ?? null;
+  const roleQuerySuffix = resolvedRoleId
+    ? `?role=${encodeURIComponent(resolvedRoleId)}`
+    : "";
+  const chatHref = `/app/chat${roleQuerySuffix}`;
+  const memoryHref = `/app/memory${roleQuerySuffix}`;
+  const connectImHref = resolvedRoleId
+    ? `/connect-im?agent=${encodeURIComponent(resolvedRoleId)}`
+    : "/connect-im";
+
   const bindings = await loadOwnedChannelBindings({
     supabase,
     workspaceId: workspace.id,
     userId: user.id,
   });
-  const activeBindings = bindings.filter(
+  const scopedBindings = bindings.filter((binding) => {
+    if (threadId) {
+      return binding.threadId === threadId;
+    }
+
+    if (resolvedRoleId) {
+      return binding.agentId === resolvedRoleId;
+    }
+
+    return true;
+  });
+  const activeBindings = scopedBindings.filter(
     (binding) => binding.status === "active",
   );
-  const inactiveBindings = bindings.filter(
+  const inactiveBindings = scopedBindings.filter(
     (binding) => binding.status !== "active",
   );
-  const roleTabRedirect = buildSettingsTabHref("role");
-  const channelTabRedirect = buildSettingsTabHref("channels");
+  const roleTabRedirect = buildSettingsTabHref("role", roleQuerySuffix);
+  const channelTabRedirect = buildSettingsTabHref("channels", roleQuerySuffix);
   const memoryRepairCount =
     privacyData.memory.hidden + privacyData.memory.incorrect;
   const selectedChannelBinding =
@@ -141,10 +183,10 @@ export default async function DashboardSettingsPage({
     <ProductConsoleShell
       actions={
         <>
-          <Link className="button button-primary" href="/connect-im">
+          <Link className="button button-primary" href={connectImHref}>
             Open IM bind flow
           </Link>
-          <Link className="button button-secondary" href="/app/chat">
+          <Link className="button button-secondary" href={chatHref}>
             Open supplementary chat
           </Link>
         </>
@@ -184,7 +226,7 @@ export default async function DashboardSettingsPage({
               <Link
                 aria-current={isActive ? "page" : undefined}
                 className={`settings-console-tab ${isActive ? "settings-console-tab-active" : ""}`}
-                href={buildSettingsTabHref(tab.id)}
+                href={buildSettingsTabHref(tab.id, roleQuerySuffix)}
                 key={tab.id}
               >
                 <span>{tab.label}</span>
@@ -444,7 +486,7 @@ export default async function DashboardSettingsPage({
                       "No system prompt available yet."}
                   </p>
                 </div>
-                <Link className="site-inline-link" href="/app/chat">
+                <Link className="site-inline-link" href={chatHref}>
                   Continue in supplementary chat
                 </Link>
               </div>
@@ -497,7 +539,7 @@ export default async function DashboardSettingsPage({
                 <article className="product-setting-metric">
                   <span>Platforms</span>
                   <strong>
-                    {bindings.length > 0
+                    {scopedBindings.length > 0
                       ? privacyData.channels.platforms.join(", ")
                       : "None"}
                   </strong>
@@ -521,7 +563,7 @@ export default async function DashboardSettingsPage({
                       ? "Use connect flow when you need to attach a different Telegram identity or inspect the current binding more closely."
                       : "Open connect flow to bind Telegram to the existing role and canonical thread without restarting the relationship."}
                   </p>
-                  <Link className="site-inline-link" href="/connect-im">
+                  <Link className="site-inline-link" href={connectImHref}>
                     Open connect flow
                   </Link>
                 </article>
@@ -536,7 +578,7 @@ export default async function DashboardSettingsPage({
                       ? "Keep history visible here, but retire stale live paths when the wrong one is still active."
                       : "Use web continuation when you need a careful corrective turn on the same thread."}
                   </p>
-                  <Link className="site-inline-link" href="/app/chat">
+                  <Link className="site-inline-link" href={chatHref}>
                     Continue on web
                   </Link>
                 </article>
@@ -629,7 +671,7 @@ export default async function DashboardSettingsPage({
                 <div className="product-status-card-head">
                   <h2>Binding catalog</h2>
                   <span className="product-status-pill product-status-pill-neutral">
-                    {bindings.length} total
+                    {scopedBindings.length} total
                   </span>
                 </div>
                 {otherActiveBindings.length > 0 ? (
@@ -820,13 +862,13 @@ export default async function DashboardSettingsPage({
               <div className="toolbar">
                 <Link
                   className="button button-primary"
-                  href="/app/memory"
+                  href={memoryHref}
                 >
                   Open memory center
                 </Link>
                 <Link
                   className="button button-secondary"
-                  href="/app/chat"
+                  href={chatHref}
                 >
                   Open supplementary chat
                 </Link>
@@ -855,7 +897,7 @@ export default async function DashboardSettingsPage({
                       Go to memory center for row-level hide, restore, correct,
                       and source review.
                     </p>
-                    <Link className="site-inline-link" href="/app/memory">
+                    <Link className="site-inline-link" href={memoryHref}>
                       Go to memory center
                     </Link>
                   </article>

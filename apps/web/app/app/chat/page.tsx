@@ -4,6 +4,7 @@ import { ProductConsoleShell } from "@/components/product-console-shell";
 import { SupplementaryChatThread } from "@/components/supplementary-chat-thread";
 import { requireUser } from "@/lib/auth-redirect";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
+import { resolveProductAppRoute } from "@/lib/product/route-resolution";
 import { createClient } from "@/lib/supabase/server";
 import { loadProductSupplementaryChatPageData } from "@/lib/product/supplementary-chat";
 
@@ -18,6 +19,7 @@ function formatTimestamp(value: string | null) {
 type DashboardChatPageProps = {
   searchParams: Promise<{
     thread?: string;
+    role?: string;
   }>;
 };
 
@@ -27,18 +29,38 @@ export default async function AppChatPage({
   const params = await searchParams;
   const user = await requireUser("/app/chat");
   const supabase = await createClient();
-  const [data, overview] = await Promise.all([
+  const roleId =
+    typeof params.role === "string" && params.role.length > 0
+      ? params.role
+      : null;
+  const [data, overview, resolution] = await Promise.all([
     loadProductSupplementaryChatPageData({
       supabase,
       userId: user.id,
       threadId: typeof params.thread === "string" ? params.thread : null,
+      roleId,
     }),
     loadDashboardOverview({
       supabase,
       userId: user.id,
       threadId: typeof params.thread === "string" ? params.thread : null,
+      roleId,
+    }),
+    resolveProductAppRoute({
+      supabase,
+      userId: user.id,
     }),
   ]);
+
+  const resolvedRoleId = roleId ?? resolution?.roleId ?? null;
+  const roleQuerySuffix = resolvedRoleId
+    ? `?role=${encodeURIComponent(resolvedRoleId)}`
+    : "";
+  const settingsHref = `/app/settings${roleQuerySuffix}`;
+  const settingsChannelsHref = `${settingsHref}${
+    roleQuerySuffix ? "&" : "?"
+  }tab=channels`;
+  const memoryHref = `/app/memory${roleQuerySuffix}`;
 
   if (!data) {
     return null;
@@ -88,7 +110,7 @@ export default async function AppChatPage({
           >
             Open advanced workspace
           </Link>
-          <Link className="button button-secondary" href="/app/settings">
+          <Link className="button button-secondary" href={settingsHref}>
             Open settings
           </Link>
         </>
@@ -131,7 +153,7 @@ export default async function AppChatPage({
             >
               Open advanced workspace
             </Link>
-            <Link className="button button-secondary" href="/app/settings">
+            <Link className="button button-secondary" href={settingsHref}>
               Open settings
             </Link>
           </div>
@@ -295,7 +317,7 @@ export default async function AppChatPage({
                   Check whether a recent turn should be hidden, corrected, or
                   restored.
                 </p>
-                <Link className="site-inline-link" href="/app/memory">
+                <Link className="site-inline-link" href={memoryHref}>
                   Open memory center
                 </Link>
               </article>
@@ -304,7 +326,7 @@ export default async function AppChatPage({
                 <p>Make sure continuity is anchored in the right IM path.</p>
                 <Link
                   className="site-inline-link"
-                  href="/app/settings?tab=channels"
+                  href={settingsChannelsHref}
                 >
                   Open channels tab
                 </Link>

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { ProductEventTracker } from "@/components/product-event-tracker";
 import { ProductConsoleShell } from "@/components/product-console-shell";
+import { resolveProductAppRoute } from "@/lib/product/route-resolution";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import type { ProductMemoryItem } from "@/lib/product/memory";
 import {
@@ -20,6 +21,8 @@ type DashboardMemoryPageProps = {
   searchParams: Promise<{
     feedback?: string;
     feedback_type?: string;
+    role?: string;
+    thread?: string;
   }>;
 };
 
@@ -139,16 +142,41 @@ export default async function AppMemoryPage({
   const params = await searchParams;
   const user = await requireUser("/app/memory");
   const supabase = await createClient();
-  const [data, overview] = await Promise.all([
+  const roleId =
+    typeof params.role === "string" && params.role.length > 0
+      ? params.role
+      : null;
+  const [data, overview, resolution] = await Promise.all([
     loadProductMemoryPageData({
       supabase,
       userId: user.id,
+      roleId,
+      threadId: typeof params.thread === "string" ? params.thread : null,
     }),
     loadDashboardOverview({
       supabase,
       userId: user.id,
+      roleId,
+      threadId: typeof params.thread === "string" ? params.thread : null,
+    }),
+    resolveProductAppRoute({
+      supabase,
+      userId: user.id,
     }),
   ]);
+
+  const resolvedRoleId = roleId ?? resolution?.roleId ?? null;
+  const roleQuerySuffix = resolvedRoleId
+    ? `?role=${encodeURIComponent(resolvedRoleId)}`
+    : "";
+  const settingsHref = `/app/settings${roleQuerySuffix}`;
+  const settingsBoundariesHref = `${settingsHref}${
+    roleQuerySuffix ? "&" : "?"
+  }tab=boundaries`;
+  const chatHref = `/app/chat${roleQuerySuffix}`;
+  const appHomeHref = resolvedRoleId
+    ? `/app/${encodeURIComponent(resolvedRoleId)}`
+    : resolution?.href ?? "/app";
 
   if (!data) {
     return null;
@@ -170,10 +198,10 @@ export default async function AppMemoryPage({
     <ProductConsoleShell
       actions={
         <>
-          <Link className="button button-primary" href="/app/settings">
+          <Link className="button button-primary" href={settingsHref}>
             Open settings
           </Link>
-          <Link className="button button-secondary" href="/app">
+          <Link className="button button-secondary" href={appHomeHref}>
             Back to app home
           </Link>
         </>
@@ -226,11 +254,11 @@ export default async function AppMemoryPage({
           <div className="toolbar">
             <Link
               className="button button-primary"
-              href="/app/settings?tab=boundaries"
+              href={settingsBoundariesHref}
             >
               Review boundary posture
             </Link>
-            <Link className="button button-secondary" href="/app/chat">
+            <Link className="button button-secondary" href={chatHref}>
               Continue the canonical thread
             </Link>
           </div>
@@ -378,11 +406,11 @@ export default async function AppMemoryPage({
             <div className="stack">
               <Link
                 className="site-inline-link"
-                href="/app/settings?tab=boundaries"
+                href={settingsBoundariesHref}
               >
                 Review boundary posture
               </Link>
-              <Link className="site-inline-link" href="/app/chat">
+              <Link className="site-inline-link" href={chatHref}>
                 Continue the canonical thread
               </Link>
             </div>

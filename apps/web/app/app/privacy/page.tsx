@@ -4,6 +4,7 @@ type DashboardPrivacyRedirectPageProps = {
   searchParams: Promise<{
     feedback?: string;
     feedback_type?: string;
+    role?: string;
   }>;
 };
 
@@ -19,6 +20,10 @@ export default async function DashboardPrivacyRedirectPage({
 
   if (params.feedback_type) {
     next.set("feedback_type", params.feedback_type);
+  }
+
+  if (params.role) {
+    next.set("role", params.role);
   }
 
   redirect(`/app/settings?${next.toString()}`);

@@ -1,14 +1,14 @@
 :root {
   color-scheme: dark;
-  --bg: hsl(222.2 84% 4.9%);
-  --panel: hsl(222.2 84% 4.9%);
-  --panel-strong: hsl(222.2 84% 4.9%);
-  --panel-border: hsl(217.2 32.6% 17.5%);
-  --text: hsl(210 40% 98%);
-  --muted: hsl(215 20.2% 65.1%);
-  --accent: hsl(217.2 91.2% 59.8%);
-  --accent-strong: hsl(217.2 91.2% 50%);
-  --accent-soft: hsl(217.2 32.6% 17.5%);
+  --bg: hsl(230 25% 10%);
+  --panel: hsl(230 25% 12%);
+  --panel-strong: hsl(230 25% 14%);
+  --panel-border: hsl(230 15% 20%);
+  --text: hsl(240 10% 96%);
+  --muted: hsl(240 15% 60%);
+  --accent: hsl(235 75% 62%);
+  --accent-strong: hsl(235 80% 55%);
+  --accent-soft: hsl(235 30% 18%);
   --ink-soft: hsl(215 20.2% 65.1%);
   --shadow-soft: 0 28px 70px hsl(0 0% 0% / 0.3);
   --error-bg: #fef2f2;
@@ -28,15 +28,15 @@
   --muted-foreground: var(--muted);
   --primary: var(--accent);
   --primary-foreground: hsl(210 40% 98%);
-  --secondary: hsl(217.2 32.6% 17.5%);
+  --secondary: hsl(235 25% 16%);
   --secondary-foreground: var(--text);
   --accent-foreground: var(--accent-strong);
   --border: var(--panel-border);
   --input: var(--panel-border);
-  --ring: hsl(224.3 76.3% 48%);
-  --navbar-bg: hsl(222.2 84% 4.9%);
-  --navbar-bg-scrolled: hsl(222.2 84% 4.9%);
-  --hover-bg: hsl(217.2 32.6% 17.5%);
+  --ring: hsl(235 75% 62% / 0.5);
+  --navbar-bg: hsl(230 25% 10%);
+  --navbar-bg-scrolled: hsl(230 25% 10% / 0.95);
+  --hover-bg: hsl(235 20% 16%);
 
   /* Border radius system */
   --radius-xs: 8px;

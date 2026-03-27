@@ -3,7 +3,7 @@ import {
   loadLatestOwnedThread,
   loadOwnedActiveAgent,
   loadOwnedThread,
-  loadPrimaryWorkspace
+  loadPrimaryWorkspace,
 } from "@/lib/chat/runtime-turn-context";
 import { loadOwnedChannelBindings } from "@/lib/product/channels";
 
@@ -36,6 +36,7 @@ export async function loadProductSupplementaryChatPageData(args: {
   supabase: any;
   userId: string;
   threadId?: string | null;
+  roleId?: string | null;
 }): Promise<ProductSupplementaryChatPageData | null> {
   const { data: workspace } = await loadPrimaryWorkspace({
     supabase: args.supabase,
@@ -46,19 +47,32 @@ export async function loadProductSupplementaryChatPageData(args: {
     return null;
   }
 
+  const requestedRoleId =
+    typeof args.roleId === "string" && args.roleId.length > 0 ? args.roleId : null;
+
   const threadResult =
     typeof args.threadId === "string" && args.threadId.length > 0
       ? await loadOwnedThread({
           supabase: args.supabase,
           threadId: args.threadId,
           userId: args.userId,
-          workspaceId: workspace.id
-        })
-      : await loadLatestOwnedThread({
-          supabase: args.supabase,
           workspaceId: workspace.id,
-          userId: args.userId
-        });
+        })
+      : requestedRoleId
+        ? await args.supabase
+            .from("threads")
+            .select("id, title, status, agent_id, updated_at, created_at")
+            .eq("workspace_id", workspace.id)
+            .eq("owner_user_id", args.userId)
+            .eq("agent_id", requestedRoleId)
+            .order("updated_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        : await loadLatestOwnedThread({
+            supabase: args.supabase,
+            workspaceId: workspace.id,
+            userId: args.userId,
+          });
 
   const thread = threadResult.data ?? null;
 

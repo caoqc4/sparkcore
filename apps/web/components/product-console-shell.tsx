@@ -20,6 +20,12 @@ const productConsoleNavItems = [
     match: ["/app/chat", "/chat"],
   },
   {
+    href: "/app/roles",
+    label: "Role Assets",
+    description: "Manage and switch role identities",
+    match: ["/app/roles"],
+  },
+  {
     href: "/app/memory",
     label: "Memory Center",
     description: "Inspect, repair, and restore memory",
@@ -57,9 +63,13 @@ function isActiveConsoleRoute(
     return true;
   }
 
-  return matchers.some(
-    (matcher) => matcher !== "/app" && currentHref.startsWith(`${matcher}/`),
-  );
+  return matchers.some((matcher) => {
+    if (matcher === "/app") {
+      return currentHref.startsWith("/app/");
+    }
+
+    return currentHref.startsWith(`${matcher}/`);
+  });
 }
 
 function buildConsoleSummary(overview: DashboardOverview | null) {
@@ -94,6 +104,26 @@ function buildConsoleSummary(overview: DashboardOverview | null) {
   };
 }
 
+function buildConsoleNavHref(href: string, roleId: string | null) {
+  if (!roleId) {
+    return href;
+  }
+
+  if (href === "/app") {
+    return `/app/${encodeURIComponent(roleId)}`;
+  }
+
+  if (
+    href === "/app/chat" ||
+    href === "/app/memory" ||
+    href === "/app/settings"
+  ) {
+    return `${href}?role=${encodeURIComponent(roleId)}`;
+  }
+
+  return href;
+}
+
 export async function ProductConsoleShell({
   currentHref,
   eyebrow,
@@ -116,6 +146,7 @@ export async function ProductConsoleShell({
 
   const summary = buildConsoleSummary(overview);
   const landingPreviewHref = "/?preview=landing";
+  const activeRoleId = overview?.currentRole?.agentId ?? null;
 
   return (
     <main className="shell">
@@ -154,7 +185,7 @@ export async function ProductConsoleShell({
                         ? "product-console-nav-link-active"
                         : ""
                     }`}
-                    href={item.href}
+                    href={buildConsoleNavHref(item.href, activeRoleId)}
                     key={item.href}
                   >
                     <span>{item.label}</span>
