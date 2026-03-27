@@ -652,14 +652,8 @@ textarea.input {
   gap: 8px;
   padding: 18px 20px;
   border-radius: 24px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.94),
-      rgba(247, 242, 236, 0.84)
-    ),
-    rgba(255, 255, 255, 0.78);
+  border: 1px solid hsl(230 15% 20%);
+  background: hsl(235 25% 14%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -2291,7 +2285,7 @@ textarea.input {
   padding: 16px;
   border-radius: calc(var(--radius-lg) + 2px);
   border: 1px solid var(--border);
-  background: hsl(217.2 32.6% 12.5%);
+  background: hsl(235 25% 14%);
   color: var(--foreground);
   box-shadow: var(--shadow-navbar);
 }
@@ -2336,14 +2330,8 @@ textarea.input {
   gap: 12px;
   padding: 16px;
   border-radius: 26px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(244, 240, 236, 0.88)
-    ),
-    rgba(255, 255, 255, 0.9);
+  border: 1px solid hsl(230 15% 20%);
+  background: hsl(235 25% 13%);
 }
 
 .product-console-role-card {
@@ -2358,8 +2346,8 @@ textarea.input {
   place-items: center;
   border-radius: 18px;
   background:
-    linear-gradient(135deg, rgba(244, 114, 52, 0.18), rgba(99, 102, 241, 0.18)),
-    rgba(255, 255, 255, 0.92);
+    linear-gradient(135deg, hsl(235 75% 62% / 0.15), hsl(235 25% 18% / 0.15)),
+    hsl(235 25% 16%);
   color: var(--text);
   font-size: 1.15rem;
   font-weight: 700;
