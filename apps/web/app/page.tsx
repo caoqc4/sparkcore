@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { LandingRoleStudio } from "@/components/landing-role-studio";
+import { HomeHeroForm } from "@/components/home-hero-form";
+import { HomeHeroPreview } from "@/components/home-hero-preview";
 import { SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
 import { getOptionalUser } from "@/lib/auth-redirect";
@@ -93,36 +94,63 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     redirect("/app");
   }
 
+  // Default role preview data
+  const defaultRolePreview = {
+    name: "Luna",
+    type: "companion" as const,
+    tone: "Gentle & Listening",
+    tagline: "A relationship that grows with every conversation.",
+  };
+
   return (
     <SiteShell>
-      <section className="home-stage" id="home-top">
-        <div className="home-landing-shell">
-          <section className="home-slogan-band">
-            <p className="home-kicker">SparkCore slogan</p>
-            <h1 className="home-display home-display-centered">
+      {/* New Hero Section with Dual-Column Layout */}
+      <section className="home-section">
+        <div className="home-hero-grid">
+          {/* Left: Creation Form */}
+          <div className="home-hero-form-section">
+            {/* Optional Badge */}
+            <div className="site-badge-premium inline-block">
+              <div className="site-badge-premium-inner">
+                <span>SparkCore</span>
+                <svg
+                  fill="none"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.75 8.75L14.25 12L10.75 15.25"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Heading */}
+            <h1 className="heading-display">
               Create a companion that remembers.
             </h1>
-            <p className="home-lead home-lead-centered">
+            <p className="subheading-lg">
               Choose the role, tone, and bond on web. Keep the same relationship
               moving in IM after setup, then return only when memory, privacy,
               or channel repair needs operator control.
             </p>
-            <div className="home-hero-proof-row">
-              <span className="site-inline-pill">Long memory</span>
-              <span className="site-inline-pill">IM-native continuity</span>
-              <span className="site-inline-pill">Web control center</span>
-            </div>
-          </section>
 
-          <LandingRoleStudio
-            dashboardHref="/app"
-            loginNext="/"
-            reviewHref="/how-it-works"
-            user={user ? { id: user.id } : null}
-          />
+            {/* Form Component */}
+            <HomeHeroForm user={user ? { id: user.id } : null} />
+          </div>
+
+          {/* Right: Preview Panel */}
+          <HomeHeroPreview roleData={defaultRolePreview} />
         </div>
       </section>
 
+      {/* Rest of the existing sections */}
       <section className="home-feature-spotlight" id="home-memory">
         <div className="home-section-heading">
           <p className="home-kicker">Memory</p>
@@ -321,11 +349,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
 
         <div className="home-cta-actions">
-          <a className="button button-primary button-large" href="#home-top">
+          <a className="button button-primary button-large button-rounded" href="#home-top">
             Back to create
           </a>
           <TrackedLink
-            className="button button-secondary button-large"
+            className="button button-secondary button-large button-rounded"
             event="landing_cta_click"
             href="/blog"
             payload={{ source: "home_final_blog" }}
