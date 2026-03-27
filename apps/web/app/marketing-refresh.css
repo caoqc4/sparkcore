@@ -15,6 +15,32 @@
   --surface-tint: rgba(232, 238, 249, 0.7);
   --font-sans: var(--font-ui), "Avenir Next", "Helvetica Neue", sans-serif;
   --font-serif: var(--font-display), "Iowan Old Style", Georgia, serif;
+
+  /* Starterkit semantic bridge (page-level override) */
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--panel);
+  --card-foreground: var(--text);
+  --popover: var(--panel-strong);
+  --popover-foreground: var(--text);
+  --muted-foreground: var(--muted);
+  --primary: var(--accent);
+  --primary-foreground: #fff7f3;
+  --secondary: var(--panel-strong);
+  --secondary-foreground: var(--text);
+  --accent-foreground: var(--accent-strong);
+  --border: var(--panel-border);
+  --input: var(--panel-border);
+  --ring: rgba(201, 107, 69, 0.24);
+  --navbar-bg: rgba(255, 255, 255, 0.92);
+  --navbar-bg-scrolled: rgba(255, 255, 255, 0.97);
+  --hover-bg: rgba(255, 255, 255, 0.96);
+  --radius: 22px;
+  --radius-sm: 16px;
+  --radius-md: 20px;
+  --radius-lg: 30px;
+  --shadow-navbar: 0 20px 44px rgba(16, 23, 40, 0.08);
+  --shadow-card: var(--shadow-soft);
 }
 
 html {
@@ -24,35 +50,7 @@ html {
 body {
   position: relative;
   color: var(--text);
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(201, 107, 69, 0.14),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at top right,
-      rgba(59, 130, 246, 0.12),
-      transparent 24%
-    ),
-    linear-gradient(180deg, #fcf7f1 0%, #f4ede4 42%, #eef3fb 100%);
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.05) 1px, transparent 1px);
-  background-size: 108px 108px;
-  mask-image: radial-gradient(
-    circle at center,
-    rgba(255, 255, 255, 0.8),
-    transparent 88%
-  );
-  opacity: 0.34;
+  background: hsl(222.2 84% 4.9%);
 }
 
 a {
@@ -1904,10 +1902,10 @@ textarea.input {
   gap: 6px;
   min-height: 100%;
   padding: 16px 18px;
-  border-radius: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--muted);
+  border-radius: var(--radius-md);
+  border: 1px solid hsl(217.2 32.6% 25%);
+  background: hsl(217.2 32.6% 12.5%);
+  color: hsl(215 20.2% 65.1%);
   transition:
     transform 160ms ease,
     border-color 160ms ease,
@@ -1918,7 +1916,7 @@ textarea.input {
 .settings-console-tab span {
   font-size: 0.96rem;
   font-weight: 700;
-  color: var(--text);
+  color: hsl(210 40% 98%);
 }
 
 .settings-console-tab small {
@@ -1928,20 +1926,15 @@ textarea.input {
 
 .settings-console-tab:hover {
   transform: translateY(-1px);
-  border-color: rgba(201, 107, 69, 0.24);
-  color: var(--text);
+  border-color: hsl(217.2 91.2% 59.8% / 0.3);
+  background: hsl(217.2 32.6% 17.5%);
+  color: hsl(210 40% 98%);
 }
 
 .settings-console-tab-active {
-  border-color: rgba(201, 107, 69, 0.24);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 249, 245, 0.98),
-      rgba(251, 238, 228, 0.9)
-    ),
-    rgba(255, 255, 255, 0.82);
-  box-shadow: 0 18px 32px rgba(201, 107, 69, 0.08);
+  border-color: hsl(217.2 91.2% 59.8%);
+  background: hsl(217.2 91.2% 59.8% / 0.15);
+  box-shadow: 0 18px 32px hsl(217.2 91.2% 59.8% / 0.2);
 }
 
 .settings-console-section {
@@ -2305,23 +2298,10 @@ textarea.input {
 .product-console-shell {
   width: min(100%, 1320px);
   padding: 18px;
-  border-radius: 34px;
-  background:
-    radial-gradient(
-      circle at top center,
-      rgba(201, 107, 69, 0.08),
-      transparent 22%
-    ),
-    radial-gradient(
-      circle at bottom right,
-      rgba(59, 130, 246, 0.08),
-      transparent 24%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.97),
-      rgba(246, 242, 238, 0.92)
-    );
+  border-radius: calc(var(--radius-lg) + 4px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  background: hsl(222.2 84% 4.9%);
 }
 
 .product-console-layout {
@@ -2339,17 +2319,11 @@ textarea.input {
   align-content: space-between;
   min-height: calc(100vh - 120px);
   padding: 16px;
-  border-radius: 32px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.98),
-      rgba(245, 242, 238, 0.9)
-    ),
-    rgba(255, 255, 255, 0.92);
-  color: var(--text);
-  box-shadow: 0 20px 44px rgba(16, 23, 40, 0.08);
+  border-radius: calc(var(--radius-lg) + 2px);
+  border: 1px solid var(--border);
+  background: hsl(217.2 32.6% 12.5%);
+  color: var(--foreground);
+  box-shadow: var(--shadow-navbar);
 }
 
 .product-console-sidebar-top,
@@ -2464,15 +2438,21 @@ textarea.input {
   display: grid;
   gap: 5px;
   padding: 12px 14px;
-  border-radius: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: rgba(250, 247, 243, 0.76);
-  color: var(--text);
+  border-radius: calc(var(--radius-md) + 2px);
+  border: 1px solid transparent;
+  background: transparent;
+  color: hsl(215 20.2% 65.1%);
   transition:
     transform 160ms ease,
     background 160ms ease,
     border-color 160ms ease,
     color 160ms ease;
+}
+
+.product-console-nav-link:hover {
+  background: hsl(217.2 32.6% 17.5%);
+  border-color: transparent;
+  color: hsl(210 40% 98%);
 }
 
 .product-console-nav-link span {
@@ -2505,31 +2485,14 @@ textarea.input {
 }
 
 .product-console-status-dot-muted {
-  background: rgba(15, 23, 42, 0.18);
-}
-
-.product-console-nav-link:hover {
-  transform: translateY(-1px);
-  border-color: rgba(15, 23, 42, 0.12);
-  background: rgba(255, 255, 255, 0.96);
-  color: var(--text);
+  background: hsl(217.2 32.6% 17.5%);
 }
 
 .product-console-nav-link-active {
-  border-color: rgba(201, 107, 69, 0.22);
-  background:
-    radial-gradient(
-      circle at top right,
-      rgba(201, 107, 69, 0.12),
-      transparent 34%
-    ),
-    linear-gradient(
-      135deg,
-      rgba(255, 247, 241, 0.96),
-      rgba(241, 246, 253, 0.94)
-    );
-  color: var(--text);
-  box-shadow: 0 10px 24px rgba(16, 23, 40, 0.08);
+  border-color: hsl(217.2 91.2% 59.8% / 0.3);
+  background: hsl(217.2 91.2% 59.8% / 0.12);
+  color: hsl(217.2 91.2% 59.8%);
+  box-shadow: 0 10px 24px hsl(217.2 91.2% 59.8% / 0.15);
 }
 
 .product-console-nav-link-active small {
@@ -2816,29 +2779,31 @@ textarea.input {
   justify-content: center;
   padding: 0.44rem 0.78rem;
   border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid hsl(217.2 32.6% 25%);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
+  background: hsl(217.2 32.6% 17.5%);
+  color: hsl(215 20.2% 65.1%);
 }
 
 .product-status-pill-warning {
-  border-color: rgba(201, 107, 69, 0.18);
-  background: rgba(253, 239, 231, 0.98);
-  color: var(--accent-strong);
+  border-color: hsl(217.2 91.2% 59.8% / 0.4);
+  background: hsl(217.2 91.2% 59.8% / 0.15);
+  color: hsl(217.2 91.2% 59.8%);
 }
 
 .product-status-pill-ready {
-  border-color: rgba(75, 125, 103, 0.16);
-  background: rgba(239, 248, 243, 0.98);
-  color: #305645;
+  border-color: hsl(217.2 91.2% 59.8% / 0.4);
+  background: hsl(217.2 91.2% 59.8% / 0.15);
+  color: hsl(217.2 91.2% 59.8%);
 }
 
 .product-status-pill-neutral {
-  background: rgba(255, 255, 255, 0.78);
-  color: var(--ink-soft);
+  background: hsl(217.2 32.6% 17.5%);
+  color: hsl(215 20.2% 65.1%);
 }
 
 .product-status-meta {
@@ -3047,6 +3012,69 @@ textarea.input {
   margin: 0;
   color: var(--ink-soft);
   line-height: 1.66;
+}
+
+.product-signal-grid .site-card,
+.product-jump-grid .site-card {
+  display: grid;
+  gap: 10px;
+  min-height: 100%;
+  padding: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 24px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.95),
+      rgba(247, 242, 236, 0.84)
+    ),
+    rgba(255, 255, 255, 0.8);
+}
+
+.product-signal-grid .site-card h2,
+.product-jump-grid .site-card h2 {
+  margin: 0;
+  font-size: 1.22rem;
+  line-height: 1.15;
+}
+
+.product-signal-grid .site-card p,
+.product-jump-grid .site-card p {
+  margin: 0;
+  line-height: 1.66;
+  color: var(--ink-soft);
+}
+
+.product-jump-grid .site-card .site-inline-link {
+  margin-top: auto;
+}
+
+.product-glance-grid > .product-highlight-card:not(.product-action-card) {
+  display: grid;
+  gap: 12px;
+  min-height: 100%;
+  padding: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 28px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(201, 107, 69, 0.1),
+      transparent 30%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(247, 242, 236, 0.86));
+  box-shadow: var(--shadow-soft);
+}
+
+.product-glance-grid > .product-highlight-card:not(.product-action-card) h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.9vw, 2rem);
+  line-height: 1.04;
+}
+
+.product-glance-grid > .product-highlight-card:not(.product-action-card) p {
+  margin: 0;
+  line-height: 1.68;
 }
 
 .supplementary-chat-meta-strip {
