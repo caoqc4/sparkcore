@@ -204,15 +204,9 @@ textarea.input {
 
 .button-secondary,
 .button-ghost {
-  border-color: hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(245, 239, 234, 0.84)
-    ),
-    rgba(255, 255, 255, 0.84);
-  color: var(--text);
+  border-color: hsl(230 15% 20%);
+  background: hsl(235 25% 16%);
+  color: hsl(240 10% 96%);
   box-shadow: none;
 }
 
@@ -285,8 +279,8 @@ textarea.input {
   position: sticky;
   top: 0;
   z-index: 30;
-  border-bottom: 1px solid hsl(230 25% 8% / 0.08);
-  background: rgba(252, 247, 241, 0.75);
+  border-bottom: 1px solid hsl(230 15% 20%);
+  background: hsl(230 25% 10% / 0.85);
   backdrop-filter: blur(22px);
 }
 
@@ -1199,14 +1193,8 @@ textarea.input {
   gap: 10px;
   padding: 22px;
   border-radius: 28px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(247, 242, 236, 0.84)
-    ),
-    rgba(255, 255, 255, 0.82);
+  border: 1px solid hsl(230 15% 20%);
+  background: hsl(235 25% 14%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -1225,15 +1213,10 @@ textarea.input {
 .home-im-preview {
   padding: 18px;
   border-radius: 34px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
+  border: 1px solid hsl(230 15% 20%);
   background:
-    radial-gradient(circle at top, rgba(201, 107, 69, 0.14), transparent 26%),
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(241, 246, 253, 0.84)
-    ),
-    rgba(255, 255, 255, 0.82);
+    radial-gradient(circle at top, hsl(235 75% 62% / 0.08), transparent 26%),
+    hsl(235 25% 14%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -3292,8 +3275,8 @@ textarea.input {
 .site-footer {
   position: relative;
   overflow: clip;
-  border-top: 1px solid hsl(230 25% 8% / 0.08);
-  background: rgba(255, 255, 255, 0.48);
+  border-top: 1px solid hsl(230 15% 20%);
+  background: hsl(230 25% 10%);
 }
 
 .site-footer-inner {
