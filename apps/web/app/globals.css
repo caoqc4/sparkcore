@@ -11,10 +11,10 @@
   --accent-soft: hsl(235 30% 18%);
   --ink-soft: hsl(215 20.2% 65.1%);
   --shadow-soft: 0 28px 70px hsl(0 0% 0% / 0.3);
-  --error-bg: #fef2f2;
-  --error-text: #b91c1c;
-  --success-bg: #ecfdf5;
-  --success-text: #047857;
+  --error-bg: hsl(0 75% 45% / 0.15);
+  --error-text: hsl(0 80% 70%);
+  --success-bg: hsl(150 65% 45% / 0.15);
+  --success-text: hsl(150 70% 75%);
   --font-sans: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
   --font-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
 
@@ -334,8 +334,9 @@ a {
 }
 
 .notice-warning {
-  background: #fff7ed;
-  color: #9a3412;
+  background: hsl(35 85% 55% / 0.15);
+  color: hsl(35 90% 70%);
+  border: 1px solid hsl(35 85% 55% / 0.3);
 }
 
 .app-shell {
@@ -377,15 +378,15 @@ a {
 }
 
 .language-switch-button-active {
-  border-color: rgba(15, 118, 110, 0.34);
-  background: #dff8f2;
+  border-color: hsl(235 75% 62% / 0.4);
+  background: hsl(235 25% 16%);
 }
 
 .hero {
   padding: 32px;
   border-radius: 28px;
-  background: linear-gradient(135deg, #0f766e 0%, #164e63 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, hsl(235 70% 55%) 0%, hsl(235 75% 45%) 100%);
+  color: hsl(240 10% 96%);
 }
 
 .hero p {
@@ -446,7 +447,7 @@ a {
 
 .privacy-trace-summary {
   cursor: pointer;
-  color: #0f766e;
+  color: hsl(235 75% 62%);
   font-weight: 600;
 }
 
@@ -593,9 +594,9 @@ a {
   display: grid;
   gap: 10px;
   padding: 18px;
-  border: 1px solid rgba(15, 118, 110, 0.12);
+  border: 1px solid hsl(230 15% 20%);
   border-radius: 20px;
-  background: linear-gradient(180deg, #ffffff, #f7fbfb);
+  background: hsl(235 25% 14%);
 }
 
 .connect-im-step-card p {
@@ -613,7 +614,7 @@ a {
 
 .connect-im-advanced-summary {
   cursor: pointer;
-  color: #0f766e;
+  color: hsl(235 75% 62%);
   font-weight: 600;
 }
 
