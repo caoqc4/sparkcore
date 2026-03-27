@@ -50,7 +50,7 @@ html {
 body {
   position: relative;
   color: var(--text);
-  background: hsl(230 25% 10%);
+  background: hsl(230 25% 10%) !important;
 }
 
 a {
