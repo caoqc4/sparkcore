@@ -205,8 +205,8 @@ textarea.input {
   padding: 0 24px;
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.18), transparent 45%),
-    linear-gradient(135deg, #0f1728 0%, #1c2b46 100%);
-  color: #fff7f3;
+    linear-gradient(135deg, hsl(230 25% 8%) 0%, hsl(230 25% 14%) 100%);
+  color: hsl(240 10% 96%);
   box-shadow: 0 20px 34px rgba(16, 23, 40, 0.2);
 }
 
@@ -232,7 +232,7 @@ textarea.input {
 .button-primary {
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.2), transparent 46%),
-    linear-gradient(135deg, #121c2d 0%, #233657 100%);
+    linear-gradient(135deg, hsl(230 25% 9%) 0%, hsl(235 25% 16%) 100%);
 }
 
 .button-large {
@@ -349,8 +349,8 @@ textarea.input {
   border: 1px solid rgba(255, 255, 255, 0.18);
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.26), transparent 42%),
-    linear-gradient(135deg, #0f1728 0%, #243a5e 100%);
-  color: #fff6f2;
+    linear-gradient(135deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
+  color: hsl(240 10% 96%);
   font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -610,8 +610,8 @@ textarea.input {
       rgba(255, 255, 255, 0.12),
       transparent 24%
     ),
-    linear-gradient(145deg, #111b2e 0%, #20375a 100%);
-  color: #f8fbff;
+    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
+  color: hsl(240 10% 96%);
   box-shadow: 0 28px 60px rgba(16, 23, 40, 0.18);
 }
 
@@ -624,7 +624,7 @@ textarea.input {
 .home-returning-hero-band .home-inline-status {
   border-color: rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.08);
-  color: #fff8f4;
+  color: hsl(240 10% 96%);
 }
 
 .home-returning-hero-layout {
@@ -824,8 +824,8 @@ textarea.input {
       rgba(255, 255, 255, 0.1),
       transparent 24%
     ),
-    linear-gradient(145deg, #111b2e 0%, #20375a 100%);
-  color: #f8fbff;
+    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
+  color: hsl(240 10% 96%);
 }
 
 .landing-role-panel-header {
@@ -1179,7 +1179,7 @@ textarea.input {
       transparent 22%
     ),
     linear-gradient(145deg, #101b2c 0%, #1f3354 100%);
-  color: #f8fbff;
+  color: hsl(240 10% 96%);
 }
 
 .home-feature-panel-dark p,
@@ -2110,8 +2110,8 @@ textarea.input {
       rgba(255, 255, 255, 0.08),
       transparent 24%
     ),
-    linear-gradient(145deg, #111b2e 0%, #1c2d4b 100%);
-  color: #f8fbff;
+    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 16%) 100%);
+  color: hsl(240 10% 96%);
 }
 
 .home-architecture-panel-dark p,
@@ -2182,8 +2182,8 @@ textarea.input {
       rgba(255, 255, 255, 0.1),
       transparent 26%
     ),
-    linear-gradient(145deg, #101b2c 0%, #20375a 100%);
-  color: #f8fbff;
+    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
+  color: hsl(240 10% 96%);
 }
 
 .home-route-panel-dark p,
@@ -2258,7 +2258,7 @@ textarea.input {
 .home-route-panel-dark .home-route-chip {
   border-color: rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.08);
-  color: #fff8f4;
+  color: hsl(240 10% 96%);
 }
 
 .home-cta-band {
@@ -2275,8 +2275,8 @@ textarea.input {
       rgba(201, 107, 69, 0.18),
       transparent 24%
     ),
-    linear-gradient(145deg, #111b2e 0%, #213759 100%);
-  color: #f8fbff;
+    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 19%) 100%);
+  color: hsl(240 10% 96%);
 }
 
 .home-cta-band p,
@@ -2288,7 +2288,7 @@ textarea.input {
 .home-cta-band .button-ghost {
   border-color: rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.1);
-  color: #fff7f3;
+  color: hsl(240 10% 96%);
 }
 
 .home-cta-band .site-inline-link {
@@ -3137,8 +3137,8 @@ textarea.input {
       rgba(255, 255, 255, 0.12),
       transparent 24%
     ),
-    linear-gradient(145deg, #111b2e 0%, #20375a 100%);
-  color: #f8fbff;
+    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
+  color: hsl(240 10% 96%);
   box-shadow: 0 28px 60px rgba(16, 23, 40, 0.18);
 }
 
@@ -3290,7 +3290,7 @@ textarea.input {
       rgba(255, 255, 255, 0.08),
       transparent 24%
     ),
-    linear-gradient(145deg, #111b2e 0%, #1c2d4b 100%);
+    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 16%) 100%);
 }
 
 .alternative-compare-table {
