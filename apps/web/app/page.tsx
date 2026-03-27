@@ -136,7 +136,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 fontWeight: 600,
                 lineHeight: 1.1,
                 letterSpacing: "-0.03em",
-                color: "var(--text)",
+                color: "hsl(235 30% 75%)",
               }}
             >
               Create a companion<br />that remembers.
