@@ -116,15 +116,20 @@ export function HomeHeroForm({ user }: HomeHeroFormProps) {
         {/* Submit Button */}
         <div className="form-actions">
           {user ? (
-            <button type="submit" className="button button-primary button-lg button-rounded">
+            <button
+              type="submit"
+              className="button button-primary"
+              style={{ minWidth: "200px", justifyContent: "center" }}
+            >
               Create My Role
             </button>
           ) : (
             <TrackedLink
               href={`/login?next=${encodeURIComponent("/create")}`}
-              className="button button-primary button-lg button-rounded"
+              className="button button-primary"
               event="landing_cta_click"
               payload={{ source: "home_hero_create" }}
+              style={{ minWidth: "200px", justifyContent: "center" }}
             >
               Login & Create
             </TrackedLink>

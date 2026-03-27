@@ -109,33 +109,47 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <div className="home-hero-grid">
           {/* Left: Creation Form */}
           <div className="home-hero-form-section">
-            {/* Optional Badge */}
-            <div className="site-badge-premium inline-block">
-              <div className="site-badge-premium-inner">
-                <span>SparkCore</span>
-                <svg
-                  fill="none"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M10.75 8.75L14.25 12L10.75 15.25"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              </div>
+            {/* Badge */}
+            <div style={{ display: "inline-flex", alignItems: "center" }}>
+              <span
+                style={{
+                  padding: "6px 16px",
+                  borderRadius: "999px",
+                  background: "hsl(217.2 91.2% 59.8% / 0.12)",
+                  color: "hsl(217.2 91.2% 59.8%)",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  border: "1px solid hsl(217.2 91.2% 59.8% / 0.2)",
+                }}
+              >
+                SparkCore
+              </span>
             </div>
 
             {/* Heading */}
-            <h1 className="heading-display">
-              Create a companion that remembers.
+            <h1
+              style={{
+                margin: 0,
+                fontSize: "clamp(2.5rem, 5vw, 3.5rem)",
+                fontWeight: 600,
+                lineHeight: 1.1,
+                letterSpacing: "-0.03em",
+                color: "var(--text)",
+              }}
+            >
+              Create a companion<br />that remembers.
             </h1>
-            <p className="subheading-lg">
+            <p
+              style={{
+                margin: 0,
+                fontSize: "1.0625rem",
+                lineHeight: 1.7,
+                color: "var(--muted)",
+                maxWidth: "540px",
+              }}
+            >
               Choose the role, tone, and bond on web. Keep the same relationship
               moving in IM after setup, then return only when memory, privacy,
               or channel repair needs operator control.
@@ -349,14 +363,19 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
 
         <div className="home-cta-actions">
-          <a className="button button-primary button-large button-rounded" href="#home-top">
+          <a
+            className="button button-primary"
+            href="#home-top"
+            style={{ minWidth: "200px", justifyContent: "center" }}
+          >
             Back to create
           </a>
           <TrackedLink
-            className="button button-secondary button-large button-rounded"
+            className="button button-secondary"
             event="landing_cta_click"
             href="/blog"
             payload={{ source: "home_final_blog" }}
+            style={{ minWidth: "200px", justifyContent: "center" }}
           >
             Read blog
           </TrackedLink>
