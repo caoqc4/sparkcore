@@ -476,11 +476,11 @@ a {
 .alternative-hero-copy,
 .alternative-proof,
 .alternative-closing {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(240, 248, 247, 0.9));
-  border: 1px solid rgba(15, 118, 110, 0.14);
+  background: hsl(235 25% 13%);
+  border: 1px solid hsl(235 25% 18%);
   border-radius: 28px;
   padding: 28px;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 24px 60px hsl(235 25% 8% / 0.4);
 }
 
 .alternative-proof {
@@ -535,7 +535,7 @@ a {
 }
 
 .alternative-compare-head {
-  background: rgba(255, 255, 255, 0.08);
+  background: hsl(235 25% 12%);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -693,13 +693,13 @@ a {
   height: 46px;
   border-radius: 16px;
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.22), transparent 48%),
-    linear-gradient(135deg, #0f766e 0%, #133a54 100%);
-  color: #fff;
+    radial-gradient(circle at top, hsl(235 75% 65% / 0.3), transparent 48%),
+    linear-gradient(135deg, hsl(235 75% 45%) 0%, hsl(235 65% 35%) 100%);
+  color: hsl(235 30% 98%);
   font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  box-shadow: 0 14px 28px rgba(19, 58, 84, 0.18);
+  box-shadow: 0 14px 28px hsl(235 25% 10% / 0.5);
 }
 
 .site-brand-copy {
@@ -751,10 +751,10 @@ a {
   display: grid;
   gap: 4px;
   padding: 10px;
-  border: 1px solid rgba(19, 34, 56, 0.08);
+  border: 1px solid hsl(235 25% 18%);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 22px 42px rgba(15, 23, 42, 0.1);
+  background: hsl(235 25% 12%);
+  box-shadow: 0 22px 42px hsl(235 25% 8% / 0.5);
 }
 
 .site-nav-menu a {
