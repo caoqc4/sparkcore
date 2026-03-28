@@ -173,6 +173,7 @@ export async function updateProductRoleProfile(formData: FormData) {
 
   revalidatePath("/app");
   revalidatePath("/app/profile");
+  revalidatePath("/app/role");
   revalidatePath("/app/settings");
   revalidatePath("/create");
   revalidatePath("/connect-im");

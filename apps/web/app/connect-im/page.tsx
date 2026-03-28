@@ -80,9 +80,9 @@ export default async function ConnectImPage({
         <>
           <Link
             className="button button-primary"
-            href="/app/settings?tab=channels"
+            href="/app/channels"
           >
-            Open channel settings
+            Open channels
           </Link>
           <Link className="button button-secondary" href="/app">
             Skip for now
@@ -138,9 +138,9 @@ export default async function ConnectImPage({
               </Link>
               <Link
                 className="button button-secondary"
-                href="/app/settings?tab=channels"
+                href="/app/channels"
               >
-                Review channel settings
+                Review channels
               </Link>
             </div>
           </article>
@@ -163,7 +163,7 @@ export default async function ConnectImPage({
             <div className="toolbar">
               <Link
                 className="button button-secondary"
-                href="/app/settings?tab=channels"
+                href="/app/channels"
               >
                 Review channel posture
               </Link>
@@ -279,7 +279,7 @@ export default async function ConnectImPage({
                 </p>
                 <Link
                   className="site-inline-link"
-                  href="/app/settings?tab=channels"
+                  href="/app/channels"
                 >
                   Open channel settings
                 </Link>

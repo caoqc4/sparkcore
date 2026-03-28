@@ -16,6 +16,7 @@ export type ProductEventName =
   | "supplementary_chat_send"
   | "first_memory_view"
   | "role_assets_view"
+  | "knowledge_console_view"
   | "memory_action_hide"
   | "memory_action_incorrect"
   | "memory_action_restore";

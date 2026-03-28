@@ -9,26 +9,34 @@ import { createClient } from "@/lib/supabase/server";
 const productConsoleNavItems = [
   {
     href: "/app/chat",
-    label: "Web Chat",
-    description: "Supplementary thread continuation",
+    label: "Chat",
+    description: "Continue the current relationship thread",
     match: ["/app/chat", "/chat"],
   },
   {
-    href: "/app/memory",
-    label: "Memory Center",
-    description: "Inspect, repair, and restore",
-    match: ["/app/memory"],
+    href: "/app/role",
+    label: "Role",
+    description: "Define the companion and review memory",
+    match: ["/app/role", "/app/memory", "/app/profile", "/app/privacy"],
+  },
+  {
+    href: "/app/knowledge",
+    label: "Knowledge",
+    description: "Manage the sources the companion can use",
+    match: ["/app/knowledge"],
+  },
+  {
+    href: "/app/channels",
+    label: "Channels",
+    description: "Connect and maintain IM paths",
+    match: ["/app/channels", "/connect-im"],
   },
   {
     href: "/app/settings",
-    label: "Integrations & Settings",
-    description: "Channels, role, and boundaries",
+    label: "Settings",
+    description: "Account, model, and preferences",
     match: [
       "/app/settings",
-      "/app/profile",
-      "/app/channels",
-      "/app/privacy",
-      "/connect-im",
     ],
   },
 ] as const;
@@ -53,7 +61,13 @@ function isActiveConsoleRoute(
 
 function buildConsoleNavHref(href: string, roleId: string | null) {
   if (!roleId) return href;
-  if (href === "/app/chat" || href === "/app/memory" || href === "/app/settings") {
+  if (
+    href === "/app/chat" ||
+    href === "/app/role" ||
+    href === "/app/knowledge" ||
+    href === "/app/channels" ||
+    href === "/app/settings"
+  ) {
     return `${href}?role=${encodeURIComponent(roleId)}`;
   }
   return href;
@@ -104,13 +118,6 @@ export async function ProductConsoleShell({
 
   const summary = buildConsoleSummary(overview);
   const activeRoleId = overview?.currentRole?.agentId ?? null;
-  const consoleHomeHref = activeRoleId
-    ? `/app/${encodeURIComponent(activeRoleId)}`
-    : "/app";
-
-  const isConsoleHome =
-    currentHref === consoleHomeHref ||
-    currentHref === `/app/${encodeURIComponent(activeRoleId ?? "")}`;
 
   return (
     <div className="app-console-shell">
@@ -125,22 +132,25 @@ export async function ProductConsoleShell({
             </Link>
           </div>
 
-          {/* Role card — links to console home */}
-          <Link
-            href={consoleHomeHref}
-            className={`app-console-role-card${isConsoleHome ? " active" : ""}`}
-          >
+          {/* Current role info */}
+          <div className="app-console-role-context" aria-label="Current role">
             <div className="app-console-role-avatar" aria-hidden="true">
               {summary.roleName.slice(0, 1).toUpperCase()}
             </div>
             <div className="app-console-role-info">
-              <span className="app-console-role-label">
-                {summary.relationshipLabel}
-              </span>
+              <span className="app-console-role-label">Current role</span>
               <h2 className="app-console-role-name">{summary.roleName}</h2>
-              <p className="app-console-role-desc">{summary.personaSummary}</p>
+              <div className="app-console-role-meta">
+                <span
+                  className={`app-console-role-dot${
+                    summary.activeChannels > 0 ? " live" : ""
+                  }`}
+                  aria-hidden="true"
+                />
+                <span className="app-console-role-desc">{summary.statusTitle}</span>
+              </div>
             </div>
-          </Link>
+          </div>
 
           {/* Nav — 3 modules */}
           <nav className="app-console-nav" aria-label="Console">

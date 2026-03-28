@@ -96,7 +96,7 @@ export function resolveViewerRoute(
         return "/create";
       }
 
-      return "/app/memory";
+      return "/app/role";
 
     case "memory_action":
       if (!state.authenticated) {
@@ -107,7 +107,7 @@ export function resolveViewerRoute(
         return "/create";
       }
 
-      return "/app/memory";
+      return "/app/role";
 
     case "im_chat":
       if (!state.authenticated) {
@@ -140,7 +140,7 @@ export function resolveViewerRoute(
         return "/create";
       }
 
-      return "/app/settings?tab=boundaries";
+      return "/app/role";
 
     case "privacy_action":
       if (!state.authenticated) {
@@ -151,7 +151,7 @@ export function resolveViewerRoute(
         return "/create";
       }
 
-      return "/app/settings?tab=boundaries";
+      return "/app/role";
 
     case "primary_flow":
       if (!state.authenticated) {

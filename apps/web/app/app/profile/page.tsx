@@ -12,7 +12,7 @@ export default async function DashboardProfileRedirectPage({
   searchParams
 }: DashboardProfileRedirectPageProps) {
   const params = await searchParams;
-  const next = new URLSearchParams({ tab: "role" });
+  const next = new URLSearchParams();
 
   if (params.feedback) {
     next.set("feedback", params.feedback);
@@ -26,5 +26,5 @@ export default async function DashboardProfileRedirectPage({
     next.set("role", params.role);
   }
 
-  redirect(`/app/settings?${next.toString()}`);
+  redirect(`/app/role${next.toString() ? `?${next.toString()}` : ""}`);
 }

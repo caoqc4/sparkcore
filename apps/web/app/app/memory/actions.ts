@@ -99,6 +99,7 @@ export async function hideProductMemory(formData: FormData) {
 
   revalidatePath("/app");
   revalidatePath("/app/memory");
+  revalidatePath("/app/role");
   revalidatePath("/app/settings");
   revalidatePath("/chat");
   redirectWithMessage(redirectPath, "Memory hidden from recall.", "success");
@@ -168,6 +169,7 @@ export async function markProductMemoryIncorrect(formData: FormData) {
 
   revalidatePath("/app");
   revalidatePath("/app/memory");
+  revalidatePath("/app/role");
   revalidatePath("/app/settings");
   revalidatePath("/chat");
   redirectWithMessage(
@@ -298,6 +300,7 @@ export async function restoreProductMemory(formData: FormData) {
 
   revalidatePath("/app");
   revalidatePath("/app/memory");
+  revalidatePath("/app/role");
   revalidatePath("/app/settings");
   revalidatePath("/chat");
   redirectWithMessage(redirectPath, "Memory restored to recall.", "success");

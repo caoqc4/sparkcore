@@ -48,7 +48,8 @@ export default async function AppChatPage({
   const roleQuerySuffix = resolvedRoleId
     ? `?role=${encodeURIComponent(resolvedRoleId)}`
     : "";
-  const settingsHref = `/app/settings${roleQuerySuffix}`;
+  const roleHref = `/app/role${roleQuerySuffix}`;
+  const knowledgeHref = `/app/knowledge${roleQuerySuffix}`;
 
   if (!data) {
     return null;
@@ -59,19 +60,20 @@ export default async function AppChatPage({
       <ProductConsoleShell
         actions={
           <Link className="button site-action-link" href="/create">
-            Create a role
+            Create companion
           </Link>
         }
         currentHref="/app/chat"
-        description="Create a role and start the first conversation before opening supplementary chat."
-        eyebrow="Web Chat"
+        description="Start the first conversation before you use the web workspace."
+        eyebrow="Chat"
         shellContext={overview}
-        title="No relationship thread yet."
+        title="Start the relationship."
       >
         <div className="product-empty-state">
+          <strong>No conversation yet</strong>
           <p>
-            Web chat continues the same canonical thread your companion already
-            knows. Create a role first to get started.
+            Create a companion first, then come back here to continue the same
+            relationship on the web.
           </p>
         </div>
       </ProductConsoleShell>
@@ -89,18 +91,21 @@ export default async function AppChatPage({
             className="button button-primary"
             href={`/chat?thread=${encodeURIComponent(data.thread.threadId)}`}
           >
-            Advanced workspace
+            Open full chat
           </Link>
-          <Link className="button button-secondary" href={settingsHref}>
-            Settings
+          <Link className="button button-secondary" href={roleHref}>
+            Review role
+          </Link>
+          <Link className="button button-secondary" href={knowledgeHref}>
+            Review knowledge
           </Link>
         </>
       }
       currentHref="/app/chat"
-      description={`Continuing with ${data.role.name} · ${data.thread.title}`}
-      eyebrow="Web Chat"
+      description={`Continue with ${data.role.name} in ${data.thread.title}.`}
+      eyebrow="Chat"
       shellContext={overview}
-      title="Continue the conversation."
+      title="Continue the conversation"
     >
       <ProductEventTracker
         event="first_supplementary_chat_view"
@@ -118,8 +123,8 @@ export default async function AppChatPage({
           }`}
         >
           {followUpCount > 0
-            ? `${followUpCount} follow-up pending`
-            : "Thread stable"}
+            ? "Needs attention"
+            : "Ready"}
         </span>
         <span
           className={`product-status-pill product-status-pill-${
@@ -127,8 +132,8 @@ export default async function AppChatPage({
           }`}
         >
           {needsChannelAttention
-            ? "Web-only · connect IM"
-            : `IM live · ${data.bindings.platforms.join(", ")}`}
+            ? "Not set up in IM"
+            : "Connected in IM"}
         </span>
       </div>
 

@@ -15,5 +15,9 @@ export default async function AppConsolePage() {
     redirect("/");
   }
 
-  redirect(resolution.href);
+  if (resolution.roleId) {
+    redirect(`/app/chat?role=${encodeURIComponent(resolution.roleId)}`);
+  }
+
+  redirect("/app/chat");
 }

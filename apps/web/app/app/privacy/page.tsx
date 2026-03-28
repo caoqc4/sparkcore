@@ -12,7 +12,7 @@ export default async function DashboardPrivacyRedirectPage({
   searchParams
 }: DashboardPrivacyRedirectPageProps) {
   const params = await searchParams;
-  const next = new URLSearchParams({ tab: "boundaries" });
+  const next = new URLSearchParams();
 
   if (params.feedback) {
     next.set("feedback", params.feedback);
@@ -26,5 +26,5 @@ export default async function DashboardPrivacyRedirectPage({
     next.set("role", params.role);
   }
 
-  redirect(`/app/settings?${next.toString()}`);
+  redirect(`/app/role${next.toString() ? `?${next.toString()}` : ""}`);
 }
