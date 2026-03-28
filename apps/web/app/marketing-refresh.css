@@ -3775,30 +3775,7 @@ textarea.input {
 }
 
 /* Right side: Preview section */
-.home-hero-preview {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  padding: 32px;
-  border-radius: var(--radius-xl);
-  background: hsl(240 18% 14%);
-  border: 1px solid hsl(268 52% 68% / 0.12);
-  box-shadow: 0 20px 60px hsl(0 0% 0% / 0.3);
-  overflow: hidden;
-}
-
-.home-hero-preview::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at top right,
-    hsl(268 52% 68% / 0.06) 0%,
-    transparent 50%
-  );
-  pointer-events: none;
-}
+/* .home-hero-preview is defined further down with the new portrait card layout */
 
 /* Avatar placeholder */
 .role-preview-avatar {
@@ -3974,6 +3951,218 @@ textarea.input {
   margin: 0;
   font-size: 0.8125rem;
   color: var(--muted);
+}
+
+/* ── Hero: Wizard step teaser (replaces old form) ── */
+.home-hero-wizard-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.home-hero-wizard-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.home-hero-wizard-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.home-hero-wizard-step-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 36px;
+}
+
+.home-hero-wizard-step-num {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: hsl(268 52% 68% / 0.12);
+  border: 1.5px solid hsl(268 52% 68% / 0.3);
+  color: hsl(268 52% 72%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.home-hero-wizard-step-line {
+  width: 1.5px;
+  height: 28px;
+  background: hsl(268 52% 68% / 0.18);
+  margin: 4px 0;
+}
+
+.home-hero-wizard-step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 8px;
+  padding-bottom: 24px;
+}
+
+.home-hero-wizard-step-label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.home-hero-wizard-step-desc {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.home-hero-wizard-hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: hsl(240 12% 40%);
+  letter-spacing: 0.02em;
+}
+
+/* ── Hero: Portrait card (right side) ── */
+.home-hero-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.home-hero-portrait-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 28px 24px 24px;
+  border-radius: var(--radius-xl);
+  background: hsl(240 18% 14%);
+  border: 1px solid hsl(268 52% 68% / 0.12);
+  box-shadow: 0 20px 60px hsl(0 0% 0% / 0.28);
+  position: relative;
+  overflow: hidden;
+}
+
+.home-hero-portrait-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, hsl(268 52% 68% / 0.06) 0%, transparent 55%);
+  pointer-events: none;
+}
+
+.home-hero-portrait-area {
+  position: relative;
+  width: 120px;
+}
+
+.home-hero-portrait-img {
+  width: 120px;
+  height: 160px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, hsl(268 52% 42%), hsl(268 52% 28%));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: hsl(268 52% 92%);
+  letter-spacing: -0.02em;
+  user-select: none;
+}
+
+.home-hero-portrait-status {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: hsl(240 12% 28%);
+  border: 2px solid hsl(240 18% 14%);
+}
+
+.home-hero-portrait-status.live {
+  background: hsl(142 70% 50%);
+  box-shadow: 0 0 0 3px hsl(142 70% 50% / 0.25);
+}
+
+.home-hero-portrait-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.home-hero-portrait-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.home-hero-portrait-type {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+/* ── Hero: Chat preview ── */
+.home-hero-chat-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: hsl(240 16% 12%);
+  border: 1px solid hsl(240 12% 22%);
+}
+
+.home-hero-chat-bubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.home-hero-chat-bubble p {
+  margin: 0;
+  color: var(--text);
+}
+
+.home-hero-chat-bubble-companion {
+  background: hsl(240 16% 17%);
+  border: 1px solid hsl(240 12% 24%);
+  align-self: flex-start;
+}
+
+.home-hero-chat-bubble-user {
+  background: hsl(268 52% 68% / 0.12);
+  border: 1px solid hsl(268 52% 68% / 0.2);
+  align-self: flex-end;
+}
+
+.home-hero-chat-memory-chip {
+  align-self: center;
+  margin-top: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: hsl(240 16% 16%);
+  border: 1px solid hsl(240 12% 24%);
+}
+
+.home-hero-chat-memory-chip span {
+  font-size: 0.75rem;
+  color: hsl(240 12% 45%);
+  letter-spacing: 0.02em;
 }
 
 /* Homepage section spacing */
@@ -4193,6 +4382,29 @@ textarea.input {
   border: 1px solid hsl(240 12% 18%);
   background: hsl(240 18% 13%);
   margin-bottom: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  position: relative;
+}
+
+.app-console-role-context:hover {
+  background: hsl(240 18% 16%);
+  border-color: hsl(268 52% 50% / 0.35);
+}
+
+.app-console-role-switch-hint {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 0.75rem;
+  color: hsl(268 52% 62%);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.app-console-role-context:hover .app-console-role-switch-hint {
+  opacity: 1;
 }
 
 .app-console-role-avatar {
@@ -4648,12 +4860,16 @@ textarea.input {
 .app-console-main .product-chat-preview,
 .app-console-main .settings-console-switcher,
 .app-console-main .settings-role-group,
-.app-console-main .supplementary-chat-shell,
 .app-console-main .connect-im-step-card,
 .app-console-main .connect-im-context-item {
   background: hsl(0 0% 100%);
   border-color: hsl(240 8% 88%);
   box-shadow: 0 1px 3px hsl(240 15% 12% / 0.06);
+}
+
+.app-console-main .role-mem-category-card,
+.app-console-main .role-mem-filter-card {
+  padding: 0;
 }
 
 .app-console-main .product-action-card-primary {
@@ -4760,6 +4976,25 @@ textarea.input {
   color: hsl(268 52% 50%);
 }
 
+/* ── Role page on light ── */
+
+.app-console-main .role-mem-text {
+  color: hsl(240 20% 16%);
+}
+
+.app-console-main .role-mem-item {
+  border-bottom-color: hsl(240 8% 92%);
+}
+
+.app-console-main .role-mem-group-divider {
+  border-top-color: hsl(240 8% 92%);
+}
+
+.app-console-main .role-form-grid-3 .input,
+.app-console-main .role-form-grid-2 .input {
+  font-size: 0.9rem;
+}
+
 /* ── Inputs on light ── */
 
 .app-console-main .input,
@@ -4774,30 +5009,6 @@ textarea.input {
 .app-console-main .input:focus {
   border-color: hsl(268 52% 55%);
   outline: 2px solid hsl(268 52% 55% / 0.2);
-}
-
-/* ── Supplementary chat on light ── */
-
-.app-console-main .supplementary-chat-message-user {
-  background: hsl(240 8% 94%);
-  border-color: hsl(240 8% 86%);
-}
-
-.app-console-main .supplementary-chat-message-assistant {
-  background:
-    radial-gradient(circle at top right, hsl(268 52% 50% / 0.06), transparent 32%),
-    hsl(268 52% 99%);
-  border-color: hsl(268 52% 50% / 0.15);
-}
-
-.app-console-main .supplementary-chat-message-meta span,
-.app-console-main .helper-copy,
-.app-console-main .supplementary-chat-count {
-  color: hsl(240 10% 52%);
-}
-
-.app-console-main .supplementary-chat-message p {
-  color: hsl(240 20% 18%);
 }
 
 .app-console-main .site-inline-pill {
@@ -4854,28 +5065,181 @@ textarea.input {
   color: hsl(150 55% 28%);
 }
 
-/* ── Chat status bar (simplified chat layout) ── */
+/* ── Chat Console Main ── */
 
-.chat-status-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 0 0 4px;
-}
-
-/* Expand chat log in the simplified full-width layout */
-.app-console-main .supplementary-chat-log {
-  max-height: calc(100vh - 380px);
-  min-height: 280px;
-}
-
-.app-console-main .supplementary-chat-shell {
+.chat-console-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  min-width: 0;
+  /* Light theme CSS var overrides */
+  --text: hsl(240 25% 12%);
+  --ink: hsl(240 25% 12%);
+  --ink-soft: hsl(240 12% 42%);
+  --muted: hsl(240 8% 56%);
+  --border: hsl(240 8% 88%);
+  --secondary: hsl(0 0% 100%);
+  --accent-strong: hsl(268 52% 50%);
+  background: hsl(0 0% 100%);
+  color: hsl(240 25% 12%);
 }
 
-.app-console-main .supplementary-chat-form {
+/* Chat Topbar */
+
+.chat-console-topbar {
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid hsl(240 8% 90%);
+  background: hsl(0 0% 100%);
+  gap: 12px;
+}
+
+.chat-console-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.chat-console-avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    hsl(268 52% 60%),
+    hsl(280 60% 72%)
+  );
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: hsl(0 0% 100%);
+}
+
+.chat-console-topbar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.chat-console-role-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: hsl(240 25% 12%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.chat-console-thread-name {
+  font-size: 0.72rem;
+  color: hsl(240 8% 56%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.chat-console-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: hsl(240 8% 95%);
+  color: hsl(240 8% 52%);
+  border: 1px solid hsl(240 8% 88%);
+  flex-shrink: 0;
+}
+
+.chat-console-status-chip.live {
+  background: hsl(142 60% 45% / 0.1);
+  color: hsl(142 60% 36%);
+  border-color: hsl(142 60% 45% / 0.25);
+}
+
+.chat-console-status-chip.attention {
+  background: hsl(28 90% 52% / 0.1);
+  color: hsl(28 80% 40%);
+  border-color: hsl(28 90% 52% / 0.28);
+}
+
+.chat-console-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(240 10% 66%);
+  flex-shrink: 0;
+}
+
+.chat-console-status-dot.live {
+  background: hsl(142 76% 45%);
+  box-shadow: 0 0 0 2px hsl(142 76% 45% / 0.25);
+}
+
+.chat-console-status-dot.attention {
+  background: hsl(28 90% 52%);
+  box-shadow: 0 0 0 2px hsl(28 90% 52% / 0.25);
+}
+
+.chat-console-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.chat-console-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: hsl(240 10% 48%);
+  text-decoration: none;
+  transition: background 0.12s, color 0.12s;
+  border: 1px solid transparent;
+}
+
+.chat-console-nav-link:hover {
+  background: hsl(240 8% 96%);
+  border-color: hsl(240 8% 88%);
+  color: hsl(240 25% 18%);
+}
+
+/* Chat bubble colors in console context */
+
+.chat-console-main .chat-bubble-user p {
+  background: hsl(268 52% 50%);
+  color: hsl(0 0% 100%);
+}
+
+.chat-console-main .chat-bubble-assistant p {
+  background: hsl(240 8% 93%);
+  color: hsl(240 20% 16%);
+}
+
+.chat-console-main .chat-typing {
+  background: hsl(240 8% 93%);
+}
+
+.chat-console-main .chat-input-bar {
+  background: hsl(0 0% 100%);
   border-top-color: hsl(240 8% 90%);
 }
 

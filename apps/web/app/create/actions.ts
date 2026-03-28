@@ -29,6 +29,7 @@ export async function createProductRole(formData: FormData) {
     redirect("/login?next=%2Fcreate");
   }
 
+  const redirectAfter = trimProductText(formData.get("redirect_after"));
   const mode = safeProductRoleMode(trimProductText(formData.get("mode")));
   const name =
     trimProductText(formData.get("name")) ||
@@ -100,6 +101,12 @@ export async function createProductRole(formData: FormData) {
 
   if (threadError || !createdThread) {
     redirect(`/create?error=${encodeURIComponent(threadError?.message ?? "Failed to create thread.")}`);
+  }
+
+  if (redirectAfter) {
+    redirect(
+      `${redirectAfter}?role=${encodeURIComponent(createdAgent.id)}&feedback=${encodeURIComponent(`${createdAgent.name} created`)}&feedback_type=success`
+    );
   }
 
   redirect(

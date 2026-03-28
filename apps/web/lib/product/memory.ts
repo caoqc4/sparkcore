@@ -51,19 +51,28 @@ type AgentNameRow = {
   name: string;
 };
 
+export type MemoryCategoryMeta = {
+  label: string;
+  order: number;
+};
+
+export const MEMORY_CATEGORY_META: Record<string, MemoryCategoryMeta> = {
+  profile:      { label: "Identity & Profile",   order: 1 },
+  preference:   { label: "Preferences",          order: 2 },
+  relationship: { label: "Relationship Status",  order: 3 },
+  goal:         { label: "Goals",                order: 4 },
+  // Future categories — backend additions needed
+  key_date:     { label: "Key Dates",            order: 5 },
+  social:       { label: "Social Circle",        order: 6 },
+  mood:         { label: "Emotional State",      order: 7 },
+};
+
 export function getMemoryCategoryLabel(category: string) {
-  switch (category) {
-    case "profile":
-      return "Profile";
-    case "preference":
-      return "Preference";
-    case "relationship":
-      return "Relationship";
-    case "goal":
-      return "Goal";
-    default:
-      return category;
-  }
+  return MEMORY_CATEGORY_META[category]?.label ?? category;
+}
+
+export function getMemoryCategoryOrder(category: string) {
+  return MEMORY_CATEGORY_META[category]?.order ?? 99;
 }
 
 export function getMemoryScopeLabel(scope: string) {

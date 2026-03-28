@@ -155,8 +155,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               Create a companion<br />that remembers.
             </h1>
             <p className="home-hero-lead">
-              Choose the role and tone on web. Keep the relationship
-              moving in IM — and return only when memory or privacy needs attention.
+              Three steps to create a companion with memory and personality.
+              Keep the relationship moving in IM — return only when memory
+              or privacy needs attention.
             </p>
             <HomeHeroForm user={user ? { id: user.id } : null} />
           </div>

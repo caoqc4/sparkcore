@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ProductEventTracker } from "@/components/product-event-tracker";
+import { ChatConsoleShell } from "@/components/chat-console-shell";
 import { ProductConsoleShell } from "@/components/product-console-shell";
+import { ProductEventTracker } from "@/components/product-event-tracker";
 import { SupplementaryChatThread } from "@/components/supplementary-chat-thread";
 import { requireUser } from "@/lib/auth-redirect";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
@@ -49,12 +50,13 @@ export default async function AppChatPage({
     ? `?role=${encodeURIComponent(resolvedRoleId)}`
     : "";
   const roleHref = `/app/role${roleQuerySuffix}`;
-  const knowledgeHref = `/app/knowledge${roleQuerySuffix}`;
+  const channelsHref = `/app/channels${roleQuerySuffix}`;
 
   if (!data) {
     return null;
   }
 
+  // Empty state — no role or thread yet
   if (!data.thread || !data.role) {
     return (
       <ProductConsoleShell
@@ -64,16 +66,16 @@ export default async function AppChatPage({
           </Link>
         }
         currentHref="/app/chat"
-        description="Start the first conversation before you use the web workspace."
+        description="Create a companion first, then come back here to continue the relationship."
         eyebrow="Chat"
         shellContext={overview}
-        title="Start the relationship."
+        title="No conversation yet."
       >
         <div className="product-empty-state">
-          <strong>No conversation yet</strong>
+          <strong>No companion set up</strong>
           <p>
-            Create a companion first, then come back here to continue the same
-            relationship on the web.
+            Start by creating a role, then your first conversation will appear
+            here.
           </p>
         </div>
       </ProductConsoleShell>
@@ -81,31 +83,15 @@ export default async function AppChatPage({
   }
 
   const followUpCount = overview?.followUpSummary.pendingCount ?? 0;
-  const needsChannelAttention = data.bindings.activeCount === 0;
 
   return (
-    <ProductConsoleShell
-      actions={
-        <>
-          <Link
-            className="button button-primary"
-            href={`/chat?thread=${encodeURIComponent(data.thread.threadId)}`}
-          >
-            Open full chat
-          </Link>
-          <Link className="button button-secondary" href={roleHref}>
-            Review role
-          </Link>
-          <Link className="button button-secondary" href={knowledgeHref}>
-            Review knowledge
-          </Link>
-        </>
-      }
+    <ChatConsoleShell
       currentHref="/app/chat"
-      description={`Continue with ${data.role.name} in ${data.thread.title}.`}
-      eyebrow="Chat"
+      roleHref={roleHref}
+      channelsHref={channelsHref}
+      threadTitle={data.thread.title}
+      followUpCount={followUpCount}
       shellContext={overview}
-      title="Continue the conversation"
     >
       <ProductEventTracker
         event="first_supplementary_chat_view"
@@ -114,34 +100,11 @@ export default async function AppChatPage({
           platform: data.bindings.platforms[0] ?? "web_only",
         }}
       />
-
-      {/* Compact status chips */}
-      <div className="chat-status-bar">
-        <span
-          className={`product-status-pill product-status-pill-${
-            followUpCount > 0 ? "warning" : "ready"
-          }`}
-        >
-          {followUpCount > 0
-            ? "Needs attention"
-            : "Ready"}
-        </span>
-        <span
-          className={`product-status-pill product-status-pill-${
-            needsChannelAttention ? "warning" : "ready"
-          }`}
-        >
-          {needsChannelAttention
-            ? "Not set up in IM"
-            : "Connected in IM"}
-        </span>
-      </div>
-
-      {/* Full-width chat thread */}
       <SupplementaryChatThread
         messages={data.messages}
         threadId={data.thread.threadId}
+        roleName={data.role.name}
       />
-    </ProductConsoleShell>
+    </ChatConsoleShell>
   );
 }

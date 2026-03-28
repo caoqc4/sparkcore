@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FormSubmitButton } from "@/components/form-submit-button";
+import { RolePhotoPicker } from "@/components/role-photo-picker";
 import { createProductRole } from "@/app/create/actions";
 
 type ProductRoleSetupProps = {
@@ -9,6 +10,7 @@ type ProductRoleSetupProps = {
   reviewHref?: string;
   shellClassName?: string;
   defaultMode?: "companion" | "girlfriend" | "boyfriend";
+  redirectAfterCreate?: string;
 };
 
 export function ProductRoleSetup({
@@ -17,7 +19,8 @@ export function ProductRoleSetup({
   loginNext,
   reviewHref = "/how-it-works",
   shellClassName,
-  defaultMode = "companion"
+  defaultMode = "companion",
+  redirectAfterCreate,
 }: ProductRoleSetupProps) {
   const defaultName =
     defaultMode === "girlfriend" ? "Luna" : defaultMode === "boyfriend" ? "Atlas" : "Nova";
@@ -37,6 +40,16 @@ export function ProductRoleSetup({
         </div>
 
         <form action={createProductRole} className="stack">
+          {redirectAfterCreate ? (
+            <input type="hidden" name="redirect_after" value={redirectAfterCreate} />
+          ) : null}
+
+          {/* Photo / Avatar */}
+          <div className="field">
+            <label className="label">Choose a look</label>
+            <RolePhotoPicker defaultName={defaultName} />
+          </div>
+
           <div className="field">
             <label className="label" htmlFor={`${surface}-mode`}>
               Mode

@@ -35,20 +35,18 @@ const productConsoleNavItems = [
     href: "/app/settings",
     label: "Settings",
     description: "Account, model, and preferences",
-    match: [
-      "/app/settings",
-    ],
+    match: ["/app/settings"],
   },
 ] as const;
 
-type ProductConsoleShellProps = {
+type ChatConsoleShellProps = {
   currentHref: string;
-  eyebrow: string;
-  title: string;
-  description: string;
-  actions?: React.ReactNode;
-  children: React.ReactNode;
+  roleHref: string;
+  channelsHref: string;
+  threadTitle?: string | null;
+  followUpCount?: number;
   shellContext?: DashboardOverview | null;
+  children: React.ReactNode;
 };
 
 function isActiveConsoleRoute(
@@ -75,39 +73,21 @@ function buildConsoleNavHref(href: string, roleId: string | null) {
 
 function buildConsoleSummary(overview: DashboardOverview | null) {
   const roleName = overview?.currentRole?.name ?? "No role yet";
-  const personaSummary =
-    overview?.currentRole?.personaSummary ??
-    "Create a role to start the relationship loop.";
-  const relationshipLabel = overview?.relationshipSummary.label ?? "Setup needed";
-  const currentThread = overview?.currentThread;
   const activeChannels = overview?.channelSummary.active ?? 0;
-  const memoryCount = overview?.memorySummary.active ?? 0;
-  const platformLabel = overview?.channelSummary.platforms.length
-    ? overview.channelSummary.platforms.join(", ")
-    : "No IM connected";
   const statusTitle = activeChannels > 0 ? "IM live" : "Web only";
 
-  return {
-    roleName,
-    personaSummary,
-    relationshipLabel,
-    currentThread,
-    activeChannels,
-    memoryCount,
-    statusTitle,
-    platformLabel,
-  };
+  return { roleName, activeChannels, statusTitle };
 }
 
-export async function ProductConsoleShell({
+export async function ChatConsoleShell({
   currentHref,
-  eyebrow,
-  title,
-  description,
-  actions,
-  children,
+  roleHref,
+  channelsHref,
+  threadTitle,
+  followUpCount = 0,
   shellContext,
-}: ProductConsoleShellProps) {
+  children,
+}: ChatConsoleShellProps) {
   let overview = shellContext ?? null;
 
   if (!overview) {
@@ -132,9 +112,9 @@ export async function ProductConsoleShell({
             </Link>
           </div>
 
-          {/* Current role portrait */}
+          {/* Current role portrait + info */}
           <Link
-            href={buildConsoleNavHref("/app/role", activeRoleId)}
+            href={roleHref}
             className="chat-sidebar-portrait-link"
             aria-label="View role"
           >
@@ -151,7 +131,7 @@ export async function ProductConsoleShell({
             <div className="chat-sidebar-portrait-meta">{summary.statusTitle}</div>
           </Link>
 
-          {/* Nav — 3 modules */}
+          {/* Nav */}
           <nav className="app-console-nav" aria-label="Console">
             {productConsoleNavItems.map((item) => {
               const active = isActiveConsoleRoute(currentHref, item.match);
@@ -162,7 +142,9 @@ export async function ProductConsoleShell({
                   className={`app-console-nav-item${active ? " active" : ""}`}
                 >
                   <span className="app-console-nav-label">{item.label}</span>
-                  <span className="app-console-nav-desc">{item.description}</span>
+                  <span className="app-console-nav-desc">
+                    {item.description}
+                  </span>
                 </Link>
               );
             })}
@@ -177,31 +159,50 @@ export async function ProductConsoleShell({
         </div>
       </aside>
 
-      {/* ── Main Content Area ── */}
-      <main className="app-console-main">
-        {/* Topbar */}
-        <div className="app-console-topbar">
-          <div className="app-console-topbar-left">
-            <span className="app-console-eyebrow">{eyebrow}</span>
-            {summary.currentThread ? (
-              <span className="app-console-thread-chip">
-                {summary.currentThread.title}
+      {/* ── Chat Main ── */}
+      <main className="chat-console-main">
+        {/* Chat Topbar */}
+        <div className="chat-console-topbar">
+          <div className="chat-console-topbar-left">
+            <div className="chat-console-topbar-info">
+              <span className="chat-console-role-name">{summary.roleName}</span>
+              {threadTitle ? (
+                <span className="chat-console-thread-name">{threadTitle}</span>
+              ) : null}
+            </div>
+            <span
+              className={`chat-console-status-chip${
+                summary.activeChannels > 0 ? " live" : ""
+              }`}
+            >
+              <span
+                className={`chat-console-status-dot${
+                  summary.activeChannels > 0 ? " live" : ""
+                }`}
+                aria-hidden="true"
+              />
+              {summary.statusTitle}
+            </span>
+            {followUpCount > 0 ? (
+              <span className="chat-console-status-chip attention">
+                <span className="chat-console-status-dot attention" aria-hidden="true" />
+                Needs attention
               </span>
             ) : null}
           </div>
-          {actions ? (
-            <div className="app-console-topbar-actions">{actions}</div>
-          ) : null}
+
+          <nav className="chat-console-topbar-nav" aria-label="Quick links">
+            <Link href={roleHref} className="chat-console-nav-link">
+              Role
+            </Link>
+            <Link href={channelsHref} className="chat-console-nav-link">
+              Channels
+            </Link>
+          </nav>
         </div>
 
-        {/* Scrollable content */}
-        <div className="app-console-content">
-          <div className="app-console-content-header">
-            <h1 className="app-console-page-title">{title}</h1>
-            <p className="app-console-page-desc">{description}</p>
-          </div>
-          <div className="app-console-body">{children}</div>
-        </div>
+        {/* Chat Thread fills the rest */}
+        {children}
       </main>
     </div>
   );

@@ -1,104 +1,65 @@
-"use client";
-
-import { motion } from "framer-motion";
-
 interface RolePreviewData {
   name: string;
   type: "companion" | "assistant";
   tone: string;
   tagline: string;
-  avatar?: string;
 }
 
 interface HomeHeroPreviewProps {
   roleData: RolePreviewData;
 }
 
-const sampleConversations = [
+const sampleConversation = [
   {
     role: "You",
-    message: "I only have ten minutes, but I still wanted to check in before bed.",
+    message: "I only have ten minutes, but I still wanted to check in.",
   },
   {
     role: "Companion",
-    message: "Then let's keep this light and close. I still remember what mattered from yesterday.",
+    message:
+      "Then let's keep this light and close. I still remember what mattered from yesterday.",
   },
-];
+  {
+    role: "You",
+    message: "That's exactly what I needed to hear.",
+  },
+] as const;
 
 export function HomeHeroPreview({ roleData }: HomeHeroPreviewProps) {
-  const displayName = roleData.name || "Your Companion";
-  const displayType = roleData.type === "companion" ? "Close Companion" : "Personal Assistant";
-  const displayTone = roleData.tone || "Gentle & Listening";
-
   return (
-    <motion.div
-      initial={{ y: 60, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ ease: "easeOut", duration: 0.6, delay: 0.2 }}
-      className="home-hero-preview"
-    >
-      {/* Role Avatar/Image Placeholder */}
-      <div className="role-preview-avatar">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ ease: "easeOut", duration: 0.5, delay: 0.4 }}
-          className="avatar-placeholder"
-        >
-          <span className="avatar-emoji">
-            {roleData.type === "companion" ? "💫" : "⚡"}
-          </span>
-          <div className="avatar-bg-effect" />
-        </motion.div>
+    <div className="home-hero-preview">
+      {/* Portrait card */}
+      <div className="home-hero-portrait-card">
+        <div className="home-hero-portrait-area">
+          <div className="home-hero-portrait-img" aria-hidden="true">
+            {roleData.name.slice(0, 1).toUpperCase()}
+          </div>
+          <div className="home-hero-portrait-status live" aria-hidden="true" />
+        </div>
+        <div className="home-hero-portrait-meta">
+          <span className="home-hero-portrait-name">{roleData.name}</span>
+          <span className="home-hero-portrait-type">{roleData.tone}</span>
+        </div>
       </div>
 
-      {/* Role Info */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ ease: "easeOut", duration: 0.5, delay: 0.5 }}
-        className="role-preview-info"
-      >
-        <h3 className="role-preview-name">{displayName}</h3>
-        <div className="role-preview-tags">
-          <span className="role-preview-tag tag-type">{displayType}</span>
-          <span className="role-preview-tag tag-tone">{displayTone}</span>
-        </div>
-        <p className="role-preview-tagline">
-          {roleData.tagline || "A relationship that grows with every conversation."}
-        </p>
-      </motion.div>
-
-      {/* Sample Conversations */}
-      <motion.div
-        initial={{ y: 30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ ease: "easeOut", duration: 0.5, delay: 0.6 }}
-        className="role-preview-conversations"
-      >
-        {sampleConversations.map((conv, index) => (
+      {/* Sample chat */}
+      <div className="home-hero-chat-preview">
+        {sampleConversation.map((msg, i) => (
           <div
-            key={index}
-            className={`preview-bubble ${
-              conv.role === "You" ? "bubble-user" : "bubble-companion"
+            key={i}
+            className={`home-hero-chat-bubble ${
+              msg.role === "You"
+                ? "home-hero-chat-bubble-user"
+                : "home-hero-chat-bubble-companion"
             }`}
           >
-            <span className="bubble-role">{conv.role}</span>
-            <p className="bubble-message">{conv.message}</p>
+            <p>{msg.message}</p>
           </div>
         ))}
-      </motion.div>
-
-      {/* Future Feature Teaser */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ ease: "easeOut", duration: 0.5, delay: 0.8 }}
-        className="role-preview-teaser"
-      >
-        <span className="teaser-badge">Coming Soon</span>
-        <p className="teaser-text">Generate unique avatar for your role</p>
-      </motion.div>
-    </motion.div>
+        <div className="home-hero-chat-memory-chip">
+          <span>Memory saved · 12 items</span>
+        </div>
+      </div>
+    </div>
   );
 }

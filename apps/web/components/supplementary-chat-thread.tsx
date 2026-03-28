@@ -1,13 +1,13 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { sendMessage, type SendMessageResult } from "@/app/chat/actions";
-import { FormSubmitButton } from "@/components/form-submit-button";
 import { trackProductEvent } from "@/lib/product/events";
 
-type SupplementaryChatThreadProps = {
+type ChatThreadProps = {
   threadId: string;
+  roleName: string;
   messages: Array<{
     id: string;
     role: "user" | "assistant";
@@ -17,37 +17,82 @@ type SupplementaryChatThreadProps = {
   }>;
 };
 
-type FeedbackState = {
-  tone: "error" | "success";
-  message: string;
-} | null;
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function SendIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M14 2L8.5 8M14 2L9.5 14L8.5 8M14 2L2 6L8.5 8"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 
 export function SupplementaryChatThread({
   threadId,
-  messages
-}: SupplementaryChatThreadProps) {
+  roleName,
+  messages,
+}: ChatThreadProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [feedback, setFeedback] = useState<FeedbackState>(null);
+  const [error, setError] = useState<string | null>(null);
   const [optimisticMessages, setOptimisticMessages] = useState(messages);
+
+  // Scroll to bottom when messages or pending state change
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [optimisticMessages.length, isPending]);
+
+  // Sync server messages on refresh
+  useEffect(() => {
+    setOptimisticMessages(messages);
+  }, [messages]);
+
+  function handleTextareaInput() {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 120) + "px";
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (!isPending) formRef.current?.requestSubmit();
+    }
+  }
 
   async function handleSubmit(formData: FormData) {
     const content = formData.get("content");
     const trimmedContent = typeof content === "string" ? content.trim() : "";
 
-    if (!trimmedContent) {
-      setFeedback({
-        tone: "error",
-        message: "Type a message before sending."
-      });
-      return;
-    }
+    if (!trimmedContent) return;
 
-    setFeedback(null);
-    trackProductEvent("supplementary_chat_send", {
-      surface: "dashboard_chat"
-    });
+    setError(null);
+    trackProductEvent("supplementary_chat_send", { surface: "dashboard_chat" });
+
     setOptimisticMessages((current) => [
       ...current,
       {
@@ -55,92 +100,99 @@ export function SupplementaryChatThread({
         role: "user",
         content: trimmedContent,
         status: "completed",
-        createdAt: new Date().toISOString()
-      }
+        createdAt: new Date().toISOString(),
+      },
     ]);
+
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
     formRef.current?.reset();
 
     startTransition(async () => {
       const result: SendMessageResult = await sendMessage(formData);
-
       if (!result.ok) {
-        setFeedback({
-          tone: "error",
-          message: result.message
-        });
+        setError(result.message);
       }
-
       router.refresh();
     });
   }
 
   return (
-    <section className="site-card supplementary-chat-shell">
-      <div className="supplementary-chat-header">
-        <div className="supplementary-chat-meta-strip">
-          <span className="site-inline-pill">Canonical thread</span>
-          <span className="supplementary-chat-count">
-            {optimisticMessages.length} message{optimisticMessages.length === 1 ? "" : "s"}
-          </span>
-        </div>
-        <h2>Supplementary chat</h2>
-        <p className="helper-copy">
-          Send from web when you need corrective continuation, not a second inbox.
-        </p>
-      </div>
-
-      {feedback ? <div className={`notice notice-${feedback.tone}`}>{feedback.message}</div> : null}
-
-      <div className="supplementary-chat-log">
-        {optimisticMessages.length > 0 ? (
-          optimisticMessages.map((message) => (
-            <article
-              className={`supplementary-chat-message supplementary-chat-message-${message.role}`}
-              key={message.id}
-            >
-              <div className="supplementary-chat-message-meta">
-                <span>{message.role === "user" ? "You" : "Role"}</span>
-                <span>{new Date(message.createdAt).toLocaleString()}</span>
+    <div className="chat-thread">
+      {/* Messages */}
+      <div className="chat-messages" ref={scrollRef}>
+        <div className="chat-messages-inner">
+          {optimisticMessages.length === 0 && !isPending ? (
+            <div className="chat-empty">
+              <div className="chat-empty-inner">
+                <p className="chat-empty-title">No messages yet</p>
+                <p className="chat-empty-text">
+                  Send a message to continue this relationship thread.
+                </p>
               </div>
-              <p>{message.content}</p>
-            </article>
-          ))
-        ) : (
-          <div className="empty-state supplementary-chat-empty">
-            <p className="helper-copy">No messages in this thread yet. Start the continuity here or in IM.</p>
-          </div>
-        )}
-
-        {isPending ? (
-          <article className="supplementary-chat-message supplementary-chat-message-assistant supplementary-chat-thinking">
-            <div className="supplementary-chat-message-meta">
-              <span>Role</span>
-              <span>Thinking...</span>
             </div>
-            <p>Preparing a reply in the same canonical thread.</p>
-          </article>
-        ) : null}
+          ) : (
+            optimisticMessages.map((msg) =>
+              msg.role === "assistant" ? (
+                <div key={msg.id} className="chat-bubble chat-bubble-assistant">
+                  <p>{msg.content}</p>
+                  <span className="chat-bubble-time chat-bubble-time-assistant">
+                    {formatTime(msg.createdAt)}
+                  </span>
+                </div>
+              ) : (
+                <div key={msg.id} className="chat-bubble chat-bubble-user">
+                  <p>{msg.content}</p>
+                  <span className="chat-bubble-time chat-bubble-time-user">
+                    {formatTime(msg.createdAt)}
+                  </span>
+                </div>
+              )
+            )
+          )}
+
+          {isPending ? (
+            <div className="chat-bubble chat-bubble-assistant">
+              <div className="chat-typing" aria-label="Thinking">
+                <span className="chat-typing-dot" />
+                <span className="chat-typing-dot" />
+                <span className="chat-typing-dot" />
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
 
-      <form action={handleSubmit} className="stack supplementary-chat-form" ref={formRef}>
+      {/* Input bar */}
+      <form action={handleSubmit} className="chat-input-bar" ref={formRef}>
         <input name="thread_id" type="hidden" value={threadId} />
-        <div className="field">
-          <label className="label" htmlFor="supplementary-chat-content">
-            Message
-          </label>
-          <textarea
-            className="input textarea"
-            id="supplementary-chat-content"
-            name="content"
-            placeholder="Send a message into the current relationship thread..."
-            rows={4}
-          />
+        <div className="chat-input-inner">
+          {error ? <p className="chat-input-error">{error}</p> : null}
+          <div className="chat-input-wrap">
+            <textarea
+              ref={textareaRef}
+              className="chat-input-textarea"
+              name="content"
+              rows={1}
+              placeholder="Message..."
+              onInput={handleTextareaInput}
+              onKeyDown={handleKeyDown}
+            />
+            <button
+              type="submit"
+              className="chat-send-btn"
+              disabled={isPending}
+              aria-label="Send message"
+            >
+              <SendIcon />
+            </button>
+          </div>
+          <p className="chat-input-hint">
+            Enter to send · Shift+Enter for new line
+          </p>
         </div>
-        <p className="helper-copy supplementary-chat-form-note">
-          This writes into the same relationship state already carried by the canonical thread.
-        </p>
-        <FormSubmitButton idleText="Send to this thread" pendingText="Sending..." />
       </form>
-    </section>
+    </div>
   );
 }
