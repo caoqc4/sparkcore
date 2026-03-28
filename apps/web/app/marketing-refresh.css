@@ -1,18 +1,19 @@
 :root {
-  --bg: hsl(230 25% 10%);
-  --panel: hsl(230 25% 12%);
-  --panel-strong: hsl(230 25% 14%);
-  --panel-border: hsl(230 15% 20%);
-  --text: hsl(240 10% 96%);
-  --muted: hsl(240 15% 60%);
-  --ink-soft: hsl(240 15% 60%);
-  --accent: hsl(235 75% 62%);
-  --accent-strong: hsl(235 80% 55%);
-  --accent-soft: hsl(235 30% 18%);
-  --shadow-soft: 0 28px 70px hsl(0 0% 0% / 0.3);
-  --surface-dark: hsl(230 25% 10%);
-  --surface-dark-strong: hsl(230 25% 14%);
-  --surface-tint: hsl(235 75% 62% / 0.1);
+  /* Velvet Night palette */
+  --bg: hsl(240 22% 8%);
+  --panel: hsl(240 18% 12%);
+  --panel-strong: hsl(240 15% 16%);
+  --panel-border: hsl(240 12% 22%);
+  --text: hsl(38 18% 92%);
+  --muted: hsl(235 12% 58%);
+  --ink-soft: hsl(235 14% 62%);
+  --accent: hsl(268 52% 68%);
+  --accent-strong: hsl(268 58% 60%);
+  --accent-soft: hsl(268 38% 16%);
+  --shadow-soft: 0 28px 70px hsl(0 0% 0% / 0.4);
+  --surface-dark: hsl(240 22% 8%);
+  --surface-dark-strong: hsl(240 15% 16%);
+  --surface-tint: hsl(268 52% 68% / 0.08);
   --font-sans: var(--font-ui), "Avenir Next", "Helvetica Neue", sans-serif;
   --font-serif: var(--font-display), "Iowan Old Style", Georgia, serif;
 
@@ -25,21 +26,21 @@
   --popover-foreground: var(--text);
   --muted-foreground: var(--muted);
   --primary: var(--accent);
-  --primary-foreground: hsl(240 10% 96%);
-  --secondary: hsl(235 25% 16%);
+  --primary-foreground: hsl(38 18% 96%);
+  --secondary: hsl(240 18% 17%);
   --secondary-foreground: var(--text);
   --accent-foreground: var(--accent-strong);
   --border: var(--panel-border);
   --input: var(--panel-border);
-  --ring: hsl(235 75% 62% / 0.5);
-  --navbar-bg: hsl(230 25% 10%);
-  --navbar-bg-scrolled: hsl(230 25% 10% / 0.95);
-  --hover-bg: hsl(235 20% 16%);
+  --ring: hsl(268 52% 68% / 0.5);
+  --navbar-bg: hsl(240 22% 8%);
+  --navbar-bg-scrolled: hsl(240 22% 8% / 0.96);
+  --hover-bg: hsl(240 16% 17%);
   --radius: 22px;
   --radius-sm: 16px;
   --radius-md: 20px;
   --radius-lg: 30px;
-  --shadow-navbar: 0 20px 44px hsl(0 0% 0% / 0.2);
+  --shadow-navbar: 0 20px 44px hsl(0 0% 0% / 0.25);
   --shadow-card: var(--shadow-soft);
 }
 
@@ -50,7 +51,7 @@ html {
 body {
   position: relative;
   color: var(--text);
-  background: hsl(230 25% 10%) !important;
+  background: hsl(240 22% 8%) !important;
 }
 
 a {
@@ -181,8 +182,8 @@ textarea.input {
 }
 
 .input:focus {
-  outline: 2px solid hsl(235 75% 62% / 0.3);
-  border-color: hsl(235 75% 62%);
+  outline: 2px solid hsl(268 52% 68% / 0.3);
+  border-color: hsl(268 52% 68%);
 }
 
 .button {
@@ -192,7 +193,7 @@ textarea.input {
   padding: 0 24px;
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.18), transparent 45%),
-    linear-gradient(135deg, hsl(230 25% 8%) 0%, hsl(230 25% 14%) 100%);
+    linear-gradient(135deg, hsl(240 22% 7%) 0%, hsl(230 25% 14%) 100%);
   color: hsl(240 10% 96%);
   box-shadow: 0 20px 34px hsl(230 25% 7% / 0.2);
 }
@@ -205,7 +206,7 @@ textarea.input {
 .button-secondary,
 .button-ghost {
   border-color: hsl(230 15% 20%);
-  background: hsl(235 25% 16%);
+  background: hsl(240 18% 14%);
   color: hsl(240 10% 96%);
   box-shadow: none;
 }
@@ -213,7 +214,7 @@ textarea.input {
 .button-primary {
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.2), transparent 46%),
-    linear-gradient(135deg, hsl(230 25% 9%) 0%, hsl(235 25% 16%) 100%);
+    linear-gradient(135deg, hsl(230 25% 9%) 0%, hsl(240 18% 14%) 100%);
 }
 
 .button-large {
@@ -279,8 +280,8 @@ textarea.input {
   position: sticky;
   top: 0;
   z-index: 30;
-  border-bottom: 1px solid hsl(230 15% 20%);
-  background: hsl(230 25% 10% / 0.85);
+  border-bottom: 1px solid hsl(240 12% 18%);
+  background: hsl(240 22% 8% / 0.88);
   backdrop-filter: blur(22px);
 }
 
@@ -295,8 +296,10 @@ textarea.input {
 .home-surface-map,
 .home-architecture,
 .home-routes-wrap,
-.home-routes {
-  width: min(1200px, calc(100% - 32px));
+.home-routes,
+.home-feature-spotlight,
+.home-section {
+  width: min(1120px, calc(100% - 80px));
   margin: 0 auto;
 }
 
@@ -327,15 +330,15 @@ textarea.input {
   align-items: center;
   justify-content: center;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid hsl(268 38% 30% / 0.4);
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.26), transparent 42%),
-    linear-gradient(135deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
-  color: hsl(240 10% 96%);
+    radial-gradient(circle at top, hsl(268 52% 68% / 0.2), transparent 50%),
+    linear-gradient(135deg, hsl(240 22% 10%) 0%, hsl(240 18% 18%) 100%);
+  color: hsl(38 18% 92%);
   font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  box-shadow: 0 18px 34px hsl(230 25% 7% / 0.18);
+  box-shadow: 0 18px 34px hsl(240 22% 5% / 0.3);
 }
 
 .site-brand strong {
@@ -355,10 +358,10 @@ textarea.input {
   gap: 6px;
   flex-wrap: wrap;
   padding: 8px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
+  border: 1px solid hsl(240 12% 22%);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.58);
-  box-shadow: 0 16px 30px hsl(230 25% 8% / 0.06);
+  background: hsl(240 18% 14% / 0.85);
+  box-shadow: 0 8px 24px hsl(0 0% 0% / 0.2);
 }
 
 .site-nav a,
@@ -369,7 +372,7 @@ textarea.input {
   justify-content: center;
   padding: 0 14px;
   border-radius: 999px;
-  color: var(--muted);
+  color: hsl(38 15% 78%);   /* warm light gray — readable on dark nav */
   font-size: 0.94rem;
   font-weight: 600;
   transition:
@@ -381,7 +384,7 @@ textarea.input {
 .site-nav a:hover,
 .site-nav-group summary:hover {
   color: var(--text);
-  background: hsl(235 25% 18%);
+  background: hsl(240 16% 20%);
 }
 
 .site-nav-group {
@@ -419,7 +422,7 @@ textarea.input {
   padding: 12px;
   border: 1px solid hsl(230 25% 8% / 0.1);
   border-radius: 22px;
-  background: hsl(235 25% 16%);
+  background: hsl(240 18% 14%);
   box-shadow: 0 24px 54px hsl(230 25% 8% / 0.12);
 }
 
@@ -462,18 +465,14 @@ textarea.input {
 .page-frame-header {
   padding: 36px 40px;
   border-radius: 34px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
+  border: 1px solid hsl(240 12% 20%);
   background:
     radial-gradient(
       circle at top left,
-      rgba(201, 107, 69, 0.16),
+      hsl(268 52% 68% / 0.08),
       transparent 26%
     ),
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.92),
-      rgba(246, 240, 235, 0.78)
-    );
+    hsl(235 25% 14%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -591,7 +590,7 @@ textarea.input {
       rgba(255, 255, 255, 0.12),
       transparent 24%
     ),
-    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
+    linear-gradient(145deg, hsl(240 22% 7%) 0%, hsl(240 16% 17%) 100%);
   color: hsl(240 10% 96%);
   box-shadow: 0 28px 60px hsl(230 25% 7% / 0.18);
 }
@@ -799,7 +798,7 @@ textarea.input {
       rgba(255, 255, 255, 0.1),
       transparent 24%
     ),
-    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
+    linear-gradient(145deg, hsl(240 22% 7%) 0%, hsl(240 16% 17%) 100%);
   color: hsl(240 10% 96%);
 }
 
@@ -1135,26 +1134,21 @@ textarea.input {
   gap: 16px;
   padding: 30px;
   border-radius: 34px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(247, 241, 236, 0.84)
-    ),
-    rgba(255, 255, 255, 0.82);
+  border: 1px solid hsl(230 15% 20%);
+  background: hsl(235 25% 14%);
   box-shadow: var(--shadow-soft);
+  color: var(--text);
 }
 
 .home-feature-panel-dark {
   background:
     radial-gradient(
       circle at top right,
-      rgba(255, 255, 255, 0.1),
-      transparent 22%
+      hsl(268 52% 68% / 0.08),
+      transparent 40%
     ),
-    linear-gradient(145deg, #101b2c 0%, #1f3354 100%);
-  color: hsl(240 10% 96%);
+    linear-gradient(145deg, hsl(240 22% 9%) 0%, hsl(240 18% 16%) 100%);
+  color: var(--text);
 }
 
 .home-feature-panel-dark p,
@@ -1167,11 +1161,21 @@ textarea.input {
   margin: 0;
   font-size: clamp(1.8rem, 2.5vw, 2.6rem);
   line-height: 1.02;
+  color: var(--text);
 }
 
 .home-feature-panel p {
   margin: 0;
   line-height: 1.72;
+  color: var(--muted);
+}
+
+.home-feature-panel .site-bullet-list {
+  color: var(--muted);
+}
+
+.home-feature-panel .site-inline-link {
+  color: hsl(235 75% 72%);
 }
 
 .home-memory-preview,
@@ -1209,7 +1213,7 @@ textarea.input {
   border-radius: 34px;
   border: 1px solid hsl(230 15% 20%);
   background:
-    radial-gradient(circle at top, hsl(235 75% 62% / 0.08), transparent 26%),
+    radial-gradient(circle at top, hsl(268 52% 68% / 0.08), transparent 26%),
     hsl(235 25% 14%);
   box-shadow: var(--shadow-soft);
 }
@@ -1229,25 +1233,21 @@ textarea.input {
 .home-im-bubble-assistant {
   margin-left: 14%;
   background:
-    linear-gradient(
-      180deg,
-      rgba(255, 247, 241, 0.98),
-      rgba(251, 235, 224, 0.9)
+    radial-gradient(
+      circle at top right,
+      hsl(268 52% 68% / 0.1),
+      transparent 36%
     ),
-    rgba(255, 255, 255, 0.82);
+    hsl(240 22% 16%);
+  border-color: hsl(268 52% 68% / 0.2);
 }
 
 .home-im-bubble-system {
   margin-right: 8%;
   margin-left: 8%;
   border-style: dashed;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(244, 248, 255, 0.96),
-      rgba(235, 241, 252, 0.88)
-    ),
-    rgba(255, 255, 255, 0.82);
+  background: hsl(240 18% 11%);
+  border-color: hsl(240 15% 25%);
 }
 
 .home-returning-dashboard {
@@ -1580,14 +1580,14 @@ textarea.input {
   gap: 16px;
   padding: 24px;
   border-radius: 28px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
+  border: 1px solid hsl(240 12% 20%);
   background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.98),
-      rgba(246, 241, 236, 0.86)
+    radial-gradient(
+      circle at top left,
+      hsl(268 52% 68% / 0.06),
+      transparent 30%
     ),
-    rgba(255, 255, 255, 0.82);
+    hsl(235 25% 14%);
 }
 
 .product-role-card-header {
@@ -1726,14 +1726,8 @@ textarea.input {
   min-height: 100%;
   padding: 18px;
   border-radius: 22px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(247, 242, 236, 0.84)
-    ),
-    rgba(255, 255, 255, 0.78);
+  border: 1px solid hsl(240 12% 20%);
+  background: hsl(240 18% 12%);
 }
 
 .connect-im-context-grid {
@@ -1763,14 +1757,14 @@ textarea.input {
 }
 
 .connect-im-binding-card-active {
-  border-color: rgba(83, 211, 141, 0.24);
+  border-color: hsl(150 55% 40% / 0.35);
   background:
-    linear-gradient(
-      180deg,
-      rgba(247, 255, 251, 0.98),
-      rgba(236, 248, 242, 0.9)
+    radial-gradient(
+      circle at top right,
+      hsl(150 55% 40% / 0.1),
+      transparent 36%
     ),
-    rgba(255, 255, 255, 0.82);
+    hsl(240 18% 12%);
 }
 
 .connect-im-binding-meta {
@@ -1783,21 +1777,16 @@ textarea.input {
 }
 
 .thread-badge-live {
-  background: rgba(83, 211, 141, 0.14);
-  color: #1d6a43;
+  background: hsl(150 55% 40% / 0.18);
+  color: hsl(150 65% 72%);
+  border-color: hsl(150 55% 40% / 0.3);
 }
 
 .settings-console-switcher {
   padding: 22px 24px;
   border-radius: 30px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(246, 241, 236, 0.86)
-    ),
-    rgba(255, 255, 255, 0.82);
+  border: 1px solid hsl(240 12% 20%);
+  background: hsl(235 25% 14%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -1816,14 +1805,8 @@ textarea.input {
   gap: 14px;
   padding: 18px;
   border-radius: 24px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(247, 242, 236, 0.84)
-    ),
-    rgba(255, 255, 255, 0.8);
+  border: 1px solid hsl(240 12% 20%);
+  background: hsl(240 18% 12%);
 }
 
 .settings-role-group-header {
@@ -1890,15 +1873,15 @@ textarea.input {
 
 .settings-console-tab:hover {
   transform: translateY(-1px);
-  border-color: hsl(235 75% 62% / 0.3);
-  background: hsl(235 25% 16%);
+  border-color: hsl(268 52% 68% / 0.3);
+  background: hsl(240 18% 14%);
   color: hsl(240 10% 96%);
 }
 
 .settings-console-tab-active {
-  border-color: hsl(235 75% 62%);
-  background: hsl(235 75% 62% / 0.15);
-  box-shadow: 0 18px 32px hsl(235 75% 62% / 0.2);
+  border-color: hsl(268 52% 68%);
+  background: hsl(268 52% 68% / 0.15);
+  box-shadow: 0 18px 32px hsl(268 52% 68% / 0.2);
 }
 
 .settings-console-section {
@@ -2074,7 +2057,7 @@ textarea.input {
       rgba(255, 255, 255, 0.08),
       transparent 24%
     ),
-    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 16%) 100%);
+    linear-gradient(145deg, hsl(240 22% 7%) 0%, hsl(240 18% 14%) 100%);
   color: hsl(240 10% 96%);
 }
 
@@ -2146,7 +2129,7 @@ textarea.input {
       rgba(255, 255, 255, 0.1),
       transparent 26%
     ),
-    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
+    linear-gradient(145deg, hsl(240 22% 7%) 0%, hsl(240 16% 17%) 100%);
   color: hsl(240 10% 96%);
 }
 
@@ -2239,7 +2222,7 @@ textarea.input {
       rgba(201, 107, 69, 0.18),
       transparent 24%
     ),
-    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 19%) 100%);
+    linear-gradient(145deg, hsl(240 22% 7%) 0%, hsl(235 25% 19%) 100%);
   color: hsl(240 10% 96%);
 }
 
@@ -2346,8 +2329,8 @@ textarea.input {
   place-items: center;
   border-radius: 18px;
   background:
-    linear-gradient(135deg, hsl(235 75% 62% / 0.15), hsl(235 25% 18% / 0.15)),
-    hsl(235 25% 16%);
+    linear-gradient(135deg, hsl(268 52% 68% / 0.15), hsl(235 25% 18% / 0.15)),
+    hsl(240 18% 14%);
   color: var(--text);
   font-size: 1.15rem;
   font-weight: 700;
@@ -2408,7 +2391,7 @@ textarea.input {
 }
 
 .product-console-nav-link:hover {
-  background: hsl(235 25% 16%);
+  background: hsl(240 18% 14%);
   border-color: transparent;
   color: hsl(240 10% 96%);
 }
@@ -2443,14 +2426,14 @@ textarea.input {
 }
 
 .product-console-status-dot-muted {
-  background: hsl(235 25% 16%);
+  background: hsl(240 18% 14%);
 }
 
 .product-console-nav-link-active {
-  border-color: hsl(235 75% 62% / 0.3);
-  background: hsl(235 75% 62% / 0.12);
-  color: hsl(235 75% 62%);
-  box-shadow: 0 10px 24px hsl(235 75% 62% / 0.15);
+  border-color: hsl(268 52% 68% / 0.3);
+  background: hsl(268 52% 68% / 0.12);
+  color: hsl(268 52% 68%);
+  box-shadow: 0 10px 24px hsl(268 52% 68% / 0.15);
 }
 
 .product-console-nav-link-active small {
@@ -2558,7 +2541,7 @@ textarea.input {
   background:
     radial-gradient(
       circle at top left,
-      hsl(235 75% 62% / 0.1),
+      hsl(268 52% 68% / 0.1),
       transparent 26%
     ),
     hsl(235 25% 14%);
@@ -2633,7 +2616,7 @@ textarea.input {
   background:
     radial-gradient(
       circle at top right,
-      hsl(235 75% 62% / 0.08),
+      hsl(268 52% 68% / 0.08),
       transparent 28%
     ),
     hsl(235 25% 14%);
@@ -2655,15 +2638,9 @@ textarea.input {
   gap: 10px;
   min-height: 100%;
   padding: 22px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
+  border: 1px solid hsl(240 12% 20%);
   border-radius: 28px;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(247, 242, 236, 0.84)
-    ),
-    rgba(255, 255, 255, 0.78);
+  background: hsl(240 18% 12%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -2692,29 +2669,29 @@ textarea.input {
 }
 
 .product-status-card-warning {
-  border-color: rgba(201, 107, 69, 0.22);
+  border-color: hsl(20 60% 55% / 0.3);
   background:
     radial-gradient(
       circle at top right,
-      rgba(201, 107, 69, 0.14),
+      hsl(20 60% 55% / 0.08),
       transparent 34%
     ),
-    linear-gradient(180deg, rgba(255, 251, 247, 0.98), rgba(247, 242, 236, 0.9));
+    hsl(240 18% 12%);
 }
 
 .product-status-card-ready {
-  border-color: rgba(75, 125, 103, 0.18);
+  border-color: hsl(150 35% 45% / 0.3);
   background:
     radial-gradient(
       circle at top right,
-      rgba(92, 149, 122, 0.14),
+      hsl(150 35% 45% / 0.08),
       transparent 36%
     ),
-    linear-gradient(180deg, rgba(251, 255, 252, 0.98), rgba(244, 249, 246, 0.9));
+    hsl(240 18% 12%);
 }
 
 .product-status-card-neutral {
-  border-color: hsl(230 25% 8% / 0.1);
+  border-color: hsl(240 18% 22% / 0.6);
 }
 
 .product-status-card-head {
@@ -2743,24 +2720,24 @@ textarea.input {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
-  background: hsl(235 25% 16%);
+  background: hsl(240 18% 14%);
   color: hsl(240 15% 60%);
 }
 
 .product-status-pill-warning {
-  border-color: hsl(235 75% 62% / 0.4);
-  background: hsl(235 75% 62% / 0.15);
-  color: hsl(235 75% 62%);
+  border-color: hsl(268 52% 68% / 0.4);
+  background: hsl(268 52% 68% / 0.15);
+  color: hsl(268 52% 68%);
 }
 
 .product-status-pill-ready {
-  border-color: hsl(235 75% 62% / 0.4);
-  background: hsl(235 75% 62% / 0.15);
-  color: hsl(235 75% 62%);
+  border-color: hsl(268 52% 68% / 0.4);
+  background: hsl(268 52% 68% / 0.15);
+  color: hsl(268 52% 68%);
 }
 
 .product-status-pill-neutral {
-  background: hsl(235 25% 16%);
+  background: hsl(240 18% 14%);
   color: hsl(240 15% 60%);
 }
 
@@ -2828,15 +2805,9 @@ textarea.input {
   display: grid;
   gap: 12px;
   padding: 26px 28px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
+  border: 1px solid hsl(240 12% 20%);
   border-radius: 28px;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(247, 242, 236, 0.84)
-    ),
-    rgba(255, 255, 255, 0.78);
+  background: hsl(240 18% 12%);
 }
 
 .product-signal-grid,
@@ -2860,14 +2831,8 @@ textarea.input {
   gap: 8px;
   padding: 18px;
   border-radius: 22px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.94),
-      rgba(247, 242, 236, 0.82)
-    ),
-    rgba(255, 255, 255, 0.8);
+  border: 1px solid hsl(240 12% 20%);
+  background: hsl(240 18% 12%);
 }
 
 .product-setting-metric span {
@@ -2902,14 +2867,8 @@ textarea.input {
   gap: 8px;
   padding: 16px 18px;
   border-radius: 22px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.94),
-      rgba(247, 242, 236, 0.82)
-    ),
-    rgba(255, 255, 255, 0.8);
+  border: 1px solid hsl(240 12% 20%);
+  background: hsl(240 18% 12%);
 }
 
 .product-route-item strong {
@@ -2948,14 +2907,8 @@ textarea.input {
   gap: 8px;
   padding: 16px 18px;
   border-radius: 22px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.94),
-      rgba(247, 242, 236, 0.84)
-    ),
-    rgba(255, 255, 255, 0.8);
+  border: 1px solid hsl(240 12% 20%);
+  background: hsl(240 18% 12%);
 }
 
 .product-chat-preview-label {
@@ -2978,15 +2931,15 @@ textarea.input {
   gap: 10px;
   min-height: 100%;
   padding: 22px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
+  border: 1px solid hsl(240 12% 20%);
   border-radius: 24px;
   background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.95),
-      rgba(247, 242, 236, 0.84)
+    radial-gradient(
+      circle at top right,
+      hsl(268 52% 68% / 0.05),
+      transparent 28%
     ),
-    rgba(255, 255, 255, 0.8);
+    hsl(240 18% 12%);
 }
 
 .product-signal-grid .site-card h2,
@@ -3017,7 +2970,7 @@ textarea.input {
   background:
     radial-gradient(
       circle at top right,
-      hsl(235 75% 62% / 0.06),
+      hsl(268 52% 68% / 0.06),
       transparent 30%
     ),
     hsl(235 25% 13%);
@@ -3065,15 +3018,9 @@ textarea.input {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 18px;
   padding: 22px 24px;
-  border: 1px solid hsl(230 25% 8% / 0.08);
+  border: 1px solid hsl(240 12% 20%);
   border-radius: 30px;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.94),
-      rgba(247, 242, 236, 0.82)
-    ),
-    rgba(255, 255, 255, 0.78);
+  background: hsl(235 25% 14%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -3095,7 +3042,7 @@ textarea.input {
       rgba(255, 255, 255, 0.12),
       transparent 24%
     ),
-    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 18%) 100%);
+    linear-gradient(145deg, hsl(240 22% 7%) 0%, hsl(240 16% 17%) 100%);
   color: hsl(240 10% 96%);
   box-shadow: 0 28px 60px hsl(230 25% 7% / 0.18);
 }
@@ -3115,14 +3062,8 @@ textarea.input {
 .chat-sidebar,
 .chat-panel,
 .thread-state-card {
-  border: 1px solid hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(247, 242, 236, 0.84)
-    ),
-    rgba(255, 255, 255, 0.78);
+  border: 1px solid hsl(240 12% 20%);
+  background: hsl(235 25% 14%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -3158,17 +3099,17 @@ textarea.input {
 .thread-link:hover,
 .agent-card:hover,
 .memory-card:hover {
-  border-color: hsl(235 75% 62% / 0.3);
-  background: hsl(217.2 32.6% 15%);
+  border-color: hsl(268 52% 68% / 0.3);
+  background: hsl(240 18% 14%);
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
 
 .thread-link-active,
 .agent-card-active {
-  border-color: hsl(235 75% 62% / 0.4);
-  background: hsl(217.2 32.6% 15%);
-  box-shadow: 0 18px 36px hsl(235 75% 62% / 0.15);
+  border-color: hsl(268 52% 68% / 0.4);
+  background: hsl(240 18% 14%);
+  box-shadow: 0 18px 36px hsl(268 52% 68% / 0.15);
 }
 
 .thread-badge,
@@ -3182,7 +3123,7 @@ textarea.input {
 
 .agent-avatar-chip {
   background: var(--secondary);
-  border-color: hsl(235 75% 62% / 0.2);
+  border-color: hsl(268 52% 68% / 0.2);
   color: var(--accent);
 }
 
@@ -3205,18 +3146,19 @@ textarea.input {
 }
 
 .message-user {
-  background: hsl(235 75% 62% / 0.15);
-  border-color: hsl(235 75% 62% / 0.3);
+  background: hsl(268 52% 68% / 0.15);
+  border-color: hsl(268 52% 68% / 0.3);
 }
 
 .message-assistant {
   background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(241, 246, 253, 0.88)
+    radial-gradient(
+      circle at top right,
+      hsl(268 52% 68% / 0.07),
+      transparent 32%
     ),
-    rgba(255, 255, 255, 0.82);
+    hsl(240 22% 16%);
+  border-color: hsl(268 52% 68% / 0.15);
 }
 
 .composer {
@@ -3226,14 +3168,8 @@ textarea.input {
 .sheet-panel {
   width: min(100%, 620px);
   border-radius: 30px;
-  border-color: hsl(230 25% 8% / 0.08);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.98),
-      rgba(247, 242, 236, 0.92)
-    ),
-    rgba(255, 255, 255, 0.94);
+  border-color: hsl(240 12% 20%);
+  background: hsl(235 25% 13%);
 }
 
 .alternative-hero {
@@ -3248,7 +3184,7 @@ textarea.input {
       rgba(255, 255, 255, 0.08),
       transparent 24%
     ),
-    linear-gradient(145deg, hsl(230 25% 8%) 0%, hsl(235 25% 16%) 100%);
+    linear-gradient(145deg, hsl(240 22% 7%) 0%, hsl(240 18% 14%) 100%);
 }
 
 .alternative-compare-table {
@@ -3590,6 +3526,82 @@ textarea.input {
   }
 }
 
+/* Hero badge, heading, lead */
+.home-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: hsl(268 52% 68% / 0.12);
+  color: hsl(268 52% 72%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid hsl(268 52% 68% / 0.22);
+}
+
+.home-hero-heading {
+  margin: 0;
+  font-size: clamp(2.6rem, 5vw, 3.6rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.home-hero-lead {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.72;
+  color: var(--muted);
+  max-width: 520px;
+}
+
+/* Image placeholder utility */
+.img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  border: 1.5px dashed hsl(240 12% 28%);
+  background: hsl(240 18% 12%);
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  position: relative;
+}
+
+.img-placeholder::after {
+  content: "Photo here";
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: hsl(240 12% 35%);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.img-placeholder-role {
+  aspect-ratio: 3 / 4;
+  width: 100%;
+}
+
+.img-placeholder-emoji {
+  font-size: 3rem;
+  line-height: 1;
+  opacity: 0.4;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 20px;
+}
+
 /* Left side: Form section */
 .home-hero-form-section {
   display: flex;
@@ -3630,7 +3642,7 @@ textarea.input {
   padding: 16px 20px;
   border: 2px solid var(--border);
   border-radius: var(--radius);
-  background: hsl(235 25% 16%);
+  background: hsl(240 18% 14%);
   color: var(--muted);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -3638,15 +3650,15 @@ textarea.input {
 }
 
 .role-type-option:hover {
-  border-color: hsl(235 75% 62% / 0.4);
-  background: hsl(235 25% 18%);
+  border-color: hsl(268 52% 68% / 0.4);
+  background: hsl(240 16% 17%);
   color: var(--text);
 }
 
 .role-type-option.active {
-  border-color: hsl(235 75% 62%);
-  background: hsl(235 75% 62% / 0.12);
-  color: hsl(235 75% 62%);
+  border-color: hsl(268 52% 68%);
+  background: hsl(268 52% 68% / 0.12);
+  color: hsl(268 52% 68%);
 }
 
 .role-type-icon {
@@ -3690,7 +3702,7 @@ textarea.input {
   padding: 12px 16px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: hsl(235 25% 16%);
+  background: hsl(240 18% 14%);
   color: var(--muted);
   font-size: 0.875rem;
   font-weight: 500;
@@ -3700,15 +3712,15 @@ textarea.input {
 }
 
 .tone-option:hover {
-  border-color: hsl(235 75% 62% / 0.3);
-  background: hsl(235 25% 18%);
+  border-color: hsl(268 52% 68% / 0.3);
+  background: hsl(240 16% 17%);
   color: var(--text);
 }
 
 .tone-option.active {
-  border-color: hsl(235 75% 62%);
-  background: hsl(235 75% 62% / 0.15);
-  color: hsl(235 75% 62%);
+  border-color: hsl(268 52% 68%);
+  background: hsl(268 52% 68% / 0.15);
+  color: hsl(268 52% 68%);
   font-weight: 600;
 }
 
@@ -3726,8 +3738,8 @@ textarea.input {
   gap: 24px;
   padding: 32px;
   border-radius: var(--radius-xl);
-  background: hsl(235 25% 16%);
-  border: 1px solid hsl(235 75% 62% / 0.12);
+  background: hsl(240 18% 14%);
+  border: 1px solid hsl(268 52% 68% / 0.12);
   box-shadow: 0 20px 60px hsl(0 0% 0% / 0.3);
   overflow: hidden;
 }
@@ -3738,7 +3750,7 @@ textarea.input {
   inset: 0;
   background: radial-gradient(
     circle at top right,
-    hsl(235 75% 62% / 0.06) 0%,
+    hsl(268 52% 68% / 0.06) 0%,
     transparent 50%
   );
   pointer-events: none;
@@ -3761,11 +3773,11 @@ textarea.input {
   border-radius: 999px;
   background: radial-gradient(
     circle at 30% 30%,
-    hsl(235 75% 62% / 0.15) 0%,
-    hsl(235 25% 18%) 100%
+    hsl(268 52% 68% / 0.15) 0%,
+    hsl(240 16% 17%) 100%
   );
-  border: 2px solid hsl(235 75% 62% / 0.2);
-  box-shadow: 0 8px 32px hsl(235 75% 62% / 0.1);
+  border: 2px solid hsl(268 52% 68% / 0.2);
+  box-shadow: 0 8px 32px hsl(268 52% 68% / 0.1);
 }
 
 .avatar-emoji {
@@ -3781,7 +3793,7 @@ textarea.input {
   border-radius: 999px;
   background: radial-gradient(
     circle,
-    hsl(235 75% 62% / 0.1) 0%,
+    hsl(268 52% 68% / 0.1) 0%,
     transparent 70%
   );
   animation: pulse-glow 3s ease-in-out infinite;
@@ -3830,13 +3842,13 @@ textarea.input {
 }
 
 .tag-type {
-  background: hsl(235 75% 62% / 0.15);
-  color: hsl(235 75% 62%);
+  background: hsl(268 52% 68% / 0.15);
+  color: hsl(268 52% 68%);
   border: 1px solid hsl(217.2 91.2% 59.8% / 0.25);
 }
 
 .tag-tone {
-  background: hsl(217.2 32.6% 15%);
+  background: hsl(240 18% 14%);
   color: var(--muted);
   border: 1px solid var(--border);
 }
@@ -3863,8 +3875,8 @@ textarea.input {
 }
 
 .bubble-user {
-  background: hsl(235 75% 62% / 0.1);
-  border-color: hsl(235 75% 62% / 0.2);
+  background: hsl(268 52% 68% / 0.1);
+  border-color: hsl(268 52% 68% / 0.2);
   margin-left: 20px;
 }
 
@@ -3899,15 +3911,15 @@ textarea.input {
   padding: 16px;
   border-radius: var(--radius);
   background: hsl(217.2 91.2% 59.8% / 0.05);
-  border: 1px dashed hsl(235 75% 62% / 0.15);
+  border: 1px dashed hsl(268 52% 68% / 0.15);
   text-align: center;
 }
 
 .teaser-badge {
   padding: 4px 12px;
   border-radius: 999px;
-  background: hsl(235 75% 62% / 0.12);
-  color: hsl(235 75% 62%);
+  background: hsl(268 52% 68% / 0.12);
+  color: hsl(268 52% 68%);
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -3929,4 +3941,934 @@ textarea.input {
   .home-section {
     padding: 80px 0;
   }
+}
+
+/* CTA action button sizing */
+.home-cta-action,
+.home-hero-cta {
+  min-width: 200px;
+  justify-content: center;
+}
+
+/* Role showcase section */
+.home-role-showcase-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 768px) {
+  .home-role-showcase-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.home-role-showcase-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.home-role-showcase-card .img-placeholder-role {
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.home-role-showcase-card .home-role-showcase-meta,
+.home-role-showcase-card .home-role-showcase-tagline {
+  padding: 0 22px;
+}
+
+.home-role-showcase-card .home-role-showcase-tagline {
+  padding-bottom: 22px;
+}
+
+.home-role-showcase-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-role-showcase-name {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.home-role-showcase-tagline {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+/* FAQ section */
+.home-faq-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 768px) {
+  .home-faq-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.home-faq-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-faq-question {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.home-faq-answer {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.home-faq-card-trust {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.home-faq-card-trust h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.home-faq-trust-links {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+
+/* ============================================================
+   APP CONSOLE SHELL — Full-height Velvet Night layout
+   ============================================================ */
+
+.app-console-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: hsl(240 22% 8%);
+  color: var(--text);
+}
+
+/* ── Sidebar ── */
+.app-console-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: hsl(240 20% 9%);
+  border-right: 1px solid hsl(240 12% 18%);
+  overflow: hidden;
+}
+
+.app-console-sidebar-inner {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: none;
+}
+
+.app-console-sidebar-inner::-webkit-scrollbar {
+  display: none;
+}
+
+/* Brand row */
+.app-console-brand {
+  padding: 4px 0 12px;
+  border-bottom: 1px solid hsl(240 12% 16%);
+  margin-bottom: 4px;
+}
+
+.app-console-brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.app-console-brand-mark {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: hsl(268 52% 68% / 0.15);
+  border: 1px solid hsl(268 52% 68% / 0.25);
+  color: hsl(268 52% 75%);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.app-console-brand-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+/* Role card */
+.app-console-role-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: inherit;
+  transition: background 160ms ease, border-color 160ms ease;
+  margin-bottom: 4px;
+}
+
+.app-console-role-card:hover {
+  background: hsl(240 16% 14%);
+  border-color: hsl(240 12% 20%);
+}
+
+.app-console-role-card.active {
+  background: hsl(268 52% 68% / 0.1);
+  border-color: hsl(268 52% 68% / 0.25);
+}
+
+.app-console-role-avatar {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    hsl(268 52% 68% / 0.2),
+    hsl(240 18% 18%)
+  );
+  border: 1px solid hsl(268 52% 68% / 0.2);
+  color: hsl(268 52% 78%);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.app-console-role-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.app-console-role-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: hsl(268 52% 68%);
+}
+
+.app-console-role-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-console-role-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Nav */
+.app-console-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 16px;
+}
+
+.app-console-nav-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: hsl(38 12% 72%);
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.app-console-nav-item:hover {
+  background: hsl(240 16% 14%);
+  color: var(--text);
+}
+
+.app-console-nav-item.active {
+  background: hsl(268 52% 68% / 0.12);
+  border-color: hsl(268 52% 68% / 0.28);
+  color: hsl(268 52% 80%);
+}
+
+.app-console-nav-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.app-console-nav-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.app-console-nav-item.active .app-console-nav-desc {
+  color: hsl(268 52% 68% / 0.7);
+}
+
+/* Sidebar footer */
+.app-console-sidebar-footer {
+  flex-shrink: 0;
+  padding: 12px 16px 16px;
+  border-top: 1px solid hsl(240 12% 16%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-console-status-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: hsl(240 18% 12%);
+  border: 1px solid hsl(240 12% 20%);
+}
+
+.app-console-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.app-console-status-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.app-console-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: hsl(240 15% 30%);
+  flex-shrink: 0;
+}
+
+.app-console-status-dot.live {
+  background: hsl(150 65% 50%);
+  box-shadow: 0 0 0 4px hsl(150 65% 50% / 0.15);
+}
+
+.app-console-platform-label {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.app-console-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.app-console-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: hsl(240 20% 10%);
+  border: 1px solid hsl(240 12% 18%);
+}
+
+.app-console-metric span {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.app-console-metric strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.app-console-exit-link {
+  display: block;
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: 10px;
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.app-console-exit-link:hover {
+  color: var(--text);
+  background: hsl(240 16% 14%);
+}
+
+/* ── Main Content ── */
+.app-console-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Topbar */
+.app-console-topbar {
+  height: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  border-bottom: 1px solid hsl(240 12% 16%);
+  background: hsl(240 22% 8%);
+  gap: 12px;
+}
+
+.app-console-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.app-console-eyebrow {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(268 52% 72%);
+}
+
+.app-console-thread-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: hsl(240 18% 14%);
+  border: 1px solid hsl(240 12% 22%);
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.app-console-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Content area */
+.app-console-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 40px 48px;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(240 12% 22%) transparent;
+}
+
+.app-console-content::-webkit-scrollbar {
+  width: 5px;
+}
+
+.app-console-content::-webkit-scrollbar-thumb {
+  background: hsl(240 12% 22%);
+  border-radius: 999px;
+}
+
+.app-console-content-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid hsl(240 12% 16%);
+}
+
+.app-console-page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.app-console-page-desc {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+.app-console-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Topbar action buttons — smaller, light-theme appropriate */
+.app-console-topbar-actions .button {
+  min-height: 36px;
+  padding: 0 16px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.app-console-topbar-actions .button-primary {
+  background: hsl(268 52% 50%);
+  border-color: hsl(268 52% 44%);
+  color: hsl(0 0% 100%);
+}
+
+.app-console-topbar-actions .button-primary:hover {
+  background: hsl(268 52% 44%);
+  transform: none;
+  box-shadow: 0 2px 8px hsl(268 52% 50% / 0.3);
+}
+
+.app-console-topbar-actions .button-secondary,
+.app-console-topbar-actions .button-ghost {
+  background: hsl(0 0% 100%);
+  border-color: hsl(240 8% 84%);
+  color: hsl(240 20% 22%);
+}
+
+.app-console-topbar-actions .button-secondary:hover,
+.app-console-topbar-actions .button-ghost:hover {
+  background: hsl(240 8% 96%);
+  border-color: hsl(240 8% 76%);
+  transform: none;
+  box-shadow: none;
+}
+
+/* General buttons inside light main area */
+.app-console-main .button {
+  background:
+    radial-gradient(circle at top, hsl(0 0% 100% / 0.12), transparent 45%),
+    hsl(268 52% 46%);
+  border-color: hsl(268 52% 40%);
+  color: hsl(0 0% 100%);
+  box-shadow: 0 2px 8px hsl(268 52% 46% / 0.25);
+}
+
+.app-console-main .button:hover {
+  background: hsl(268 52% 42%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px hsl(268 52% 46% / 0.3);
+}
+
+.app-console-main .button-secondary,
+.app-console-main .button-ghost {
+  background: hsl(0 0% 100%);
+  border-color: hsl(240 8% 82%);
+  color: hsl(240 20% 22%);
+  box-shadow: none;
+}
+
+.app-console-main .button-secondary:hover,
+.app-console-main .button-ghost:hover {
+  background: hsl(240 8% 96%);
+  border-color: hsl(240 8% 72%);
+  box-shadow: none;
+}
+
+/* ─────────────────────────────────────────
+   Console Main: Light content area
+   Sidebar stays dark; main pane is light.
+───────────────────────────────────────── */
+
+.app-console-main {
+  /* Redefine CSS vars so component classes pick up light values */
+  --text: hsl(240 25% 12%);
+  --ink: hsl(240 25% 12%);
+  --ink-soft: hsl(240 12% 42%);
+  --muted: hsl(240 8% 56%);
+  --border: hsl(240 8% 88%);
+  --secondary: hsl(0 0% 100%);
+  --accent-strong: hsl(268 52% 50%);
+  background: hsl(240 8% 95%);
+  color: hsl(240 25% 12%);
+}
+
+/* Topbar on light */
+.app-console-topbar {
+  background: hsl(0 0% 100%);
+  border-bottom: 1px solid hsl(240 8% 90%);
+}
+
+.app-console-eyebrow {
+  color: hsl(268 52% 50%);
+}
+
+.app-console-thread-chip {
+  background: hsl(268 52% 50% / 0.1);
+  border-color: hsl(268 52% 50% / 0.25);
+  color: hsl(268 52% 42%);
+}
+
+.app-console-page-title {
+  color: hsl(240 25% 12%);
+}
+
+.app-console-page-desc {
+  color: hsl(240 12% 44%);
+}
+
+.app-console-content-header {
+  border-bottom-color: hsl(240 8% 88%);
+}
+
+/* ── Cards & containers inside main ── */
+
+.app-console-main .site-card,
+.app-console-main .product-stat-card,
+.app-console-main .product-empty-state,
+.app-console-main .product-setting-metric,
+.app-console-main .product-route-item,
+.app-console-main .product-chat-preview,
+.app-console-main .settings-console-switcher,
+.app-console-main .settings-role-group,
+.app-console-main .supplementary-chat-shell,
+.app-console-main .connect-im-step-card,
+.app-console-main .connect-im-context-item {
+  background: hsl(0 0% 100%);
+  border-color: hsl(240 8% 88%);
+  box-shadow: 0 1px 3px hsl(240 15% 12% / 0.06);
+}
+
+.app-console-main .product-action-card-primary {
+  background:
+    radial-gradient(circle at top right, hsl(268 52% 50% / 0.08), transparent 30%),
+    hsl(0 0% 100%);
+  border-color: hsl(268 52% 50% / 0.2);
+}
+
+.app-console-main .product-status-card-warning {
+  background:
+    radial-gradient(circle at top right, hsl(20 75% 55% / 0.08), transparent 34%),
+    hsl(0 0% 100%);
+  border-color: hsl(20 65% 55% / 0.3);
+}
+
+.app-console-main .product-status-card-ready {
+  background:
+    radial-gradient(circle at top right, hsl(150 50% 40% / 0.07), transparent 36%),
+    hsl(0 0% 100%);
+  border-color: hsl(150 45% 40% / 0.3);
+}
+
+.app-console-main .product-status-card-neutral {
+  border-color: hsl(240 8% 88%);
+}
+
+.app-console-main .product-glance-grid > .product-highlight-card:not(.product-action-card) {
+  background:
+    radial-gradient(circle at top right, hsl(268 52% 50% / 0.05), transparent 30%),
+    hsl(0 0% 100%);
+  border-color: hsl(240 8% 88%);
+}
+
+.app-console-main .product-signal-grid .site-card,
+.app-console-main .product-jump-grid .site-card {
+  background: hsl(0 0% 100%);
+  border-color: hsl(240 8% 88%);
+}
+
+.app-console-main .panel,
+.app-console-main .topbar {
+  background: hsl(0 0% 100%);
+  border-color: hsl(240 8% 88%);
+}
+
+.app-console-main .product-role-card {
+  background:
+    radial-gradient(circle at top left, hsl(268 52% 50% / 0.05), transparent 30%),
+    hsl(0 0% 100%);
+  border-color: hsl(240 8% 88%);
+}
+
+/* ── Status pills on light ── */
+
+.app-console-main .product-status-pill {
+  background: hsl(240 8% 92%);
+  border-color: hsl(240 8% 84%);
+  color: hsl(240 15% 40%);
+}
+
+.app-console-main .product-status-pill-warning {
+  background: hsl(20 90% 94%);
+  border-color: hsl(20 65% 65%);
+  color: hsl(20 65% 36%);
+}
+
+.app-console-main .product-status-pill-ready {
+  background: hsl(150 50% 92%);
+  border-color: hsl(150 45% 55%);
+  color: hsl(150 50% 26%);
+}
+
+.app-console-main .product-status-pill-neutral {
+  background: hsl(240 8% 92%);
+  color: hsl(240 15% 44%);
+}
+
+/* ── Text inside product cards on light ── */
+
+.app-console-main .product-inline-kicker,
+.app-console-main .home-kicker {
+  color: hsl(268 52% 50%);
+}
+
+.app-console-main .product-section-heading h2,
+.app-console-main .product-status-card-head h2,
+.app-console-main .product-stat-card h2,
+.app-console-main .product-stat-card strong,
+.app-console-main .product-action-card-primary h2 {
+  color: hsl(240 25% 12%);
+}
+
+.app-console-main .product-stat-card p,
+.app-console-main .product-route-item p,
+.app-console-main .product-chat-preview p,
+.app-console-main .product-status-meta span,
+.app-console-main .product-meta-list p,
+.app-console-main .product-section-heading p {
+  color: hsl(240 12% 44%);
+}
+
+.app-console-main .site-inline-link {
+  color: hsl(268 52% 50%);
+}
+
+/* ── Inputs on light ── */
+
+.app-console-main .input,
+.app-console-main select.input,
+.app-console-main textarea.input {
+  background: hsl(0 0% 100%);
+  border-color: hsl(240 8% 84%);
+  color: hsl(240 25% 12%);
+  box-shadow: inset 0 1px 2px hsl(240 15% 12% / 0.05);
+}
+
+.app-console-main .input:focus {
+  border-color: hsl(268 52% 55%);
+  outline: 2px solid hsl(268 52% 55% / 0.2);
+}
+
+/* ── Supplementary chat on light ── */
+
+.app-console-main .supplementary-chat-message-user {
+  background: hsl(240 8% 94%);
+  border-color: hsl(240 8% 86%);
+}
+
+.app-console-main .supplementary-chat-message-assistant {
+  background:
+    radial-gradient(circle at top right, hsl(268 52% 50% / 0.06), transparent 32%),
+    hsl(268 52% 99%);
+  border-color: hsl(268 52% 50% / 0.15);
+}
+
+.app-console-main .supplementary-chat-message-meta span,
+.app-console-main .helper-copy,
+.app-console-main .supplementary-chat-count {
+  color: hsl(240 10% 52%);
+}
+
+.app-console-main .supplementary-chat-message p {
+  color: hsl(240 20% 18%);
+}
+
+.app-console-main .site-inline-pill {
+  background: hsl(268 52% 50% / 0.1);
+  border-color: hsl(268 52% 50% / 0.2);
+  color: hsl(268 52% 44%);
+}
+
+/* ── Misc on light ── */
+
+.app-console-main .memory-card {
+  background: hsl(0 0% 100%);
+  border-color: hsl(240 8% 88%);
+}
+
+.app-console-main .memory-card:hover {
+  background: hsl(240 8% 98%);
+  border-color: hsl(268 52% 50% / 0.25);
+}
+
+.app-console-main .connect-im-binding-card-active {
+  background:
+    radial-gradient(circle at top right, hsl(150 50% 40% / 0.07), transparent 36%),
+    hsl(0 0% 100%);
+  border-color: hsl(150 45% 40% / 0.3);
+}
+
+.app-console-main .thread-badge,
+.app-console-main .thread-badge-muted {
+  background: hsl(240 8% 92%);
+  border-color: hsl(240 8% 84%);
+  color: hsl(240 12% 44%);
+}
+
+.app-console-main .thread-badge-live {
+  background: hsl(150 50% 92%);
+  border-color: hsl(150 45% 55%);
+  color: hsl(150 50% 26%);
+}
+
+.app-console-main .notice-warning {
+  background: hsl(35 85% 55% / 0.1);
+  color: hsl(35 75% 34%);
+  border-color: hsl(35 75% 55% / 0.3);
+}
+
+.app-console-main .notice-error {
+  background: hsl(0 65% 45% / 0.1);
+  color: hsl(0 65% 36%);
+}
+
+.app-console-main .notice-success {
+  background: hsl(150 55% 40% / 0.1);
+  color: hsl(150 55% 28%);
+}
+
+/* ── Chat status bar (simplified chat layout) ── */
+
+.chat-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 0 4px;
+}
+
+/* Expand chat log in the simplified full-width layout */
+.app-console-main .supplementary-chat-log {
+  max-height: calc(100vh - 380px);
+  min-height: 280px;
+}
+
+.app-console-main .supplementary-chat-shell {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-console-main .supplementary-chat-form {
+  border-top-color: hsl(240 8% 90%);
+}
+
+/* ── Settings tabs on light ── */
+
+.app-console-main .settings-console-tab {
+  background: hsl(0 0% 100%);
+  border-color: hsl(240 8% 86%);
+  color: hsl(240 12% 44%);
+}
+
+.app-console-main .settings-console-tab span {
+  color: hsl(240 25% 12%);
+}
+
+.app-console-main .settings-console-tab:hover {
+  background: hsl(240 8% 97%);
+  border-color: hsl(268 52% 50% / 0.3);
+  color: hsl(240 20% 20%);
+}
+
+.app-console-main .settings-console-tab-active {
+  background: hsl(268 52% 50% / 0.08);
+  border-color: hsl(268 52% 50%);
+}
+
+/* ── Product section on light ── */
+
+.app-console-main .product-section-heading {
+  border-bottom: none;
+}
+
+.app-console-main h2,
+.app-console-main h3 {
+  color: hsl(240 25% 12%);
+}
+
+.app-console-main p {
+  color: hsl(240 12% 42%);
+}
+
+.app-console-main strong {
+  color: hsl(240 20% 16%);
 }

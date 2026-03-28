@@ -1,20 +1,22 @@
 :root {
   color-scheme: dark;
-  --bg: hsl(230 25% 10%);
-  --panel: hsl(230 25% 12%);
-  --panel-strong: hsl(230 25% 14%);
-  --panel-border: hsl(230 15% 20%);
-  --text: hsl(240 10% 96%);
-  --muted: hsl(240 15% 60%);
-  --accent: hsl(235 75% 62%);
-  --accent-strong: hsl(235 80% 55%);
-  --accent-soft: hsl(235 30% 18%);
-  --ink-soft: hsl(215 20.2% 65.1%);
-  --shadow-soft: 0 28px 70px hsl(0 0% 0% / 0.3);
-  --error-bg: hsl(0 75% 45% / 0.15);
-  --error-text: hsl(0 80% 70%);
-  --success-bg: hsl(150 65% 45% / 0.15);
-  --success-text: hsl(150 70% 75%);
+
+  /* Velvet Night palette — warm dark, violet accent, cream text */
+  --bg: hsl(240 22% 8%);
+  --panel: hsl(240 18% 12%);
+  --panel-strong: hsl(240 15% 16%);
+  --panel-border: hsl(240 12% 22%);
+  --text: hsl(38 18% 92%);         /* warm cream instead of cold white */
+  --muted: hsl(235 12% 58%);       /* warm-neutral mid-gray */
+  --accent: hsl(268 52% 68%);      /* soft violet — intimacy over tech-blue */
+  --accent-strong: hsl(268 58% 60%);
+  --accent-soft: hsl(268 38% 16%);
+  --ink-soft: hsl(235 14% 62%);
+  --shadow-soft: 0 28px 70px hsl(0 0% 0% / 0.4);
+  --error-bg: hsl(0 65% 45% / 0.15);
+  --error-text: hsl(0 75% 72%);
+  --success-bg: hsl(150 55% 40% / 0.15);
+  --success-text: hsl(150 65% 72%);
   --font-sans: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
   --font-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
 
@@ -27,16 +29,16 @@
   --popover-foreground: var(--text);
   --muted-foreground: var(--muted);
   --primary: var(--accent);
-  --primary-foreground: hsl(210 40% 98%);
-  --secondary: hsl(235 25% 16%);
+  --primary-foreground: hsl(38 18% 96%);
+  --secondary: hsl(240 18% 17%);
   --secondary-foreground: var(--text);
   --accent-foreground: var(--accent-strong);
   --border: var(--panel-border);
   --input: var(--panel-border);
-  --ring: hsl(235 75% 62% / 0.5);
-  --navbar-bg: hsl(230 25% 10%);
-  --navbar-bg-scrolled: hsl(230 25% 10% / 0.95);
-  --hover-bg: hsl(235 20% 16%);
+  --ring: hsl(268 52% 68% / 0.5);
+  --navbar-bg: hsl(240 22% 8%);
+  --navbar-bg-scrolled: hsl(240 22% 8% / 0.96);
+  --hover-bg: hsl(240 16% 17%);
 
   /* Border radius system */
   --radius-xs: 8px;
@@ -646,9 +648,9 @@ a {
 .site-shell {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(17, 117, 107, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(217, 154, 97, 0.16), transparent 24%),
-    linear-gradient(180deg, #fcf8f2 0%, #f7f1e8 40%, #eef3f9 100%);
+    radial-gradient(circle at top left, hsl(268 52% 68% / 0.06), transparent 35%),
+    radial-gradient(circle at top right, hsl(268 38% 40% / 0.08), transparent 30%),
+    hsl(240 22% 8%);
 }
 
 .site-header {
@@ -656,8 +658,8 @@ a {
   top: 0;
   z-index: 20;
   backdrop-filter: blur(18px);
-  background: rgba(251, 248, 242, 0.76);
-  border-bottom: 1px solid rgba(19, 34, 56, 0.06);
+  background: hsl(240 22% 8% / 0.88);
+  border-bottom: 1px solid hsl(240 12% 18%);
 }
 
 .site-header-inner,

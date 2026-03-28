@@ -8,33 +8,21 @@ import { createClient } from "@/lib/supabase/server";
 
 const productConsoleNavItems = [
   {
-    href: "/app",
-    label: "Console Home",
-    description: "State, next step, and operator signals",
-    match: ["/app"],
-  },
-  {
     href: "/app/chat",
-    label: "Web Continuation",
-    description: "Use web as the supporting thread lane",
+    label: "Web Chat",
+    description: "Supplementary thread continuation",
     match: ["/app/chat", "/chat"],
-  },
-  {
-    href: "/app/roles",
-    label: "Role Assets",
-    description: "Manage and switch role identities",
-    match: ["/app/roles"],
   },
   {
     href: "/app/memory",
     label: "Memory Center",
-    description: "Inspect, repair, and restore memory",
+    description: "Inspect, repair, and restore",
     match: ["/app/memory"],
   },
   {
     href: "/app/settings",
     label: "Integrations & Settings",
-    description: "Role core, channels, and boundaries",
+    description: "Channels, role, and boundaries",
     match: [
       "/app/settings",
       "/app/profile",
@@ -59,37 +47,31 @@ function isActiveConsoleRoute(
   currentHref: string,
   matchers: readonly string[],
 ) {
-  if (matchers.includes(currentHref)) {
-    return true;
+  if (matchers.includes(currentHref)) return true;
+  return matchers.some((m) => currentHref.startsWith(`${m}/`));
+}
+
+function buildConsoleNavHref(href: string, roleId: string | null) {
+  if (!roleId) return href;
+  if (href === "/app/chat" || href === "/app/memory" || href === "/app/settings") {
+    return `${href}?role=${encodeURIComponent(roleId)}`;
   }
-
-  return matchers.some((matcher) => {
-    if (matcher === "/app") {
-      return currentHref.startsWith("/app/");
-    }
-
-    return currentHref.startsWith(`${matcher}/`);
-  });
+  return href;
 }
 
 function buildConsoleSummary(overview: DashboardOverview | null) {
   const roleName = overview?.currentRole?.name ?? "No role yet";
   const personaSummary =
     overview?.currentRole?.personaSummary ??
-    "Create a role first so the relationship system has a persistent identity to manage.";
-  const relationshipLabel =
-    overview?.relationshipSummary.label ?? "Setup needed";
+    "Create a role to start the relationship loop.";
+  const relationshipLabel = overview?.relationshipSummary.label ?? "Setup needed";
   const currentThread = overview?.currentThread;
   const activeChannels = overview?.channelSummary.active ?? 0;
   const memoryCount = overview?.memorySummary.active ?? 0;
   const platformLabel = overview?.channelSummary.platforms.length
     ? overview.channelSummary.platforms.join(", ")
-    : "No live IM channel attached";
-
-  const statusTitle = activeChannels > 0 ? "IM loop live" : "Web-only loop";
-  const threadLabel = currentThread
-    ? `Canonical thread · ${currentThread.title}`
-    : "No canonical thread is active yet.";
+    : "No IM connected";
+  const statusTitle = activeChannels > 0 ? "IM live" : "Web only";
 
   return {
     roleName,
@@ -99,29 +81,8 @@ function buildConsoleSummary(overview: DashboardOverview | null) {
     activeChannels,
     memoryCount,
     statusTitle,
-    threadLabel,
     platformLabel,
   };
-}
-
-function buildConsoleNavHref(href: string, roleId: string | null) {
-  if (!roleId) {
-    return href;
-  }
-
-  if (href === "/app") {
-    return `/app/${encodeURIComponent(roleId)}`;
-  }
-
-  if (
-    href === "/app/chat" ||
-    href === "/app/memory" ||
-    href === "/app/settings"
-  ) {
-    return `${href}?role=${encodeURIComponent(roleId)}`;
-  }
-
-  return href;
 }
 
 export async function ProductConsoleShell({
@@ -138,140 +99,127 @@ export async function ProductConsoleShell({
   if (!overview) {
     const user = await requireUser(currentHref);
     const supabase = await createClient();
-    overview = await loadDashboardOverview({
-      supabase,
-      userId: user.id,
-    });
+    overview = await loadDashboardOverview({ supabase, userId: user.id });
   }
 
   const summary = buildConsoleSummary(overview);
-  const landingPreviewHref = "/?preview=landing";
   const activeRoleId = overview?.currentRole?.agentId ?? null;
+  const consoleHomeHref = activeRoleId
+    ? `/app/${encodeURIComponent(activeRoleId)}`
+    : "/app";
+
+  const isConsoleHome =
+    currentHref === consoleHomeHref ||
+    currentHref === `/app/${encodeURIComponent(activeRoleId ?? "")}`;
 
   return (
-    <main className="shell">
-      <section className="card card-wide product-console-shell">
-        <div className="product-console-layout">
-          <aside className="product-console-sidebar">
-            <div className="product-console-sidebar-top">
-              <div className="product-console-brand-row">
-                <Link
-                  className="product-console-home"
-                  href={landingPreviewHref}
-                >
-                  SparkCore Public
-                </Link>
-                <span className="product-console-status">App Console</span>
-              </div>
-
-              <section className="product-console-role-card">
-                <div className="product-console-role-avatar" aria-hidden="true">
-                  {summary.roleName.slice(0, 1).toUpperCase()}
-                </div>
-                <div className="product-console-role-copy">
-                  <p className="product-console-role-kicker">
-                    {summary.relationshipLabel}
-                  </p>
-                  <h2>{summary.roleName}</h2>
-                  <p>{summary.personaSummary}</p>
-                </div>
-              </section>
-
-              <nav aria-label="Product console" className="product-console-nav">
-                {productConsoleNavItems.map((item) => (
-                  <Link
-                    className={`product-console-nav-link ${
-                      isActiveConsoleRoute(currentHref, item.match)
-                        ? "product-console-nav-link-active"
-                        : ""
-                    }`}
-                    href={buildConsoleNavHref(item.href, activeRoleId)}
-                    key={item.href}
-                  >
-                    <span>{item.label}</span>
-                    <small>{item.description}</small>
-                  </Link>
-                ))}
-              </nav>
-            </div>
-
-            <div className="product-console-sidebar-bottom">
-              <section className="product-console-sidebar-card">
-                <div className="product-console-status-row">
-                  <p className="product-console-sidebar-label">
-                    {summary.statusTitle}
-                  </p>
-                  <span
-                    aria-hidden="true"
-                    className={`product-console-status-dot ${
-                      summary.activeChannels > 0
-                        ? "product-console-status-dot-live"
-                        : "product-console-status-dot-muted"
-                    }`}
-                  />
-                </div>
-                <p className="product-console-thread-label">
-                  {summary.threadLabel}
-                </p>
-                <p className="product-console-platform-label">
-                  {summary.platformLabel}
-                </p>
-                <div className="product-console-sidebar-metrics">
-                  <div>
-                    <span>Memory</span>
-                    <strong>{summary.memoryCount}</strong>
-                  </div>
-                  <div>
-                    <span>Channels</span>
-                    <strong>{summary.activeChannels}</strong>
-                  </div>
-                </div>
-              </section>
-
-              <div className="product-console-utility-links">
-                {summary.currentThread ? (
-                  <Link
-                    className="product-console-utility-link"
-                    href={`/chat?thread=${encodeURIComponent(summary.currentThread.threadId)}`}
-                  >
-                    Open advanced workspace
-                  </Link>
-                ) : null}
-                <Link
-                  className="product-console-utility-link"
-                  href={landingPreviewHref}
-                >
-                  Back to landing
-                </Link>
-              </div>
-            </div>
-          </aside>
-
-          <div className="product-console-main">
-            <div className="product-console-main-topbar">
-              <span className="product-console-main-chip">{eyebrow}</span>
-              {summary.currentThread ? (
-                <span className="product-console-main-chip product-console-main-chip-muted">
-                  {summary.currentThread.title}
-                </span>
-              ) : null}
-            </div>
-
-            <div className="product-console-hero">
-              <div className="product-console-hero-copy">
-                <h1 className="title">{title}</h1>
-                <p className="lead">{description}</p>
-              </div>
-
-              {actions ? (
-                <div className="product-console-hero-actions">{actions}</div>
-              ) : null}
-            </div>
-
-            <div className="product-console-body">{children}</div>
+    <div className="app-console-shell">
+      {/* ── Left Sidebar ── */}
+      <aside className="app-console-sidebar">
+        <div className="app-console-sidebar-inner">
+          {/* Brand */}
+          <div className="app-console-brand">
+            <Link href="/?preview=landing" className="app-console-brand-link">
+              <span className="app-console-brand-mark">SC</span>
+              <span className="app-console-brand-name">SparkCore</span>
+            </Link>
           </div>
+
+          {/* Role card — links to console home */}
+          <Link
+            href={consoleHomeHref}
+            className={`app-console-role-card${isConsoleHome ? " active" : ""}`}
+          >
+            <div className="app-console-role-avatar" aria-hidden="true">
+              {summary.roleName.slice(0, 1).toUpperCase()}
+            </div>
+            <div className="app-console-role-info">
+              <span className="app-console-role-label">
+                {summary.relationshipLabel}
+              </span>
+              <h2 className="app-console-role-name">{summary.roleName}</h2>
+              <p className="app-console-role-desc">{summary.personaSummary}</p>
+            </div>
+          </Link>
+
+          {/* Nav — 3 modules */}
+          <nav className="app-console-nav" aria-label="Console">
+            {productConsoleNavItems.map((item) => {
+              const active = isActiveConsoleRoute(currentHref, item.match);
+              return (
+                <Link
+                  key={item.href}
+                  href={buildConsoleNavHref(item.href, activeRoleId)}
+                  className={`app-console-nav-item${active ? " active" : ""}`}
+                >
+                  <span className="app-console-nav-label">{item.label}</span>
+                  <span className="app-console-nav-desc">{item.description}</span>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
-      </section>
-    </main>
+
+        {/* Sidebar footer — IM status + metrics */}
+        <div className="app-console-sidebar-footer">
+          <div className="app-console-status-card">
+            <div className="app-console-status-row">
+              <span className="app-console-status-label">
+                {summary.statusTitle}
+              </span>
+              <span
+                className={`app-console-status-dot${
+                  summary.activeChannels > 0 ? " live" : ""
+                }`}
+                aria-hidden="true"
+              />
+            </div>
+            <p className="app-console-platform-label">
+              {summary.platformLabel}
+            </p>
+            <div className="app-console-metrics">
+              <div className="app-console-metric">
+                <span>Memory</span>
+                <strong>{summary.memoryCount}</strong>
+              </div>
+              <div className="app-console-metric">
+                <span>Channels</span>
+                <strong>{summary.activeChannels}</strong>
+              </div>
+            </div>
+          </div>
+          <Link href="/?preview=landing" className="app-console-exit-link">
+            ← Back to site
+          </Link>
+        </div>
+      </aside>
+
+      {/* ── Main Content Area ── */}
+      <main className="app-console-main">
+        {/* Topbar */}
+        <div className="app-console-topbar">
+          <div className="app-console-topbar-left">
+            <span className="app-console-eyebrow">{eyebrow}</span>
+            {summary.currentThread ? (
+              <span className="app-console-thread-chip">
+                {summary.currentThread.title}
+              </span>
+            ) : null}
+          </div>
+          {actions ? (
+            <div className="app-console-topbar-actions">{actions}</div>
+          ) : null}
+        </div>
+
+        {/* Scrollable content */}
+        <div className="app-console-content">
+          <div className="app-console-content-header">
+            <h1 className="app-console-page-title">{title}</h1>
+            <p className="app-console-page-desc">{description}</p>
+          </div>
+          <div className="app-console-body">{children}</div>
+        </div>
+      </main>
+    </div>
   );
 }

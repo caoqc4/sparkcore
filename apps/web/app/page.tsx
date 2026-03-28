@@ -4,7 +4,6 @@ import { HomeHeroPreview } from "@/components/home-hero-preview";
 import { SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
 import { getOptionalUser } from "@/lib/auth-redirect";
-import { blogFeaturedPosts } from "@/lib/blog";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { buildPageMetadata } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
@@ -21,6 +20,50 @@ type HomePageProps = {
     preview?: string;
   }>;
 };
+
+const roleShowcaseCards = [
+  {
+    emoji: "💫",
+    name: "Luna",
+    type: "Close Companion",
+    tagline: "Remembers the texture of your days, not just what you said.",
+  },
+  {
+    emoji: "🌿",
+    name: "Zara",
+    type: "Gentle Listener",
+    tagline: "Quiet, steady presence. Catches the things you mention in passing.",
+  },
+  {
+    emoji: "⚡",
+    name: "Ren",
+    type: "Warm & Sharp",
+    tagline: "Gets your humor and your philosophy. Keeps both without forcing either.",
+  },
+] as const;
+
+const faqItems = [
+  {
+    q: "Does it remember our past conversations?",
+    a: "Yes. Long memory is a core part of the product. Every significant detail is stored in visible rows you can inspect, verify, and repair from the web control center.",
+  },
+  {
+    q: "Do I need to chat on the website?",
+    a: "No. The website is for setup, memory review, channel management, and privacy control. The daily relationship loop is designed to live in IM after setup.",
+  },
+  {
+    q: "Which IM apps are supported?",
+    a: "You connect a supported IM channel after creating your role. Channel support is a product control surface — not hidden setup state.",
+  },
+  {
+    q: "Can I edit or delete memories?",
+    a: "You can inspect every memory row, hide entries, mark them incorrect, and restore them. The memory center is built for repair, not just review.",
+  },
+  {
+    q: "Is it private?",
+    a: "Privacy works through explicit boundaries, visible memory, and channel awareness. Relationship continuity does not have to feel like a black box.",
+  },
+] as const;
 
 const memoryPreviewCards = [
   {
@@ -88,8 +131,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     overview?.currentRole && overview?.currentThread,
   );
   const allowLandingPreview = params.preview === "landing";
-  const blogHighlights = blogFeaturedPosts.slice(0, 4);
-
   if (hasConsoleReady && !allowLandingPreview) {
     redirect("/app");
   }
@@ -109,53 +150,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <div className="home-hero-grid">
           {/* Left: Creation Form */}
           <div className="home-hero-form-section">
-            {/* Badge */}
-            <div style={{ display: "inline-flex", alignItems: "center" }}>
-              <span
-                style={{
-                  padding: "6px 16px",
-                  borderRadius: "999px",
-                  background: "hsl(235 75% 62% / 0.12)",
-                  color: "hsl(235 75% 62%)",
-                  fontSize: "0.75rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  border: "1px solid hsl(235 75% 62% / 0.2)",
-                }}
-              >
-                SparkCore
-              </span>
-            </div>
-
-            {/* Heading */}
-            <h1
-              style={{
-                margin: 0,
-                fontSize: "clamp(2.5rem, 5vw, 3.5rem)",
-                fontWeight: 600,
-                lineHeight: 1.1,
-                letterSpacing: "-0.03em",
-                color: "hsl(235 30% 75%)",
-              }}
-            >
+            <span className="home-hero-badge">SparkCore</span>
+            <h1 className="home-hero-heading">
               Create a companion<br />that remembers.
             </h1>
-            <p
-              style={{
-                margin: 0,
-                fontSize: "1.0625rem",
-                lineHeight: 1.7,
-                color: "var(--muted)",
-                maxWidth: "540px",
-              }}
-            >
-              Choose the role, tone, and bond on web. Keep the same relationship
-              moving in IM after setup, then return only when memory, privacy,
-              or channel repair needs operator control.
+            <p className="home-hero-lead">
+              Choose the role and tone on web. Keep the relationship
+              moving in IM — and return only when memory or privacy needs attention.
             </p>
-
-            {/* Form Component */}
             <HomeHeroForm user={user ? { id: user.id } : null} />
           </div>
 
@@ -164,35 +166,50 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       </section>
 
-      {/* Rest of the existing sections */}
+      {/* Role Showcase Section */}
+      <section className="home-feature-spotlight" id="home-roles">
+        <div className="home-section-heading">
+          <p className="home-kicker">Companion</p>
+          <h2>
+            Not a one-off chat. A relationship that grows.
+          </h2>
+          <p>
+            Every companion keeps the same thread, the same memory, and the same
+            emotional context — whether you're in IM or checking in from web.
+            The bond doesn't reset between sessions.
+          </p>
+        </div>
+
+        <div className="home-role-showcase-grid">
+          {roleShowcaseCards.map((role) => (
+            <article className="site-card home-role-showcase-card" key={role.name}>
+              <div className="img-placeholder img-placeholder-role" aria-hidden="true">
+                <span className="img-placeholder-emoji">{role.emoji}</span>
+              </div>
+              <div className="home-role-showcase-meta">
+                <span className="home-kicker">{role.type}</span>
+                <h3 className="home-role-showcase-name">{role.name}</h3>
+              </div>
+              <p className="home-role-showcase-tagline">{role.tagline}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* Memory Feature Section */}
       <section className="home-feature-spotlight" id="home-memory">
         <div className="home-section-heading">
           <p className="home-kicker">Memory</p>
-          <h2>
-            Memory should stay visible enough to inspect, not magical enough to
-            hide.
-          </h2>
-          <p>
-            This is one of the core reasons to choose SparkCore: the
-            relationship can keep continuity without asking you to trust an
-            opaque memory blob.
-          </p>
+          <h2>Memory that stays visible — not hidden in a black box.</h2>
         </div>
 
         <div className="home-feature-grid">
           <article className="home-feature-panel home-feature-panel-dark">
-            <h3>
-              The relationship can remember you without trapping that memory in
-              black box logic.
-            </h3>
-            <p>
-              SparkCore gives the web layer a real job: inspect memory, trace it
-              back to source, and repair it when the record drifts.
-            </p>
+            <h3>Inspect, trace, and repair what the companion remembers.</h3>
             <ul className="site-bullet-list">
-              <li>Visible rows that affect continuity.</li>
-              <li>Source trace when you need to verify provenance.</li>
-              <li>Repair actions instead of forced resets.</li>
+              <li>Visible memory rows you can inspect anytime.</li>
+              <li>Source trace back to the conversation that created it.</li>
+              <li>Repair actions — hide, mark incorrect, or restore.</li>
             </ul>
             <TrackedLink
               className="site-inline-link"
@@ -200,7 +217,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               href="/features/memory-center"
               payload={{ source: "home_memory_section_guide" }}
             >
-              Explore the memory guide
+              Memory guide
             </TrackedLink>
           </article>
 
@@ -209,7 +226,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               <article className="home-memory-preview-card" key={card.title}>
                 <p className="home-discovery-label">{card.label}</p>
                 <h3>{card.title}</h3>
-                <p>{card.body}</p>
               </article>
             ))}
           </aside>
@@ -219,12 +235,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       <section className="home-feature-spotlight" id="home-im-chat">
         <div className="home-section-heading">
           <p className="home-kicker">IM Chat</p>
-          <h2>The daily relationship loop belongs in IM after setup.</h2>
-          <p>
-            The website should create and control the relationship. IM should
-            carry the day-to-day rhythm. That separation keeps the product
-            cleaner and easier to understand.
-          </p>
+          <h2>Set up on web. Keep the relationship alive in IM.</h2>
         </div>
 
         <div className="home-feature-grid home-feature-grid-reverse">
@@ -247,19 +258,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </aside>
 
           <article className="home-feature-panel">
-            <h3>
-              Create on web first. Bind IM second. Let the same bond continue
-              there.
-            </h3>
-            <p>
-              SparkCore does not treat the website as the forever chat inbox. It
-              treats web as setup plus control, then hands the relationship into
-              IM where return behavior feels natural.
-            </p>
+            <h3>Web is for setup and control. IM is where the bond continues.</h3>
             <ul className="site-bullet-list">
-              <li>Create the role and canonical thread once.</li>
-              <li>Bind Telegram after setup, not before.</li>
-              <li>Keep supplementary web chat only for careful corrections.</li>
+              <li>Create the role and thread once on web.</li>
+              <li>Connect Telegram. The same relationship continues there.</li>
+              <li>Return to web only when you need memory or channel repair.</li>
             </ul>
             <TrackedLink
               className="site-inline-link"
@@ -273,77 +276,47 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       </section>
 
-      <section className="home-routes-wrap">
-        <div className="home-section-heading home-section-heading-compact">
-          <p className="home-kicker">Blog and pricing</p>
-          <h2>
-            Keep public reading and transaction pages separate from the core
-            landing flow.
-          </h2>
+      {/* FAQ / Trust Section */}
+      <section className="home-feature-spotlight" id="home-faq">
+        <div className="home-section-heading">
+          <p className="home-kicker">Questions</p>
+          <h2>Common questions about memory, IM, and privacy.</h2>
           <p>
-            Pricing deserves its own page because it is a high-intent decision
-            surface. Compare content now lives under blog so the header can stay
-            cleaner.
+            SparkCore is built differently from a generic chatbot. These answers
+            explain how the relationship loop actually works.
           </p>
         </div>
 
-        <div className="home-routes home-routes-compact">
-          <article className="home-route-panel home-route-panel-dark">
-            <p className="home-kicker">Blog</p>
-            <h2>Guides and compare articles now live in one hub.</h2>
-            <p className="home-route-copy">
-              Use blog for compare content, feature explainers, and future
-              product stories instead of scattering those routes through the
-              header.
-            </p>
-            <div className="home-route-chip-grid">
-              {blogHighlights.map((route) => (
+        <div className="home-faq-grid">
+          {faqItems.map((item) => (
+            <article className="site-card home-faq-card" key={item.q}>
+              <h3 className="home-faq-question">{item.q}</h3>
+              <p className="home-faq-answer">{item.a}</p>
+            </article>
+          ))}
+          <article className="site-card home-faq-card home-faq-card-trust">
+            <p className="home-kicker">Trust</p>
+            <h3>More detail on how SparkCore works</h3>
+            <div className="home-faq-trust-links">
+              {supportRoutes.map((route) => (
                 <TrackedLink
                   key={route.href}
-                  className="home-route-chip"
+                  className="site-inline-link"
                   event="landing_cta_click"
                   href={route.href}
-                  payload={{ source: `home_blog_${route.href}` }}
+                  payload={{ source: route.source }}
                 >
-                  {route.title}
+                  {route.label}
                 </TrackedLink>
               ))}
-            </div>
-          </article>
-
-          <article className="home-route-panel">
-            <p className="home-kicker">Pricing</p>
-            <h2>
-              Pricing should stay a dedicated page, not a crowded landing
-              section.
-            </h2>
-            <p className="home-route-copy">
-              People reaching pricing usually have higher commercial intent.
-              That page should stay clean, expandable, and independently
-              optimizable.
-            </p>
-            <div className="home-route-chip-grid">
               <TrackedLink
-                className="home-route-chip"
+                className="site-inline-link"
                 event="landing_cta_click"
-                href="/pricing"
-                payload={{ source: "home_pricing_route" }}
+                href="/how-it-works"
+                payload={{ source: "home_faq_how_it_works" }}
               >
-                Pricing
+                How it works
               </TrackedLink>
-              {supportRoutes
-                .filter((route) => route.href !== "/pricing")
-                .map((route) => (
-                  <TrackedLink
-                    key={route.href}
-                    className="home-route-chip"
-                    event="landing_cta_click"
-                    href={route.href}
-                    payload={{ source: route.source }}
-                  >
-                    {route.label}
-                  </TrackedLink>
-                ))}
             </div>
           </article>
         </div>
@@ -351,33 +324,33 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
       <section className="home-cta-band">
         <div>
-          <p className="home-kicker">Start here</p>
+          <p className="home-kicker">Ready?</p>
           <h2>
-            Create on web first. Move the relationship into IM after that.
+            Create your companion. Connect IM. Keep the relationship moving.
           </h2>
           <p>
-            The first page should stay simple: create the role, decide the bond,
-            preview the portrait slot, and continue into the deeper loop only
-            when you are ready.
+            Choose a name, pick a tone, and start the first conversation. The
+            rest of the relationship loop — memory, IM continuity, and privacy
+            control — follows from there.
           </p>
         </div>
 
         <div className="home-cta-actions">
-          <a
-            className="button button-primary"
-            href="#home-top"
-            style={{ minWidth: "200px", justifyContent: "center" }}
-          >
-            Back to create
-          </a>
           <TrackedLink
-            className="button button-secondary"
+            className="button button-primary home-cta-action"
             event="landing_cta_click"
-            href="/blog"
-            payload={{ source: "home_final_blog" }}
-            style={{ minWidth: "200px", justifyContent: "center" }}
+            href="/create"
+            payload={{ source: "home_final_cta" }}
           >
-            Read blog
+            Create my companion
+          </TrackedLink>
+          <TrackedLink
+            className="button button-secondary home-cta-action"
+            event="landing_cta_click"
+            href="/how-it-works"
+            payload={{ source: "home_final_how" }}
+          >
+            See how it works
           </TrackedLink>
         </div>
       </section>

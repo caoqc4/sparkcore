@@ -212,64 +212,23 @@ export default async function DashboardSettingsPage({
         </div>
       ) : null}
 
-      <section className="settings-console-switcher">
-        <div className="settings-console-switcher-copy">
-          <p className="home-kicker">Choose a lane</p>
-          <h2>{activeTabMeta.title}</h2>
-          <p>{activeTabMeta.description}</p>
-        </div>
-        <nav className="settings-console-tabs" aria-label="Settings sections">
-          {settingsTabs.map((tab) => {
-            const isActive = tab.id === activeTab;
+      <nav className="settings-console-tabs" aria-label="Settings sections">
+        {settingsTabs.map((tab) => {
+          const isActive = tab.id === activeTab;
 
-            return (
-              <Link
-                aria-current={isActive ? "page" : undefined}
-                className={`settings-console-tab ${isActive ? "settings-console-tab-active" : ""}`}
-                href={buildSettingsTabHref(tab.id, roleQuerySuffix)}
-                key={tab.id}
-              >
-                <span>{tab.label}</span>
-                <small>{tab.description}</small>
-              </Link>
-            );
-          })}
-        </nav>
-      </section>
-
-      <div className="product-glance-grid">
-        <article className="site-card product-highlight-card">
-          <p className="home-kicker">Current context</p>
-          <h2>{profileData?.role?.name ?? "No role yet"}</h2>
-          <p>
-            {overview?.currentThread
-              ? `${overview.currentThread.title} is the canonical thread currently carrying this relationship loop.`
-              : "Create a role and canonical thread first to unlock the full console."}
-          </p>
-        </article>
-        <article className="product-stat-card">
-          <span className="product-inline-kicker">Active tab</span>
-          <strong>{activeTabMeta.label}</strong>
-          <p>{activeTabMeta.description}</p>
-        </article>
-        <article className="product-stat-card">
-          <span className="product-inline-kicker">Channels</span>
-          <strong>{activeBindings.length} live</strong>
-          <p>
-            {activeBindings.length > 0
-              ? activeBindings.map((item) => item.platform).join(", ")
-              : "No IM channel is attached yet."}
-          </p>
-        </article>
-        <article className="product-stat-card">
-          <span className="product-inline-kicker">Memory</span>
-          <strong>{privacyData.memory.active} visible rows</strong>
-          <p>
-            {privacyData.memory.hidden} hidden · {privacyData.memory.incorrect}{" "}
-            incorrect
-          </p>
-        </article>
-      </div>
+          return (
+            <Link
+              aria-current={isActive ? "page" : undefined}
+              className={`settings-console-tab ${isActive ? "settings-console-tab-active" : ""}`}
+              href={buildSettingsTabHref(tab.id, roleQuerySuffix)}
+              key={tab.id}
+            >
+              <span>{tab.label}</span>
+              <small>{tab.description}</small>
+            </Link>
+          );
+        })}
+      </nav>
 
       {activeTab === "role" ? (
         <section className="product-section settings-console-section">

@@ -5,14 +5,6 @@ import { requireUser } from "@/lib/auth-redirect";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { createClient } from "@/lib/supabase/server";
 
-function formatTimestamp(value: string | null) {
-  if (!value) {
-    return "Not recorded yet";
-  }
-
-  return new Date(value).toLocaleString();
-}
-
 function formatStateLabel(value: string | null, fallback: string) {
   if (!value) {
     return fallback;
@@ -81,10 +73,6 @@ export default async function AppConsolePage({ params }: AppConsolePageProps) {
 
   const roleQuerySuffix = `?role=${encodeURIComponent(roleId)}`;
   const settingsHref = `/app/settings${roleQuerySuffix}`;
-  const settingsChannelsHref = `${settingsHref}&tab=channels`;
-  const settingsRoleHref = `${settingsHref}&tab=role`;
-  const chatHref = `/app/chat${roleQuerySuffix}`;
-  const memoryHref = `/app/memory${roleQuerySuffix}`;
 
   const withRoleContext = (href: string) => {
     if (!href.startsWith("/app/")) {
@@ -149,44 +137,6 @@ export default async function AppConsolePage({ params }: AppConsolePageProps) {
           href: "/app/memory",
           cta: "Inspect memory",
         };
-  const jumpCards = [
-    {
-      title: "Review memory quality",
-      body:
-        memoryAttentionCount > 0
-          ? `${memoryAttentionCount} memory row(s) already need attention. Repair drift before it compounds.`
-          : "Memory is stable enough to inspect without repair pressure right now.",
-      href: memoryHref,
-      cta: "Open memory center",
-    },
-    {
-      title: needsChannelAttention
-        ? "Finish IM connection"
-        : "Check channel health",
-      body: needsChannelAttention
-        ? "The loop is still web-first. Attach Telegram so the daily rhythm can move into IM."
-        : "Bindings are live. Verify the active channel stays healthy and ready for follow-up continuity.",
-      href: needsChannelAttention
-        ? "/connect-im"
-        : settingsChannelsHref,
-      cta: needsChannelAttention
-        ? "Open connect flow"
-        : "Open channel settings",
-    },
-    {
-      title: "Continue the same thread on web",
-      body: "Use supplementary chat when you need corrective continuation or a controlled web-side follow-up on the canonical thread.",
-      href: chatHref,
-      cta: "Open supplementary chat",
-    },
-    {
-      title: "Refine role behavior",
-      body: "Adjust tone, relationship mode, and boundaries when the relationship feel needs to shift without starting over.",
-      href: settingsRoleHref,
-      cta: "Edit role core",
-    },
-  ] as const;
-
   return (
     <ProductConsoleShell
       actions={
@@ -328,104 +278,6 @@ export default async function AppConsolePage({ params }: AppConsolePageProps) {
         </article>
       </div>
 
-      <section className="product-section">
-        <div className="product-section-heading">
-          <p className="home-kicker">Recent signals</p>
-          <h2>See what changed recently before you decide where to work.</h2>
-          <p>
-            This is the lightweight operator view: recent interaction, follow-up
-            pressure, and the current thread posture without forcing you into a
-            long settings page first.
-          </p>
-        </div>
-
-        <div className="site-card-grid product-signal-grid">
-          <article className="site-card">
-            <h2>Last interaction</h2>
-            <p>{formatTimestamp(overview.lastInteractionAt)}</p>
-            <p>
-              {overview.recentActivity.userMessage ??
-                "No recent user message has been recorded yet for this relationship loop."}
-            </p>
-          </article>
-
-          <article className="site-card">
-            <h2>Latest assistant turn</h2>
-            <p>
-              {overview.recentActivity.assistantMessage ??
-                "No assistant reply preview is available yet. The next interaction will populate this view."}
-            </p>
-          </article>
-
-          <article className="site-card">
-            <h2>Follow-up queue</h2>
-            <p>
-              {overview.followUpSummary.pendingCount > 0
-                ? `${overview.followUpSummary.pendingCount} pending follow-up action(s).`
-                : "No queued follow-up actions right now."}
-            </p>
-            <p>
-              Next trigger ·{" "}
-              {formatTimestamp(overview.followUpSummary.nextTriggerAt)}
-            </p>
-          </article>
-
-          <article className="site-card">
-            <h2>Thread posture</h2>
-            <p>
-              Language ·{" "}
-              {overview.threadState.currentLanguageHint?.toUpperCase() ??
-                "not specified"}
-            </p>
-            <p>
-              Thread ID ·{" "}
-              {overview.currentThread?.threadId ?? "not established yet"}
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section className="product-section">
-        <div className="product-section-heading">
-          <p className="home-kicker">Jump into work</p>
-          <h2>
-            Choose the surface that matches the job you actually need to do.
-          </h2>
-          <p>
-            Keep the console task-oriented: repair memory, check channel health,
-            continue the same thread, or refine the role core.
-          </p>
-        </div>
-
-        <div className="site-card-grid product-jump-grid">
-          {jumpCards.map((card) => (
-            <article className="site-card" key={card.title}>
-              <h2>{card.title}</h2>
-              <p>{card.body}</p>
-              <Link className="site-inline-link" href={card.href}>
-                {card.cta}
-              </Link>
-            </article>
-          ))}
-          <article className="site-card">
-            <h2>Open the deeper workspace</h2>
-            <p>
-              Branch into the full chat environment only when you need agent
-              tooling, raw thread access, or a more advanced operator surface.
-            </p>
-            <Link
-              className="site-inline-link"
-              href={
-                overview.currentThread
-                  ? `/chat?thread=${encodeURIComponent(overview.currentThread.threadId)}`
-                  : "/chat"
-              }
-            >
-              Open advanced workspace
-            </Link>
-          </article>
-        </div>
-      </section>
     </ProductConsoleShell>
   );
 }
