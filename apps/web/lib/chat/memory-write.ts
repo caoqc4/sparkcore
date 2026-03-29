@@ -3,6 +3,7 @@ import {
   buildMemoryV2Fields,
   canTransitionMemoryStatus,
   getMemoryStatus,
+  inferGenericMemoryStability,
   inferLegacyMemoryStability,
   isMemoryActive,
   isSupportedSingleSlotPath,
@@ -90,9 +91,13 @@ function buildExtractionPrompt({
 
   return [
     "Extract long-term memory candidates from the latest user message.",
-    "Only return memories that are explicit, self-stated, and relatively stable.",
-    "Do not store temporary states, one-off plans, vague guesses, or emotional snapshots.",
-    "Supported memory_type values are only: profile, preference, goal.",
+    "Only return memories that are explicit, self-stated, and durable enough to help future conversations.",
+    "Do not store vague guesses, temporary moods, one-off plans, or throwaway details.",
+    "Supported memory_type values are only: profile, preference, goal, episode, mood, key_date, social.",
+    "Use episode for a concrete past event or lived experience that is likely to matter again.",
+    "Use mood only for a recurring emotional pattern or durable emotional context, not a fleeting feeling.",
+    "Use key_date for birthdays, anniversaries, deadlines, or other important dates.",
+    "Use social for people in the user's life such as family, partner, friends, or colleagues.",
     `Store only when should_store is true and confidence reflects the quality of the evidence.`,
     "Return strict JSON with this exact shape:",
     '{"memories":[{"memory_type":"profile","content":"...","should_store":true,"confidence":0.95,"reason":"..."}]}',
@@ -128,7 +133,11 @@ function parseMemoryExtraction(payload: string) {
       (candidate) =>
         (candidate.memory_type === "profile" ||
           candidate.memory_type === "preference" ||
-          candidate.memory_type === "goal") &&
+          candidate.memory_type === "goal" ||
+          candidate.memory_type === "episode" ||
+          candidate.memory_type === "mood" ||
+          candidate.memory_type === "key_date" ||
+          candidate.memory_type === "social") &&
         candidate.content.length > 0
     );
 }
@@ -981,7 +990,11 @@ export async function executeMemoryWriteRequests({
                 (type): type is MemoryType =>
                   type === "profile" ||
                   type === "preference" ||
-                  type === "goal"
+                  type === "goal" ||
+                  type === "episode" ||
+                  type === "mood" ||
+                  type === "key_date" ||
+                  type === "social"
               )
           )
           .concat(threadStateCreatedCount > 0 ? ["goal"] : [])

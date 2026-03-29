@@ -4,6 +4,7 @@ import type {
   ProactiveSender
 } from "@/lib/integrations/im-adapter";
 import { buildProactiveSendResultMetadata } from "@/lib/chat/follow-up-proactive-metadata";
+import { isTelegramInvalidBindingDescription } from "@/lib/integrations/telegram";
 import { callTelegramApi } from "@/scripts/telegram-utils";
 
 export class TelegramProactiveSender implements ProactiveSender {
@@ -38,13 +39,16 @@ export class TelegramProactiveSender implements ProactiveSender {
     });
 
     if (!body?.ok) {
+      const description =
+        typeof body?.description === "string"
+          ? body.description
+          : "telegram proactive send failed";
+      const status = isTelegramInvalidBindingDescription(description) ? "invalid" : "failed";
+
       return {
         follow_up_id: request.follow_up_id,
-        status: "failed",
-        failure_reason:
-          typeof body?.description === "string"
-            ? body.description
-            : "telegram proactive send failed",
+        status,
+        failure_reason: description,
         metadata: buildProactiveSendResultMetadata({
           sender: "telegram",
           fields: {

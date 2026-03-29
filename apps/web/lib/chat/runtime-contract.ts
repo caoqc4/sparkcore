@@ -1,4 +1,7 @@
-import type { RecalledMemoryType } from "@/lib/chat/memory-shared";
+import type {
+  MemoryType,
+  RecalledMemoryType
+} from "@/lib/chat/memory-shared";
 
 export type RuntimeAssistantMessage = {
   role: "assistant";
@@ -10,7 +13,7 @@ export type RuntimeAssistantMessage = {
 
 export type RuntimeGenericMemoryWriteRequest = {
   kind: "generic_memory";
-  memory_type: "profile" | "preference" | "goal";
+  memory_type: MemoryType;
   candidate_content: string;
   reason: string;
   confidence: number;

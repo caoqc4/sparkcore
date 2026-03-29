@@ -4,7 +4,12 @@ import {
   loadOwnedAvailableAgents,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
-import { resolveProductRoleCore, type ProductRoleCoreConfig } from "@/lib/product/role-core";
+import {
+  resolveProductRoleCore,
+  resolveStoredProductRoleAppearance,
+  type ProductRoleAppearanceSummary,
+  type ProductRoleCoreConfig
+} from "@/lib/product/role-core";
 
 export type ProductProfilePageData = {
   workspaceId: string;
@@ -15,6 +20,7 @@ export type ProductProfilePageData = {
     stylePrompt: string;
     systemPrompt: string;
     currentThreadTitle: string | null;
+    appearance: ProductRoleAppearanceSummary;
     config: ProductRoleCoreConfig;
   } | null;
 };
@@ -83,6 +89,7 @@ export async function loadProductProfilePageData(args: {
       systemPrompt: agent.system_prompt,
       currentThreadTitle:
         latestThreadResult.data?.agent_id === agent.id ? latestThreadResult.data.title : null,
+      appearance: resolveStoredProductRoleAppearance(agent.metadata),
       config: resolveProductRoleCore({
         metadata: agent.metadata,
         stylePrompt: agent.style_prompt,

@@ -78,6 +78,20 @@ export function getFollowUpCronEnv() {
   };
 }
 
+export function getKnowledgeProcessingEnv() {
+  const secret = process.env.KNOWLEDGE_PROCESSING_SECRET;
+
+  if (!secret || secret.trim().length === 0) {
+    throw new Error(
+      "Missing knowledge processing secret. Set KNOWLEDGE_PROCESSING_SECRET."
+    );
+  }
+
+  return {
+    secret
+  };
+}
+
 export function getOptionalPostHogEnv() {
   const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   const apiHost = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";

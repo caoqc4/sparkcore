@@ -58,6 +58,41 @@ export function isValidTelegramWebhookSecret(args: {
   return args.headerValue === args.configuredSecret;
 }
 
+export function isTelegramInvalidBindingDescription(description: string | null | undefined) {
+  if (!description) {
+    return false;
+  }
+
+  const normalized = description.toLowerCase();
+
+  return (
+    normalized.includes("chat not found") ||
+    normalized.includes("user not found") ||
+    normalized.includes("bot was blocked by the user") ||
+    normalized.includes("forbidden: bot was blocked") ||
+    normalized.includes("forbidden: user is deactivated") ||
+    normalized.includes("have no rights to send a message")
+  );
+}
+
+export function isTelegramInvalidDeliveryResponse(response: {
+  ok: boolean;
+  body: unknown;
+}) {
+  if (response.ok) {
+    return false;
+  }
+
+  const body =
+    response.body && typeof response.body === "object" && !Array.isArray(response.body)
+      ? (response.body as Record<string, unknown>)
+      : null;
+  const description =
+    typeof body?.description === "string" ? body.description : null;
+
+  return isTelegramInvalidBindingDescription(description);
+}
+
 export async function sendTelegramOutboundMessages(args: {
   botToken: string;
   messages: OutboundChannelMessage[];

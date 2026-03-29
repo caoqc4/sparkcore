@@ -8,6 +8,7 @@ import {
   loadOwnedThread,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
+import { loadChannelPlatformCapability } from "@/lib/product/channels";
 
 function redirectWithMessage(args: {
   agentId?: string | null;
@@ -87,6 +88,25 @@ export async function connectTelegramBinding(formData: FormData) {
     });
   }
 
+  const telegramCapability = await loadChannelPlatformCapability({
+    supabase,
+    platform: "telegram"
+  });
+
+  if (
+    !telegramCapability ||
+    telegramCapability.availabilityStatus !== "active" ||
+    !telegramCapability.supportsBinding
+  ) {
+    redirectWithMessage({
+      threadId,
+      agentId,
+      feedback:
+        "Telegram binding is not available in this environment yet.",
+      feedbackType: "error"
+    });
+  }
+
   const [threadResult, agentResult] = await Promise.all([
     loadOwnedThread({
       supabase,
@@ -156,9 +176,9 @@ export async function connectTelegramBinding(formData: FormData) {
         agent_id: payload.agent_id,
         thread_id: payload.thread_id,
         status: payload.status,
-        metadata: payload.metadata,
-        updated_at: new Date().toISOString()
-      })
+      metadata: payload.metadata,
+      updated_at: new Date().toISOString()
+    })
       .eq("id", existingBinding.id);
 
     if (error) {

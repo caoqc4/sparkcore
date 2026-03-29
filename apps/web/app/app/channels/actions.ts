@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { updateOwnedChannelBindingStatus } from "@/lib/product/channels";
 import { createClient } from "@/lib/supabase/server";
 
 function resolveRedirectPath(formData: FormData, fallbackPath: string) {
@@ -50,44 +51,23 @@ export async function unbindProductChannel(formData: FormData) {
     redirect(`/login?next=${encodeURIComponent(redirectPath)}`);
   }
 
-  const { data: existingBinding, error: existingError } = await supabase
-    .from("channel_bindings")
-    .select("id, metadata")
-    .eq("id", bindingId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (existingError) {
-    redirectWithMessage(redirectPath, existingError.message, "error");
-  }
-
-  if (!existingBinding) {
-    redirectWithMessage(redirectPath, "The selected channel binding is unavailable.", "error");
-  }
-
-  const existingMetadata =
-    existingBinding.metadata &&
-    typeof existingBinding.metadata === "object" &&
-    !Array.isArray(existingBinding.metadata)
-      ? (existingBinding.metadata as Record<string, unknown>)
-      : {};
-
-  const { error } = await supabase
-    .from("channel_bindings")
-    .update({
+  try {
+    await updateOwnedChannelBindingStatus({
+      supabase,
+      bindingId,
+      userId: user.id,
       status: "inactive",
-      metadata: {
-        ...existingMetadata,
+      metadataPatch: {
         unbound_at: new Date().toISOString(),
         managed_by: "dashboard-channels-page"
-      },
-      updated_at: new Date().toISOString()
-    })
-    .eq("id", existingBinding.id)
-    .eq("user_id", user.id);
-
-  if (error) {
-    redirectWithMessage(redirectPath, error.message, "error");
+      }
+    });
+  } catch (error) {
+    redirectWithMessage(
+      redirectPath,
+      error instanceof Error ? error.message : "Unable to update the selected binding.",
+      "error"
+    );
   }
 
   revalidatePath("/connect-im");

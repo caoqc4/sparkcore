@@ -1,4 +1,5 @@
 import { loadThreadMessages } from "@/lib/chat/message-read";
+import { SupabaseThreadStateRepository } from "@/lib/chat/thread-state-supabase-repository";
 import {
   loadLatestOwnedThread,
   loadOwnedActiveAgent,
@@ -6,6 +7,33 @@ import {
   loadPrimaryWorkspace,
 } from "@/lib/chat/runtime-turn-context";
 import { loadOwnedChannelBindings } from "@/lib/product/channels";
+
+type UnknownRecord = Record<string, unknown>;
+
+function getRecord(value: unknown): UnknownRecord | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as UnknownRecord;
+}
+
+function readMessageSourceMetadata(metadata: unknown) {
+  const metadataRecord = getRecord(metadata);
+  const runtimeInput = getRecord(metadataRecord?.runtime_turn_input);
+  const runtimeContext = getRecord(runtimeInput?.context);
+  const surface = typeof metadataRecord?.source === "string" ? metadataRecord.source : null;
+  const platform =
+    typeof runtimeContext?.source_platform === "string" ? runtimeContext.source_platform : null;
+  const bindingId =
+    typeof runtimeContext?.binding_id === "string" ? runtimeContext.binding_id : null;
+
+  return {
+    sourceSurface: surface,
+    sourcePlatform: platform,
+    sourceBindingId: bindingId
+  };
+}
 
 export type ProductSupplementaryChatPageData = {
   workspaceId: string;
@@ -23,12 +51,36 @@ export type ProductSupplementaryChatPageData = {
     activeCount: number;
     platforms: string[];
   };
+  messageSummary: {
+    totalCount: number;
+    userCount: number;
+    assistantCount: number;
+  };
+  sourceSummary: {
+    webCount: number;
+    imCount: number;
+    platformCounts: Array<{
+      platform: string;
+      count: number;
+    }>;
+  };
+  threadStatus: {
+    connectionStatus: "connected" | "needs_attention" | "web_only";
+    lifecycleStatus: string | null;
+    continuityStatus: string | null;
+    focusMode: string | null;
+    pendingFollowUpCount: number;
+    nextTriggerAt: string | null;
+  };
   messages: Array<{
     id: string;
     role: "user" | "assistant";
     content: string;
     status: string;
     createdAt: string;
+    sourceSurface: string | null;
+    sourcePlatform: string | null;
+    sourceBindingId: string | null;
   }>;
 };
 
@@ -98,6 +150,71 @@ export async function loadProductSupplementaryChatPageData(args: {
         })
       : Promise.resolve({ data: [] })
   ]);
+  const activeBindings = bindings.filter((item) => item.status === "active");
+  const scopedBindings = thread?.id
+    ? bindings.filter((item) => item.threadId === thread.id)
+    : bindings;
+  const scopedActiveBindings = scopedBindings.filter((item) => item.status === "active");
+  const messages = (messagesResult.data ?? []).map((message: any) => ({
+    ...readMessageSourceMetadata(message.metadata),
+    id: message.id,
+    role: message.role,
+    content: message.content,
+    status: message.status,
+    createdAt: message.created_at
+  }));
+  const messageSummary = {
+    totalCount: messages.length,
+    userCount: messages.filter((message: (typeof messages)[number]) => message.role === "user").length,
+    assistantCount: messages.filter((message: (typeof messages)[number]) => message.role === "assistant").length
+  };
+  const platformCountsMap = new Map<string, number>();
+  let webCount = 0;
+  let imCount = 0;
+  for (const message of messages) {
+    if (message.sourceSurface === "im") {
+      imCount += 1;
+      const platform = message.sourcePlatform ?? "im";
+      platformCountsMap.set(platform, (platformCountsMap.get(platform) ?? 0) + 1);
+    } else {
+      webCount += 1;
+    }
+  }
+  const platformCounts = Array.from(platformCountsMap.entries()).map(([platform, count]) => ({
+    platform,
+    count
+  }));
+
+  const [threadState, pendingFollowUpsResult] = await Promise.all([
+    thread?.agent_id
+      ? new SupabaseThreadStateRepository(args.supabase).loadThreadState({
+          threadId: thread.id,
+          agentId: thread.agent_id
+        })
+      : Promise.resolve({ status: "not_found" as const }),
+    thread
+      ? args.supabase
+          .from("pending_follow_ups")
+          .select("trigger_at")
+          .eq("workspace_id", workspace.id)
+          .eq("user_id", args.userId)
+          .eq("thread_id", thread.id)
+          .eq("status", "pending")
+          .order("trigger_at", { ascending: true })
+      : Promise.resolve({ data: [] as Array<{ trigger_at: string | null }> })
+  ]);
+
+  const pendingFollowUps = pendingFollowUpsResult.data ?? [];
+  const connectionStatus =
+    scopedBindings.length > 0
+      ? scopedBindings.some((item) => item.status === "invalid")
+        ? "needs_attention"
+        : scopedActiveBindings.length > 0
+          ? "connected"
+          : "web_only"
+      : bindings.some((item) => item.status === "invalid")
+        ? "needs_attention"
+        : "web_only";
 
   return {
     workspaceId: workspace.id,
@@ -116,15 +233,26 @@ export async function loadProductSupplementaryChatPageData(args: {
         }
       : null,
     bindings: {
-      activeCount: bindings.filter((item) => item.status === "active").length,
-      platforms: Array.from(new Set(bindings.map((item) => item.platform)))
+      activeCount: activeBindings.length,
+      platforms: Array.from(new Set(activeBindings.map((item) => item.platform)))
     },
-    messages: (messagesResult.data ?? []).map((message: any) => ({
-      id: message.id,
-      role: message.role,
-      content: message.content,
-      status: message.status,
-      createdAt: message.created_at
-    }))
+    messageSummary,
+    sourceSummary: {
+      webCount,
+      imCount,
+      platformCounts
+    },
+    threadStatus: {
+      connectionStatus,
+      lifecycleStatus:
+        threadState.status === "found" ? threadState.thread_state.lifecycle_status ?? null : null,
+      continuityStatus:
+        threadState.status === "found" ? threadState.thread_state.continuity_status ?? null : null,
+      focusMode:
+        threadState.status === "found" ? threadState.thread_state.focus_mode ?? null : null,
+      pendingFollowUpCount: pendingFollowUps.length,
+      nextTriggerAt: pendingFollowUps[0]?.trigger_at ?? null
+    },
+    messages
   };
 }

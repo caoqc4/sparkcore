@@ -3,6 +3,7 @@ import {
   type FollowUpBindingResolver
 } from "@/lib/chat/follow-up-binding";
 import { createAdminFollowUpRepository } from "@/lib/chat/follow-up-admin-repository";
+import { updateOwnedChannelBindingStatus } from "@/lib/product/channels";
 import { buildProactiveSendRequestFromClaimedFollowUp } from "@/lib/chat/follow-up-proactive-send";
 import {
   buildFollowUpBindingNotFoundFailureMetadata,
@@ -15,6 +16,7 @@ import type {
   PendingFollowUpRecord
 } from "@/lib/chat/runtime-contract";
 import type { ProactiveSender } from "@/lib/integrations/im-adapter";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type DefaultFollowUpWorkerRecordResult = {
   follow_up_id: string;
@@ -75,6 +77,22 @@ async function processClaimedRecord(args: {
   }
 
   const sendResult = await args.sender.send(sendRequest);
+
+  if (sendResult.status === "invalid" && sendRequest.target.binding_id) {
+    await updateOwnedChannelBindingStatus({
+      supabase: createAdminClient(),
+      bindingId: sendRequest.target.binding_id,
+      userId: args.record.user_id,
+      status: "invalid",
+      metadataPatch: {
+        invalidated_at: new Date().toISOString(),
+        invalidated_by: "default-follow-up-worker",
+        invalid_reason: sendResult.failure_reason ?? "proactive_send_invalid",
+        invalid_follow_up_id: args.record.id
+      }
+    });
+  }
+
   const markResult = await markFollowUpFromSendResult({
     repository: args.repository,
     record: args.record,

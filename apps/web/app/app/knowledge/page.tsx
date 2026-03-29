@@ -1,27 +1,20 @@
 import Link from "next/link";
 import { ProductConsoleShell } from "@/components/product-console-shell";
 import { ProductEventTracker } from "@/components/product-event-tracker";
+import { FormSubmitButton } from "@/components/form-submit-button";
 import { requireUser } from "@/lib/auth-redirect";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { loadProductKnowledgePageData } from "@/lib/product/knowledge";
 import { resolveProductAppRoute } from "@/lib/product/route-resolution";
 import { createClient } from "@/lib/supabase/server";
-
-// ─── Placeholder type definitions ────────────────────────────────────────────
-// These mirror what the backend will eventually return.
-// Replace the empty array below with real API data when the upload pipeline is ready.
-
-type UserKnowledgeSource = {
-  id: string;
-  title: string;
-  type: "document" | "url" | "note";
-  status: "indexed" | "processing" | "failed";
-  excerpt: string | null;
-  addedAt: string | null;
-};
-
-const USER_SOURCES_PLACEHOLDER: UserKnowledgeSource[] = [];
-// When the backend is ready, load from API and replace the above.
+import {
+  archiveKnowledgeSource,
+  createKnowledgeDocument,
+  createKnowledgeNote,
+  createKnowledgeUrl,
+  deleteKnowledgeSource,
+  retryKnowledgeSource,
+} from "@/app/app/knowledge/actions";
 
 // ─── Source type config ───────────────────────────────────────────────────────
 
@@ -67,20 +60,46 @@ const SOURCE_TYPES = [
 
 type SourceType = (typeof SOURCE_TYPES)[number]["id"];
 
+type KnowledgePageSource = NonNullable<
+  Awaited<ReturnType<typeof loadProductKnowledgePageData>>
+>["sources"][number];
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: UserKnowledgeSource["status"] }) {
+function formatDate(value: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? null
+    : date.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+}
+
+function StatusBadge({ status }: { status: KnowledgePageSource["status"] }) {
   const map = {
-    indexed: { label: "Indexed", cls: "knowledge-status-indexed" },
+    active: { label: "Ready", cls: "knowledge-status-indexed" },
     processing: { label: "Processing…", cls: "knowledge-status-processing" },
     failed: { label: "Failed", cls: "knowledge-status-failed" },
+    placeholder: { label: "Not set up yet", cls: "knowledge-status-placeholder" },
   };
   const { label, cls } = map[status];
   return <span className={`knowledge-status-badge ${cls}`}>{label}</span>;
 }
 
-function SourceRow({ source }: { source: UserKnowledgeSource }) {
-  const typeConfig = SOURCE_TYPES.find((t) => t.id === source.type);
+function SourceRow({
+  source,
+  redirectTo,
+}: {
+  source: KnowledgePageSource;
+  redirectTo: string;
+}) {
+  const typeConfig = SOURCE_TYPES.find((t) => t.id === source.kind);
+  const updatedLabel = formatDate(source.updatedAt);
+  const latestRunLabel = formatDate(source.latestRun?.createdAt ?? null);
+
   return (
     <div className="knowledge-source-row">
       <span className="knowledge-source-type-icon" aria-label={typeConfig?.label}>
@@ -90,14 +109,67 @@ function SourceRow({ source }: { source: UserKnowledgeSource }) {
         <div className="knowledge-source-row-head">
           <span className="knowledge-source-title">{source.title}</span>
           <StatusBadge status={source.status} />
-          {source.addedAt ? (
-            <span className="knowledge-source-date">
-              {new Date(source.addedAt).toLocaleDateString()}
-            </span>
+          {updatedLabel ? (
+            <span className="knowledge-source-date">{updatedLabel}</span>
           ) : null}
         </div>
-        {source.excerpt ? (
-          <p className="knowledge-source-excerpt">{source.excerpt}</p>
+        <p className="knowledge-source-excerpt">{source.summary}</p>
+        {source.detail ? (
+          <p className="knowledge-source-detail">{source.detail}</p>
+        ) : null}
+        <div className="knowledge-source-meta">
+          <span>{source.scopeLabel}</span>
+          {source.processingStatus ? <span>{source.processingStatus}</span> : null}
+          {source.attemptCount > 0 ? <span>{source.attemptCount} attempt{source.attemptCount > 1 ? "s" : ""}</span> : null}
+        </div>
+        {source.latestRun ? (
+          <p className="knowledge-source-run">
+            Latest run: {source.latestRun.stage} · {source.latestRun.status}
+            {latestRunLabel ? ` · ${latestRunLabel}` : ""}
+            {source.latestRun.message ? ` · ${source.latestRun.message}` : ""}
+          </p>
+        ) : null}
+        {source.errorMessage || source.lastErrorCode ? (
+          <p className="knowledge-source-error">
+            {source.errorMessage ?? source.lastErrorCode}
+          </p>
+        ) : null}
+        {source.canRetry || source.canArchive || source.canDelete ? (
+          <div className="knowledge-source-actions">
+            {source.canRetry ? (
+              <form action={retryKnowledgeSource}>
+                <input name="source_id" type="hidden" value={source.id} />
+                <input name="redirect_to" type="hidden" value={redirectTo} />
+                <FormSubmitButton
+                  className="button button-secondary knowledge-source-action-btn"
+                  idleText="Retry"
+                  pendingText="Retrying…"
+                />
+              </form>
+            ) : null}
+            {source.canArchive ? (
+              <form action={archiveKnowledgeSource}>
+                <input name="source_id" type="hidden" value={source.id} />
+                <input name="redirect_to" type="hidden" value={redirectTo} />
+                <FormSubmitButton
+                  className="button button-secondary knowledge-source-action-btn"
+                  idleText="Archive"
+                  pendingText="Archiving…"
+                />
+              </form>
+            ) : null}
+            {source.canDelete ? (
+              <form action={deleteKnowledgeSource}>
+                <input name="source_id" type="hidden" value={source.id} />
+                <input name="redirect_to" type="hidden" value={redirectTo} />
+                <FormSubmitButton
+                  className="button button-secondary knowledge-source-action-btn"
+                  idleText="Delete"
+                  pendingText="Deleting…"
+                />
+              </form>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </div>
@@ -107,9 +179,11 @@ function SourceRow({ source }: { source: UserKnowledgeSource }) {
 function SourceGroup({
   type,
   sources,
+  redirectTo,
 }: {
   type: (typeof SOURCE_TYPES)[number];
-  sources: UserKnowledgeSource[];
+  sources: KnowledgePageSource[];
+  redirectTo: string;
 }) {
   return (
     <div className="knowledge-group">
@@ -120,7 +194,7 @@ function SourceGroup({
       {sources.length > 0 ? (
         <div className="knowledge-source-list">
           {sources.map((s) => (
-            <SourceRow key={s.id} source={s} />
+            <SourceRow key={s.id} redirectTo={redirectTo} source={s} />
           ))}
         </div>
       ) : (
@@ -171,14 +245,17 @@ export default async function AppKnowledgePage({
 
   const roleName =
     knowledgeData?.roleName ?? overview?.currentRole?.name ?? null;
-
-  // User-submitted sources only — persona packs and product seeds are part of
-  // the role definition (visible in Role page) and should not appear here.
-  const userSources: UserKnowledgeSource[] = USER_SOURCES_PLACEHOLDER;
+  const redirectTo = `/app/knowledge${roleQuerySuffix}`;
+  const userSources = (knowledgeData?.sources ?? []).filter(
+    (source) =>
+      source.kind === "document" ||
+      source.kind === "url" ||
+      source.kind === "note",
+  );
 
   const groupedSources = SOURCE_TYPES.map((type) => ({
     type,
-    sources: userSources.filter((s) => s.type === type.id),
+    sources: userSources.filter((s) => s.kind === type.id),
   }));
 
   const totalCount = userSources.length;
@@ -248,14 +325,96 @@ export default async function AppKnowledgePage({
               <span className="knowledge-count-badge">{totalCount}</span>
             ) : null}
           </h2>
-          <button
-            className="button button-secondary knowledge-add-btn"
-            disabled
-            aria-disabled="true"
-            title="Upload and manage sources coming soon"
+          <span className="knowledge-add-hint">Add a note, URL, or document below</span>
+        </div>
+
+        <div className="knowledge-create-grid">
+          <form action={createKnowledgeNote} className="knowledge-create-card">
+            <input name="role_id" type="hidden" value={resolvedRoleId ?? ""} />
+            <input name="redirect_to" type="hidden" value={redirectTo} />
+            <h3 className="knowledge-create-title">Quick note</h3>
+            <p className="knowledge-create-copy">
+              Save pasted guidance, small briefs, or reminders for this companion.
+            </p>
+            <input
+              className="site-input"
+              name="title"
+              placeholder="Reference title"
+              required
+              type="text"
+            />
+            <textarea
+              className="site-textarea knowledge-create-textarea"
+              name="note_content"
+              placeholder="Paste the note content here..."
+              required
+              rows={4}
+            />
+            <FormSubmitButton
+              className="button button-secondary"
+              idleText="Save note"
+              pendingText="Saving…"
+            />
+          </form>
+
+          <form action={createKnowledgeUrl} className="knowledge-create-card">
+            <input name="role_id" type="hidden" value={resolvedRoleId ?? ""} />
+            <input name="redirect_to" type="hidden" value={redirectTo} />
+            <h3 className="knowledge-create-title">Web reference</h3>
+            <p className="knowledge-create-copy">
+              Queue a URL so the system can fetch and process the page.
+            </p>
+            <input
+              className="site-input"
+              name="title"
+              placeholder="Reference title"
+              required
+              type="text"
+            />
+            <input
+              className="site-input"
+              name="source_url"
+              placeholder="https://example.com/article"
+              required
+              type="url"
+            />
+            <FormSubmitButton
+              className="button button-secondary"
+              idleText="Add URL"
+              pendingText="Queueing…"
+            />
+          </form>
+
+          <form
+            action={createKnowledgeDocument}
+            className="knowledge-create-card"
           >
-            + Add source
-          </button>
+            <input name="role_id" type="hidden" value={resolvedRoleId ?? ""} />
+            <input name="redirect_to" type="hidden" value={redirectTo} />
+            <h3 className="knowledge-create-title">Document</h3>
+            <p className="knowledge-create-copy">
+              Upload a file to process. Text-like formats work best right now.
+            </p>
+            <input
+              className="site-input"
+              name="title"
+              placeholder="Document title"
+              required
+              type="text"
+            />
+            <input
+              accept=".pdf,.docx,.txt,.csv,.xlsx,.json,.md"
+              className="site-input"
+              name="file"
+              required
+              type="file"
+            />
+            <FormSubmitButton
+              className="button button-secondary"
+              idleText="Upload document"
+              pendingText="Uploading…"
+            />
+          </form>
         </div>
 
         {totalCount === 0 ? (
@@ -279,7 +438,7 @@ export default async function AppKnowledgePage({
               ))}
             </div>
             <p className="knowledge-coming-soon">
-              Upload support is coming soon.
+              You can already add notes, URLs, and text-friendly files here.
             </p>
           </div>
         ) : (
@@ -288,7 +447,12 @@ export default async function AppKnowledgePage({
             {groupedSources
               .filter((g) => g.sources.length > 0)
               .map(({ type, sources }) => (
-                <SourceGroup key={type.id} type={type} sources={sources} />
+                <SourceGroup
+                  key={type.id}
+                  redirectTo={redirectTo}
+                  type={type}
+                  sources={sources}
+                />
               ))}
           </div>
         )}

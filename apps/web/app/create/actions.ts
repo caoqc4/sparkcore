@@ -12,12 +12,30 @@ import {
 import {
   buildProductAgentMetadata,
   buildProductPersonaSummary,
+  safeProductRoleAvatarGender,
+  safeProductRoleAvatarStyle,
   buildProductStylePrompt,
   buildProductSystemPrompt,
   safeProductRoleMode,
   safeProductRoleTone,
   trimProductText
 } from "@/lib/product/role-core";
+
+function detectAvatarStyleFromPreset(presetId: string) {
+  if (["aurora", "luna", "sage", "ember", "atlas", "river", "orion"].includes(presetId)) {
+    return safeProductRoleAvatarStyle("realistic");
+  }
+
+  if (["hana", "yuki", "akari", "kaito", "ren"].includes(presetId)) {
+    return safeProductRoleAvatarStyle("anime");
+  }
+
+  if (["nova", "echo"].includes(presetId)) {
+    return safeProductRoleAvatarStyle("illustrated");
+  }
+
+  return null;
+}
 
 export async function createProductRole(formData: FormData) {
   const supabase = await createClient();
@@ -40,6 +58,9 @@ export async function createProductRole(formData: FormData) {
   const boundaries =
     trimProductText(formData.get("boundaries")) ||
     "Be supportive, respectful, and avoid manipulative or coercive behavior.";
+  const avatarPresetId = trimProductText(formData.get("avatar_preset"));
+  const avatarGender = safeProductRoleAvatarGender(trimProductText(formData.get("avatar_gender")));
+  const avatarStyle = avatarPresetId ? detectAvatarStyleFromPreset(avatarPresetId) : null;
 
   const [{ data: workspace }, { data: modelProfile }, { data: personaPack }] =
     await Promise.all([
@@ -82,7 +103,11 @@ export async function createProductRole(formData: FormData) {
       tone,
       relationshipMode,
       boundaries,
-      proactivityLevel: "balanced"
+      proactivityLevel: "balanced",
+      avatarPresetId: avatarPresetId || null,
+      avatarStyle,
+      avatarGender,
+      avatarOrigin: avatarPresetId ? "preset" : null
     }),
     select: "id, name, persona_summary"
   });

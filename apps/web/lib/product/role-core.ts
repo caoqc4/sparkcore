@@ -3,6 +3,9 @@ import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 export type ProductRoleMode = "companion" | "girlfriend" | "boyfriend";
 export type ProductRoleTone = "warm" | "playful" | "steady";
 export type ProductRoleProactivity = "low" | "balanced" | "active";
+export type ProductRoleAvatarStyle = "realistic" | "anime" | "illustrated";
+export type ProductRoleAvatarGender = "female" | "male" | "neutral";
+export type ProductRoleAvatarOrigin = "preset" | "upload" | "generated";
 
 export type ProductRoleCoreConfig = {
   mode: ProductRoleMode;
@@ -13,6 +16,20 @@ export type ProductRoleCoreConfig = {
 };
 
 type UnknownRecord = Record<string, unknown>;
+
+type ProductRoleAppearanceConfig = {
+  avatarPresetId: string;
+  avatarStyle: ProductRoleAvatarStyle | null;
+  avatarGender: ProductRoleAvatarGender | null;
+  avatarOrigin: ProductRoleAvatarOrigin | null;
+};
+
+export type ProductRoleAppearanceSummary = {
+  avatarPresetId: string | null;
+  avatarStyle: ProductRoleAvatarStyle | null;
+  avatarGender: ProductRoleAvatarGender | null;
+  avatarOrigin: ProductRoleAvatarOrigin | null;
+};
 
 export function trimProductText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -42,6 +59,30 @@ export function safeProductRoleProactivity(value: string): ProductRoleProactivit
   return "balanced";
 }
 
+export function safeProductRoleAvatarStyle(value: string): ProductRoleAvatarStyle | null {
+  if (value === "realistic" || value === "anime" || value === "illustrated") {
+    return value;
+  }
+
+  return null;
+}
+
+export function safeProductRoleAvatarGender(value: string): ProductRoleAvatarGender | null {
+  if (value === "female" || value === "male" || value === "neutral") {
+    return value;
+  }
+
+  return null;
+}
+
+export function safeProductRoleAvatarOrigin(value: string): ProductRoleAvatarOrigin | null {
+  if (value === "preset" || value === "upload" || value === "generated") {
+    return value;
+  }
+
+  return null;
+}
+
 function getProductRoleCoreRecord(metadata: unknown): UnknownRecord {
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
     return {};
@@ -53,6 +94,66 @@ function getProductRoleCoreRecord(metadata: unknown): UnknownRecord {
   }
 
   return record as UnknownRecord;
+}
+
+function getProductRoleAppearanceRecord(metadata: unknown): UnknownRecord {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return {};
+  }
+
+  const record = (metadata as UnknownRecord).product_role_appearance;
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
+    return {};
+  }
+
+  return record as UnknownRecord;
+}
+
+function resolveProductRoleAppearance(args: {
+  existingMetadata?: UnknownRecord | null;
+  avatarPresetId?: string | null;
+  avatarStyle?: ProductRoleAvatarStyle | null;
+  avatarGender?: ProductRoleAvatarGender | null;
+  avatarOrigin?: ProductRoleAvatarOrigin | null;
+}): ProductRoleAppearanceConfig | null {
+  const existing = getProductRoleAppearanceRecord(args.existingMetadata);
+
+  const avatarPresetId =
+    trimProductText(args.avatarPresetId) || trimProductText(existing.avatar_preset_id);
+  const avatarStyle =
+    args.avatarStyle ??
+    safeProductRoleAvatarStyle(trimProductText(existing.avatar_style));
+  const avatarGender =
+    args.avatarGender ??
+    safeProductRoleAvatarGender(trimProductText(existing.avatar_gender));
+  const avatarOrigin =
+    args.avatarOrigin ??
+    safeProductRoleAvatarOrigin(trimProductText(existing.avatar_origin));
+
+  if (!avatarPresetId && !avatarStyle && !avatarGender && !avatarOrigin) {
+    return null;
+  }
+
+  return {
+    avatarPresetId,
+    avatarStyle,
+    avatarGender,
+    avatarOrigin
+  };
+}
+
+export function resolveStoredProductRoleAppearance(
+  metadata: unknown
+): ProductRoleAppearanceSummary {
+  const appearance = getProductRoleAppearanceRecord(metadata);
+  const avatarPresetId = trimProductText(appearance.avatar_preset_id) || null;
+
+  return {
+    avatarPresetId,
+    avatarStyle: safeProductRoleAvatarStyle(trimProductText(appearance.avatar_style)),
+    avatarGender: safeProductRoleAvatarGender(trimProductText(appearance.avatar_gender)),
+    avatarOrigin: safeProductRoleAvatarOrigin(trimProductText(appearance.avatar_origin))
+  };
 }
 
 function parseRelationshipModeFromSystemPrompt(systemPrompt: string | null | undefined) {
@@ -212,8 +313,20 @@ export function buildProductAgentMetadata(args: {
   relationshipMode: string;
   boundaries: string;
   proactivityLevel: ProductRoleProactivity;
+  avatarPresetId?: string | null;
+  avatarStyle?: ProductRoleAvatarStyle | null;
+  avatarGender?: ProductRoleAvatarGender | null;
+  avatarOrigin?: ProductRoleAvatarOrigin | null;
   existingMetadata?: UnknownRecord | null;
 }) {
+  const appearance = resolveProductRoleAppearance({
+    existingMetadata: args.existingMetadata,
+    avatarPresetId: args.avatarPresetId,
+    avatarStyle: args.avatarStyle,
+    avatarGender: args.avatarGender,
+    avatarOrigin: args.avatarOrigin
+  });
+
   return {
     ...(args.existingMetadata ?? {}),
     ...buildAgentSourceMetadata({
@@ -227,6 +340,16 @@ export function buildProductAgentMetadata(args: {
       relationship_mode: args.relationshipMode,
       boundaries: args.boundaries,
       proactivity_level: args.proactivityLevel
-    }
+    },
+    ...(appearance
+      ? {
+          product_role_appearance: {
+            avatar_preset_id: appearance.avatarPresetId,
+            avatar_style: appearance.avatarStyle,
+            avatar_gender: appearance.avatarGender,
+            avatar_origin: appearance.avatarOrigin
+          }
+        }
+      : {})
   };
 }

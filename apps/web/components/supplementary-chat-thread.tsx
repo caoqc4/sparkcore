@@ -137,14 +137,20 @@ export function SupplementaryChatThread({
               msg.role === "assistant" ? (
                 <div key={msg.id} className="chat-bubble chat-bubble-assistant">
                   <p>{msg.content}</p>
-                  <span className="chat-bubble-time chat-bubble-time-assistant">
+                  <span
+                    className="chat-bubble-time chat-bubble-time-assistant"
+                    suppressHydrationWarning
+                  >
                     {formatTime(msg.createdAt)}
                   </span>
                 </div>
               ) : (
                 <div key={msg.id} className="chat-bubble chat-bubble-user">
                   <p>{msg.content}</p>
-                  <span className="chat-bubble-time chat-bubble-time-user">
+                  <span
+                    className="chat-bubble-time chat-bubble-time-user"
+                    suppressHydrationWarning
+                  >
                     {formatTime(msg.createdAt)}
                   </span>
                 </div>

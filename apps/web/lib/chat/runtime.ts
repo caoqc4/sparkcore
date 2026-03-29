@@ -119,6 +119,7 @@ import {
   prepareRuntimeSession,
   prepareRuntimeTurn
 } from "@/lib/chat/runtime-prepared-turn";
+import { loadRelevantKnowledgeForRuntime } from "@/lib/chat/runtime-knowledge-sources";
 import { createAdminThreadStateRepository } from "@/lib/chat/thread-state-admin-repository";
 import type { ThreadStateRecord } from "@/lib/chat/thread-state";
 import {
@@ -4460,14 +4461,21 @@ export async function runPreparedRuntimeTurn({
       latestUserMessage: latestUserMessageContent
     })
   });
+  const relevantKnowledge = await loadRelevantKnowledgeForRuntime({
+    userId,
+    workspaceId: preparedRuntimeTurn.resources.workspace.id,
+    agentId: agent.id,
+    latestUserMessage: latestUserMessageContent,
+    limit: 8
+  });
   const activeMemoryNamespace = resolveActiveMemoryNamespace({
     userId,
     agentId: agent.id,
     threadId: preparedRuntimeTurn.session.thread_id,
-    relevantKnowledge: []
+    relevantKnowledge
   });
   const applicableKnowledge = filterKnowledgeByActiveNamespace({
-    knowledge: [],
+    knowledge: relevantKnowledge,
     namespace: activeMemoryNamespace
   });
   const activeScenarioMemoryPack = resolveActiveScenarioMemoryPack({

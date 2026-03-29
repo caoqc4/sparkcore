@@ -16,7 +16,7 @@ export function createAdminFollowUpBindingResolver({
     let query = supabase
       .from("channel_bindings")
       .select(
-        "platform, channel_id, peer_id, platform_user_id, workspace_id, user_id, agent_id, thread_id, status, created_at, updated_at, metadata"
+        "id, platform, channel_id, peer_id, platform_user_id, workspace_id, user_id, agent_id, thread_id, status, created_at, updated_at, metadata"
       )
       .eq("thread_id", record.thread_id)
       .eq("user_id", record.user_id)

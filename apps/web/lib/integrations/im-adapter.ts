@@ -91,6 +91,7 @@ export type ProactiveSender = {
 };
 
 export type ChannelBinding = {
+  id?: string;
   platform: string;
   channel_id: string;
   peer_id: string;
@@ -99,7 +100,7 @@ export type ChannelBinding = {
   user_id: string;
   agent_id: string;
   thread_id?: string | null;
-  status: "active" | "inactive";
+  status: "active" | "inactive" | "invalid";
   created_at?: string;
   updated_at?: string;
   metadata?: Record<string, unknown>;
@@ -203,6 +204,7 @@ export type AdapterInboundHandlingResult =
 export const DEFAULT_BINDING_TABLE = "channel_bindings";
 
 export type BindingRow = {
+  id?: string;
   platform: string;
   channel_id: string;
   peer_id: string;
@@ -211,7 +213,7 @@ export type BindingRow = {
   user_id: string;
   agent_id: string;
   thread_id?: string | null;
-  status: "active" | "inactive";
+  status: "active" | "inactive" | "invalid";
   created_at?: string;
   updated_at?: string;
   metadata?: Record<string, unknown> | null;
@@ -219,6 +221,7 @@ export type BindingRow = {
 
 export function mapBindingRowToChannelBinding(row: BindingRow): ChannelBinding {
   return {
+    id: row.id,
     platform: row.platform,
     channel_id: row.channel_id,
     peer_id: row.peer_id,
@@ -246,7 +249,7 @@ export class SupabaseBindingRepository implements BindingRepository {
     const { data, error } = await this.supabase
       .from(this.tableName)
       .select(
-        "platform, channel_id, peer_id, platform_user_id, workspace_id, user_id, agent_id, thread_id, status, created_at, updated_at, metadata"
+        "id, platform, channel_id, peer_id, platform_user_id, workspace_id, user_id, agent_id, thread_id, status, created_at, updated_at, metadata"
       )
       .eq("platform", input.platform)
       .eq("channel_id", input.channel_id)
@@ -347,7 +350,8 @@ export function buildProactiveSendTargetFromBinding(
     platform: binding.platform,
     channel_id: binding.channel_id,
     peer_id: binding.peer_id,
-    platform_user_id: binding.platform_user_id
+    platform_user_id: binding.platform_user_id,
+    binding_id: binding.id
   };
 }
 

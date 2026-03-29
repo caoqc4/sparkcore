@@ -4,12 +4,18 @@ export const MEMORY_CONFIDENCE_THRESHOLD = 0.8;
 export const MEMORY_RECALL_LIMIT = 3;
 export const MEMORY_RELEVANCE_THRESHOLD = 0.35;
 
-export type MemoryType = "profile" | "preference" | "goal";
+export type MemoryType =
+  | "profile"
+  | "preference"
+  | "goal"
+  | "episode"
+  | "mood"
+  | "key_date"
+  | "social";
 export type MemoryUsageType = MemoryType | "relationship";
 export type RecalledMemoryType =
   | MemoryType
   | "relationship"
-  | "episode"
   | "timeline";
 export type MemorySemanticLayer =
   | "static_profile"

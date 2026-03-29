@@ -1,7 +1,7 @@
 import {
   buildMemoryV2Fields,
   getMemoryStatus,
-  inferLegacyMemoryStability,
+  inferGenericMemoryStability,
   LEGACY_MEMORY_KEY
 } from "@/lib/chat/memory-v2";
 import type {
@@ -29,13 +29,26 @@ export function buildPlannedGenericMemoryInsertRow(args: {
   target: GenericWriteTarget;
   namespaceMetadata?: Record<string, unknown>;
 }): Record<string, unknown> {
-  const staticProfile = buildPlannedStaticProfileRecord({
-    workspaceId: args.workspaceId,
-    userId: args.userId,
-    candidate: args.candidate,
-    request: args.matchingRequest,
-    sourceTurnId: args.sourceTurnId
-  });
+  const staticProfile =
+    args.target.recordTarget === "static_profile"
+      ? buildPlannedStaticProfileRecord({
+          workspaceId: args.workspaceId,
+          userId: args.userId,
+          candidate: args.candidate,
+          request: args.matchingRequest,
+          sourceTurnId: args.sourceTurnId
+        })
+      : null;
+  const key = staticProfile?.key ?? LEGACY_MEMORY_KEY;
+  const value =
+    staticProfile?.value !== undefined && staticProfile?.value !== null
+      ? String(staticProfile.value)
+      : args.candidate.content;
+  const sourceRefs =
+    staticProfile?.source_refs ??
+    (args.sourceTurnId
+      ? [{ kind: "message", source_message_id: args.sourceTurnId }]
+      : []);
 
   return {
     workspace_id: args.workspaceId,
@@ -48,15 +61,15 @@ export function buildPlannedGenericMemoryInsertRow(args: {
     importance: 0.5,
     ...buildMemoryV2Fields({
       category: args.candidate.memory_type,
-      key: staticProfile.key ?? LEGACY_MEMORY_KEY,
-      value: String(staticProfile.value),
+      key,
+      value,
       scope: args.target.routedScope,
       subjectUserId: args.userId,
       targetAgentId: args.target.routedTargetAgentId,
       targetThreadId: args.target.routedTargetThreadId,
-      stability: inferLegacyMemoryStability(args.candidate.memory_type),
+      stability: inferGenericMemoryStability(args.candidate.memory_type),
       status: "active",
-      sourceRefs: staticProfile.source_refs
+      sourceRefs
     }),
     metadata: buildGenericPlannerMemoryInsertMetadata({
       reason: args.candidate.reason,
@@ -99,13 +112,26 @@ export function buildPlannedGenericMemoryUpdateRow(args: {
   convergenceUpdatedAt: string;
   namespaceMetadata?: Record<string, unknown>;
 }): MemoryUpsertRow {
-  const staticProfile = buildPlannedStaticProfileRecord({
-    workspaceId: args.workspaceId,
-    userId: args.userId,
-    candidate: args.candidate,
-    request: args.matchingRequest,
-    sourceTurnId: args.sourceTurnId
-  });
+  const staticProfile =
+    args.target.recordTarget === "static_profile"
+      ? buildPlannedStaticProfileRecord({
+          workspaceId: args.workspaceId,
+          userId: args.userId,
+          candidate: args.candidate,
+          request: args.matchingRequest,
+          sourceTurnId: args.sourceTurnId
+        })
+      : null;
+  const key = staticProfile?.key ?? LEGACY_MEMORY_KEY;
+  const value =
+    staticProfile?.value !== undefined && staticProfile?.value !== null
+      ? String(staticProfile.value)
+      : args.candidate.content;
+  const sourceRefs =
+    staticProfile?.source_refs ??
+    (args.sourceTurnId
+      ? [{ kind: "message", source_message_id: args.sourceTurnId }]
+      : []);
 
   return {
     id: args.matchingExisting.id,
@@ -141,14 +167,14 @@ export function buildPlannedGenericMemoryUpdateRow(args: {
         args.target.retrievalWriteDigestAlignment
     }),
     category: args.candidate.memory_type as MemoryType,
-    key: staticProfile.key ?? LEGACY_MEMORY_KEY,
-    value: String(staticProfile.value),
+    key,
+    value,
     scope: args.target.routedScope,
     subject_user_id: args.userId,
     target_agent_id: args.target.routedTargetAgentId,
     target_thread_id: args.target.routedTargetThreadId,
-    stability: inferLegacyMemoryStability(args.candidate.memory_type),
+    stability: inferGenericMemoryStability(args.candidate.memory_type),
     status: getMemoryStatus(args.matchingExisting),
-    source_refs: staticProfile.source_refs as Array<Record<string, string>>
+    source_refs: sourceRefs as Array<Record<string, string>>
   };
 }

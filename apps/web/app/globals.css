@@ -2789,8 +2789,69 @@ details[open] .role-mem-older-summary::before {
   border: 1px solid hsl(262 60% 58% / 0.2);
 }
 
-.knowledge-add-btn {
-  font-size: 0.82rem !important;
+.knowledge-add-hint {
+  font-size: 0.78rem;
+  color: hsl(240 8% 56%);
+}
+
+.site-input,
+.site-select,
+.site-textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid hsl(240 8% 84%);
+  border-radius: 14px;
+  background: hsl(0 0% 100%);
+  color: hsl(240 20% 18%);
+  font: inherit;
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.6);
+}
+
+.site-textarea {
+  resize: vertical;
+}
+
+.site-input:focus,
+.site-select:focus,
+.site-textarea:focus {
+  outline: 2px solid hsl(262 60% 58% / 0.18);
+  border-color: hsl(262 60% 58% / 0.45);
+}
+
+.knowledge-create-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0 0 18px;
+}
+
+.knowledge-create-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid hsl(240 8% 91%);
+  border-radius: 14px;
+  background: hsl(0 0% 100%);
+}
+
+.knowledge-create-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: hsl(240 22% 18%);
+}
+
+.knowledge-create-copy {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: hsl(240 8% 50%);
+}
+
+.knowledge-create-textarea {
+  min-height: 108px;
 }
 
 /* Empty state */
@@ -2970,9 +3031,46 @@ details[open] .role-mem-older-summary::before {
   font-size: 0.78rem;
   color: hsl(240 8% 52%);
   line-height: 1.5;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.knowledge-source-detail {
+  margin: 0;
+  font-size: 0.74rem;
+  color: hsl(240 8% 62%);
+}
+
+.knowledge-source-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: 0.72rem;
+  color: hsl(240 8% 58%);
+}
+
+.knowledge-source-run {
+  margin: 0;
+  font-size: 0.72rem;
+  color: hsl(240 8% 56%);
+  line-height: 1.5;
+}
+
+.knowledge-source-error {
+  margin: 0;
+  font-size: 0.74rem;
+  color: hsl(0 58% 44%);
+  line-height: 1.5;
+}
+
+.knowledge-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.knowledge-source-action-btn {
+  min-width: 0;
+  font-size: 0.76rem !important;
 }
 
 /* Status badges */
@@ -3000,6 +3098,107 @@ details[open] .role-mem-older-summary::before {
   background: hsl(0 70% 50% / 0.08);
   color: hsl(0 60% 40%);
   border-color: hsl(0 70% 50% / 0.2);
+}
+
+.knowledge-status-placeholder {
+  background: hsl(240 8% 92%);
+  color: hsl(240 10% 42%);
+  border-color: hsl(240 8% 84%);
+}
+
+.settings-form-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-field {
+  display: grid;
+  gap: 8px;
+}
+
+.settings-field-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: hsl(240 10% 38%);
+}
+
+.settings-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: hsl(240 10% 34%);
+}
+
+.settings-checkbox input {
+  width: 16px;
+  height: 16px;
+}
+
+.settings-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.settings-inline-actions-spaced {
+  margin-top: 14px;
+}
+
+.settings-submit-btn {
+  width: fit-content;
+}
+
+.settings-meta-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.settings-meta-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid hsl(240 8% 91%);
+  border-radius: 14px;
+  background: hsl(240 14% 98%);
+}
+
+.settings-meta-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(240 8% 50%);
+}
+
+.settings-meta-value {
+  font-size: 0.84rem;
+  color: hsl(240 15% 28%);
+}
+
+.settings-ops-list {
+  display: grid;
+  gap: 8px;
+}
+
+.settings-op-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: hsl(240 10% 42%);
+}
+
+@media (max-width: 1024px) {
+  .knowledge-create-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-meta-panel {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Chat Thread ── */
@@ -4993,6 +5192,11 @@ details[open] .role-mem-older-summary::before {
   box-shadow: 0 0 0 2px hsl(150 55% 44% / 0.2);
 }
 
+.channel-platform-dot-warning {
+  background: hsl(32 85% 50%);
+  box-shadow: 0 0 0 2px hsl(32 85% 50% / 0.16);
+}
+
 .channel-platform-btn {
   font-size: 0.8rem !important;
   padding: 6px 14px !important;
@@ -5447,4 +5651,3 @@ details[open] .role-mem-older-summary::before {
   flex-shrink: 0;
   white-space: nowrap;
 }
-

@@ -1,4 +1,5 @@
 import type {
+  MemoryType,
   MemorySemanticLayer,
   RecalledMemory,
   StoredMemory
@@ -243,6 +244,30 @@ function isMemoryRecordRecallCandidate(memory: StoredMemory) {
   return isStoredMemoryGenericMemoryRecord(memory);
 }
 
+function resolveGenericMemoryRecordRecallType(memory: StoredMemory): MemoryType {
+  const category = getMemoryCategory(memory);
+
+  if (
+    category === "episode" ||
+    category === "mood" ||
+    category === "key_date" ||
+    category === "social"
+  ) {
+    return category;
+  }
+
+  if (
+    memory.memory_type === "episode" ||
+    memory.memory_type === "mood" ||
+    memory.memory_type === "key_date" ||
+    memory.memory_type === "social"
+  ) {
+    return memory.memory_type;
+  }
+
+  return "episode";
+}
+
 export function buildRecalledEpisodeMemoryFromStoredMemory(
   memory: StoredMemory
 ): RecalledMemory | null {
@@ -253,7 +278,7 @@ export function buildRecalledEpisodeMemoryFromStoredMemory(
   const record = buildChatMemoryRecord(memory);
 
   return {
-    memory_type: "episode",
+    memory_type: resolveGenericMemoryRecordRecallType(memory),
     content: record.canonical_text,
     confidence: record.confidence ?? 0,
     semantic_layer: "memory_record"
@@ -321,7 +346,12 @@ export function buildRuntimeMemorySemanticSummary(args: {
     (semanticLayersUsed.length === 0 &&
       args.memoryTypesUsed.some(
         (type) =>
-          type === "relationship" || type === "episode" || type === "timeline"
+          type === "relationship" ||
+          type === "episode" ||
+          type === "mood" ||
+          type === "key_date" ||
+          type === "social" ||
+          type === "timeline"
       ));
   const usesThreadState = args.hasThreadState;
 

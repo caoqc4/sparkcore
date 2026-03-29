@@ -51,6 +51,20 @@ type AgentNameRow = {
   name: string;
 };
 
+function isValidIsoTimestamp(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0 && Number.isFinite(Date.parse(value));
+}
+
+function resolveMemoryTimestamp(...candidates: Array<unknown>) {
+  for (const candidate of candidates) {
+    if (isValidIsoTimestamp(candidate)) {
+      return candidate;
+    }
+  }
+
+  return new Date().toISOString();
+}
+
 export type MemoryCategoryMeta = {
   label: string;
   order: number;
@@ -61,10 +75,10 @@ export const MEMORY_CATEGORY_META: Record<string, MemoryCategoryMeta> = {
   preference:   { label: "Preferences",          order: 2 },
   relationship: { label: "Relationship Status",  order: 3 },
   goal:         { label: "Goals",                order: 4 },
-  // Future categories — backend additions needed
-  key_date:     { label: "Key Dates",            order: 5 },
-  social:       { label: "Social Circle",        order: 6 },
-  mood:         { label: "Emotional State",      order: 7 },
+  episode:      { label: "Experiences",          order: 5 },
+  mood:         { label: "Emotional State",      order: 6 },
+  key_date:     { label: "Key Dates",            order: 7 },
+  social:       { label: "Social Circle",        order: 8 },
 };
 
 export function getMemoryCategoryLabel(category: string) {
@@ -260,9 +274,25 @@ export async function loadProductMemoryPageData(args: {
       typeof memory.source_message_id === "string"
         ? sourceMessageMap.get(memory.source_message_id)
         : null;
+    const normalizedCreatedAt = resolveMemoryTimestamp(
+      memory.created_at,
+      memory.updated_at,
+      sourceMessage?.created_at
+    );
+    const normalizedUpdatedAt = resolveMemoryTimestamp(
+      memory.updated_at,
+      memory.created_at,
+      sourceMessage?.created_at
+    );
+    const normalizedSourceTimestamp =
+      sourceMessage?.created_at
+        ? resolveMemoryTimestamp(sourceMessage.created_at, memory.created_at, memory.updated_at)
+        : null;
 
     return {
       ...memory,
+      created_at: normalizedCreatedAt,
+      updated_at: normalizedUpdatedAt,
       status,
       categoryLabel: getMemoryCategoryLabel(getMemoryCategory(memory)),
       scopeLabel: getMemoryScopeLabel(getMemoryScope(memory)),
@@ -271,7 +301,7 @@ export async function loadProductMemoryPageData(args: {
       sourceThreadTitle:
         sourceMessage?.thread_id ? threadTitleMap.get(sourceMessage.thread_id) ?? null : null,
       sourceThreadId: sourceMessage?.thread_id ?? null,
-      sourceTimestamp: sourceMessage?.created_at ?? null,
+      sourceTimestamp: normalizedSourceTimestamp,
       sourceExcerpt: sourceMessage?.content?.trim() ? sourceMessage.content.trim() : null,
       sourceRole: sourceMessage?.role ?? null,
       targetAgentName:

@@ -1,16 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
+  SupabaseBindingRepository,
   createSupabaseBindingLookup,
   handleInboundChannelMessage
 } from "@/lib/integrations/im-adapter";
 import { webImRuntimePort } from "@/lib/chat/im-runtime-port";
 import {
+  isTelegramInvalidDeliveryResponse,
   isValidTelegramWebhookSecret,
   normalizeTelegramUpdate,
   sendTelegramOutboundMessages,
   type TelegramUpdate
 } from "@/lib/integrations/telegram";
 import { getTelegramBotEnv } from "@/lib/env";
+import { updateOwnedChannelBindingStatus } from "@/lib/product/channels";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
@@ -36,7 +39,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const bindingLookup = await createSupabaseBindingLookup(createAdminClient());
+    const admin = createAdminClient();
+    const bindingLookup = await createSupabaseBindingLookup(admin);
     const result = await handleInboundChannelMessage({
       inbound,
       bindingLookup,
@@ -49,6 +53,42 @@ export async function POST(request: NextRequest) {
           messages: result.outbound_messages
         })
       : [];
+
+    if (outboundDelivery.some(isTelegramInvalidDeliveryResponse)) {
+      const repository = new SupabaseBindingRepository(admin);
+      const binding = await repository.findActiveBinding({
+        platform: inbound.platform,
+        channel_id: inbound.channel_id,
+        peer_id: inbound.peer_id,
+        platform_user_id: inbound.platform_user_id
+      });
+
+      if (binding?.id) {
+        const invalidResponse = outboundDelivery.find(isTelegramInvalidDeliveryResponse) ?? null;
+        const invalidBody =
+          invalidResponse?.body &&
+          typeof invalidResponse.body === "object" &&
+          !Array.isArray(invalidResponse.body)
+            ? (invalidResponse.body as Record<string, unknown>)
+            : null;
+
+        await updateOwnedChannelBindingStatus({
+          supabase: admin,
+          bindingId: binding.id,
+          userId: binding.user_id,
+          status: "invalid",
+          metadataPatch: {
+            invalidated_at: new Date().toISOString(),
+            invalidated_by: "telegram-webhook-outbound-delivery",
+            invalid_reason:
+              typeof invalidBody?.description === "string"
+                ? invalidBody.description
+                : "telegram_delivery_invalid",
+            invalid_platform: inbound.platform
+          }
+        });
+      }
+    }
 
     return NextResponse.json({
       ok: true,

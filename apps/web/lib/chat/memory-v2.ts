@@ -5,7 +5,11 @@ export type MemoryCategory =
   | "profile"
   | "preference"
   | "relationship"
-  | "goal";
+  | "goal"
+  | "episode"
+  | "mood"
+  | "key_date"
+  | "social";
 export type MemoryScope = "user_global" | "user_agent" | "thread_local";
 export type MemoryStability = "low" | "medium" | "high";
 export type MemoryStatus =
@@ -62,7 +66,11 @@ function isCategory(value: unknown): value is MemoryCategory {
     value === "profile" ||
     value === "preference" ||
     value === "relationship" ||
-    value === "goal"
+    value === "goal" ||
+    value === "episode" ||
+    value === "mood" ||
+    value === "key_date" ||
+    value === "social"
   );
 }
 
@@ -97,6 +105,20 @@ export function inferLegacyMemoryStability(
   memoryType: string | null | undefined
 ): MemoryStability {
   return memoryType === "profile" ? "high" : "medium";
+}
+
+export function inferGenericMemoryStability(
+  memoryType: string | null | undefined
+): MemoryStability {
+  if (memoryType === "profile" || memoryType === "key_date") {
+    return "high";
+  }
+
+  if (memoryType === "mood") {
+    return "low";
+  }
+
+  return "medium";
 }
 
 export function getMemoryStatus(memory: MemoryLike): MemoryStatus {
