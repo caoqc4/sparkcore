@@ -39,11 +39,27 @@ LITELLM_BASE_URL=
 LITELLM_API_KEY=
 REPLICATE_API_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+CREEM_API_KEY=
+CREEM_WEBHOOK_SECRET=
+CREEM_PRICE_PRO_MONTHLY=
+CREEM_PRICE_PRO_QUARTERLY=
+CREEM_PRICE_PRO_YEARLY=
+CREEM_PRICE_CREDITS_100=
+CREEM_PRICE_CREDITS_250=
+CREEM_PRICE_CREDITS_700=
+CREEM_SIMULATE=true
 ```
 
 建议把这些值写到：
 
 - `apps/web/.env.local`
+
+支付相关补充说明：
+
+- `CREEM_API_KEY` 和 `CREEM_WEBHOOK_SECRET` 用于真实 Creem checkout 与 webhook
+- `CREEM_PRICE_PRO_MONTHLY`、`CREEM_PRICE_PRO_QUARTERLY`、`CREEM_PRICE_PRO_YEARLY` 对应 Pro 的三个计费周期 price id
+- `CREEM_PRICE_CREDITS_100`、`CREEM_PRICE_CREDITS_250`、`CREEM_PRICE_CREDITS_700` 对应积分包 price id
+- 本地调试时可设置 `CREEM_SIMULATE=true`，这样会走站内模拟跳转，不创建真实支付
 
 ## 推荐本地启动路径
 
@@ -68,6 +84,13 @@ npm install
 cd /Users/caoq/git/sparkcore
 ./scripts/start-litellm-proxy.sh
 ```
+
+仓库自带的本地 LiteLLM 配置目前已经包含这些 Replicate 别名：
+
+- 文本：`replicate-gpt-4o-mini`、`replicate-claude-4-sonnet`、`replicate-gpt-4.1`、`replicate-llama-3-8b`
+- 图片：`replicate-nano-banana`、`replicate-nano-banana-pro`、`replicate-flux-2-pro`
+
+如果你的 Web 实际连的是另一套独立部署的 LiteLLM gateway，而不是这个本地 proxy，那么那边的配置也必须同步暴露相同别名，这些模型运行时才会真正可用。
 
 4. 启动 Web 应用
 

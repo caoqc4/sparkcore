@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { buildPageMetadata } from "@/lib/site";
-import { requestMagicLink } from "./actions";
+import { signInWithGoogle } from "./actions";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = buildPageMetadata({
@@ -37,11 +37,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="shell">
       <section className="card">
-        <p className="eyebrow">SparkCore Auth</p>
-        <h1 className="title">Sign in with a magic link</h1>
+        <p className="eyebrow">SparkCore</p>
+        <h1 className="title">Sign in</h1>
         <p className="lead">
-          Start with the fastest possible auth flow for the MVP. Enter your email
-          and we&apos;ll send you a secure sign-in link.
+          Sign in with your Google account to continue.
         </p>
 
         <div className="stack">
@@ -53,30 +52,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <div className="notice notice-success">{params.message}</div>
           ) : null}
 
-          <form action={requestMagicLink} className="stack">
+          <form action={signInWithGoogle} className="stack">
             <input name="next" type="hidden" value={nextPath} />
-            <div className="field">
-              <label className="label" htmlFor="email">
-                Email address
-              </label>
-              <input
-                autoComplete="email"
-                className="input"
-                id="email"
-                name="email"
-                placeholder="you@example.com"
-                required
-              type="email"
+            <FormSubmitButton
+              idleText="Continue with Google"
+              pendingText="Redirecting to Google..."
             />
-          </div>
-
-          <FormSubmitButton
-            idleText="Send magic link"
-            pendingText="Sending magic link..."
-          />
-        </form>
-      </div>
-    </section>
-  </main>
+          </form>
+        </div>
+      </section>
+    </main>
   );
 }

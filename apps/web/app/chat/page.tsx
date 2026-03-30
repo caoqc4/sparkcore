@@ -790,16 +790,13 @@ export default async function ChatPage({
                                   availableAgent.background_summary,
                                 avatar_emoji: availableAgent.avatar_emoji,
                                 system_prompt_summary:
-                                  availableAgent.system_prompt_summary,
-                                default_model_profile_id:
-                                  availableAgent.default_model_profile_id
+                                  availableAgent.system_prompt_summary
                               }}
                               isCurrentThreadAgent={isCurrent}
                               isWorkspaceDefaultAgent={
                                 availableAgent.is_default_for_workspace
                               }
                               locale={locale}
-                              modelProfiles={availableModelProfiles}
                             />
                           </div>
                         </article>

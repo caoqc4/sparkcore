@@ -84,6 +84,7 @@ export function RoleCreateWizard({
   const [name, setName] = useState(
     defaultMode === "girlfriend" ? "Luna" : defaultMode === "boyfriend" ? "Atlas" : "Nova",
   );
+  const [userPreferredName, setUserPreferredName] = useState("");
 
   // Step 2 — Personality
   const [tone, setTone] = useState<"warm" | "playful" | "steady">("warm");
@@ -190,6 +191,20 @@ export function RoleCreateWizard({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Give them a name…"
+          />
+        </div>
+
+        {/* User preferred name */}
+        <div className="rcw-field">
+          <label className="rcw-label" htmlFor="rcw-user-name">
+            What should {name.trim() || "they"} call you?
+          </label>
+          <input
+            id="rcw-user-name"
+            className="input"
+            value={userPreferredName}
+            onChange={(e) => setUserPreferredName(e.target.value)}
+            placeholder="Your name or nickname…"
           />
         </div>
 
@@ -415,6 +430,7 @@ export function RoleCreateWizard({
           <form action={createProductRole} className="rcw-submit-form">
             <input type="hidden" name="mode" value={mode} />
             <input type="hidden" name="name" value={name} />
+            <input type="hidden" name="user_preferred_name" value={userPreferredName} />
             <input type="hidden" name="tone" value={tone} />
             <input type="hidden" name="relationship_mode" value={relationshipMode} />
             <input type="hidden" name="boundaries" value={boundaries} />

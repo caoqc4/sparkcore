@@ -98,7 +98,6 @@ function SourceRow({
 }) {
   const typeConfig = SOURCE_TYPES.find((t) => t.id === source.kind);
   const updatedLabel = formatDate(source.updatedAt);
-  const latestRunLabel = formatDate(source.latestRun?.createdAt ?? null);
 
   return (
     <div className="knowledge-source-row">
@@ -113,26 +112,27 @@ function SourceRow({
             <span className="knowledge-source-date">{updatedLabel}</span>
           ) : null}
         </div>
-        <p className="knowledge-source-excerpt">{source.summary}</p>
-        {source.detail ? (
+        {source.summary ? (
+          <p className="knowledge-source-excerpt">{source.summary}</p>
+        ) : null}
+        {source.kind === "document" &&
+        source.detail &&
+        source.detail !== "Uploaded document" ? (
           <p className="knowledge-source-detail">{source.detail}</p>
         ) : null}
-        <div className="knowledge-source-meta">
-          <span>{source.scopeLabel}</span>
-          {source.processingStatus ? <span>{source.processingStatus}</span> : null}
-          {source.attemptCount > 0 ? <span>{source.attemptCount} attempt{source.attemptCount > 1 ? "s" : ""}</span> : null}
-        </div>
-        {source.latestRun ? (
-          <p className="knowledge-source-run">
-            Latest run: {source.latestRun.stage} · {source.latestRun.status}
-            {latestRunLabel ? ` · ${latestRunLabel}` : ""}
-            {source.latestRun.message ? ` · ${source.latestRun.message}` : ""}
-          </p>
+        {source.scopeLabel && source.scopeLabel !== "Current role" ? (
+          <div className="knowledge-source-meta">
+            <span className="knowledge-source-scope-badge">{source.scopeLabel}</span>
+          </div>
         ) : null}
-        {source.errorMessage || source.lastErrorCode ? (
-          <p className="knowledge-source-error">
-            {source.errorMessage ?? source.lastErrorCode}
-          </p>
+        {source.status === "failed" && (source.errorMessage || source.lastErrorCode) ? (
+          <div className="knowledge-source-error-callout">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{flexShrink: 0, marginTop: "1px"}}>
+              <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M8 5v4M8 11v.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+            <span>{source.errorMessage ?? source.lastErrorCode}</span>
+          </div>
         ) : null}
         {source.canRetry || source.canArchive || source.canDelete ? (
           <div className="knowledge-source-actions">
@@ -163,7 +163,7 @@ function SourceRow({
                 <input name="source_id" type="hidden" value={source.id} />
                 <input name="redirect_to" type="hidden" value={redirectTo} />
                 <FormSubmitButton
-                  className="button button-secondary knowledge-source-action-btn"
+                  className="button button-secondary knowledge-source-action-btn knowledge-source-action-delete"
                   idleText="Delete"
                   pendingText="Deleting…"
                 />
@@ -304,38 +304,33 @@ export default async function AppKnowledgePage({
         </div>
       </div>
 
-      {/* ── Knowledge vs. Memory explanation ── */}
-      <div className="knowledge-explainer">
-        <p>
-          <strong>Knowledge vs. Memory</strong> — Knowledge is reference
-          material you add to give this companion domain expertise: industry
-          reports, style guides, documentation, or any external content it
-          should draw from. Memory is what it learns automatically from your
-          conversations. Both shape how it responds, but they are managed
-          separately.
-        </p>
-      </div>
-
       {/* ── Your references ── */}
       <section className="site-card knowledge-references-card">
         <div className="role-section-head">
-          <h2 className="role-section-title">
-            Your references
-            {totalCount > 0 ? (
-              <span className="knowledge-count-badge">{totalCount}</span>
-            ) : null}
-          </h2>
-          <span className="knowledge-add-hint">Add a note, URL, or document below</span>
+          <div className="knowledge-section-title-row">
+            <h2 className="role-section-title">
+              Your references
+              {totalCount > 0 ? (
+                <span className="knowledge-count-badge">{totalCount}</span>
+              ) : null}
+            </h2>
+            <p className="knowledge-section-hint">
+              Knowledge shapes what the companion can draw from.
+              Unlike Memory, it&rsquo;s content you add directly.
+            </p>
+          </div>
         </div>
 
         <div className="knowledge-create-grid">
           <form action={createKnowledgeNote} className="knowledge-create-card">
             <input name="role_id" type="hidden" value={resolvedRoleId ?? ""} />
             <input name="redirect_to" type="hidden" value={redirectTo} />
-            <h3 className="knowledge-create-title">Quick note</h3>
-            <p className="knowledge-create-copy">
-              Save pasted guidance, small briefs, or reminders for this companion.
-            </p>
+            <div className="knowledge-create-header">
+              <span className="knowledge-create-icon">
+                {SOURCE_TYPES.find((t) => t.id === "note")?.icon}
+              </span>
+              <h3 className="knowledge-create-title">Quick note</h3>
+            </div>
             <input
               className="site-input"
               name="title"
@@ -346,12 +341,12 @@ export default async function AppKnowledgePage({
             <textarea
               className="site-textarea knowledge-create-textarea"
               name="note_content"
-              placeholder="Paste the note content here..."
+              placeholder="Paste guidance, briefs, or reminders here…"
               required
-              rows={4}
+              rows={3}
             />
             <FormSubmitButton
-              className="button button-secondary"
+              className="button button-secondary knowledge-create-btn"
               idleText="Save note"
               pendingText="Saving…"
             />
@@ -360,10 +355,12 @@ export default async function AppKnowledgePage({
           <form action={createKnowledgeUrl} className="knowledge-create-card">
             <input name="role_id" type="hidden" value={resolvedRoleId ?? ""} />
             <input name="redirect_to" type="hidden" value={redirectTo} />
-            <h3 className="knowledge-create-title">Web reference</h3>
-            <p className="knowledge-create-copy">
-              Queue a URL so the system can fetch and process the page.
-            </p>
+            <div className="knowledge-create-header">
+              <span className="knowledge-create-icon">
+                {SOURCE_TYPES.find((t) => t.id === "url")?.icon}
+              </span>
+              <h3 className="knowledge-create-title">Web reference</h3>
+            </div>
             <input
               className="site-input"
               name="title"
@@ -379,7 +376,7 @@ export default async function AppKnowledgePage({
               type="url"
             />
             <FormSubmitButton
-              className="button button-secondary"
+              className="button button-secondary knowledge-create-btn"
               idleText="Add URL"
               pendingText="Queueing…"
             />
@@ -391,10 +388,12 @@ export default async function AppKnowledgePage({
           >
             <input name="role_id" type="hidden" value={resolvedRoleId ?? ""} />
             <input name="redirect_to" type="hidden" value={redirectTo} />
-            <h3 className="knowledge-create-title">Document</h3>
-            <p className="knowledge-create-copy">
-              Upload a file to process. Text-like formats work best right now.
-            </p>
+            <div className="knowledge-create-header">
+              <span className="knowledge-create-icon">
+                {SOURCE_TYPES.find((t) => t.id === "document")?.icon}
+              </span>
+              <h3 className="knowledge-create-title">Document</h3>
+            </div>
             <input
               className="site-input"
               name="title"
@@ -402,43 +401,43 @@ export default async function AppKnowledgePage({
               required
               type="text"
             />
-            <input
-              accept=".pdf,.docx,.txt,.csv,.xlsx,.json,.md"
-              className="site-input"
-              name="file"
-              required
-              type="file"
-            />
+            <label className="knowledge-file-upload-label">
+              <input
+                accept=".pdf,.docx,.txt,.csv,.xlsx,.json,.md"
+                className="knowledge-file-upload-input"
+                name="file"
+                required
+                type="file"
+              />
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M8 11V3M5 6l3-3 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M2 13h12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+              <span>Choose file</span>
+              <span className="knowledge-file-hint">.pdf .docx .txt .csv .xlsx</span>
+            </label>
             <FormSubmitButton
-              className="button button-secondary"
+              className="button button-secondary knowledge-create-btn"
               idleText="Upload document"
               pendingText="Uploading…"
             />
           </form>
         </div>
 
+        {totalCount > 0 ? <div className="knowledge-list-divider" /> : null}
+
         {totalCount === 0 ? (
           /* ── Empty state ── */
           <div className="knowledge-empty">
-            <p className="knowledge-empty-lead">
-              Add reference material to give this companion domain expertise.
-              Supported types:
-            </p>
-            <div className="knowledge-type-list">
-              {SOURCE_TYPES.map((t) => (
-                <div key={t.id} className="knowledge-type-row">
-                  <span className="knowledge-type-row-icon">{t.icon}</span>
-                  <span className="knowledge-type-row-label">{t.label}</span>
-                  <div className="knowledge-type-row-exts">
-                    {t.exts.map((ext) => (
-                      <code key={ext} className="knowledge-ext-tag">{ext}</code>
-                    ))}
-                  </div>
-                </div>
-              ))}
+            <div className="knowledge-empty-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="2" width="13" height="17" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M16 2l5 5v14a1.5 1.5 0 01-1.5 1.5H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M7 9h8M7 13h5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
             </div>
-            <p className="knowledge-coming-soon">
-              You can already add notes, URLs, and text-friendly files here.
+            <p className="knowledge-empty-lead">
+              No references yet. Use the forms above to add a note, link a web page, or upload a document.
             </p>
           </div>
         ) : (

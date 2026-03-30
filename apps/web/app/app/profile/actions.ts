@@ -18,6 +18,12 @@ import {
   safeProductRoleTone,
   trimProductText
 } from "@/lib/product/role-core";
+import {
+  loadActiveAudioAssetById,
+  loadAccessiblePortraitAssetById,
+  loadOwnedRoleMediaProfile,
+  upsertOwnedRoleMediaProfile
+} from "@/lib/product/role-media";
 
 function resolveRedirectPath(formData: FormData, fallbackPath: string) {
   const redirectTarget = formData.get("redirect_to");
@@ -83,6 +89,15 @@ function normalizeBoundaries(value: string) {
   return normalized.slice(0, 400).trimEnd();
 }
 
+function normalizeOptionalId(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
 export async function updateProductRoleProfile(formData: FormData) {
   const redirectPath = resolveRedirectPath(formData, "/app/profile");
   const agentId = formData.get("agent_id");
@@ -130,6 +145,47 @@ export async function updateProductRoleProfile(formData: FormData) {
   const proactivityLevel = safeProductRoleProactivity(
     trimProductText(formData.get("proactivity_level"))
   );
+  const portraitAssetId = normalizeOptionalId(formData.get("portrait_asset_id"));
+  const audioAssetId = normalizeOptionalId(formData.get("audio_asset_id"));
+  const portraitReferenceEnabledByDefault =
+    formData.get("portrait_reference_enabled_by_default") === "true";
+
+  const { data: existingRoleMedia } = await loadOwnedRoleMediaProfile({
+    supabase,
+    agentId: agent.id,
+    workspaceId: workspace.id,
+    userId: user.id
+  });
+
+  if (portraitAssetId) {
+    const { data: portraitAsset } = await loadAccessiblePortraitAssetById({
+      supabase,
+      portraitAssetId
+    });
+
+    if (!portraitAsset) {
+      redirectWithMessage(redirectPath, "The selected portrait asset is unavailable.", "error");
+    }
+  }
+
+  let resolvedAudioProvider: string | null =
+    typeof existingRoleMedia?.audio_provider === "string" ? existingRoleMedia.audio_provider : null;
+
+  if (audioAssetId) {
+    const { data: audioAsset } = await loadActiveAudioAssetById({
+      supabase,
+      audioAssetId
+    });
+
+    if (!audioAsset) {
+      redirectWithMessage(redirectPath, "The selected audio asset is unavailable.", "error");
+    }
+
+    resolvedAudioProvider =
+      typeof audioAsset.provider === "string" ? audioAsset.provider : resolvedAudioProvider;
+  } else {
+    resolvedAudioProvider = null;
+  }
 
   const { error } = await updateOwnedAgent({
     supabase,
@@ -169,6 +225,35 @@ export async function updateProductRoleProfile(formData: FormData) {
 
   if (error) {
     redirectWithMessage(redirectPath, error.message, "error");
+  }
+
+  const { error: roleMediaError } = await upsertOwnedRoleMediaProfile({
+    supabase,
+    agentId: agent.id,
+    workspaceId: workspace.id,
+    userId: user.id,
+    portraitPresetId:
+      typeof existingRoleMedia?.portrait_preset_id === "string"
+        ? existingRoleMedia.portrait_preset_id
+        : null,
+    portraitStyle:
+      typeof existingRoleMedia?.portrait_style === "string" ? existingRoleMedia.portrait_style : null,
+    portraitGender:
+      typeof existingRoleMedia?.portrait_gender === "string"
+        ? existingRoleMedia.portrait_gender
+        : null,
+    portraitSourceType:
+      typeof existingRoleMedia?.portrait_source_type === "string"
+        ? existingRoleMedia.portrait_source_type
+        : null,
+    portraitAssetId,
+    portraitReferenceEnabledByDefault,
+    audioAssetId,
+    audioProvider: resolvedAudioProvider
+  });
+
+  if (roleMediaError) {
+    redirectWithMessage(redirectPath, roleMediaError.message, "error");
   }
 
   revalidatePath("/app");

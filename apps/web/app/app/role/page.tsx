@@ -13,6 +13,8 @@ import {
   type ProductMemoryItem,
 } from "@/lib/product/memory";
 import { loadProductRoleCollection } from "@/lib/product/roles";
+import { getProductModelCatalogItemBySlug } from "@/lib/product/model-catalog";
+import { RoleVoiceTabs, type RoleVoiceGroup } from "@/components/role-voice-tabs";
 import { updateProductRoleProfile } from "@/app/app/profile/actions";
 import {
   hideProductMemory,
@@ -256,108 +258,150 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
             action={updateProductRoleProfile}
             className="role-profile-form"
           >
-            <input
-              name="agent_id"
-              type="hidden"
-              value={profileData.role.agentId}
-            />
+            <input name="agent_id" type="hidden" value={profileData.role.agentId} />
             <input name="redirect_to" type="hidden" value={redirectTo} />
+            {/* Preserve portrait binding — portrait is set at creation and not editable here */}
+            <input
+              name="portrait_asset_id"
+              type="hidden"
+              value={profileData.role.media.portraitAssetId ?? ""}
+            />
+            <input
+              name="portrait_reference_enabled_by_default"
+              type="hidden"
+              value="true"
+            />
 
-            {/* Row 1: Name · Mode · Tone */}
-            <div className="role-form-grid-3">
+            {/* ── Profile ── */}
+            <div className="role-subsection">
+              <div className="role-subsection-head">
+                <h3 className="role-subsection-title">Profile</h3>
+              </div>
+
+              <div className="role-form-grid-3">
+                <div className="field">
+                  <label className="label" htmlFor="rp-name">Name</label>
+                  <input
+                    className="input"
+                    defaultValue={profileData.role.name}
+                    id="rp-name"
+                    name="name"
+                  />
+                </div>
+                <div className="field">
+                  <label className="label" htmlFor="rp-mode">Mode</label>
+                  <select
+                    className="input"
+                    defaultValue={profileData.role.config.mode}
+                    id="rp-mode"
+                    name="mode"
+                  >
+                    <option value="companion">Companion</option>
+                    <option value="girlfriend">Girlfriend</option>
+                    <option value="boyfriend">Boyfriend</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label className="label" htmlFor="rp-tone">Tone</label>
+                  <select
+                    className="input"
+                    defaultValue={profileData.role.config.tone}
+                    id="rp-tone"
+                    name="tone"
+                  >
+                    <option value="warm">Warm</option>
+                    <option value="playful">Playful</option>
+                    <option value="steady">Steady</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="role-form-grid-2">
+                <div className="field">
+                  <label className="label" htmlFor="rp-rel-mode">Relationship mode</label>
+                  <input
+                    className="input"
+                    defaultValue={profileData.role.config.relationshipMode}
+                    id="rp-rel-mode"
+                    name="relationship_mode"
+                  />
+                </div>
+                <div className="field">
+                  <label className="label" htmlFor="rp-proactivity">Proactivity</label>
+                  <select
+                    className="input"
+                    defaultValue={profileData.role.config.proactivityLevel}
+                    id="rp-proactivity"
+                    name="proactivity_level"
+                  >
+                    <option value="low">Low</option>
+                    <option value="balanced">Balanced</option>
+                    <option value="active">Active</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="field">
-                <label className="label" htmlFor="rp-name">
-                  Name
-                </label>
-                <input
-                  className="input"
-                  defaultValue={profileData.role.name}
-                  id="rp-name"
-                  name="name"
+                <label className="label" htmlFor="rp-boundaries">Boundaries</label>
+                <textarea
+                  className="input textarea"
+                  defaultValue={profileData.role.config.boundaries}
+                  id="rp-boundaries"
+                  name="boundaries"
+                  rows={3}
                 />
               </div>
-              <div className="field">
-                <label className="label" htmlFor="rp-mode">
-                  Mode
-                </label>
-                <select
-                  className="input"
-                  defaultValue={profileData.role.config.mode}
-                  id="rp-mode"
-                  name="mode"
-                >
-                  <option value="companion">Companion</option>
-                  <option value="girlfriend">Girlfriend</option>
-                  <option value="boyfriend">Boyfriend</option>
-                </select>
-              </div>
-              <div className="field">
-                <label className="label" htmlFor="rp-tone">
-                  Tone
-                </label>
-                <select
-                  className="input"
-                  defaultValue={profileData.role.config.tone}
-                  id="rp-tone"
-                  name="tone"
-                >
-                  <option value="warm">Warm</option>
-                  <option value="playful">Playful</option>
-                  <option value="steady">Steady</option>
-                </select>
-              </div>
+
+              {profileData.role.personaSummary ? (
+                <p className="role-persona-preview">{profileData.role.personaSummary}</p>
+              ) : null}
             </div>
 
-            {/* Row 2: Relationship mode · Proactivity */}
-            <div className="role-form-grid-2">
-              <div className="field">
-                <label className="label" htmlFor="rp-rel-mode">
-                  Relationship mode
-                </label>
-                <input
-                  className="input"
-                  defaultValue={profileData.role.config.relationshipMode}
-                  id="rp-rel-mode"
-                  name="relationship_mode"
-                />
-              </div>
-              <div className="field">
-                <label className="label" htmlFor="rp-proactivity">
-                  Proactivity
-                </label>
-                <select
-                  className="input"
-                  defaultValue={profileData.role.config.proactivityLevel}
-                  id="rp-proactivity"
-                  name="proactivity_level"
-                >
-                  <option value="low">Low</option>
-                  <option value="balanced">Balanced</option>
-                  <option value="active">Active</option>
-                </select>
-              </div>
-            </div>
+            {/* ── Voice ── */}
+            {(() => {
+              const rawAssets = profileData.role.mediaLibraries.audioAssets;
+              const voiceGroups: RoleVoiceGroup[] = [];
+              for (const asset of rawAssets) {
+                const existing = voiceGroups.find((g) => g.modelSlug === asset.modelSlug);
+                if (existing) {
+                  existing.assets.push(asset);
+                } else {
+                  const catalogItem = getProductModelCatalogItemBySlug(asset.modelSlug);
+                  voiceGroups.push({
+                    modelSlug: asset.modelSlug,
+                    modelDisplayName: catalogItem?.displayName ?? asset.provider,
+                    tier: catalogItem?.tier ?? "free",
+                    assets: [asset],
+                  });
+                }
+              }
+              // Free-tier groups first, then pro
+              voiceGroups.sort((a, b) => {
+                if (a.tier === b.tier) return 0;
+                return a.tier === "free" ? -1 : 1;
+              });
 
-            {/* Boundaries */}
-            <div className="field">
-              <label className="label" htmlFor="rp-boundaries">
-                Boundaries
-              </label>
-              <textarea
-                className="input textarea"
-                defaultValue={profileData.role.config.boundaries}
-                id="rp-boundaries"
-                name="boundaries"
-                rows={3}
-              />
-            </div>
+              return (
+                <div className="role-subsection">
+                  <div className="role-subsection-head">
+                    <h3 className="role-subsection-title">Voice</h3>
+                  </div>
+                  <p className="role-field-hint">
+                    Choose the voice for this companion. Voice is role-specific and stays
+                    with this companion across conversations.
+                  </p>
 
-            {/* Persona summary preview */}
-            {profileData.role.personaSummary ? (
-              <p className="role-persona-preview">
-                {profileData.role.personaSummary}
-              </p>
-            ) : null}
+                  {rawAssets.length > 0 ? (
+                    <RoleVoiceTabs
+                      groups={voiceGroups}
+                      selectedAssetId={profileData.role.media.audioAssetId}
+                    />
+                  ) : (
+                    <p className="role-field-hint">Voice library is loading…</p>
+                  )}
+                </div>
+              );
+            })()}
 
             <div className="role-form-footer">
               <FormSubmitButton idleText="Save" pendingText="Saving..." />

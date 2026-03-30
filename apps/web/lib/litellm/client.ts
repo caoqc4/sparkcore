@@ -19,6 +19,14 @@ type LiteLLMChatCompletionResponse = {
   choices?: LiteLLMChoice[];
 };
 
+type LiteLLMImageGenerationResponse = {
+  created?: number;
+  data?: Array<{
+    url?: string | null;
+    b64_json?: string | null;
+  }>;
+};
+
 export class LiteLLMError extends Error {
   readonly status: number;
   readonly details?: unknown;
@@ -256,5 +264,102 @@ export async function generateText({
     id: data.id ?? null,
     model: data.model ?? model,
     content
+  };
+}
+
+export async function generateImage({
+  model,
+  prompt,
+  size = "1024x1024",
+  n = 1
+}: {
+  model: string;
+  prompt: string;
+  size?: string;
+  n?: number;
+}) {
+  if (!model.trim()) {
+    throw new Error("LiteLLM image model is required.");
+  }
+
+  if (!prompt.trim()) {
+    throw new Error("An image prompt is required.");
+  }
+
+  const { baseUrl, apiKey } = getLiteLLMEnv();
+  const endpoint = `${normalizeBaseUrl(baseUrl)}/images/generations`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_LITELLM_TIMEOUT_MS);
+
+  let response: Response;
+
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        prompt,
+        size,
+        n
+      }),
+      signal: controller.signal
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new LiteLLMTimeoutError(DEFAULT_LITELLM_TIMEOUT_MS);
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  let payload: unknown = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const message =
+      typeof payload === "object" &&
+      payload !== null &&
+      "error" in payload &&
+      typeof payload.error === "object" &&
+      payload.error !== null &&
+      "message" in payload.error &&
+      typeof payload.error.message === "string"
+        ? payload.error.message
+        : `LiteLLM image request failed with status ${response.status}.`;
+
+    throw new LiteLLMError(message, response.status, payload);
+  }
+
+  const data = payload as LiteLLMImageGenerationResponse;
+  const firstImage = data.data?.[0];
+  const imageUrl =
+    typeof firstImage?.url === "string" && firstImage.url.length > 0
+      ? firstImage.url
+      : typeof firstImage?.b64_json === "string" && firstImage.b64_json.length > 0
+        ? `data:image/png;base64,${firstImage.b64_json}`
+        : null;
+
+  if (!imageUrl) {
+    throw new LiteLLMError(
+      "LiteLLM returned no image output.",
+      response.status,
+      payload
+    );
+  }
+
+  return {
+    model,
+    url: imageUrl
   };
 }

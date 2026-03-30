@@ -46,6 +46,15 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_POSTHOG_KEY=
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 NEXT_PUBLIC_CLARITY_PROJECT_ID=
+CREEM_API_KEY=
+CREEM_WEBHOOK_SECRET=
+CREEM_PRICE_PRO_MONTHLY=
+CREEM_PRICE_PRO_QUARTERLY=
+CREEM_PRICE_PRO_YEARLY=
+CREEM_PRICE_CREDITS_100=
+CREEM_PRICE_CREDITS_250=
+CREEM_PRICE_CREDITS_700=
+CREEM_SIMULATE=true
 ```
 
 Analytics variables are optional:
@@ -55,6 +64,13 @@ Analytics variables are optional:
 - `NEXT_PUBLIC_CLARITY_PROJECT_ID` enables Microsoft Clarity
 
 If you do not set them, the app will skip analytics bootstrap silently.
+
+Billing variables:
+
+- `CREEM_API_KEY` and `CREEM_WEBHOOK_SECRET` are required for live Creem checkout and webhook handling
+- `CREEM_PRICE_PRO_MONTHLY`, `CREEM_PRICE_PRO_QUARTERLY`, `CREEM_PRICE_PRO_YEARLY` map SparkCore Pro billing cadences to Creem price ids
+- `CREEM_PRICE_CREDITS_100`, `CREEM_PRICE_CREDITS_250`, `CREEM_PRICE_CREDITS_700` map credits packs to Creem price ids
+- `CREEM_SIMULATE=true` can be used locally to emulate checkout redirects without creating real charges
 
 ## Recommended Local Startup
 
@@ -79,6 +95,13 @@ If you want to use the bundled local proxy:
 cd /Users/caoq/git/sparkcore
 ./scripts/start-litellm-proxy.sh
 ```
+
+The repository-provided local LiteLLM config currently includes these Replicate aliases:
+
+- text: `replicate-gpt-4o-mini`, `replicate-claude-4-sonnet`, `replicate-gpt-4.1`, `replicate-llama-3-8b`
+- image: `replicate-nano-banana`, `replicate-nano-banana-pro`, `replicate-flux-2-pro`
+
+If your web app points to a separate deployed LiteLLM gateway instead of this local proxy, the deployed config must expose the same aliases before those models will work at runtime.
 
 4. Start the web app
 

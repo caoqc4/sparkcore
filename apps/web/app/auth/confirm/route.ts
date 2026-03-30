@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get("code");
   const tokenHash = requestUrl.searchParams.get("token_hash");
   const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
-  const next = requestUrl.searchParams.get("next") ?? "/chat";
+  const next = requestUrl.searchParams.get("next") ?? "/app";
 
   const supabase = await createClient();
 
@@ -31,6 +31,6 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(
-    new URL("/login?error=Magic+link+is+invalid+or+expired.", request.url)
+    new URL("/login?error=Sign-in+failed+or+session+expired.+Please+try+again.", request.url)
   );
 }

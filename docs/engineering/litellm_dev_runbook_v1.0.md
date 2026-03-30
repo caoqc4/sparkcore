@@ -42,6 +42,11 @@
 - 当前配置依赖 `REPLICATE_API_KEY`
 - 默认 master key 是 `sk-sparkcore-local-dev`
 
+当前本地配置里已经显式注册了这些别名：
+
+- 文本：`replicate-gpt-4o-mini`、`replicate-claude-4-sonnet`、`replicate-gpt-4.1`、`replicate-llama-3-8b`
+- 图片：`replicate-nano-banana`、`replicate-nano-banana-pro`、`replicate-flux-2-pro`
+
 适合：
 
 - 日常本地开发
@@ -61,6 +66,7 @@
 - 适合快速验证真实闭环
 - 不依赖本机本地 proxy 已经启动
 - 更适合 Telegram PoC 这种“先跑通整条链路”的场景
+- 只有远端配置里实际注册过的模型别名，运行时才会被识别
 
 适合：
 
@@ -216,6 +222,22 @@ npm run dev
 1. LiteLLM 是否可用
 2. `npm run litellm:test -- --model ...` 是否通过
 3. 当前 shell 是否真的加载了你期望的 `LITELLM_BASE_URL`
+
+---
+
+### 6.3 图片模型报 `Invalid model name`
+
+如果你看到类似：
+
+- `/images/generations: Invalid model name passed in model=replicate-nano-banana`
+
+优先判断：
+
+1. Web 当前连的是本地 LiteLLM，还是远端 LiteLLM
+2. 那个实际被调用的 LiteLLM 配置里，是否真的注册了对应别名
+3. 配置改完后，LiteLLM 服务是否已经重启
+
+这类错误通常不是前端问题，而是“当前生效的 LiteLLM 实例里没有这个模型别名”。
 
 ---
 

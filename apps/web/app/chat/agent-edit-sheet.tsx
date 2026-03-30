@@ -13,21 +13,11 @@ type AgentEditSheetProps = {
     background_summary: string | null;
     avatar_emoji: string | null;
     system_prompt_summary: string;
-    default_model_profile_id: string | null;
   };
   isCurrentThreadAgent: boolean;
   isWorkspaceDefaultAgent: boolean;
   locale: ChatLocale;
   triggerLabel?: string;
-  modelProfiles: Array<{
-    id: string;
-    name: string;
-    provider: string;
-    model: string;
-    tier_label: string | null;
-    usage_note: string | null;
-    underlying_model: string | null;
-  }>;
 };
 
 export function AgentEditSheet({
@@ -35,8 +25,7 @@ export function AgentEditSheet({
   isCurrentThreadAgent,
   isWorkspaceDefaultAgent,
   locale,
-  triggerLabel,
-  modelProfiles
+  triggerLabel
 }: AgentEditSheetProps) {
   const router = useRouter();
   const copy = getChatCopy(locale);
@@ -49,91 +38,24 @@ export function AgentEditSheet({
     agent.background_summary ?? ""
   );
   const [draftAvatarEmoji, setDraftAvatarEmoji] = useState(agent.avatar_emoji ?? "");
-  const [selectedModelProfileId, setSelectedModelProfileId] = useState(
-    agent.default_model_profile_id ?? modelProfiles[0]?.id ?? ""
-  );
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const selectedModelProfile =
-    modelProfiles.find((modelProfile) => modelProfile.id === selectedModelProfileId) ??
-    null;
   const relationshipEntryHelper = isCurrentThreadAgent
     ? copy.sheets.editAgentHelperCurrentThread
     : isWorkspaceDefaultAgent
       ? copy.sheets.editAgentHelperWorkspaceDefault
       : copy.sheets.editAgentHelperOtherAgent;
-  const profileHelper = isCurrentThreadAgent
-    ? copy.sheets.profileHelperCurrentThread
-    : isWorkspaceDefaultAgent
-      ? copy.sheets.profileHelperWorkspaceDefault
-      : copy.sheets.profileHelperOtherAgent;
-
-  function getProfilePositioning(
-    modelProfile: AgentEditSheetProps["modelProfiles"][number]
-  ) {
-    const tier = modelProfile.tier_label?.toLowerCase() ?? "";
-
-    if (tier.includes("stable")) {
-      return {
-        label: copy.sheets.profilePositioningStable,
-        helper: copy.sheets.profilePositioningStableHelper,
-        recommendation: copy.sheets.profileRecommendationStableHelper,
-        tradeoff: copy.sheets.profileTradeoffStableHelper
-      };
-    }
-
-    if (tier.includes("memory")) {
-      return {
-        label: copy.sheets.profilePositioningMemory,
-        helper: copy.sheets.profilePositioningMemoryHelper,
-        recommendation: copy.sheets.profileRecommendationMemoryHelper,
-        tradeoff: copy.sheets.profileTradeoffMemoryHelper
-      };
-    }
-
-    if (tier.includes("low-cost") || tier.includes("low cost")) {
-      return {
-        label: copy.sheets.profilePositioningLowCost,
-        helper: copy.sheets.profilePositioningLowCostHelper,
-        recommendation: copy.sheets.profileRecommendationLowCostHelper,
-        tradeoff: copy.sheets.profileTradeoffLowCostHelper
-      };
-    }
-
-    return {
-      label: copy.sheets.profilePositioningGeneric,
-      helper: copy.sheets.profilePositioningGenericHelper,
-      recommendation: copy.sheets.profileRecommendationGenericHelper,
-      tradeoff: copy.sheets.profileTradeoffGenericHelper
-    };
-  }
-
-  function buildModelProfileOptionLabel(modelProfile: AgentEditSheetProps["modelProfiles"][number]) {
-    const parts = [modelProfile.name, getProfilePositioning(modelProfile).label];
-
-    parts.push(
-      modelProfile.underlying_model ??
-        `${modelProfile.provider}/${modelProfile.model}`
-    );
-
-    return parts.join(" · ");
-  }
 
   useEffect(() => {
     setDraftName(agent.name);
     setDraftPersonaSummary(agent.persona_summary);
     setDraftBackgroundSummary(agent.background_summary ?? "");
     setDraftAvatarEmoji(agent.avatar_emoji ?? "");
-    setSelectedModelProfileId(
-      agent.default_model_profile_id ?? modelProfiles[0]?.id ?? ""
-    );
   }, [
     agent.avatar_emoji,
     agent.background_summary,
-    agent.default_model_profile_id,
     agent.name,
-    agent.persona_summary,
-    modelProfiles
+    agent.persona_summary
   ]);
 
   function closeSheet() {
@@ -145,7 +67,6 @@ export function AgentEditSheet({
     setDraftPersonaSummary(agent.persona_summary);
     setDraftBackgroundSummary(agent.background_summary ?? "");
     setDraftAvatarEmoji(agent.avatar_emoji ?? "");
-    setSelectedModelProfileId(agent.default_model_profile_id ?? modelProfiles[0]?.id ?? "");
     setFeedback(null);
     setIsOpen(false);
   }
@@ -217,6 +138,9 @@ export function AgentEditSheet({
             <p className="helper-copy">
               {relationshipEntryHelper}
             </p>
+            <p className="helper-copy">
+              {copy.sheets.editAgentHelper3}
+            </p>
 
             {feedback ? <div className="notice notice-error">{feedback}</div> : null}
 
@@ -281,74 +205,6 @@ export function AgentEditSheet({
                   }
                   value={draftPersonaSummary}
                 />
-              </label>
-
-              <label className="field" htmlFor={`agent-model-profile-${agent.id}`}>
-                <span className="label">{copy.sheets.modelProfile}</span>
-                <select
-                  className="input"
-                  id={`agent-model-profile-${agent.id}`}
-                  name="model_profile_id"
-                  onChange={(event) =>
-                    setSelectedModelProfileId(event.currentTarget.value)
-                  }
-                  value={selectedModelProfileId}
-                >
-                  {modelProfiles.map((modelProfile) => (
-                    <option key={modelProfile.id} value={modelProfile.id}>
-                      {buildModelProfileOptionLabel(modelProfile)}
-                    </option>
-                  ))}
-                </select>
-                <span className="helper-copy">
-                  {profileHelper}
-                </span>
-                <span className="helper-copy">
-                  {copy.sheets.profileRecommendationSummary}
-                </span>
-                {selectedModelProfile ? (
-                  <>
-                    {(() => {
-                      const positioning = getProfilePositioning(selectedModelProfile);
-
-                      return (
-                    <div className="sheet-pack-preview">
-                      <p className="sheet-pack-name">
-                        {copy.sheets.profilePositioning}
-                      </p>
-                      <p className="thread-link-meta">
-                            {positioning.label}
-                      </p>
-                      <p className="helper-copy">
-                            {positioning.helper}
-                      </p>
-                          <p className="sheet-pack-name">
-                            {copy.sheets.profileRecommendation}
-                          </p>
-                          <p className="helper-copy">
-                            {positioning.recommendation}
-                          </p>
-                          <p className="sheet-pack-name">
-                            {copy.sheets.profileTradeoff}
-                          </p>
-                          <p className="helper-copy">
-                            {positioning.tradeoff}
-                          </p>
-                    </div>
-                      );
-                    })()}
-                    {selectedModelProfile.usage_note ? (
-                      <span className="helper-copy">
-                        {selectedModelProfile.usage_note}
-                      </span>
-                    ) : null}
-                    <span className="helper-copy">
-                      {copy.sheets.underlyingModel}:{" "}
-                      {selectedModelProfile.underlying_model ??
-                        `${selectedModelProfile.provider}/${selectedModelProfile.model}`}
-                    </span>
-                  </>
-                ) : null}
               </label>
 
               <div className="sheet-pack-preview">

@@ -295,16 +295,21 @@ export function buildProductSystemPrompt(args: {
   relationshipMode: string;
   boundaries: string;
   proactivityLevel: ProductRoleProactivity;
+  userPreferredName?: string | null;
 }) {
-  return [
+  const parts = [
     `You are ${args.name}, a SparkCore long-memory ${args.mode}.`,
     `Your tone should be ${args.tone}.`,
     `Relationship mode: ${args.relationshipMode}.`,
+    args.userPreferredName
+      ? `The user prefers to be called "${args.userPreferredName}" — always address them by this name.`
+      : null,
     `Respect these boundaries: ${args.boundaries}.`,
     `Proactivity: ${buildProactivityCopy(args.proactivityLevel)}`,
     "Prioritize continuity, warmth, and a sense of being the same companion over time.",
     "Do not drift into generic assistant-mode unless the user clearly needs practical help."
-  ].join(" ");
+  ];
+  return parts.filter(Boolean).join(" ");
 }
 
 export function buildProductAgentMetadata(args: {
@@ -313,6 +318,7 @@ export function buildProductAgentMetadata(args: {
   relationshipMode: string;
   boundaries: string;
   proactivityLevel: ProductRoleProactivity;
+  userPreferredName?: string | null;
   avatarPresetId?: string | null;
   avatarStyle?: ProductRoleAvatarStyle | null;
   avatarGender?: ProductRoleAvatarGender | null;
@@ -339,7 +345,8 @@ export function buildProductAgentMetadata(args: {
       tone: args.tone,
       relationship_mode: args.relationshipMode,
       boundaries: args.boundaries,
-      proactivity_level: args.proactivityLevel
+      proactivity_level: args.proactivityLevel,
+      ...(args.userPreferredName ? { user_preferred_name: args.userPreferredName } : {})
     },
     ...(appearance
       ? {

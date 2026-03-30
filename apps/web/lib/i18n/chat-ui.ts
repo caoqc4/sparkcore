@@ -221,7 +221,7 @@ export function getChatCopy(locale: ChatLocale) {
         editAgentHelper2:
           "这里的修改只会更新这个 agent 对象，并影响之后使用它的回复。它不会重写旧线程内容或过往 runtime 摘要。",
         editAgentHelper3:
-          "在当前线程里，这个 agent 在相关时仍然可以参考长期记忆。在这里切换 agent 或模型，只会影响之后的回复。",
+          "模型选择现在以账号设置为准。去 Settings 里统一切换文本、图片和音频模型；这里先只保留角色信息编辑。",
         editAgentHelperCurrentThread:
           "这个 agent 正在当前线程里回复。你在这里做的轻编辑会影响这个线程后续的回复，但不会重写前面的内容。",
         editAgentHelperWorkspaceDefault:
@@ -584,7 +584,7 @@ export function getChatCopy(locale: ChatLocale) {
       editAgentHelper2:
         "Changes here update the agent object for future replies that use this agent. They do not rewrite older thread content or past runtime summaries.",
       editAgentHelper3:
-        "In the current thread, this agent can reference long-term memory when it is relevant. Switching the agent or model here only affects future replies.",
+        "Model selection now follows account-level settings. Use Settings to switch text, image, and audio models for the whole account; this sheet only edits role details.",
       editAgentHelperCurrentThread:
         "This agent is replying in the current thread. Lightweight edits here affect later replies in this thread, but they do not rewrite earlier turns.",
       editAgentHelperWorkspaceDefault:

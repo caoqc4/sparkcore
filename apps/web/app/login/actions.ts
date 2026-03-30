@@ -19,40 +19,31 @@ function getSafeNextPath(value: FormDataEntryValue | null) {
   return value;
 }
 
-export async function requestMagicLink(formData: FormData) {
-  const email = formData.get("email");
+export async function signInWithGoogle(formData: FormData) {
   const next = getSafeNextPath(formData.get("next"));
 
-  if (typeof email !== "string" || email.trim().length === 0) {
-    redirect(
-      `/login?error=Please+enter+an+email+address.&next=${encodeURIComponent(next)}`
-    );
-  }
-
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email: email.trim(),
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
     options: {
-      shouldCreateUser: true,
-      emailRedirectTo: `${getAppUrl()}/auth/confirm?next=${encodeURIComponent(
+      redirectTo: `${getAppUrl()}/auth/confirm?next=${encodeURIComponent(
         next
-      )}`
+      )}`,
+      queryParams: {
+        prompt: "select_account"
+      }
     }
   });
 
-  if (error) {
+  if (error || typeof data?.url !== "string" || data.url.length === 0) {
     redirect(
-      `/login?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(
-        next
-      )}`
+      `/login?error=${encodeURIComponent(
+        error?.message ?? "Unable to start Google sign-in."
+      )}&next=${encodeURIComponent(next)}`
     );
   }
 
-  redirect(
-    `/login?message=${encodeURIComponent(
-      "Magic link sent. Check your inbox to continue."
-    )}&next=${encodeURIComponent(next)}`
-  );
+  redirect(data.url);
 }
 
 export async function signOut() {

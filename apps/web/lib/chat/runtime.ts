@@ -60,6 +60,7 @@ import {
   loadFirstActivePersonaPack,
   loadLatestOwnedThread,
   loadOwnedActiveAgentsByIds,
+  loadOwnedUserAppSettingsMetadata,
   loadOwnedAvailableAgents,
   loadOwnedThreadTitlesByIds,
   loadModelProfilesByIds,
@@ -3465,6 +3466,41 @@ export async function getDefaultModelProfile(providedSupabase?: any) {
   return fallbackProfile as ModelProfileRecord;
 }
 
+async function getAccountLevelModelProfileForUser(args: {
+  userId: string;
+  supabase?: any;
+}) {
+  const supabase = args.supabase ?? (await createClient());
+  const { data: appSettings } = await loadOwnedUserAppSettingsMetadata({
+    supabase,
+    userId: args.userId
+  });
+  const metadata =
+    appSettings?.metadata &&
+    typeof appSettings.metadata === "object" &&
+    !Array.isArray(appSettings.metadata)
+      ? (appSettings.metadata as Record<string, unknown>)
+      : {};
+  const preferredTextModelSlug =
+    typeof metadata.default_text_model_slug === "string" &&
+    metadata.default_text_model_slug.trim().length > 0
+      ? metadata.default_text_model_slug.trim()
+      : null;
+
+  if (preferredTextModelSlug) {
+    const { data: preferredProfile } = await loadActiveModelProfileBySlug({
+      supabase,
+      slug: preferredTextModelSlug
+    });
+
+    if (preferredProfile) {
+      return preferredProfile as ModelProfileRecord;
+    }
+  }
+
+  return null;
+}
+
 async function resolveModelProfileForAgent({
   agent,
   workspaceId,
@@ -3477,6 +3513,14 @@ async function resolveModelProfileForAgent({
   supabase?: any;
 }) {
   const supabase = providedSupabase ?? (await createClient());
+  const accountLevelProfile = await getAccountLevelModelProfileForUser({
+    supabase,
+    userId
+  });
+
+  if (accountLevelProfile) {
+    return accountLevelProfile;
+  }
 
   if (agent.default_model_profile_id) {
     const { data: boundProfile } = await loadActiveModelProfileById({

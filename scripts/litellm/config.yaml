@@ -10,7 +10,23 @@ model_list:
     litellm_params:
       model: replicate/anthropic/claude-4-sonnet
       api_key: os.environ/REPLICATE_API_KEY
+  - model_name: replicate-gpt-4.1
+    litellm_params:
+      model: replicate/openai/gpt-4.1
+      api_key: os.environ/REPLICATE_API_KEY
   - model_name: replicate-llama-3-8b
     litellm_params:
       model: replicate/meta/meta-llama-3-8b-instruct
+      api_key: os.environ/REPLICATE_API_KEY
+  - model_name: replicate-nano-banana
+    litellm_params:
+      model: replicate/google/nano-banana
+      api_key: os.environ/REPLICATE_API_KEY
+  - model_name: replicate-nano-banana-pro
+    litellm_params:
+      model: replicate/google/nano-banana-pro
+      api_key: os.environ/REPLICATE_API_KEY
+  - model_name: replicate-flux-2-pro
+    litellm_params:
+      model: replicate/black-forest-labs/flux-2-pro
       api_key: os.environ/REPLICATE_API_KEY

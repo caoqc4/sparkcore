@@ -421,6 +421,17 @@ export async function loadActiveModelProfileById(args: {
     .maybeSingle();
 }
 
+export async function loadOwnedUserAppSettingsMetadata(args: {
+  supabase: any;
+  userId: string;
+}) {
+  return args.supabase
+    .from("user_app_settings")
+    .select("metadata")
+    .eq("user_id", args.userId)
+    .maybeSingle();
+}
+
 export async function loadRecentOwnedMemories(args: {
   supabase: any;
   workspaceId: string;

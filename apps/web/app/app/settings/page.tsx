@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { DeleteAccountConfirm } from "@/components/delete-account-confirm";
+import { SettingsModelCapabilityGrid } from "@/components/settings-model-capability-grid";
 import { ProductConsoleShell } from "@/components/product-console-shell";
 import { ProductEventTracker } from "@/components/product-event-tracker";
 import { FormSubmitButton } from "@/components/form-submit-button";
@@ -10,11 +12,8 @@ import { loadProductSettingsPageData } from "@/lib/product/settings";
 import { createClient } from "@/lib/supabase/server";
 import {
   deleteCurrentProductAccount,
-  exportCurrentProductData,
   saveProductAppSettings,
-  saveProductDataPrivacySettings,
   saveProductModelSettings,
-  saveProductSubscriptionSnapshot,
   signOutAllProductSessions,
 } from "@/app/app/settings/actions";
 import { signOut } from "@/app/login/actions";
@@ -53,13 +52,15 @@ function SectionCard({
   title,
   children,
   badge,
+  id,
 }: {
   title: string;
   children: React.ReactNode;
   badge?: string | null;
+  id?: string;
 }) {
   return (
-    <section className="site-card settings-card">
+    <section className="site-card settings-card" id={id}>
       <div className="role-section-head">
         <h2 className="role-section-title">{title}</h2>
         {badge ? <span className="settings-soon-badge">{badge}</span> : null}
@@ -68,6 +69,8 @@ function SectionCard({
     </section>
   );
 }
+
+
 
 export default async function AppSettingsPage({ searchParams }: SettingsPageProps) {
   const params = await searchParams;
@@ -127,191 +130,156 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
         </div>
       ) : null}
 
-      <div className="role-state-bar">
-        <div className="role-state-item">
-          <span className="role-state-label">Signed in as</span>
-          <span className="role-state-value">{settingsData.account.email ?? "—"}</span>
+      {/* ── Account ── */}
+      <section className="site-card settings-card">
+        <div className="role-section-head">
+          <h2 className="role-section-title">Account</h2>
+          <form action={signOut}>
+            <FormSubmitButton
+              className="button button-secondary settings-danger-btn"
+              idleText="Sign out"
+              pendingText="Signing out…"
+            />
+          </form>
         </div>
-        <div className="role-state-divider" />
-        <div className="role-state-item">
-          <span className="role-state-label">Auth</span>
-          <span className="role-state-value">{settingsData.account.authLabel}</span>
-        </div>
-      </div>
-
-      <SectionCard title="Account">
-        <div className="settings-row">
-          <div className="settings-row-label-wrap">
-            <span className="settings-row-label">Email</span>
+        <div className="settings-identity">
+          <div
+            className={`settings-identity-badge${
+              settingsData.account.authLabel === "Google" ? " badge-google" : " badge-legacy"
+            }`}
+            aria-hidden="true"
+          >
+            {settingsData.account.authLabel === "Google" ? "G" : "@"}
           </div>
-          <span className="settings-row-value">{settingsData.account.email ?? "—"}</span>
-        </div>
-        <div className="settings-row">
-          <div className="settings-row-label-wrap">
-            <span className="settings-row-label">Sign-in method</span>
-            <span className="settings-row-note">Passwordless login for this account</span>
+          <div className="settings-identity-body">
+            <span className="settings-identity-email">{settingsData.account.email ?? "—"}</span>
+            <div className="settings-identity-meta">
+              <span className="settings-identity-provider-label">
+                {settingsData.account.authLabel === "Google"
+                  ? "Google account"
+                  : settingsData.account.authLabel}
+              </span>
+              {settingsData.account.authLabel !== "Google" ? (
+                <span className="settings-identity-legacy-tag">Legacy</span>
+              ) : null}
+            </div>
           </div>
-          <span className="settings-row-value">{settingsData.account.authLabel}</span>
         </div>
-        <div className="settings-row">
-          <div className="settings-row-label-wrap">
-            <span className="settings-row-label">User ID</span>
-            <span className="settings-row-note">Internal identifier</span>
-          </div>
-          <span className="settings-row-value settings-row-value-mono">
-            {settingsData.account.userId}
+        <div className="settings-identity-id-row">
+          <span className="settings-identity-id-label">ID</span>
+          <span className="settings-identity-id-value">
+            {settingsData.account.userId.slice(0, 16)}…
           </span>
         </div>
-      </SectionCard>
+      </section>
 
-      <SectionCard title="AI Model">
-        <form action={saveProductModelSettings} className="settings-form-grid">
+      {/* ── AI Model ── */}
+      <section className="site-card settings-card">
+        <div className="role-section-head">
+          <h2 className="role-section-title">AI Model</h2>
+        </div>
+        <form action={saveProductModelSettings} className="settings-model-form">
           <input name="redirect_to" type="hidden" value={redirectTo} />
-          <label className="settings-field">
-            <span className="settings-field-label">Provider</span>
-            <input
-              className="site-input"
-              defaultValue={settingsData.appSettings.defaultModelProvider ?? ""}
-              name="default_model_provider"
-              placeholder="openai"
-              type="text"
-            />
-          </label>
-          <label className="settings-field">
-            <span className="settings-field-label">Model ID</span>
-            <input
-              className="site-input"
-              defaultValue={settingsData.appSettings.defaultModelId ?? ""}
-              name="default_model_id"
-              placeholder="gpt-5.4"
-              type="text"
-            />
-          </label>
-          <label className="settings-field">
-            <span className="settings-field-label">Custom model ID</span>
-            <input
-              className="site-input"
-              defaultValue={settingsData.appSettings.customModelId ?? ""}
-              name="custom_model_id"
-              placeholder="Optional override"
-              type="text"
-            />
-          </label>
-          <label className="settings-checkbox">
-            <input
-              defaultChecked={settingsData.appSettings.customApiKeyPresent}
-              name="custom_api_key_present"
-              type="checkbox"
-              value="true"
-            />
-            <span>Custom API key is already configured</span>
-          </label>
+          {/* Preserve custom API key flag — not user-editable, set via admin */}
+          <input
+            name="custom_api_key_present"
+            type="hidden"
+            value={settingsData.appSettings.customApiKeyPresent ? "true" : "false"}
+          />
+
+          {settingsData.modelSettings.capabilities.map((capability) => {
+            const visible = capability.options.filter(
+              (o) => o.accessLevel !== "hidden" && o.availabilityStatus === "active",
+            );
+
+            return (
+              <div key={capability.capabilityType} className="settings-model-capability">
+                <div className="settings-model-cap-head">
+                  <span className="settings-model-cap-label">{capability.label}</span>
+                  <span className="settings-model-cap-desc">{capability.description}</span>
+                </div>
+
+                <SettingsModelCapabilityGrid
+                  capabilityType={capability.capabilityType}
+                  options={visible}
+                  selectedSlug={capability.selectedSlug}
+                  subscriptionSectionId="settings-subscription"
+                />
+              </div>
+            );
+          })}
+
           <FormSubmitButton
-            className="button button-secondary settings-submit-btn"
+            className="button button-primary settings-submit-btn"
             idleText="Save model settings"
             pendingText="Saving…"
           />
         </form>
-      </SectionCard>
+      </section>
 
-      <SectionCard title="Subscription">
-        <form action={saveProductSubscriptionSnapshot} className="settings-form-grid">
-          <input name="redirect_to" type="hidden" value={redirectTo} />
-          <label className="settings-field">
-            <span className="settings-field-label">Plan name</span>
-            <input
-              className="site-input"
-              defaultValue={settingsData.subscription.planName ?? ""}
-              name="plan_name"
-              placeholder="Starter"
-              type="text"
-            />
-          </label>
-          <label className="settings-field">
-            <span className="settings-field-label">Plan status</span>
-            <select
-              className="site-select"
-              defaultValue={settingsData.subscription.planStatus}
-              name="plan_status"
+      <SectionCard id="settings-subscription" title="Subscription">
+        <div className="settings-sub-compact">
+          <div className="settings-sub-compact-top">
+            <span
+              className={`settings-plan-badge tier-${settingsData.subscriptionSummary.currentPlanSlug}`}
             >
-              <option value="inactive">Inactive</option>
-              <option value="trial">Trial</option>
-              <option value="active">Active</option>
-              <option value="past_due">Past due</option>
-              <option value="canceled">Canceled</option>
-            </select>
-          </label>
-          <label className="settings-field">
-            <span className="settings-field-label">Message quota</span>
-            <input
-              className="site-input"
-              defaultValue={settingsData.subscription.messageQuota ?? ""}
-              name="message_quota"
-              placeholder="1000"
-              type="number"
-            />
-          </label>
-          <label className="settings-field">
-            <span className="settings-field-label">Renewal date</span>
-            <input
-              className="site-input"
-              defaultValue={settingsData.subscription.renewalDate ?? ""}
-              name="renewal_date"
-              type="datetime-local"
-            />
-          </label>
-          <label className="settings-field">
-            <span className="settings-field-label">Upgrade URL</span>
-            <input
-              className="site-input"
-              defaultValue={settingsData.subscription.upgradeUrl ?? ""}
-              name="upgrade_url"
-              placeholder="https://..."
-              type="url"
-            />
-          </label>
-          <FormSubmitButton
-            className="button button-secondary settings-submit-btn"
-            idleText="Save subscription"
-            pendingText="Saving…"
-          />
-        </form>
+              {settingsData.subscriptionSummary.currentPlanName}
+            </span>
+            {settingsData.subscriptionSummary.currentPlanSlug === "pro" &&
+              settingsData.subscriptionSummary.renewalDateLabel && (
+              <span className="settings-sub-renewal">
+                Renews {formatDate(settingsData.subscriptionSummary.renewalDateLabel)}
+              </span>
+            )}
+          </div>
+          {settingsData.subscriptionSummary.currentPlanSlug === "pro" ? (
+            <div className="settings-subscription-actions">
+              <Link
+                className="button button-secondary"
+                href={settingsData.subscriptionSummary.upgradeHref}
+              >
+                Manage billing
+              </Link>
+              <Link className="button button-secondary" href="/app/credits">
+                Credits
+              </Link>
+            </div>
+          ) : (
+            <Link className="button button-primary" href="/app/subscription">
+              Upgrade to Pro
+            </Link>
+          )}
+        </div>
       </SectionCard>
 
       <SectionCard title="App preferences">
         <form action={saveProductAppSettings} className="settings-form-grid">
           <input name="redirect_to" type="hidden" value={redirectTo} />
-          <label className="settings-field">
-            <span className="settings-field-label">Theme</span>
-            <select
-              className="site-select"
-              defaultValue={settingsData.appSettings.theme}
-              name="theme"
-            >
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </label>
-          <label className="settings-field">
-            <span className="settings-field-label">Language</span>
-            <input
-              className="site-input"
-              defaultValue={settingsData.appSettings.interfaceLanguage}
-              name="interface_language"
-              placeholder="en"
-              type="text"
-            />
-          </label>
-          <label className="settings-checkbox">
-            <input
-              defaultChecked={settingsData.appSettings.notificationsEnabled}
-              name="notifications_enabled"
-              type="checkbox"
-              value="true"
-            />
-            <span>Enable notifications and follow-up reminders</span>
-          </label>
+          <div className="settings-form-row">
+            <label className="settings-field">
+              <span className="settings-field-label">Theme</span>
+              <select
+                className="site-select settings-select-compact"
+                defaultValue={settingsData.appSettings.theme}
+                name="theme"
+              >
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+            <label className="settings-field">
+              <span className="settings-field-label">Language</span>
+              <select
+                className="site-select settings-select-compact"
+                defaultValue={settingsData.appSettings.interfaceLanguage ?? "en"}
+                name="interface_language"
+              >
+                <option value="en">English</option>
+              </select>
+            </label>
+          </div>
+
           <FormSubmitButton
             className="button button-secondary settings-submit-btn"
             idleText="Save preferences"
@@ -321,72 +289,16 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
       </SectionCard>
 
       <SectionCard title="Data & Privacy">
-        <form action={saveProductDataPrivacySettings} className="settings-form-grid">
-          <input name="redirect_to" type="hidden" value={redirectTo} />
-          <label className="settings-field">
-            <span className="settings-field-label">Memory retention</span>
-            <select
-              className="site-select"
-              defaultValue={settingsData.appSettings.memoryRetentionPolicy}
-              name="memory_retention_policy"
-            >
-              <option value="standard">Standard</option>
-              <option value="extended">Extended</option>
-              <option value="minimal">Minimal</option>
-            </select>
-          </label>
-          <label className="settings-field">
-            <span className="settings-field-label">Data region</span>
-            <input
-              className="site-input"
-              defaultValue={settingsData.appSettings.dataRegion}
-              name="data_region"
-              placeholder="global"
-              type="text"
-            />
-          </label>
-          <FormSubmitButton
-            className="button button-secondary settings-submit-btn"
-            idleText="Save privacy settings"
-            pendingText="Saving…"
-          />
-        </form>
-        <div className="settings-inline-actions settings-inline-actions-spaced">
-          <form action={exportCurrentProductData}>
-            <input name="redirect_to" type="hidden" value={redirectTo} />
-            <FormSubmitButton
-              className="button button-secondary settings-submit-btn"
-              idleText="Export my data"
-              pendingText="Exporting…"
-            />
-          </form>
-        </div>
-        <div className="settings-meta-panel">
-          <div className="settings-meta-card">
-            <span className="settings-meta-label">Latest export</span>
-            <span className="settings-meta-value">
-              {settingsData.latestExport
-                ? `${settingsData.latestExport.status} · ${formatDate(
-                    settingsData.latestExport.createdAt,
-                  )}`
-                : "No export yet"}
-            </span>
-          </div>
-          <div className="settings-meta-card">
-            <span className="settings-meta-label">Recent operations</span>
-            <div className="settings-ops-list">
-              {settingsData.recentOperations.length > 0 ? (
-                settingsData.recentOperations.slice(0, 4).map((item) => (
-                  <div key={item.id} className="settings-op-item">
-                    <span>{item.action.replaceAll("_", " ")}</span>
-                    <span>{item.status}</span>
-                  </div>
-                ))
-              ) : (
-                <span className="settings-row-note">No recent settings activity</span>
-              )}
-            </div>
-          </div>
+        <p className="settings-privacy-desc">
+          Review how your data is handled and stored.
+        </p>
+        <div className="settings-privacy-links">
+          <Link className="settings-privacy-link" href="/privacy" target="_blank">
+            Privacy Policy ↗
+          </Link>
+          <Link className="settings-privacy-link" href="/terms" target="_blank">
+            Terms of Service ↗
+          </Link>
         </div>
       </SectionCard>
 
@@ -395,21 +307,6 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
           <h2 className="role-section-title settings-danger-title">Danger zone</h2>
         </div>
         <div className="settings-danger-list">
-          <div className="settings-danger-row">
-            <div className="settings-danger-row-info">
-              <span className="settings-danger-row-label">Sign out</span>
-              <span className="settings-danger-row-desc">
-                End your current session on this device.
-              </span>
-            </div>
-            <form action={signOut}>
-              <FormSubmitButton
-                className="button button-secondary settings-danger-btn"
-                idleText="Sign out"
-                pendingText="Signing out…"
-              />
-            </form>
-          </div>
           <div className="settings-danger-row">
             <div className="settings-danger-row-info">
               <span className="settings-danger-row-label">Sign out all devices</span>
@@ -434,14 +331,10 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
                 history. This cannot be undone.
               </span>
             </div>
-            <form action={deleteCurrentProductAccount}>
-              <input name="redirect_to" type="hidden" value={redirectTo} />
-              <FormSubmitButton
-                className="button button-secondary settings-danger-btn"
-                idleText="Delete account"
-                pendingText="Deleting…"
-              />
-            </form>
+            <DeleteAccountConfirm
+              action={deleteCurrentProductAccount}
+              redirectTo={redirectTo}
+            />
           </div>
         </div>
       </section>

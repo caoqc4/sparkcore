@@ -760,16 +760,13 @@ export function ChatThreadView({
                               currentAgentEditor.background_summary,
                             avatar_emoji: currentAgentEditor.avatar_emoji,
                             system_prompt_summary:
-                              currentAgentEditor.system_prompt_summary,
-                            default_model_profile_id:
-                              currentAgentEditor.default_model_profile_id
+                              currentAgentEditor.system_prompt_summary
                           }}
                           isCurrentThreadAgent
                           isWorkspaceDefaultAgent={
                             currentAgentEditor.isWorkspaceDefaultAgent
                           }
                           locale={locale}
-                          modelProfiles={modelProfiles}
                           triggerLabel={copy.thread.repairRoleAction}
                         />
                       ) : (

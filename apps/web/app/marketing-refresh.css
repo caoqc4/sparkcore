@@ -5284,3 +5284,650 @@ textarea.input {
 .app-console-main strong {
   color: hsl(240 20% 16%);
 }
+
+/* ─────────────────────────────────────────
+   Subscription page — new layout
+───────────────────────────────────────── */
+
+/* Status card */
+.sub-status-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sub-status-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sub-status-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sub-status-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: hsl(240 22% 14%);
+  line-height: 1.2;
+}
+
+.sub-status-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: hsl(240 10% 46%);
+  max-width: 52ch;
+}
+
+.sub-status-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sub-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid hsl(240 8% 90%);
+  background: hsl(240 14% 98%);
+}
+
+.sub-status-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid hsl(240 8% 92%);
+}
+
+/* Pro subscription status card */
+.sub-pro-status {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.sub-pro-status-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.sub-pro-status-desc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: hsl(240 10% 48%);
+  line-height: 1.5;
+}
+
+.sub-pro-status-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* Billing period display (Pro — read-only, no selection) */
+.sub-cadence-display {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.sub-cadence-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1.5px solid hsl(240 8% 88%);
+  background: hsl(240 14% 98%);
+}
+
+.sub-cadence-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: hsl(240 14% 38%);
+}
+
+/* Plan comparison */
+.sub-plan-compare {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.sub-plan-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 18px;
+  border: 1.5px solid hsl(240 8% 88%);
+  background: hsl(240 14% 98%);
+}
+
+.sub-plan-col.featured {
+  border-color: hsl(268 52% 58% / 0.35);
+  background: linear-gradient(160deg, hsl(268 60% 58% / 0.06) 0%, hsl(240 14% 98%) 60%);
+  position: relative;
+}
+
+.sub-plan-col.current {
+  border-color: hsl(268 52% 58% / 0.25);
+}
+
+.sub-plan-col-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sub-plan-col-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sub-plan-col-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(240 14% 42%);
+}
+
+.sub-plan-current-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: hsl(240 8% 90%);
+  color: hsl(240 10% 42%);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sub-plan-current-badge.pro {
+  background: hsl(268 60% 58% / 0.15);
+  color: hsl(268 52% 42%);
+  border: 1px solid hsl(268 52% 58% / 0.25);
+}
+
+.sub-plan-recommended-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: hsl(268 60% 58% / 0.12);
+  color: hsl(268 52% 42%);
+  border: 1px solid hsl(268 52% 58% / 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sub-plan-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: hsl(240 22% 14%);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.sub-plan-price-period {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: hsl(240 10% 52%);
+  letter-spacing: 0;
+}
+
+.sub-plan-feature-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.sub-plan-feature {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.875rem;
+  color: hsl(240 14% 28%);
+  line-height: 1.4;
+}
+
+.sub-plan-feature-unavail {
+  color: hsl(240 8% 62%);
+}
+
+.sub-plan-feature-check {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sub-plan-feature-check.included {
+  background: hsl(268 52% 58% / 0.14);
+  color: hsl(268 52% 42%);
+  border: 1px solid hsl(268 52% 58% / 0.28);
+}
+
+.sub-plan-feature-check.neutral {
+  background: hsl(240 8% 90%);
+  color: hsl(240 8% 55%);
+  border: 1px solid hsl(240 8% 84%);
+}
+
+.sub-plan-feature-check.unavail {
+  background: hsl(0 60% 94%);
+  color: hsl(0 60% 55%);
+  border: 1px solid hsl(0 60% 84%);
+}
+
+.sub-plan-upgrade-area {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid hsl(268 52% 58% / 0.15);
+}
+
+/* Credits section in subscription page */
+.sub-credits-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.sub-credits-facts {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.sub-credits-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid hsl(240 8% 90%);
+  background: hsl(240 14% 98%);
+  min-width: 140px;
+}
+
+/* ── Billing cadence selector ── */
+.cadence-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cadence-selector-label {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: hsl(240 12% 40%);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cadence-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.cadence-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1.5px solid hsl(240 8% 86%);
+  background: hsl(0 0% 100%);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.cadence-option:hover {
+  border-color: hsl(268 52% 58% / 0.45);
+  background: hsl(268 52% 58% / 0.03);
+}
+
+.cadence-option.selected {
+  border-color: hsl(268 52% 55%);
+  background: hsl(268 52% 58% / 0.07);
+  box-shadow: 0 0 0 3px hsl(268 52% 58% / 0.12);
+}
+
+.cadence-savings-badge {
+  position: absolute;
+  top: -9px;
+  right: 10px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: hsl(142 55% 42%);
+  color: hsl(0 0% 100%);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.cadence-option-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: hsl(240 14% 32%);
+}
+
+.cadence-option.selected .cadence-option-label {
+  color: hsl(268 52% 40%);
+}
+
+.cadence-option-pricing {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.cadence-option-price {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: hsl(240 22% 14%);
+  letter-spacing: -0.02em;
+}
+
+.cadence-option-period {
+  font-size: 0.72rem;
+  color: hsl(240 8% 56%);
+}
+
+.cadence-option-per-month {
+  font-size: 0.7rem;
+  color: hsl(240 10% 50%);
+}
+
+.cadence-option.selected .cadence-option-price,
+.cadence-option.selected .cadence-option-per-month {
+  color: hsl(268 52% 38%);
+}
+
+.cadence-cta-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.cadence-upgrade-btn {
+  flex-shrink: 0;
+}
+
+.cadence-hint {
+  font-size: 0.8rem;
+  color: hsl(240 8% 56%);
+}
+
+/* ─────────────────────────────────────────
+   Credits page — redesigned
+───────────────────────────────────────── */
+
+/* Credit balance display (Pro users) */
+.credits-balance-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.credits-balance-main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.credits-balance-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: hsl(268 52% 46%);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.credits-balance-unit {
+  font-size: 1rem;
+  font-weight: 500;
+  color: hsl(240 10% 48%);
+}
+
+.credits-balance-note {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: hsl(240 10% 50%);
+  max-width: 48ch;
+}
+
+/* How it works explainer */
+.credits-explainer-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.credits-explainer-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.credits-explainer-step {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: hsl(268 52% 58% / 0.12);
+  border: 1px solid hsl(268 52% 58% / 0.25);
+  color: hsl(268 52% 42%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.credits-explainer-heading {
+  margin: 0 0 3px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: hsl(240 18% 18%);
+}
+
+.credits-explainer-body {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: hsl(240 10% 48%);
+}
+
+/* Pro gate banner */
+.credits-pro-gate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 22px;
+  border-radius: 16px;
+  border: 1.5px solid hsl(268 52% 58% / 0.3);
+  background: linear-gradient(135deg, hsl(268 60% 58% / 0.07), hsl(240 14% 98%));
+  flex-wrap: wrap;
+}
+
+.credits-pro-gate-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.credits-pro-gate-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.credits-pro-gate-title {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: hsl(240 20% 16%);
+}
+
+.credits-pro-gate-desc {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: hsl(240 10% 46%);
+  max-width: 52ch;
+}
+
+/* Credit pack cards */
+.credits-packs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.credits-pack-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1.5px solid hsl(240 8% 88%);
+  background: hsl(240 14% 98%);
+  transition: border-color 0.15s;
+}
+
+.credits-pack-card:not(.locked):hover {
+  border-color: hsl(268 52% 58% / 0.4);
+}
+
+.credits-pack-card.locked {
+  opacity: 0.7;
+}
+
+.credits-pack-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.credits-pack-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: hsl(240 18% 22%);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.credits-pack-price {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: hsl(240 22% 14%);
+  letter-spacing: -0.02em;
+}
+
+.credits-pack-per-credit {
+  margin: 0;
+  font-size: 0.78rem;
+  color: hsl(142 50% 38%);
+  font-weight: 600;
+}
+
+.credits-pack-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: hsl(240 10% 48%);
+  flex: 1;
+}
+
+.credits-pack-action {
+  margin-top: 4px;
+}
+
+.credits-pack-locked-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: hsl(240 8% 92%);
+  color: hsl(240 8% 52%);
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid hsl(240 8% 84%);
+}
+
+/* Usage cost grid */
+.credits-cost-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 4px;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+  .sub-status-top {
+    grid-template-columns: 1fr;
+  }
+
+  .sub-status-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sub-plan-compare {
+    grid-template-columns: 1fr;
+  }
+
+  .cadence-options {
+    grid-template-columns: 1fr;
+  }
+
+  .credits-cost-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -8,6 +8,11 @@ import {
   DEFAULT_PRODUCT_SUBSCRIPTION_SNAPSHOT
 } from "@/lib/product/settings";
 import {
+  loadProductBillingConfiguration,
+  resolveCurrentPlanSlug
+} from "@/lib/product/billing";
+import { PRODUCT_MODEL_CATALOG } from "@/lib/product/model-catalog";
+import {
   buildCurrentProductDataExport,
   createProductDataExportRecord
 } from "@/lib/product/data-export";
@@ -84,6 +89,14 @@ function coerceHttpUrl(value: string) {
   } catch {
     return null;
   }
+}
+
+function asMetadataRecord(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {} as Record<string, unknown>;
+  }
+
+  return value as Record<string, unknown>;
 }
 
 function resolveRedirectPath(formData: FormData, fallbackPath: string) {
@@ -185,10 +198,9 @@ export async function saveProductAppSettings(formData: FormData) {
 export async function saveProductModelSettings(formData: FormData) {
   const redirectPath = resolveRedirectPath(formData, "/app/settings");
   const { supabase, user } = await requireUserForSettings(redirectPath);
-  const defaultModelProvider = normalizeText(formData.get("default_model_provider")) || null;
-  const defaultModelId = normalizeText(formData.get("default_model_id")) || null;
   const customApiKeyPresent = formData.get("custom_api_key_present") === "true";
-  const customModelId = normalizeText(formData.get("custom_model_id")) || null;
+  const requestedTextModelSlug = normalizeText(formData.get("default_text_model_slug")) || null;
+  const requestedImageModelSlug = normalizeText(formData.get("default_image_model_slug")) || null;
   const log = await insertProductSettingsOperationLog({
     supabase,
     userId: user.id,
@@ -197,13 +209,145 @@ export async function saveProductModelSettings(formData: FormData) {
     metadata: { redirect_path: redirectPath }
   });
 
+  const [
+    { data: existingSettings },
+    { data: subscription },
+    billingConfiguration
+  ] = await Promise.all([
+    supabase
+      .from("user_app_settings")
+      .select("metadata")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("user_subscription_snapshots")
+      .select("plan_name, plan_status")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    loadProductBillingConfiguration({ supabase })
+  ]);
+  const currentPlanSlug = resolveCurrentPlanSlug({
+    subscription: {
+      planName: subscription?.plan_name ?? null,
+      planStatus: subscription?.plan_status ?? DEFAULT_PRODUCT_SUBSCRIPTION_SNAPSHOT.planStatus
+    },
+    plans: billingConfiguration.plans
+  });
+  const currentPlan = billingConfiguration.plans.find((item) => item.slug === currentPlanSlug);
+
+  if (!currentPlan) {
+    await updateProductSettingsOperationLog({
+      supabase,
+      logId: log.id,
+      userId: user.id,
+      status: "failed",
+      metadata: { error: "No active billing plan could be resolved for this account." }
+    });
+    redirectWithMessage(
+      redirectPath,
+      "No active billing plan could be resolved for this account.",
+      "error"
+    );
+  }
+
+  function resolveCatalogAccessLevel(tier: "free" | "pro", planSlug: string) {
+    if (tier === "free") {
+      return "included" as const;
+    }
+
+    return planSlug === "pro" ? ("included" as const) : ("upgrade_required" as const);
+  }
+
+  const requestedSelections = [
+    { capabilityType: "text", slug: requestedTextModelSlug },
+    { capabilityType: "image", slug: requestedImageModelSlug }
+  ] as const;
+
+  for (const item of requestedSelections) {
+    if (!item.slug) {
+      continue;
+    }
+
+    const catalogItem = PRODUCT_MODEL_CATALOG.find(
+      (model) => model.capability === item.capabilityType && model.slug === item.slug
+    );
+
+    if (!catalogItem) {
+      await updateProductSettingsOperationLog({
+        supabase,
+        logId: log.id,
+        userId: user.id,
+        status: "failed",
+        metadata: {
+          error: `Model selection is not allowed for ${item.capabilityType}.`,
+          requested_model_slug: item.slug,
+          capability_type: item.capabilityType,
+          plan_slug: currentPlanSlug
+        }
+      });
+      redirectWithMessage(
+        redirectPath,
+        `The selected ${item.capabilityType} model is not available on your current plan.`,
+        "error"
+      );
+    }
+
+    if (catalogItem.uiStatus !== "active") {
+      const statusLabel = catalogItem.statusLabel ?? "This model is not available yet.";
+
+      await updateProductSettingsOperationLog({
+        supabase,
+        logId: log.id,
+        userId: user.id,
+        status: "failed",
+        metadata: {
+          error: statusLabel,
+          requested_model_slug: item.slug,
+          capability_type: item.capabilityType,
+          plan_slug: currentPlanSlug
+        }
+      });
+      redirectWithMessage(redirectPath, statusLabel, "error");
+    }
+
+    const accessLevel = resolveCatalogAccessLevel(catalogItem.tier, currentPlanSlug);
+
+    if (accessLevel !== "included") {
+      const planLabel = currentPlan.name || currentPlan.slug || "Pro";
+      const upgradeMessage = `Upgrade to ${
+        planLabel === "Free" ? "Pro" : planLabel
+      } to use the selected ${item.capabilityType} model.`;
+
+      await updateProductSettingsOperationLog({
+        supabase,
+        logId: log.id,
+        userId: user.id,
+        status: "failed",
+        metadata: {
+          error: upgradeMessage,
+          requested_model_slug: item.slug,
+          capability_type: item.capabilityType,
+          plan_slug: currentPlanSlug,
+          access_level: accessLevel
+        }
+      });
+      redirectWithMessage(redirectPath, upgradeMessage, "error");
+    }
+  }
+
+  const nextMetadata = asMetadataRecord(existingSettings?.metadata);
+  if (requestedTextModelSlug) {
+    nextMetadata.default_text_model_slug = requestedTextModelSlug;
+  }
+  if (requestedImageModelSlug) {
+    nextMetadata.default_image_model_slug = requestedImageModelSlug;
+  }
+
   const { error } = await supabase.from("user_app_settings").upsert(
     {
       user_id: user.id,
-      default_model_provider: defaultModelProvider,
-      default_model_id: defaultModelId,
+      metadata: nextMetadata,
       custom_api_key_present: customApiKeyPresent,
-      custom_model_id: customModelId,
       updated_at: new Date().toISOString()
     },
     { onConflict: "user_id" }
@@ -226,10 +370,10 @@ export async function saveProductModelSettings(formData: FormData) {
     userId: user.id,
     status: "completed",
     metadata: {
-      default_model_provider: defaultModelProvider,
-      default_model_id: defaultModelId,
+      default_text_model_slug: requestedTextModelSlug,
+      default_image_model_slug: requestedImageModelSlug,
       custom_api_key_present: customApiKeyPresent,
-      custom_model_id: customModelId
+      plan_slug: currentPlanSlug
     }
   });
 
