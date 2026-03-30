@@ -653,6 +653,10 @@ a {
     hsl(240 22% 8%);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -669,6 +673,12 @@ a {
 .site-section {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
+}
+
+#home-im-chat,
+#home-memory,
+#home-faq {
+  scroll-margin-top: 108px;
 }
 
 .site-header-inner,
@@ -2419,7 +2429,15 @@ details[open] .role-mem-older-summary::before {
   font-size: 0.76rem;
   font-weight: 500;
   color: hsl(240 10% 38%);
-  cursor: default;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease, color 0.14s ease;
+}
+
+.rcw-trait-tag.selected {
+  border-color: hsl(268 52% 68%);
+  background: hsl(268 52% 68% / 0.14);
+  color: hsl(268 52% 72%);
+  font-weight: 500;
 }
 
 /* Gender cards */

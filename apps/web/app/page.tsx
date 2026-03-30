@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { HomeHeroForm } from "@/components/home-hero-form";
-import { HomeHeroPreview } from "@/components/home-hero-preview";
+import { HomeHeroInteractive } from "@/components/home-hero-interactive";
 import { SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
 import { getOptionalUser } from "@/lib/auth-redirect";
@@ -98,24 +97,6 @@ const imConversationPreview = [
   },
 ] as const;
 
-const supportRoutes = [
-  {
-    label: "Pricing",
-    href: "/pricing",
-    source: "home_support_pricing",
-  },
-  {
-    label: "FAQ",
-    href: "/faq",
-    source: "home_support_faq",
-  },
-  {
-    label: "Safety",
-    href: "/safety",
-    source: "home_support_safety",
-  },
-] as const;
-
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
   const user = await getOptionalUser();
@@ -135,35 +116,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     redirect("/app");
   }
 
-  // Default role preview data
-  const defaultRolePreview = {
-    name: "Luna",
-    type: "companion" as const,
-    tone: "Gentle & Listening",
-    tagline: "A relationship that grows with every conversation.",
-  };
-
   return (
     <SiteShell>
-      {/* New Hero Section with Dual-Column Layout */}
+      {/* Hero Section */}
       <section className="home-section">
         <div className="home-hero-grid">
-          {/* Left: Creation Form */}
-          <div className="home-hero-form-section">
-            <span className="home-hero-badge">SparkCore</span>
-            <h1 className="home-hero-heading">
-              Create a companion<br />that remembers.
-            </h1>
-            <p className="home-hero-lead">
-              Three steps to create a companion with memory and personality.
-              Keep the relationship moving in IM — return only when memory
-              or privacy needs attention.
-            </p>
-            <HomeHeroForm user={user ? { id: user.id } : null} />
-          </div>
-
-          {/* Right: Preview Panel */}
-          <HomeHeroPreview roleData={defaultRolePreview} />
+          <HomeHeroInteractive user={user ? { id: user.id } : null} />
         </div>
       </section>
 
@@ -197,42 +155,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       </section>
 
-      {/* Memory Feature Section */}
-      <section className="home-feature-spotlight" id="home-memory">
-        <div className="home-section-heading">
-          <p className="home-kicker">Memory</p>
-          <h2>Memory that stays visible — not hidden in a black box.</h2>
-        </div>
-
-        <div className="home-feature-grid">
-          <article className="home-feature-panel home-feature-panel-dark">
-            <h3>Inspect, trace, and repair what the companion remembers.</h3>
-            <ul className="site-bullet-list">
-              <li>Visible memory rows you can inspect anytime.</li>
-              <li>Source trace back to the conversation that created it.</li>
-              <li>Repair actions — hide, mark incorrect, or restore.</li>
-            </ul>
-            <TrackedLink
-              className="site-inline-link"
-              event="landing_cta_click"
-              href="/features/memory-center"
-              payload={{ source: "home_memory_section_guide" }}
-            >
-              Memory guide
-            </TrackedLink>
-          </article>
-
-          <aside className="home-memory-preview">
-            {memoryPreviewCards.map((card) => (
-              <article className="home-memory-preview-card" key={card.title}>
-                <p className="home-discovery-label">{card.label}</p>
-                <h3>{card.title}</h3>
-              </article>
-            ))}
-          </aside>
-        </div>
-      </section>
-
+      {/* IM Chat Feature Section */}
       <section className="home-feature-spotlight" id="home-im-chat">
         <div className="home-section-heading">
           <p className="home-kicker">IM Chat</p>
@@ -277,10 +200,46 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       </section>
 
+      {/* Memory Feature Section */}
+      <section className="home-feature-spotlight" id="home-memory">
+        <div className="home-section-heading">
+          <p className="home-kicker">Memory</p>
+          <h2>Memory that stays visible — not hidden in a black box.</h2>
+        </div>
+
+        <div className="home-feature-grid">
+          <article className="home-feature-panel home-feature-panel-dark">
+            <h3>Inspect, trace, and repair what the companion remembers.</h3>
+            <ul className="site-bullet-list">
+              <li>Visible memory rows you can inspect anytime.</li>
+              <li>Source trace back to the conversation that created it.</li>
+              <li>Repair actions — hide, mark incorrect, or restore.</li>
+            </ul>
+            <TrackedLink
+              className="site-inline-link"
+              event="landing_cta_click"
+              href="/features/memory-center"
+              payload={{ source: "home_memory_section_guide" }}
+            >
+              Memory guide
+            </TrackedLink>
+          </article>
+
+          <aside className="home-memory-preview">
+            {memoryPreviewCards.map((card) => (
+              <article className="home-memory-preview-card" key={card.title}>
+                <p className="home-discovery-label">{card.label}</p>
+                <h3>{card.title}</h3>
+              </article>
+            ))}
+          </aside>
+        </div>
+      </section>
+
       {/* FAQ / Trust Section */}
       <section className="home-feature-spotlight" id="home-faq">
         <div className="home-section-heading">
-          <p className="home-kicker">Questions</p>
+          <p className="home-kicker">FAQ</p>
           <h2>Common questions about memory, IM, and privacy.</h2>
           <p>
             SparkCore is built differently from a generic chatbot. These answers
@@ -295,31 +254,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               <p className="home-faq-answer">{item.a}</p>
             </article>
           ))}
-          <article className="site-card home-faq-card home-faq-card-trust">
-            <p className="home-kicker">Trust</p>
-            <h3>More detail on how SparkCore works</h3>
-            <div className="home-faq-trust-links">
-              {supportRoutes.map((route) => (
-                <TrackedLink
-                  key={route.href}
-                  className="site-inline-link"
-                  event="landing_cta_click"
-                  href={route.href}
-                  payload={{ source: route.source }}
-                >
-                  {route.label}
-                </TrackedLink>
-              ))}
-              <TrackedLink
-                className="site-inline-link"
-                event="landing_cta_click"
-                href="/how-it-works"
-                payload={{ source: "home_faq_how_it_works" }}
-              >
-                How it works
-              </TrackedLink>
-            </div>
-          </article>
         </div>
       </section>
 

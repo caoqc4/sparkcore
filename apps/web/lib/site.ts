@@ -9,7 +9,7 @@ export const siteConfig = {
   canonicalHost: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   nav: [
     { href: "/#home-im-chat", label: "IM Chat" },
-    { href: "/pricing", label: "Pricing" },
+    { href: "/#home-faq", label: "FAQ" },
     { href: "/blog", label: "Blog" },
   ],
   footer: [

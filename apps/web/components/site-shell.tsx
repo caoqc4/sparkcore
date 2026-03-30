@@ -13,7 +13,7 @@ const footerGroups = [
     links: [
       { href: "/#home-memory", label: "Memory" },
       { href: "/#home-im-chat", label: "IM Chat" },
-      { href: "/pricing", label: "Pricing" },
+      { href: "/#home-faq", label: "FAQ" },
     ],
   },
   {
@@ -60,8 +60,8 @@ export function SiteShell({ children }: SiteShellProps) {
             </Link>
 
             <nav className="site-nav" aria-label="Primary">
-              <Link href="/#home-im-chat">IM Chat</Link>
-              <Link href="/pricing">Pricing</Link>
+              <a href="/#home-im-chat">IM Chat</a>
+              <a href="/#home-faq">FAQ</a>
               <Link href="/blog">Blog</Link>
             </nav>
 

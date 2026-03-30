@@ -7,14 +7,64 @@ type AppCreatePageProps = {
   searchParams: Promise<{
     error?: string;
     mode?: string;
+    gender?: string;
+    name?: string;
+    tone?: string;
+    traits?: string;
+    boundary?: string;
   }>;
+};
+
+const BOUNDARY_TEXT: Record<string, string> = {
+  warm_support: "Be warm, supportive, and emotionally present. Prioritize listening and comfort over advice.",
+  open_playful: "Be expressive, fun, and go with the energy of the conversation. Stay positive and light.",
+  grounded:     "Be calm and grounded. Keep the relationship healthy without fostering unhealthy dependency.",
 };
 
 export default async function AppCreatePage({ searchParams }: AppCreatePageProps) {
   const params = await searchParams;
-  const user = await getOptionalUser();
+  const user   = await getOptionalUser();
+
+  // Derive mode: prefer explicit mode param, else derive from gender
+  const genderToMode: Record<string, string> = {
+    female:  "girlfriend",
+    male:    "boyfriend",
+    neutral: "companion",
+  };
+  const derivedMode =
+    params.gender && genderToMode[params.gender]
+      ? genderToMode[params.gender]
+      : undefined;
+
   const defaultMode =
-    params.mode === "girlfriend" || params.mode === "boyfriend" ? params.mode : "companion";
+    params.mode === "girlfriend" || params.mode === "boyfriend"
+      ? params.mode
+      : (derivedMode as "girlfriend" | "boyfriend" | "companion" | undefined) ?? "companion";
+
+  const defaultGender =
+    params.gender === "female" || params.gender === "male" || params.gender === "neutral"
+      ? (params.gender as "female" | "male" | "neutral")
+      : undefined;
+
+  const defaultName = params.name?.trim().slice(0, 20) || undefined;
+
+  const defaultTone =
+    params.tone === "warm" || params.tone === "playful" || params.tone === "steady"
+      ? params.tone
+      : undefined;
+
+  const defaultTraits =
+    params.traits
+      ? params.traits.split(",").map((t) => t.trim()).filter(Boolean)
+      : undefined;
+
+  const defaultBoundaries =
+    params.boundary && BOUNDARY_TEXT[params.boundary]
+      ? BOUNDARY_TEXT[params.boundary]
+      : undefined;
+
+  // If we have pre-fills from the homepage (name provided), skip to Look step
+  const startAtLook = Boolean(defaultName);
 
   return (
     <ProductConsoleShell
@@ -34,6 +84,12 @@ export default async function AppCreatePage({ searchParams }: AppCreatePageProps
       <div className="site-card rcw-shell-card">
         <RoleCreateWizard
           defaultMode={defaultMode}
+          defaultGender={defaultGender}
+          defaultName={defaultName}
+          defaultTone={defaultTone}
+          defaultTraits={defaultTraits}
+          defaultBoundaries={defaultBoundaries}
+          startAtLook={startAtLook}
           loginNext="/app/create"
           redirectAfterCreate="/app/role"
           user={user ? { id: user.id } : null}

@@ -61,6 +61,12 @@ type Props = {
   loginNext: string;
   redirectAfterCreate?: string;
   defaultMode?: "companion" | "girlfriend" | "boyfriend";
+  defaultGender?: "female" | "male" | "neutral";
+  defaultName?: string;
+  defaultTone?: "warm" | "playful" | "steady";
+  defaultTraits?: string[];
+  defaultBoundaries?: string;
+  startAtLook?: boolean;
 };
 
 // ── Wizard ────────────────────────────────────────────────────────────────────
@@ -70,24 +76,32 @@ export function RoleCreateWizard({
   loginNext,
   redirectAfterCreate,
   defaultMode = "companion",
+  defaultGender,
+  defaultName,
+  defaultTone,
+  defaultTraits,
+  defaultBoundaries,
+  startAtLook,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Step state
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(startAtLook ? 2 : 0);
 
   // Step 1 — Basics
   const [gender, setGender] = useState<GenderKey>(
-    defaultMode === "boyfriend" ? "male" : "female",
+    defaultGender ?? (defaultMode === "boyfriend" ? "male" : "female"),
   );
   const [mode, setMode] = useState(defaultMode);
   const [name, setName] = useState(
-    defaultMode === "girlfriend" ? "Luna" : defaultMode === "boyfriend" ? "Atlas" : "Nova",
+    defaultName ??
+      (defaultMode === "girlfriend" ? "Caria" : defaultMode === "boyfriend" ? "Teven" : "Nova"),
   );
   const [userPreferredName, setUserPreferredName] = useState("");
 
   // Step 2 — Personality
-  const [tone, setTone] = useState<"warm" | "playful" | "steady">("warm");
+  const [tone, setTone] = useState<"warm" | "playful" | "steady">(defaultTone ?? "warm");
+  const [selectedTraits, setSelectedTraits] = useState<string[]>(defaultTraits ?? []);
   const [relationshipMode, setRelationshipMode] = useState(
     defaultMode === "girlfriend"
       ? "long-term girlfriend"
@@ -96,7 +110,7 @@ export function RoleCreateWizard({
         : "long-term companion",
   );
   const [boundaries, setBoundaries] = useState(
-    "Be supportive, respectful, and avoid manipulative or coercive behavior.",
+    defaultBoundaries ?? "Be supportive, respectful, and avoid manipulative or coercive behavior.",
   );
 
   // Step 3 — Look
@@ -284,23 +298,21 @@ export function RoleCreateWizard({
                 <span className="rcw-trait-group-label">{group.category}</span>
                 <div className="rcw-trait-tags">
                   {group.tags.map((tag) => (
-                    <span key={tag} className="rcw-trait-tag">{tag}</span>
+                    <button
+                      key={tag}
+                      type="button"
+                      className={`rcw-trait-tag${selectedTraits.includes(tag) ? " selected" : ""}`}
+                      onClick={() => setSelectedTraits((prev) =>
+                        prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+                      )}
+                    >
+                      {tag}
+                    </button>
                   ))}
                 </div>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Relationship mode */}
-        <div className="rcw-field">
-          <label className="rcw-label" htmlFor="rcw-rel">Relationship style</label>
-          <input
-            id="rcw-rel"
-            className="input"
-            value={relationshipMode}
-            onChange={(e) => setRelationshipMode(e.target.value)}
-          />
         </div>
 
         {/* Boundaries */}
@@ -434,6 +446,7 @@ export function RoleCreateWizard({
             <input type="hidden" name="tone" value={tone} />
             <input type="hidden" name="relationship_mode" value={relationshipMode} />
             <input type="hidden" name="boundaries" value={boundaries} />
+            <input type="hidden" name="traits" value={selectedTraits.join(",")} />
             <input type="hidden" name="avatar_preset" value={useUpload ? "" : (currentChar?.id ?? "")} />
             <input type="hidden" name="avatar_gender" value={gender} />
             {redirectAfterCreate ? (

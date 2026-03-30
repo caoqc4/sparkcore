@@ -76,8 +76,8 @@ a {
 .home-metric-shell,
 .home-route-panel,
 .home-cta-band {
-  border: 1px solid hsl(230 25% 8% / 0.09);
-  background: hsl(235 25% 14%);
+  border: 1px solid hsl(230 15% 22%);
+  background: hsl(235 22% 17%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -1115,7 +1115,9 @@ textarea.input {
 }
 
 .home-feature-spotlight {
-  padding: 12px 0 38px;
+  padding: 52px 0 72px;
+  border-top: 1px solid hsl(240 12% 17%);
+  scroll-margin-top: 96px;
 }
 
 .home-feature-grid {
@@ -1134,8 +1136,8 @@ textarea.input {
   gap: 16px;
   padding: 30px;
   border-radius: 34px;
-  border: 1px solid hsl(230 15% 20%);
-  background: hsl(235 25% 14%);
+  border: 1px solid hsl(230 15% 22%);
+  background: hsl(235 22% 17%);
   box-shadow: var(--shadow-soft);
   color: var(--text);
 }
@@ -1191,8 +1193,8 @@ textarea.input {
   gap: 10px;
   padding: 22px;
   border-radius: 28px;
-  border: 1px solid hsl(230 15% 20%);
-  background: hsl(235 25% 14%);
+  border: 1px solid hsl(230 15% 22%);
+  background: hsl(235 22% 17%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -1211,10 +1213,10 @@ textarea.input {
 .home-im-preview {
   padding: 18px;
   border-radius: 34px;
-  border: 1px solid hsl(230 15% 20%);
+  border: 1px solid hsl(230 15% 22%);
   background:
     radial-gradient(circle at top, hsl(268 52% 68% / 0.08), transparent 26%),
-    hsl(235 25% 14%);
+    hsl(235 22% 17%);
   box-shadow: var(--shadow-soft);
 }
 
@@ -3554,12 +3556,50 @@ textarea.input {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   gap: 60px;
-  align-items: start;
-  padding: 60px 0 80px;
+  align-items: stretch;
+  padding: 24px 24px 80px;
   max-width: 1200px;
   margin: 0 auto;
-  padding-left: 24px;
-  padding-right: 24px;
+  position: relative;
+}
+
+.home-hero-header {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+.home-hero-grid::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  left: -200px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, hsl(268 60% 55% / 0.12) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-hero-grid::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: -100px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, hsl(220 60% 55% / 0.08) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-hero-form-section,
+.home-hero-preview {
+  position: relative;
+  z-index: 1;
 }
 
 @media (max-width: 1024px) {
@@ -3576,13 +3616,14 @@ textarea.input {
   align-items: center;
   padding: 6px 16px;
   border-radius: 999px;
-  background: hsl(268 52% 68% / 0.12);
-  color: hsl(268 52% 72%);
+  background: hsl(268 52% 68% / 0.16);
+  color: hsl(268 52% 78%);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border: 1px solid hsl(268 52% 68% / 0.22);
+  border: 1px solid hsl(268 52% 68% / 0.32);
+  box-shadow: 0 0 16px hsl(268 60% 60% / 0.12);
 }
 
 .home-hero-heading {
@@ -3599,7 +3640,7 @@ textarea.input {
   font-size: 1.0625rem;
   line-height: 1.72;
   color: var(--muted);
-  max-width: 520px;
+  max-width: 720px;
 }
 
 /* Image placeholder utility */
@@ -3650,7 +3691,8 @@ textarea.input {
 .home-hero-form-section {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 0;
+  align-self: start;
 }
 
 .home-hero-form {
@@ -3957,7 +3999,12 @@ textarea.input {
 .home-hero-wizard-preview {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
+}
+
+.home-hero-wizard-preview > .home-hero-wizard-step-line {
+  height: 14px;
+  margin: 0;
 }
 
 .home-hero-wizard-steps {
@@ -4030,11 +4077,276 @@ textarea.input {
   letter-spacing: 0.02em;
 }
 
+/* ── Hero: Interactive step blocks ── */
+.home-hero-step-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-hero-step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Hero: Mode selector (Step 1) ── */
+.home-hero-mode-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.home-hero-mode-btn {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: hsl(240 18% 14%);
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+  text-align: center;
+}
+
+.home-hero-mode-btn:hover {
+  border-color: hsl(268 52% 68% / 0.35);
+  background: hsl(240 16% 17%);
+  color: var(--text);
+}
+
+.home-hero-mode-btn.active {
+  border-color: hsl(268 52% 68%);
+  background: hsl(268 52% 68% / 0.15);
+  color: hsl(268 52% 72%);
+  font-weight: 600;
+}
+
+/* ── Hero: Gender selector (Step 1) ── */
+.home-hero-gender-selector {
+  display: flex;
+  gap: 10px;
+}
+
+.home-hero-gender-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: hsl(240 18% 14%);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+  text-align: center;
+}
+
+.home-hero-gender-btn:hover {
+  border-color: hsl(268 52% 68% / 0.35);
+  background: hsl(240 16% 17%);
+}
+
+.home-hero-gender-btn.active {
+  border-color: hsl(268 52% 68%);
+  background: hsl(268 52% 68% / 0.12);
+}
+
+.home-hero-gender-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--muted);
+  transition: color 0.18s ease;
+}
+
+.home-hero-gender-btn.active .home-hero-gender-icon {
+  color: hsl(268 52% 72%);
+}
+
+.home-hero-gender-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted);
+  transition: color 0.18s ease;
+}
+
+.home-hero-gender-btn.active .home-hero-gender-label {
+  color: hsl(268 52% 72%);
+  font-weight: 600;
+}
+
+/* ── Hero: Name input (Step 2) ── */
+.home-hero-name-input {
+  width: 100%;
+  padding: 11px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: hsl(240 18% 14%);
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  transition: border-color 0.18s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.home-hero-name-input::placeholder {
+  color: hsl(240 12% 38%);
+}
+
+.home-hero-name-input:focus {
+  border-color: hsl(268 52% 68% / 0.5);
+}
+
+/* ── Hero: Personality selector (Step 3) ── */
+.home-hero-personality-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.home-hero-personality-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: hsl(240 18% 14%);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+  text-align: center;
+}
+
+.home-hero-personality-btn:hover {
+  border-color: hsl(268 52% 68% / 0.35);
+  background: hsl(240 16% 17%);
+}
+
+.home-hero-personality-btn.active {
+  border-color: hsl(268 52% 68%);
+  background: hsl(268 52% 68% / 0.12);
+}
+
+.home-hero-personality-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition: color 0.18s ease;
+}
+
+.home-hero-personality-btn.active .home-hero-personality-label {
+  color: hsl(268 52% 72%);
+}
+
+.home-hero-personality-desc {
+  font-size: 0.75rem;
+  color: hsl(240 12% 38%);
+  line-height: 1.3;
+}
+
+.home-hero-personality-btn.active .home-hero-personality-desc {
+  color: hsl(268 52% 65% / 0.75);
+}
+
+/* ── Hero: Traits selector (Step 4) ── */
+.home-hero-trait-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-hero-trait-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.home-hero-trait-group-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(240 12% 38%);
+}
+
+.home-hero-traits-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.home-hero-trait-btn {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: hsl(240 18% 14%);
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+  white-space: nowrap;
+}
+
+.home-hero-trait-btn:hover {
+  border-color: hsl(268 52% 68% / 0.35);
+  background: hsl(240 16% 17%);
+  color: var(--text);
+}
+
+.home-hero-trait-btn.active {
+  border-color: hsl(268 52% 68%);
+  background: hsl(268 52% 68% / 0.14);
+  color: hsl(268 52% 72%);
+  font-weight: 600;
+}
+
+/* ── Hero: Step note ── */
+.home-hero-step-note {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: hsl(240 12% 40%);
+  letter-spacing: 0;
+}
+
+/* ── Hero: Silhouette preview ── */
+.home-hero-portrait-silhouette {
+  background: transparent !important;
+  border: none !important;
+}
+
+.home-hero-silhouette-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.home-hero-silhouette-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.home-hero-silhouette-slide.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* ── Hero: Portrait card (right side) ── */
 .home-hero-preview {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  align-self: start;
 }
 
 .home-hero-portrait-card {
@@ -4044,9 +4356,9 @@ textarea.input {
   gap: 16px;
   padding: 28px 24px 24px;
   border-radius: var(--radius-xl);
-  background: hsl(240 18% 14%);
-  border: 1px solid hsl(268 52% 68% / 0.12);
-  box-shadow: 0 20px 60px hsl(0 0% 0% / 0.28);
+  background: hsl(240 18% 15%);
+  border: 1px solid hsl(268 52% 68% / 0.22);
+  box-shadow: 0 20px 60px hsl(0 0% 0% / 0.36), 0 0 0 1px hsl(268 52% 68% / 0.06);
   position: relative;
   overflow: hidden;
 }
@@ -4055,18 +4367,18 @@ textarea.input {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at top right, hsl(268 52% 68% / 0.06) 0%, transparent 55%);
+  background: radial-gradient(circle at top center, hsl(268 52% 68% / 0.1) 0%, transparent 60%);
   pointer-events: none;
 }
 
 .home-hero-portrait-area {
   position: relative;
-  width: 120px;
+  width: 160px;
 }
 
 .home-hero-portrait-img {
-  width: 120px;
-  height: 160px;
+  width: 160px;
+  height: 240px;
   border-radius: 12px;
   background: linear-gradient(145deg, hsl(268 52% 42%), hsl(268 52% 28%));
   display: flex;
@@ -4114,6 +4426,32 @@ textarea.input {
   color: var(--muted);
 }
 
+.home-hero-portrait-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.home-hero-portrait-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: hsl(268 52% 68% / 0.14);
+  border: 1px solid hsl(268 52% 68% / 0.25);
+  color: hsl(268 52% 72%);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.home-hero-portrait-tag-dim {
+  background: hsl(240 12% 18%);
+  border-color: hsl(240 12% 28%);
+  color: var(--muted);
+}
+
 /* ── Hero: Chat preview ── */
 .home-hero-chat-preview {
   display: flex;
@@ -4121,8 +4459,9 @@ textarea.input {
   gap: 10px;
   padding: 20px;
   border-radius: var(--radius-lg);
-  background: hsl(240 16% 12%);
-  border: 1px solid hsl(240 12% 22%);
+  background: hsl(240 18% 13%);
+  border: 1px solid hsl(240 12% 26%);
+  box-shadow: inset 0 1px 0 hsl(240 12% 30% / 0.3);
 }
 
 .home-hero-chat-bubble {
@@ -4163,6 +4502,43 @@ textarea.input {
   font-size: 0.75rem;
   color: hsl(240 12% 45%);
   letter-spacing: 0.02em;
+}
+
+/* ── Hero preview: entrance animations ── */
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.home-hero-portrait-card {
+  animation: heroFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+}
+
+.home-hero-chat-preview {
+  animation: heroFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+.home-hero-chat-bubble:nth-child(1) {
+  animation: heroFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.32s both;
+}
+.home-hero-chat-bubble:nth-child(2) {
+  animation: heroFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.46s both;
+}
+.home-hero-chat-bubble:nth-child(3) {
+  animation: heroFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.60s both;
+}
+.home-hero-chat-bubble:nth-child(4) {
+  animation: heroFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.74s both;
+}
+
+.home-hero-chat-memory-chip {
+  animation: heroFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.88s both;
 }
 
 /* Homepage section spacing */
