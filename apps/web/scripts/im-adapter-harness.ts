@@ -1,4 +1,3 @@
-import { loadEnvConfig } from "@next/env";
 import { createClient } from "@supabase/supabase-js";
 import {
   createSupabaseBindingLookup,
@@ -6,8 +5,9 @@ import {
   type AdapterRuntimePort,
   type InboundChannelMessage
 } from "@sparkcore/im-adapter";
+import { loadLocalEnv } from "./load-local-env";
 
-loadEnvConfig(process.cwd());
+loadLocalEnv();
 
 function getRequiredEnv(name: string) {
   const value = process.env[name];

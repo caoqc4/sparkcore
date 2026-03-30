@@ -1,8 +1,8 @@
-import { loadEnvConfig } from "@next/env";
 import { createClient } from "@supabase/supabase-js";
 import { callTelegramApi, getTelegramBotToken } from "@/lib/integrations/telegram-api";
+import { loadLocalEnv } from "./load-local-env";
 
-loadEnvConfig(process.cwd());
+loadLocalEnv();
 
 export function getRequiredEnv(name: string) {
   const value = process.env[name];
