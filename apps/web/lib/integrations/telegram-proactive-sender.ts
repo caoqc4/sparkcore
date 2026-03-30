@@ -5,7 +5,7 @@ import type {
 } from "@/lib/integrations/im-adapter";
 import { buildProactiveSendResultMetadata } from "@/lib/chat/follow-up-proactive-metadata";
 import { isTelegramInvalidBindingDescription } from "@/lib/integrations/telegram";
-import { callTelegramApi } from "@/scripts/telegram-utils";
+import { callTelegramApi } from "@/lib/integrations/telegram-api";
 
 export class TelegramProactiveSender implements ProactiveSender {
   async send(request: ProactiveSendRequest): Promise<ProactiveSendResult> {
