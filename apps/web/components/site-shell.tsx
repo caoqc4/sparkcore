@@ -39,6 +39,8 @@ const footerGroups = [
       { href: "/features/privacy-controls", label: "Privacy" },
       { href: "/safety", label: "Safety" },
       { href: "/faq", label: "FAQ" },
+      { href: "/privacy", label: "Privacy Policy" },
+      { href: "/terms", label: "Terms of Service" },
     ],
   },
 ] as const;
@@ -120,9 +122,10 @@ export function SiteShell({ children }: SiteShellProps) {
                       <>
                         <Link href="/how-it-works">How It Works</Link>
                         <AdaptiveLink intent="privacy">Privacy</AdaptiveLink>
-                        <Link href="/blog">Blog</Link>
                         <Link href="/safety">Safety</Link>
                         <Link href="/faq">FAQ</Link>
+                        <Link href="/privacy">Privacy Policy</Link>
+                        <Link href="/terms">Terms of Service</Link>
                       </>
                     ) : (
                       group.links.map((item) => (
@@ -142,6 +145,8 @@ export function SiteShell({ children }: SiteShellProps) {
               <AdaptiveLink intent="privacy">Privacy</AdaptiveLink>
               <Link href="/safety">Safety</Link>
               <Link href="/faq">FAQ</Link>
+              <Link href="/privacy">Privacy Policy</Link>
+              <Link href="/terms">Terms of Service</Link>
               <span>Built for relationship-first companion products.</span>
             </div>
           </div>

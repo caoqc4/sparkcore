@@ -59,6 +59,11 @@ export default async function AppSubscriptionPage(props: {
       : null;
 
   const isPro = settingsData.subscriptionSummary.currentPlanSlug === "pro";
+  const shouldHideCheckoutFeedback =
+    isPro &&
+    feedbackType !== "error" &&
+    typeof feedback === "string" &&
+    feedback.toLowerCase().includes("checkout started");
   const renewalLabel = settingsData.subscriptionSummary.renewalDateLabel
     ? new Date(settingsData.subscriptionSummary.renewalDateLabel).toLocaleDateString()
     : "—";
@@ -76,7 +81,7 @@ export default async function AppSubscriptionPage(props: {
       shellContext={overview}
       title="Plans & billing"
     >
-      {feedback ? (
+      {feedback && !shouldHideCheckoutFeedback ? (
         <div className={`notice ${feedbackType === "error" ? "notice-warning" : "notice-success"}`}>
           {feedback}
         </div>

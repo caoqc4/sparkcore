@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CheckoutFeedbackRefresh } from "@/components/checkout-feedback-refresh";
 import { CreemCheckoutButton } from "@/components/creem-checkout-button";
 import { ProductConsoleShell } from "@/components/product-console-shell";
 import { requireUser } from "@/lib/auth-redirect";
@@ -55,6 +56,15 @@ export default async function AppCreditsPage(props: {
     typeof searchParams.feedback === "string" ? searchParams.feedback : null;
   const feedbackType =
     typeof searchParams.feedback_type === "string" ? searchParams.feedback_type : null;
+  const shouldHideCheckoutFeedback =
+    creditBalance > 0 &&
+    feedbackType !== "error" &&
+    typeof feedback === "string" &&
+    feedback.toLowerCase().includes("checkout started");
+  const shouldRefreshForCheckoutFeedback =
+    feedbackType !== "error" &&
+    typeof feedback === "string" &&
+    feedback.toLowerCase().includes("checkout started");
 
   const roleQuerySuffix = resolution?.roleId
     ? `?role=${encodeURIComponent(resolution.roleId)}`
@@ -74,7 +84,9 @@ export default async function AppCreditsPage(props: {
       shellContext={overview}
       title="Credits"
     >
-      {feedback ? (
+      <CheckoutFeedbackRefresh enabled={shouldRefreshForCheckoutFeedback} />
+
+      {feedback && !shouldHideCheckoutFeedback ? (
         <div className={`notice ${feedbackType === "error" ? "notice-warning" : "notice-success"}`}>
           {feedback}
         </div>

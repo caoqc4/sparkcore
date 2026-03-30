@@ -5,7 +5,6 @@ export type CreateCreemCheckoutParams = {
   key: string;
   kind: "subscription" | "credits";
   successUrl: string;
-  cancelUrl: string;
   creemPriceId?: string | null;
 };
 
@@ -19,6 +18,20 @@ function getEnv(name: string) {
     throw new Error(`${name} is not set`);
   }
   return value;
+}
+
+function resolveCreemApiBase(apiKey: string) {
+  const explicitBase = process.env.CREEM_API_BASE?.trim();
+  if (explicitBase) {
+    return explicitBase;
+  }
+
+  // Creem test keys must call the isolated test API host.
+  if (apiKey.startsWith("creem_test_")) {
+    return "https://test-api.creem.io";
+  }
+
+  return "https://api.creem.io";
 }
 
 export async function createCreemCheckoutSession(
@@ -40,7 +53,6 @@ export async function createCreemCheckoutSession(
   const payload: Record<string, unknown> = {
     product_id: params.creemPriceId,
     success_url: params.successUrl,
-    cancel_url: params.cancelUrl,
     metadata: {
       userId: params.userId,
       key: params.key,
@@ -48,7 +60,7 @@ export async function createCreemCheckoutSession(
     },
   };
 
-  const base = process.env.CREEM_API_BASE || "https://api.creem.io";
+  const base = resolveCreemApiBase(apiKey);
   const res = await fetch(`${base}/v1/checkouts`, {
     method: "POST",
     headers: {

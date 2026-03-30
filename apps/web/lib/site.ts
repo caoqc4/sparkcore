@@ -18,6 +18,8 @@ export const siteConfig = {
     { href: "/blog", label: "Blog" },
     { href: "/safety", label: "Safety" },
     { href: "/faq", label: "FAQ" },
+    { href: "/privacy", label: "Privacy Policy" },
+    { href: "/terms", label: "Terms of Service" },
   ],
 } as const;
 

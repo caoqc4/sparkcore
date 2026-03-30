@@ -48,7 +48,6 @@ export async function POST(req: NextRequest) {
         key: body.key,
         kind: "subscription",
         successUrl,
-        cancelUrl,
         creemPriceId: getCreemPriceIdForSelection("subscription", body.key as ProSubscriptionCadence),
       });
 
@@ -96,7 +95,6 @@ export async function POST(req: NextRequest) {
       key: body.key,
       kind: "credits",
       successUrl,
-      cancelUrl,
       creemPriceId: getCreemPriceIdForSelection("credits", body.key as CreditsPackKey),
     });
 
