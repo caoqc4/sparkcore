@@ -151,7 +151,7 @@ export default function PrivacyPage() {
             <h2>12. Contact</h2>
             <p>
               For privacy-related questions or requests, contact us at:{" "}
-              <strong>privacy@sparkcore.ai</strong>
+              <strong>support@lagun.app</strong>
             </p>
           </section>
         </div>

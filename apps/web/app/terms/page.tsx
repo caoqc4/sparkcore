@@ -40,7 +40,7 @@ export default function TermsPage() {
             <p>
               You are responsible for maintaining the confidentiality of your login credentials
               and for all activity that occurs under your account. Notify us immediately at{" "}
-              <strong>support@sparkcore.ai</strong> if you suspect unauthorized access.
+              <strong>support@lagun.app</strong> if you suspect unauthorized access.
             </p>
           </section>
 
@@ -100,7 +100,7 @@ export default function TermsPage() {
               <strong>Refunds:</strong> Subscription payments are generally non-refundable except
               where required by applicable law. If you believe you were charged in error, contact
               us within 14 days of the charge at{" "}
-              <strong>support@sparkcore.ai</strong> and we will review your case.
+              <strong>support@lagun.app</strong> and we will review your case.
             </p>
             <p>
               <strong>Credits:</strong> Purchased credits are non-expiring and non-transferable.
@@ -164,7 +164,7 @@ export default function TermsPage() {
             <h2>13. Contact</h2>
             <p>
               Questions about these terms? Contact us at:{" "}
-              <strong>legal@sparkcore.ai</strong>
+              <strong>hello@lagun.app</strong>
             </p>
           </section>
         </div>
