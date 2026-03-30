@@ -6,6 +6,10 @@ import { SupplementaryChatThread } from "@/components/supplementary-chat-thread"
 import { requireUser } from "@/lib/auth-redirect";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { resolveProductAppRoute } from "@/lib/product/route-resolution";
+import {
+  loadActiveAudioAssetById,
+  loadOwnedRoleMediaProfile
+} from "@/lib/product/role-media";
 import { createClient } from "@/lib/supabase/server";
 import { loadProductSupplementaryChatPageData } from "@/lib/product/supplementary-chat";
 
@@ -83,6 +87,36 @@ export default async function AppChatPage({
   }
 
   const followUpCount = overview?.followUpSummary.pendingCount ?? 0;
+  const { data: roleMediaProfile } = await loadOwnedRoleMediaProfile({
+    supabase,
+    agentId: data.role.agentId,
+    workspaceId: data.workspaceId,
+    userId: user.id
+  });
+  const currentAudioAssetId =
+    typeof roleMediaProfile?.audio_asset_id === "string" &&
+    roleMediaProfile.audio_asset_id.length > 0
+      ? roleMediaProfile.audio_asset_id
+      : typeof roleMediaProfile?.audio_voice_option_id === "string" &&
+          roleMediaProfile.audio_voice_option_id.length > 0
+        ? roleMediaProfile.audio_voice_option_id
+        : null;
+  const { data: currentAudioAsset } = currentAudioAssetId
+    ? await loadActiveAudioAssetById({
+        supabase,
+        audioAssetId: currentAudioAssetId
+      })
+    : { data: null };
+  const audioPlayback = {
+    enabled:
+      currentAudioAsset?.provider === "Azure" ||
+      currentAudioAsset?.provider === "ElevenLabs",
+    provider: typeof currentAudioAsset?.provider === "string" ? currentAudioAsset.provider : null,
+    voiceName:
+      typeof currentAudioAsset?.display_name === "string"
+        ? currentAudioAsset.display_name
+        : null
+  };
 
   return (
     <ChatConsoleShell
@@ -101,6 +135,7 @@ export default async function AppChatPage({
         }}
       />
       <SupplementaryChatThread
+        audioPlayback={audioPlayback}
         messages={data.messages}
         threadId={data.thread.threadId}
         roleName={data.role.name}

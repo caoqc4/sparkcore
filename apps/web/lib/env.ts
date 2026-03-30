@@ -24,6 +24,31 @@ export function getLiteLLMEnv() {
   return { baseUrl, apiKey };
 }
 
+export function getAzureSpeechEnv() {
+  const apiKey = process.env.AZURE_SPEECH_API_KEY;
+  const region = process.env.AZURE_SPEECH_REGION;
+
+  if (!apiKey || !region) {
+    throw new Error(
+      "Missing Azure Speech environment variables. Set AZURE_SPEECH_API_KEY and AZURE_SPEECH_REGION."
+    );
+  }
+
+  return { apiKey, region };
+}
+
+export function getElevenLabsEnv() {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      "Missing ElevenLabs environment variable. Set ELEVENLABS_API_KEY."
+    );
+  }
+
+  return { apiKey };
+}
+
 export function getSupabaseAdminEnv() {
   const { url } = getSupabaseEnv();
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

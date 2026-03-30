@@ -99,6 +99,11 @@ type ChatThreadViewProps = {
   };
   initialMessages: ChatMessage[];
   locale: ChatLocale;
+  audioPlayback: {
+    enabled: boolean;
+    provider: string | null;
+    voiceName: string | null;
+  };
 };
 
 type RuntimeSummary = {
@@ -436,7 +441,8 @@ export function ChatThreadView({
   modelProfiles,
   memoryVisibility,
   initialMessages,
-  locale
+  locale,
+  audioPlayback
 }: ChatThreadViewProps) {
   const router = useRouter();
   const copy = getChatCopy(locale);
@@ -455,6 +461,10 @@ export function ChatThreadView({
   const [isRetryPending, startRetryTransition] = useTransition();
   const [isRenamePending, startRenameTransition] = useTransition();
   const [retryingMessageId, setRetryingMessageId] = useState<string | null>(null);
+  const playbackAudioRef = useRef<HTMLAudioElement | null>(null);
+  const playbackUrlRef = useRef<string | null>(null);
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   useEffect(() => {
     setOptimisticMessages(initialMessages);
@@ -463,6 +473,14 @@ export function ChatThreadView({
     setDraftTitle(thread.title);
     setIsRenaming(false);
   }, [initialMessages, thread.id, thread.title]);
+
+  useEffect(() => {
+    return () => {
+      if (playbackUrlRef.current) {
+        URL.revokeObjectURL(playbackUrlRef.current);
+      }
+    };
+  }, []);
 
   const isComposerDisabled = isSending || isRetryPending || isRenamePending;
   const isFirstTurn = optimisticMessages.length === 0;
@@ -599,6 +617,62 @@ export function ChatThreadView({
       messageInputRef.current.value.length,
       "end"
     );
+  }
+
+  async function handlePlayMessage(messageId: string) {
+    if (!audioPlayback.enabled) {
+      return;
+    }
+
+    setPlaybackError(null);
+
+    if (playingMessageId === messageId && playbackAudioRef.current) {
+      playbackAudioRef.current.pause();
+      playbackAudioRef.current.currentTime = 0;
+      setPlayingMessageId(null);
+      return;
+    }
+
+    setPlayingMessageId(messageId);
+
+    try {
+      const response = await fetch("/api/audio/message", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          threadId: thread.id,
+          messageId
+        })
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error ?? "Playback failed.");
+      }
+
+      const blob = await response.blob();
+      if (playbackUrlRef.current) {
+        URL.revokeObjectURL(playbackUrlRef.current);
+      }
+
+      const objectUrl = URL.createObjectURL(blob);
+      playbackUrlRef.current = objectUrl;
+
+      if (!playbackAudioRef.current) {
+        playbackAudioRef.current = new Audio();
+        playbackAudioRef.current.addEventListener("ended", () => {
+          setPlayingMessageId(null);
+        });
+      }
+
+      playbackAudioRef.current.src = objectUrl;
+      await playbackAudioRef.current.play();
+    } catch (error) {
+      setPlayingMessageId(null);
+      setPlaybackError(error instanceof Error ? error.message : "Playback failed.");
+    }
   }
 
   async function handleRename(formData: FormData) {
@@ -1032,6 +1106,28 @@ export function ChatThreadView({
                   </div>
                 ) : (
                   <>
+                    {message.role === "assistant" && audioPlayback.enabled ? (
+                      <div className="message-audio-actions">
+                        <button
+                          className="button button-secondary"
+                          onClick={() => void handlePlayMessage(message.id)}
+                          type="button"
+                        >
+                          {playingMessageId === message.id
+                            ? locale === "zh-CN"
+                              ? "停止语音"
+                              : "Stop voice"
+                            : locale === "zh-CN"
+                              ? "播放语音"
+                              : "Play voice"}
+                        </button>
+                        {audioPlayback.voiceName ? (
+                          <span className="helper-copy">
+                            {audioPlayback.provider} · {audioPlayback.voiceName}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
                     <p className="message-content">{message.content}</p>
                     {runtimeSummary ? (
                       <details className="runtime-summary">
@@ -1093,6 +1189,10 @@ export function ChatThreadView({
           })
         )}
       </div>
+
+      {playbackError ? (
+        <div className="notice notice-error">{playbackError}</div>
+      ) : null}
 
       <form action={handleSubmit} className="composer" ref={formRef}>
         <input name="thread_id" type="hidden" value={thread.id} />

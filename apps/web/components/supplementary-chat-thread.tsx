@@ -8,6 +8,11 @@ import { trackProductEvent } from "@/lib/product/events";
 type ChatThreadProps = {
   threadId: string;
   roleName: string;
+  audioPlayback: {
+    enabled: boolean;
+    provider: string | null;
+    voiceName: string | null;
+  };
   messages: Array<{
     id: string;
     role: "user" | "assistant";
@@ -48,6 +53,7 @@ function SendIcon() {
 export function SupplementaryChatThread({
   threadId,
   roleName,
+  audioPlayback,
   messages,
 }: ChatThreadProps) {
   const router = useRouter();
@@ -57,6 +63,10 @@ export function SupplementaryChatThread({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [optimisticMessages, setOptimisticMessages] = useState(messages);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
 
   // Scroll to bottom when messages or pending state change
   useEffect(() => {
@@ -69,6 +79,14 @@ export function SupplementaryChatThread({
   useEffect(() => {
     setOptimisticMessages(messages);
   }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+    };
+  }, []);
 
   function handleTextareaInput() {
     const el = textareaRef.current;
@@ -118,6 +136,62 @@ export function SupplementaryChatThread({
     });
   }
 
+  async function handlePlayVoice(messageId: string) {
+    if (!audioPlayback.enabled) {
+      return;
+    }
+
+    setPlaybackError(null);
+
+    if (playingMessageId === messageId && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setPlayingMessageId(null);
+      return;
+    }
+
+    setPlayingMessageId(messageId);
+
+    try {
+      const response = await fetch("/api/audio/message", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          threadId,
+          messageId,
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error ?? "Playback failed.");
+      }
+
+      const blob = await response.blob();
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+
+      const objectUrl = URL.createObjectURL(blob);
+      objectUrlRef.current = objectUrl;
+
+      if (!audioRef.current) {
+        audioRef.current = new Audio();
+        audioRef.current.addEventListener("ended", () => {
+          setPlayingMessageId(null);
+        });
+      }
+
+      audioRef.current.src = objectUrl;
+      await audioRef.current.play();
+    } catch (err) {
+      setPlayingMessageId(null);
+      setPlaybackError(err instanceof Error ? err.message : "Playback failed.");
+    }
+  }
+
   return (
     <div className="chat-thread">
       {/* Messages */}
@@ -136,6 +210,22 @@ export function SupplementaryChatThread({
             optimisticMessages.map((msg) =>
               msg.role === "assistant" ? (
                 <div key={msg.id} className="chat-bubble chat-bubble-assistant">
+                  {audioPlayback.enabled && msg.status === "completed" ? (
+                    <div className="chat-bubble-audio-actions">
+                      <button
+                        type="button"
+                        className="button button-secondary chat-bubble-audio-btn"
+                        onClick={() => void handlePlayVoice(msg.id)}
+                      >
+                        {playingMessageId === msg.id ? "Stop voice" : "Play voice"}
+                      </button>
+                      {audioPlayback.voiceName ? (
+                        <span className="chat-bubble-audio-meta">
+                          {audioPlayback.provider} · {audioPlayback.voiceName}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <p>{msg.content}</p>
                   <span
                     className="chat-bubble-time chat-bubble-time-assistant"
@@ -175,6 +265,7 @@ export function SupplementaryChatThread({
         <input name="thread_id" type="hidden" value={threadId} />
         <div className="chat-input-inner">
           {error ? <p className="chat-input-error">{error}</p> : null}
+          {playbackError ? <p className="chat-input-error">{playbackError}</p> : null}
           <div className="chat-input-wrap">
             <textarea
               ref={textareaRef}

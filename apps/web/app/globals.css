@@ -1519,6 +1519,15 @@ html {
   background: hsl(262 60% 58% / 0.03);
 }
 
+.role-voice-card.locked {
+  cursor: pointer;
+}
+
+.role-voice-card.locked:hover {
+  border-color: hsl(262 60% 58% / 0.4);
+  background: hsl(262 60% 58% / 0.03);
+}
+
 .role-voice-card:has(.role-voice-card-radio:checked) {
   border-color: hsl(262 60% 58%);
   background: hsl(262 60% 58% / 0.06);
@@ -1595,12 +1604,13 @@ html {
 .role-voice-gender-tag {
   display: inline-flex;
   align-items: center;
-  font-size: 0.63rem;
-  font-weight: 500;
-  padding: 1px 5px;
-  border-radius: 4px;
+  font-size: 0.61rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
   align-self: flex-start;
   margin-top: 1px;
+  letter-spacing: 0.01em;
 }
 
 .role-voice-gender-tag.gender-female {
@@ -1616,31 +1626,47 @@ html {
 }
 
 .role-voice-gender-tag.gender-neutral {
-  background: hsl(240 8% 92%);
-  color: hsl(240 10% 50%);
-  border: 1px solid hsl(240 8% 84%);
+  background: hsl(262 30% 95%);
+  color: hsl(262 26% 42%);
+  border: 1px solid hsl(262 22% 82%);
 }
 
 .role-voice-card-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 3px;
-  margin-top: 3px;
+  gap: 5px;
+  margin-top: 4px;
 }
 
 .role-voice-tag {
-  font-size: 0.62rem;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: hsl(240 8% 92%);
-  color: hsl(240 10% 50%);
-  border: 1px solid hsl(240 8% 86%);
+  font-size: 0.61rem;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: hsl(262 50% 96%);
+  color: hsl(262 35% 52%);
+  border: 1px solid transparent;
 }
 
 .role-voice-card:has(.role-voice-card-radio:checked) .role-voice-tag {
   background: hsl(262 60% 58% / 0.1);
   color: hsl(262 50% 38%);
   border-color: hsl(262 60% 58% / 0.2);
+}
+
+.role-voice-lock-badge {
+  position: absolute;
+  top: 28px;
+  right: 8px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: hsl(38 90% 94%);
+  color: hsl(32 80% 36%);
+  border: 1px solid hsl(38 70% 80%);
 }
 
 .role-voice-preview-btn {
@@ -1654,10 +1680,23 @@ html {
   background: hsl(0 0% 100%);
   font-size: 0.65rem;
   font-weight: 500;
-  color: hsl(240 8% 52%);
+  color: hsl(240 18% 34%);
+  cursor: pointer;
+  opacity: 1;
+  align-self: flex-start;
+  transition: border-color 0.14s ease, background 0.14s ease, color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+.role-voice-preview-btn:hover:not(:disabled) {
+  border-color: hsl(268 52% 50% / 0.35);
+  background: hsl(268 52% 50% / 0.05);
+  color: hsl(268 52% 38%);
+}
+
+.role-voice-preview-btn:disabled {
   cursor: not-allowed;
   opacity: 0.55;
-  align-self: flex-start;
 }
 
 .role-form-footer {
@@ -3674,6 +3713,25 @@ details[open] .role-mem-older-summary::before {
   gap: 3px;
 }
 
+.chat-bubble-audio-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.chat-bubble-audio-btn {
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: 0.76rem;
+}
+
+.chat-bubble-audio-meta {
+  font-size: 0.72rem;
+  color: hsl(240 8% 56%);
+}
+
 .chat-bubble p {
   margin: 0;
   padding: 10px 14px;
@@ -4885,6 +4943,18 @@ details[open] .role-mem-older-summary::before {
   margin: 0;
   line-height: 1.65;
   white-space: pre-wrap;
+}
+
+.message-audio-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.message-audio-actions .helper-copy {
+  margin: 0;
 }
 
 .first-turn-state {

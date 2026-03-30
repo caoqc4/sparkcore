@@ -19,6 +19,12 @@ export type ProductModelCatalogItem = {
   statusLabel?: string;
 };
 
+const ACTIVE_AUDIO_MODEL_SLUGS = new Set([
+  "audio-azure-ai-speech",
+  "audio-elevenlabs-v3",
+  "audio-elevenlabs-multilingual-v2"
+]);
+
 export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
   {
     slug: "text-gpt-4o-mini",
@@ -207,6 +213,18 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
     statusLabel: "Official integration planned"
   },
   {
+    slug: "audio-azure-ai-speech",
+    capability: "audio",
+    displayName: "Azure AI Speech",
+    provider: "Azure",
+    tier: "free",
+    isDefault: true,
+    tags: ["Natural voice", "Neural"],
+    integrationMode: "official",
+    uiStatus: "active",
+    statusLabel: "Available now"
+  },
+  {
     slug: "audio-elevenlabs-v3",
     capability: "audio",
     displayName: "ElevenLabs Eleven v3",
@@ -215,8 +233,8 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
     isDefault: true,
     tags: ["Human-like voice", "Expressive voice"],
     integrationMode: "official",
-    uiStatus: "planned",
-    statusLabel: "Official integration planned"
+    uiStatus: "active",
+    statusLabel: "Available now"
   },
   {
     slug: "audio-elevenlabs-multilingual-v2",
@@ -227,8 +245,8 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
     isDefault: false,
     tags: ["Natural voice", "Multilingual"],
     integrationMode: "official",
-    uiStatus: "planned",
-    statusLabel: "Official integration planned"
+    uiStatus: "active",
+    statusLabel: "Available now"
   },
   {
     slug: "audio-gemini-2-5-flash-tts",
@@ -294,6 +312,14 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
 
 export function getProductModelCatalogByCapability(capability: ProductModelCatalogCapability) {
   return PRODUCT_MODEL_CATALOG.filter((item) => item.capability === capability);
+}
+
+export function getVisibleAudioModelSlugs() {
+  return Array.from(ACTIVE_AUDIO_MODEL_SLUGS);
+}
+
+export function isVisibleAudioModelSlug(slug: string | null | undefined) {
+  return typeof slug === "string" && ACTIVE_AUDIO_MODEL_SLUGS.has(slug);
 }
 
 export function getProductModelCatalogItemBySlug(slug: string | null | undefined) {

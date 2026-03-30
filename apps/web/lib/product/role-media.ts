@@ -1,5 +1,6 @@
 import {
   PRODUCT_MODEL_CATALOG,
+  getVisibleAudioModelSlugs,
   getProductModelCatalogItemBySlug
 } from "@/lib/product/model-catalog";
 import type {
@@ -230,7 +231,7 @@ export async function loadActiveAudioVoiceOptionById(args: {
 }) {
   return args.supabase
     .from("product_audio_voice_options")
-    .select("id, model_slug, provider, display_name, voice_key, style_tags")
+    .select("id, model_slug, provider, display_name, voice_key, style_tags, metadata")
     .eq("id", args.voiceOptionId)
     .eq("is_active", true)
     .maybeSingle();
@@ -247,9 +248,19 @@ export async function loadActiveAudioAssetById(args: {
 }
 
 export async function loadActiveAudioAssets(args: { supabase: any }) {
+  const visibleAudioModelSlugs = getVisibleAudioModelSlugs();
+
+  if (visibleAudioModelSlugs.length === 0) {
+    return {
+      data: [] as any[],
+      error: null
+    };
+  }
+
   return args.supabase
     .from("product_audio_voice_options")
     .select("id, model_slug, provider, display_name, voice_key, style_tags, gender_presentation, is_default")
+    .in("model_slug", visibleAudioModelSlugs)
     .eq("is_active", true)
     .order("provider", { ascending: true })
     .order("model_slug", { ascending: true })

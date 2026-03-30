@@ -14,6 +14,7 @@ import {
 } from "@/lib/product/memory";
 import { loadProductRoleCollection } from "@/lib/product/roles";
 import { getProductModelCatalogItemBySlug } from "@/lib/product/model-catalog";
+import { loadProductBillingConfiguration, resolveCurrentPlanSlug } from "@/lib/product/billing";
 import { RoleVoiceTabs, type RoleVoiceGroup } from "@/components/role-voice-tabs";
 import { updateProductRoleProfile } from "@/app/app/profile/actions";
 import {
@@ -30,6 +31,42 @@ type RolePageProps = {
     thread?: string;
   }>;
 };
+
+function resolveVoiceGroupKey(modelSlug: string, provider: string) {
+  if (provider === "ElevenLabs") {
+    return "audio-elevenlabs";
+  }
+
+  return modelSlug;
+}
+
+function resolveVoiceGroupLabel(modelSlug: string, provider: string) {
+  if (provider === "ElevenLabs") {
+    return "ElevenLabs";
+  }
+
+  return getProductModelCatalogItemBySlug(modelSlug)?.displayName ?? provider;
+}
+
+function resolveVoiceGroupTier(modelSlug: string, provider: string): "free" | "pro" {
+  if (provider === "ElevenLabs") {
+    return "pro";
+  }
+
+  return getProductModelCatalogItemBySlug(modelSlug)?.tier ?? "free";
+}
+
+function getVoiceAssetSortValue(modelSlug: string) {
+  if (modelSlug === "audio-elevenlabs-multilingual-v2") {
+    return 0;
+  }
+
+  if (modelSlug === "audio-elevenlabs-v3") {
+    return 1;
+  }
+
+  return 2;
+}
 
 function splitMemoryGroups(items: ProductMemoryItem[]) {
   return {
@@ -126,6 +163,14 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
       resolveProductAppRoute({ supabase, userId: user.id }),
       loadProductRoleCollection({ supabase, userId: user.id }),
     ]);
+  const [{ data: subscriptionSnapshot }, billingConfiguration] = await Promise.all([
+    supabase
+      .from("user_subscription_snapshots")
+      .select("plan_name, plan_status")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    loadProductBillingConfiguration({ supabase }),
+  ]);
 
   const resolvedRoleId = roleId ?? resolution?.roleId ?? null;
   const roleQuerySuffix = resolvedRoleId
@@ -133,6 +178,14 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
     : "";
   const chatHref = `/app/chat${roleQuerySuffix}`;
   const redirectTo = `/app/role${roleQuerySuffix}`;
+  const upgradeHref = `/app/settings${roleQuerySuffix}#settings-subscription`;
+  const currentPlanSlug = resolveCurrentPlanSlug({
+    subscription: {
+      planName: subscriptionSnapshot?.plan_name ?? null,
+      planStatus: subscriptionSnapshot?.plan_status ?? "inactive",
+    },
+    plans: billingConfiguration.plans,
+  });
 
   const groups = splitMemoryGroups(memoryData?.items ?? []);
   const repairCount = groups.hidden.length + groups.incorrect.length;
@@ -362,19 +415,35 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
               const rawAssets = profileData.role.mediaLibraries.audioAssets;
               const voiceGroups: RoleVoiceGroup[] = [];
               for (const asset of rawAssets) {
-                const existing = voiceGroups.find((g) => g.modelSlug === asset.modelSlug);
+                const groupKey = resolveVoiceGroupKey(asset.modelSlug, asset.provider);
+                const existing = voiceGroups.find((g) => g.modelSlug === groupKey);
                 if (existing) {
                   existing.assets.push(asset);
                 } else {
-                  const catalogItem = getProductModelCatalogItemBySlug(asset.modelSlug);
                   voiceGroups.push({
-                    modelSlug: asset.modelSlug,
-                    modelDisplayName: catalogItem?.displayName ?? asset.provider,
-                    tier: catalogItem?.tier ?? "free",
+                    modelSlug: groupKey,
+                    modelDisplayName: resolveVoiceGroupLabel(asset.modelSlug, asset.provider),
+                    tier: resolveVoiceGroupTier(asset.modelSlug, asset.provider),
                     assets: [asset],
                   });
                 }
               }
+
+              for (const group of voiceGroups) {
+                group.assets.sort((left, right) => {
+                  const byModel = getVoiceAssetSortValue(left.modelSlug) - getVoiceAssetSortValue(right.modelSlug);
+                  if (byModel !== 0) {
+                    return byModel;
+                  }
+
+                  if (left.isDefault !== right.isDefault) {
+                    return Number(right.isDefault) - Number(left.isDefault);
+                  }
+
+                  return left.displayName.localeCompare(right.displayName);
+                });
+              }
+
               // Free-tier groups first, then pro
               voiceGroups.sort((a, b) => {
                 if (a.tier === b.tier) return 0;
@@ -393,8 +462,10 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
 
                   {rawAssets.length > 0 ? (
                     <RoleVoiceTabs
+                      currentPlanSlug={currentPlanSlug === "pro" ? "pro" : "free"}
                       groups={voiceGroups}
                       selectedAssetId={profileData.role.media.audioAssetId}
+                      upgradeHref={upgradeHref}
                     />
                   ) : (
                     <p className="role-field-hint">Voice library is loading…</p>

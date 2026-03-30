@@ -25,7 +25,12 @@ import {
   getChatCopy,
   resolveChatLocale
 } from "@/lib/i18n/chat-ui";
+import {
+  loadActiveAudioAssetById,
+  loadOwnedRoleMediaProfile
+} from "@/lib/product/role-media";
 import { buildPageMetadata } from "@/lib/site";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = buildPageMetadata({
   title: "Chat Workspace",
@@ -440,6 +445,40 @@ export default async function ChatPage({
       ? availableAgents.find((availableAgent) => availableAgent.id === thread.agent_id) ??
         null
       : null;
+  const pageSupabase = await createClient();
+  const { data: currentRoleMedia } =
+    thread?.agent_id
+      ? await loadOwnedRoleMediaProfile({
+          supabase: pageSupabase,
+          agentId: thread.agent_id,
+          workspaceId: workspace.id,
+          userId: user.id
+        })
+      : { data: null };
+  const currentAudioAssetId =
+    typeof currentRoleMedia?.audio_asset_id === "string" &&
+    currentRoleMedia.audio_asset_id.length > 0
+      ? currentRoleMedia.audio_asset_id
+      : typeof currentRoleMedia?.audio_voice_option_id === "string" &&
+          currentRoleMedia.audio_voice_option_id.length > 0
+        ? currentRoleMedia.audio_voice_option_id
+        : null;
+  const { data: currentAudioAsset } = currentAudioAssetId
+    ? await loadActiveAudioAssetById({
+        supabase: pageSupabase,
+        audioAssetId: currentAudioAssetId
+      })
+    : { data: null };
+  const audioPlayback = {
+    enabled:
+      currentAudioAsset?.provider === "Azure" ||
+      currentAudioAsset?.provider === "ElevenLabs",
+    provider: typeof currentAudioAsset?.provider === "string" ? currentAudioAsset.provider : null,
+    voiceName:
+      typeof currentAudioAsset?.display_name === "string"
+        ? currentAudioAsset.display_name
+        : null
+  };
   const pageFeedback = params.feedback
     ? {
         tone: params.feedback_type === "success" ? "success" : "error",
@@ -1628,6 +1667,7 @@ export default async function ChatPage({
                 locale={locale}
                 modelProfiles={availableModelProfiles}
                 memoryVisibility={memoryVisibility}
+                audioPlayback={audioPlayback}
                 thread={thread}
               />
             )}
