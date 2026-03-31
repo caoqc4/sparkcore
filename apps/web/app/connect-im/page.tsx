@@ -4,9 +4,13 @@ import { TelegramBindingForm } from "@/components/telegram-binding-form";
 import { ProductEventTracker } from "@/components/product-event-tracker";
 import { requireUser } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
-import { getTelegramBotEnv } from "@/lib/env";
+import { getTelegramBotConfig } from "@/lib/env";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { loadProductConnectImPageData } from "@/lib/product/connect-im";
+import {
+  getCharacterChannelLabel,
+  recommendCharacterChannel
+} from "@/lib/product/character-channels";
 import { buildPageMetadata } from "@/lib/site";
 import { connectTelegramBinding } from "@/app/connect-im/actions";
 
@@ -47,13 +51,23 @@ export default async function ConnectImPage({
       threadId: typeof params.thread === "string" ? params.thread : null,
     }),
   ]);
-  const telegramBot = process.env.TELEGRAM_BOT_TOKEN
-    ? getTelegramBotEnv()
-    : null;
 
   if (!data) {
     return null;
   }
+
+  const recommendedCharacterChannel =
+    data.role
+      ? recommendCharacterChannel({
+          mode: data.role.mode,
+          avatarGender: data.role.avatarGender
+        })
+      : null;
+  const telegramBot =
+    recommendedCharacterChannel &&
+    process.env[`TELEGRAM_BOT_TOKEN_${recommendedCharacterChannel.toUpperCase()}`]
+      ? getTelegramBotConfig(recommendedCharacterChannel)
+      : null;
 
   const activeBindings = data.bindings.filter((b) => b.status === "active");
   const hasBindingSuccess =
@@ -65,6 +79,9 @@ export default async function ConnectImPage({
     ) ?? activeBindings[0] ?? null;
 
   const botUsername = telegramBot?.botUsername ?? null;
+  const recommendedBotName = recommendedCharacterChannel
+    ? getCharacterChannelLabel(recommendedCharacterChannel)
+    : null;
 
   return (
     <ProductConsoleShell
@@ -167,7 +184,9 @@ export default async function ConnectImPage({
                         @{botUsername}
                       </a>
                     </>
-                  : "Open your Telegram bot"}
+                  : recommendedBotName
+                    ? `Open the ${recommendedBotName} bot in Telegram`
+                    : "Open your Telegram bot"}
               </span>
             </div>
             <div className="connect-im-step">
@@ -195,11 +214,19 @@ export default async function ConnectImPage({
             </p>
           ) : null}
 
+          {data.role && recommendedCharacterChannel && recommendedBotName ? (
+            <p className="connect-im-rebind-note">
+              Your role {data.role.name} will talk to you through {recommendedBotName} on
+              Telegram.
+            </p>
+          ) : null}
+
           {/* Form */}
           <div className="connect-im-form-wrap">
             <form action={connectTelegramBinding}>
               <TelegramBindingForm
                 agentId={data.role.agentId}
+                characterChannelSlug={recommendedCharacterChannel ?? "caria"}
                 hasExistingBinding={Boolean(existingBinding)}
                 threadId={data.thread.threadId}
               />

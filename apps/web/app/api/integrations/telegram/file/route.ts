@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-redirect";
 import { loadScopedMessageById } from "@/lib/chat/message-read";
 import { loadPrimaryWorkspace, loadOwnedThread } from "@/lib/chat/runtime-turn-context";
-import { getTelegramBotEnv } from "@/lib/env";
+import { getTelegramBotConfig, getTelegramBotEnv } from "@/lib/env";
 import { resolveTelegramFileDownloadResponse } from "@/lib/integrations/telegram";
+import { isCharacterChannelSlug } from "@/lib/product/character-channels";
 import { createClient } from "@/lib/supabase/server";
 
 function asRecord(value: unknown) {
@@ -69,6 +70,8 @@ export async function GET(request: Request) {
   }
 
   const metadata = asRecord(message.metadata);
+  const inboundMetadata = asRecord(metadata?.inbound_metadata);
+  const inboundCharacterChannelSlug = getString(inboundMetadata?.character_channel_slug);
   const artifacts = Array.isArray(metadata?.artifacts) ? metadata.artifacts : [];
   const artifact =
     artifacts.find((item) => {
@@ -84,7 +87,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Telegram file metadata not found." }, { status: 404 });
   }
 
-  const { botToken } = getTelegramBotEnv();
+  const { botToken } =
+    inboundCharacterChannelSlug && isCharacterChannelSlug(inboundCharacterChannelSlug)
+      ? getTelegramBotConfig(inboundCharacterChannelSlug)
+      : getTelegramBotEnv();
 
   try {
     const response = await resolveTelegramFileDownloadResponse({

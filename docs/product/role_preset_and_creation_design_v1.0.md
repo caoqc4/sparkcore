@@ -138,6 +138,7 @@ Stay focused on being genuinely helpful: search, analysis, synthesis. Show perso
 - 路径约定：`character-assets/{slug}/{variant}.webp`
 - 筛选字段：`avatar_gender`、`avatar_style`、`style_tags`
 - 用户在步骤三选择一张，创建后锁定不可修改
+- Phase 1 范围：仅启用 `preset` 类型的系统预置图；`upload` / `generated` 暂不在本期创建流程中开放
 
 | source_type | 说明 |
 |-------------|------|
@@ -162,7 +163,7 @@ Stay focused on being genuinely helpful: search, analysis, synthesis. Show perso
   │
   └── avatar_gender / tone / user_tier
             ↓
-       Audio Pool 筛选 → 自动推荐一个 → 用户预听确认
+       Audio Pool 筛选 → 自动推荐一个 → 用户可在当前层级可用范围内预听 / 切换 / 确认
 ```
 
 ### 3.3 默认角色的素材索引
@@ -192,6 +193,9 @@ character-assets/
 - 预设角色和自定义角色走**同一个三步 wizard**
 - 预设角色以 persona_pack 为模板初始化数据，用户可全部修改
 - 两条入口路径（首页 / 后台创建页）在 wizard 层统一，区别只在入口的预填方式
+- 首页进入 `/app/create` 的目标是“表单已预填”，不限定必须通过 URL params 传递全部字段
+- `identity` 仅是 UI 文案表达，不新增独立数据字段；底层仍由 `mode` + `avatar_gender` 表达
+- Phase 1 保持 `mode` 与 `avatar_gender` 的自由组合，三个默认角色只是推荐模板，不构成组合限制
 
 ### 4.2 三步 Wizard 结构
 
@@ -225,8 +229,8 @@ Hero form（默认空白）           [Caria] [Teven] [Velia]
                              [创建角色] 按钮
                                 ↓
                           跳转 /app/create
-                          携带所有字段作为 URL params
-                          进入统一三步 wizard（数据已预填）
+                          以预填状态进入统一三步 wizard
+                          （实现方式不限，可用 URL / 本地状态 / 其他方案）
                           用户可再次前后确认
 ```
 
@@ -252,11 +256,13 @@ PC 布局                          Mobile 布局
 用户确认创建
     ↓
 createProductRole(formData)
-    ├── 从 persona_pack 读取 source template（source_persona_pack_id）
+    ├── 若来自预设角色：写入对应 source_persona_pack_id
+    ├── 若为空白创建：source_persona_pack_id = null
     ├── 用用户填写的字段覆盖（name, tone, boundaries 等）
     ├── 从 Portrait Pool 写入选定的 portrait_asset_id → role_media_profiles
     ├── portrait_locked_at = now()（形象锁定）
-    ├── 从 Audio Pool 分配推荐音色 → role_media_profiles.audio_voice_option_id
+    ├── 从 Audio Pool 先推荐默认音色，用户确认最终选择
+    ├── 将用户最终确认的 audio_voice_option_id 写入 role_media_profiles
     └── 创建初始 thread
 ```
 
@@ -272,6 +278,12 @@ createProductRole(formData)
 | 形象图 | 创建后锁定 | 创建后锁定 |
 | 音色 | 创建后可在 role 页修改 | 创建后可在 role 页修改 |
 | role 页标记 | 显示 "Based on Caria · Restore defaults" | 无 |
+
+补充规则：
+
+- 只要角色最初来自某个 preset，就持续显示 `Based on Caria/Teven/Velia`；即使用户后续修改了名字、tone、关系描述等字段，该来源标记仍保留
+- 空白创建的角色不记录 preset 来源，因此不显示 `Based on ...`，也不支持 `Restore defaults`
+- `Restore defaults` 会恢复该 preset 的默认人格设定与媒体配置，包括 `name`、`tone`、`relationship_mode`、`boundaries`、`background_summary`、默认 portrait、默认音色
 
 ---
 
@@ -320,9 +332,11 @@ role 页显示 banner：
 | P1 | Wizard 加入预设卡选择器（PC 左侧栏 + 移动端顶部滚动） | `components/role-create-wizard.tsx` |
 | P1 | 首页角色卡点击 → 预填 + 滚动交互 | `components/home-hero-interactive.tsx` |
 | P1 | 音频预听 UI | `components/role-create-wizard.tsx` |
+| P1 | 创建时支持在当前层级可用范围内切换音色 | `components/role-create-wizard.tsx`, `app/create/actions.ts` |
 | P2 | role 页显示"Based on preset · Restore defaults" | `app/app/role/page.tsx` |
 | P2 | 付费后音色升级提示 banner | `app/app/role/page.tsx` |
 | P2 | Advanced 折叠区 + background_summary 输入 | `components/role-create-wizard.tsx` |
+| P2 | role 页展示 `background_summary` | `app/app/role/page.tsx` |
 
 ---
 
@@ -337,3 +351,9 @@ role 页显示 banner：
 | 素材池绑定方式 | 图和音各自独立池，不强绑定角色 | 素材可复用，通过筛选字段动态匹配 |
 | 两条创建路径 | 统一为同一三步 wizard | 降低维护成本，体验一致 |
 | 预设卡布局 | PC 左侧纵向栏，移动端顶部横向滚动 | 响应式兼容，PC 空间利用率更高 |
+| `identity` 字段设计 | 不新增独立字段，仅作为页面表述 | 避免数据结构重复，延续现有 `mode + avatar_gender` 模型 |
+| `mode × avatar_gender` 组合 | Phase 1 保持自由组合 | 预设角色只是推荐模板，不限制用户创建范围 |
+| 首页到 `/app/create` 的预填实现 | 只要求能预填，不强制 URL params | 优先保证统一 wizard 体验，避免过早锁死实现方式 |
+| 形象图创建范围 | Phase 1 仅开放系统预置图 | 先完成主链路，控制实现范围 |
+| 创建时音色选择 | 先推荐，再允许用户在当前层级可用范围内切换确认 | 保留推荐效率，同时给用户声音选择权 |
+| `relationship_mode` 字段形态 | 先保持现状，继续使用自由文本 | 当前展示位置未最终收敛，暂不收紧为枚举 |

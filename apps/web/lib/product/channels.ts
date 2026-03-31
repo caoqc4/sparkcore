@@ -10,6 +10,7 @@ export type ProductChannelBinding = {
   channelId: string;
   peerId: string;
   platformUserId: string;
+  characterChannelSlug: string | null;
   status: "active" | "inactive" | "invalid";
   threadId: string | null;
   agentId: string;
@@ -125,7 +126,7 @@ export async function loadOwnedChannelBindings(args: {
   const { data, error } = await args.supabase
     .from("channel_bindings")
     .select(
-      "id, platform, channel_id, peer_id, platform_user_id, status, thread_id, agent_id, updated_at"
+      "id, platform, channel_id, peer_id, platform_user_id, character_channel_slug, status, thread_id, agent_id, updated_at"
     )
     .eq("workspace_id", args.workspaceId)
     .eq("user_id", args.userId)
@@ -183,6 +184,10 @@ export async function loadOwnedChannelBindings(args: {
     channelId: item.channel_id,
     peerId: item.peer_id,
     platformUserId: item.platform_user_id,
+    characterChannelSlug:
+      typeof item.character_channel_slug === "string"
+        ? item.character_channel_slug
+        : null,
     status: item.status,
     threadId: item.thread_id ?? null,
     agentId: item.agent_id,

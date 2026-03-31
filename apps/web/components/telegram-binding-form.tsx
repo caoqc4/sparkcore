@@ -5,12 +5,14 @@ import { FormSubmitButton } from "@/components/form-submit-button";
 
 type TelegramBindingFormProps = {
   agentId: string;
+  characterChannelSlug: string;
   threadId: string;
   hasExistingBinding?: boolean;
 };
 
 export function TelegramBindingForm({
   agentId,
+  characterChannelSlug,
   threadId,
   hasExistingBinding = false,
 }: TelegramBindingFormProps) {
@@ -20,6 +22,11 @@ export function TelegramBindingForm({
   return (
     <>
       <input name="agent_id" type="hidden" value={agentId} />
+      <input
+        name="character_channel_slug"
+        type="hidden"
+        value={characterChannelSlug}
+      />
       <input name="thread_id" type="hidden" value={threadId} />
 
       <div className="field">

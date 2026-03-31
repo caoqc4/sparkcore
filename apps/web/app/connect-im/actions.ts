@@ -9,6 +9,7 @@ import {
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
 import { loadChannelPlatformCapability } from "@/lib/product/channels";
+import { isCharacterChannelSlug } from "@/lib/product/character-channels";
 
 function redirectWithMessage(args: {
   agentId?: string | null;
@@ -46,6 +47,12 @@ export async function connectTelegramBinding(formData: FormData) {
   const channelId = normalizeIdentityField(formData.get("channel_id"));
   const peerId = normalizeIdentityField(formData.get("peer_id"));
   const platformUserId = normalizeIdentityField(formData.get("platform_user_id"));
+  const rawCharacterChannelSlug = normalizeIdentityField(
+    formData.get("character_channel_slug")
+  );
+  const characterChannelSlug = isCharacterChannelSlug(rawCharacterChannelSlug)
+    ? rawCharacterChannelSlug
+    : null;
 
   if (!threadId || !agentId) {
     redirectWithMessage({
@@ -61,6 +68,15 @@ export async function connectTelegramBinding(formData: FormData) {
       threadId,
       agentId,
       feedback: "Telegram binding requires channel id, peer id, and platform user id.",
+      feedbackType: "error"
+    });
+  }
+
+  if (!characterChannelSlug) {
+    redirectWithMessage({
+      threadId,
+      agentId,
+      feedback: "Telegram binding requires a valid character channel.",
       feedbackType: "error"
     });
   }
@@ -135,7 +151,8 @@ export async function connectTelegramBinding(formData: FormData) {
     platform: "telegram",
     channel_id: channelId,
     peer_id: peerId,
-    platform_user_id: platformUserId
+    platform_user_id: platformUserId,
+    character_channel_slug: characterChannelSlug
   };
 
   const { data: existingBinding, error: existingError } = await supabase
@@ -163,7 +180,8 @@ export async function connectTelegramBinding(formData: FormData) {
     status: "active",
     metadata: {
       source: "product_connect_im",
-      managed_by: "connect-im-page"
+      managed_by: "connect-im-page",
+      character_channel_slug: characterChannelSlug
     }
   };
 

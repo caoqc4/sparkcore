@@ -1,3 +1,5 @@
+import type { CharacterChannelSlug } from "@/lib/product/character-channels";
+
 export function getSupabaseEnv() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -69,6 +71,37 @@ export function getTelegramBotEnv() {
 
   if (!botToken) {
     throw new Error("Missing Telegram bot token. Set TELEGRAM_BOT_TOKEN.");
+  }
+
+  return {
+    botToken,
+    webhookSecret,
+    botUsername
+  };
+}
+
+function getTelegramEnvSuffix(slug: CharacterChannelSlug) {
+  switch (slug) {
+    case "teven":
+      return "TEVEN";
+    case "velia":
+      return "VELIA";
+    case "caria":
+    default:
+      return "CARIA";
+  }
+}
+
+export function getTelegramBotConfig(slug: CharacterChannelSlug) {
+  const suffix = getTelegramEnvSuffix(slug);
+  const botToken = process.env[`TELEGRAM_BOT_TOKEN_${suffix}`];
+  const webhookSecret = process.env[`TELEGRAM_WEBHOOK_SECRET_${suffix}`] ?? null;
+  const botUsername = process.env[`TELEGRAM_BOT_USERNAME_${suffix}`] ?? null;
+
+  if (!botToken) {
+    throw new Error(
+      `Missing Telegram bot token. Set TELEGRAM_BOT_TOKEN_${suffix}.`
+    );
   }
 
   return {

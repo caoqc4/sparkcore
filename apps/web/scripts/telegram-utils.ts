@@ -1,5 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
-import { callTelegramApi, getTelegramBotToken } from "@/lib/integrations/telegram-api";
+import { getTelegramBotEnv, getTelegramBotConfig } from "@/lib/env";
+import {
+  isCharacterChannelSlug,
+  type CharacterChannelSlug
+} from "@/lib/product/character-channels";
 import { loadLocalEnv } from "./load-local-env";
 
 loadLocalEnv();
@@ -40,4 +44,50 @@ export function getTelegramWebhookSecret() {
   return process.env.TELEGRAM_WEBHOOK_SECRET ?? "";
 }
 
-export { callTelegramApi, getTelegramBotToken };
+export function getCharacterChannelArg() {
+  const value = getArgValue("--character-channel");
+
+  if (!value) {
+    return null;
+  }
+
+  if (!isCharacterChannelSlug(value)) {
+    throw new Error(
+      "Invalid --character-channel. Expected one of: caria, teven, velia."
+    );
+  }
+
+  return value as CharacterChannelSlug;
+}
+
+export function getTelegramBotRuntimeConfig(slug?: CharacterChannelSlug | null) {
+  if (slug) {
+    return getTelegramBotConfig(slug);
+  }
+
+  return getTelegramBotEnv();
+}
+
+export async function callTelegramApi(
+  method: string,
+  params?: Record<string, unknown>,
+  slug?: CharacterChannelSlug | null
+) {
+  const token = getTelegramBotRuntimeConfig(slug).botToken;
+  const url = new URL(`https://api.telegram.org/bot${token}/${method}`);
+
+  if (!params || Object.keys(params).length === 0) {
+    const response = await fetch(url);
+    return response.json();
+  }
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(params)
+  });
+
+  return response.json();
+}

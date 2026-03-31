@@ -5,6 +5,12 @@ import {
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
 import { loadOwnedChannelBindings, type ProductChannelBinding } from "@/lib/product/channels";
+import {
+  resolveProductRoleCore,
+  resolveStoredProductRoleAppearance,
+  type ProductRoleAvatarGender,
+  type ProductRoleMode
+} from "@/lib/product/role-core";
 
 export type ProductConnectImPageData = {
   workspaceId: string;
@@ -12,6 +18,8 @@ export type ProductConnectImPageData = {
     agentId: string;
     name: string;
     personaSummary: string;
+    mode: ProductRoleMode;
+    avatarGender: ProductRoleAvatarGender | null;
   } | null;
   thread: {
     threadId: string;
@@ -76,11 +84,22 @@ export async function loadProductConnectImPageData(args: {
   return {
     workspaceId: workspace.id,
     role: agentResult.data
-      ? {
-          agentId: agentResult.data.id,
-          name: agentResult.data.name,
-          personaSummary: agentResult.data.persona_summary
-        }
+      ? (() => {
+          const roleCore = resolveProductRoleCore({
+            metadata: agentResult.data.metadata,
+            stylePrompt: agentResult.data.style_prompt,
+            systemPrompt: agentResult.data.system_prompt
+          });
+          const appearance = resolveStoredProductRoleAppearance(agentResult.data.metadata);
+
+          return {
+            agentId: agentResult.data.id,
+            name: agentResult.data.name,
+            personaSummary: agentResult.data.persona_summary,
+            mode: roleCore.mode,
+            avatarGender: appearance.avatarGender
+          };
+        })()
       : null,
     thread: threadResult.data
       ? {

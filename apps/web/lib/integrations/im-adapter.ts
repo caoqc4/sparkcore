@@ -96,6 +96,7 @@ export type ChannelBinding = {
   channel_id: string;
   peer_id: string;
   platform_user_id: string;
+  character_channel_slug?: string | null;
   workspace_id: string;
   user_id: string;
   agent_id: string;
@@ -111,6 +112,7 @@ export type BindingLookupInput = {
   channel_id: string;
   peer_id: string;
   platform_user_id: string;
+  character_channel_slug?: string | null;
 };
 
 export type BindingLookupResult =
@@ -233,6 +235,7 @@ export type BindingRow = {
   channel_id: string;
   peer_id: string;
   platform_user_id: string;
+  character_channel_slug?: string | null;
   workspace_id: string;
   user_id: string;
   agent_id: string;
@@ -250,6 +253,7 @@ export function mapBindingRowToChannelBinding(row: BindingRow): ChannelBinding {
     channel_id: row.channel_id,
     peer_id: row.peer_id,
     platform_user_id: row.platform_user_id,
+    character_channel_slug: row.character_channel_slug ?? null,
     workspace_id: row.workspace_id,
     user_id: row.user_id,
     agent_id: row.agent_id,
@@ -270,18 +274,31 @@ export class SupabaseBindingRepository implements BindingRepository {
   async findActiveBinding(
     input: BindingLookupInput
   ): Promise<ChannelBinding | null> {
-    const { data, error } = await this.supabase
-      .from(this.tableName)
-      .select(
-        "id, platform, channel_id, peer_id, platform_user_id, workspace_id, user_id, agent_id, thread_id, status, created_at, updated_at, metadata"
-      )
-      .eq("platform", input.platform)
-      .eq("channel_id", input.channel_id)
-      .eq("peer_id", input.peer_id)
-      .eq("platform_user_id", input.platform_user_id)
-      .eq("status", "active")
-      .maybeSingle();
+    const query =
+      typeof input.character_channel_slug !== "string"
+        ? this.supabase
+            .from(this.tableName)
+            .select(
+              "id, platform, channel_id, peer_id, platform_user_id, character_channel_slug, workspace_id, user_id, agent_id, thread_id, status, created_at, updated_at, metadata"
+            )
+            .eq("platform", input.platform)
+            .eq("channel_id", input.channel_id)
+            .eq("peer_id", input.peer_id)
+            .eq("platform_user_id", input.platform_user_id)
+            .eq("status", "active")
+        : this.supabase
+            .from(this.tableName)
+            .select(
+              "id, platform, channel_id, peer_id, platform_user_id, character_channel_slug, workspace_id, user_id, agent_id, thread_id, status, created_at, updated_at, metadata"
+            )
+            .eq("platform", input.platform)
+            .eq("channel_id", input.channel_id)
+            .eq("peer_id", input.peer_id)
+            .eq("platform_user_id", input.platform_user_id)
+            .eq("character_channel_slug", input.character_channel_slug)
+            .eq("status", "active");
 
+    const { data, error } = await query.maybeSingle();
     if (error) {
       throw new Error(
         `Failed to load channel binding from ${this.tableName}: ${error.message}`
@@ -332,12 +349,14 @@ export function buildBindingLookupInput(args: {
   channel_id: string;
   peer_id: string;
   platform_user_id: string;
+  character_channel_slug?: string | null;
 }): BindingLookupInput {
   return {
     platform: args.platform,
     channel_id: args.channel_id,
     peer_id: args.peer_id,
-    platform_user_id: args.platform_user_id
+    platform_user_id: args.platform_user_id,
+    character_channel_slug: args.character_channel_slug
   };
 }
 
@@ -347,6 +366,16 @@ export function buildInboundDedupeKey(message: InboundChannelMessage) {
   }
 
   return `${message.platform}:${message.message_id}:${message.timestamp}`;
+}
+
+function getInboundCharacterChannelSlug(inbound: InboundChannelMessage) {
+  if (!inbound.metadata || typeof inbound.metadata !== "object" || Array.isArray(inbound.metadata)) {
+    return undefined;
+  }
+
+  return typeof inbound.metadata.character_channel_slug === "string"
+    ? inbound.metadata.character_channel_slug
+    : undefined;
 }
 
 export function buildRuntimeInputFromInbound(args: {
@@ -544,7 +573,8 @@ export async function handleInboundChannelMessage(args: {
     platform: args.inbound.platform,
     channel_id: args.inbound.channel_id,
     peer_id: args.inbound.peer_id,
-    platform_user_id: args.inbound.platform_user_id
+    platform_user_id: args.inbound.platform_user_id,
+    character_channel_slug: getInboundCharacterChannelSlug(args.inbound)
   });
   const lookupResult = await args.bindingLookup.lookup(lookupInput);
 

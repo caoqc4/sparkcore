@@ -1,9 +1,14 @@
-import { callTelegramApi, hasFlag } from "./telegram-utils";
+import {
+  callTelegramApi,
+  getCharacterChannelArg,
+  hasFlag
+} from "./telegram-utils";
 
 async function main() {
+  const characterChannel = getCharacterChannelArg();
   const result = await callTelegramApi("deleteWebhook", {
     drop_pending_updates: hasFlag("--drop-pending-updates")
-  });
+  }, characterChannel);
 
   console.log(JSON.stringify(result, null, 2));
 }
