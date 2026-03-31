@@ -1,7 +1,7 @@
 import { synthesizeAudioForVoiceOption } from "@/lib/audio/synthesis";
 import { loadScopedMessageById } from "@/lib/chat/message-read";
 import { updateScopedMessage } from "@/lib/chat/message-persistence";
-import { generateImage } from "@/lib/litellm/client";
+import { generateImage, generateText } from "@/lib/litellm/client";
 import {
   CapabilityBillingError,
   authorizeCapabilityConsumption,
@@ -79,6 +79,23 @@ type UserAudioPolicy = {
   generationMaxChars: number;
 };
 
+export type MultimodalIntentDecision = {
+  imageRequested: boolean;
+  audioRequested: boolean;
+  imageConfidence: number;
+  audioConfidence: number;
+  source: "rules" | "classifier" | "fallback_rules";
+  reasoning: string | null;
+};
+
+export type PreparedExplicitArtifactContext = {
+  intent: MultimodalIntentDecision;
+  currentPlanSlug: string;
+  userSettingsMetadata: Record<string, unknown>;
+  imageResult: Awaited<ReturnType<typeof maybeGenerateImageArtifact>> | null;
+  audioTranscriptOverride: string | null;
+};
+
 function asRecord(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return {} as Record<string, unknown>;
@@ -107,14 +124,32 @@ function getArtifacts(metadata: Record<string, unknown>) {
 function buildImageIntentPatterns() {
   return [
     /生成(一张|一个|些)?图/,
+    /生成[\s\S]{0,24}(图|图片|照片|相片)/,
     /来张图/,
     /发(我)?一张图/,
+    /发(我)?[\s\S]{0,24}(图|图片|照片|相片)/,
+    /给我[\s\S]{0,24}(图|图片|照片|相片)/,
     /画(一张|个)?/,
     /做(一张|个)?(图片|头像)/,
     /看(看)?(图|图片)/,
+    /照片/,
+    /相片/,
     /\b(generate|make|create|draw|send)\b[\s\S]{0,24}\b(image|picture|photo|portrait|avatar)\b/i,
     /\bimage\b[\s\S]{0,24}\bplease\b/i,
   ];
+}
+
+function parseClassifierJson(content: string) {
+  try {
+    return JSON.parse(content) as Record<string, unknown>;
+  } catch {
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("Classifier returned non-JSON content.");
+    }
+
+    return JSON.parse(jsonMatch[0]) as Record<string, unknown>;
+  }
 }
 
 function buildAudioIntentPatterns() {
@@ -122,14 +157,65 @@ function buildAudioIntentPatterns() {
     /语音回/,
     /发(我)?语音/,
     /用语音/,
+    /语音说/,
+    /语音讲/,
+    /语音念/,
+    /说一下/,
+    /说一[下声]*/,
+    /念一下/,
+    /读一下/,
     /读给我/,
+    /讲给我/,
+    /听听你的声音/,
+    /你的声音/,
     /语音消息/,
     /\bvoice\b[\s\S]{0,16}\b(reply|message|note)\b/i,
     /\baudio\b[\s\S]{0,16}\b(reply|message|note)\b/i,
   ];
 }
 
-export function detectMultimodalIntent(content: string) {
+export function extractExplicitAudioContent(content: string): string | null {
+  const normalized = content.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const hasAudioCue = buildAudioIntentPatterns().some((pattern) => pattern.test(normalized));
+  if (!hasAudioCue) {
+    return null;
+  }
+
+  const quotedMatches = Array.from(
+    normalized.matchAll(/[“"「『](.+?)[”"」』]/g)
+  );
+  const lastQuoted = quotedMatches.at(-1)?.[1]?.trim() ?? null;
+  if (lastQuoted && lastQuoted.length > 0) {
+    return lastQuoted;
+  }
+
+  const colonMatch = normalized.match(
+    /(?:用语音(?:回(?:我)?|说|讲|念|读)?|语音(?:回(?:我)?|说|讲|念|读)?|说一下|说一声|念一下|读一下|读给我听|讲给我听)[：:]\s*([\s\S]+)/
+  );
+  if (colonMatch?.[1]) {
+    const extracted = colonMatch[1].trim();
+    return extracted.length > 0 ? extracted : null;
+  }
+
+  const conversationalMatch = normalized.match(
+    /(?:你能|可以|麻烦你|请你)?(?:用语音|语音)?(?:说|讲|念|读)(?:一下|一声)?[，,\s]*([^。！？!?]{1,80}?)(?:吗|呢|吧|呀|啊)?[。！？!?]?$/
+  );
+  if (conversationalMatch?.[1]) {
+    const extracted = conversationalMatch[1]
+      .trim()
+      .replace(/^[“"「『]|[”"」』]$/g, "")
+      .trim();
+    return extracted.length > 0 ? extracted : null;
+  }
+
+  return null;
+}
+
+export function detectMultimodalIntentByRules(content: string) {
   const normalized = content.trim();
   const imageRequested = buildImageIntentPatterns().some((pattern) => pattern.test(normalized));
   const audioRequested = buildAudioIntentPatterns().some((pattern) => pattern.test(normalized));
@@ -138,6 +224,82 @@ export function detectMultimodalIntent(content: string) {
     imageRequested,
     audioRequested,
   };
+}
+
+export async function detectMultimodalIntent(content: string): Promise<MultimodalIntentDecision> {
+  const ruleDecision = detectMultimodalIntentByRules(content);
+  if (ruleDecision.imageRequested || ruleDecision.audioRequested) {
+    return {
+      ...ruleDecision,
+      imageConfidence: ruleDecision.imageRequested ? 0.98 : 0.02,
+      audioConfidence: ruleDecision.audioRequested ? 0.98 : 0.02,
+      source: "rules",
+      reasoning: "Matched high-confidence multimodal intent rules."
+    };
+  }
+
+  try {
+    const result = await generateText({
+      model: "replicate-gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: [
+            "You classify whether a user is explicitly asking the assistant to generate an image and/or reply with audio.",
+            "Return strict JSON only.",
+            "Be conservative about triggering generation.",
+            "image_requested should be true only when the user clearly wants a picture, photo, illustration, avatar, visual, or generated image.",
+            "audio_requested should be true only when the user clearly wants a voice note, spoken reply, or audio message.",
+            "Words like 图片, 图, 照片, 相片, 配图, 发我看看, visual, image, photo, picture may indicate image intent depending on context.",
+            "Words like 语音, 音频, 念给我听, 读出来, voice reply, audio reply may indicate audio intent depending on context."
+          ].join("\n")
+        },
+        {
+          role: "user",
+          content: [
+            "Classify this message.",
+            `Message: ${content.trim()}`,
+            'JSON schema: {"image_requested": boolean, "audio_requested": boolean, "image_confidence": number, "audio_confidence": number, "reasoning": string}'
+          ].join("\n")
+        }
+      ],
+      temperature: 0,
+      maxOutputTokens: 180,
+      timeoutMs: 18_000
+    });
+
+    const parsed = parseClassifierJson(result.content);
+    const imageConfidence = clamp(getNumber(parsed.image_confidence) ?? 0, 0, 1);
+    const audioConfidence = clamp(getNumber(parsed.audio_confidence) ?? 0, 0, 1);
+    const classifierDecision = {
+      imageRequested:
+        parsed.image_requested === true && imageConfidence >= 0.7,
+      audioRequested:
+        parsed.audio_requested === true && audioConfidence >= 0.7,
+      imageConfidence,
+      audioConfidence,
+      source: "classifier" as const,
+      reasoning: getString(parsed.reasoning)
+    };
+
+    return classifierDecision;
+  } catch {
+    return {
+      ...ruleDecision,
+      imageConfidence: ruleDecision.imageRequested ? 0.85 : 0.05,
+      audioConfidence: ruleDecision.audioRequested ? 0.85 : 0.05,
+      source: "fallback_rules",
+      reasoning: "Classifier unavailable, falling back to rules."
+    };
+  }
+}
+
+function isPhotoStyleRequest(content: string) {
+  const normalized = content.trim().toLowerCase();
+  return (
+    /照片|相片|拍照|摄影|写真|实拍/.test(content) ||
+    /\b(photo|photograph|photographic|realistic|camera|shot|snapshot)\b/i.test(normalized)
+  );
 }
 
 function getAudioPolicy(metadata: Record<string, unknown>): UserAudioPolicy {
@@ -172,25 +334,46 @@ function getAudioPolicy(metadata: Record<string, unknown>): UserAudioPolicy {
 
 function buildImagePrompt(args: {
   userMessage: string;
-  assistantReply: string;
+  assistantReply?: string;
   agentName: string | null;
   personaSummary: string;
 }) {
-  const roleLine = args.agentName
-    ? `Character: ${args.agentName}.`
-    : "Character: the current SparkCore companion.";
-
+  const wantsPhotoStyle = isPhotoStyleRequest(args.userMessage);
   const personaLine =
     args.personaSummary.trim().length > 0
-      ? `Persona guidance: ${args.personaSummary.trim()}.`
+      ? `Role essence to preserve lightly: ${args.personaSummary.trim()}.`
       : "";
+
+  if (wantsPhotoStyle) {
+    return [
+      "Create a realistic photographic image that satisfies the user's request.",
+      "Prioritize the requested scene or subject over symbolic companion art.",
+      args.agentName
+        ? `If a human subject appears, keep only a subtle visual echo of ${args.agentName}; do not force a character portrait unless the user explicitly asked for a person.`
+        : "",
+      personaLine,
+      `User request: ${args.userMessage.trim()}`,
+      "Style target: believable photo, natural lighting, camera-like detail, grounded composition, not an illustration.",
+      "If the request is for a place or scene, focus on the environment first.",
+      "Keep the image tasteful, emotionally warm, and safe for a general audience.",
+      "No text overlays unless the user explicitly asked for text in the image.",
+    ]
+      .filter((line) => line.length > 0)
+      .join("\n");
+  }
+
+  const roleLine = args.agentName
+    ? `Character inspiration: ${args.agentName}.`
+    : "Character inspiration: the current SparkCore companion.";
 
   return [
     "Create a polished conversational companion image that satisfies the user's request.",
     roleLine,
     personaLine,
     `User request: ${args.userMessage.trim()}`,
-    `Reply context: ${args.assistantReply.trim()}`,
+    args.assistantReply?.trim()
+      ? `Reply context: ${args.assistantReply.trim()}`
+      : "",
     "Keep the composition tasteful, emotionally warm, and safe for a general audience.",
     "Return a single clear image with strong visual focus and no text overlays unless the user explicitly asked for text in the image.",
   ]
@@ -468,6 +651,7 @@ async function maybeGenerateImageArtifact(
 
     const image = await generateImage({
       model: imageModel.litellmModelName,
+      replicateModelRef: imageModel.replicateModelRef,
       prompt,
       n: 1,
       size: "1024x1024",
@@ -534,6 +718,49 @@ async function maybeGenerateImageArtifact(
       status: "failed",
     };
   }
+}
+
+export async function prepareExplicitArtifactContext(
+  args: MessageTarget & {
+    userMessage: string;
+    agentName: string | null;
+    personaSummary: string;
+  }
+): Promise<PreparedExplicitArtifactContext> {
+  const [userSettingsMetadata, currentPlanSlug, intent] = await Promise.all([
+    loadUserSettingsMetadata({
+      supabase: args.supabase,
+      userId: args.userId,
+    }),
+    loadCurrentProductPlanSlug({
+      supabase: args.supabase,
+      userId: args.userId,
+    }),
+    detectMultimodalIntent(args.userMessage),
+  ]);
+
+  const imageResult = intent.imageRequested
+    ? await maybeGenerateImageArtifact({
+        ...args,
+        currentPlanSlug,
+        userSettingsMetadata,
+        userMessage: args.userMessage,
+        assistantReply: "",
+        agentName: args.agentName,
+        personaSummary: args.personaSummary,
+        imageRequested: true,
+      })
+    : null;
+
+  return {
+    intent,
+    currentPlanSlug,
+    userSettingsMetadata,
+    imageResult,
+    audioTranscriptOverride: intent.audioRequested
+      ? extractExplicitAudioContent(args.userMessage)
+      : null,
+  };
 }
 
 function pickAudioSource(args: {
@@ -616,6 +843,7 @@ async function maybeGenerateAudioArtifact(
     assistantReply: string;
     imageRequested: boolean;
     audioRequested: boolean;
+    audioTranscriptOverride?: string | null;
   }
 ) {
   const policy = getAudioPolicy(args.userSettingsMetadata);
@@ -682,7 +910,10 @@ async function maybeGenerateAudioArtifact(
     };
   }
 
-  const transcript = truncateAudioTranscript(args.assistantReply, policy.generationMaxChars);
+  const transcript = truncateAudioTranscript(
+    getString(args.audioTranscriptOverride) ?? args.assistantReply,
+    policy.generationMaxChars
+  );
   let billingResult: Awaited<ReturnType<typeof authorizeCapabilityConsumption>> | null = null;
 
   try {
@@ -788,31 +1019,41 @@ export async function maybeGenerateAssistantArtifacts(
     assistantReply: string;
     agentName: string | null;
     personaSummary: string;
+    preparedContext?: PreparedExplicitArtifactContext | null;
+    audioTranscriptOverride?: string | null;
   }
 ) {
-  const [userSettingsMetadata, currentPlanSlug] = await Promise.all([
-    loadUserSettingsMetadata({
-      supabase: args.supabase,
-      userId: args.userId,
-    }),
-    loadCurrentProductPlanSlug({
-      supabase: args.supabase,
-      userId: args.userId,
-    }),
+  const preparedContext = args.preparedContext ?? null;
+  const [userSettingsMetadata, currentPlanSlug, intent] = await Promise.all([
+    preparedContext?.userSettingsMetadata
+      ? Promise.resolve(preparedContext.userSettingsMetadata)
+      : loadUserSettingsMetadata({
+          supabase: args.supabase,
+          userId: args.userId,
+        }),
+    preparedContext?.currentPlanSlug
+      ? Promise.resolve(preparedContext.currentPlanSlug)
+      : loadCurrentProductPlanSlug({
+          supabase: args.supabase,
+          userId: args.userId,
+        }),
+    preparedContext?.intent
+      ? Promise.resolve(preparedContext.intent)
+      : detectMultimodalIntent(args.userMessage),
   ]);
-  const intent = detectMultimodalIntent(args.userMessage);
   const currentAssistantMetadata = await loadCurrentAssistantMetadata(args);
-
-  const imageResult = await maybeGenerateImageArtifact({
-    ...args,
-    currentPlanSlug,
-    userSettingsMetadata,
-    userMessage: args.userMessage,
-    assistantReply: args.assistantReply,
-    agentName: args.agentName,
-    personaSummary: args.personaSummary,
-    imageRequested: intent.imageRequested,
-  });
+  const imageResult =
+    preparedContext?.imageResult ??
+    (await maybeGenerateImageArtifact({
+      ...args,
+      currentPlanSlug,
+      userSettingsMetadata,
+      userMessage: args.userMessage,
+      assistantReply: args.assistantReply,
+      agentName: args.agentName,
+      personaSummary: args.personaSummary,
+      imageRequested: intent.imageRequested,
+    }));
 
   if (imageResult.artifact) {
     await updateAssistantMultimodalMetadata({
@@ -824,6 +1065,9 @@ export async function maybeGenerateAssistantArtifacts(
           status: imageResult.status,
           model_slug: imageResult.artifact.modelSlug,
           error: imageResult.artifact.error ?? null,
+          intent_source: intent.source,
+          intent_confidence: intent.imageConfidence,
+          intent_reasoning: intent.reasoning,
         },
         audio:
           asRecord(currentAssistantMetadata.multimodal).audio ??
@@ -842,6 +1086,10 @@ export async function maybeGenerateAssistantArtifacts(
     assistantReply: args.assistantReply,
     imageRequested: intent.imageRequested,
     audioRequested: intent.audioRequested,
+    audioTranscriptOverride:
+      getString(args.audioTranscriptOverride) ??
+      preparedContext?.audioTranscriptOverride ??
+      null,
   });
 
   await updateAssistantMultimodalMetadata({
@@ -853,8 +1101,16 @@ export async function maybeGenerateAssistantArtifacts(
         status: imageResult.status,
         model_slug: imageResult.artifact?.modelSlug ?? null,
         error: imageResult.artifact?.error ?? null,
+        intent_source: intent.source,
+        intent_confidence: intent.imageConfidence,
+        intent_reasoning: intent.reasoning,
       },
-      audio: audioResult.decision,
+      audio: {
+        ...audioResult.decision,
+        intent_source: intent.source,
+        intent_confidence: intent.audioConfidence,
+        intent_reasoning: intent.reasoning,
+      },
     },
     artifact: audioResult.artifact,
   });

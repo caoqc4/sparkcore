@@ -102,11 +102,52 @@ function isCapabilityType(value: string): value is BillingModel["capability_type
   return value === "text" || value === "image" || value === "audio" || value === "video";
 }
 
+function isTransientBillingFetchError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  return (
+    message.includes("fetch failed") ||
+    message.includes("econnreset") ||
+    message.includes("client network socket disconnected") ||
+    message.includes("tls")
+  );
+}
+
 export async function loadProductBillingConfiguration(args: { supabase: any }) {
-  const { data, error } = await args.supabase
-    .from("product_billing_configuration_overview")
-    .select("configuration")
-    .single();
+  let data: { configuration?: unknown } | null = null;
+  let error: { message: string } | null = null;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const result = await args.supabase
+        .from("product_billing_configuration_overview")
+        .select("configuration")
+        .single();
+
+      data = result.data;
+      error = result.error;
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      break;
+    } catch (loadError) {
+      if (attempt === 0 && isTransientBillingFetchError(loadError)) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        continue;
+      }
+
+      throw new Error(
+        `Failed to load billing configuration: ${
+          loadError instanceof Error ? loadError.message : String(loadError)
+        }`
+      );
+    }
+  }
 
   if (error) {
     throw new Error(`Failed to load billing configuration: ${error.message}`);

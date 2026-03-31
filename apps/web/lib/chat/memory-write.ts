@@ -155,24 +155,29 @@ export async function planMemoryWriteRequests({
     return [];
   }
 
-  const extraction = await generateText({
-    model: DEFAULT_MODEL,
-    temperature: 0,
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a structured memory extraction engine for SparkCore. Follow the instructions exactly and output valid JSON only."
-      },
-      {
-        role: "user",
-        content: buildExtractionPrompt({
-          latestUserMessage,
-          recentContext
-        })
-      }
-    ]
-  });
+  let extraction;
+  try {
+    extraction = await generateText({
+      model: DEFAULT_MODEL,
+      temperature: 0,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a structured memory extraction engine for SparkCore. Follow the instructions exactly and output valid JSON only."
+        },
+        {
+          role: "user",
+          content: buildExtractionPrompt({
+            latestUserMessage,
+            recentContext
+          })
+        }
+      ]
+    });
+  } catch {
+    return [];
+  }
 
   let parsedCandidates: ReturnType<typeof parseMemoryExtraction>;
 
@@ -552,6 +557,7 @@ export async function executeMemoryWriteRequests({
   agentId,
   threadId,
   threadStateRepository,
+  supabase: providedSupabase,
   activeNamespace = null,
   requests
 }: {
@@ -560,6 +566,7 @@ export async function executeMemoryWriteRequests({
   agentId: string | null;
   threadId?: string | null;
   threadStateRepository?: ThreadStateRepository | null;
+  supabase?: any;
   activeNamespace?: ActiveRuntimeMemoryNamespace | null;
   requests: RuntimeMemoryWriteRequest[];
 }): Promise<MemoryWriteOutcome> {
@@ -757,7 +764,7 @@ export async function executeMemoryWriteRequests({
     }))
   );
 
-  const supabase = await createClient();
+  const supabase = providedSupabase ?? (await createClient());
   const { data: existingMemories } = await loadRecentOwnedMemoriesByTypes({
     supabase,
     workspaceId,

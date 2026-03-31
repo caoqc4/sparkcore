@@ -11,7 +11,7 @@ export type ChannelMessageType = "text" | "image" | "attachment";
 export type ChannelSendMode = "reply" | "proactive";
 
 export type InboundChannelAttachment = {
-  kind: "image" | "file";
+  kind: "image" | "file" | "audio";
   url?: string;
   mime_type?: string;
   metadata?: Record<string, unknown>;
@@ -33,7 +33,7 @@ export type InboundChannelMessage = {
 };
 
 export type OutboundChannelAttachment = {
-  kind: "image" | "file";
+  kind: "image" | "file" | "audio";
   url?: string;
   metadata?: Record<string, unknown>;
 };
@@ -174,6 +174,30 @@ export type AdapterRuntimeOutput = {
   memory_write_requests: AdapterMemoryWriteRequest[];
   follow_up_requests: AdapterFollowUpRequest[];
   runtime_events: AdapterRuntimeEvent[];
+  immediate_artifacts?: Array<Record<string, unknown>>;
+  deferred_post_processing?: {
+    assistant_message_id: string;
+    source_message_id: string;
+    agent_id: string;
+    thread_id: string;
+    workspace_id: string;
+    user_id: string;
+    active_memory_namespace?: Record<string, unknown> | null;
+  } | null;
+  deferred_artifact_generation?: {
+    assistant_message_id: string;
+    source_message_id: string;
+    agent_id: string;
+    thread_id: string;
+    workspace_id: string;
+    user_id: string;
+    user_message: string;
+    assistant_reply: string;
+    agent_name: string | null;
+    persona_summary: string;
+    pre_generated_image_artifact?: Record<string, unknown> | null;
+    audio_transcript_override?: string | null;
+  } | null;
   debug_metadata?: Record<string, unknown>;
 };
 
@@ -365,7 +389,20 @@ export function buildReplyOutboundMessage(args: {
     return [];
   }
 
-  return [
+  const runtimeMetadata =
+    assistantMessage.metadata &&
+    typeof assistantMessage.metadata === "object" &&
+    !Array.isArray(assistantMessage.metadata)
+      ? (assistantMessage.metadata as Record<string, unknown>)
+      : {};
+  const artifacts = Array.isArray(runtimeMetadata.artifacts)
+    ? runtimeMetadata.artifacts.filter(
+        (item): item is Record<string, unknown> =>
+          Boolean(item) && typeof item === "object" && !Array.isArray(item)
+      )
+    : [];
+
+  const outboundMessages: OutboundChannelMessage[] = [
     {
       platform: args.inbound.platform,
       channel_id: args.inbound.channel_id,
@@ -379,6 +416,67 @@ export function buildReplyOutboundMessage(args: {
       })
     }
   ];
+
+  for (const artifact of artifacts) {
+    if (artifact.status !== "ready") {
+      continue;
+    }
+
+    if (artifact.type === "image" && typeof artifact.url === "string" && artifact.url.length > 0) {
+      outboundMessages.push({
+        platform: args.inbound.platform,
+        channel_id: args.inbound.channel_id,
+        peer_id: args.inbound.peer_id,
+        message_type: "image",
+        content: "",
+        attachments: [
+          {
+            kind: "image",
+            url: artifact.url,
+            metadata: {
+              alt: typeof artifact.alt === "string" ? artifact.alt : null,
+              model_slug: typeof artifact.modelSlug === "string" ? artifact.modelSlug : null,
+              artifact_type: "assistant_image"
+            }
+          }
+        ],
+        send_mode: "reply",
+        metadata: {
+          delivery_hint: "assistant_artifact"
+        }
+      });
+    }
+
+    if (artifact.type === "audio" && typeof artifact.url === "string" && artifact.url.length > 0) {
+      outboundMessages.push({
+        platform: args.inbound.platform,
+        channel_id: args.inbound.channel_id,
+        peer_id: args.inbound.peer_id,
+        message_type: "attachment",
+        content: "",
+        attachments: [
+          {
+            kind: "audio",
+            url: artifact.url,
+            metadata: {
+              content_type:
+                typeof artifact.contentType === "string" ? artifact.contentType : null,
+              transcript:
+                typeof artifact.transcript === "string" ? artifact.transcript : null,
+              provider: typeof artifact.provider === "string" ? artifact.provider : null,
+              artifact_type: "assistant_audio"
+            }
+          }
+        ],
+        send_mode: "reply",
+        metadata: {
+          delivery_hint: "assistant_artifact"
+        }
+      });
+    }
+  }
+
+  return outboundMessages;
 }
 
 export function buildProactiveOutboundMessages(args: {

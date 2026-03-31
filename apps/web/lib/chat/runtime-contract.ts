@@ -229,5 +229,6 @@ export type RuntimeTurnResult = {
   memory_write_requests: RuntimeMemoryWriteRequest[];
   follow_up_requests: RuntimeFollowUpRequest[];
   runtime_events: RuntimeEvent[];
+  immediate_artifacts?: Array<Record<string, unknown>>;
   debug_metadata?: Record<string, unknown>;
 };

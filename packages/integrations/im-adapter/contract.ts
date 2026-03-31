@@ -3,7 +3,7 @@ export type ChannelMessageType = "text" | "image" | "attachment";
 export type ChannelSendMode = "reply" | "proactive";
 
 export type InboundChannelAttachment = {
-  kind: "image" | "file";
+  kind: "image" | "file" | "audio";
   url?: string;
   mime_type?: string;
   metadata?: Record<string, unknown>;
@@ -25,7 +25,7 @@ export type InboundChannelMessage = {
 };
 
 export type OutboundChannelAttachment = {
-  kind: "image" | "file";
+  kind: "image" | "file" | "audio";
   url?: string;
   metadata?: Record<string, unknown>;
 };
@@ -168,6 +168,29 @@ export type AdapterRuntimeOutput = {
   memory_write_requests: AdapterMemoryWriteRequest[];
   follow_up_requests: AdapterFollowUpRequest[];
   runtime_events: AdapterRuntimeEvent[];
+  deferred_post_processing?: {
+    assistant_message_id: string;
+    source_message_id: string;
+    agent_id: string;
+    thread_id: string;
+    workspace_id: string;
+    user_id: string;
+    active_memory_namespace?: Record<string, unknown> | null;
+  } | null;
+  deferred_artifact_generation?: {
+    assistant_message_id: string;
+    source_message_id: string;
+    agent_id: string;
+    thread_id: string;
+    workspace_id: string;
+    user_id: string;
+    user_message: string;
+    assistant_reply: string;
+    agent_name: string | null;
+    persona_summary: string;
+    pre_generated_image_artifact?: Record<string, unknown> | null;
+    audio_transcript_override?: string | null;
+  } | null;
   debug_metadata?: Record<string, unknown>;
 };
 

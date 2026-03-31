@@ -5,7 +5,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
-import { maybeGenerateAssistantArtifacts } from "@/lib/chat/multimodal-artifacts";
+import {
+  maybeGenerateAssistantArtifacts,
+  prepareExplicitArtifactContext,
+} from "@/lib/chat/multimodal-artifacts";
 import { classifyStoredMemorySemanticTarget } from "@/lib/chat/memory-records";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import {
@@ -24,6 +27,7 @@ import { buildWebRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import {
   insertAndPersistRuntimeUserMessage
 } from "@/lib/chat/runtime-user-message-persistence";
+import { prepareWebMediaInput } from "@/lib/chat/web-media-processing";
 import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
 import {
   loadActiveModelProfileById,
@@ -895,8 +899,18 @@ export async function sendMessage(
 ): Promise<SendMessageResult> {
   const content = formData.get("content");
   const threadId = formData.get("thread_id");
+  const imageFileEntries = formData.getAll("image_file");
+  const audioFileEntry = formData.get("audio_file");
+  const imageFiles = imageFileEntries.filter(
+    (entry): entry is File => entry instanceof File && entry.size > 0
+  );
+  const audioFile =
+    audioFileEntry instanceof File && audioFileEntry.size > 0 ? audioFileEntry : null;
 
-  if (typeof content !== "string" || content.trim().length === 0) {
+  if (
+    typeof content !== "string" ||
+    (content.trim().length === 0 && imageFiles.length === 0 && !audioFile)
+  ) {
     return {
       ok: false,
       threadId: typeof threadId === "string" ? threadId : null,
@@ -976,7 +990,36 @@ export async function sendMessage(
     };
   }
 
-  const trimmedContent = content.trim();
+  let preparedInput: Awaited<ReturnType<typeof prepareWebMediaInput>>;
+
+  try {
+    preparedInput = await prepareWebMediaInput({
+      content,
+      imageFiles,
+      audioFile
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      threadId: thread.id,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to prepare the uploaded media."
+    };
+  }
+
+  const fallbackDisplayContent = imageFiles.length > 0
+    ? imageFiles.length === 1
+      ? "Image"
+      : `${imageFiles.length} images`
+    : audioFile
+      ? "Voice input"
+      : "";
+  const displayContent =
+    preparedInput.displayContent.trim() || content.trim() || fallbackDisplayContent;
+  const runtimeContent =
+    preparedInput.runtimeContent.trim() || displayContent;
 
   const {
     data: insertedMessage,
@@ -988,15 +1031,16 @@ export async function sendMessage(
     threadId: thread.id,
     workspaceId: workspace.id,
     userId: user.id,
-    content: trimmedContent,
+    content: displayContent,
     buildRuntimeTurnInput: (messageId) =>
       buildWebRuntimeTurnInput({
         userId: user.id,
         agentId: thread.agent_id,
         threadId: thread.id,
         workspaceId: workspace.id,
-        content: trimmedContent,
+        content: runtimeContent,
         messageId,
+        baseMetadata: preparedInput.metadata,
         trigger: "chat_send"
       })
   });
@@ -1037,7 +1081,7 @@ export async function sendMessage(
       },
       workspaceId: workspace.id,
       userId: user.id,
-      content: trimmedContent,
+      content: displayContent,
       userMessageId: insertedMessage.id
     });
     threadPatch = bootstrap.threadPatch;
@@ -1052,6 +1096,53 @@ export async function sendMessage(
           ? bootstrapError.message
           : "Failed to initialize the assistant reply."
     };
+  }
+
+  let preparedArtifactContext: Awaited<
+    ReturnType<typeof prepareExplicitArtifactContext>
+  > | null = null;
+
+  try {
+    preparedArtifactContext = await prepareExplicitArtifactContext({
+      supabase,
+      assistantMessageId: assistantPlaceholder.id,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      userId: user.id,
+      agentId: thread.agent_id,
+      userMessage: runtimeContent,
+      agentName: agent.name,
+      personaSummary: agent.persona_summary,
+    });
+  } catch (artifactPreparationError) {
+    console.error("Explicit artifact preparation failed:", artifactPreparationError);
+  }
+
+  if (runtimeTurnInput?.message?.metadata && preparedArtifactContext) {
+    const imageArtifact = preparedArtifactContext.imageResult?.artifact ?? null;
+    const imageReady = imageArtifact?.status === "ready";
+    const imageFailed = preparedArtifactContext.intent.imageRequested && imageArtifact?.status === "failed";
+    const audioRequested = preparedArtifactContext.intent.audioRequested;
+    const generationHints = [
+      imageReady
+        ? "The user explicitly requested an image. An image has already been prepared and will be delivered with your reply. Briefly acknowledge it naturally and do not say you cannot generate images."
+        : "",
+      imageFailed
+        ? `The user explicitly requested an image, but image generation failed before your reply was written${imageArtifact?.error ? ` (${imageArtifact.error})` : ""}. Briefly acknowledge the failed attempt and avoid promising that an image is attached.`
+        : "",
+      audioRequested
+        ? "The user explicitly requested an audio reply. Write a concise reply that works well when spoken aloud, and do not claim that you cannot send audio."
+        : "",
+    ]
+      .filter((line) => line.length > 0)
+      .join("\n");
+
+    if (generationHints.length > 0) {
+      runtimeTurnInput.message.metadata = {
+        ...runtimeTurnInput.message.metadata,
+        assistant_generation_hint: generationHints,
+      };
+    }
   }
 
   try {
@@ -1123,10 +1214,11 @@ export async function sendMessage(
         workspaceId: workspace.id,
         userId: user.id,
         agentId: thread.agent_id,
-        userMessage: trimmedContent,
+        userMessage: runtimeContent,
         assistantReply: runtimeTurnResult.assistant_message.content,
         agentName: agent.name,
         personaSummary: agent.persona_summary,
+        preparedContext: preparedArtifactContext,
       });
     } catch (artifactError) {
       console.error("Assistant artifact generation failed:", artifactError);

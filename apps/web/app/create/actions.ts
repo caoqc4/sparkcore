@@ -56,9 +56,11 @@ export async function createProductRole(formData: FormData) {
 
   const redirectAfter = trimProductText(formData.get("redirect_after"));
   const mode = safeProductRoleMode(trimProductText(formData.get("mode")));
+  const avatarPresetId = trimProductText(formData.get("avatar_preset"));
+  const avatarGender = safeProductRoleAvatarGender(trimProductText(formData.get("avatar_gender")));
   const name =
     trimProductText(formData.get("name")) ||
-    (mode === "girlfriend" ? "Luna" : mode === "boyfriend" ? "Atlas" : "Nova");
+    (avatarGender === "female" ? "Caria" : avatarGender === "male" ? "Teven" : mode === "assistant" ? "Velia" : "Nova");
   const userPreferredName = trimProductText(formData.get("user_preferred_name")) || null;
   const tone = safeProductRoleTone(trimProductText(formData.get("tone")));
   const relationshipMode =
@@ -66,8 +68,6 @@ export async function createProductRole(formData: FormData) {
   const boundaries =
     trimProductText(formData.get("boundaries")) ||
     "Be supportive, respectful, and avoid manipulative or coercive behavior.";
-  const avatarPresetId = trimProductText(formData.get("avatar_preset"));
-  const avatarGender = safeProductRoleAvatarGender(trimProductText(formData.get("avatar_gender")));
   const avatarStyle = avatarPresetId ? detectAvatarStyleFromPreset(avatarPresetId) : null;
 
   const [{ data: workspace }, { data: appSettings }, { data: personaPack }] =
@@ -112,6 +112,7 @@ export async function createProductRole(formData: FormData) {
     name,
     personaSummary: buildProductPersonaSummary({
       mode,
+      avatarGender,
       tone,
       relationshipMode
     }),
@@ -119,6 +120,7 @@ export async function createProductRole(formData: FormData) {
     systemPrompt: buildProductSystemPrompt({
       name,
       mode,
+      avatarGender,
       tone,
       relationshipMode,
       boundaries,

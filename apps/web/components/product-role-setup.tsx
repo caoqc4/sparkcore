@@ -9,7 +9,7 @@ type ProductRoleSetupProps = {
   loginNext: string;
   reviewHref?: string;
   shellClassName?: string;
-  defaultMode?: "companion" | "girlfriend" | "boyfriend";
+  defaultMode?: "companion" | "assistant";
   redirectAfterCreate?: string;
 };
 
@@ -22,14 +22,9 @@ export function ProductRoleSetup({
   defaultMode = "companion",
   redirectAfterCreate,
 }: ProductRoleSetupProps) {
-  const defaultName =
-    defaultMode === "girlfriend" ? "Luna" : defaultMode === "boyfriend" ? "Atlas" : "Nova";
+  const defaultName = defaultMode === "assistant" ? "Velia" : "Caria";
   const defaultRelationshipMode =
-    defaultMode === "girlfriend"
-      ? "long-term girlfriend"
-      : defaultMode === "boyfriend"
-        ? "long-term boyfriend"
-        : "long-term companion";
+    defaultMode === "assistant" ? "task-focused assistant" : "long-term companion";
 
   return (
     <div className={shellClassName ?? "product-role-shell"}>
@@ -61,8 +56,7 @@ export function ProductRoleSetup({
               name="mode"
             >
               <option value="companion">Companion</option>
-              <option value="girlfriend">Girlfriend</option>
-              <option value="boyfriend">Boyfriend</option>
+              <option value="assistant">Assistant</option>
             </select>
           </div>
 

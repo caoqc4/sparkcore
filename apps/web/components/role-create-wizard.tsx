@@ -60,7 +60,7 @@ type Props = {
   user: { id: string } | null;
   loginNext: string;
   redirectAfterCreate?: string;
-  defaultMode?: "companion" | "girlfriend" | "boyfriend";
+  defaultMode?: "companion" | "assistant";
   defaultGender?: "female" | "male" | "neutral";
   defaultName?: string;
   defaultTone?: "warm" | "playful" | "steady";
@@ -89,13 +89,11 @@ export function RoleCreateWizard({
   const [step, setStep] = useState(startAtLook ? 2 : 0);
 
   // Step 1 — Basics
-  const [gender, setGender] = useState<GenderKey>(
-    defaultGender ?? (defaultMode === "boyfriend" ? "male" : "female"),
-  );
-  const [mode, setMode] = useState(defaultMode);
+  const [gender, setGender] = useState<GenderKey>(defaultGender ?? "female");
+  const [mode, setMode] = useState<"companion" | "assistant">(defaultMode);
   const [name, setName] = useState(
     defaultName ??
-      (defaultMode === "girlfriend" ? "Caria" : defaultMode === "boyfriend" ? "Teven" : "Nova"),
+      (defaultGender === "male" ? "Teven" : defaultMode === "assistant" ? "Velia" : "Caria"),
   );
   const [userPreferredName, setUserPreferredName] = useState("");
 
@@ -103,11 +101,11 @@ export function RoleCreateWizard({
   const [tone, setTone] = useState<"warm" | "playful" | "steady">(defaultTone ?? "warm");
   const [selectedTraits, setSelectedTraits] = useState<string[]>(defaultTraits ?? []);
   const [relationshipMode, setRelationshipMode] = useState(
-    defaultMode === "girlfriend"
-      ? "long-term girlfriend"
-      : defaultMode === "boyfriend"
+    defaultMode === "assistant"
+      ? "task-focused assistant"
+      : defaultGender === "male"
         ? "long-term boyfriend"
-        : "long-term companion",
+        : "long-term girlfriend",
   );
   const [boundaries, setBoundaries] = useState(
     defaultBoundaries ?? "Be supportive, respectful, and avoid manipulative or coercive behavior.",
@@ -191,8 +189,7 @@ export function RoleCreateWizard({
             onChange={(e) => setMode(e.target.value as typeof mode)}
           >
             <option value="companion">Companion</option>
-            <option value="girlfriend">Girlfriend</option>
-            <option value="boyfriend">Boyfriend</option>
+            <option value="assistant">Assistant</option>
           </select>
         </div>
 

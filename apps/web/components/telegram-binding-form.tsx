@@ -6,15 +6,16 @@ import { FormSubmitButton } from "@/components/form-submit-button";
 type TelegramBindingFormProps = {
   agentId: string;
   threadId: string;
+  hasExistingBinding?: boolean;
 };
 
 export function TelegramBindingForm({
   agentId,
-  threadId
+  threadId,
+  hasExistingBinding = false,
 }: TelegramBindingFormProps) {
   const [peerId, setPeerId] = useState("");
   const [platformUserId, setPlatformUserId] = useState("");
-  const [syncIdentity, setSyncIdentity] = useState(true);
 
   return (
     <>
@@ -23,19 +24,19 @@ export function TelegramBindingForm({
 
       <div className="field">
         <label className="label" htmlFor="channel_id">
-          Channel ID
+          Chat ID
         </label>
         <input
           className="input"
           id="channel_id"
           name="channel_id"
-          placeholder="Paste the chat id returned by the bot"
+          placeholder="Paste the Chat ID from the bot reply"
         />
       </div>
 
       <div className="field">
         <label className="label" htmlFor="peer_id">
-          Peer ID
+          User ID
         </label>
         <input
           className="input"
@@ -44,62 +45,24 @@ export function TelegramBindingForm({
           onChange={(event) => {
             const nextValue = event.target.value;
             setPeerId(nextValue);
-
-            if (syncIdentity) {
-              setPlatformUserId(nextValue);
-            }
+            setPlatformUserId(nextValue);
           }}
-          placeholder="Paste the Telegram user id returned by the bot"
+          placeholder="Paste the User ID from the bot reply"
           value={peerId}
         />
       </div>
 
       <p className="helper-copy">
-        In most 1:1 Telegram chats, `platform_user_id` is the same as `peer_id`, so you usually
-        only need the two values above.
+        For most private chats the Chat ID and User ID are the same number — just paste it in both fields.
       </p>
 
-      <details className="connect-im-advanced-shell">
-        <summary className="connect-im-advanced-summary">Advanced identity fields</summary>
-        <div className="stack connect-im-advanced-body">
-          <label className="checkbox-row" htmlFor="sync_identity">
-            <input
-              checked={syncIdentity}
-              id="sync_identity"
-              onChange={(event) => {
-                const checked = event.target.checked;
-                setSyncIdentity(checked);
-
-                if (checked) {
-                  setPlatformUserId(peerId);
-                }
-              }}
-              type="checkbox"
-            />
-            <span>Platform user ID is the same as peer ID</span>
-          </label>
-
-          <div className="field">
-            <label className="label" htmlFor="platform_user_id">
-              Platform user ID
-            </label>
-            <input
-              className="input"
-              id="platform_user_id"
-              name="platform_user_id"
-              onChange={(event) => setPlatformUserId(event.target.value)}
-              placeholder="Usually the same Telegram user id"
-              readOnly={syncIdentity}
-              value={platformUserId}
-            />
-          </div>
-        </div>
-      </details>
+      {/* platform_user_id is always synced to peer_id for standard 1:1 Telegram chats */}
+      <input name="platform_user_id" type="hidden" value={platformUserId} />
 
       <FormSubmitButton
         eventName="im_bind_started"
         eventPayload={{ platform: "telegram", surface: "connect_im" }}
-        idleText="Save Telegram binding"
+        idleText={hasExistingBinding ? "Update connection" : "Connect Telegram"}
         pendingText="Saving..."
       />
     </>

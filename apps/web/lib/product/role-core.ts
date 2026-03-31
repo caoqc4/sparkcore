@@ -1,6 +1,6 @@
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 
-export type ProductRoleMode = "companion" | "girlfriend" | "boyfriend";
+export type ProductRoleMode = "companion" | "assistant";
 export type ProductRoleTone = "warm" | "playful" | "steady";
 export type ProductRoleProactivity = "low" | "balanced" | "active";
 export type ProductRoleAvatarStyle = "realistic" | "anime" | "illustrated";
@@ -36,10 +36,11 @@ export function trimProductText(value: unknown) {
 }
 
 export function safeProductRoleMode(value: string): ProductRoleMode {
-  if (value === "girlfriend" || value === "boyfriend") {
-    return value;
+  if (value === "assistant") {
+    return "assistant";
   }
 
+  // backward compat: old girlfriend/boyfriend values map to companion
   return "companion";
 }
 
@@ -183,13 +184,11 @@ function detectModeFromMetadata(metadata: unknown): ProductRoleMode {
   if (
     metadata &&
     typeof metadata === "object" &&
-    typeof (metadata as UnknownRecord).source_slug === "string" &&
-    ((metadata as UnknownRecord).source_slug === "product_girlfriend" ||
-      (metadata as UnknownRecord).source_slug === "product_boyfriend")
+    typeof (metadata as UnknownRecord).source_slug === "string"
   ) {
-    return (metadata as UnknownRecord).source_slug === "product_boyfriend"
-      ? "boyfriend"
-      : "girlfriend";
+    const slug = (metadata as UnknownRecord).source_slug as string;
+    if (slug === "product_assistant") return "assistant";
+    // backward compat: old girlfriend/boyfriend slugs → companion
   }
 
   return "companion";
@@ -245,15 +244,18 @@ export function resolveProductRoleCore(args: {
 
 export function buildProductPersonaSummary(args: {
   mode: ProductRoleMode;
+  avatarGender?: ProductRoleAvatarGender | null;
   tone: ProductRoleTone;
   relationshipMode: string;
 }) {
   const modeCopy =
-    args.mode === "girlfriend"
-      ? "Relationship-first, emotionally continuous, and attentive."
-      : args.mode === "boyfriend"
-        ? "Relationship-first, grounded, emotionally available, and consistent."
-      : "Companion-first, steady, and supportive over time.";
+    args.mode === "assistant"
+      ? "Task-oriented, knowledgeable, and reliably helpful."
+      : args.avatarGender === "female"
+        ? "Relationship-first, emotionally continuous, and attentive."
+        : args.avatarGender === "male"
+          ? "Relationship-first, grounded, emotionally available, and consistent."
+          : "Companion-first, steady, and supportive over time.";
   const toneCopy =
     args.tone === "playful"
       ? "Playful and light in delivery."
@@ -288,17 +290,29 @@ function buildProactivityCopy(level: ProductRoleProactivity) {
   return "Be gently proactive when it improves continuity, while staying respectful of the user's pace.";
 }
 
+function resolveRoleIdentityLabel(
+  mode: ProductRoleMode,
+  avatarGender?: ProductRoleAvatarGender | null
+): string {
+  if (mode === "assistant") return "assistant";
+  if (avatarGender === "female") return "girlfriend";
+  if (avatarGender === "male") return "boyfriend";
+  return "companion";
+}
+
 export function buildProductSystemPrompt(args: {
   name: string;
   mode: ProductRoleMode;
+  avatarGender?: ProductRoleAvatarGender | null;
   tone: ProductRoleTone;
   relationshipMode: string;
   boundaries: string;
   proactivityLevel: ProductRoleProactivity;
   userPreferredName?: string | null;
 }) {
+  const identityLabel = resolveRoleIdentityLabel(args.mode, args.avatarGender);
   const parts = [
-    `You are ${args.name}, a SparkCore long-memory ${args.mode}.`,
+    `You are ${args.name}, a SparkCore long-memory ${identityLabel}.`,
     `Your tone should be ${args.tone}.`,
     `Relationship mode: ${args.relationshipMode}.`,
     args.userPreferredName

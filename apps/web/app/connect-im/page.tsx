@@ -157,7 +157,16 @@ export default async function ConnectImPage({
               <span className="connect-im-step-num">1</span>
               <span className="connect-im-step-text">
                 {botUsername
-                  ? <>Open Telegram and message <strong>@{botUsername}</strong></>
+                  ? <>Open Telegram and message{" "}
+                      <a
+                        className="site-inline-link"
+                        href={`https://t.me/${botUsername}`}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        @{botUsername}
+                      </a>
+                    </>
                   : "Open your Telegram bot"}
               </span>
             </div>
@@ -175,27 +184,27 @@ export default async function ConnectImPage({
             </div>
           </div>
 
+          {/* Already connected warning — shown before the form so user sees it first */}
+          {existingBinding ? (
+            <p className="connect-im-rebind-note">
+              Already connected via &ldquo;{existingBinding.threadTitle ?? existingBinding.threadId}&rdquo;.
+              Saving new values will replace the current connection.{" "}
+              <Link className="site-inline-link" href="/app/channels">
+                View current →
+              </Link>
+            </p>
+          ) : null}
+
           {/* Form */}
           <div className="connect-im-form-wrap">
             <form action={connectTelegramBinding}>
               <TelegramBindingForm
                 agentId={data.role.agentId}
+                hasExistingBinding={Boolean(existingBinding)}
                 threadId={data.thread.threadId}
               />
             </form>
           </div>
-
-          {/* Already connected note */}
-          {existingBinding ? (
-            <p className="connect-im-rebind-note">
-              This companion is already connected to Telegram via thread &ldquo;
-              {existingBinding.threadTitle ?? existingBinding.threadId}&rdquo;.
-              Saving new values will replace the current connection.{" "}
-              <Link className="site-inline-link" href="/app/channels">
-                View current connection
-              </Link>
-            </p>
-          ) : null}
         </section>
       ) : (
         <section className="site-card">

@@ -66,6 +66,7 @@ export async function processAssistantRuntimePostProcessing(
 ) {
   const [memoryWriteOutcome, followUpExecutionResults] = await Promise.all([
     executeMemoryWriteRequests({
+      supabase: args.supabase,
       workspaceId: args.workspaceId,
       userId: args.userId,
       agentId: args.agentId,

@@ -14,9 +14,8 @@ type LandingRoleStudioProps = {
 };
 
 const modeOptions = [
-  { id: "girlfriend", label: "Female", defaultName: "Luna" },
-  { id: "boyfriend", label: "Male", defaultName: "Atlas" },
-  { id: "companion", label: "Companion", defaultName: "Nova" },
+  { id: "companion", label: "Companion", defaultName: "Caria" },
+  { id: "assistant", label: "Assistant", defaultName: "Velia" },
 ] as const;
 
 const toneOptions = [
@@ -32,9 +31,8 @@ const relationshipOptions = [
 ] as const;
 
 const randomNamesByMode = {
-  girlfriend: ["Luna", "Mira", "Selene", "Iris"],
-  boyfriend: ["Atlas", "Rowan", "Kai", "Orion"],
-  companion: ["Nova", "Sage", "Ari", "Ember"],
+  companion: ["Caria", "Luna", "Mira", "Selene"],
+  assistant: ["Velia", "Nova", "Sage", "Ember"],
 } as const;
 
 function getDefaultName(mode: (typeof modeOptions)[number]["id"]) {
@@ -47,27 +45,15 @@ function buildRelationshipMode(
   mode: (typeof modeOptions)[number]["id"],
   relationship: (typeof relationshipOptions)[number]["id"],
 ) {
-  if (relationship === "mentor") {
-    return "mentor and guide";
+  if (mode === "assistant") {
+    if (relationship === "mentor") return "mentor and guide";
+    if (relationship === "friend") return "trusted assistant";
+    return "dedicated assistant";
   }
 
-  if (relationship === "friend") {
-    return mode === "girlfriend"
-      ? "close female friend"
-      : mode === "boyfriend"
-        ? "close male friend"
-        : "trusted companion";
-  }
-
-  if (mode === "girlfriend") {
-    return "long-term girlfriend";
-  }
-
-  if (mode === "boyfriend") {
-    return "long-term boyfriend";
-  }
-
-  return "romantic companion";
+  if (relationship === "mentor") return "mentor and guide";
+  if (relationship === "friend") return "close companion";
+  return "long-term companion";
 }
 
 function buildBoundaryCopy(personality: string) {
@@ -89,11 +75,11 @@ export function LandingRoleStudio({
   dashboardHref = "/app",
 }: LandingRoleStudioProps) {
   const [mode, setMode] =
-    useState<(typeof modeOptions)[number]["id"]>("girlfriend");
+    useState<(typeof modeOptions)[number]["id"]>("companion");
   const [tone, setTone] = useState<(typeof toneOptions)[number]["id"]>("warm");
   const [relationship, setRelationship] =
     useState<(typeof relationshipOptions)[number]["id"]>("romantic");
-  const [name, setName] = useState("Luna");
+  const [name, setName] = useState("Caria");
   const [personality, setPersonality] = useState(
     "Attentive, emotionally warm, remembers what matters, and keeps the relationship feeling consistent over time.",
   );

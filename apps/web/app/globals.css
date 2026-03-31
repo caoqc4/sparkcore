@@ -3682,9 +3682,9 @@ details[open] .role-mem-older-summary::before {
 
 .chat-messages-inner {
   width: 100%;
-  max-width: 680px;
+  max-width: 620px;
   margin: 0 auto;
-  padding: 24px 20px;
+  padding: 24px 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -3694,7 +3694,7 @@ details[open] .role-mem-older-summary::before {
 /* Bubbles */
 
 .chat-bubble {
-  max-width: 72%;
+  max-width: min(78%, 440px);
 }
 
 .chat-bubble-user {
@@ -3703,6 +3703,8 @@ details[open] .role-mem-older-summary::before {
   flex-direction: column;
   align-items: flex-end;
   gap: 3px;
+  margin-left: auto;
+  margin-right: 0;
 }
 
 .chat-bubble-assistant {
@@ -3711,6 +3713,8 @@ details[open] .role-mem-older-summary::before {
   flex-direction: column;
   align-items: flex-start;
   gap: 3px;
+  margin-right: auto;
+  margin-left: 0;
 }
 
 .chat-bubble-audio-actions {
@@ -3842,8 +3846,8 @@ details[open] .role-mem-older-summary::before {
 
 .chat-input-inner {
   width: 100%;
-  max-width: 680px;
-  padding: 0 20px;
+  max-width: 620px;
+  padding: 0 18px;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -3852,11 +3856,11 @@ details[open] .role-mem-older-summary::before {
 .chat-input-wrap {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  background: hsl(240 8% 97%);
+  gap: 6px;
+  background: hsl(240 8% 98%);
   border: 1px solid hsl(240 8% 87%);
-  border-radius: 14px;
-  padding: 8px 8px 8px 14px;
+  border-radius: 18px;
+  padding: 8px 10px 8px 12px;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
@@ -3886,9 +3890,9 @@ details[open] .role-mem-older-summary::before {
 
 .chat-send-btn {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: hsl(268 52% 50%);
   border: none;
   color: white;
@@ -3905,6 +3909,90 @@ details[open] .role-mem-older-summary::before {
 
 .chat-send-btn:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Pasted image previews */
+.chat-input-image-previews {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 2px 6px;
+}
+
+.chat-input-image-preview {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid hsl(240 8% 84%);
+  flex-shrink: 0;
+}
+
+.chat-input-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.chat-input-image-remove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.56);
+  border: none;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.chat-input-image-remove:hover {
+  background: rgba(0, 0, 0, 0.76);
+}
+
+.chat-input-image-note {
+  margin: 0;
+  align-self: flex-end;
+  font-size: 0.72rem;
+  color: hsl(240 8% 60%);
+  padding-bottom: 4px;
+}
+
+/* Media input buttons (image / voice) */
+.chat-media-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  color: hsl(240 8% 58%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.chat-media-btn:hover:not(:disabled) {
+  color: hsl(268 52% 50%);
+  background: hsl(268 52% 50% / 0.08);
+}
+
+.chat-media-btn:disabled {
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
@@ -5900,11 +5988,27 @@ details[open] .role-mem-older-summary::before {
   font-family: ui-monospace, monospace;
 }
 
-/* Unbind button */
+/* Unbind button — danger text style, no chrome */
 .channel-unbind-btn {
-  font-size: 0.78rem !important;
-  padding: 5px 12px !important;
-  height: auto !important;
+  all: unset;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: hsl(0 65% 50%);
+  cursor: pointer;
+  padding: 2px 0;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.channel-unbind-btn:hover {
+  color: hsl(0 72% 42%);
+  border-bottom-color: hsl(0 65% 50% / 0.4);
+}
+
+.channel-unbind-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Count badge */
@@ -5965,9 +6069,6 @@ details[open] .role-mem-older-summary::before {
 /* ── Connection detail (expanded platform row) ── */
 
 .channel-connection-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   padding: 10px 14px;
   margin-left: 56px; /* align with text after icon (42px icon + 14px gap) */
   background: hsl(240 8% 97%);
@@ -5975,11 +6076,19 @@ details[open] .role-mem-older-summary::before {
   border: 1px solid hsl(240 8% 91%);
 }
 
-.channel-connection-summary {
+.channel-connection-body {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.channel-connection-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 
 .channel-connection-role {
@@ -5988,17 +6097,19 @@ details[open] .role-mem-older-summary::before {
   color: hsl(240 20% 22%);
 }
 
-.channel-connection-sep {
-  color: hsl(240 8% 70%);
-  font-size: 0.84rem;
-}
-
 .channel-connection-thread {
-  font-size: 0.82rem;
-  color: hsl(240 8% 52%);
+  font-size: 0.81rem;
+  color: hsl(240 8% 48%);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.channel-connection-ids {
+  font-size: 0.72rem;
+  color: hsl(240 8% 62%);
+  font-family: ui-monospace, monospace;
+  margin-top: 2px;
 }
 
 .channel-connection-actions {

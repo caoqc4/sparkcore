@@ -137,6 +137,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_PERSONA_SLUGS = ["companion_default", "spark-guide"];
 const DEFAULT_MODEL_PROFILE_SLUG = "spark-default";
+const IM_LITELLM_TIMEOUT_MS = 30_000;
 
 function isRelationshipStylePrompt(content: string) {
   const normalized = content.normalize("NFKC").trim().toLowerCase();
@@ -4687,6 +4688,15 @@ export async function runPreparedRuntimeTurn({
         roleCoreCloseNotePersistenceManifest
       )
     },
+    ...(typeof preparedRuntimeTurn.input.message.metadata?.assistant_generation_hint === "string"
+      && preparedRuntimeTurn.input.message.metadata.assistant_generation_hint.trim().length > 0
+      ? [
+          {
+            role: "system" as const,
+            content: preparedRuntimeTurn.input.message.metadata.assistant_generation_hint.trim()
+          }
+        ]
+      : []),
     ...messages
       .filter((message) => message.status !== "failed" && message.status !== "pending")
       .map((message) => ({
@@ -4699,7 +4709,11 @@ export async function runPreparedRuntimeTurn({
     model: modelProfile.model,
     messages: promptMessages,
     temperature: modelProfile.temperature,
-    maxOutputTokens: modelProfile.max_output_tokens
+    maxOutputTokens: modelProfile.max_output_tokens,
+    timeoutMs:
+      preparedRuntimeTurn.input.message.source === "im"
+        ? IM_LITELLM_TIMEOUT_MS
+        : undefined
   });
 
   const memoryWriteRequests =

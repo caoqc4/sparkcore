@@ -25,21 +25,8 @@ export default async function AppCreatePage({ searchParams }: AppCreatePageProps
   const params = await searchParams;
   const user   = await getOptionalUser();
 
-  // Derive mode: prefer explicit mode param, else derive from gender
-  const genderToMode: Record<string, string> = {
-    female:  "girlfriend",
-    male:    "boyfriend",
-    neutral: "companion",
-  };
-  const derivedMode =
-    params.gender && genderToMode[params.gender]
-      ? genderToMode[params.gender]
-      : undefined;
-
-  const defaultMode =
-    params.mode === "girlfriend" || params.mode === "boyfriend"
-      ? params.mode
-      : (derivedMode as "girlfriend" | "boyfriend" | "companion" | undefined) ?? "companion";
+  const defaultMode: "companion" | "assistant" =
+    params.mode === "assistant" ? "assistant" : "companion";
 
   const defaultGender =
     params.gender === "female" || params.gender === "male" || params.gender === "neutral"

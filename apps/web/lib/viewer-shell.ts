@@ -176,14 +176,14 @@ export function resolveViewerRoute(
         return state.nextStepHref ?? "/app";
       }
 
-      return "/create?mode=girlfriend";
+      return "/create?gender=female";
 
     case "create_boyfriend":
       if (state.authenticated && state.hasRole && state.hasThread) {
         return state.nextStepHref ?? "/app";
       }
 
-      return "/create?mode=boyfriend";
+      return "/create?gender=male";
 
     case "dashboard":
       return state.authenticated ? "/app" : "/login";

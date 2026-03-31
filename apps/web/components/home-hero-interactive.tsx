@@ -21,11 +21,8 @@ const DEFAULT_NAMES: Record<CompanionGender, string> = {
   neutral: "Nova",
 };
 
-const GENDER_TO_MODE: Record<CompanionGender, string> = {
-  female: "girlfriend",
-  male: "boyfriend",
-  neutral: "companion",
-};
+// companion mode for all gender selections from the hero form;
+// assistant is a separate creation path not surfaced here
 
 interface HomeHeroInteractiveProps {
   user?: { id: string } | null;
@@ -57,7 +54,7 @@ export function HomeHeroInteractive({ user }: HomeHeroInteractiveProps) {
     const displayName = draft.name.trim() || DEFAULT_NAMES[draft.gender];
     const params = new URLSearchParams({
       gender: draft.gender,
-      mode: GENDER_TO_MODE[draft.gender],
+      mode: "companion",
       name: displayName,
       tone: draft.tone,
     });

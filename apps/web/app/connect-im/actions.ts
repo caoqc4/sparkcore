@@ -206,10 +206,9 @@ export async function connectTelegramBinding(formData: FormData) {
   revalidatePath("/app");
   revalidatePath("/app/channels");
   revalidatePath("/app/settings");
-  redirectWithMessage({
-    threadId,
-    agentId,
-    feedback: "Telegram binding saved. Your relationship thread is now attached to an IM channel.",
-    feedbackType: "success"
-  });
+
+  const channelsParams = new URLSearchParams();
+  channelsParams.set("feedback", "Telegram connected. You can now chat via the bot.");
+  channelsParams.set("feedback_type", "success");
+  redirect(`/app/channels?${channelsParams.toString()}`);
 }

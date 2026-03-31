@@ -54,7 +54,20 @@ export function buildReplyOutboundMessage(args: {
     return [];
   }
 
-  return [
+  const runtimeMetadata =
+    assistantMessage.metadata &&
+    typeof assistantMessage.metadata === "object" &&
+    !Array.isArray(assistantMessage.metadata)
+      ? (assistantMessage.metadata as Record<string, unknown>)
+      : {};
+  const artifacts = Array.isArray(runtimeMetadata.artifacts)
+    ? runtimeMetadata.artifacts.filter(
+        (item): item is Record<string, unknown> =>
+          Boolean(item) && typeof item === "object" && !Array.isArray(item)
+      )
+    : [];
+
+  const outboundMessages: OutboundChannelMessage[] = [
     {
       platform: args.inbound.platform,
       channel_id: args.inbound.channel_id,
@@ -68,6 +81,40 @@ export function buildReplyOutboundMessage(args: {
       }
     }
   ];
+
+  for (const artifact of artifacts) {
+    if (artifact.status !== "ready") {
+      continue;
+    }
+
+    if (artifact.type === "image" && typeof artifact.url === "string" && artifact.url.length > 0) {
+      outboundMessages.push({
+        platform: args.inbound.platform,
+        channel_id: args.inbound.channel_id,
+        peer_id: args.inbound.peer_id,
+        message_type: "image",
+        content: "",
+        attachments: [{ kind: "image", url: artifact.url }],
+        send_mode: "reply",
+        metadata: { delivery_hint: "assistant_artifact" }
+      });
+    }
+
+    if (artifact.type === "audio" && typeof artifact.url === "string" && artifact.url.length > 0) {
+      outboundMessages.push({
+        platform: args.inbound.platform,
+        channel_id: args.inbound.channel_id,
+        peer_id: args.inbound.peer_id,
+        message_type: "attachment",
+        content: "",
+        attachments: [{ kind: "audio", url: artifact.url }],
+        send_mode: "reply",
+        metadata: { delivery_hint: "assistant_artifact" }
+      });
+    }
+  }
+
+  return outboundMessages;
 }
 
 export function buildProactiveOutboundMessages(args: {

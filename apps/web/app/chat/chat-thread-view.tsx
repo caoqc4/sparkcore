@@ -159,6 +159,109 @@ function getMessageArtifacts(message: ChatMessage) {
   });
 }
 
+function getVisibleMessageContent(message: ChatMessage) {
+  const adapterMetadata =
+    message.metadata?.adapter_metadata &&
+    typeof message.metadata.adapter_metadata === "object" &&
+    !Array.isArray(message.metadata.adapter_metadata)
+      ? (message.metadata.adapter_metadata as Record<string, unknown>)
+      : null;
+
+  const displayContent =
+    typeof adapterMetadata?.display_content === "string"
+      ? adapterMetadata.display_content
+      : typeof message.metadata?.display_content === "string"
+        ? message.metadata.display_content
+        : null;
+
+  return displayContent ?? message.content;
+}
+
+function shouldHideArtifactPlaceholderText(args: {
+  content: string;
+  artifacts: MessageArtifact[];
+}) {
+  if (args.artifacts.length === 0) {
+    return false;
+  }
+
+  const trimmed = args.content.trim();
+  if (trimmed.length === 0) {
+    return true;
+  }
+
+  return (
+    trimmed === "Image" ||
+    trimmed === "Voice input" ||
+    trimmed === "Voice message" ||
+    trimmed === "Audio file" ||
+    /^\d+\s+images$/i.test(trimmed)
+  );
+}
+
+function shouldRenderArtifactsBeforeText(args: {
+  role: "user" | "assistant";
+  artifacts: MessageArtifact[];
+}) {
+  return (
+    args.role === "assistant" &&
+    args.artifacts.some((artifact) => artifact.source === "intent")
+  );
+}
+
+function shouldHideAssistantTextForAudioArtifact(args: {
+  role: "user" | "assistant";
+  content: string;
+  metadata?: Record<string, unknown>;
+  artifacts: MessageArtifact[];
+}) {
+  if (args.role !== "assistant") {
+    return false;
+  }
+
+  const trimmedContent = args.content.trim();
+  if (trimmedContent.length === 0) {
+    return false;
+  }
+
+  const readyIntentAudio = args.artifacts.find(
+    (artifact) =>
+      artifact.type === "audio" &&
+      artifact.status === "ready" &&
+      artifact.source === "intent" &&
+      typeof artifact.transcript === "string" &&
+      artifact.transcript.trim().length > 0
+  );
+
+  if (readyIntentAudio?.transcript?.trim() === trimmedContent) {
+    return true;
+  }
+
+  const imDelivery =
+    args.metadata?.im_delivery &&
+    typeof args.metadata.im_delivery === "object" &&
+    !Array.isArray(args.metadata.im_delivery)
+      ? (args.metadata.im_delivery as Record<string, unknown>)
+      : null;
+  const source = typeof args.metadata?.source === "string" ? args.metadata.source : null;
+  const artifactGenerationStatus =
+    typeof imDelivery?.artifact_generation_status === "string"
+      ? imDelivery.artifact_generation_status
+      : null;
+  const artifactFirst =
+    typeof imDelivery?.explicit_media_delivery_mode === "string" &&
+    imDelivery.explicit_media_delivery_mode === "artifact_first";
+  const explicitAudioRequested = imDelivery?.explicit_audio_requested === true;
+
+  return (
+    source === "im" &&
+    artifactFirst &&
+    explicitAudioRequested &&
+    args.artifacts.every((artifact) => artifact.type !== "audio" || artifact.status !== "ready") &&
+    (artifactGenerationStatus === "running" || artifactGenerationStatus === "scheduled")
+  );
+}
+
 function formatMemoryTypeLabel(type: string, locale: ChatLocale) {
   const isZh = locale === "zh-CN";
   const labels: Record<string, string> = {
@@ -1145,96 +1248,128 @@ export function ChatThreadView({
                   </div>
                 ) : (
                   <>
-                    <p className="message-content">{message.content}</p>
-                    {artifacts.length > 0 ? (
-                      <div
-                        style={{
-                          display: "grid",
-                          gap: 12,
-                          marginTop: 12,
-                        }}
-                      >
-                        {artifacts.map((artifact) =>
-                          artifact.type === "image" &&
-                          artifact.status === "ready" &&
-                          artifact.url ? (
-                            <figure
-                              key={artifact.id}
-                              style={{
-                                margin: 0,
-                                border: "1px solid rgba(148, 163, 184, 0.28)",
-                                borderRadius: 16,
-                                overflow: "hidden",
-                                background: "rgba(255,255,255,0.03)",
-                              }}
-                            >
-                              <img
-                                alt={artifact.alt}
-                                src={artifact.url}
-                                style={{
-                                  display: "block",
-                                  width: "100%",
-                                  maxWidth: 520,
-                                  height: "auto",
-                                }}
-                              />
-                              <figcaption
-                                style={{
-                                  padding: "10px 12px",
-                                  fontSize: 12,
-                                  opacity: 0.8,
-                                }}
-                              >
-                                {artifact.modelSlug}
-                                {artifact.billing?.debitedCredits
-                                  ? ` · ${artifact.billing.debitedCredits} credits`
-                                  : ""}
-                              </figcaption>
-                            </figure>
-                          ) : artifact.type === "audio" &&
+                    {(() => {
+                      const visibleContent = getVisibleMessageContent(message);
+                      const artifactFirst = shouldRenderArtifactsBeforeText({
+                        role: "assistant",
+                        artifacts
+                      });
+                      const hideText =
+                        shouldHideAssistantTextForAudioArtifact({
+                          role: "assistant",
+                          content: visibleContent,
+                          metadata: message.metadata,
+                          artifacts
+                        }) ||
+                        shouldHideArtifactPlaceholderText({
+                          content: visibleContent,
+                          artifacts
+                        });
+                      const textNode =
+                        visibleContent.trim().length > 0 && !hideText ? (
+                          <p className="message-content">{visibleContent}</p>
+                        ) : null;
+                      const artifactNode = artifacts.length > 0 ? (
+                        <div
+                          style={{
+                            display: "grid",
+                            gap: 12,
+                            marginTop: 12,
+                          }}
+                        >
+                          {artifacts.map((artifact) =>
+                            artifact.type === "image" &&
                             artifact.status === "ready" &&
                             artifact.url ? (
-                            <AudioMessagePlayer
-                              key={artifact.id}
-                              url={artifact.url}
-                              provider={artifact.provider}
-                              voiceName={artifact.voiceName ?? artifact.modelSlug}
-                              transcript={artifact.transcript}
-                              credits={artifact.billing?.debitedCredits ?? null}
-                            />
-                          ) : (
-                            <div
-                              key={artifact.id}
-                              style={{
-                                border: "1px solid rgba(239, 68, 68, 0.28)",
-                                borderRadius: 16,
-                                padding: 12,
-                              }}
-                            >
-                              <strong style={{ display: "block", marginBottom: 6 }}>
-                                {artifact.type === "audio"
-                                  ? locale === "zh-CN"
-                                    ? "语音生成失败"
-                                    : "Audio generation failed"
-                                  : locale === "zh-CN"
-                                    ? "图片生成失败"
-                                    : "Image generation failed"}
-                              </strong>
-                              <span style={{ fontSize: 13, opacity: 0.82 }}>
-                                {artifact.error ??
-                                  (artifact.type === "audio"
+                              <figure
+                                key={artifact.id}
+                                style={{
+                                  margin: 0,
+                                  border: "1px solid rgba(148, 163, 184, 0.28)",
+                                  borderRadius: 16,
+                                  overflow: "hidden",
+                                  background: "rgba(255,255,255,0.03)",
+                                }}
+                              >
+                                <img
+                                  alt={artifact.alt}
+                                  src={artifact.url}
+                                  style={{
+                                    display: "block",
+                                    width: "100%",
+                                    maxWidth: 520,
+                                    height: "auto",
+                                  }}
+                                />
+                                <figcaption
+                                  style={{
+                                    padding: "10px 12px",
+                                    fontSize: 12,
+                                    opacity: 0.8,
+                                  }}
+                                >
+                                  {artifact.modelSlug}
+                                  {artifact.billing?.debitedCredits
+                                    ? ` · ${artifact.billing.debitedCredits} credits`
+                                    : ""}
+                                </figcaption>
+                              </figure>
+                            ) : artifact.type === "audio" &&
+                              artifact.status === "ready" &&
+                              artifact.url ? (
+                              <AudioMessagePlayer
+                                key={artifact.id}
+                                url={artifact.url}
+                                provider={artifact.provider}
+                                voiceName={artifact.voiceName ?? artifact.modelSlug}
+                                transcript={
+                                  artifact.transcript?.trim() === visibleContent.trim()
+                                    ? undefined
+                                    : artifact.transcript
+                                }
+                                credits={artifact.billing?.debitedCredits ?? null}
+                              />
+                            ) : (
+                              <div
+                                key={artifact.id}
+                                style={{
+                                  border: "1px solid rgba(239, 68, 68, 0.28)",
+                                  borderRadius: 16,
+                                  padding: 12,
+                                }}
+                              >
+                                <strong style={{ display: "block", marginBottom: 6 }}>
+                                  {artifact.type === "audio"
                                     ? locale === "zh-CN"
-                                      ? "这次语音没有成功生成。"
-                                      : "The audio could not be generated this time."
+                                      ? "语音生成失败"
+                                      : "Audio generation failed"
                                     : locale === "zh-CN"
-                                      ? "这次图片没有成功生成。"
-                                      : "The image could not be generated this time.")}
-                              </span>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    ) : null}
+                                      ? "图片生成失败"
+                                      : "Image generation failed"}
+                                </strong>
+                                <span style={{ fontSize: 13, opacity: 0.82 }}>
+                                  {artifact.error ??
+                                    (artifact.type === "audio"
+                                      ? locale === "zh-CN"
+                                        ? "这次语音没有成功生成。"
+                                        : "The audio could not be generated this time."
+                                      : locale === "zh-CN"
+                                        ? "这次图片没有成功生成。"
+                                        : "The image could not be generated this time.")}
+                                </span>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      ) : null;
+
+                      return (
+                        <>
+                          {artifactFirst ? artifactNode : textNode}
+                          {artifactFirst ? textNode : artifactNode}
+                        </>
+                      );
+                    })()}
                     {runtimeSummary ? (
                       <details className="runtime-summary">
                         <summary className="runtime-summary-toggle">

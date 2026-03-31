@@ -10,6 +10,8 @@ export function buildInboundRuntimeMetadata(
     platform_user_id: inbound.platform_user_id,
     message_id: inbound.message_id,
     event_id: inbound.event_id,
+    message_type: inbound.message_type,
+    attachments: inbound.attachments ?? [],
     inbound_metadata: inbound.metadata ?? {}
   };
 }

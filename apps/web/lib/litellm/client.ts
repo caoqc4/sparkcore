@@ -27,6 +27,16 @@ type LiteLLMImageGenerationResponse = {
   }>;
 };
 
+type ReplicatePredictionResponse = {
+  id?: string;
+  status?: string;
+  output?: unknown;
+  error?: string | null;
+  urls?: {
+    get?: string;
+  };
+};
+
 export class LiteLLMError extends Error {
   readonly status: number;
   readonly details?: unknown;
@@ -159,12 +169,14 @@ export async function generateText({
   model,
   messages,
   temperature = 0.7,
-  maxOutputTokens
+  maxOutputTokens,
+  timeoutMs = DEFAULT_LITELLM_TIMEOUT_MS
 }: {
   model: string;
   messages: LiteLLMMessage[];
   temperature?: number;
   maxOutputTokens?: number | null;
+  timeoutMs?: number;
 }) {
   if (!model.trim()) {
     throw new Error("LiteLLM model is required.");
@@ -195,7 +207,7 @@ export async function generateText({
   const { baseUrl, apiKey } = getLiteLLMEnv();
   const endpoint = `${normalizeBaseUrl(baseUrl)}/chat/completions`;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_LITELLM_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   let response: Response;
 
@@ -218,7 +230,7 @@ export async function generateText({
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new LiteLLMTimeoutError(DEFAULT_LITELLM_TIMEOUT_MS);
+      throw new LiteLLMTimeoutError(timeoutMs);
     }
 
     throw error;
@@ -271,12 +283,14 @@ export async function generateImage({
   model,
   prompt,
   size = "1024x1024",
-  n = 1
+  n = 1,
+  replicateModelRef
 }: {
   model: string;
   prompt: string;
   size?: string;
   n?: number;
+  replicateModelRef?: string | null;
 }) {
   if (!model.trim()) {
     throw new Error("LiteLLM image model is required.");
@@ -351,6 +365,13 @@ export async function generateImage({
         : null;
 
   if (!imageUrl) {
+    if (replicateModelRef && process.env.REPLICATE_API_KEY) {
+      return generateImageViaReplicate({
+        replicateModelRef,
+        prompt
+      });
+    }
+
     throw new LiteLLMError(
       "LiteLLM returned no image output.",
       response.status,
@@ -360,6 +381,102 @@ export async function generateImage({
 
   return {
     model,
+    url: imageUrl
+  };
+}
+
+async function generateImageViaReplicate(args: {
+  replicateModelRef: string;
+  prompt: string;
+}) {
+  const apiKey = process.env.REPLICATE_API_KEY;
+  if (!apiKey) {
+    throw new Error("REPLICATE_API_KEY is required for direct image generation fallback.");
+  }
+
+  const normalizedRef = args.replicateModelRef.replace(/^replicate\//, "");
+  const [owner, name] = normalizedRef.split("/");
+  if (!owner || !name) {
+    throw new Error(`Invalid Replicate model ref: ${args.replicateModelRef}`);
+  }
+
+  const createResponse = await fetch(
+    `https://api.replicate.com/v1/models/${owner}/${name}/predictions`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${apiKey}`,
+        Prefer: "wait=60"
+      },
+      body: JSON.stringify({
+        input: {
+          prompt: args.prompt
+        }
+      })
+    }
+  );
+
+  const createPayload = (await createResponse.json().catch(() => null)) as ReplicatePredictionResponse | null;
+
+  if (!createResponse.ok || !createPayload) {
+    throw new LiteLLMError(
+      createPayload?.error || `Replicate image request failed with status ${createResponse.status}.`,
+      createResponse.status,
+      createPayload
+    );
+  }
+
+  let prediction = createPayload;
+  const pollUrl = prediction.urls?.get ?? null;
+  const startedAt = Date.now();
+
+  while (
+    prediction.status &&
+    !["succeeded", "failed", "canceled"].includes(prediction.status)
+  ) {
+    if (!pollUrl) {
+      break;
+    }
+
+    if (Date.now() - startedAt > 90_000) {
+      throw new Error("Replicate image generation timed out.");
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    const pollResponse = await fetch(pollUrl, {
+      headers: {
+        Authorization: `Token ${apiKey}`
+      }
+    });
+    const polledPrediction = (await pollResponse.json().catch(() => null)) as ReplicatePredictionResponse | null;
+
+    if (!polledPrediction) {
+      throw new Error("Failed to poll Replicate image generation.");
+    }
+
+    prediction = polledPrediction;
+  }
+
+  if (!prediction || prediction.status !== "succeeded") {
+    throw new Error(prediction?.error || "Replicate image generation failed.");
+  }
+
+  const output = prediction.output;
+  const imageUrl =
+    Array.isArray(output) && typeof output[0] === "string"
+      ? output[0]
+      : typeof output === "string"
+        ? output
+        : null;
+
+  if (!imageUrl) {
+    throw new Error("Replicate image generation returned no image output.");
+  }
+
+  return {
+    model: args.replicateModelRef,
     url: imageUrl
   };
 }

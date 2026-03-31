@@ -132,21 +132,6 @@ export default async function AppChannelsPage({
         </div>
       ) : null}
 
-      <div className="role-state-bar">
-        <div className="role-state-item">
-          <span className="role-state-label">Status</span>
-          <span
-            className={`role-state-badge${
-              channelsData?.summary.connectionStatus === "needs_attention"
-                ? " attention"
-                : ""
-            }`}
-          >
-            {formatSummaryLabel(channelsData?.summary.connectionStatus ?? "web_only")}
-          </span>
-        </div>
-      </div>
-
       <section className="site-card channel-card">
         <div className="role-section-head">
           <h2 className="role-section-title">IM Connections</h2>
@@ -215,47 +200,38 @@ export default async function AppChannelsPage({
                       } channel-platform-btn`}
                       href={platform.actionMode === "rebind" ? rebindHref : connectHref}
                     >
-                      {platform.actionMode === "rebind" ? "Rebind" : "Connect"}
+                      {platform.actionMode === "rebind" ? "Reconnect" : "Connect"}
                     </Link>
                   )}
                 </div>
 
                 {activeBinding ? (
                   <div className="channel-connection-detail">
-                    <div className="channel-connection-summary">
-                      <span className="channel-connection-role">
-                        {activeBinding.agentName ?? "Companion"}
-                      </span>
-                      <span className="channel-connection-sep">·</span>
-                      <span className="channel-connection-thread">
-                        {activeBinding.threadTitle ??
-                          activeBinding.threadId ??
-                          "Unknown conversation"}
-                      </span>
-                    </div>
-                    <div className="channel-connection-actions">
-                      {activeBinding.channelId || activeBinding.peerId ? (
-                        <details className="channel-binding-details">
-                          <summary className="channel-binding-details-summary">
-                            Connection details
-                          </summary>
-                          <div className="channel-binding-meta">
-                            {activeBinding.channelId ? (
-                              <span>Chat ID: {activeBinding.channelId}</span>
-                            ) : null}
-                            {activeBinding.peerId ? (
-                              <span>User ID: {activeBinding.peerId}</span>
-                            ) : null}
-                          </div>
-                        </details>
-                      ) : null}
-                      <form action={unbindProductChannel} style={{ display: "inline" }}>
+                    <div className="channel-connection-body">
+                      <div className="channel-connection-meta">
+                        <span className="channel-connection-role">
+                          {activeBinding.agentName ?? "Companion"}
+                        </span>
+                        <span className="channel-connection-thread">
+                          {activeBinding.threadTitle ??
+                            activeBinding.threadId ??
+                            "Unknown conversation"}
+                        </span>
+                        {(activeBinding.channelId || activeBinding.peerId) ? (
+                          <span className="channel-connection-ids">
+                            {activeBinding.channelId ? `Chat ID: ${activeBinding.channelId}` : ""}
+                            {activeBinding.channelId && activeBinding.peerId ? "  ·  " : ""}
+                            {activeBinding.peerId ? `User ID: ${activeBinding.peerId}` : ""}
+                          </span>
+                        ) : null}
+                      </div>
+                      <form action={unbindProductChannel}>
                         <input name="binding_id" type="hidden" value={activeBinding.id} />
                         <input name="redirect_to" type="hidden" value={redirectTo} />
                         <FormSubmitButton
-                          className="button button-secondary channel-unbind-btn"
+                          className="channel-unbind-btn"
                           idleText="Disconnect"
-                          pendingText="Updating…"
+                          pendingText="Disconnecting…"
                         />
                       </form>
                     </div>

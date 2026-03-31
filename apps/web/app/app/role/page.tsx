@@ -350,8 +350,7 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
                     name="mode"
                   >
                     <option value="companion">Companion</option>
-                    <option value="girlfriend">Girlfriend</option>
-                    <option value="boyfriend">Boyfriend</option>
+                    <option value="assistant">Assistant</option>
                   </select>
                 </div>
                 <div className="field">
