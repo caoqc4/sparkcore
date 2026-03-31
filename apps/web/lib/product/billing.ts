@@ -198,6 +198,32 @@ export async function loadProductBillingConfiguration(args: { supabase: any }) {
   } satisfies BillingConfiguration;
 }
 
+export async function loadCurrentProductPlanSlug(args: {
+  supabase: any;
+  userId: string;
+}) {
+  const [{ data: subscription, error }, billingConfiguration] = await Promise.all([
+    args.supabase
+      .from("user_subscription_snapshots")
+      .select("plan_name, plan_status")
+      .eq("user_id", args.userId)
+      .maybeSingle(),
+    loadProductBillingConfiguration({ supabase: args.supabase })
+  ]);
+
+  if (error) {
+    throw new Error(`Failed to load subscription snapshot: ${error.message}`);
+  }
+
+  return resolveCurrentPlanSlug({
+    subscription: {
+      planName: subscription?.plan_name ?? null,
+      planStatus: subscription?.plan_status ?? "inactive"
+    },
+    plans: billingConfiguration.plans
+  });
+}
+
 export function resolveCurrentPlanSlug(input: {
   subscription: {
     planName: string | null;

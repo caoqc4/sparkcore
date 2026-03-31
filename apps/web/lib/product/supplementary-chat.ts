@@ -77,6 +77,7 @@ export type ProductSupplementaryChatPageData = {
     role: "user" | "assistant";
     content: string;
     status: string;
+    metadata: Record<string, unknown>;
     createdAt: string;
     sourceSurface: string | null;
     sourcePlatform: string | null;
@@ -161,6 +162,7 @@ export async function loadProductSupplementaryChatPageData(args: {
     role: message.role,
     content: message.content,
     status: message.status,
+    metadata: getRecord(message.metadata) ?? {},
     createdAt: message.created_at
   }));
   const messageSummary = {

@@ -18,8 +18,26 @@ type ChatThreadProps = {
     role: "user" | "assistant";
     content: string;
     status: string;
+    metadata: Record<string, unknown>;
     createdAt: string;
   }>;
+};
+
+type MessageArtifact = {
+  id: string;
+  type: "image" | "audio";
+  status: "ready" | "failed";
+  source?: "intent" | "ambient_context";
+  modelSlug: string;
+  url: string | null;
+  alt?: string;
+  voiceName?: string | null;
+  provider?: string | null;
+  transcript?: string;
+  error?: string | null;
+  billing?: {
+    debitedCredits?: number;
+  };
 };
 
 function formatTime(iso: string) {
@@ -47,6 +65,22 @@ function SendIcon() {
       />
     </svg>
   );
+}
+
+function getMessageArtifacts(metadata: Record<string, unknown>) {
+  const rawArtifacts = Array.isArray(metadata?.artifacts) ? metadata.artifacts : [];
+
+  return rawArtifacts.filter((item): item is MessageArtifact => {
+    if (!item || typeof item !== "object") {
+      return false;
+    }
+
+    const record = item as Record<string, unknown>;
+    return (
+      (record.type === "image" || record.type === "audio") &&
+      typeof record.id === "string"
+    );
+  });
 }
 
 
@@ -118,6 +152,7 @@ export function SupplementaryChatThread({
         role: "user",
         content: trimmedContent,
         status: "completed",
+        metadata: {},
         createdAt: new Date().toISOString(),
       },
     ]);
@@ -207,26 +242,122 @@ export function SupplementaryChatThread({
               </div>
             </div>
           ) : (
-            optimisticMessages.map((msg) =>
-              msg.role === "assistant" ? (
+            optimisticMessages.map((msg) => {
+              const artifacts = getMessageArtifacts(msg.metadata);
+
+              return msg.role === "assistant" ? (
                 <div key={msg.id} className="chat-bubble chat-bubble-assistant">
-                  {audioPlayback.enabled && msg.status === "completed" ? (
-                    <div className="chat-bubble-audio-actions">
-                      <button
-                        type="button"
-                        className="button button-secondary chat-bubble-audio-btn"
-                        onClick={() => void handlePlayVoice(msg.id)}
-                      >
-                        {playingMessageId === msg.id ? "Stop voice" : "Play voice"}
-                      </button>
-                      {audioPlayback.voiceName ? (
-                        <span className="chat-bubble-audio-meta">
-                          {audioPlayback.provider} · {audioPlayback.voiceName}
-                        </span>
-                      ) : null}
+                  <p>{msg.content}</p>
+                  {artifacts.length > 0 ? (
+                    <div
+                      style={{
+                        display: "grid",
+                        gap: 12,
+                        marginTop: 12,
+                      }}
+                    >
+                      {artifacts.map((artifact) =>
+                        artifact.type === "image" &&
+                        artifact.status === "ready" &&
+                        artifact.url ? (
+                          <figure
+                            key={artifact.id}
+                            style={{
+                              margin: 0,
+                              border: "1px solid rgba(148, 163, 184, 0.28)",
+                              borderRadius: 16,
+                              overflow: "hidden",
+                              background: "rgba(255,255,255,0.03)",
+                            }}
+                          >
+                            <img
+                              alt={artifact.alt}
+                              src={artifact.url}
+                              style={{
+                                display: "block",
+                                width: "100%",
+                                height: "auto",
+                              }}
+                            />
+                            <figcaption
+                              style={{
+                                padding: "10px 12px",
+                                fontSize: 12,
+                                opacity: 0.8,
+                              }}
+                            >
+                              {artifact.modelSlug}
+                              {artifact.billing?.debitedCredits
+                                ? ` · ${artifact.billing.debitedCredits} credits`
+                                : ""}
+                            </figcaption>
+                          </figure>
+                        ) : artifact.type === "audio" &&
+                          artifact.status === "ready" &&
+                          artifact.url ? (
+                          <div
+                            key={artifact.id}
+                            style={{
+                              border: "1px solid rgba(148, 163, 184, 0.28)",
+                              borderRadius: 16,
+                              padding: 12,
+                              background: "rgba(255,255,255,0.03)",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                gap: 12,
+                                alignItems: "center",
+                                marginBottom: 10,
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              <strong>
+                                {artifact.source === "ambient_context"
+                                  ? "Context-triggered voice"
+                                  : "Voice reply"}
+                              </strong>
+                              <span style={{ fontSize: 12, opacity: 0.8 }}>
+                                {artifact.provider ?? "Audio"} · {artifact.voiceName ?? artifact.modelSlug}
+                                {artifact.billing?.debitedCredits
+                                  ? ` · ${artifact.billing.debitedCredits} credits`
+                                  : ""}
+                              </span>
+                            </div>
+                            <audio controls preload="none" src={artifact.url} style={{ width: "100%" }} />
+                            {artifact.transcript ? (
+                              <p style={{ marginTop: 8, fontSize: 13, opacity: 0.82 }}>
+                                {artifact.transcript}
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <div
+                            key={artifact.id}
+                            style={{
+                              border: "1px solid rgba(239, 68, 68, 0.28)",
+                              borderRadius: 16,
+                              padding: 12,
+                            }}
+                          >
+                            <strong style={{ display: "block", marginBottom: 6 }}>
+                              {artifact.type === "audio"
+                                ? "Audio generation failed"
+                                : "Image generation failed"}
+                            </strong>
+                            <span style={{ fontSize: 13, opacity: 0.82 }}>
+                              {artifact.error ??
+                                (artifact.type === "audio"
+                                  ? "The audio could not be generated this time."
+                                  : "The image could not be generated this time.")}
+                            </span>
+                          </div>
+                        )
+                      )}
                     </div>
                   ) : null}
-                  <p>{msg.content}</p>
                   <span
                     className="chat-bubble-time chat-bubble-time-assistant"
                     suppressHydrationWarning
@@ -244,8 +375,8 @@ export function SupplementaryChatThread({
                     {formatTime(msg.createdAt)}
                   </span>
                 </div>
-              )
-            )
+              );
+            })
           )}
 
           {isPending ? (

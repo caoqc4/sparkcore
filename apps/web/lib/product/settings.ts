@@ -56,6 +56,7 @@ export type ProductSubscriptionSnapshot = {
   messageQuota: number | null;
   renewalDate: string | null;
   upgradeUrl: string | null;
+  subscriptionCadence: string | null;
 };
 
 export type ProductDataExportPreview = {
@@ -120,6 +121,7 @@ export type ProductSettingsPageData = {
       value: string;
     }>;
     creditsSummary: string;
+    currentBillingInterval: string;
   };
   subscription: ProductSubscriptionSnapshot;
   latestExport: ProductDataExportPreview | null;
@@ -146,7 +148,8 @@ export const DEFAULT_PRODUCT_SUBSCRIPTION_SNAPSHOT: ProductSubscriptionSnapshot 
   planStatus: "inactive",
   messageQuota: null,
   renewalDate: null,
-  upgradeUrl: null
+  upgradeUrl: null,
+  subscriptionCadence: null,
 };
 
 function getPrimaryAuthProvider(user: {
@@ -216,6 +219,14 @@ function getStringMetadataValue(
   return typeof metadata[key] === "string" && metadata[key]!.toString().trim().length > 0
     ? metadata[key]!.toString()
     : null;
+}
+
+function resolveBillingInterval(planName: string | null, fallback: string | undefined): string {
+  const name = (planName ?? "").toLowerCase();
+  if (name.includes("quarterly") || name.includes("quarter")) return "quarterly";
+  if (name.includes("yearly") || name.includes("annual")) return "yearly";
+  if (name.includes("monthly") || name.includes("month")) return "monthly";
+  return fallback ?? "monthly";
 }
 
 function resolveCatalogAccessLevel(
@@ -333,7 +344,7 @@ export async function loadProductSettingsPageData(args: {
       .maybeSingle(),
     args.supabase
       .from("user_subscription_snapshots")
-      .select("plan_name, plan_status, message_quota, renewal_date, upgrade_url")
+      .select("plan_name, plan_status, message_quota, renewal_date, upgrade_url, metadata")
       .eq("user_id", args.user.id)
       .maybeSingle(),
     args.supabase
@@ -362,7 +373,8 @@ export async function loadProductSettingsPageData(args: {
             ? subscription.message_quota
             : null,
         renewalDate: subscription.renewal_date ?? null,
-        upgradeUrl: subscription.upgrade_url ?? null
+        upgradeUrl: subscription.upgrade_url ?? null,
+        subscriptionCadence: asMetadataRecord(subscription.metadata).subscription_cadence as string | null ?? null,
       }
     : DEFAULT_PRODUCT_SUBSCRIPTION_SNAPSHOT;
   const currentPlanSlug = resolveCurrentPlanSlug({
@@ -556,7 +568,8 @@ export async function loadProductSettingsPageData(args: {
       upgradeHref: subscriptionSnapshot.upgradeUrl ?? "/app/subscription",
       includedModelCounts,
       entitlementHighlights,
-      creditsSummary
+      creditsSummary,
+      currentBillingInterval: resolveBillingInterval(subscriptionSnapshot.subscriptionCadence ?? subscriptionSnapshot.planName, currentPlan?.billing_interval)
     },
     subscription: subscriptionSnapshot,
     latestExport: latestExport

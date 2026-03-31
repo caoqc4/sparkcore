@@ -96,6 +96,26 @@ export function resolveDefaultImageModelSlug(metadata: Record<string, unknown>) 
   return anyDefault?.slug ?? null;
 }
 
+export function resolveConsumableImageModelSlug(args: {
+  currentPlanSlug: string;
+  requestedModelSlug: string | null;
+}) {
+  const requested =
+    typeof args.requestedModelSlug === "string" && args.requestedModelSlug.length > 0
+      ? getProductModelCatalogItemBySlug(args.requestedModelSlug)
+      : null;
+
+  if (requested && (args.currentPlanSlug === "pro" || requested.tier === "free")) {
+    return requested.slug;
+  }
+
+  const fallbackFreeDefault = PRODUCT_MODEL_CATALOG.find(
+    (item) => item.capability === "image" && item.tier === "free" && item.isDefault
+  );
+
+  return fallbackFreeDefault?.slug ?? requested?.slug ?? null;
+}
+
 export async function loadActiveAudioVoiceOptionsByModelSlug(args: {
   supabase: any;
   modelSlug: string;
@@ -266,6 +286,49 @@ export async function loadActiveAudioAssets(args: { supabase: any }) {
     .order("model_slug", { ascending: true })
     .order("is_default", { ascending: false })
     .order("display_name", { ascending: true });
+}
+
+export async function resolveConsumableAudioAsset(args: {
+  supabase: any;
+  currentPlanSlug: string;
+  requestedAudioAssetId: string | null;
+}) {
+  const requestedAsset = args.requestedAudioAssetId
+    ? await loadActiveAudioAssetById({
+        supabase: args.supabase,
+        audioAssetId: args.requestedAudioAssetId
+      })
+    : { data: null, error: null };
+
+  const requestedModelTier =
+    requestedAsset.data?.model_slug
+      ? getProductModelCatalogItemBySlug(requestedAsset.data.model_slug)?.tier ?? null
+      : null;
+
+  if (
+    requestedAsset.data &&
+    (args.currentPlanSlug === "pro" || requestedModelTier === "free")
+  ) {
+    return requestedAsset;
+  }
+
+  const freeAudioModelSlugs = PRODUCT_MODEL_CATALOG.filter(
+    (item) => item.capability === "audio" && item.tier === "free"
+  ).map((item) => item.slug);
+
+  if (freeAudioModelSlugs.length === 0) {
+    return { data: null, error: null };
+  }
+
+  return args.supabase
+    .from("product_audio_voice_options")
+    .select("id, model_slug, provider, display_name, voice_key, style_tags, metadata")
+    .in("model_slug", freeAudioModelSlugs)
+    .eq("is_active", true)
+    .order("is_default", { ascending: false })
+    .order("display_name", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 }
 
 export function formatPortraitSourceLabel(value: string | null | undefined) {

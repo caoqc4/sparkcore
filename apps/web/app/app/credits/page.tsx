@@ -70,6 +70,7 @@ export default async function AppCreditsPage(props: {
     ? `?role=${encodeURIComponent(resolution.roleId)}`
     : "";
   const isPro = settingsData.subscriptionSummary.currentPlanSlug === "pro";
+  const hasCredits = creditBalance > 0;
 
   return (
     <ProductConsoleShell
@@ -93,7 +94,7 @@ export default async function AppCreditsPage(props: {
       ) : null}
 
       {/* ── Balance (Pro only) ── */}
-      {isPro && (
+      {(isPro || hasCredits) && (
         <section className="site-card settings-card">
           <div className="credits-balance-row">
             <div className="credits-balance-main">
@@ -102,8 +103,9 @@ export default async function AppCreditsPage(props: {
               <span className="credits-balance-unit">credits</span>
             </div>
             <p className="credits-balance-note">
-              Credits are used automatically when your monthly image or audio allowance runs out.
-              They never expire.
+              {isPro
+                ? "Credits are used automatically when your monthly image or audio allowance runs out. They never expire."
+                : "Your existing credits are still available and can extend free-plan image and audio usage. New credit purchases require an active Pro plan."}
             </p>
           </div>
         </section>
@@ -153,9 +155,13 @@ export default async function AppCreditsPage(props: {
           <div className="credits-pro-gate-copy">
             <span className="credits-pro-gate-icon">🔒</span>
             <div>
-              <p className="credits-pro-gate-title">Credits require an active Pro plan</p>
+              <p className="credits-pro-gate-title">
+                {hasCredits ? "New credit purchases require an active Pro plan" : "Credits require an active Pro plan"}
+              </p>
               <p className="credits-pro-gate-desc">
-                Upgrade to Pro to unlock credit purchases and extend your image and audio usage beyond monthly allowances.
+                {hasCredits
+                  ? "Your remaining credits are still usable on free-tier image and audio generation, but buying more credits requires Pro."
+                  : "Upgrade to Pro to unlock credit purchases and extend your image and audio usage beyond monthly allowances."}
               </p>
             </div>
           </div>

@@ -5772,6 +5772,11 @@ textarea.input {
   background: hsl(240 14% 98%);
 }
 
+.sub-cadence-item-current {
+  border-color: hsl(250 60% 65%);
+  background: hsl(250 60% 98%);
+}
+
 .sub-cadence-label {
   font-size: 0.78rem;
   font-weight: 600;
@@ -6012,6 +6017,21 @@ textarea.input {
   padding: 2px 6px;
   border-radius: 999px;
   background: hsl(142 55% 42%);
+  color: hsl(0 0% 100%);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.cadence-current-badge {
+  position: absolute;
+  top: -9px;
+  right: 10px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: hsl(250 60% 60%);
   color: hsl(0 0% 100%);
   text-transform: uppercase;
   letter-spacing: 0.04em;

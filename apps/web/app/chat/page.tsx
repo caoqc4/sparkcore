@@ -20,14 +20,15 @@ import { classifyStoredMemorySemanticTarget } from "@/lib/chat/memory-records";
 import type { StoredMemory } from "@/lib/chat/memory-shared";
 import { getMemoryCategory, getMemoryScope } from "@/lib/chat/memory-v2";
 import { getChatPageState } from "@/lib/chat/runtime";
+import { loadCurrentProductPlanSlug } from "@/lib/product/billing";
 import {
   CHAT_UI_LANGUAGE_COOKIE,
   getChatCopy,
   resolveChatLocale
 } from "@/lib/i18n/chat-ui";
 import {
-  loadActiveAudioAssetById,
-  loadOwnedRoleMediaProfile
+  loadOwnedRoleMediaProfile,
+  resolveConsumableAudioAsset
 } from "@/lib/product/role-media";
 import { buildPageMetadata } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
@@ -463,12 +464,15 @@ export default async function ChatPage({
           currentRoleMedia.audio_voice_option_id.length > 0
         ? currentRoleMedia.audio_voice_option_id
         : null;
-  const { data: currentAudioAsset } = currentAudioAssetId
-    ? await loadActiveAudioAssetById({
-        supabase: pageSupabase,
-        audioAssetId: currentAudioAssetId
-      })
-    : { data: null };
+  const currentPlanSlug = await loadCurrentProductPlanSlug({
+    supabase: pageSupabase,
+    userId: user.id
+  });
+  const { data: currentAudioAsset } = await resolveConsumableAudioAsset({
+    supabase: pageSupabase,
+    currentPlanSlug,
+    requestedAudioAssetId: currentAudioAssetId
+  });
   const audioPlayback = {
     enabled:
       currentAudioAsset?.provider === "Azure" ||

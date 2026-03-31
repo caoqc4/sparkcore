@@ -7,9 +7,10 @@ import {
 } from "@/lib/audio/synthesis";
 import { loadScopedMessageById } from "@/lib/chat/message-read";
 import { loadPrimaryWorkspace, loadOwnedThread } from "@/lib/chat/runtime-turn-context";
+import { loadCurrentProductPlanSlug } from "@/lib/product/billing";
 import {
-  loadActiveAudioAssetById,
-  loadOwnedRoleMediaProfile
+  loadOwnedRoleMediaProfile,
+  resolveConsumableAudioAsset
 } from "@/lib/product/role-media";
 import { createClient } from "@/lib/supabase/server";
 
@@ -105,9 +106,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No voice is bound to this role yet." }, { status: 400 });
   }
 
-  const { data: audioAsset } = await loadActiveAudioAssetById({
+  const currentPlanSlug = await loadCurrentProductPlanSlug({
     supabase,
-    audioAssetId
+    userId: user.id
+  });
+  const { data: audioAsset } = await resolveConsumableAudioAsset({
+    supabase,
+    currentPlanSlug,
+    requestedAudioAssetId: audioAssetId
   });
 
   if (!audioAsset) {

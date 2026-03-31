@@ -40,10 +40,15 @@ export default async function AppSubscriptionPage(props: {
   const user = await requireUser("/app/subscription");
   const supabase = await createClient();
   const searchParams = (await props.searchParams) ?? {};
-  const [resolution, overview, settingsData] = await Promise.all([
+  const [resolution, overview, settingsData, wallet] = await Promise.all([
     resolveProductAppRoute({ supabase, userId: user.id }),
     loadDashboardOverview({ supabase, userId: user.id, roleId: null, threadId: null }),
     loadProductSettingsPageData({ supabase, user }),
+    supabase
+      .from("user_credit_wallets")
+      .select("balance")
+      .eq("user_id", user.id)
+      .maybeSingle(),
   ]);
   const feedback =
     typeof searchParams.feedback === "string" ? searchParams.feedback : null;
@@ -53,12 +58,15 @@ export default async function AppSubscriptionPage(props: {
   const roleQuerySuffix = resolution?.roleId
     ? `?role=${encodeURIComponent(resolution.roleId)}`
     : "";
+  const upgradeHref = settingsData.subscriptionSummary.upgradeHref;
   const checkoutHref =
-    settingsData.subscriptionSummary.upgradeHref !== "/app/subscription"
-      ? settingsData.subscriptionSummary.upgradeHref
+    upgradeHref !== "/app/subscription" && !upgradeHref.endsWith("/app/subscription")
+      ? upgradeHref
       : null;
 
   const isPro = settingsData.subscriptionSummary.currentPlanSlug === "pro";
+  const creditBalance: number = wallet.data?.balance ?? 0;
+  const currentBillingInterval = settingsData.subscriptionSummary.currentBillingInterval;
   const shouldHideCheckoutFeedback =
     isPro &&
     feedbackType !== "error" &&
@@ -100,17 +108,13 @@ export default async function AppSubscriptionPage(props: {
                 Premium models and full monthly allowances are active.
               </p>
             </div>
-            <div className="sub-pro-status-actions">
-              <Link
-                className="button button-secondary"
-                href={settingsData.subscriptionSummary.upgradeHref}
-              >
-                Manage billing
-              </Link>
-              <Link className="button button-secondary" href={`/app/credits${roleQuerySuffix}`}>
-                View credits
-              </Link>
-            </div>
+            {checkoutHref && (
+              <div className="sub-pro-status-actions">
+                <Link className="button button-secondary" href={checkoutHref}>
+                  Manage billing
+                </Link>
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -123,14 +127,26 @@ export default async function AppSubscriptionPage(props: {
           </div>
           <p className="role-section-desc" style={{ marginBottom: 16, marginTop: -8 }}>
             Switching to a longer period reduces your effective monthly cost.
-            Changes take effect through your billing portal.
+            {checkoutHref && (
+              <>
+                {" "}
+                <Link href={checkoutHref} style={{ textDecoration: "underline" }}>
+                  Change in billing portal
+                </Link>
+              </>
+            )}
           </p>
           <div className="sub-cadence-display">
             {PRO_CADENCE_OPTIONS.map((c) => (
-              <div key={c.key} className="sub-cadence-item">
-                {c.savingsNote && (
+              <div
+                key={c.key}
+                className={`sub-cadence-item${c.key === currentBillingInterval ? " sub-cadence-item-current" : ""}`}
+              >
+                {c.key === currentBillingInterval ? (
+                  <span className="cadence-current-badge">Current</span>
+                ) : c.savingsNote ? (
                   <span className="cadence-savings-badge">{c.savingsNote}</span>
-                )}
+                ) : null}
                 <span className="sub-cadence-label">{c.label}</span>
                 <div className="cadence-option-pricing">
                   <span className="cadence-option-price">{c.price}</span>
@@ -141,14 +157,6 @@ export default async function AppSubscriptionPage(props: {
                 )}
               </div>
             ))}
-          </div>
-          <div style={{ marginTop: 16 }}>
-            <Link
-              className="button button-secondary"
-              href={settingsData.subscriptionSummary.upgradeHref}
-            >
-              Switch billing period
-            </Link>
           </div>
         </section>
       )}
@@ -240,7 +248,9 @@ export default async function AppSubscriptionPage(props: {
         <p className="role-section-desc" style={{ marginBottom: 16, marginTop: -8 }}>
           {isPro
             ? "Credits extend image and audio usage after your monthly allowances are used."
-            : "Credits extend image and audio usage after monthly allowances are used. Available to Pro members."}
+            : creditBalance > 0
+              ? `You still have ${creditBalance} credits available. Existing credits can extend free-tier image and audio usage, but buying more credits requires Pro.`
+              : "Credits extend image and audio usage after monthly allowances are used. Available to Pro members."}
         </p>
         <div className="sub-credits-row">
           <div className="sub-credits-facts">

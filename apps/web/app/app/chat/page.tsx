@@ -5,10 +5,11 @@ import { ProductEventTracker } from "@/components/product-event-tracker";
 import { SupplementaryChatThread } from "@/components/supplementary-chat-thread";
 import { requireUser } from "@/lib/auth-redirect";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
+import { loadCurrentProductPlanSlug } from "@/lib/product/billing";
 import { resolveProductAppRoute } from "@/lib/product/route-resolution";
 import {
-  loadActiveAudioAssetById,
-  loadOwnedRoleMediaProfile
+  loadOwnedRoleMediaProfile,
+  resolveConsumableAudioAsset
 } from "@/lib/product/role-media";
 import { createClient } from "@/lib/supabase/server";
 import { loadProductSupplementaryChatPageData } from "@/lib/product/supplementary-chat";
@@ -101,12 +102,15 @@ export default async function AppChatPage({
           roleMediaProfile.audio_voice_option_id.length > 0
         ? roleMediaProfile.audio_voice_option_id
         : null;
-  const { data: currentAudioAsset } = currentAudioAssetId
-    ? await loadActiveAudioAssetById({
-        supabase,
-        audioAssetId: currentAudioAssetId
-      })
-    : { data: null };
+  const currentPlanSlug = await loadCurrentProductPlanSlug({
+    supabase,
+    userId: user.id
+  });
+  const { data: currentAudioAsset } = await resolveConsumableAudioAsset({
+    supabase,
+    currentPlanSlug,
+    requestedAudioAssetId: currentAudioAssetId
+  });
   const audioPlayback = {
     enabled:
       currentAudioAsset?.provider === "Azure" ||

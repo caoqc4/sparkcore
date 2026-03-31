@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
+import { maybeGenerateAssistantArtifacts } from "@/lib/chat/multimodal-artifacts";
 import { classifyStoredMemorySemanticTarget } from "@/lib/chat/memory-records";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import {
@@ -1112,6 +1113,23 @@ export async function sendMessage(
       });
     } catch (memoryError) {
       console.error("Post-processing failed:", memoryError);
+    }
+
+    try {
+      await maybeGenerateAssistantArtifacts({
+        supabase,
+        assistantMessageId: assistantPlaceholder.id,
+        threadId: thread.id,
+        workspaceId: workspace.id,
+        userId: user.id,
+        agentId: thread.agent_id,
+        userMessage: trimmedContent,
+        assistantReply: runtimeTurnResult.assistant_message.content,
+        agentName: agent.name,
+        personaSummary: agent.persona_summary,
+      });
+    } catch (artifactError) {
+      console.error("Assistant artifact generation failed:", artifactError);
     }
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);

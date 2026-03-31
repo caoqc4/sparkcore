@@ -4945,16 +4945,115 @@ details[open] .role-mem-older-summary::before {
   white-space: pre-wrap;
 }
 
-.message-audio-actions {
+/* Audio message player */
+.audio-msg {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.05);
+  max-width: 340px;
 }
 
-.message-audio-actions .helper-copy {
-  margin: 0;
+.message-assistant .audio-msg {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.audio-msg-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent, hsl(250 60% 55%));
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.audio-msg-play:hover {
+  opacity: 0.88;
+  transform: scale(1.05);
+}
+
+.audio-msg-play-active {
+  opacity: 0.9;
+}
+
+.audio-msg-body {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.audio-msg-track {
+  position: relative;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.audio-msg-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent, hsl(250 60% 55%));
+  pointer-events: none;
+  transition: width 0.1s linear;
+}
+
+.audio-msg-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent, hsl(250 60% 55%));
+  pointer-events: none;
+  transition: left 0.1s linear;
+}
+
+.audio-msg-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.audio-msg-time {
+  font-size: 0.72rem;
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+}
+
+.audio-msg-voice {
+  font-size: 0.7rem;
+  opacity: 0.5;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.audio-msg-transcript {
+  width: 100%;
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  opacity: 0.72;
+  line-height: 1.5;
 }
 
 .first-turn-state {
