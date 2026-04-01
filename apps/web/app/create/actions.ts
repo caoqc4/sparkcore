@@ -26,6 +26,7 @@ import {
   loadAccessiblePortraitAssetById,
   loadActiveAudioVoiceOptionsByModelSlug,
   loadActiveAudioAssetById,
+  pickDefaultAudioVoiceOptionForCharacter,
   pickRecommendedAudioVoiceOption,
   resolveConsumableAudioAsset,
   resolveDefaultAudioModelSlug,
@@ -248,13 +249,23 @@ export async function createProductRole(formData: FormData) {
       supabase,
       modelSlug: preferredAudioModelSlug ?? "audio-minimax-speech"
     });
+    const voiceOptions = Array.isArray(audioVoiceOptions) ? audioVoiceOptions : [];
+    const presetDefaultVoice = pickDefaultAudioVoiceOptionForCharacter({
+      options: voiceOptions,
+      characterSlug: presetSlug
+    });
     const recommendedVoice = pickRecommendedAudioVoiceOption({
-      options: Array.isArray(audioVoiceOptions) ? audioVoiceOptions : [],
+      options: voiceOptions,
       avatarGender,
       tone
     });
     const requestedAudioAssetId =
-      selectedAudioAssetId || recommendedAudioAssetId || recommendedVoice?.id || null;
+      selectedAudioAssetId ||
+      recommendedAudioAssetId ||
+      presetDefaultVoice?.id ||
+      recommendedVoice?.id ||
+      null;
+    const fallbackVoiceId = presetDefaultVoice?.id ?? recommendedVoice?.id ?? null;
     const { data: resolvedAudioAsset } = requestedAudioAssetId
       ? await resolveConsumableAudioAsset({
           supabase,
@@ -264,10 +275,10 @@ export async function createProductRole(formData: FormData) {
       : { data: null };
     const selectedAudioAsset = resolvedAudioAsset
       ? resolvedAudioAsset
-      : recommendedVoice?.id
+      : fallbackVoiceId
         ? (await loadActiveAudioAssetById({
             supabase,
-            audioAssetId: recommendedVoice.id
+            audioAssetId: fallbackVoiceId
           })).data
         : null;
 
@@ -283,7 +294,11 @@ export async function createProductRole(formData: FormData) {
       portraitAssetId: portraitAssetId || null,
       portraitLockedAt: portraitAssetId || avatarPresetId ? new Date().toISOString() : null,
       audioAssetId: selectedAudioAsset?.id ?? null,
-      audioProvider: selectedAudioAsset?.provider ?? recommendedVoice?.provider ?? null
+      audioProvider:
+        selectedAudioAsset?.provider ??
+        presetDefaultVoice?.provider ??
+        recommendedVoice?.provider ??
+        null
     });
   }
 

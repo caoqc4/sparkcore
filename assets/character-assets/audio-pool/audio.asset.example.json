@@ -1,0 +1,8 @@
+{
+  "display_name": "Warm Muse",
+  "style_tags": ["Warm", "Soft", "Calm"],
+  "tier": "free",
+  "sort_order": 10,
+  "is_default": true,
+  "default_for_character": "caria"
+}

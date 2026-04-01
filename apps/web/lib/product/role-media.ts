@@ -16,6 +16,7 @@ export type ProductAudioVoiceOptionRow = {
   display_name: string;
   gender_presentation: string | null;
   style_tags: unknown;
+  metadata?: unknown;
   tier?: string | null;
   sort_order: number;
   is_default: boolean;
@@ -124,12 +125,38 @@ export async function loadActiveAudioVoiceOptionsByModelSlug(args: {
   return args.supabase
     .from("product_audio_voice_options")
     .select(
-      "id, model_slug, provider, voice_key, display_name, gender_presentation, style_tags, tier, sort_order, is_default"
+      "id, model_slug, provider, voice_key, display_name, gender_presentation, style_tags, metadata, tier, sort_order, is_default"
     )
     .eq("model_slug", args.modelSlug)
     .eq("is_active", true)
     .order("is_default", { ascending: false })
     .order("sort_order", { ascending: true });
+}
+
+function asRecord(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {} as Record<string, unknown>;
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function metadataMatchesCharacterSlug(metadata: unknown, characterSlug: string) {
+  const record = asRecord(metadata);
+  const single =
+    typeof record.default_for_character === "string"
+      ? record.default_for_character.trim()
+      : "";
+
+  if (single === characterSlug) {
+    return true;
+  }
+
+  const multi = Array.isArray(record.default_for_characters)
+    ? record.default_for_characters.filter((item): item is string => typeof item === "string")
+    : [];
+
+  return multi.includes(characterSlug);
 }
 
 export function filterAudioVoiceOptionsForRole(args: {
@@ -190,6 +217,21 @@ export function pickRecommendedAudioVoiceOption(args: {
   });
 
   return ranked[0] ?? null;
+}
+
+export function pickDefaultAudioVoiceOptionForCharacter(args: {
+  options: ProductAudioVoiceOptionRow[];
+  characterSlug: string | null;
+}) {
+  if (!args.characterSlug) {
+    return null;
+  }
+
+  return (
+    args.options.find((option) =>
+      metadataMatchesCharacterSlug(option.metadata, args.characterSlug as string)
+    ) ?? null
+  );
 }
 
 export async function upsertOwnedRoleMediaProfile(args: {

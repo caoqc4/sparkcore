@@ -14,6 +14,35 @@ function buildPreviewCopy(displayName: string) {
   return `Hi, this is ${displayName}. I am ready to support you with a calm, natural voice in SparkCore.`;
 }
 
+async function tryLoadSampleAudio(args: {
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  metadata: Record<string, unknown>;
+}) {
+  const samplePublicUrl = getString(args.metadata.sample_public_url);
+  const sampleStoragePath = getString(args.metadata.sample_storage_path);
+
+  let resolvedPublicUrl = samplePublicUrl;
+  if (!resolvedPublicUrl && sampleStoragePath?.startsWith("character-assets/")) {
+    resolvedPublicUrl = args.supabase.storage
+      .from("character-assets")
+      .getPublicUrl(sampleStoragePath.replace(/^character-assets\//, "")).data.publicUrl;
+  }
+
+  if (!resolvedPublicUrl) {
+    return null;
+  }
+
+  const response = await fetch(resolvedPublicUrl);
+  if (!response.ok) {
+    return null;
+  }
+
+  return {
+    audioBuffer: Buffer.from(await response.arrayBuffer()),
+    contentType: response.headers.get("content-type") ?? "audio/mpeg"
+  };
+}
+
 export async function POST(request: Request) {
   await requireUser("/app/role");
 
@@ -47,6 +76,20 @@ export async function POST(request: Request) {
   }
 
   try {
+    const sampleAudio = await tryLoadSampleAudio({
+      supabase,
+      metadata
+    });
+
+    if (sampleAudio) {
+      return new NextResponse(sampleAudio.audioBuffer, {
+        headers: {
+          "Cache-Control": "no-store",
+          "Content-Type": sampleAudio.contentType
+        }
+      });
+    }
+
     const audio = await synthesizeAudioForVoiceOption({
       text: buildPreviewCopy(audioAsset.display_name ?? "your companion"),
       provider: audioAsset.provider,

@@ -26,6 +26,7 @@ import {
   loadActiveAudioAssetById,
   loadAccessiblePortraitAssetById,
   loadOwnedRoleMediaProfile,
+  pickDefaultAudioVoiceOptionForCharacter,
   loadSharedPresetPortraitAssetByCharacterSlug,
   pickRecommendedAudioVoiceOption,
   resolveDefaultAudioModelSlug,
@@ -396,6 +397,10 @@ export async function restoreProductRoleDefaults(formData: FormData) {
     avatarGender: presetDefaults.avatarGender,
     tone: presetDefaults.tone
   });
+  const presetDefaultVoice = pickDefaultAudioVoiceOptionForCharacter({
+    options: Array.isArray(defaultVoiceOptions) ? defaultVoiceOptions : [],
+    characterSlug: presetDefaults.slug
+  });
 
   const { error } = await updateOwnedAgent({
     supabase,
@@ -460,8 +465,13 @@ export async function restoreProductRoleDefaults(formData: FormData) {
         ? existingRoleMedia.portrait_locked_at
         : new Date().toISOString(),
     portraitReferenceEnabledByDefault: true,
-    audioAssetId: defaultVoice?.id ?? existingRoleMedia?.audio_asset_id ?? null,
-    audioProvider: defaultVoice?.provider ?? existingRoleMedia?.audio_provider ?? null
+    audioAssetId:
+      presetDefaultVoice?.id ?? defaultVoice?.id ?? existingRoleMedia?.audio_asset_id ?? null,
+    audioProvider:
+      presetDefaultVoice?.provider ??
+      defaultVoice?.provider ??
+      existingRoleMedia?.audio_provider ??
+      null
   });
 
   if (roleMediaError) {
