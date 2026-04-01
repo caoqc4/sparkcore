@@ -1,38 +1,29 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { createProductRole } from "@/app/create/actions";
+import { RoleVoiceTabs, type RoleVoiceGroup } from "@/components/role-voice-tabs";
+import { CHARACTER_MANIFEST } from "@/lib/characters/manifest";
+import { getProductCharacterPresetDefaults } from "@/lib/characters/preset-defaults";
+import {
+  filterAudioVoiceOptionsForRole,
+  pickRecommendedAudioVoiceOption,
+  type ProductAudioVoiceOptionRow
+} from "@/lib/product/role-media";
 
 // ── Character presets ────────────────────────────────────────────────────────
 
 type StyleTab = "realistic" | "anime" | "illustrated";
 type GenderKey = "female" | "male" | "neutral";
 
-type PresetCharacter = {
+type PortraitAssetOption = {
   id: string;
   name: string;
-  descriptor: string;
   style: StyleTab;
   gender: GenderKey;
-  gradient: string;
+  storagePath: string | null;
+  publicUrl: string | null;
 };
-
-const PRESETS: PresetCharacter[] = [
-  { id: "aurora",  name: "Aurora",  descriptor: "Warm & thoughtful",      style: "realistic",   gender: "female",  gradient: "linear-gradient(170deg, hsl(340 55% 68%), hsl(20 75% 72%))" },
-  { id: "luna",    name: "Luna",    descriptor: "Gentle & introspective", style: "realistic",   gender: "female",  gradient: "linear-gradient(170deg, hsl(220 52% 62%), hsl(260 58% 70%))" },
-  { id: "sage",    name: "Sage",    descriptor: "Calm & grounded",        style: "realistic",   gender: "female",  gradient: "linear-gradient(170deg, hsl(160 42% 52%), hsl(190 52% 62%))" },
-  { id: "ember",   name: "Ember",   descriptor: "Energetic & bold",       style: "realistic",   gender: "female",  gradient: "linear-gradient(170deg, hsl(25 78% 58%), hsl(340 68% 66%))" },
-  { id: "atlas",   name: "Atlas",   descriptor: "Strong & dependable",    style: "realistic",   gender: "male",    gradient: "linear-gradient(170deg, hsl(210 48% 48%), hsl(230 52% 60%))" },
-  { id: "river",   name: "River",   descriptor: "Easy-going & open",      style: "realistic",   gender: "male",    gradient: "linear-gradient(170deg, hsl(175 48% 44%), hsl(200 52% 56%))" },
-  { id: "orion",   name: "Orion",   descriptor: "Intellectual & patient", style: "realistic",   gender: "male",    gradient: "linear-gradient(170deg, hsl(250 42% 54%), hsl(270 48% 63%))" },
-  { id: "hana",    name: "Hana",    descriptor: "Bright & expressive",    style: "anime",       gender: "female",  gradient: "linear-gradient(170deg, hsl(320 62% 68%), hsl(350 68% 78%))" },
-  { id: "yuki",    name: "Yuki",    descriptor: "Cool & mysterious",      style: "anime",       gender: "female",  gradient: "linear-gradient(170deg, hsl(200 58% 65%), hsl(230 62% 73%))" },
-  { id: "akari",   name: "Akari",   descriptor: "Sweet & energetic",      style: "anime",       gender: "female",  gradient: "linear-gradient(170deg, hsl(35 78% 65%), hsl(15 72% 72%))" },
-  { id: "kaito",   name: "Kaito",   descriptor: "Protective & earnest",   style: "anime",       gender: "male",    gradient: "linear-gradient(170deg, hsl(205 58% 50%), hsl(220 62% 60%))" },
-  { id: "ren",     name: "Ren",     descriptor: "Reserved & sincere",     style: "anime",       gender: "male",    gradient: "linear-gradient(170deg, hsl(240 48% 52%), hsl(260 52% 63%))" },
-  { id: "nova",    name: "Nova",    descriptor: "Curious & adaptive",     style: "illustrated", gender: "neutral", gradient: "linear-gradient(170deg, hsl(268 52% 58%), hsl(290 58% 70%))" },
-  { id: "echo",    name: "Echo",    descriptor: "Empathetic & calm",      style: "illustrated", gender: "neutral", gradient: "linear-gradient(170deg, hsl(180 48% 48%), hsl(210 52% 60%))" },
-];
 
 // ── Step definitions ─────────────────────────────────────────────────────────
 
@@ -59,14 +50,23 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 type Props = {
   user: { id: string } | null;
   loginNext: string;
+  createSurface?: "/create" | "/app/create";
   redirectAfterCreate?: string;
+  audioOptions?: ProductAudioVoiceOptionRow[];
+  portraitAssets?: Array<{
+    id: string;
+    display_name: string | null;
+    gender_presentation: string | null;
+    style_tags: unknown;
+    storage_path?: string | null;
+    public_url?: string | null;
+  }>;
+  currentPlanSlug?: "free" | "pro";
+  defaultPresetSlug?: "caria" | "teven" | "velia";
   defaultMode?: "companion" | "assistant";
   defaultGender?: "female" | "male" | "neutral";
   defaultName?: string;
   defaultTone?: "warm" | "playful" | "steady";
-  defaultTraits?: string[];
-  defaultBoundaries?: string;
-  startAtLook?: boolean;
 };
 
 // ── Wizard ────────────────────────────────────────────────────────────────────
@@ -74,19 +74,23 @@ type Props = {
 export function RoleCreateWizard({
   user,
   loginNext,
+  createSurface = "/create",
   redirectAfterCreate,
+  audioOptions = [],
+  portraitAssets = [],
+  currentPlanSlug = "free",
+  defaultPresetSlug,
   defaultMode = "companion",
   defaultGender,
   defaultName,
   defaultTone,
-  defaultTraits,
-  defaultBoundaries,
-  startAtLook,
 }: Props) {
-  const fileRef = useRef<HTMLInputElement>(null);
-
   // Step state
-  const [step, setStep] = useState(startAtLook ? 2 : 0);
+  const [step, setStep] = useState(0);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [selectedPresetSlug, setSelectedPresetSlug] = useState<
+    "caria" | "teven" | "velia" | null
+  >(defaultPresetSlug ?? null);
 
   // Step 1 — Basics
   const [gender, setGender] = useState<GenderKey>(defaultGender ?? "female");
@@ -99,7 +103,7 @@ export function RoleCreateWizard({
 
   // Step 2 — Personality
   const [tone, setTone] = useState<"warm" | "playful" | "steady">(defaultTone ?? "warm");
-  const [selectedTraits, setSelectedTraits] = useState<string[]>(defaultTraits ?? []);
+  const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
   const [relationshipMode, setRelationshipMode] = useState(
     defaultMode === "assistant"
       ? "task-focused assistant"
@@ -108,17 +112,103 @@ export function RoleCreateWizard({
         : "long-term girlfriend",
   );
   const [boundaries, setBoundaries] = useState(
-    defaultBoundaries ?? "Be supportive, respectful, and avoid manipulative or coercive behavior.",
+    "Be supportive, respectful, and avoid manipulative or coercive behavior.",
   );
+  const [backgroundSummary, setBackgroundSummary] = useState("");
 
   // Step 3 — Look
   const [styleTab, setStyleTab] = useState<StyleTab>("realistic");
   const [photoIndex, setPhotoIndex] = useState(0);
-  const [uploadUrl, setUploadUrl] = useState<string | null>(null);
-  const [useUpload, setUseUpload] = useState(false);
+  const voiceOptions = filterAudioVoiceOptionsForRole({
+    options: audioOptions,
+    avatarGender: gender,
+    tone,
+    currentPlanSlug,
+  });
+  const recommendedVoice = pickRecommendedAudioVoiceOption({
+    options: voiceOptions,
+    avatarGender: gender,
+    tone,
+  });
+  const voiceGroups: RoleVoiceGroup[] = [];
+  for (const option of voiceOptions) {
+    const groupKey = option.model_slug;
+    const existing = voiceGroups.find((group) => group.modelSlug === groupKey);
+    const asset = {
+      id: option.id,
+      displayName: option.display_name,
+      provider: option.provider,
+      modelSlug: option.model_slug,
+      styleTags: Array.isArray(option.style_tags)
+        ? option.style_tags.filter((item): item is string => typeof item === "string")
+        : [],
+      genderPresentation: option.gender_presentation,
+      isDefault: option.is_default,
+    };
+
+    if (existing) {
+      existing.assets.push(asset);
+    } else {
+      voiceGroups.push({
+        modelSlug: groupKey,
+        modelDisplayName: option.provider,
+        tier: option.tier === "pro" ? "pro" : "free",
+        assets: [asset],
+      });
+    }
+  }
+
+  function applyPreset(preset: "caria" | "teven" | "velia") {
+    const definition = CHARACTER_MANIFEST[preset];
+    const defaults = getProductCharacterPresetDefaults(preset);
+    setSelectedPresetSlug(preset);
+    setMode(definition.mode);
+    setGender(definition.avatarGender);
+    setName(definition.displayName);
+    setTone(defaults?.tone ?? "warm");
+    setRelationshipMode(defaults?.relationshipMode ?? "long-term companion");
+    setBoundaries(
+      defaults?.boundaries ??
+        "Be supportive, respectful, and avoid manipulative or coercive behavior."
+    );
+    setBackgroundSummary(defaults?.backgroundSummary ?? "");
+  }
+
+  function applyBlankStart() {
+    setSelectedPresetSlug(null);
+    setBackgroundSummary("");
+  }
 
   // Filtered presets for step 3
-  const filteredPresets = PRESETS.filter(
+  const portraitOptions: PortraitAssetOption[] = portraitAssets
+    .map((asset) => {
+      const style = Array.isArray(asset.style_tags)
+        ? (asset.style_tags.find(
+            (item): item is StyleTab =>
+              item === "realistic" || item === "anime" || item === "illustrated"
+          ) ?? null)
+        : null;
+      const genderValue = asset.gender_presentation;
+      const resolvedGender: GenderKey =
+        genderValue === "female" || genderValue === "male" || genderValue === "neutral"
+          ? genderValue
+          : "neutral";
+
+      if (!style) {
+        return null;
+      }
+
+      return {
+        id: asset.id,
+        name: asset.display_name ?? "Portrait",
+        style,
+        gender: resolvedGender,
+        storagePath: typeof asset.storage_path === "string" ? asset.storage_path : null,
+        publicUrl: typeof asset.public_url === "string" ? asset.public_url : null,
+      };
+    })
+    .filter((asset): asset is PortraitAssetOption => asset !== null);
+  const filteredPresets = portraitOptions.filter(
     (p) => p.style === styleTab && (p.gender === gender || p.gender === "neutral"),
   );
   const totalPortraits = filteredPresets.length;
@@ -132,19 +222,10 @@ export function RoleCreateWizard({
 
   function prevPortrait() {
     setPhotoIndex((i) => (i - 1 + totalPortraits) % totalPortraits);
-    setUseUpload(false);
   }
 
   function nextPortrait() {
     setPhotoIndex((i) => (i + 1) % totalPortraits);
-    setUseUpload(false);
-  }
-
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadUrl(URL.createObjectURL(file));
-    setUseUpload(true);
   }
 
   // ── Step 1: Basics ────────────────────────────────────────────────────────
@@ -155,6 +236,41 @@ export function RoleCreateWizard({
         <div className="rcw-step-head">
           <p className="rcw-kicker">Step 1 — Basics</p>
           <h2 className="rcw-title">Who is this companion?</h2>
+        </div>
+
+        <div className="rcw-field">
+          <label className="rcw-label">Starting point</label>
+          <div className="rcw-preset-grid">
+            {([
+              { id: "caria", label: "Caria", desc: "Warm romantic preset", emoji: "🌸" },
+              { id: "teven", label: "Teven", desc: "Steady romantic preset", emoji: "🌿" },
+              { id: "velia", label: "Velia", desc: "Playful assistant preset", emoji: "✦" },
+            ] as const).map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className={`rcw-preset-card${selectedPresetSlug === preset.id ? " selected" : ""}`}
+                onClick={() => applyPreset(preset.id)}
+              >
+                <span className="rcw-preset-emoji" aria-hidden="true">{preset.emoji}</span>
+                <span className="rcw-preset-copy">
+                  <span className="rcw-tone-label">{preset.label}</span>
+                  <span className="rcw-tone-desc">{preset.desc}</span>
+                </span>
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`rcw-preset-card${selectedPresetSlug === null ? " selected" : ""}`}
+              onClick={applyBlankStart}
+            >
+              <span className="rcw-preset-emoji" aria-hidden="true">+</span>
+              <span className="rcw-preset-copy">
+                <span className="rcw-tone-label">Blank</span>
+                <span className="rcw-tone-desc">Start from scratch</span>
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Gender selection */}
@@ -283,6 +399,17 @@ export function RoleCreateWizard({
           </div>
         </div>
 
+        <div className="rcw-field">
+          <label className="rcw-label" htmlFor="rcw-relationship-mode">Relationship mode</label>
+          <input
+            id="rcw-relationship-mode"
+            className="input"
+            value={relationshipMode}
+            onChange={(e) => setRelationshipMode(e.target.value)}
+            placeholder="How this role relates to the user…"
+          />
+        </div>
+
         {/* Trait tags */}
         <div className="rcw-field">
           <label className="rcw-label">
@@ -312,16 +439,41 @@ export function RoleCreateWizard({
           </div>
         </div>
 
-        {/* Boundaries */}
-        <div className="rcw-field">
-          <label className="rcw-label" htmlFor="rcw-bounds">Boundaries</label>
-          <textarea
-            id="rcw-bounds"
-            className="input"
-            rows={3}
-            value={boundaries}
-            onChange={(e) => setBoundaries(e.target.value)}
-          />
+        <div className="rcw-advanced">
+          <button
+            type="button"
+            className="rcw-advanced-toggle"
+            onClick={() => setAdvancedOpen((open) => !open)}
+          >
+            <span>Advanced</span>
+            <span className={`rcw-advanced-chevron${advancedOpen ? " open" : ""}`}>⌄</span>
+          </button>
+          {advancedOpen ? (
+            <div className="rcw-advanced-body">
+              <div className="rcw-field">
+                <label className="rcw-label" htmlFor="rcw-bounds">Boundaries</label>
+                <textarea
+                  id="rcw-bounds"
+                  className="input"
+                  rows={3}
+                  value={boundaries}
+                  onChange={(e) => setBoundaries(e.target.value)}
+                />
+              </div>
+
+              <div className="rcw-field">
+                <label className="rcw-label" htmlFor="rcw-background">Background</label>
+                <textarea
+                  id="rcw-background"
+                  className="input"
+                  rows={3}
+                  value={backgroundSummary}
+                  onChange={(e) => setBackgroundSummary(e.target.value)}
+                  placeholder="A short background readers and the model can both understand…"
+                />
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="rcw-actions rcw-actions-row">
@@ -372,13 +524,15 @@ export function RoleCreateWizard({
           </button>
 
           <div className="rcw-portrait-wrap">
-            {useUpload && uploadUrl ? (
-              <img className="rcw-portrait" src={uploadUrl} alt="Your upload" />
-            ) : currentChar ? (
-              <div className="rcw-portrait rcw-portrait-placeholder" style={{ background: currentChar.gradient }}>
-                <span className="rcw-portrait-initial">{currentChar.name[0]}</span>
-                <span className="rcw-portrait-placeholder-label">Photo coming soon</span>
-              </div>
+            {currentChar ? (
+              currentChar.publicUrl ? (
+                <img className="rcw-portrait" src={currentChar.publicUrl} alt={currentChar.name} />
+              ) : (
+                <div className="rcw-portrait rcw-portrait-placeholder">
+                  <span className="rcw-portrait-initial">{currentChar.name[0]}</span>
+                  <span className="rcw-portrait-placeholder-label">{currentChar.name}</span>
+                </div>
+              )
             ) : null}
 
             {/* Dots */}
@@ -387,8 +541,8 @@ export function RoleCreateWizard({
                 <button
                   key={i}
                   type="button"
-                  className={`rcw-carousel-dot${i === safeIndex && !useUpload ? " active" : ""}`}
-                  onClick={() => { setPhotoIndex(i); setUseUpload(false); }}
+                  className={`rcw-carousel-dot${i === safeIndex ? " active" : ""}`}
+                  onClick={() => { setPhotoIndex(i); }}
                   aria-label={`Portrait ${i + 1}`}
                 />
               ))}
@@ -406,48 +560,51 @@ export function RoleCreateWizard({
         </div>
 
         {/* Portrait name + descriptor */}
-        {!useUpload && currentChar ? (
+        {currentChar ? (
           <div className="rcw-portrait-info">
             <strong className="rcw-portrait-name">{currentChar.name}</strong>
-            <span className="rcw-portrait-desc">{currentChar.descriptor}</span>
+            <span className="rcw-portrait-desc">{currentChar.style}</span>
           </div>
-        ) : (
-          <div className="rcw-portrait-info">
-            <strong className="rcw-portrait-name">Custom</strong>
-            <span className="rcw-portrait-desc">Your own image</span>
-          </div>
-        )}
-
-        {/* Upload option */}
-        <button
-          type="button"
-          className="rcw-upload-link"
-          onClick={() => fileRef.current?.click()}
-        >
-          {useUpload ? "Change uploaded photo" : "Or upload your own photo ↑"}
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          className="rcw-file-input"
-          onChange={handleFile}
-        />
+        ) : null}
 
         {/* Final submit form with all accumulated state */}
         {user ? (
           <form action={createProductRole} className="rcw-submit-form">
+            <input type="hidden" name="create_surface" value={createSurface} />
+            <input type="hidden" name="preset_slug" value={selectedPresetSlug ?? ""} />
             <input type="hidden" name="mode" value={mode} />
             <input type="hidden" name="name" value={name} />
             <input type="hidden" name="user_preferred_name" value={userPreferredName} />
             <input type="hidden" name="tone" value={tone} />
             <input type="hidden" name="relationship_mode" value={relationshipMode} />
             <input type="hidden" name="boundaries" value={boundaries} />
+            <input type="hidden" name="background_summary" value={backgroundSummary} />
             <input type="hidden" name="traits" value={selectedTraits.join(",")} />
-            <input type="hidden" name="avatar_preset" value={useUpload ? "" : (currentChar?.id ?? "")} />
+            <input type="hidden" name="avatar_preset" value="" />
+            <input type="hidden" name="portrait_asset_id" value={currentChar?.id ?? ""} />
             <input type="hidden" name="avatar_gender" value={gender} />
+            {recommendedVoice ? (
+              <input type="hidden" name="recommended_audio_asset_id" value={recommendedVoice.id} />
+            ) : null}
             {redirectAfterCreate ? (
               <input type="hidden" name="redirect_after" value={redirectAfterCreate} />
+            ) : null}
+            {voiceGroups.length > 0 ? (
+              <div className="role-subsection">
+                <div className="role-subsection-head">
+                  <h3 className="role-subsection-title">Voice</h3>
+                </div>
+                <p className="role-field-hint">
+                  We preselect a recommended voice based on tone and identity. You can switch
+                  within your available options before creating.
+                </p>
+                <RoleVoiceTabs
+                  currentPlanSlug={currentPlanSlug}
+                  groups={voiceGroups}
+                  selectedAssetId={recommendedVoice?.id ?? null}
+                  upgradeHref="/app/settings#settings-subscription"
+                />
+              </div>
             ) : null}
             <div className="rcw-actions rcw-actions-row">
               <button type="button" className="button button-secondary" onClick={() => setStep(1)}>

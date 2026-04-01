@@ -2,56 +2,45 @@ import Link from "next/link";
 import { RoleCreateWizard } from "@/components/role-create-wizard";
 import { ProductConsoleShell } from "@/components/product-console-shell";
 import { getOptionalUser } from "@/lib/auth-redirect";
+import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
+import { loadCurrentProductPlanSlug } from "@/lib/product/billing";
+import { loadActiveAudioAssets, loadSharedPresetPortraitAssets } from "@/lib/product/role-media";
+import { createClient } from "@/lib/supabase/server";
 
 type AppCreatePageProps = {
   searchParams: Promise<{
     error?: string;
-    mode?: string;
-    gender?: string;
-    name?: string;
-    tone?: string;
-    traits?: string;
-    boundary?: string;
+    preset?: string;
   }>;
-};
-
-const BOUNDARY_TEXT: Record<string, string> = {
-  warm_support: "Be warm, supportive, and emotionally present. Prioritize listening and comfort over advice.",
-  open_playful: "Be expressive, fun, and go with the energy of the conversation. Stay positive and light.",
-  grounded:     "Be calm and grounded. Keep the relationship healthy without fostering unhealthy dependency.",
 };
 
 export default async function AppCreatePage({ searchParams }: AppCreatePageProps) {
   const params = await searchParams;
   const user   = await getOptionalUser();
-
-  const defaultMode: "companion" | "assistant" =
-    params.mode === "assistant" ? "assistant" : "companion";
-
-  const defaultGender =
-    params.gender === "female" || params.gender === "male" || params.gender === "neutral"
-      ? (params.gender as "female" | "male" | "neutral")
-      : undefined;
-
-  const defaultName = params.name?.trim().slice(0, 20) || undefined;
-
-  const defaultTone =
-    params.tone === "warm" || params.tone === "playful" || params.tone === "steady"
-      ? params.tone
-      : undefined;
-
-  const defaultTraits =
-    params.traits
-      ? params.traits.split(",").map((t) => t.trim()).filter(Boolean)
-      : undefined;
-
-  const defaultBoundaries =
-    params.boundary && BOUNDARY_TEXT[params.boundary]
-      ? BOUNDARY_TEXT[params.boundary]
-      : undefined;
-
-  // If we have pre-fills from the homepage (name provided), skip to Look step
-  const startAtLook = Boolean(defaultName);
+  const supabase = await createClient();
+  const presetSlug =
+    params.preset === "caria" || params.preset === "teven" || params.preset === "velia"
+      ? (params.preset as CharacterSlug)
+      : null;
+  const presetDefinition = presetSlug ? CHARACTER_MANIFEST[presetSlug] : null;
+  const [{ data: audioOptions }, { data: portraitAssets }, currentPlanSlug] = await Promise.all([
+    loadActiveAudioAssets({ supabase }),
+    loadSharedPresetPortraitAssets({ supabase }),
+    user ? loadCurrentProductPlanSlug({ supabase, userId: user.id }) : Promise.resolve("free")
+  ]);
+  const resolvedPortraitAssets = Array.isArray(portraitAssets)
+    ? portraitAssets.map((asset) => ({
+        ...asset,
+        public_url:
+          typeof asset.public_url === "string" && asset.public_url.length > 0
+            ? asset.public_url
+            : typeof asset.storage_path === "string" && asset.storage_path.startsWith("character-assets/")
+              ? supabase.storage
+                  .from("character-assets")
+                  .getPublicUrl(asset.storage_path.replace(/^character-assets\//, "")).data.publicUrl
+              : null
+      }))
+    : [];
 
   return (
     <ProductConsoleShell
@@ -68,19 +57,53 @@ export default async function AppCreatePage({ searchParams }: AppCreatePageProps
       {params.error ? (
         <div className="notice notice-error">{params.error}</div>
       ) : null}
-      <div className="site-card rcw-shell-card">
-        <RoleCreateWizard
-          defaultMode={defaultMode}
-          defaultGender={defaultGender}
-          defaultName={defaultName}
-          defaultTone={defaultTone}
-          defaultTraits={defaultTraits}
-          defaultBoundaries={defaultBoundaries}
-          startAtLook={startAtLook}
-          loginNext="/app/create"
-          redirectAfterCreate="/app/role"
-          user={user ? { id: user.id } : null}
-        />
+      <div className="rcw-create-layout">
+        <aside className="site-card rcw-create-presets">
+          <div className="rcw-create-presets-head">
+            <span className="rcw-kicker">Presets</span>
+            <h2 className="rcw-title">Choose a starting point</h2>
+          </div>
+          <div className="rcw-create-presets-list">
+            {(["caria", "teven", "velia"] as CharacterSlug[]).map((slug) => {
+              const character = CHARACTER_MANIFEST[slug];
+              const active = presetSlug === slug;
+              return (
+                <Link
+                  key={slug}
+                  className={`rcw-create-preset-link${active ? " active" : ""}`}
+                  href={`/app/create?preset=${encodeURIComponent(slug)}`}
+                >
+                  <span className="rcw-create-preset-name">{character.displayName}</span>
+                  <span className="rcw-create-preset-meta">
+                    {character.mode === "assistant" ? "Assistant" : "Companion"} · {character.avatarGender}
+                  </span>
+                </Link>
+              );
+            })}
+            <Link
+              className={`rcw-create-preset-link${presetSlug === null ? " active" : ""}`}
+              href="/app/create"
+            >
+              <span className="rcw-create-preset-name">Blank</span>
+              <span className="rcw-create-preset-meta">Start from scratch</span>
+            </Link>
+          </div>
+        </aside>
+        <div className="site-card rcw-shell-card">
+          <RoleCreateWizard
+            createSurface="/app/create"
+            defaultPresetSlug={presetSlug ?? undefined}
+            defaultMode={presetDefinition?.mode}
+            defaultGender={presetDefinition?.avatarGender}
+            defaultName={presetDefinition?.displayName}
+            audioOptions={Array.isArray(audioOptions) ? audioOptions : []}
+            portraitAssets={resolvedPortraitAssets}
+            currentPlanSlug={currentPlanSlug === "pro" ? "pro" : "free"}
+            loginNext="/app/create"
+            redirectAfterCreate="/app/role"
+            user={user ? { id: user.id } : null}
+          />
+        </div>
       </div>
     </ProductConsoleShell>
   );

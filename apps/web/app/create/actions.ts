@@ -1,12 +1,13 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
 import { createClient } from "@/lib/supabase/server";
 import {
   createOwnedAgent,
   createOwnedThread,
+  loadActivePersonaPackBySlug,
   loadActiveModelProfileBySlug,
-  loadFirstActivePersonaPack,
   loadOwnedUserAppSettingsMetadata,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
@@ -22,11 +23,23 @@ import {
   trimProductText
 } from "@/lib/product/role-core";
 import {
+  loadAccessiblePortraitAssetById,
   loadActiveAudioVoiceOptionsByModelSlug,
+  loadActiveAudioAssetById,
   pickRecommendedAudioVoiceOption,
+  resolveConsumableAudioAsset,
   resolveDefaultAudioModelSlug,
   upsertOwnedRoleMediaProfile
 } from "@/lib/product/role-media";
+import { loadCurrentProductPlanSlug } from "@/lib/product/billing";
+
+function safeCharacterSlug(value: string): CharacterSlug | null {
+  if (value === "caria" || value === "teven" || value === "velia") {
+    return value;
+  }
+
+  return null;
+}
 
 function detectAvatarStyleFromPreset(presetId: string) {
   if (["aurora", "luna", "sage", "ember", "atlas", "river", "orion"].includes(presetId)) {
@@ -44,23 +57,55 @@ function detectAvatarStyleFromPreset(presetId: string) {
   return null;
 }
 
+function resolveCreateSurfacePath(value: string) {
+  return value === "/app/create" ? "/app/create" : "/create";
+}
+
+function buildCreateErrorPath(args: {
+  surfacePath: string;
+  message: string;
+  presetSlug: CharacterSlug | null;
+}) {
+  const searchParams = new URLSearchParams();
+  searchParams.set("error", args.message);
+
+  if (args.presetSlug) {
+    searchParams.set("preset", args.presetSlug);
+  }
+
+  return `${args.surfacePath}?${searchParams.toString()}`;
+}
+
 export async function createProductRole(formData: FormData) {
   const supabase = await createClient();
   const {
     data: { user }
   } = await supabase.auth.getUser();
+  const surfacePath = resolveCreateSurfacePath(trimProductText(formData.get("create_surface")));
+  const presetSlug = safeCharacterSlug(trimProductText(formData.get("preset_slug")));
 
   if (!user) {
-    redirect("/login?next=%2Fcreate");
+    redirect(`/login?next=${encodeURIComponent(surfacePath)}`);
   }
 
   const redirectAfter = trimProductText(formData.get("redirect_after"));
   const mode = safeProductRoleMode(trimProductText(formData.get("mode")));
   const avatarPresetId = trimProductText(formData.get("avatar_preset"));
+  const portraitAssetId = trimProductText(formData.get("portrait_asset_id"));
+  const selectedAudioAssetId = trimProductText(formData.get("audio_asset_id"));
+  const recommendedAudioAssetId = trimProductText(formData.get("recommended_audio_asset_id"));
   const avatarGender = safeProductRoleAvatarGender(trimProductText(formData.get("avatar_gender")));
+  const presetDefinition = presetSlug ? CHARACTER_MANIFEST[presetSlug] : null;
   const name =
     trimProductText(formData.get("name")) ||
-    (avatarGender === "female" ? "Caria" : avatarGender === "male" ? "Teven" : mode === "assistant" ? "Velia" : "Nova");
+    (presetDefinition?.displayName ??
+      (avatarGender === "female"
+        ? "Caria"
+        : avatarGender === "male"
+          ? "Teven"
+          : mode === "assistant"
+            ? "Velia"
+            : "Nova"));
   const userPreferredName = trimProductText(formData.get("user_preferred_name")) || null;
   const tone = safeProductRoleTone(trimProductText(formData.get("tone")));
   const relationshipMode =
@@ -68,7 +113,40 @@ export async function createProductRole(formData: FormData) {
   const boundaries =
     trimProductText(formData.get("boundaries")) ||
     "Be supportive, respectful, and avoid manipulative or coercive behavior.";
-  const avatarStyle = avatarPresetId ? detectAvatarStyleFromPreset(avatarPresetId) : null;
+  const backgroundSummary = trimProductText(formData.get("background_summary")) || null;
+  let avatarStyle = avatarPresetId ? detectAvatarStyleFromPreset(avatarPresetId) : null;
+
+  if (portraitAssetId) {
+    const { data: portraitAsset } = await loadAccessiblePortraitAssetById({
+      supabase,
+      portraitAssetId
+    });
+
+    if (!portraitAsset) {
+      redirect(
+        buildCreateErrorPath({
+          surfacePath,
+          message: "Selected portrait asset is unavailable.",
+          presetSlug
+        })
+      );
+    }
+
+    if (Array.isArray(portraitAsset.style_tags)) {
+      const matchedStyle = portraitAsset.style_tags.find(
+        (item: unknown): item is "realistic" | "anime" | "illustrated" =>
+          item === "realistic" || item === "anime" || item === "illustrated"
+      );
+      avatarStyle = matchedStyle ? safeProductRoleAvatarStyle(matchedStyle) : avatarStyle;
+    }
+  }
+
+  const personaPackPromise = presetDefinition
+    ? loadActivePersonaPackBySlug({
+        supabase,
+        slug: presetDefinition.personaPackSlug
+      })
+    : Promise.resolve({ data: null });
 
   const [{ data: workspace }, { data: appSettings }, { data: personaPack }] =
     await Promise.all([
@@ -80,7 +158,7 @@ export async function createProductRole(formData: FormData) {
         supabase,
         userId: user.id
       }),
-      loadFirstActivePersonaPack({ supabase })
+      personaPackPromise
     ]);
 
   const appSettingsMetadata =
@@ -100,15 +178,21 @@ export async function createProductRole(formData: FormData) {
     slug: preferredTextModelSlug
   });
 
-  if (!workspace || !modelProfile || !personaPack) {
-    redirect("/create?error=Missing+workspace,+model+profile,+or+persona+pack.");
+  if (!workspace || !modelProfile || (presetDefinition && !personaPack)) {
+    redirect(
+      buildCreateErrorPath({
+        surfacePath,
+        message: "Missing workspace, model profile, or persona pack.",
+        presetSlug
+      })
+    );
   }
 
   const { data: createdAgent, error: agentError } = await createOwnedAgent({
     supabase,
     workspaceId: workspace.id,
     userId: user.id,
-    sourcePersonaPackId: personaPack.id,
+    sourcePersonaPackId: personaPack?.id ?? null,
     name,
     personaSummary: buildProductPersonaSummary({
       mode,
@@ -129,14 +213,15 @@ export async function createProductRole(formData: FormData) {
     }),
     defaultModelProfileId: modelProfile.id,
     isCustom: true,
-    metadata: buildProductAgentMetadata({
-      mode,
-      tone,
-      relationshipMode,
-      boundaries,
-      proactivityLevel: "balanced",
-      userPreferredName,
-      avatarPresetId: avatarPresetId || null,
+      metadata: buildProductAgentMetadata({
+        mode,
+        tone,
+        relationshipMode,
+        boundaries,
+        proactivityLevel: "balanced",
+        backgroundSummary,
+        userPreferredName,
+        avatarPresetId: avatarPresetId || null,
       avatarStyle,
       avatarGender,
       avatarOrigin: avatarPresetId ? "preset" : null
@@ -145,19 +230,46 @@ export async function createProductRole(formData: FormData) {
   });
 
   if (agentError || !createdAgent) {
-    redirect(`/create?error=${encodeURIComponent(agentError?.message ?? "Failed to create role.")}`);
+    redirect(
+      buildCreateErrorPath({
+        surfacePath,
+        message: agentError?.message ?? "Failed to create role.",
+        presetSlug
+      })
+    );
   }
 
-  if (preferredAudioModelSlug) {
+  if (preferredAudioModelSlug || selectedAudioAssetId || recommendedAudioAssetId) {
+    const currentPlanSlug = await loadCurrentProductPlanSlug({
+      supabase,
+      userId: user.id
+    });
     const { data: audioVoiceOptions } = await loadActiveAudioVoiceOptionsByModelSlug({
       supabase,
-      modelSlug: preferredAudioModelSlug
+      modelSlug: preferredAudioModelSlug ?? "audio-minimax-speech"
     });
     const recommendedVoice = pickRecommendedAudioVoiceOption({
       options: Array.isArray(audioVoiceOptions) ? audioVoiceOptions : [],
       avatarGender,
       tone
     });
+    const requestedAudioAssetId =
+      selectedAudioAssetId || recommendedAudioAssetId || recommendedVoice?.id || null;
+    const { data: resolvedAudioAsset } = requestedAudioAssetId
+      ? await resolveConsumableAudioAsset({
+          supabase,
+          currentPlanSlug: currentPlanSlug === "pro" ? "pro" : "free",
+          requestedAudioAssetId
+        })
+      : { data: null };
+    const selectedAudioAsset = resolvedAudioAsset
+      ? resolvedAudioAsset
+      : recommendedVoice?.id
+        ? (await loadActiveAudioAssetById({
+            supabase,
+            audioAssetId: recommendedVoice.id
+          })).data
+        : null;
 
     await upsertOwnedRoleMediaProfile({
       supabase,
@@ -167,9 +279,11 @@ export async function createProductRole(formData: FormData) {
       portraitPresetId: avatarPresetId || null,
       portraitStyle: avatarStyle,
       portraitGender: avatarGender,
-      portraitSourceType: avatarPresetId ? "preset" : null,
-      audioAssetId: recommendedVoice?.id ?? null,
-      audioProvider: recommendedVoice?.provider ?? null
+      portraitSourceType: portraitAssetId || avatarPresetId ? "preset" : null,
+      portraitAssetId: portraitAssetId || null,
+      portraitLockedAt: portraitAssetId || avatarPresetId ? new Date().toISOString() : null,
+      audioAssetId: selectedAudioAsset?.id ?? null,
+      audioProvider: selectedAudioAsset?.provider ?? recommendedVoice?.provider ?? null
     });
   }
 
@@ -182,7 +296,13 @@ export async function createProductRole(formData: FormData) {
   });
 
   if (threadError || !createdThread) {
-    redirect(`/create?error=${encodeURIComponent(threadError?.message ?? "Failed to create thread.")}`);
+    redirect(
+      buildCreateErrorPath({
+        surfacePath,
+        message: threadError?.message ?? "Failed to create thread.",
+        presetSlug
+      })
+    );
   }
 
   if (redirectAfter) {

@@ -16,7 +16,10 @@ import { loadProductRoleCollection } from "@/lib/product/roles";
 import { getProductModelCatalogItemBySlug } from "@/lib/product/model-catalog";
 import { loadProductBillingConfiguration, resolveCurrentPlanSlug } from "@/lib/product/billing";
 import { RoleVoiceTabs, type RoleVoiceGroup } from "@/components/role-voice-tabs";
-import { updateProductRoleProfile } from "@/app/app/profile/actions";
+import {
+  restoreProductRoleDefaults,
+  updateProductRoleProfile
+} from "@/app/app/profile/actions";
 import {
   hideProductMemory,
   markProductMemoryIncorrect,
@@ -331,6 +334,43 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
                 <h3 className="role-subsection-title">Profile</h3>
               </div>
 
+              {profileData.role.sourcePersonaPackName ? (
+                <div className="role-preset-banner">
+                  <div className="role-preset-banner-copy">
+                    <span className="role-state-badge">
+                      Based on {profileData.role.sourcePersonaPackName}
+                    </span>
+                    <p className="role-field-hint">
+                      This role started from a system preset. You can keep editing it, or restore the
+                      preset defaults for tone, background, portrait, and voice.
+                    </p>
+                  </div>
+                  <button
+                    className="button button-secondary"
+                    formAction={restoreProductRoleDefaults}
+                    type="submit"
+                  >
+                    Restore defaults
+                  </button>
+                </div>
+              ) : null}
+
+              {profileData.role.media.portraitAssetUrl ? (
+                <div className="role-portrait-panel">
+                  <div className="role-portrait-panel-copy">
+                    <label className="label">Portrait</label>
+                    <p className="role-field-hint">
+                      Portrait is locked after creation to preserve continuity.
+                    </p>
+                  </div>
+                  <img
+                    alt={profileData.role.name}
+                    className="rcw-portrait role-portrait-panel-image"
+                    src={profileData.role.media.portraitAssetUrl}
+                  />
+                </div>
+              ) : null}
+
               <div className="role-form-grid-3">
                 <div className="field">
                   <label className="label" htmlFor="rp-name">Name</label>
@@ -400,6 +440,17 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
                   defaultValue={profileData.role.config.boundaries}
                   id="rp-boundaries"
                   name="boundaries"
+                  rows={3}
+                />
+              </div>
+
+              <div className="field">
+                <label className="label" htmlFor="rp-background">Background</label>
+                <textarea
+                  className="input textarea"
+                  defaultValue={profileData.role.backgroundSummary ?? ""}
+                  id="rp-background"
+                  name="background_summary"
                   rows={3}
                 />
               </div>

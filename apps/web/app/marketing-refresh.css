@@ -758,13 +758,6 @@ textarea.input {
   justify-content: center;
 }
 
-.landing-role-studio {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: minmax(0, 0.94fr) minmax(380px, 1.06fr);
-  align-items: stretch;
-}
-
 .landing-role-panel,
 .landing-preview-panel {
   display: grid;
@@ -3340,7 +3333,6 @@ textarea.input {
 
   .marketing-hero,
   .home-stage-grid,
-  .landing-role-studio,
   .home-returning-hero-layout,
   .home-returning-dashboard,
   .product-console-layout,
@@ -3641,6 +3633,42 @@ textarea.input {
   line-height: 1.72;
   color: var(--muted);
   max-width: 720px;
+}
+
+.home-hero-preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.home-hero-preset-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid hsl(240 12% 28%);
+  background: hsl(240 18% 14%);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.home-hero-preset-chip:hover {
+  border-color: hsl(268 52% 68% / 0.45);
+  background: hsl(240 16% 17%);
+  transform: translateY(-1px);
+}
+
+.home-hero-preset-chip-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.home-hero-preset-chip-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
 }
 
 /* Image placeholder utility */

@@ -1,4 +1,5 @@
 import {
+  loadActivePersonaPackById,
   loadLatestOwnedThread,
   loadOwnedActiveAgent,
   loadOwnedAvailableAgents,
@@ -28,7 +29,11 @@ export type ProductProfilePageData = {
   role: {
     agentId: string;
     name: string;
+    backgroundSummary: string | null;
     personaSummary: string;
+    sourcePersonaPackId: string | null;
+    sourcePersonaPackName: string | null;
+    sourceCharacterSlug: string | null;
     stylePrompt: string;
     systemPrompt: string;
     currentThreadTitle: string | null;
@@ -37,6 +42,7 @@ export type ProductProfilePageData = {
     media: {
       portraitAssetId: string | null;
       portraitAssetLabel: string;
+      portraitAssetUrl: string | null;
       portraitSourceLabel: string;
       portraitStyle: string | null;
       portraitGender: string | null;
@@ -118,7 +124,7 @@ export async function loadProductProfilePageData(args: {
     };
   }
 
-  const [{ data: appSettings }, { data: roleMediaProfile }, { data: audioAssets }] = await Promise.all([
+  const [{ data: appSettings }, { data: roleMediaProfile }, { data: audioAssets }, { data: sourcePersonaPack }] = await Promise.all([
     loadOwnedUserAppSettingsMetadata({
       supabase: args.supabase,
       userId: args.userId
@@ -131,7 +137,13 @@ export async function loadProductProfilePageData(args: {
     }),
     loadActiveAudioAssets({
       supabase: args.supabase
-    })
+    }),
+    typeof agent.source_persona_pack_id === "string" && agent.source_persona_pack_id.length > 0
+      ? loadActivePersonaPackById({
+          supabase: args.supabase,
+          personaPackId: agent.source_persona_pack_id
+        })
+      : Promise.resolve({ data: null })
   ]);
 
   const appSettingsMetadata =
@@ -173,7 +185,26 @@ export async function loadProductProfilePageData(args: {
     role: {
       agentId: agent.id,
       name: agent.name,
+      backgroundSummary:
+        agent.metadata &&
+        typeof agent.metadata === "object" &&
+        !Array.isArray(agent.metadata) &&
+        typeof (agent.metadata as Record<string, unknown>).background_summary === "string" &&
+        ((agent.metadata as Record<string, unknown>).background_summary as string).trim().length > 0
+          ? ((agent.metadata as Record<string, unknown>).background_summary as string)
+          : null,
       personaSummary: agent.persona_summary,
+      sourcePersonaPackId:
+        typeof agent.source_persona_pack_id === "string" ? agent.source_persona_pack_id : null,
+      sourcePersonaPackName:
+        typeof sourcePersonaPack?.name === "string" ? sourcePersonaPack.name : null,
+      sourceCharacterSlug:
+        sourcePersonaPack?.metadata &&
+        typeof sourcePersonaPack.metadata === "object" &&
+        !Array.isArray(sourcePersonaPack.metadata) &&
+        typeof (sourcePersonaPack.metadata as Record<string, unknown>).character_slug === "string"
+          ? ((sourcePersonaPack.metadata as Record<string, unknown>).character_slug as string)
+          : null,
       stylePrompt: agent.style_prompt,
       systemPrompt: agent.system_prompt,
       currentThreadTitle:
@@ -200,6 +231,15 @@ export async function loadProductProfilePageData(args: {
               : roleMediaProfile?.portrait_source_type
         }),
         portraitSourceLabel: formatPortraitSourceLabel(roleMediaProfile?.portrait_source_type),
+        portraitAssetUrl:
+          typeof portraitAsset?.public_url === "string" && portraitAsset.public_url.length > 0
+            ? portraitAsset.public_url
+            : typeof portraitAsset?.storage_path === "string" &&
+                portraitAsset.storage_path.startsWith("character-assets/")
+              ? args.supabase.storage
+                  .from("character-assets")
+                  .getPublicUrl(portraitAsset.storage_path.replace(/^character-assets\//, "")).data.publicUrl
+              : null,
         portraitStyle:
           typeof roleMediaProfile?.portrait_style === "string"
             ? roleMediaProfile.portrait_style

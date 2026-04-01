@@ -4,10 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
+  loadActivePersonaPackById,
   loadOwnedActiveAgent,
+  loadOwnedUserAppSettingsMetadata,
   loadPrimaryWorkspace,
   updateOwnedAgent
 } from "@/lib/chat/runtime-turn-context";
+import { getProductCharacterPresetDefaults } from "@/lib/characters/preset-defaults";
 import {
   buildProductAgentMetadata,
   buildProductPersonaSummary,
@@ -19,9 +22,13 @@ import {
   trimProductText
 } from "@/lib/product/role-core";
 import {
+  loadActiveAudioVoiceOptionsByModelSlug,
   loadActiveAudioAssetById,
   loadAccessiblePortraitAssetById,
   loadOwnedRoleMediaProfile,
+  loadSharedPresetPortraitAssetByCharacterSlug,
+  pickRecommendedAudioVoiceOption,
+  resolveDefaultAudioModelSlug,
   upsertOwnedRoleMediaProfile
 } from "@/lib/product/role-media";
 
@@ -89,6 +96,20 @@ function normalizeBoundaries(value: string) {
   return normalized.slice(0, 400).trimEnd();
 }
 
+function normalizeBackgroundSummary(value: string) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+
+  if (normalized.length === 0) {
+    return "";
+  }
+
+  if (normalized.length <= 280) {
+    return normalized;
+  }
+
+  return normalized.slice(0, 280).trimEnd();
+}
+
 function normalizeOptionalId(value: FormDataEntryValue | null) {
   if (typeof value !== "string") {
     return null;
@@ -142,6 +163,9 @@ export async function updateProductRoleProfile(formData: FormData) {
     trimProductText(formData.get("relationship_mode"))
   );
   const boundaries = normalizeBoundaries(trimProductText(formData.get("boundaries")));
+  const backgroundSummary = normalizeBackgroundSummary(
+    trimProductText(formData.get("background_summary"))
+  );
   const proactivityLevel = safeProductRoleProactivity(
     trimProductText(formData.get("proactivity_level"))
   );
@@ -214,6 +238,7 @@ export async function updateProductRoleProfile(formData: FormData) {
         relationshipMode,
         boundaries,
         proactivityLevel,
+        backgroundSummary,
         existingMetadata:
           agent.metadata && typeof agent.metadata === "object" && !Array.isArray(agent.metadata)
             ? (agent.metadata as Record<string, unknown>)
@@ -247,6 +272,10 @@ export async function updateProductRoleProfile(formData: FormData) {
         ? existingRoleMedia.portrait_source_type
         : null,
     portraitAssetId,
+    portraitLockedAt:
+      typeof existingRoleMedia?.portrait_locked_at === "string"
+        ? existingRoleMedia.portrait_locked_at
+        : null,
     portraitReferenceEnabledByDefault,
     audioAssetId,
     audioProvider: resolvedAudioProvider
@@ -264,4 +293,184 @@ export async function updateProductRoleProfile(formData: FormData) {
   revalidatePath("/connect-im");
   revalidatePath("/chat");
   redirectWithMessage(redirectPath, "Role core updated.", "success");
+}
+
+export async function restoreProductRoleDefaults(formData: FormData) {
+  const redirectPath = resolveRedirectPath(formData, "/app/role");
+  const agentId = formData.get("agent_id");
+
+  if (typeof agentId !== "string" || agentId.trim().length === 0) {
+    redirectWithMessage(redirectPath, "The role to restore could not be determined.", "error");
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/login?next=${encodeURIComponent(redirectPath)}`);
+  }
+
+  const { data: workspace } = await loadPrimaryWorkspace({
+    supabase,
+    userId: user.id
+  });
+
+  if (!workspace) {
+    redirectWithMessage(redirectPath, "No workspace is available for this account.", "error");
+  }
+
+  const { data: agent } = await loadOwnedActiveAgent({
+    supabase,
+    agentId,
+    workspaceId: workspace.id,
+    userId: user.id
+  });
+
+  if (!agent) {
+    redirectWithMessage(redirectPath, "The selected role is unavailable.", "error");
+  }
+
+  if (
+    typeof agent.source_persona_pack_id !== "string" ||
+    agent.source_persona_pack_id.trim().length === 0
+  ) {
+    redirectWithMessage(redirectPath, "This role was not created from a preset.", "error");
+  }
+
+  const [{ data: sourcePack }, { data: existingRoleMedia }, { data: appSettings }] =
+    await Promise.all([
+      loadActivePersonaPackById({
+        supabase,
+        personaPackId: agent.source_persona_pack_id
+      }),
+      loadOwnedRoleMediaProfile({
+        supabase,
+        agentId: agent.id,
+        workspaceId: workspace.id,
+        userId: user.id
+      }),
+      loadOwnedUserAppSettingsMetadata({
+        supabase,
+        userId: user.id
+      })
+    ]);
+
+  const sourceCharacterSlug =
+    sourcePack?.metadata &&
+    typeof sourcePack.metadata === "object" &&
+    !Array.isArray(sourcePack.metadata) &&
+    typeof (sourcePack.metadata as Record<string, unknown>).character_slug === "string"
+      ? ((sourcePack.metadata as Record<string, unknown>).character_slug as string)
+      : null;
+  const presetDefaults = getProductCharacterPresetDefaults(sourceCharacterSlug);
+
+  if (!presetDefaults) {
+    redirectWithMessage(redirectPath, "The preset defaults for this role are unavailable.", "error");
+  }
+
+  const appSettingsMetadata =
+    appSettings?.metadata &&
+    typeof appSettings.metadata === "object" &&
+    !Array.isArray(appSettings.metadata)
+      ? (appSettings.metadata as Record<string, unknown>)
+      : {};
+  const preferredAudioModelSlug = resolveDefaultAudioModelSlug(appSettingsMetadata);
+
+  const [{ data: defaultPortraitAsset }, { data: defaultVoiceOptions }] = await Promise.all([
+    loadSharedPresetPortraitAssetByCharacterSlug({
+      supabase,
+      characterSlug: presetDefaults.slug
+    }),
+    preferredAudioModelSlug
+      ? loadActiveAudioVoiceOptionsByModelSlug({
+          supabase,
+          modelSlug: preferredAudioModelSlug
+        })
+      : Promise.resolve({ data: [] })
+  ]);
+
+  const defaultVoice = pickRecommendedAudioVoiceOption({
+    options: Array.isArray(defaultVoiceOptions) ? defaultVoiceOptions : [],
+    avatarGender: presetDefaults.avatarGender,
+    tone: presetDefaults.tone
+  });
+
+  const { error } = await updateOwnedAgent({
+    supabase,
+    agentId: agent.id,
+    workspaceId: workspace.id,
+    userId: user.id,
+    patch: {
+      name: presetDefaults.name,
+      persona_summary: buildProductPersonaSummary({
+        mode: presetDefaults.mode,
+        avatarGender: presetDefaults.avatarGender,
+        tone: presetDefaults.tone,
+        relationshipMode: presetDefaults.relationshipMode
+      }),
+      style_prompt: buildProductStylePrompt(presetDefaults.tone),
+      system_prompt: buildProductSystemPrompt({
+        name: presetDefaults.name,
+        mode: presetDefaults.mode,
+        avatarGender: presetDefaults.avatarGender,
+        tone: presetDefaults.tone,
+        relationshipMode: presetDefaults.relationshipMode,
+        boundaries: presetDefaults.boundaries,
+        proactivityLevel: presetDefaults.proactivityLevel
+      }),
+      metadata: buildProductAgentMetadata({
+        mode: presetDefaults.mode,
+        tone: presetDefaults.tone,
+        relationshipMode: presetDefaults.relationshipMode,
+        boundaries: presetDefaults.boundaries,
+        proactivityLevel: presetDefaults.proactivityLevel,
+        backgroundSummary: presetDefaults.backgroundSummary,
+        avatarStyle: presetDefaults.avatarStyle,
+        avatarGender: presetDefaults.avatarGender,
+        existingMetadata:
+          agent.metadata && typeof agent.metadata === "object" && !Array.isArray(agent.metadata)
+            ? (agent.metadata as Record<string, unknown>)
+            : {}
+      }),
+      updated_at: new Date().toISOString()
+    }
+  });
+
+  if (error) {
+    redirectWithMessage(redirectPath, error.message, "error");
+  }
+
+  const { error: roleMediaError } = await upsertOwnedRoleMediaProfile({
+    supabase,
+    agentId: agent.id,
+    workspaceId: workspace.id,
+    userId: user.id,
+    portraitPresetId:
+      typeof existingRoleMedia?.portrait_preset_id === "string"
+        ? existingRoleMedia.portrait_preset_id
+        : null,
+    portraitStyle: presetDefaults.avatarStyle,
+    portraitGender: presetDefaults.avatarGender,
+    portraitSourceType: "preset",
+    portraitAssetId: defaultPortraitAsset?.id ?? existingRoleMedia?.portrait_asset_id ?? null,
+    portraitLockedAt:
+      typeof existingRoleMedia?.portrait_locked_at === "string"
+        ? existingRoleMedia.portrait_locked_at
+        : new Date().toISOString(),
+    portraitReferenceEnabledByDefault: true,
+    audioAssetId: defaultVoice?.id ?? existingRoleMedia?.audio_asset_id ?? null,
+    audioProvider: defaultVoice?.provider ?? existingRoleMedia?.audio_provider ?? null
+  });
+
+  if (roleMediaError) {
+    redirectWithMessage(redirectPath, roleMediaError.message, "error");
+  }
+
+  revalidatePath("/app");
+  revalidatePath("/app/profile");
+  revalidatePath("/app/role");
+  revalidatePath("/app/settings");
+  redirectWithMessage(redirectPath, "Preset defaults restored.", "success");
 }

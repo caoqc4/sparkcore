@@ -9,6 +9,10 @@
 > 相关文档：
 > - `docs/product/companion_mvp_flow_v1.0.md`
 > - `apps/web/lib/characters/manifest.ts`（代码层注册表）
+> - `apps/web/lib/characters/preset-defaults.ts`（预设默认值）
+> - `supabase/migrations/20260331150000_add_product_audio_tier_and_portrait_lock.sql`
+> - `supabase/migrations/20260331151000_seed_product_character_persona_packs.sql`
+> - `supabase/migrations/20260331152000_seed_shared_product_portrait_assets.sql`
 
 ---
 
@@ -322,21 +326,39 @@ role 页显示 banner：
 
 ## 8. 待实现的技术变更清单
 
-| 优先级 | 任务 | 涉及文件 |
-|--------|------|---------|
-| P0 | `product_audio_voice_options` 加 `tier` 字段 migration | `supabase/migrations/` |
-| P0 | `role_media_profiles` 加 `portrait_locked_at` 字段 migration | `supabase/migrations/` |
-| P0 | `pickRecommendedAudioVoiceOption` 支持 tier 参数过滤 | `lib/product/role-media.ts` |
-| P0 | 角色创建时写入 `portrait_locked_at` | `app/create/actions.ts` |
-| P1 | 三个 persona_packs 的 seed migration（Caria/Teven/Velia） | `supabase/migrations/` |
-| P1 | Wizard 加入预设卡选择器（PC 左侧栏 + 移动端顶部滚动） | `components/role-create-wizard.tsx` |
-| P1 | 首页角色卡点击 → 预填 + 滚动交互 | `components/home-hero-interactive.tsx` |
-| P1 | 音频预听 UI | `components/role-create-wizard.tsx` |
-| P1 | 创建时支持在当前层级可用范围内切换音色 | `components/role-create-wizard.tsx`, `app/create/actions.ts` |
-| P2 | role 页显示"Based on preset · Restore defaults" | `app/app/role/page.tsx` |
-| P2 | 付费后音色升级提示 banner | `app/app/role/page.tsx` |
-| P2 | Advanced 折叠区 + background_summary 输入 | `components/role-create-wizard.tsx` |
-| P2 | role 页展示 `background_summary` | `app/app/role/page.tsx` |
+### 8.1 已实现
+
+| 任务 | 落地点 |
+|------|--------|
+| `product_audio_voice_options` 增加 `tier` | `supabase/migrations/20260331150000_add_product_audio_tier_and_portrait_lock.sql` |
+| `role_media_profiles` 增加 `portrait_locked_at` | `supabase/migrations/20260331150000_add_product_audio_tier_and_portrait_lock.sql` |
+| 三个 persona pack seed（girlfriend / boyfriend / assistant） | `supabase/migrations/20260331151000_seed_product_character_persona_packs.sql` |
+| shared preset portrait assets seed | `supabase/migrations/20260331152000_seed_shared_product_portrait_assets.sql` |
+| 创建时按 preset / blank 写入 `source_persona_pack_id` | `apps/web/app/create/actions.ts` |
+| 创建时写入 `portrait_asset_id`、`portrait_locked_at`、音色选择结果 | `apps/web/app/create/actions.ts` |
+| Portrait Pool 从数据库读取系统预置图 | `apps/web/lib/product/role-media.ts`、`apps/web/app/create/page.tsx`、`apps/web/app/app/create/page.tsx` |
+| Wizard 预设起点选择器（PC 左侧 / 移动端顶部） | `apps/web/app/create/page.tsx`、`apps/web/app/app/create/page.tsx`、`apps/web/components/role-create-wizard.tsx` |
+| 创建时在当前层级可用范围内切换音色 | `apps/web/components/role-create-wizard.tsx`、`apps/web/app/create/actions.ts` |
+| Advanced 折叠区 + `background_summary` 输入 | `apps/web/components/role-create-wizard.tsx` |
+| role 页显示 `Based on ...` 与 `Restore defaults` | `apps/web/app/app/role/page.tsx` |
+| role 页展示并编辑 `background_summary` | `apps/web/app/app/role/page.tsx`、`apps/web/app/app/profile/actions.ts` |
+| 首页与 `/create`、`/app/create` 的 preset 入口统一 | `apps/web/components/home-hero-interactive.tsx`、`apps/web/app/create/page.tsx` |
+
+### 8.2 部分实现
+
+| 任务 | 当前状态 |
+|------|----------|
+| 首页角色卡点击后的“预填 + 平滑滚动回首屏”交互 | 已有 preset 入口与跳转；未保留首页内平滑滚动预填流程 |
+| 音频预听 UI | 已有可选列表与推荐逻辑；预听体验仍可继续增强 |
+| role 页付费后音色升级 banner | 音色分层能力已具备；专门的升级 banner 仍未补 |
+
+### 8.3 暂不在本期范围
+
+| 任务 | 说明 |
+|------|------|
+| 用户上传头像 | Phase 1 不开放 |
+| AI 生成头像 | Phase 1 不开放 |
+| 免费 / 付费角色数量限制 | 文档已定义方向，后端限制暂未落地 |
 
 ---
 
@@ -357,3 +379,60 @@ role 页显示 banner：
 | 形象图创建范围 | Phase 1 仅开放系统预置图 | 先完成主链路，控制实现范围 |
 | 创建时音色选择 | 先推荐，再允许用户在当前层级可用范围内切换确认 | 保留推荐效率，同时给用户声音选择权 |
 | `relationship_mode` 字段形态 | 先保持现状，继续使用自由文本 | 当前展示位置未最终收敛，暂不收紧为枚举 |
+
+---
+
+## 10. 当前实现备注
+
+- `/create` 与 `/app/create` 目前都以页面级 preset 选择栏 + 统一 wizard 的形式工作，已经不再依赖旧的 `mode` / `gender` query 兼容入口
+- 创建页 Step 3 已从 `product_portrait_assets` 读取系统预置图，并优先展示 storage 对应的 public URL；若 bucket 中缺图，前端会退回占位态
+- `Restore defaults` 当前会恢复人格字段、`background_summary`、默认 portrait 与默认音色；空白创建角色没有该能力
+- 底层仍保留少量 `avatar_preset_id` 兼容字段，用于历史数据兼容；新创建主链以 `portrait_asset_id` 为准
+
+---
+
+## 11. 本次实现结果
+
+### 11.1 已交付范围
+
+- 角色创建入口已统一到 preset / blank wizard：
+  - `/create`
+  - `/app/create`
+- 预设创建会写入 `source_persona_pack_id`，空白创建写 `null`
+- role 页已支持：
+  - `Based on ...`
+  - `Restore defaults`
+  - `background_summary` 展示与编辑
+- portrait 选择已接入数据库预置资产，并在创建后写入锁定状态
+- 音色选择已支持：
+  - 基于角色属性推荐默认项
+  - 在当前用户层级可用范围内切换
+- 首页 preset 入口、公开创建页、应用内创建页已对齐到同一套产品流
+- 旧的 `mode/gender` 创建兼容入口和未使用旧组件已清理
+
+### 11.2 Smoke 与验证结果
+
+- 类型检查通过：
+  - `npm exec tsc --noEmit`
+- 产品主链 smoke 通过：
+  - `npx playwright test tests/smoke/product-flow.spec.ts --reporter=line`
+- 当前 smoke 所覆盖的真实链路为：
+  - `/app/create`
+  - `/app/role`
+  - `/app/channels`
+  - `/connect-im`
+  - `/app/chat`
+
+### 11.3 为了稳定 smoke 额外补充的能力
+
+- smoke 登录在 password 登录被禁用时会 fallback 到 magic link
+- smoke reset 与 smoke login 对瞬时 Supabase 网络失败增加了重试
+- smoke seed 会自动 upsert 产品 preset persona packs，避免依赖外部手工 seed
+- smoke 对 binding 的最终校验已收窄到当前 smoke 用户，避免被其他活跃绑定污染
+
+### 11.4 当前已知边界
+
+- smoke 仍依赖外部 Supabase 服务；虽然已加入重试，但无法完全消除外部网络波动
+- `core-chat.spec.ts` 等更大范围 smoke 尚未在本次变更中一起验证
+- role 页付费后音色升级 banner 仍未补
+- 首页“预填后平滑滚动回首屏”的交互仍未恢复，当前实现为直接进入统一 wizard

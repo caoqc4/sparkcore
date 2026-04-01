@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
 import { HomeHeroForm } from "./home-hero-form";
 import { HomeHeroPreview } from "./home-hero-preview";
 
@@ -28,6 +29,16 @@ interface HomeHeroInteractiveProps {
   user?: { id: string } | null;
 }
 
+const HERO_PRESETS: Array<{
+  slug: CharacterSlug;
+  label: string;
+  desc: string;
+}> = [
+  { slug: "caria", label: "Caria", desc: "Warm preset" },
+  { slug: "teven", label: "Teven", desc: "Steady preset" },
+  { slug: "velia", label: "Velia", desc: "Assistant preset" },
+];
+
 export function HomeHeroInteractive({ user }: HomeHeroInteractiveProps) {
   const router = useRouter();
   const [draft, setDraft] = useState<CompanionDraft>({
@@ -50,18 +61,24 @@ export function HomeHeroInteractive({ user }: HomeHeroInteractiveProps) {
     });
   }, []);
 
-  const handleSubmit = useCallback(() => {
-    const displayName = draft.name.trim() || DEFAULT_NAMES[draft.gender];
-    const params = new URLSearchParams({
-      gender: draft.gender,
-      mode: "companion",
-      name: displayName,
-      tone: draft.tone,
-    });
-    if (draft.traits.length > 0) {
-      params.set("traits", draft.traits.join(","));
+  const handlePresetStart = useCallback((presetSlug: CharacterSlug | "blank") => {
+    const createPath =
+      presetSlug === "blank" ? "/app/create" : `/app/create?preset=${encodeURIComponent(presetSlug)}`;
+
+    if (user) {
+      router.push(createPath);
+    } else {
+      router.push(`/login?next=${encodeURIComponent(createPath)}`);
     }
-    const createPath = `/app/create?${params.toString()}`;
+  }, [router, user]);
+
+  const handleSubmit = useCallback(() => {
+    const createPath =
+      draft.gender === "female"
+        ? "/app/create?preset=caria"
+        : draft.gender === "male"
+          ? "/app/create?preset=teven"
+          : "/app/create";
     if (user) {
       router.push(createPath);
     } else {
@@ -81,6 +98,29 @@ export function HomeHeroInteractive({ user }: HomeHeroInteractiveProps) {
           Shape who they are before the first message.
           Keep the relationship alive in IM — return only when memory or privacy needs you.
         </p>
+        <div className="home-hero-preset-row">
+          {HERO_PRESETS.map((preset) => (
+            <button
+              key={preset.slug}
+              type="button"
+              className="home-hero-preset-chip"
+              onClick={() => handlePresetStart(preset.slug)}
+            >
+              <span className="home-hero-preset-chip-name">
+                {CHARACTER_MANIFEST[preset.slug].displayName}
+              </span>
+              <span className="home-hero-preset-chip-desc">{preset.desc}</span>
+            </button>
+          ))}
+          <button
+            type="button"
+            className="home-hero-preset-chip home-hero-preset-chip-blank"
+            onClick={() => handlePresetStart("blank")}
+          >
+            <span className="home-hero-preset-chip-name">Blank</span>
+            <span className="home-hero-preset-chip-desc">Start from scratch</span>
+          </button>
+        </div>
       </div>
 
       {/* Left: interactive form */}

@@ -332,6 +332,7 @@ export function buildProductAgentMetadata(args: {
   relationshipMode: string;
   boundaries: string;
   proactivityLevel: ProductRoleProactivity;
+  backgroundSummary?: string | null;
   userPreferredName?: string | null;
   avatarPresetId?: string | null;
   avatarStyle?: ProductRoleAvatarStyle | null;
@@ -362,6 +363,11 @@ export function buildProductAgentMetadata(args: {
       proactivity_level: args.proactivityLevel,
       ...(args.userPreferredName ? { user_preferred_name: args.userPreferredName } : {})
     },
+    ...(args.backgroundSummary
+      ? {
+          background_summary: args.backgroundSummary
+        }
+      : {}),
     ...(appearance
       ? {
           product_role_appearance: {

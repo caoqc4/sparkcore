@@ -7,7 +7,7 @@ import {
 const WORKSPACE_SELECT = "id, name, kind";
 const THREAD_SELECT = "id, title, status, agent_id, workspace_id, created_at, updated_at";
 const AGENT_SELECT =
-  "id, name, persona_summary, style_prompt, system_prompt, default_model_profile_id, metadata";
+  "id, name, persona_summary, style_prompt, system_prompt, source_persona_pack_id, default_model_profile_id, metadata";
 const ACTIVE_AGENT_LIST_SELECT =
   "id, name, is_custom, persona_summary, system_prompt, source_persona_pack_id, default_model_profile_id, metadata";
 const ACTIVE_PERSONA_PACK_SELECT =
@@ -151,7 +151,7 @@ export async function createOwnedAgent(args: {
   supabase: any;
   workspaceId: string;
   userId: string;
-  sourcePersonaPackId: string;
+  sourcePersonaPackId: string | null;
   name: string;
   personaSummary: string;
   stylePrompt: string;

@@ -169,21 +169,21 @@ export function resolveViewerRoute(
         return state.nextStepHref ?? "/app";
       }
 
-      return "/create?mode=companion";
+      return "/create";
 
     case "create_girlfriend":
       if (state.authenticated && state.hasRole && state.hasThread) {
         return state.nextStepHref ?? "/app";
       }
 
-      return "/create?gender=female";
+      return "/create?preset=caria";
 
     case "create_boyfriend":
       if (state.authenticated && state.hasRole && state.hasThread) {
         return state.nextStepHref ?? "/app";
       }
 
-      return "/create?gender=male";
+      return "/create?preset=teven";
 
     case "dashboard":
       return state.authenticated ? "/app" : "/login";
