@@ -6327,6 +6327,22 @@ details[open] .role-mem-older-summary::before {
   margin-top: 2px;
 }
 
+.channel-connection-hint {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: hsl(240 8% 46%);
+}
+
+.channel-connection-hint-label {
+  margin-top: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(240 8% 52%);
+}
+
 .channel-connection-actions {
   display: flex;
   align-items: center;
@@ -6342,17 +6358,35 @@ details[open] .role-mem-older-summary::before {
   gap: 20px;
 }
 
-.connect-im-platforms {
+.connect-im-platform-setup {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 10px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: hsl(207 100% 98%);
+  border: 1px solid hsl(207 66% 90%);
 }
 
-.connect-im-platform-note {
+.connect-im-platform-setup-title {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: hsl(240 20% 18%);
+}
+
+.connect-im-platform-setup-copy {
+  margin: 0;
+  font-size: 0.84rem;
   line-height: 1.6;
-  color: hsl(240 10% 42%);
+  color: hsl(240 8% 42%);
+}
+
+.connect-im-inline-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 /* Steps */

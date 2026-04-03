@@ -137,6 +137,32 @@ export function getDiscordEnv() {
   };
 }
 
+export function getFeishuEnv() {
+  const appId = process.env.FEISHU_APP_ID;
+  const appSecret = process.env.FEISHU_APP_SECRET;
+
+  if (!appId) {
+    throw new Error("Missing Feishu app ID. Set FEISHU_APP_ID.");
+  }
+
+  if (!appSecret) {
+    throw new Error("Missing Feishu app secret. Set FEISHU_APP_SECRET.");
+  }
+
+  return {
+    appId,
+    appSecret
+  };
+}
+
+export function getWeChatOpenILinkSessionEnv() {
+  return {
+    sessionFile:
+      process.env.WECHAT_OPENILINK_SESSION_FILE ??
+      ".openilink-wechat-session.json"
+  };
+}
+
 export function getFollowUpCronEnv() {
   const secret = process.env.FOLLOW_UP_CRON_SECRET;
   const defaultSender =

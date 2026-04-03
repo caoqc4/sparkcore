@@ -8,12 +8,15 @@ import {
   loadOwnedThread,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
+import { activateWeChatOpenILinkSessionForUser } from "@/lib/integrations/wechat-openilink-sessions";
 import { loadChannelPlatformCapability } from "@/lib/product/channels";
 import { isCharacterChannelSlug } from "@/lib/product/character-channels";
 
 const PLATFORM_LABELS = {
   telegram: "Telegram",
   discord: "Discord",
+  feishu: "Feishu",
+  wechat: "WeChat",
 } as const;
 
 type SupportedBindingPlatform = keyof typeof PLATFORM_LABELS;
@@ -286,6 +289,43 @@ async function connectBinding(
     }
   }
 
+  if (platform === "wechat") {
+    let activatedSession = null;
+
+    try {
+      activatedSession = await activateWeChatOpenILinkSessionForUser({
+        supabase,
+        workspaceId: workspace.id,
+        userId: user.id,
+        wechatUserId: platformUserId,
+        metadata: {
+          thread_id: threadResult.data.id,
+          agent_id: agentResult.data.id
+        }
+      });
+
+    } catch (error) {
+      redirectWithMessage({
+        platform,
+        threadId,
+        agentId,
+        feedback: error instanceof Error ? error.message : "Failed to activate the WeChat session.",
+        feedbackType: "error"
+      });
+    }
+
+    if (!activatedSession) {
+      redirectWithMessage({
+        platform,
+        threadId,
+        agentId,
+        feedback:
+          "WeChat session not found. Start the WeChat login flow again, send the bot any message, then retry the binding.",
+        feedbackType: "error"
+      });
+    }
+  }
+
   revalidatePath("/connect-im");
   revalidatePath("/app");
   revalidatePath("/app/channels");
@@ -308,4 +348,12 @@ export async function connectTelegramBinding(formData: FormData) {
 
 export async function connectDiscordBinding(formData: FormData) {
   return connectBinding("discord", formData);
+}
+
+export async function connectFeishuBinding(formData: FormData) {
+  return connectBinding("feishu", formData);
+}
+
+export async function connectWeChatBinding(formData: FormData) {
+  return connectBinding("wechat", formData);
 }

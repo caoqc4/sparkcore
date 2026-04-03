@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ProductConsoleShell } from "@/components/product-console-shell";
 import { DiscordBindingForm } from "@/components/discord-binding-form";
+import { FeishuBindingForm } from "@/components/feishu-binding-form";
 import { TelegramBindingForm } from "@/components/telegram-binding-form";
+import { WeChatBindingForm } from "@/components/wechat-binding-form";
 import { ProductEventTracker } from "@/components/product-event-tracker";
 import { requireUser } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
@@ -16,7 +18,9 @@ import {
 import { buildPageMetadata } from "@/lib/site";
 import {
   connectDiscordBinding,
-  connectTelegramBinding
+  connectFeishuBinding,
+  connectTelegramBinding,
+  connectWeChatBinding
 } from "@/app/connect-im/actions";
 
 export const metadata = buildPageMetadata({
@@ -41,12 +45,137 @@ type ConnectImPageProps = {
 const PLATFORM_LABELS = {
   telegram: "Telegram",
   discord: "Discord",
+  feishu: "Feishu",
+  wechat: "WeChat",
 } as const;
 
 type SupportedPlatform = keyof typeof PLATFORM_LABELS;
 
 function isSupportedPlatform(value: string | undefined): value is SupportedPlatform {
-  return value === "telegram" || value === "discord";
+  return (
+    value === "telegram" ||
+    value === "discord" ||
+    value === "feishu" ||
+    value === "wechat"
+  );
+}
+
+function renderPlatformSetupLead(platform: SupportedPlatform) {
+  switch (platform) {
+    case "discord":
+      return {
+        title: "Start the Discord DM first",
+        copy:
+          "Find Lagun in Discord and send it any message. In most cases the first unbound reply will give you the IDs you need, so Developer Mode is only a fallback.",
+      };
+    case "feishu":
+      return {
+        title: "Start the Feishu chat first",
+        copy:
+          "Search for Lagun in your Feishu workspace, open that bot thread, and send it any message. The first unbound reply will return the IDs for binding.",
+      };
+    case "wechat":
+      return {
+        title: "Start your WeChat session",
+        copy:
+          "Click the button below to start your WeChat login flow. SparkCore will open a QR page in a new tab for your own WeChat ClawBot/OpeniLink session, then wait for your first message to finish binding.",
+      };
+    case "telegram":
+    default:
+      return null;
+  }
+}
+
+function renderPlatformStepOne(
+  platform: SupportedPlatform,
+  args: { botUsername: string | null; recommendedBotName: string | null }
+) {
+  if (platform === "telegram") {
+    return args.botUsername ? (
+      <>
+        Open Telegram and message{" "}
+        <a
+          className="site-inline-link"
+          href={`https://t.me/${args.botUsername}`}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          @{args.botUsername}
+        </a>
+        . Send it <strong>any</strong> message.
+      </>
+    ) : args.recommendedBotName ? (
+      <>
+        Open the {args.recommendedBotName} bot in Telegram and send it <strong>any</strong>{" "}
+        message.
+      </>
+    ) : (
+      <>
+        Open your Telegram bot and send it <strong>any</strong> message.
+      </>
+    );
+  }
+
+  if (platform === "discord") {
+    return (
+      <>
+        Open Discord, find <strong>Lagun</strong>, and send it <strong>any</strong> message.
+      </>
+    );
+  }
+
+  if (platform === "feishu") {
+    return (
+      <>
+        Open Feishu, search for <strong>Lagun</strong> in your workspace, and send it{" "}
+        <strong>any</strong> message.
+      </>
+    );
+  }
+
+  return (
+    <>
+      Start the WeChat login flow, scan the QR code for <strong>your own WeChat ClawBot session</strong>, then send it <strong>any</strong>{" "}
+      message.
+    </>
+  );
+}
+
+function renderPlatformStepTwo(platform: SupportedPlatform) {
+  if (platform === "telegram") {
+    return (
+      <>
+        After that first message, copy the <strong>Chat ID</strong> and your{" "}
+        <strong>User ID</strong> from the first unbound bot reply.
+      </>
+    );
+  }
+
+  if (platform === "discord") {
+    return (
+      <>
+        After that first message, copy the <strong>DM Channel ID</strong> and your{" "}
+        <strong>User ID</strong> from the first unbound bot reply. If needed, you can also get
+        them from Discord Developer Mode.
+      </>
+    );
+  }
+
+  if (platform === "feishu") {
+    return (
+      <>
+        After that first message, copy the <strong>Chat ID</strong> and your{" "}
+        <strong>Open ID</strong> from the first unbound bot reply.
+      </>
+    );
+  }
+
+  return (
+    <>
+      After that first message, copy the <strong>Session ID</strong> and your{" "}
+      <strong>User ID</strong> from the first unbound bot reply.
+    </>
+  );
 }
 
 export default async function ConnectImPage({
@@ -84,12 +213,24 @@ export default async function ConnectImPage({
           avatarGender: data.role.avatarGender
         })
       : null;
+  const preferredPlatformOrder: SupportedPlatform[] = [
+    "telegram",
+    "discord",
+    "feishu",
+    "wechat"
+  ];
   const connectablePlatforms = capabilities
     .filter((capability) =>
-      capability.availabilityStatus === "active" && capability.supportsBinding
+      (capability.availabilityStatus === "active" && capability.supportsBinding) ||
+      capability.platform === "feishu" ||
+      capability.platform === "wechat"
     )
     .map((capability) => capability.platform)
-    .filter(isSupportedPlatform);
+    .filter(isSupportedPlatform)
+    .sort(
+      (left, right) =>
+        preferredPlatformOrder.indexOf(left) - preferredPlatformOrder.indexOf(right)
+    );
   const selectedPlatform =
     (typeof params.platform === "string" && isSupportedPlatform(params.platform)
       ? params.platform
@@ -120,27 +261,7 @@ export default async function ConnectImPage({
     ? getCharacterChannelLabel(recommendedCharacterChannel)
     : null;
   const selectedPlatformLabel = PLATFORM_LABELS[selectedPlatform];
-  const queryBase = new URLSearchParams();
-
-  if (data.thread?.threadId) {
-    queryBase.set("thread", data.thread.threadId);
-  }
-
-  if (data.role?.agentId) {
-    queryBase.set("agent", data.role.agentId);
-  }
-
-  const platformSwitchLinks = connectablePlatforms.map((platform) => {
-    const nextParams = new URLSearchParams(queryBase);
-    nextParams.set("platform", platform);
-
-    return {
-      href: `/connect-im?${nextParams.toString()}`,
-      label: PLATFORM_LABELS[platform],
-      platform,
-    };
-  });
-
+  const platformSetupLead = renderPlatformSetupLead(selectedPlatform);
   return (
     <ProductConsoleShell
       actions={
@@ -223,72 +344,35 @@ export default async function ConnectImPage({
         </div>
       </div>
 
-      <div className="connect-im-platforms" role="tablist" aria-label="IM platform picker">
-        {platformSwitchLinks.map((platform) => (
-          <Link
-            key={platform.platform}
-            className={`button ${
-              platform.platform === selectedPlatform
-                ? "button-primary"
-                : "button-secondary"
-            }`}
-            href={platform.href}
-          >
-            {platform.label}
-          </Link>
-        ))}
-      </div>
-
-      <p className="connect-im-platform-note">
-        You can connect more than one IM at the same time. Each app keeps its own conversation,
-        but the companion stays the same.
-      </p>
-
       {/* ── Main card ── */}
       {data.role && data.thread ? (
         <section className="site-card connect-im-card">
+          {platformSetupLead ? (
+            <div className="connect-im-platform-setup">
+              <p className="connect-im-platform-setup-title">
+                {platformSetupLead.title}
+              </p>
+              <p className="connect-im-platform-setup-copy">
+                {platformSetupLead.copy}
+              </p>
+            </div>
+          ) : null}
+
           {/* Steps */}
           <div className="connect-im-steps">
             <div className="connect-im-step">
               <span className="connect-im-step-num">1</span>
               <span className="connect-im-step-text">
-                {selectedPlatform === "telegram" ? (
-                  botUsername ? (
-                    <>
-                      Open Telegram and message{" "}
-                      <a
-                        className="site-inline-link"
-                        href={`https://t.me/${botUsername}`}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        @{botUsername}
-                      </a>
-                    </>
-                  ) : recommendedBotName ? (
-                    `Open the ${recommendedBotName} bot in Telegram`
-                  ) : (
-                    "Open your Telegram bot"
-                  )
-                ) : (
-                  "Open Discord and send a DM to the SparkCore bot."
-                )}
+                {renderPlatformStepOne(selectedPlatform, {
+                  botUsername,
+                  recommendedBotName
+                })}
               </span>
             </div>
             <div className="connect-im-step">
               <span className="connect-im-step-num">2</span>
               <span className="connect-im-step-text">
-                {selectedPlatform === "telegram" ? (
-                  <>
-                    Send any message. The bot will reply with your <strong>Chat ID</strong> and{" "}
-                    <strong>User ID</strong>.
-                  </>
-                ) : (
-                  <>
-                    Turn on Discord Developer Mode, then copy the <strong>DM Channel ID</strong>{" "}
-                    and your <strong>User ID</strong>.
-                  </>
-                )}
+                {renderPlatformStepTwo(selectedPlatform)}
               </span>
             </div>
             <div className="connect-im-step">
@@ -314,7 +398,11 @@ export default async function ConnectImPage({
             <p className="connect-im-rebind-note">
               {selectedPlatform === "telegram"
                 ? `Your role ${data.role.name} will talk to you through ${recommendedBotName} on Telegram.`
-                : `Your role ${data.role.name} will use the same voice on Discord, while keeping the Discord conversation separate from your other apps.`}
+                : selectedPlatform === "discord"
+                  ? `Your role ${data.role.name} will use the same voice on Discord, while keeping the Discord conversation separate from your other apps.`
+                  : selectedPlatform === "feishu"
+                    ? `Your role ${data.role.name} will use the same voice in Feishu, while keeping the Feishu conversation separate from your other apps.`
+                    : `Your role ${data.role.name} will use the same voice in WeChat, while keeping the WeChat conversation separate from your other apps.`}
             </p>
           ) : null}
 
@@ -329,12 +417,31 @@ export default async function ConnectImPage({
                   threadId={data.thread.threadId}
                 />
               </form>
-            ) : (
+            ) : selectedPlatform === "discord" ? (
               <form action={connectDiscordBinding}>
                 <DiscordBindingForm
                   agentId={data.role.agentId}
                   characterChannelSlug={recommendedCharacterChannel ?? "caria"}
                   hasExistingBinding={Boolean(existingBinding)}
+                  threadId={data.thread.threadId}
+                />
+              </form>
+            ) : selectedPlatform === "feishu" ? (
+              <form action={connectFeishuBinding}>
+                <FeishuBindingForm
+                  agentId={data.role.agentId}
+                  characterChannelSlug={recommendedCharacterChannel ?? "caria"}
+                  hasExistingBinding={Boolean(existingBinding)}
+                  threadId={data.thread.threadId}
+                />
+              </form>
+            ) : (
+              <form action={connectWeChatBinding}>
+                <WeChatBindingForm
+                  agentId={data.role.agentId}
+                  characterChannelSlug={recommendedCharacterChannel ?? "caria"}
+                  hasExistingBinding={Boolean(existingBinding)}
+                  sessionStatus={data.wechatSession?.status ?? null}
                   threadId={data.thread.threadId}
                 />
               </form>

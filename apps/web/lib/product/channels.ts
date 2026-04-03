@@ -82,11 +82,19 @@ export const DEFAULT_CHANNEL_PLATFORM_CAPABILITIES: ProductChannelPlatformCapabi
     label: "Discord"
   },
   {
-    platform: "wechat",
+    platform: "feishu",
     availabilityStatus: "coming_soon",
     supportsBinding: false,
     supportsAdvancedIdentityFields: false,
     displayOrder: 3,
+    label: "Feishu"
+  },
+  {
+    platform: "wechat",
+    availabilityStatus: "active",
+    supportsBinding: true,
+    supportsAdvancedIdentityFields: true,
+    displayOrder: 4,
     label: "WeChat"
   }
 ];

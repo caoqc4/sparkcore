@@ -5,6 +5,7 @@ import {
   loadOwnedThread,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
+import { loadLatestOwnedWeChatOpenILinkSession } from "@/lib/integrations/wechat-openilink-sessions";
 import { loadOwnedChannelBindings, type ProductChannelBinding } from "@/lib/product/channels";
 import {
   resolveProductRoleCore,
@@ -27,6 +28,14 @@ export type ProductConnectImPageData = {
     title: string;
   } | null;
   bindings: ProductChannelBinding[];
+  wechatSession: {
+    id: string;
+    status: "pending" | "active" | "expired" | "revoked";
+    wechatUserId: string | null;
+    lastConnectedAt: string | null;
+    lastSeenAt: string | null;
+    expiredAt: string | null;
+  } | null;
 };
 
 export async function loadProductConnectImPageData(args: {
@@ -79,7 +88,7 @@ export async function loadProductConnectImPageData(args: {
     latestThreadResult.data?.agent_id ??
     null;
 
-  const [bindings, agentResult] = await Promise.all([
+  const [bindings, agentResult, wechatSession] = await Promise.all([
     loadOwnedChannelBindings({
       supabase: args.supabase,
       workspaceId: workspace.id,
@@ -92,7 +101,12 @@ export async function loadProductConnectImPageData(args: {
           workspaceId: workspace.id,
           userId: args.userId
         })
-      : Promise.resolve({ data: null })
+      : Promise.resolve({ data: null }),
+    loadLatestOwnedWeChatOpenILinkSession({
+      supabase: args.supabase,
+      workspaceId: workspace.id,
+      userId: args.userId
+    })
   ]);
 
   return {
@@ -121,6 +135,16 @@ export async function loadProductConnectImPageData(args: {
           title: threadResult.data.title
         }
       : null,
-    bindings
+    bindings,
+    wechatSession: wechatSession
+      ? {
+          id: wechatSession.id,
+          status: wechatSession.status,
+          wechatUserId: wechatSession.wechat_user_id,
+          lastConnectedAt: wechatSession.last_connected_at,
+          lastSeenAt: wechatSession.last_seen_at,
+          expiredAt: wechatSession.expired_at
+        }
+      : null
   };
 }

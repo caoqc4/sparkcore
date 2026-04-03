@@ -1,14 +1,20 @@
 import WebSocket from "ws";
 import { webImRuntimePort } from "@/lib/chat/im-runtime-port";
 import {
+  buildInboundDedupeKey,
   createSupabaseBindingLookup,
   handleInboundChannelMessage
 } from "@/lib/integrations/im-adapter";
+import {
+  claimImInboundReceipt,
+  updateImInboundReceipt
+} from "@/lib/integrations/im-inbound-receipts";
 import {
   type DiscordMessageCreateEvent,
   normalizeDiscordInboundMessage,
   sendDiscordOutboundMessages
 } from "@/lib/integrations/discord";
+import { InboundDedupeWindow } from "@/lib/integrations/inbound-dedupe";
 import { getDiscordEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -32,6 +38,8 @@ type DiscordGatewayHello = {
 type StartDiscordGatewayWorkerOptions = {
   logger?: Pick<typeof console, "info" | "warn" | "error">;
 };
+
+const seenDedupeKeys = new InboundDedupeWindow();
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -59,34 +67,116 @@ async function processDiscordMessageCreate(args: {
     return;
   }
 
+  const dedupeKey = buildInboundDedupeKey(inbound);
+  if (!seenDedupeKeys.claim(dedupeKey)) {
+    args.logger.info("[discord-gateway-worker:duplicate]", {
+      event_id: inbound.event_id,
+      channel_id: inbound.channel_id
+    });
+    return;
+  }
+
   const admin = createAdminClient();
+  const claimedReceipt = await claimImInboundReceipt({
+    supabase: admin,
+    identity: {
+      platform: inbound.platform,
+      eventId: inbound.event_id,
+      dedupeKey,
+      channelId: inbound.channel_id,
+      peerId: inbound.peer_id,
+      platformUserId: inbound.platform_user_id
+    },
+    metadata: {
+      worker_received_at: new Date().toISOString(),
+      source: "discord_gateway_worker"
+    }
+  });
+
+  if (claimedReceipt.status === "duplicate") {
+    args.logger.info("[discord-gateway-worker:duplicate-receipt]", {
+      event_id: inbound.event_id,
+      channel_id: inbound.channel_id
+    });
+    return;
+  }
+
+  const receiptId = claimedReceipt.receipt.id;
   const bindingLookup = createSupabaseBindingLookup(admin);
-  const result = await handleInboundChannelMessage({
-    inbound,
-    bindingLookup,
-    runtimePort: webImRuntimePort
-  });
-
-  args.logger.info("[discord-gateway-worker:inbound]", {
-    event_id: inbound.event_id,
-    channel_id: inbound.channel_id,
-    peer_id: inbound.peer_id,
-    platform_user_id: inbound.platform_user_id,
-    status: result.status
-  });
-
-  if (result.status === "binding_not_found" || result.status === "processed") {
-    const delivery = await sendDiscordOutboundMessages({
-      botToken: args.botToken,
-      messages: result.outbound_messages
+  try {
+    const result = await handleInboundChannelMessage({
+      inbound,
+      bindingLookup,
+      runtimePort: webImRuntimePort
     });
 
-    args.logger.info("[discord-gateway-worker:delivery]", {
+    args.logger.info("[discord-gateway-worker:inbound]", {
       event_id: inbound.event_id,
       channel_id: inbound.channel_id,
-      delivery_count: delivery.length,
-      ok_count: delivery.filter((item) => item.ok).length
+      peer_id: inbound.peer_id,
+      platform_user_id: inbound.platform_user_id,
+      status: result.status
     });
+
+    await updateImInboundReceipt({
+      supabase: admin,
+      receiptId,
+      status:
+        result.status === "binding_not_found" ? "binding_not_found" : "processing",
+      metadataPatch: {
+        adapter_result_status: result.status,
+        adapter_result_at: new Date().toISOString()
+      }
+    });
+
+    if ("outbound_messages" in result) {
+      const delivery = await sendDiscordOutboundMessages({
+        botToken: args.botToken,
+        messages: result.outbound_messages
+      });
+
+      args.logger.info("[discord-gateway-worker:delivery]", {
+        event_id: inbound.event_id,
+        channel_id: inbound.channel_id,
+        delivery_count: delivery.length,
+        ok_count: delivery.filter((item) => item.ok).length
+      });
+
+      await updateImInboundReceipt({
+        supabase: admin,
+        receiptId,
+        status: result.status === "binding_not_found" ? "binding_not_found" : "processed",
+        processed: result.status === "processed",
+        metadataPatch: {
+          delivery_count: delivery.length,
+          delivery_ok_count: delivery.filter((item) => item.ok).length,
+          delivery_completed_at: new Date().toISOString()
+        }
+      });
+      return;
+    }
+
+    await updateImInboundReceipt({
+      supabase: admin,
+      receiptId,
+      status: result.status,
+      metadataPatch: {
+        delivery_skipped: true,
+        delivery_completed_at: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    await updateImInboundReceipt({
+      supabase: admin,
+      receiptId,
+      status: "failed",
+      lastError: error instanceof Error ? error.message : String(error),
+      metadataPatch: {
+        failed_at: new Date().toISOString()
+      }
+    });
+
+    throw error;
   }
 }
 

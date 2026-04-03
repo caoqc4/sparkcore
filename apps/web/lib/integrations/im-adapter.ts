@@ -575,6 +575,22 @@ export function buildBindingNotFoundOutboundMessage(args: {
             `User ID: ${args.inbound.peer_id}`,
             "After saving the binding, send your message again."
           ]
+        : args.inbound.platform === "wechat"
+          ? [
+              "This WeChat chat is not bound to a SparkCore role yet.",
+              "Open the SparkCore connect flow, then paste these values:",
+              `WeChat Session ID: ${args.inbound.channel_id}`,
+              `WeChat User ID: ${args.inbound.peer_id}`,
+              "After saving the binding, send your message again."
+            ]
+        : args.inbound.platform === "feishu"
+          ? [
+              "This Feishu chat is not bound to a SparkCore role yet.",
+              "Open the SparkCore connect flow, then paste these values:",
+              `Feishu Chat ID: ${args.inbound.channel_id}`,
+              `Feishu Open ID: ${args.inbound.peer_id}`,
+              "After saving the binding, send your message again."
+            ]
         : [
             "This channel is not bound to a SparkCore role yet.",
             "Open the SparkCore connect flow, then paste these values:",

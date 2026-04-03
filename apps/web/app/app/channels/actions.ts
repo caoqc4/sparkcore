@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { revokeWeChatOpenILinkSessionsForUser } from "@/lib/integrations/wechat-openilink-sessions";
 import { updateOwnedChannelBindingStatus } from "@/lib/product/channels";
 import { createClient } from "@/lib/supabase/server";
 
@@ -52,6 +53,17 @@ export async function unbindProductChannel(formData: FormData) {
   }
 
   try {
+    const { data: binding, error: bindingError } = await supabase
+      .from("channel_bindings")
+      .select("platform, platform_user_id")
+      .eq("id", bindingId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (bindingError) {
+      throw bindingError;
+    }
+
     await updateOwnedChannelBindingStatus({
       supabase,
       bindingId,
@@ -62,6 +74,15 @@ export async function unbindProductChannel(formData: FormData) {
         managed_by: "dashboard-channels-page"
       }
     });
+
+    if (binding?.platform === "wechat") {
+      await revokeWeChatOpenILinkSessionsForUser({
+        supabase,
+        userId: user.id,
+        wechatUserId: binding.platform_user_id,
+        reason: "user_unbound_channel"
+      });
+    }
   } catch (error) {
     redirectWithMessage(
       redirectPath,

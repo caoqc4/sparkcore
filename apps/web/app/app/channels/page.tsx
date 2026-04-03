@@ -38,6 +38,16 @@ const PLATFORM_VISUALS = {
       </svg>
     ),
   },
+  feishu: {
+    iconBg: "linear-gradient(135deg, hsl(197 100% 92%), hsl(225 100% 95%))",
+    iconColor: "hsl(211 88% 48%)",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M6.5 8.2c0-1 .95-1.72 1.9-1.42l5.15 1.63c.86.27.99 1.41.22 1.87l-5.63 3.41c-.95.57-2.14-.11-2.14-1.22V8.2Z" />
+        <path d="M11.32 12.05c0-.53.43-.96.96-.96h3.56c1.05 0 1.5 1.33.67 1.96l-3.56 2.72a.96.96 0 0 1-1.63-.76v-2.96Z" opacity="0.92" />
+      </svg>
+    ),
+  },
   discord: {
     iconBg: "hsl(235 86% 94%)",
     iconColor: "hsl(235 86% 54%)",
@@ -66,14 +76,52 @@ function formatStatusLabel(status: string) {
   }
 }
 
-function formatSummaryLabel(status: "connected" | "needs_attention" | "web_only") {
-  switch (status) {
-    case "connected":
-      return "Connected";
-    case "needs_attention":
-      return "Needs attention";
+function getPlatformActionLabel(args: {
+  actionMode: "connect" | "rebind" | "unavailable";
+  availabilityStatus: "active" | "coming_soon" | "disabled";
+}) {
+  if (args.actionMode === "rebind") {
+    return "Reconnect";
+  }
+
+  if (args.actionMode === "connect") {
+    return "Connect";
+  }
+
+  return args.availabilityStatus === "coming_soon" ? "Soon" : "Unavailable";
+}
+
+function getPlatformDiscoveryLabel(platform: string, isConnected: boolean) {
+  switch (platform) {
+    case "wechat":
+      return isConnected ? "Continue here" : "Start here";
     default:
-      return "Web only";
+      return isConnected ? "Open the chat" : "Start here";
+  }
+}
+
+function getPlatformDiscoveryHint(platform: string, isConnected: boolean) {
+  switch (platform) {
+    case "telegram":
+      return isConnected
+        ? "Open Telegram and continue chatting with your SparkCore bot there."
+        : "After connecting, open Telegram and send a message to your SparkCore bot.";
+    case "discord":
+      return isConnected
+        ? "Open Discord and continue the conversation in your Lagun DM."
+        : "After connecting, open Discord, find Lagun, and send it any message to start the thread.";
+    case "feishu":
+      return isConnected
+        ? "Open Feishu and continue chatting with Lagun in your workspace."
+        : "After connecting, open Feishu, search for Lagun, and send it any message to get your IDs.";
+    case "wechat":
+      return isConnected
+        ? "Open the WeChat bot thread created by your QR login and continue chatting there."
+        : "Start the WeChat QR login flow first, then send the generated bot thread any message.";
+    default:
+      return isConnected
+        ? "Continue chatting through this app."
+        : "Connect this app first to start chatting there.";
   }
 }
 
@@ -198,11 +246,12 @@ export default async function AppChannelsPage({
                     </span>
                   </div>
 
-                  {platform.actionMode === "unavailable" ? (
+                  {platform.actionMode === "unavailable" && platform.platform !== "feishu" ? (
                     <span className="channel-platform-soon-tag">
-                      {platform.availabilityStatus === "coming_soon"
-                        ? "Soon"
-                        : "Unavailable"}
+                      {getPlatformActionLabel({
+                        actionMode: platform.actionMode,
+                        availabilityStatus: platform.availabilityStatus,
+                      })}
                     </span>
                   ) : (
                     <Link
@@ -213,7 +262,10 @@ export default async function AppChannelsPage({
                       } channel-platform-btn`}
                       href={platform.actionMode === "rebind" ? rebindHref : connectHref}
                     >
-                      {platform.actionMode === "rebind" ? "Reconnect" : "Connect"}
+                      {getPlatformActionLabel({
+                        actionMode: platform.actionMode,
+                        availabilityStatus: platform.availabilityStatus,
+                      })}
                     </Link>
                   )}
                 </div>
@@ -237,6 +289,12 @@ export default async function AppChannelsPage({
                             {activeBinding.peerId ? `User ID: ${activeBinding.peerId}` : ""}
                           </span>
                         ) : null}
+                        <span className="channel-connection-hint-label">
+                          {getPlatformDiscoveryLabel(platform.platform, true)}
+                        </span>
+                        <span className="channel-connection-hint">
+                          {getPlatformDiscoveryHint(platform.platform, true)}
+                        </span>
                       </div>
                       <form action={unbindProductChannel}>
                         <input name="binding_id" type="hidden" value={activeBinding.id} />
@@ -265,6 +323,21 @@ export default async function AppChannelsPage({
                       {platform.inactiveBindingCount > 0 ? (
                         <span>{platform.inactiveBindingCount} inactive connection(s)</span>
                       ) : null}
+                    </div>
+                    <div className="channel-connection-hint-label">
+                      {getPlatformDiscoveryLabel(platform.platform, false)}
+                    </div>
+                    <div className="channel-connection-hint">
+                      {getPlatformDiscoveryHint(platform.platform, false)}
+                    </div>
+                  </div>
+                ) : !activeBinding ? (
+                  <div className="channel-connection-detail">
+                    <div className="channel-connection-hint-label">
+                      {getPlatformDiscoveryLabel(platform.platform, false)}
+                    </div>
+                    <div className="channel-connection-hint">
+                      {getPlatformDiscoveryHint(platform.platform, false)}
                     </div>
                   </div>
                 ) : null}
