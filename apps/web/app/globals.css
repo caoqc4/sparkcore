@@ -6389,6 +6389,44 @@ details[open] .role-mem-older-summary::before {
   flex-wrap: wrap;
 }
 
+.connect-im-wechat-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.connect-im-wechat-form .connect-im-inline-action {
+  margin-top: 6px;
+}
+
+.connect-im-wechat-form > .button {
+  margin-top: 6px;
+}
+
+.connect-im-or-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0;
+}
+
+.connect-im-or-divider::before,
+.connect-im-or-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: hsl(240 8% 90%);
+}
+
+.connect-im-or-divider span {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: hsl(240 8% 64%);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 /* Steps */
 .connect-im-steps {
   display: flex;

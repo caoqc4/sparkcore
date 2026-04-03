@@ -78,7 +78,7 @@ function renderPlatformSetupLead(platform: SupportedPlatform) {
       return {
         title: "Start your WeChat session",
         copy:
-          "Click the button below to start your WeChat login flow. SparkCore will open a QR page in a new tab for your own WeChat ClawBot/OpeniLink session, then wait for your first message to finish binding.",
+          "SparkCore will open a QR page — scan it in WeChat, then send any message to finish binding automatically.",
       };
     case "telegram":
     default:
@@ -360,27 +360,46 @@ export default async function ConnectImPage({
 
           {/* Steps */}
           <div className="connect-im-steps">
-            <div className="connect-im-step">
-              <span className="connect-im-step-num">1</span>
-              <span className="connect-im-step-text">
-                {renderPlatformStepOne(selectedPlatform, {
-                  botUsername,
-                  recommendedBotName
-                })}
-              </span>
-            </div>
-            <div className="connect-im-step">
-              <span className="connect-im-step-num">2</span>
-              <span className="connect-im-step-text">
-                {renderPlatformStepTwo(selectedPlatform)}
-              </span>
-            </div>
-            <div className="connect-im-step">
-              <span className="connect-im-step-num">3</span>
-              <span className="connect-im-step-text">
-                Paste those values below and save.
-              </span>
-            </div>
+            {selectedPlatform === "wechat" ? (
+              <>
+                <div className="connect-im-step">
+                  <span className="connect-im-step-num">1</span>
+                  <span className="connect-im-step-text">
+                    Click the button below to open the QR page, then scan it in WeChat.
+                  </span>
+                </div>
+                <div className="connect-im-step">
+                  <span className="connect-im-step-num">2</span>
+                  <span className="connect-im-step-text">
+                    Send the bot <strong>any</strong> message — SparkCore will finish binding automatically.
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="connect-im-step">
+                  <span className="connect-im-step-num">1</span>
+                  <span className="connect-im-step-text">
+                    {renderPlatformStepOne(selectedPlatform, {
+                      botUsername,
+                      recommendedBotName
+                    })}
+                  </span>
+                </div>
+                <div className="connect-im-step">
+                  <span className="connect-im-step-num">2</span>
+                  <span className="connect-im-step-text">
+                    {renderPlatformStepTwo(selectedPlatform)}
+                  </span>
+                </div>
+                <div className="connect-im-step">
+                  <span className="connect-im-step-num">3</span>
+                  <span className="connect-im-step-text">
+                    Paste those values below and save.
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Already connected warning — shown before the form so user sees it first */}
@@ -391,18 +410,6 @@ export default async function ConnectImPage({
               <Link className="site-inline-link" href="/app/channels">
                 View current →
               </Link>
-            </p>
-          ) : null}
-
-          {data.role && recommendedCharacterChannel && recommendedBotName ? (
-            <p className="connect-im-rebind-note">
-              {selectedPlatform === "telegram"
-                ? `Your role ${data.role.name} will talk to you through ${recommendedBotName} on Telegram.`
-                : selectedPlatform === "discord"
-                  ? `Your role ${data.role.name} will use the same voice on Discord, while keeping the Discord conversation separate from your other apps.`
-                  : selectedPlatform === "feishu"
-                    ? `Your role ${data.role.name} will use the same voice in Feishu, while keeping the Feishu conversation separate from your other apps.`
-                    : `Your role ${data.role.name} will use the same voice in WeChat, while keeping the WeChat conversation separate from your other apps.`}
             </p>
           ) : null}
 
@@ -447,6 +454,18 @@ export default async function ConnectImPage({
               </form>
             )}
           </div>
+
+          {data.role && recommendedCharacterChannel && recommendedBotName ? (
+            <p className="connect-im-rebind-note">
+              {selectedPlatform === "telegram"
+                ? `Your role ${data.role.name} will talk to you through ${recommendedBotName} on Telegram.`
+                : selectedPlatform === "discord"
+                  ? `Your role ${data.role.name} will use the same voice on Discord, while keeping the Discord conversation separate from your other apps.`
+                  : selectedPlatform === "feishu"
+                    ? `Your role ${data.role.name} will use the same voice in Feishu, while keeping the Feishu conversation separate from your other apps.`
+                    : `Your role ${data.role.name} will use the same voice in WeChat, while keeping the WeChat conversation separate from your other apps.`}
+            </p>
+          ) : null}
         </section>
       ) : (
         <section className="site-card">

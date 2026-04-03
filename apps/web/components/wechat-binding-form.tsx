@@ -213,8 +213,10 @@ export function WeChatBindingForm({
     }
   }
 
+  const isConnectedIdle = sessionStatus === "active" && loginStatus === "idle";
+
   return (
-    <div ref={containerRef}>
+    <div className="connect-im-wechat-form" ref={containerRef}>
       <input name="agent_id" type="hidden" value={agentId} />
       <input
         name="character_channel_slug"
@@ -223,6 +225,18 @@ export function WeChatBindingForm({
       />
       <input name="thread_id" type="hidden" value={threadId} />
 
+      {/* Already-active notice sits above the button so users see it first */}
+      {isConnectedIdle ? (
+        <div className="notice notice-success">
+          Your WeChat session is already active. If this connection stops working later, use
+          the button below to reconnect.
+        </div>
+      ) : shouldShowExpiredNotice ? (
+        <div className="notice notice-error">
+          Your previous WeChat session expired. Start the login flow again to reconnect.
+        </div>
+      ) : null}
+
       <div className="connect-im-inline-action">
         <button
           className="button button-secondary"
@@ -230,7 +244,9 @@ export function WeChatBindingForm({
           type="button"
         >
           {loginStatus === "idle"
-            ? "Start WeChat Login"
+            ? isConnectedIdle
+              ? "Reconnect WeChat"
+              : "Start WeChat Login"
             : loginStatus === "starting"
               ? "Opening QR Page..."
               : loginStatus === "connected" || loginStatus === "identity_ready" || loginStatus === "timed_out"
@@ -249,19 +265,10 @@ export function WeChatBindingForm({
         ) : null}
       </div>
 
-      {sessionStatus === "active" ? (
-        <div className="notice notice-success">
-          Your WeChat session is already active. If this connection stops working later, restart
-          the login flow here to reconnect your own WeChat session.
-        </div>
-      ) : sessionStatus === "pending" ? (
+      {sessionStatus === "pending" ? (
         <div className="notice notice-success">
           Your WeChat login session is ready. Send the bot any message so SparkCore can capture the
           session IDs and finish the binding.
-        </div>
-      ) : shouldShowExpiredNotice ? (
-        <div className="notice notice-error">
-          Your previous WeChat session expired. Start the login flow again to reconnect.
         </div>
       ) : null}
 
@@ -276,7 +283,13 @@ export function WeChatBindingForm({
         </div>
       ) : null}
 
-      <p className="helper-copy">{loginStatusLabel}</p>
+      {loginStatus !== "idle" ? (
+        <p className="helper-copy">{loginStatusLabel}</p>
+      ) : null}
+
+      <div className="connect-im-or-divider">
+        <span>or enter IDs manually</span>
+      </div>
 
       <div className="field">
         <label className="label" htmlFor="channel_id">
@@ -309,10 +322,6 @@ export function WeChatBindingForm({
           value={peerId}
         />
       </div>
-
-      <p className="helper-copy">
-        For a direct WeChat bot chat, the user ID is also used as the platform user ID.
-      </p>
 
       <input name="platform_user_id" type="hidden" value={platformUserId} />
       <button

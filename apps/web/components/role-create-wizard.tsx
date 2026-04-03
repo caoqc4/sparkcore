@@ -131,7 +131,6 @@ export function RoleCreateWizard({
   const [backgroundSummary, setBackgroundSummary] = useState("");
 
   // Step 3 — Look
-  const [styleTab, setStyleTab] = useState<StyleTab>("realistic");
   const [photoIndex, setPhotoIndex] = useState(0);
   const voiceOptions = filterAudioVoiceOptionsForRole({
     options: audioOptions,
@@ -201,10 +200,8 @@ export function RoleCreateWizard({
         setBoundaries(defaults?.boundaries ?? "Be supportive, respectful, and avoid manipulative or coercive behavior.");
         setBackgroundSummary(defaults?.backgroundSummary ?? "");
         // Auto-select portrait for this preset
-        const presetStyle = definition.avatarStyle as StyleTab;
-        setStyleTab(presetStyle);
         const matchingOptions = portraitOptions.filter(
-          (p) => p.style === presetStyle && (p.gender === definition.avatarGender || p.gender === "neutral")
+          (p) => p.gender === definition.avatarGender || p.gender === "neutral"
         );
         const idx = matchingOptions.findIndex((p) => p.characterSlug === presetSlug);
         setPhotoIndex(idx >= 0 ? idx : 0);
@@ -237,10 +234,8 @@ export function RoleCreateWizard({
     );
     setBackgroundSummary(defaults?.backgroundSummary ?? "");
     // Auto-select this preset's designated portrait
-    const presetStyle = definition.avatarStyle as StyleTab;
-    setStyleTab(presetStyle);
     const matchingOptions = portraitOptions.filter(
-      (p) => p.style === presetStyle && (p.gender === definition.avatarGender || p.gender === "neutral")
+      (p) => p.gender === definition.avatarGender || p.gender === "neutral"
     );
     const presetPortraitIndex = matchingOptions.findIndex((p) => p.characterSlug === preset);
     setPhotoIndex(presetPortraitIndex >= 0 ? presetPortraitIndex : 0);
@@ -258,17 +253,13 @@ export function RoleCreateWizard({
         ? (asset.style_tags.find(
             (item): item is StyleTab =>
               item === "realistic" || item === "anime" || item === "illustrated"
-          ) ?? null)
-        : null;
+          ) ?? "realistic" as StyleTab)
+        : "realistic" as StyleTab;
       const genderValue = asset.gender_presentation;
       const resolvedGender: GenderKey =
         genderValue === "female" || genderValue === "male" || genderValue === "neutral"
           ? genderValue
           : "neutral";
-
-      if (!style) {
-        return null;
-      }
 
       const meta = asset.metadata && typeof asset.metadata === "object" && !Array.isArray(asset.metadata)
         ? (asset.metadata as Record<string, unknown>)
@@ -285,22 +276,13 @@ export function RoleCreateWizard({
         characterSlug,
         eligibleForMode: isEligibleForMode(asset.eligible_modes, mode as AssetEligibleMode),
       };
-    })
-    .filter((asset): asset is PortraitAssetOption => asset !== null);
+    });
   const filteredPresets = portraitOptions.filter(
-    (p) =>
-      p.style === styleTab &&
-      (p.gender === gender || p.gender === "neutral") &&
-      p.eligibleForMode,
+    (p) => (p.gender === gender || p.gender === "neutral") && p.eligibleForMode,
   );
   const totalPortraits = filteredPresets.length;
   const safeIndex = Math.min(photoIndex, totalPortraits - 1);
   const currentChar = filteredPresets[safeIndex] ?? null;
-
-  function handleStyleChange(s: StyleTab) {
-    setStyleTab(s);
-    setPhotoIndex(0);
-  }
 
   function prevPortrait() {
     setPhotoIndex((i) => (i - 1 + totalPortraits) % totalPortraits);
@@ -527,27 +509,6 @@ export function RoleCreateWizard({
           <h2 className="rcw-title">Choose {name || "their"} appearance</h2>
         </div>
 
-        {/* Style tabs — only show styles that have portraits */}
-        {(() => {
-          const availableStyles = (["realistic", "anime", "illustrated"] as StyleTab[]).filter(
-            (s) => portraitOptions.some((p) => p.style === s && (p.gender === gender || p.gender === "neutral"))
-          );
-          return availableStyles.length > 1 ? (
-            <div className="rcw-style-tabs">
-              {availableStyles.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={`rcw-style-tab${styleTab === s ? " active" : ""}`}
-                  onClick={() => handleStyleChange(s)}
-                >
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                </button>
-              ))}
-            </div>
-          ) : null;
-        })()}
-
         {/* Large portrait carousel */}
         <div className="rcw-carousel">
           <button
@@ -595,11 +556,10 @@ export function RoleCreateWizard({
           </button>
         </div>
 
-        {/* Portrait name + descriptor */}
+        {/* Portrait name */}
         {currentChar ? (
           <div className="rcw-portrait-info">
             <strong className="rcw-portrait-name">{currentChar.name}</strong>
-            <span className="rcw-portrait-desc">{currentChar.style}</span>
           </div>
         ) : null}
 

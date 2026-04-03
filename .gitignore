@@ -15,5 +15,14 @@ supabase/.temp/
 .env.*
 !.env.example
 
+# Character asset binaries — source of truth is Supabase Storage
+assets/**/*.webp
+assets/**/*.png
+assets/**/*.jpg
+assets/**/*.jpeg
+assets/**/*.mp3
+assets/**/*.wav
+assets/**/*.m4a
+
 # Internal planning and product docs kept out of the open-source repo
 /doc_private
