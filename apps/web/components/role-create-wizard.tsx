@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createProductRole } from "@/app/create/actions";
 import { RoleVoiceTabs, type RoleVoiceGroup } from "@/components/role-voice-tabs";
 import { CHARACTER_MANIFEST } from "@/lib/characters/manifest";
 import { getProductCharacterPresetDefaults } from "@/lib/characters/preset-defaults";
 import {
   filterAudioVoiceOptionsForRole,
+  isEligibleForMode,
   pickRecommendedAudioVoiceOption,
+  type AssetEligibleMode,
   type ProductAudioVoiceOptionRow
 } from "@/lib/product/role-media";
 
@@ -15,6 +17,14 @@ import {
 
 type StyleTab = "realistic" | "anime" | "illustrated";
 type GenderKey = "female" | "male" | "neutral";
+type IdentityType = "girlfriend" | "boyfriend" | "female-assistant" | "male-assistant";
+
+const IDENTITY_OPTIONS: { value: IdentityType; label: string; desc: string; gender: "female" | "male"; mode: "companion" | "assistant" }[] = [
+  { value: "girlfriend",       label: "Girlfriend",       desc: "Companion · Female", gender: "female", mode: "companion"  },
+  { value: "boyfriend",        label: "Boyfriend",        desc: "Companion · Male",   gender: "male",   mode: "companion"  },
+  { value: "female-assistant", label: "Female Assistant", desc: "Assistant · Female", gender: "female", mode: "assistant"  },
+  { value: "male-assistant",   label: "Male Assistant",   desc: "Assistant · Male",   gender: "male",   mode: "assistant"  },
+];
 
 type PortraitAssetOption = {
   id: string;
@@ -23,6 +33,8 @@ type PortraitAssetOption = {
   gender: GenderKey;
   storagePath: string | null;
   publicUrl: string | null;
+  characterSlug: string | null;
+  eligibleForMode: boolean;
 };
 
 // ── Step definitions ─────────────────────────────────────────────────────────
@@ -58,8 +70,10 @@ type Props = {
     display_name: string | null;
     gender_presentation: string | null;
     style_tags: unknown;
+    eligible_modes?: unknown;
     storage_path?: string | null;
     public_url?: string | null;
+    metadata?: unknown;
   }>;
   currentPlanSlug?: "free" | "pro";
   defaultPresetSlug?: "caria" | "teven" | "velia";
@@ -124,6 +138,7 @@ export function RoleCreateWizard({
     avatarGender: gender,
     tone,
     currentPlanSlug,
+    roleMode: mode,
   });
   const recommendedVoice = pickRecommendedAudioVoiceOption({
     options: voiceOptions,
@@ -158,6 +173,55 @@ export function RoleCreateWizard({
     }
   }
 
+  // Read hero draft from sessionStorage on mount — pre-fill all fields and jump to step 3
+  useEffect(() => {
+    const raw = typeof window !== "undefined" ? sessionStorage.getItem("sparkcore_hero_draft") : null;
+    if (!raw) return;
+    try {
+      sessionStorage.removeItem("sparkcore_hero_draft");
+      const saved = JSON.parse(raw) as {
+        presetSlug?: string | null;
+        gender?: string;
+        name?: string;
+        tone?: string;
+        traits?: string[];
+        mode?: string;
+      };
+      const presetSlug =
+        saved.presetSlug === "caria" || saved.presetSlug === "teven" || saved.presetSlug === "velia"
+          ? saved.presetSlug
+          : null;
+      // Apply preset defaults (boundaries, backgroundSummary, relationshipMode)
+      if (presetSlug) {
+        const definition = CHARACTER_MANIFEST[presetSlug];
+        const defaults = getProductCharacterPresetDefaults(presetSlug);
+        setSelectedPresetSlug(presetSlug);
+        setMode(definition.mode);
+        setRelationshipMode(defaults?.relationshipMode ?? "long-term companion");
+        setBoundaries(defaults?.boundaries ?? "Be supportive, respectful, and avoid manipulative or coercive behavior.");
+        setBackgroundSummary(defaults?.backgroundSummary ?? "");
+        // Auto-select portrait for this preset
+        const presetStyle = definition.avatarStyle as StyleTab;
+        setStyleTab(presetStyle);
+        const matchingOptions = portraitOptions.filter(
+          (p) => p.style === presetStyle && (p.gender === definition.avatarGender || p.gender === "neutral")
+        );
+        const idx = matchingOptions.findIndex((p) => p.characterSlug === presetSlug);
+        setPhotoIndex(idx >= 0 ? idx : 0);
+      }
+      // Override with what user specifically set in hero form
+      if (saved.gender === "female" || saved.gender === "male" || saved.gender === "neutral") setGender(saved.gender);
+      if (saved.name) setName(saved.name);
+      if (saved.tone === "warm" || saved.tone === "playful" || saved.tone === "steady") setTone(saved.tone);
+      if (saved.mode === "companion" || saved.mode === "assistant") setMode(saved.mode);
+      if (Array.isArray(saved.traits) && saved.traits.length > 0) setSelectedTraits(saved.traits);
+      // Jump directly to Step 3 (Look)
+      setStep(2);
+    } catch {
+      // ignore malformed storage
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   function applyPreset(preset: "caria" | "teven" | "velia") {
     const definition = CHARACTER_MANIFEST[preset];
     const defaults = getProductCharacterPresetDefaults(preset);
@@ -172,6 +236,14 @@ export function RoleCreateWizard({
         "Be supportive, respectful, and avoid manipulative or coercive behavior."
     );
     setBackgroundSummary(defaults?.backgroundSummary ?? "");
+    // Auto-select this preset's designated portrait
+    const presetStyle = definition.avatarStyle as StyleTab;
+    setStyleTab(presetStyle);
+    const matchingOptions = portraitOptions.filter(
+      (p) => p.style === presetStyle && (p.gender === definition.avatarGender || p.gender === "neutral")
+    );
+    const presetPortraitIndex = matchingOptions.findIndex((p) => p.characterSlug === preset);
+    setPhotoIndex(presetPortraitIndex >= 0 ? presetPortraitIndex : 0);
   }
 
   function applyBlankStart() {
@@ -198,6 +270,11 @@ export function RoleCreateWizard({
         return null;
       }
 
+      const meta = asset.metadata && typeof asset.metadata === "object" && !Array.isArray(asset.metadata)
+        ? (asset.metadata as Record<string, unknown>)
+        : null;
+      const characterSlug = typeof meta?.character_slug === "string" ? meta.character_slug : null;
+
       return {
         id: asset.id,
         name: asset.display_name ?? "Portrait",
@@ -205,11 +282,16 @@ export function RoleCreateWizard({
         gender: resolvedGender,
         storagePath: typeof asset.storage_path === "string" ? asset.storage_path : null,
         publicUrl: typeof asset.public_url === "string" ? asset.public_url : null,
+        characterSlug,
+        eligibleForMode: isEligibleForMode(asset.eligible_modes, mode as AssetEligibleMode),
       };
     })
     .filter((asset): asset is PortraitAssetOption => asset !== null);
   const filteredPresets = portraitOptions.filter(
-    (p) => p.style === styleTab && (p.gender === gender || p.gender === "neutral"),
+    (p) =>
+      p.style === styleTab &&
+      (p.gender === gender || p.gender === "neutral") &&
+      p.eligibleForMode,
   );
   const totalPortraits = filteredPresets.length;
   const safeIndex = Math.min(photoIndex, totalPortraits - 1);
@@ -231,100 +313,51 @@ export function RoleCreateWizard({
   // ── Step 1: Basics ────────────────────────────────────────────────────────
 
   function renderStep0() {
+    const namePronoun = gender === "male" ? "him" : "her";
+
     return (
       <div className="rcw-step">
         <div className="rcw-step-head">
-          <p className="rcw-kicker">Step 1 — Basics</p>
           <h2 className="rcw-title">Who is this companion?</h2>
         </div>
 
+        {/* Identity (gender + mode combined) — 2×2 grid, no emoji */}
         <div className="rcw-field">
-          <label className="rcw-label">Starting point</label>
-          <div className="rcw-preset-grid">
-            {([
-              { id: "caria", label: "Caria", desc: "Warm romantic preset", emoji: "🌸" },
-              { id: "teven", label: "Teven", desc: "Steady romantic preset", emoji: "🌿" },
-              { id: "velia", label: "Velia", desc: "Playful assistant preset", emoji: "✦" },
-            ] as const).map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                className={`rcw-preset-card${selectedPresetSlug === preset.id ? " selected" : ""}`}
-                onClick={() => applyPreset(preset.id)}
-              >
-                <span className="rcw-preset-emoji" aria-hidden="true">{preset.emoji}</span>
-                <span className="rcw-preset-copy">
-                  <span className="rcw-tone-label">{preset.label}</span>
-                  <span className="rcw-tone-desc">{preset.desc}</span>
-                </span>
-              </button>
-            ))}
-            <button
-              type="button"
-              className={`rcw-preset-card${selectedPresetSlug === null ? " selected" : ""}`}
-              onClick={applyBlankStart}
-            >
-              <span className="rcw-preset-emoji" aria-hidden="true">+</span>
-              <span className="rcw-preset-copy">
-                <span className="rcw-tone-label">Blank</span>
-                <span className="rcw-tone-desc">Start from scratch</span>
-              </span>
-            </button>
+          <label className="rcw-label">Identity</label>
+          <div className="rcw-identity-grid">
+            {IDENTITY_OPTIONS.map((opt) => {
+              const active = gender === opt.gender && mode === opt.mode;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`rcw-identity-card${active ? " selected" : ""}`}
+                  onClick={() => { setGender(opt.gender); setMode(opt.mode); }}
+                >
+                  <span className="rcw-tone-label">{opt.label}</span>
+                  <span className="rcw-tone-desc">{opt.desc}</span>
+                </button>
+              );
+            })}
           </div>
-        </div>
-
-        {/* Gender selection */}
-        <div className="rcw-field">
-          <label className="rcw-label">Gender</label>
-          <div className="rcw-gender-cards">
-            {(["female", "male", "neutral"] as GenderKey[]).map((g) => (
-              <button
-                key={g}
-                type="button"
-                className={`rcw-gender-card${gender === g ? " selected" : ""}`}
-                onClick={() => setGender(g)}
-              >
-                <span className="rcw-gender-icon">
-                  {g === "female" ? "♀" : g === "male" ? "♂" : "◈"}
-                </span>
-                <span className="rcw-gender-label">
-                  {g === "female" ? "Female" : g === "male" ? "Male" : "Neutral"}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Mode */}
-        <div className="rcw-field">
-          <label className="rcw-label" htmlFor="rcw-mode">Mode</label>
-          <select
-            id="rcw-mode"
-            className="input"
-            value={mode}
-            onChange={(e) => setMode(e.target.value as typeof mode)}
-          >
-            <option value="companion">Companion</option>
-            <option value="assistant">Assistant</option>
-          </select>
         </div>
 
         {/* Name */}
         <div className="rcw-field">
-          <label className="rcw-label" htmlFor="rcw-name">Name</label>
+          <label className="rcw-label" htmlFor="rcw-name">Give {namePronoun} a name</label>
           <input
             id="rcw-name"
             className="input"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Give them a name…"
+            placeholder={gender === "male" ? "e.g. Teven" : mode === "assistant" ? "e.g. Velia" : "e.g. Caria"}
           />
         </div>
 
         {/* User preferred name */}
         <div className="rcw-field">
           <label className="rcw-label" htmlFor="rcw-user-name">
-            What should {name.trim() || "they"} call you?
+            What should {name.trim() || (gender === "male" ? "he" : "she")} call you?
           </label>
           <input
             id="rcw-user-name"
@@ -342,7 +375,7 @@ export function RoleCreateWizard({
             onClick={() => setStep(1)}
             disabled={!name.trim()}
           >
-            Next — Personality →
+            Next →
           </button>
         </div>
       </div>
@@ -377,7 +410,6 @@ export function RoleCreateWizard({
     return (
       <div className="rcw-step">
         <div className="rcw-step-head">
-          <p className="rcw-kicker">Step 2 — Personality</p>
           <h2 className="rcw-title">Shape their character</h2>
         </div>
 
@@ -397,17 +429,6 @@ export function RoleCreateWizard({
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="rcw-field">
-          <label className="rcw-label" htmlFor="rcw-relationship-mode">Relationship mode</label>
-          <input
-            id="rcw-relationship-mode"
-            className="input"
-            value={relationshipMode}
-            onChange={(e) => setRelationshipMode(e.target.value)}
-            placeholder="How this role relates to the user…"
-          />
         </div>
 
         {/* Trait tags */}
@@ -451,6 +472,16 @@ export function RoleCreateWizard({
           {advancedOpen ? (
             <div className="rcw-advanced-body">
               <div className="rcw-field">
+                <label className="rcw-label" htmlFor="rcw-relationship-mode">Relationship mode</label>
+                <input
+                  id="rcw-relationship-mode"
+                  className="input"
+                  value={relationshipMode}
+                  onChange={(e) => setRelationshipMode(e.target.value)}
+                  placeholder="How this role relates to the user…"
+                />
+              </div>
+              <div className="rcw-field">
                 <label className="rcw-label" htmlFor="rcw-bounds">Boundaries</label>
                 <textarea
                   id="rcw-bounds"
@@ -460,7 +491,6 @@ export function RoleCreateWizard({
                   onChange={(e) => setBoundaries(e.target.value)}
                 />
               </div>
-
               <div className="rcw-field">
                 <label className="rcw-label" htmlFor="rcw-background">Background</label>
                 <textarea
@@ -469,7 +499,7 @@ export function RoleCreateWizard({
                   rows={3}
                   value={backgroundSummary}
                   onChange={(e) => setBackgroundSummary(e.target.value)}
-                  placeholder="A short background readers and the model can both understand…"
+                  placeholder="A short background the model can reference…"
                 />
               </div>
             </div>
@@ -481,7 +511,7 @@ export function RoleCreateWizard({
             ← Back
           </button>
           <button type="button" className="button button-primary" onClick={() => setStep(2)}>
-            Next — Choose look →
+            Next →
           </button>
         </div>
       </div>
@@ -494,23 +524,29 @@ export function RoleCreateWizard({
     return (
       <div className="rcw-step">
         <div className="rcw-step-head">
-          <p className="rcw-kicker">Step 3 — Look</p>
-          <h2 className="rcw-title">Choose {name}'s appearance</h2>
+          <h2 className="rcw-title">Choose {name || "their"} appearance</h2>
         </div>
 
-        {/* Style tabs */}
-        <div className="rcw-style-tabs">
-          {(["realistic", "anime", "illustrated"] as StyleTab[]).map((s) => (
-            <button
-              key={s}
-              type="button"
-              className={`rcw-style-tab${styleTab === s ? " active" : ""}`}
-              onClick={() => handleStyleChange(s)}
-            >
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </button>
-          ))}
-        </div>
+        {/* Style tabs — only show styles that have portraits */}
+        {(() => {
+          const availableStyles = (["realistic", "anime", "illustrated"] as StyleTab[]).filter(
+            (s) => portraitOptions.some((p) => p.style === s && (p.gender === gender || p.gender === "neutral"))
+          );
+          return availableStyles.length > 1 ? (
+            <div className="rcw-style-tabs">
+              {availableStyles.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`rcw-style-tab${styleTab === s ? " active" : ""}`}
+                  onClick={() => handleStyleChange(s)}
+                >
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </button>
+              ))}
+            </div>
+          ) : null;
+        })()}
 
         {/* Large portrait carousel */}
         <div className="rcw-carousel">

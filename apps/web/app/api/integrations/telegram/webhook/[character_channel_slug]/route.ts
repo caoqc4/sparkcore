@@ -1,23 +1,10 @@
 import { after, NextResponse, type NextRequest } from "next/server";
 import {
-  type OutboundChannelMessage,
-  SupabaseBindingRepository,
   buildInboundDedupeKey,
-  createSupabaseBindingLookup,
-  handleInboundChannelMessage
 } from "@/lib/integrations/im-adapter";
 import {
-  runDeferredImArtifactGeneration,
-  runDeferredImPostProcessing,
-  webImRuntimePort
-} from "@/lib/chat/im-runtime-port";
-import { updateAssistantPreviewMetadata } from "@/lib/chat/assistant-preview-metadata";
-import {
-  enrichTelegramInboundMessage,
-  isTelegramInvalidDeliveryResponse,
   isValidTelegramWebhookSecret,
   normalizeTelegramUpdate,
-  sendTelegramOutboundMessages,
   type TelegramUpdate
 } from "@/lib/integrations/telegram";
 import { getTelegramBotConfig } from "@/lib/env";
@@ -25,96 +12,27 @@ import {
   claimImInboundReceipt,
   updateImInboundReceipt
 } from "@/lib/integrations/im-inbound-receipts";
-import { updateOwnedChannelBindingStatus } from "@/lib/product/channels";
+import { enqueueImInboundJob } from "@/lib/integrations/im-inbound-jobs";
+import { runTelegramInboundWorker } from "@/lib/integrations/telegram-inbound-worker";
 import {
   isCharacterChannelSlug,
   type CharacterChannelSlug
 } from "@/lib/product/character-channels";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-async function sendFallbackMessage(args: {
-  botToken: string;
-  channelId: string;
-  content: string;
-}) {
-  await fetch(`https://api.telegram.org/bot${args.botToken}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: args.channelId, text: args.content }),
-  }).catch(() => null);
+function nowMs() {
+  return Date.now();
 }
 
-function buildArtifactOutboundMessages(args: {
-  channelId: string;
-  peerId: string;
-  artifacts: Array<Record<string, unknown>>;
-}): OutboundChannelMessage[] {
-  const messages: OutboundChannelMessage[] = [];
-
-  for (const artifact of args.artifacts) {
-    if (artifact.status !== "ready") {
-      continue;
-    }
-
-    if (artifact.type === "image" && typeof artifact.url === "string" && artifact.url.length > 0) {
-      messages.push({
-        platform: "telegram",
-        channel_id: args.channelId,
-        peer_id: args.peerId,
-        message_type: "image",
-        content: "",
-        attachments: [
-          {
-            kind: "image",
-            url: artifact.url,
-            metadata: {
-              alt: typeof artifact.alt === "string" ? artifact.alt : null,
-              artifact_type: "assistant_image"
-            }
-          }
-        ],
-        send_mode: "reply",
-        metadata: {
-          delivery_hint: "assistant_artifact"
-        }
-      });
-    }
-
-    if (artifact.type === "audio" && typeof artifact.url === "string" && artifact.url.length > 0) {
-      messages.push({
-        platform: "telegram",
-        channel_id: args.channelId,
-        peer_id: args.peerId,
-        message_type: "attachment",
-        content: "",
-        attachments: [
-          {
-            kind: "audio",
-            url: artifact.url,
-            metadata: {
-              content_type:
-                typeof artifact.contentType === "string" ? artifact.contentType : null,
-              transcript:
-                typeof artifact.transcript === "string" ? artifact.transcript : null,
-              artifact_type: "assistant_audio"
-            }
-          }
-        ],
-        send_mode: "reply",
-        metadata: {
-          delivery_hint: "assistant_artifact"
-        }
-      });
-    }
-  }
-
-  return messages;
+function elapsedMs(startedAt: number) {
+  return Math.max(0, nowMs() - startedAt);
 }
 
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ character_channel_slug: string }> }
 ) {
+  const webhookStartedAt = nowMs();
   const { character_channel_slug: rawCharacterChannelSlug } = await context.params;
 
   if (!isCharacterChannelSlug(rawCharacterChannelSlug)) {
@@ -122,7 +40,7 @@ export async function POST(
   }
 
   const characterChannelSlug = rawCharacterChannelSlug as CharacterChannelSlug;
-  const { botToken, webhookSecret } = getTelegramBotConfig(characterChannelSlug);
+  const { webhookSecret } = getTelegramBotConfig(characterChannelSlug);
 
   if (
     !isValidTelegramWebhookSecret({
@@ -135,12 +53,23 @@ export async function POST(
 
   let inbound: ReturnType<typeof normalizeTelegramUpdate> = null;
   let receiptId: string | null = null;
+  let parseDurationMs: number | null = null;
+  let receiptClaimDurationMs: number | null = null;
+  let enqueueDurationMs: number | null = null;
 
   try {
+    const parseStartedAt = nowMs();
     const update = (await request.json()) as TelegramUpdate;
     inbound = normalizeTelegramUpdate(update);
+    parseDurationMs = elapsedMs(parseStartedAt);
 
     if (!inbound) {
+      console.info("[telegram-webhook]", {
+        character_channel_slug: characterChannelSlug,
+        status: "ignored_non_text_update",
+        total_duration_ms: elapsedMs(webhookStartedAt),
+        parse_duration_ms: parseDurationMs
+      });
       return NextResponse.json({
         ok: true,
         status: "ignored_non_text_update"
@@ -157,6 +86,7 @@ export async function POST(
 
     const admin = createAdminClient();
     const dedupeKey = buildInboundDedupeKey(inbound);
+    const receiptClaimStartedAt = nowMs();
     const claimedReceipt = await claimImInboundReceipt({
       supabase: admin,
       identity: {
@@ -172,10 +102,19 @@ export async function POST(
         character_channel_slug: characterChannelSlug
       }
     });
+    receiptClaimDurationMs = elapsedMs(receiptClaimStartedAt);
 
     receiptId = claimedReceipt.receipt.id;
 
     if (claimedReceipt.status === "duplicate") {
+      console.info("[telegram-webhook]", {
+        character_channel_slug: characterChannelSlug,
+        status: "skipped_duplicate_receipt",
+        dedupe_key: dedupeKey,
+        total_duration_ms: elapsedMs(webhookStartedAt),
+        parse_duration_ms: parseDurationMs,
+        receipt_claim_duration_ms: receiptClaimDurationMs
+      });
       return NextResponse.json({
         ok: true,
         status: "skipped_duplicate_receipt",
@@ -183,237 +122,67 @@ export async function POST(
       });
     }
 
-    inbound = await enrichTelegramInboundMessage({
-      botToken,
-      inbound
+    const enqueueStartedAt = nowMs();
+    const enqueuedJob = await enqueueImInboundJob({
+      supabase: admin,
+      receiptId,
+      platform: inbound.platform,
+      channelSlug: characterChannelSlug,
+      jobType: "telegram_inbound_turn",
+      payload: {
+        inbound,
+        dedupe_key: dedupeKey
+      }
     });
-
-    const bindingLookup = await createSupabaseBindingLookup(admin);
-
-    const result = await handleInboundChannelMessage({
-      inbound,
-      bindingLookup,
-      runtimePort: webImRuntimePort
-    });
+    enqueueDurationMs = elapsedMs(enqueueStartedAt);
 
     await updateImInboundReceipt({
       supabase: admin,
       receiptId,
-      status: result.status === "binding_not_found" ? "binding_not_found" : "processing",
+      status: "received",
       metadataPatch: {
-        adapter_result_status: result.status,
-        adapter_result_at: new Date().toISOString(),
+        enqueue_status: enqueuedJob.status,
+        enqueue_job_id: enqueuedJob.job.id,
+        enqueued_at: new Date().toISOString(),
         character_channel_slug: characterChannelSlug
       }
     });
-
-    const telegramSendStartedAt = new Date().toISOString();
-    const immediateArtifactMessages =
-      result.status === "processed" && Array.isArray(result.runtime_output.immediate_artifacts)
-        ? buildArtifactOutboundMessages({
-            channelId: inbound.channel_id,
-            peerId: inbound.peer_id,
-            artifacts: result.runtime_output.immediate_artifacts,
-          })
-        : [];
-    const explicitMediaDeliveryMode =
-      result.status === "processed" &&
-      typeof result.runtime_output.debug_metadata?.explicit_media_delivery_mode === "string"
-        ? result.runtime_output.debug_metadata.explicit_media_delivery_mode
-        : null;
-    const suppressExplicitAudioTextReply =
-      result.status === "processed" &&
-      result.runtime_output.debug_metadata?.suppress_explicit_audio_text_reply === true;
-    const runtimeOutboundMessages =
-      "outbound_messages" in result
-        ? result.outbound_messages.filter((message) => {
-            const deliveryHint =
-              message.metadata &&
-              typeof message.metadata === "object" &&
-              !Array.isArray(message.metadata) &&
-              typeof message.metadata.delivery_hint === "string"
-                ? message.metadata.delivery_hint
-                : null;
-
-            if (deliveryHint === "assistant_artifact") {
-              return false;
-            }
-
-            if (
-              suppressExplicitAudioTextReply &&
-              message.send_mode === "reply" &&
-              message.message_type === "text"
-            ) {
-              return false;
-            }
-
-            return true;
-          })
-        : [];
-    const orderedOutboundMessages =
-      explicitMediaDeliveryMode === "artifact_first" && immediateArtifactMessages.length > 0
-        ? [...immediateArtifactMessages, ...runtimeOutboundMessages]
-        : [...runtimeOutboundMessages, ...immediateArtifactMessages];
-
-    const outboundDelivery = "outbound_messages" in result
-      ? await sendTelegramOutboundMessages({
-          botToken,
-          messages: orderedOutboundMessages
-        })
-      : [];
-
-    if (
-      result.status === "processed" &&
-      result.runtime_output.deferred_artifact_generation
-    ) {
-      const deferredArtifactGeneration = result.runtime_output.deferred_artifact_generation;
-      const resolvedInbound = inbound;
-      after(async () => {
-        try {
-          const artifacts = await runDeferredImArtifactGeneration({
-            assistantMessageId: deferredArtifactGeneration.assistant_message_id,
-            threadId: deferredArtifactGeneration.thread_id,
-            workspaceId: deferredArtifactGeneration.workspace_id,
-            userId: deferredArtifactGeneration.user_id,
-            agentId: deferredArtifactGeneration.agent_id,
-            userMessage: deferredArtifactGeneration.user_message,
-            assistantReply: deferredArtifactGeneration.assistant_reply,
-            agentName: deferredArtifactGeneration.agent_name,
-            personaSummary: deferredArtifactGeneration.persona_summary,
-            preGeneratedImageArtifact: deferredArtifactGeneration.pre_generated_image_artifact ?? null,
-            audioTranscriptOverride: deferredArtifactGeneration.audio_transcript_override ?? null,
-          });
-
-          const artifactOutboundMessages = buildArtifactOutboundMessages({
-            channelId: resolvedInbound.channel_id,
-            peerId: resolvedInbound.peer_id,
-            artifacts
-          });
-
-          if (artifactOutboundMessages.length > 0) {
-            await sendTelegramOutboundMessages({
-              botToken,
-              messages: artifactOutboundMessages
-            });
-          }
-        } catch (artifactGenerationError) {
-          console.error("Deferred IM artifact generation failed:", artifactGenerationError);
-        }
-      });
-    }
-
-    if (
-      result.status === "processed" &&
-      result.runtime_output.deferred_post_processing
-    ) {
-      const deferred = result.runtime_output.deferred_post_processing;
-      await updateAssistantPreviewMetadata({
-        supabase: admin,
-        assistantMessageId: deferred.assistant_message_id,
-        threadId: deferred.thread_id,
-        workspaceId: deferred.workspace_id,
-        userId: deferred.user_id,
-        updates: (currentMetadata) => ({
-          im_delivery: {
-            ...(currentMetadata?.im_delivery &&
-            typeof currentMetadata.im_delivery === "object" &&
-            !Array.isArray(currentMetadata.im_delivery)
-              ? (currentMetadata.im_delivery as Record<string, unknown>)
-              : {}),
-            receipt_id: receiptId,
-            telegram_send_started_at: telegramSendStartedAt,
-            telegram_sent_at: new Date().toISOString(),
-            telegram_delivery_ok: outboundDelivery.every((item) => item.ok),
-            character_channel_slug: characterChannelSlug
-          }
-        })
-      });
-    }
-
-    if (outboundDelivery.some(isTelegramInvalidDeliveryResponse)) {
-      const repository = new SupabaseBindingRepository(admin);
-      const binding = await repository.findActiveBinding({
-        platform: inbound.platform,
-        channel_id: inbound.channel_id,
-        peer_id: inbound.peer_id,
-        platform_user_id: inbound.platform_user_id,
-        character_channel_slug: characterChannelSlug
-      });
-
-      if (binding?.id) {
-        const invalidResponse = outboundDelivery.find(isTelegramInvalidDeliveryResponse) ?? null;
-        const invalidBody =
-          invalidResponse?.body &&
-          typeof invalidResponse.body === "object" &&
-          !Array.isArray(invalidResponse.body)
-            ? (invalidResponse.body as Record<string, unknown>)
-            : null;
-
-        await updateOwnedChannelBindingStatus({
-          supabase: admin,
-          bindingId: binding.id,
-          userId: binding.user_id,
-          status: "invalid",
-          metadataPatch: {
-            invalidated_at: new Date().toISOString(),
-            invalidated_by: "telegram-webhook-outbound-delivery",
-            invalid_reason:
-              typeof invalidBody?.description === "string"
-                ? invalidBody.description
-                : "telegram_delivery_invalid",
-            invalid_platform: inbound.platform
-          }
+    after(async () => {
+      try {
+        await runTelegramInboundWorker({
+          characterChannelSlug,
+          limit: 1,
+          claimedBy: `telegram-webhook:${characterChannelSlug}`
+        });
+      } catch (workerError) {
+        console.error("[telegram-webhook:after-worker]", {
+          character_channel_slug: characterChannelSlug,
+          receipt_id: receiptId,
+          job_id: enqueuedJob.job.id,
+          error_message:
+            workerError instanceof Error ? workerError.message : String(workerError)
         });
       }
-    }
-
-    await updateImInboundReceipt({
-      supabase: admin,
-      receiptId,
-      status: result.status === "processed" ? "processed" : result.status,
-      processed: true,
-      metadataPatch: {
-        outbound_count:
-          "outbound_messages" in result
-            ? result.outbound_messages.length
-            : 0,
-        outbound_delivery_ok: outboundDelivery.every((item) => item.ok),
-        webhook_completed_at: new Date().toISOString(),
-        character_channel_slug: characterChannelSlug
-      }
     });
 
-    if (
-      result.status === "processed" &&
-      result.runtime_output.deferred_post_processing
-    ) {
-      const deferred = result.runtime_output.deferred_post_processing;
-      after(async () => {
-        try {
-          await runDeferredImPostProcessing({
-            assistantMessageId: deferred.assistant_message_id,
-            threadId: deferred.thread_id,
-            workspaceId: deferred.workspace_id,
-            userId: deferred.user_id,
-            agentId: deferred.agent_id,
-            sourceMessageId: deferred.source_message_id,
-            runtimeTurnResult: {
-              memory_write_requests: result.runtime_output.memory_write_requests,
-              follow_up_requests: result.runtime_output.follow_up_requests
-            }
-          });
-        } catch (postProcessingError) {
-          console.error("Deferred IM post-processing failed:", postProcessingError);
-        }
-      });
-    }
+    console.info("[telegram-webhook]", {
+      character_channel_slug: characterChannelSlug,
+      status: "accepted",
+      dedupe_key: dedupeKey,
+      enqueue_status: enqueuedJob.status,
+      enqueue_job_id: enqueuedJob.job.id,
+      total_duration_ms: elapsedMs(webhookStartedAt),
+      parse_duration_ms: parseDurationMs,
+      receipt_claim_duration_ms: receiptClaimDurationMs,
+      enqueue_duration_ms: enqueueDurationMs
+    });
 
     return NextResponse.json({
       ok: true,
-      status: result.status,
-      dedupe_key: result.dedupe_key,
-      outbound_count: "outbound_messages" in result ? result.outbound_messages.length : 0,
-      delivery: outboundDelivery,
+      status: "accepted",
+      dedupe_key: dedupeKey,
+      receipt_id: receiptId,
+      job_id: enqueuedJob.job.id,
       character_channel_slug: characterChannelSlug
     });
   } catch (error) {
@@ -429,18 +198,28 @@ export async function POST(
             : "Telegram webhook handling failed.",
         metadataPatch: {
           webhook_failed_at: new Date().toISOString(),
+          webhook_timing_ms: {
+            total: elapsedMs(webhookStartedAt),
+            parse: parseDurationMs,
+            receipt_claim: receiptClaimDurationMs,
+            enqueue: enqueueDurationMs
+          },
           character_channel_slug: characterChannelSlug
         }
       }).catch(() => null);
     }
 
-    if (inbound) {
-      await sendFallbackMessage({
-        botToken,
-        channelId: inbound.channel_id,
-        content: "Something went wrong while processing your message. Please try again.",
-      });
-    }
+    console.error("[telegram-webhook]", {
+      character_channel_slug: characterChannelSlug,
+      status: "processing_failed",
+      total_duration_ms: elapsedMs(webhookStartedAt),
+      parse_duration_ms: parseDurationMs,
+      receipt_claim_duration_ms: receiptClaimDurationMs,
+      enqueue_duration_ms: enqueueDurationMs,
+      error_message:
+        error instanceof Error ? error.message : "Telegram webhook handling failed."
+    });
+
     return NextResponse.json({
       ok: false,
       status: "processing_failed",

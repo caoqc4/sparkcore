@@ -3546,10 +3546,11 @@ textarea.input {
 
 .home-hero-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 60px;
-  align-items: stretch;
-  padding: 24px 24px 80px;
+  grid-template-columns: 1.15fr 0.85fr;
+  column-gap: 56px;
+  row-gap: 20px;
+  align-items: start;
+  padding: 8px 24px 80px;
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
@@ -3560,8 +3561,8 @@ textarea.input {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 16px;
-  padding-bottom: 8px;
+  gap: 12px;
+  padding-bottom: 4px;
 }
 
 .home-hero-grid::before {
@@ -3597,8 +3598,24 @@ textarea.input {
 @media (max-width: 1024px) {
   .home-hero-grid {
     grid-template-columns: 1fr;
-    gap: 48px;
-    padding: 40px 20px;
+    row-gap: 28px;
+    column-gap: 0;
+    padding: 32px 20px 60px;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-hero-grid {
+    gap: 28px;
+    padding: 28px 16px 60px;
+  }
+
+  .home-hero-heading {
+    font-size: clamp(2rem, 8vw, 2.6rem);
+  }
+
+  .home-hero-lead {
+    font-size: 1rem;
   }
 }
 
@@ -4027,7 +4044,7 @@ textarea.input {
 .home-hero-wizard-preview {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .home-hero-wizard-preview > .home-hero-wizard-step-line {
@@ -4235,6 +4252,24 @@ textarea.input {
   gap: 10px;
 }
 
+@media (max-width: 400px) {
+  .home-hero-personality-selector {
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero-personality-btn {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 8px;
+    text-align: left;
+    padding: 12px 14px;
+  }
+
+  .home-hero-personality-desc {
+    font-size: 0.8125rem;
+  }
+}
+
 .home-hero-personality-btn {
   display: flex;
   flex-direction: column;
@@ -4333,6 +4368,109 @@ textarea.input {
   font-weight: 600;
 }
 
+/* ── Hero: Identity selector (Step 1) ── */
+.home-hero-identity-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.home-hero-identity-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: hsl(240 18% 14%);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.home-hero-identity-btn:hover {
+  border-color: hsl(268 52% 68% / 0.4);
+  background: hsl(240 16% 17%);
+}
+
+.home-hero-identity-btn.active {
+  border-color: hsl(268 52% 68%);
+  background: hsl(268 52% 68% / 0.12);
+}
+
+.home-hero-identity-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.home-hero-identity-btn.active .home-hero-identity-label {
+  color: hsl(268 52% 80%);
+}
+
+.home-hero-identity-desc {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+/* ── Hero: CTA row ── */
+.home-hero-cta-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .home-hero-cta-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .home-hero-cta {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  .home-hero-reset {
+    width: 100%;
+  }
+}
+
+.home-hero-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid hsl(240 12% 30%);
+  background: transparent;
+  color: hsl(240 10% 55%);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+}
+
+.home-hero-reset:hover {
+  border-color: hsl(240 12% 44%);
+  color: var(--text);
+  background: hsl(240 14% 18%);
+}
+
+/* ── Hero: Traits section (secondary, below CTA) ── */
+.home-hero-traits-section {
+  padding-top: 8px;
+  border-top: 1px solid hsl(240 12% 22%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 /* ── Hero: Step note ── */
 .home-hero-step-note {
   font-size: 0.8rem;
@@ -4343,7 +4481,12 @@ textarea.input {
 
 /* ── Hero: Silhouette preview ── */
 .home-hero-portrait-silhouette {
-  background: transparent !important;
+  background: linear-gradient(
+    180deg,
+    hsl(268 30% 20%) 0%,
+    hsl(268 22% 16%) 55%,
+    hsl(240 20% 13%) 100%
+  ) !important;
   border: none !important;
 }
 
@@ -4351,6 +4494,9 @@ textarea.input {
   position: relative;
   width: 100%;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .home-hero-silhouette-slide {
@@ -4373,16 +4519,16 @@ textarea.input {
 .home-hero-preview {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 0;
   align-self: start;
 }
 
 .home-hero-portrait-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 28px 24px 24px;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
   border-radius: var(--radius-xl);
   background: hsl(240 18% 15%);
   border: 1px solid hsl(268 52% 68% / 0.22);
@@ -4401,13 +4547,13 @@ textarea.input {
 
 .home-hero-portrait-area {
   position: relative;
-  width: 160px;
+  width: 100%;
 }
 
 .home-hero-portrait-img {
-  width: 160px;
-  height: 240px;
-  border-radius: 12px;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   background: linear-gradient(145deg, hsl(268 52% 42%), hsl(268 52% 28%));
   display: flex;
   align-items: center;
@@ -4419,10 +4565,16 @@ textarea.input {
   user-select: none;
 }
 
+.home-hero-portrait-photo {
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
 .home-hero-portrait-status {
   position: absolute;
-  bottom: 6px;
-  right: 6px;
+  bottom: 10px;
+  right: 10px;
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -4439,7 +4591,8 @@ textarea.input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  padding: 16px 20px 20px;
 }
 
 .home-hero-portrait-name {
@@ -4480,16 +4633,13 @@ textarea.input {
   color: var(--muted);
 }
 
-/* ── Hero: Chat preview ── */
+/* ── Hero: Chat preview (embedded inside portrait card) ── */
 .home-hero-chat-preview {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 20px;
-  border-radius: var(--radius-lg);
-  background: hsl(240 18% 13%);
-  border: 1px solid hsl(240 12% 26%);
-  box-shadow: inset 0 1px 0 hsl(240 12% 30% / 0.3);
+  gap: 8px;
+  padding: 16px 20px 18px;
+  border-top: 1px solid hsl(240 12% 22%);
 }
 
 .home-hero-chat-bubble {
@@ -4571,7 +4721,7 @@ textarea.input {
 
 /* Homepage section spacing */
 .home-section {
-  padding: 60px 0;
+  padding: 40px 0;
 }
 
 @media (min-width: 768px) {
@@ -4581,10 +4731,26 @@ textarea.input {
 }
 
 /* CTA action button sizing */
-.home-cta-action,
-.home-hero-cta {
+.home-cta-action {
   min-width: 200px;
   justify-content: center;
+}
+
+/* Hero create CTA — vivid purple so it stands out */
+.home-hero-cta {
+  min-width: 180px;
+  justify-content: center;
+  background: linear-gradient(135deg, hsl(268 55% 50%) 0%, hsl(268 52% 40%) 100%);
+  border-color: hsl(268 52% 65% / 0.45);
+  box-shadow: 0 4px 24px hsl(268 52% 50% / 0.35);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.home-hero-cta:hover {
+  background: linear-gradient(135deg, hsl(268 55% 56%) 0%, hsl(268 52% 46%) 100%);
+  box-shadow: 0 8px 32px hsl(268 52% 50% / 0.45);
+  transform: translateY(-1px);
 }
 
 /* Role showcase section */
@@ -4594,9 +4760,70 @@ textarea.input {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+/* Role showcase CTA label */
+.home-role-showcase-cta {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 0 22px 22px;
+  margin-top: auto;
+}
+
+.home-role-showcase-card.selected .home-role-showcase-cta {
+  color: hsl(268 52% 72%);
+}
+
 @media (max-width: 768px) {
   .home-role-showcase-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Horizontal card layout on mobile — reduces card height from ~100vh to ~160px */
+  .home-role-showcase-card {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    grid-template-rows: auto 1fr auto;
+    gap: 0;
+  }
+
+  .home-role-showcase-portrait {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    aspect-ratio: unset;
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  }
+
+  .home-role-showcase-card .img-placeholder-role {
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+    aspect-ratio: unset;
+    height: 100%;
+  }
+
+  .home-role-showcase-card .home-role-showcase-meta {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 14px 14px 6px;
+    align-self: start;
+  }
+
+  .home-role-showcase-card .home-role-showcase-tagline {
+    grid-column: 2;
+    grid-row: 2;
+    padding: 0 14px 8px;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    align-self: start;
+  }
+
+  .home-role-showcase-cta {
+    grid-column: 2;
+    grid-row: 3;
+    padding: 0 14px 14px;
+    align-self: end;
+  }
+
+  .home-role-showcase-name {
+    font-size: 1.2rem;
   }
 }
 
@@ -4606,6 +4833,37 @@ textarea.input {
   gap: 16px;
   padding: 0;
   overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home-role-showcase-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px hsl(0 0% 0% / 0.3);
+}
+
+.home-role-showcase-card:active {
+  transform: scale(0.98);
+}
+
+.home-role-showcase-card.selected {
+  border-color: hsl(268 52% 68%);
+  box-shadow: 0 0 0 2px hsl(268 52% 68% / 0.4), 0 12px 40px hsl(0 0% 0% / 0.3);
+}
+
+.home-role-showcase-portrait {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  flex-shrink: 0;
+}
+
+.home-role-showcase-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
 }
 
 .home-role-showcase-card .img-placeholder-role {

@@ -1,11 +1,12 @@
 "use client";
 
-import type { CompanionDraft, CompanionGender, CompanionTone } from "./home-hero-interactive";
+import type { CompanionDraft, CompanionTone, IdentityType } from "./home-hero-interactive";
 
-const GENDER_OPTIONS: { value: CompanionGender; icon: string; label: string }[] = [
-  { value: "female",  icon: "♀", label: "Female"  },
-  { value: "male",    icon: "♂", label: "Male"    },
-  { value: "neutral", icon: "◈", label: "Neutral" },
+const IDENTITY_OPTIONS: { value: IdentityType; label: string; desc: string }[] = [
+  { value: "girlfriend",       label: "Girlfriend",        desc: "Companion · Female" },
+  { value: "boyfriend",        label: "Boyfriend",         desc: "Companion · Male"   },
+  { value: "female-assistant", label: "Female Assistant",  desc: "Assistant · Female" },
+  { value: "male-assistant",   label: "Male Assistant",    desc: "Assistant · Male"   },
 ];
 
 const TONE_OPTIONS: { value: CompanionTone; label: string; desc: string }[] = [
@@ -29,15 +30,16 @@ const TRAIT_GROUPS: { category: string; tags: string[] }[] = [
   },
 ];
 
-const NAME_PLACEHOLDERS: Record<CompanionGender, string> = {
-  female:  "Caria",
-  male:    "Teven",
-  neutral: "Nova",
+const NAME_PLACEHOLDERS: Record<string, string> = {
+  female:  "e.g. Caria",
+  male:    "e.g. Teven",
 };
 
 interface HomeHeroFormProps {
   draft: CompanionDraft;
   onChange: (partial: Partial<CompanionDraft>) => void;
+  onIdentityChange: (id: IdentityType) => void;
+  onReset: () => void;
   onSubmit: () => void;
 }
 
@@ -47,28 +49,33 @@ function toggleTrait(current: string[], trait: string): string[] {
     : [...current, trait];
 }
 
-export function HomeHeroForm({ draft, onChange, onSubmit }: HomeHeroFormProps) {
-  const displayName = draft.name.trim() || "my companion";
+export function HomeHeroForm({ draft, onChange, onIdentityChange, onReset, onSubmit }: HomeHeroFormProps) {
+  const displayName = draft.name.trim() || "your companion";
+  const currentIdentity: IdentityType | null = !draft.identityChosen ? null
+    : draft.mode === "assistant"
+      ? draft.gender === "male" ? "male-assistant" : "female-assistant"
+      : draft.gender === "male" ? "boyfriend" : "girlfriend";
+
+  const nameLabel = draft.gender === "male" ? "Give him a name" : "Give her a name";
 
   return (
     <div className="home-hero-wizard-preview">
 
-      {/* Step 1: Gender */}
+      {/* Identity */}
       <div className="home-hero-step-block">
         <div className="home-hero-step-header">
-          <span className="home-hero-wizard-step-num">01</span>
-          <span className="home-hero-wizard-step-label">Gender</span>
+          <span className="home-hero-wizard-step-label">Identity</span>
         </div>
-        <div className="home-hero-gender-selector">
-          {GENDER_OPTIONS.map((opt) => (
+        <div className="home-hero-identity-selector">
+          {IDENTITY_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               type="button"
-              className={`home-hero-gender-btn${draft.gender === opt.value ? " active" : ""}`}
-              onClick={() => onChange({ gender: opt.value })}
+              className={`home-hero-identity-btn${currentIdentity === opt.value ? " active" : ""}`}
+              onClick={() => onIdentityChange(opt.value)}
             >
-              <span className="home-hero-gender-icon">{opt.icon}</span>
-              <span className="home-hero-gender-label">{opt.label}</span>
+              <span className="home-hero-identity-label">{opt.label}</span>
+              <span className="home-hero-identity-desc">{opt.desc}</span>
             </button>
           ))}
         </div>
@@ -76,11 +83,10 @@ export function HomeHeroForm({ draft, onChange, onSubmit }: HomeHeroFormProps) {
 
       <span className="home-hero-wizard-step-line" aria-hidden="true" />
 
-      {/* Step 2: Name */}
+      {/* Name */}
       <div className="home-hero-step-block">
         <div className="home-hero-step-header">
-          <span className="home-hero-wizard-step-num">02</span>
-          <span className="home-hero-wizard-step-label">Give them a name</span>
+          <span className="home-hero-wizard-step-label">{nameLabel}</span>
         </div>
         <input
           type="text"
@@ -95,10 +101,9 @@ export function HomeHeroForm({ draft, onChange, onSubmit }: HomeHeroFormProps) {
 
       <span className="home-hero-wizard-step-line" aria-hidden="true" />
 
-      {/* Step 3: Tone */}
+      {/* Tone */}
       <div className="home-hero-step-block">
         <div className="home-hero-step-header">
-          <span className="home-hero-wizard-step-num">03</span>
           <span className="home-hero-wizard-step-label">Tone</span>
         </div>
         <div className="home-hero-personality-selector">
@@ -116,15 +121,32 @@ export function HomeHeroForm({ draft, onChange, onSubmit }: HomeHeroFormProps) {
         </div>
       </div>
 
-      <span className="home-hero-wizard-step-line" aria-hidden="true" />
+      {/* Primary CTA — visible without scrolling */}
+      <div className="home-hero-cta-row">
+        <button
+          type="button"
+          className="button button-primary home-hero-cta"
+          onClick={onSubmit}
+        >
+          Create {displayName} →
+        </button>
+        <button
+          type="button"
+          className="home-hero-reset"
+          onClick={onReset}
+        >
+          Reset
+        </button>
+      </div>
 
-      {/* Step 4: Traits */}
-      <div className="home-hero-step-block">
+      <p className="home-hero-wizard-hint">Takes 2 minutes · No setup friction</p>
+
+      {/* Traits — optional, below the fold */}
+      <div className="home-hero-traits-section">
         <div className="home-hero-step-header">
-          <span className="home-hero-wizard-step-num">04</span>
           <span className="home-hero-wizard-step-label">
             Traits
-            <span className="home-hero-step-note"> — pick any</span>
+            <span className="home-hero-step-note"> — optional</span>
           </span>
         </div>
         <div className="home-hero-trait-groups">
@@ -148,15 +170,6 @@ export function HomeHeroForm({ draft, onChange, onSubmit }: HomeHeroFormProps) {
         </div>
       </div>
 
-      <button
-        type="button"
-        className="button button-primary home-hero-cta"
-        onClick={onSubmit}
-      >
-        Create {displayName} →
-      </button>
-
-      <p className="home-hero-wizard-hint">Takes 2 minutes · No setup friction</p>
     </div>
   );
 }

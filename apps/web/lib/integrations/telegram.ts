@@ -78,6 +78,37 @@ type AzureFastTranscriptionResponse = {
 
 const TELEGRAM_VISION_MODEL = "replicate-gpt-4o-mini";
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isTransientTelegramStatus(status: number) {
+  return status === 429 || status >= 500;
+}
+
+function isTransientTelegramDeliveryBody(body: unknown) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return false;
+  }
+
+  const description =
+    typeof (body as Record<string, unknown>).description === "string"
+      ? ((body as Record<string, unknown>).description as string).toLowerCase()
+      : null;
+
+  if (!description) {
+    return false;
+  }
+
+  return (
+    description.includes("too many requests") ||
+    description.includes("temporarily unavailable") ||
+    description.includes("timeout") ||
+    description.includes("internal server error") ||
+    description.includes("bad gateway")
+  );
+}
+
 function getTrimmedString(value: unknown) {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
@@ -369,9 +400,17 @@ export async function sendTelegramOutboundMessages(args: {
     };
   }
 
-  for (const message of args.messages) {
-    try {
-      if (message.message_type === "text") {
+  async function sendTextMessageWithRetry(message: OutboundChannelMessage) {
+    let attempt = 0;
+    let lastResult: {
+      chat_id: string;
+      ok: boolean;
+      status: number;
+      body: unknown;
+    } | null = null;
+
+    while (attempt < 2) {
+      try {
         const response = await fetch(
           `https://api.telegram.org/bot${args.botToken}/sendMessage`,
           {
@@ -387,12 +426,70 @@ export async function sendTelegramOutboundMessages(args: {
         );
         const body = await response.json().catch(() => null);
 
-        responses.push({
+        lastResult = {
           chat_id: message.channel_id,
           ok: response.ok,
           status: response.status,
           body
-        });
+        };
+
+        if (
+          response.ok ||
+          !isTransientTelegramStatus(response.status) &&
+            !isTransientTelegramDeliveryBody(body)
+        ) {
+          return lastResult;
+        }
+      } catch (error) {
+        lastResult = {
+          chat_id: message.channel_id,
+          ok: false,
+          status: 500,
+          body: {
+            error: "telegram_delivery_failed",
+            message: error instanceof Error ? error.message : "unknown_delivery_error"
+          }
+        };
+
+        const errorMessage =
+          error instanceof Error ? error.message.toLowerCase() : "";
+        const shouldRetry =
+          errorMessage.includes("fetch failed") ||
+          errorMessage.includes("timeout") ||
+          errorMessage.includes("network") ||
+          errorMessage.includes("socket");
+
+        if (!shouldRetry) {
+          return lastResult;
+        }
+      }
+
+      attempt += 1;
+      if (attempt < 2) {
+        await sleep(600);
+      }
+    }
+
+    return (
+      lastResult ?? {
+        chat_id: message.channel_id,
+        ok: false,
+        status: 500,
+        body: {
+          error: "telegram_delivery_failed",
+          message: "unknown_delivery_error"
+        }
+      }
+    );
+  }
+
+  for (const message of args.messages) {
+    try {
+      if (message.message_type === "text") {
+        responses.push(await sendTextMessageWithRetry(message));
+        if (args.messages.length > 1) {
+          await sleep(350);
+        }
         continue;
       }
 
@@ -439,6 +536,9 @@ export async function sendTelegramOutboundMessages(args: {
           status: response.status,
           body
         });
+        if (args.messages.length > 1) {
+          await sleep(350);
+        }
         continue;
       }
 
@@ -483,6 +583,9 @@ export async function sendTelegramOutboundMessages(args: {
           status: response.status,
           body
         });
+        if (args.messages.length > 1) {
+          await sleep(350);
+        }
         continue;
       }
 

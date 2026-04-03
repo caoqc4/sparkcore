@@ -258,6 +258,19 @@ export async function POST(request: NextRequest) {
             personaSummary: deferredArtifactGeneration.persona_summary,
             preGeneratedImageArtifact: deferredArtifactGeneration.pre_generated_image_artifact ?? null,
             audioTranscriptOverride: deferredArtifactGeneration.audio_transcript_override ?? null,
+            explicitImageRequested: deferredArtifactGeneration.explicit_image_requested ?? false,
+            explicitAudioRequested: deferredArtifactGeneration.explicit_audio_requested ?? false,
+            deliveryGate: deferredArtifactGeneration.delivery_gate
+              ? {
+                  clarifyBeforeAction:
+                    deferredArtifactGeneration.delivery_gate.clarify_before_action === true,
+                  reason: deferredArtifactGeneration.delivery_gate.reason ?? null,
+                  conflictHint:
+                    deferredArtifactGeneration.delivery_gate.conflict_hint ?? null,
+                }
+              : null,
+            imageArtifactAction: deferredArtifactGeneration.image_artifact_action ?? null,
+            audioArtifactAction: deferredArtifactGeneration.audio_artifact_action ?? null,
           });
 
           const artifactOutboundMessages = buildArtifactOutboundMessages({

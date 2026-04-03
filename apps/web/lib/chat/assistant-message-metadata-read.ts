@@ -100,6 +100,12 @@ export function getAssistantFollowUpMetadata(
   return getAssistantMetadataGroup(metadata, "follow_up");
 }
 
+export function getAssistantGovernanceMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "governance");
+}
+
 export function getAssistantMetadataString(
   metadata: Record<string, unknown> | null | undefined,
   key: string
@@ -265,6 +271,9 @@ export function getAssistantMemoryHitCount(
       "memory_hit_count"
     ) ??
     getAssistantMetadataNumber(memoryMetadata ?? metadata, "hit_count") ??
+    (Array.isArray(metadata?.recalled_memory_preview)
+      ? metadata.recalled_memory_preview.length
+      : null) ??
     (Array.isArray(metadata?.recalled_memories)
       ? metadata.recalled_memories.length
       : null)
@@ -2749,4 +2758,216 @@ export function getAssistantFollowUpRequestCount(
     getAssistantMetadataNumber(followUpMetadata, "request_count") ??
     getAssistantMetadataNumber(metadata, "follow_up_request_count")
   );
+}
+
+export function getAssistantGovernanceExpressionBrief(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "expression_brief") ??
+    getAssistantMetadataString(metadata, "output_governance_expression_brief")
+  );
+}
+
+export function getAssistantGovernanceRelationalBrief(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "relational_brief") ??
+    getAssistantMetadataString(metadata, "output_governance_relational_brief")
+  );
+}
+
+export function getAssistantGovernanceSceneBrief(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "scene_brief") ??
+    getAssistantMetadataString(metadata, "output_governance_scene_brief")
+  );
+}
+
+export function getAssistantGovernanceKnowledgeBrief(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "knowledge_brief") ??
+    getAssistantMetadataString(metadata, "output_governance_knowledge_brief")
+  );
+}
+
+export function getAssistantGovernanceRoleMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "role_mode") ??
+    getAssistantMetadataString(metadata, "output_governance_role_mode")
+  );
+}
+
+export function getAssistantGovernanceRoleIdentityArchetype(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "role_identity_archetype") ??
+    getAssistantMetadataString(
+      metadata,
+      "output_governance_role_identity_archetype"
+    )
+  );
+}
+
+export function getAssistantGovernanceRoleTone(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "role_tone") ??
+    getAssistantMetadataString(metadata, "output_governance_role_tone")
+  );
+}
+
+export function getAssistantGovernanceRoleProactivityLevel(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "role_proactivity_level") ??
+    getAssistantMetadataString(
+      metadata,
+      "output_governance_role_proactivity_level"
+    )
+  );
+}
+
+export function getAssistantGovernanceRoleRelationshipMode(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "role_relationship_mode") ??
+    getAssistantMetadataString(
+      metadata,
+      "output_governance_role_relationship_mode"
+    )
+  );
+}
+
+export function getAssistantGovernanceVolatileOverrideLabel(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "volatile_override_label") ??
+    getAssistantMetadataString(
+      metadata,
+      "output_governance_volatile_override_label"
+    )
+  );
+}
+
+export function getAssistantGovernanceVolatileOverrideStrength(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      governanceMetadata,
+      "volatile_override_strength"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "output_governance_volatile_override_strength"
+    )
+  );
+}
+
+export function getAssistantGovernanceKnowledgeRouteLabel(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "knowledge_route_label") ??
+    getAssistantMetadataString(
+      metadata,
+      "output_governance_knowledge_route_label"
+    )
+  );
+}
+
+export function getAssistantGovernanceKnowledgeIntentLabel(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(governanceMetadata, "knowledge_intent_label") ??
+    getAssistantMetadataString(
+      metadata,
+      "output_governance_knowledge_intent_label"
+    )
+  );
+}
+
+export function getAssistantGovernanceAvoidances(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  const grouped = getAssistantMetadataStringArray(governanceMetadata, "avoidances");
+  return grouped.length > 0
+    ? grouped
+    : getAssistantMetadataStringArray(metadata, "output_governance_avoidances");
+}
+
+export function getAssistantGovernanceModalityRules(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  const grouped = getAssistantMetadataStringArray(
+    governanceMetadata,
+    "modality_rules"
+  );
+  return grouped.length > 0
+    ? grouped
+    : getAssistantMetadataStringArray(
+        metadata,
+        "output_governance_modality_rules"
+      );
+}
+
+export function getAssistantGovernanceSourceSignals(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const governanceMetadata = getAssistantGovernanceMetadata(metadata);
+
+  const grouped = getAssistantMetadataStringArray(
+    governanceMetadata,
+    "source_signals"
+  );
+  return grouped.length > 0
+    ? grouped
+    : getAssistantMetadataStringArray(
+        metadata,
+        "output_governance_source_signals"
+      );
 }

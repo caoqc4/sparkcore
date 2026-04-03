@@ -598,6 +598,21 @@ export async function executeMemoryWriteRequests({
       "thread_state_candidate"
   );
 
+  const requestTypeSummary = requests.map((request) =>
+    request.kind === "relationship_memory"
+      ? {
+          kind: request.kind,
+          memory_type: request.memory_type,
+          relationship_key: request.relationship_key,
+          dedupe_key: request.dedupe_key ?? null
+        }
+      : {
+          kind: request.kind,
+          memory_type: request.memory_type,
+          dedupe_key: request.dedupe_key ?? null
+        }
+  );
+
   const relationshipCreatedTypes: MemoryUsageType[] = [];
   const relationshipUpdatedTypes: MemoryUsageType[] = [];
   const namespaceMetadata = buildMemoryNamespaceScopedMetadata({
@@ -980,6 +995,30 @@ export async function executeMemoryWriteRequests({
       rows: rowsToInsert as Array<Record<string, unknown>>
     });
     if (error) {
+      console.error("[memory-write:insert-failed]", {
+        workspace_id: workspaceId,
+        user_id: userId,
+        agent_id: agentId,
+        thread_id: threadId ?? null,
+        request_types: requestTypeSummary,
+        rows_to_insert: rowsToInsert.map((row) => ({
+          memory_type:
+            typeof row.memory_type === "string" ? row.memory_type : null,
+          category: typeof row.category === "string" ? row.category : null,
+          key: typeof row.key === "string" ? row.key : null,
+          scope: typeof row.scope === "string" ? row.scope : null,
+          record_target:
+            row.metadata &&
+            typeof row.metadata === "object" &&
+            !Array.isArray(row.metadata) &&
+            typeof (row.metadata as Record<string, unknown>).record_target ===
+              "string"
+              ? ((row.metadata as Record<string, unknown>)
+                  .record_target as string)
+              : null
+        })),
+        error_message: error.message
+      });
       throw new Error(`Failed to insert planned memory writes: ${error.message}`);
     }
   }

@@ -8,6 +8,8 @@ import type {
   ProductRoleTone
 } from "@/lib/product/role-core";
 
+export type AssetEligibleMode = "companion" | "assistant";
+
 export type ProductAudioVoiceOptionRow = {
   id: string;
   model_slug: string;
@@ -16,10 +18,24 @@ export type ProductAudioVoiceOptionRow = {
   display_name: string;
   gender_presentation: string | null;
   style_tags: unknown;
+  eligible_modes?: unknown;
   metadata?: unknown;
   tier?: string | null;
   sort_order: number;
   is_default: boolean;
+};
+
+export type ProductPortraitAssetRow = {
+  id: string;
+  provider: string | null;
+  source_type: string;
+  storage_path: string | null;
+  public_url: string | null;
+  display_name: string | null;
+  gender_presentation: string | null;
+  style_tags: unknown;
+  eligible_modes?: unknown;
+  metadata?: unknown;
 };
 
 function asStringArray(value: unknown) {
@@ -28,6 +44,17 @@ function asStringArray(value: unknown) {
   }
 
   return value.filter((item): item is string => typeof item === "string");
+}
+
+export function isEligibleForMode(
+  eligibleModes: unknown,
+  roleMode: AssetEligibleMode | null | undefined
+): boolean {
+  const modes = asStringArray(eligibleModes);
+  // Empty array = no restriction
+  if (modes.length === 0) return true;
+  if (!roleMode) return true;
+  return modes.includes(roleMode);
 }
 
 function getToneAffinityTags(tone: ProductRoleTone) {
@@ -125,7 +152,7 @@ export async function loadActiveAudioVoiceOptionsByModelSlug(args: {
   return args.supabase
     .from("product_audio_voice_options")
     .select(
-      "id, model_slug, provider, voice_key, display_name, gender_presentation, style_tags, metadata, tier, sort_order, is_default"
+      "id, model_slug, provider, voice_key, display_name, gender_presentation, style_tags, eligible_modes, metadata, tier, sort_order, is_default"
     )
     .eq("model_slug", args.modelSlug)
     .eq("is_active", true)
@@ -164,11 +191,15 @@ export function filterAudioVoiceOptionsForRole(args: {
   avatarGender: ProductRoleAvatarGender | null;
   tone: ProductRoleTone;
   currentPlanSlug: "free" | "pro";
+  roleMode?: AssetEligibleMode | null;
 }) {
   const tierAllowed = args.options.filter(
     (option) => args.currentPlanSlug === "pro" || option.tier !== "pro"
   );
-  const genderFiltered = tierAllowed.filter((option) => {
+  const modeFiltered = tierAllowed.filter((option) =>
+    isEligibleForMode(option.eligible_modes, args.roleMode ?? null)
+  );
+  const genderFiltered = modeFiltered.filter((option) => {
     if (!args.avatarGender) {
       return true;
     }
@@ -179,13 +210,20 @@ export function filterAudioVoiceOptionsForRole(args: {
       option.gender_presentation === args.avatarGender
     );
   });
-  const base = genderFiltered.length > 0 ? genderFiltered : tierAllowed;
+  const base = genderFiltered.length > 0 ? genderFiltered : modeFiltered;
   const preferredToneTags = new Set(getToneAffinityTags(args.tone));
   const toneFiltered = base.filter((option) =>
     asStringArray(option.style_tags).some((tag) => preferredToneTags.has(tag))
   );
 
   return toneFiltered.length > 0 ? toneFiltered : base;
+}
+
+export function filterPortraitAssetsForMode<T extends { eligible_modes?: unknown }>(
+  assets: T[],
+  roleMode: AssetEligibleMode | null | undefined
+): T[] {
+  return assets.filter((asset) => isEligibleForMode(asset.eligible_modes, roleMode ?? null));
 }
 
 export function pickRecommendedAudioVoiceOption(args: {
@@ -297,7 +335,7 @@ export async function loadAccessiblePortraitAssetById(args: {
   return args.supabase
     .from("product_portrait_assets")
     .select(
-      "id, provider, source_type, storage_path, public_url, display_name, gender_presentation, style_tags, metadata"
+      "id, provider, source_type, storage_path, public_url, display_name, gender_presentation, style_tags, eligible_modes, metadata"
     )
     .eq("id", args.portraitAssetId)
     .eq("is_active", true)
@@ -311,7 +349,7 @@ export async function loadAccessiblePortraitAssets(args: {
   return args.supabase
     .from("product_portrait_assets")
     .select(
-      "id, provider, source_type, public_url, display_name, gender_presentation, style_tags, is_shared"
+      "id, provider, source_type, public_url, display_name, gender_presentation, style_tags, eligible_modes, is_shared"
     )
     .eq("is_active", true)
     .or(`is_shared.eq.true,owner_user_id.eq.${args.userId}`)
@@ -325,7 +363,7 @@ export async function loadSharedPresetPortraitAssets(args: {
   return args.supabase
     .from("product_portrait_assets")
     .select(
-      "id, provider, source_type, storage_path, public_url, display_name, gender_presentation, style_tags, metadata"
+      "id, provider, source_type, storage_path, public_url, display_name, gender_presentation, style_tags, eligible_modes, metadata"
     )
     .eq("is_active", true)
     .eq("is_shared", true)
@@ -340,7 +378,7 @@ export async function loadSharedPresetPortraitAssetByCharacterSlug(args: {
   return args.supabase
     .from("product_portrait_assets")
     .select(
-      "id, provider, source_type, storage_path, public_url, display_name, gender_presentation, style_tags, metadata"
+      "id, provider, source_type, storage_path, public_url, display_name, gender_presentation, style_tags, eligible_modes, metadata"
     )
     .eq("is_active", true)
     .eq("is_shared", true)
@@ -383,7 +421,7 @@ export async function loadActiveAudioAssets(args: { supabase: any }) {
 
   return args.supabase
     .from("product_audio_voice_options")
-    .select("id, model_slug, provider, display_name, voice_key, style_tags, gender_presentation, tier, sort_order, is_default")
+    .select("id, model_slug, provider, display_name, voice_key, style_tags, eligible_modes, gender_presentation, tier, sort_order, is_default")
     .in("model_slug", visibleAudioModelSlugs)
     .eq("is_active", true)
     .order("provider", { ascending: true })

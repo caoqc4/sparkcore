@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 import { HomeHeroInteractive } from "@/components/home-hero-interactive";
+import { HomePresetShowcase, type PresetShowcaseItem } from "@/components/home-preset-showcase";
 import { SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
 import { getOptionalUser } from "@/lib/auth-redirect";
+import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
+import { loadSharedPresetPortraitAssets } from "@/lib/product/role-media";
 import { buildPageMetadata } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,29 +20,27 @@ export const metadata = buildPageMetadata({
 type HomePageProps = {
   searchParams: Promise<{
     preview?: string;
+    preset?: string;
   }>;
 };
 
-const roleShowcaseCards = [
-  {
-    emoji: "💫",
-    name: "Luna",
-    type: "Close Companion",
-    tagline: "Remembers the texture of your days, not just what you said.",
+const PRESET_SHOWCASE_META: Record<CharacterSlug, { type: string; tagline: string; emoji: string }> = {
+  caria: {
+    type: "Companion · Female",
+    tagline: "Warm and emotionally present. Remembers every detail you share.",
+    emoji: "🌸",
   },
-  {
+  teven: {
+    type: "Companion · Male",
+    tagline: "Steady and honest. Grounding presence without forcing closeness.",
     emoji: "🌿",
-    name: "Zara",
-    type: "Gentle Listener",
-    tagline: "Quiet, steady presence. Catches the things you mention in passing.",
   },
-  {
-    emoji: "⚡",
-    name: "Ren",
-    type: "Warm & Sharp",
-    tagline: "Gets your humor and your philosophy. Keeps both without forcing either.",
+  velia: {
+    type: "Assistant · Female",
+    tagline: "Sharp and efficient. Gets things done with a touch of personality.",
+    emoji: "✦",
   },
-] as const;
+};
 
 const faqItems = [
   {
@@ -100,59 +101,77 @@ const imConversationPreview = [
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
   const user = await getOptionalUser();
-  const supabase = user ? await createClient() : null;
-  const overview =
-    user && supabase
-      ? await loadDashboardOverview({
-          supabase,
-          userId: user.id,
-        })
-      : null;
-  const hasConsoleReady = Boolean(
-    overview?.currentRole && overview?.currentThread,
-  );
+  const supabase = await createClient();
+  const overview = user
+    ? await loadDashboardOverview({ supabase, userId: user.id })
+    : null;
+  const hasConsoleReady = Boolean(overview?.currentRole && overview?.currentThread);
   const allowLandingPreview = params.preview === "landing";
   if (hasConsoleReady && !allowLandingPreview) {
     redirect("/app");
   }
 
+  // Resolve initialPreset from URL
+  const initialPreset =
+    params.preset === "caria" || params.preset === "teven" || params.preset === "velia"
+      ? (params.preset as CharacterSlug)
+      : null;
+
+  // Load preset portrait assets for second screen and hero preview
+  const { data: portraitAssets } = await loadSharedPresetPortraitAssets({ supabase });
+  const presetPortraits: Partial<Record<CharacterSlug, string>> = {};
+  for (const asset of portraitAssets ?? []) {
+    const meta = asset.metadata && typeof asset.metadata === "object" && !Array.isArray(asset.metadata)
+      ? (asset.metadata as Record<string, unknown>)
+      : null;
+    const slug = typeof meta?.character_slug === "string" ? meta.character_slug : null;
+    if (slug === "caria" || slug === "teven" || slug === "velia") {
+      const publicUrl =
+        typeof asset.public_url === "string" && asset.public_url.length > 0
+          ? asset.public_url
+          : typeof asset.storage_path === "string" && asset.storage_path.startsWith("character-assets/")
+            ? supabase.storage
+                .from("character-assets")
+                .getPublicUrl(asset.storage_path.replace(/^character-assets\//, "")).data.publicUrl
+            : null;
+      if (publicUrl) presetPortraits[slug] = publicUrl;
+    }
+  }
+
+  const showcasePresets: PresetShowcaseItem[] = (["caria", "teven", "velia"] as CharacterSlug[]).map((slug) => ({
+    slug,
+    name: CHARACTER_MANIFEST[slug].displayName,
+    portraitUrl: presetPortraits[slug] ?? null,
+    ...PRESET_SHOWCASE_META[slug],
+  }));
+
   return (
     <SiteShell>
       {/* Hero Section */}
-      <section className="home-section">
+      <section id="home-hero" className="home-section">
         <div className="home-hero-grid">
-          <HomeHeroInteractive user={user ? { id: user.id } : null} />
+          <HomeHeroInteractive
+            user={user ? { id: user.id } : null}
+            initialPreset={initialPreset}
+            presetPortraits={presetPortraits}
+          />
         </div>
       </section>
 
       {/* Role Showcase Section */}
       <section className="home-feature-spotlight" id="home-roles">
         <div className="home-section-heading">
-          <p className="home-kicker">Companion</p>
+          <p className="home-kicker">Presets</p>
           <h2>
-            Not a one-off chat. A relationship that grows.
+            Start with a preset. Adjust anything you want.
           </h2>
           <p>
-            Every companion keeps the same thread, the same memory, and the same
-            emotional context — whether you're in IM or checking in from web.
-            The bond doesn't reset between sessions.
+            Pick one of the three starting points below.
+            It fills in the form above — name, tone, and personality — but you can change any of it before creating.
           </p>
         </div>
 
-        <div className="home-role-showcase-grid">
-          {roleShowcaseCards.map((role) => (
-            <article className="site-card home-role-showcase-card" key={role.name}>
-              <div className="img-placeholder img-placeholder-role" aria-hidden="true">
-                <span className="img-placeholder-emoji">{role.emoji}</span>
-              </div>
-              <div className="home-role-showcase-meta">
-                <span className="home-kicker">{role.type}</span>
-                <h3 className="home-role-showcase-name">{role.name}</h3>
-              </div>
-              <p className="home-role-showcase-tagline">{role.tagline}</p>
-            </article>
-          ))}
-        </div>
+        <HomePresetShowcase presets={showcasePresets} />
       </section>
 
       {/* IM Chat Feature Section */}

@@ -1,4 +1,5 @@
 import { SupabaseThreadStateRepository } from "@/lib/chat/thread-state-supabase-repository";
+import type { LoadThreadStateResult } from "@/lib/chat/thread-state";
 import {
   loadCompletedMessagesForThreads,
   loadOwnedActiveAgent,
@@ -256,13 +257,22 @@ export async function loadDashboardOverview(args: {
       ? threadRow.agent_id
       : null);
 
-  const threadState =
-    threadRow && agentId
-      ? await new SupabaseThreadStateRepository(args.supabase).loadThreadState({
-          threadId: threadRow.id,
-          agentId,
-        })
-      : { status: "not_found" as const };
+  let threadState: LoadThreadStateResult = { status: "not_found" };
+
+  if (threadRow && agentId) {
+    try {
+      threadState = await new SupabaseThreadStateRepository(args.supabase).loadThreadState({
+        threadId: threadRow.id,
+        agentId,
+      });
+    } catch (error) {
+      console.warn("[dashboard] thread state load degraded", {
+        thread_id: threadRow.id,
+        agent_id: agentId,
+        error_message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  }
 
   const threadStateSnapshot =
     threadState.status === "found"

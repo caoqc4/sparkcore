@@ -55,7 +55,7 @@ export const PRODUCT_CHARACTER_PRESET_DEFAULTS: Record<
     name: "Velia",
     mode: "assistant",
     avatarGender: "female",
-    avatarStyle: "illustrated",
+    avatarStyle: "realistic",
     tone: "playful",
     relationshipMode: "task-focused assistant",
     boundaries:

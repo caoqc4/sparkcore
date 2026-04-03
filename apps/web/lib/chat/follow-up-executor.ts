@@ -24,6 +24,8 @@ export async function executeFollowUpRequests({
 }: {
   requests: RuntimeFollowUpRequest[];
 }): Promise<RuntimeFollowUpExecutionResult[]> {
+  // Execution-time validation only. Follow-up kind/intent planning belongs to
+  // the centralized runtime layer, not this executor.
   return requests.map((request, index) => {
     if (!isValidIsoTimestamp(request.trigger_at)) {
       return {

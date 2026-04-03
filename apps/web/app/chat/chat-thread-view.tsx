@@ -4,6 +4,22 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AgentEditSheet } from "@/app/chat/agent-edit-sheet";
 import {
+  getAssistantGovernanceAvoidances,
+  getAssistantGovernanceExpressionBrief,
+  getAssistantGovernanceKnowledgeBrief,
+  getAssistantGovernanceKnowledgeIntentLabel,
+  getAssistantGovernanceKnowledgeRouteLabel,
+  getAssistantGovernanceModalityRules,
+  getAssistantGovernanceRelationalBrief,
+  getAssistantGovernanceRoleIdentityArchetype,
+  getAssistantGovernanceRoleMode,
+  getAssistantGovernanceRoleProactivityLevel,
+  getAssistantGovernanceRoleRelationshipMode,
+  getAssistantGovernanceRoleTone,
+  getAssistantGovernanceSceneBrief,
+  getAssistantGovernanceSourceSignals,
+  getAssistantGovernanceVolatileOverrideLabel,
+  getAssistantGovernanceVolatileOverrideStrength,
   getAssistantHiddenMemoryExclusionCount,
   getAssistantMetadataBoolean,
   getAssistantExplanationMetadata,
@@ -124,6 +140,7 @@ type ChatThreadViewProps = {
     provider: string | null;
     voiceName: string | null;
   };
+  showGovernanceDebug?: boolean;
 };
 
 type RuntimeSummary = {
@@ -394,6 +411,16 @@ function getRuntimeSummary(
     getAssistantThreadStateFocusMode(fallbackMetadata);
   const threadStateContinuityStatus =
     getAssistantThreadStateContinuityStatus(fallbackMetadata);
+  const governanceExpressionBrief =
+    getAssistantGovernanceExpressionBrief(fallbackMetadata);
+  const governanceRelationalBrief =
+    getAssistantGovernanceRelationalBrief(fallbackMetadata);
+  const governanceSceneBrief =
+    getAssistantGovernanceSceneBrief(fallbackMetadata);
+  const governanceAvoidances =
+    getAssistantGovernanceAvoidances(fallbackMetadata);
+  const governanceModalityRules =
+    getAssistantGovernanceModalityRules(fallbackMetadata);
   const newMemoryCount = getAssistantNewMemoryCount(fallbackMetadata);
   const updatedMemoryCount = getAssistantUpdatedMemoryCount(fallbackMetadata);
 
@@ -499,6 +526,38 @@ function getRuntimeSummary(
     outcomeHints.push(semanticLayerLabel);
   }
 
+  if (governanceSceneBrief) {
+    outcomeHints.push(
+      isZh
+        ? `治理场景：${governanceSceneBrief}`
+        : `Governance scene: ${governanceSceneBrief}`
+    );
+  }
+
+  if (governanceRelationalBrief) {
+    outcomeHints.push(
+      isZh
+        ? `治理关系：${governanceRelationalBrief}`
+        : `Governance relationship: ${governanceRelationalBrief}`
+    );
+  }
+
+  if (governanceModalityRules.length > 0) {
+    outcomeHints.push(
+      isZh
+        ? `治理模态：${governanceModalityRules[0]}`
+        : `Governance modality: ${governanceModalityRules[0]}`
+    );
+  }
+
+  if (governanceAvoidances.length > 0) {
+    outcomeHints.push(
+      isZh
+        ? `治理避免：${governanceAvoidances[0]}`
+        : `Governance avoid: ${governanceAvoidances[0]}`
+    );
+  }
+
   if (memoryObservedSemanticLayers.length > 1) {
     outcomeHints.push(
       isZh
@@ -517,7 +576,8 @@ function getRuntimeSummary(
   const profileReasonLabel = modelProfileName
     ? getProfileReasonLabel(modelProfileTierLabel, modelProfileUsageNote, locale)
     : null;
-  const primaryReasonLabel = memoryReasonLabel ?? profileReasonLabel;
+  const primaryReasonLabel =
+    governanceExpressionBrief ?? memoryReasonLabel ?? profileReasonLabel;
 
   if (
     !modelProfileName &&
@@ -574,6 +634,72 @@ function getRuntimeSummaryHeadline(
     : "This summary only explains this turn.";
 }
 
+function getGovernanceDebugPayload(message: ChatMessage) {
+  const expressionBrief = getAssistantGovernanceExpressionBrief(message.metadata);
+  const relationalBrief = getAssistantGovernanceRelationalBrief(message.metadata);
+  const sceneBrief = getAssistantGovernanceSceneBrief(message.metadata);
+  const knowledgeBrief = getAssistantGovernanceKnowledgeBrief(message.metadata);
+  const roleMode = getAssistantGovernanceRoleMode(message.metadata);
+  const roleIdentityArchetype =
+    getAssistantGovernanceRoleIdentityArchetype(message.metadata);
+  const roleTone = getAssistantGovernanceRoleTone(message.metadata);
+  const roleProactivityLevel =
+    getAssistantGovernanceRoleProactivityLevel(message.metadata);
+  const roleRelationshipMode =
+    getAssistantGovernanceRoleRelationshipMode(message.metadata);
+  const volatileOverrideLabel =
+    getAssistantGovernanceVolatileOverrideLabel(message.metadata);
+  const volatileOverrideStrength =
+    getAssistantGovernanceVolatileOverrideStrength(message.metadata);
+  const knowledgeRouteLabel =
+    getAssistantGovernanceKnowledgeRouteLabel(message.metadata);
+  const knowledgeIntentLabel =
+    getAssistantGovernanceKnowledgeIntentLabel(message.metadata);
+  const avoidances = getAssistantGovernanceAvoidances(message.metadata);
+  const modalityRules = getAssistantGovernanceModalityRules(message.metadata);
+  const sourceSignals = getAssistantGovernanceSourceSignals(message.metadata);
+
+  if (
+    !expressionBrief &&
+    !relationalBrief &&
+    !sceneBrief &&
+    !knowledgeBrief &&
+    !roleMode &&
+    !roleIdentityArchetype &&
+    !roleTone &&
+    !roleProactivityLevel &&
+    !roleRelationshipMode &&
+    !volatileOverrideLabel &&
+    !volatileOverrideStrength &&
+    !knowledgeRouteLabel &&
+    !knowledgeIntentLabel &&
+    avoidances.length === 0 &&
+    modalityRules.length === 0 &&
+    sourceSignals.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    expressionBrief,
+    relationalBrief,
+    sceneBrief,
+    knowledgeBrief,
+    roleMode,
+    roleIdentityArchetype,
+    roleTone,
+    roleProactivityLevel,
+    roleRelationshipMode,
+    volatileOverrideLabel,
+    volatileOverrideStrength,
+    knowledgeRouteLabel,
+    knowledgeIntentLabel,
+    avoidances,
+    modalityRules,
+    sourceSignals
+  };
+}
+
 export function ChatThreadView({
   thread,
   agentName,
@@ -583,7 +709,8 @@ export function ChatThreadView({
   memoryVisibility,
   initialMessages,
   locale,
-  audioPlayback
+  audioPlayback,
+  showGovernanceDebug = false
 }: ChatThreadViewProps) {
   const router = useRouter();
   const copy = getChatCopy(locale);
@@ -1202,6 +1329,10 @@ export function ChatThreadView({
                     ? "生成过程被中断了。准备好后可以直接重试本轮。"
                     : "Something interrupted generation. Retry this turn when ready.";
             const runtimeSummary = getRuntimeSummary(message, locale);
+            const governanceDebug =
+              showGovernanceDebug && message.role === "assistant"
+                ? getGovernanceDebugPayload(message)
+                : null;
             const artifacts = getMessageArtifacts(message);
 
             return (
@@ -1277,12 +1408,12 @@ export function ChatThreadView({
                             marginTop: 12,
                           }}
                         >
-                          {artifacts.map((artifact) =>
+                          {artifacts.map((artifact, artifactIndex) =>
                             artifact.type === "image" &&
                             artifact.status === "ready" &&
                             artifact.url ? (
                               <figure
-                                key={artifact.id}
+                                key={`${message.id}:${artifact.id}:${artifactIndex}`}
                                 style={{
                                   margin: 0,
                                   border: "1px solid rgba(148, 163, 184, 0.28)",
@@ -1318,7 +1449,7 @@ export function ChatThreadView({
                               artifact.status === "ready" &&
                               artifact.url ? (
                               <AudioMessagePlayer
-                                key={artifact.id}
+                                key={`${message.id}:${artifact.id}:audio:${artifactIndex}`}
                                 url={artifact.url}
                                 provider={artifact.provider}
                                 voiceName={artifact.voiceName ?? artifact.modelSlug}
@@ -1331,7 +1462,7 @@ export function ChatThreadView({
                               />
                             ) : (
                               <div
-                                key={artifact.id}
+                                key={`${message.id}:${artifact.id}:failed:${artifactIndex}`}
                                 style={{
                                   border: "1px solid rgba(239, 68, 68, 0.28)",
                                   borderRadius: 16,
@@ -1422,6 +1553,259 @@ export function ChatThreadView({
                           ) : null}
                         </dl>
                       </details>
+                    ) : null}
+                    {governanceDebug ? (
+                      <div
+                        style={{
+                          marginTop: 12,
+                          border: "1px solid rgba(148, 163, 184, 0.3)",
+                          borderRadius: 14,
+                          background: "rgba(15, 23, 42, 0.04)",
+                          padding: "10px 12px",
+                          display: "grid",
+                          gap: 8
+                        }}
+                      >
+                        <details>
+                          <summary
+                            style={{
+                              cursor: "pointer",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              letterSpacing: "0.04em",
+                              textTransform: "uppercase",
+                              color: "rgba(71, 85, 105, 0.95)"
+                            }}
+                          >
+                            Governance Debug
+                          </summary>
+                          <div style={{ marginTop: 8, display: "grid", gap: 8 }}>
+                            {governanceDebug.roleMode ||
+                            governanceDebug.roleIdentityArchetype ||
+                            governanceDebug.roleTone ||
+                            governanceDebug.roleProactivityLevel ||
+                            governanceDebug.roleRelationshipMode ? (
+                              <div style={{ display: "grid", gap: 4 }}>
+                                <strong style={{ fontSize: 12 }}>Role traits</strong>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: 6,
+                                    fontSize: 12
+                                  }}
+                                >
+                                  {governanceDebug.roleMode ? (
+                                    <span
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "rgba(148, 163, 184, 0.18)",
+                                        border: "1px solid rgba(148, 163, 184, 0.35)"
+                                      }}
+                                    >
+                                      mode: {governanceDebug.roleMode}
+                                    </span>
+                                  ) : null}
+                                  {governanceDebug.roleIdentityArchetype ? (
+                                    <span
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "rgba(148, 163, 184, 0.18)",
+                                        border: "1px solid rgba(148, 163, 184, 0.35)"
+                                      }}
+                                    >
+                                      archetype: {governanceDebug.roleIdentityArchetype}
+                                    </span>
+                                  ) : null}
+                                  {governanceDebug.roleTone ? (
+                                    <span
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "rgba(148, 163, 184, 0.18)",
+                                        border: "1px solid rgba(148, 163, 184, 0.35)"
+                                      }}
+                                    >
+                                      tone: {governanceDebug.roleTone}
+                                    </span>
+                                  ) : null}
+                                  {governanceDebug.roleProactivityLevel ? (
+                                    <span
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "rgba(148, 163, 184, 0.18)",
+                                        border: "1px solid rgba(148, 163, 184, 0.35)"
+                                      }}
+                                    >
+                                      proactive: {governanceDebug.roleProactivityLevel}
+                                    </span>
+                                  ) : null}
+                                  {governanceDebug.roleRelationshipMode ? (
+                                    <span
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "rgba(148, 163, 184, 0.18)",
+                                        border: "1px solid rgba(148, 163, 184, 0.35)"
+                                      }}
+                                    >
+                                      relationship: {governanceDebug.roleRelationshipMode}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </div>
+                            ) : null}
+                            {governanceDebug.volatileOverrideLabel ||
+                            governanceDebug.volatileOverrideStrength ? (
+                              <div style={{ display: "grid", gap: 4 }}>
+                                <strong style={{ fontSize: 12 }}>Volatile override</strong>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: 6,
+                                    fontSize: 12
+                                  }}
+                                >
+                                  {governanceDebug.volatileOverrideLabel ? (
+                                    <span
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "rgba(251, 191, 36, 0.14)",
+                                        border: "1px solid rgba(251, 191, 36, 0.35)"
+                                      }}
+                                    >
+                                      label: {governanceDebug.volatileOverrideLabel}
+                                    </span>
+                                  ) : null}
+                                  {governanceDebug.volatileOverrideStrength ? (
+                                    <span
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "rgba(251, 191, 36, 0.14)",
+                                        border: "1px solid rgba(251, 191, 36, 0.35)"
+                                      }}
+                                    >
+                                      strength: {governanceDebug.volatileOverrideStrength}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </div>
+                            ) : null}
+                            {governanceDebug.knowledgeRouteLabel ||
+                            governanceDebug.knowledgeIntentLabel ? (
+                              <div style={{ display: "grid", gap: 4 }}>
+                                <strong style={{ fontSize: 12 }}>Knowledge route</strong>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: 6,
+                                    fontSize: 12
+                                  }}
+                                >
+                                  {governanceDebug.knowledgeRouteLabel ? (
+                                    <span
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "rgba(56, 189, 248, 0.12)",
+                                        border: "1px solid rgba(56, 189, 248, 0.32)"
+                                      }}
+                                    >
+                                      route: {governanceDebug.knowledgeRouteLabel}
+                                    </span>
+                                  ) : null}
+                                  {governanceDebug.knowledgeIntentLabel ? (
+                                    <span
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "rgba(56, 189, 248, 0.12)",
+                                        border: "1px solid rgba(56, 189, 248, 0.32)"
+                                      }}
+                                    >
+                                      intent: {governanceDebug.knowledgeIntentLabel}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </div>
+                            ) : null}
+                            {governanceDebug.expressionBrief ? (
+                              <p className="message-content" style={{ margin: 0, fontSize: 13 }}>
+                                <strong>Expression:</strong> {governanceDebug.expressionBrief}
+                              </p>
+                            ) : null}
+                            {governanceDebug.relationalBrief ? (
+                              <p className="message-content" style={{ margin: 0, fontSize: 13 }}>
+                                <strong>Relationship:</strong> {governanceDebug.relationalBrief}
+                              </p>
+                            ) : null}
+                            {governanceDebug.sceneBrief ? (
+                              <p className="message-content" style={{ margin: 0, fontSize: 13 }}>
+                                <strong>Scene:</strong> {governanceDebug.sceneBrief}
+                              </p>
+                            ) : null}
+                            {governanceDebug.knowledgeBrief ? (
+                              <p className="message-content" style={{ margin: 0, fontSize: 13 }}>
+                                <strong>Knowledge:</strong> {governanceDebug.knowledgeBrief}
+                              </p>
+                            ) : null}
+                            {governanceDebug.sourceSignals.length > 0 ? (
+                              <div style={{ display: "grid", gap: 4 }}>
+                                <strong style={{ fontSize: 12 }}>Source signals</strong>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: 6,
+                                    fontSize: 12
+                                  }}
+                                >
+                                  {governanceDebug.sourceSignals.map((signal) => (
+                                    <span
+                                      key={signal}
+                                      style={{
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "rgba(148, 163, 184, 0.18)",
+                                        border: "1px solid rgba(148, 163, 184, 0.35)"
+                                      }}
+                                    >
+                                      {signal}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+                            {governanceDebug.modalityRules.length > 0 ? (
+                              <div style={{ display: "grid", gap: 4 }}>
+                                <strong style={{ fontSize: 12 }}>Modality rules</strong>
+                                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
+                                  {governanceDebug.modalityRules.map((rule) => (
+                                    <li key={rule}>{rule}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                            {governanceDebug.avoidances.length > 0 ? (
+                              <div style={{ display: "grid", gap: 4 }}>
+                                <strong style={{ fontSize: 12 }}>Avoid</strong>
+                                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
+                                  {governanceDebug.avoidances.map((rule) => (
+                                    <li key={rule}>{rule}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                          </div>
+                        </details>
+                      </div>
                     ) : null}
                   </>
                 )}

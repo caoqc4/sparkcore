@@ -22,12 +22,22 @@ function buildSmokeAssistantMemoryOutcome(args: {
   }>;
   createdTypes: string[];
 }) {
+  const recalledMemoryPreview = args.recalledMemories.slice(0, 3).map((memory) => ({
+    memory_type: memory.memory_type,
+    content_excerpt:
+      memory.content.length > 120
+        ? `${memory.content.slice(0, 117).trimEnd()}...`
+        : memory.content,
+    semantic_layer: null,
+  }));
+
   return {
     recalled_memories: args.recalledMemories.map((memory) => ({
       memory_type: memory.memory_type,
       content: memory.content,
       confidence: memory.confidence
     })),
+    recalled_memory_preview: recalledMemoryPreview,
     memory_write_count: args.createdTypes.length,
     memory_write_types: args.createdTypes,
     new_memory_count: args.createdTypes.length,

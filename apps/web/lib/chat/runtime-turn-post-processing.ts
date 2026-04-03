@@ -1,4 +1,4 @@
-import type { RuntimeTurnResult } from "@/lib/chat/runtime-contract";
+import type { RuntimeExecutionPayload } from "@/lib/chat/runtime-contract";
 import {
   updateAssistantFollowUpExecutionPreview,
   updateAssistantFollowUpRequestPreview,
@@ -23,10 +23,7 @@ type AssistantPostProcessingTarget = {
 export async function persistAssistantRequestPreviews(
   args: AssistantPostProcessingTarget & {
     activeNamespace?: ActiveRuntimeMemoryNamespace | null;
-    runtimeTurnResult: Pick<
-      RuntimeTurnResult,
-      "memory_write_requests" | "follow_up_requests"
-    >;
+    runtimeTurnResult: RuntimeExecutionPayload;
   }
 ) {
   if (args.runtimeTurnResult.memory_write_requests.length > 0) {
@@ -58,12 +55,11 @@ export async function processAssistantRuntimePostProcessing(
     agentId: string;
     sourceMessageId: string;
     activeMemoryNamespace?: ActiveRuntimeMemoryNamespace | null;
-    runtimeTurnResult: Pick<
-      RuntimeTurnResult,
-      "memory_write_requests" | "follow_up_requests"
-    >;
+    runtimeTurnResult: RuntimeExecutionPayload;
   }
 ) {
+  // Internal processing consumes centrally planned requests only. It may validate
+  // or execute them, but must not derive a parallel post-turn strategy here.
   const [memoryWriteOutcome, followUpExecutionResults] = await Promise.all([
     executeMemoryWriteRequests({
       supabase: args.supabase,

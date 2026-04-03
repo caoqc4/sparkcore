@@ -40,6 +40,14 @@ import {
 } from "@/lib/chat/memory-namespace";
 import { createClient } from "@/lib/supabase/server";
 
+function nowMs() {
+  return Date.now();
+}
+
+function elapsedMs(startedAt: number) {
+  return Math.max(0, nowMs() - startedAt);
+}
+
 export function selectMemoryRecallRoutes(args: {
   latestUserMessage: string;
   allowDistantFallback: boolean;
@@ -615,6 +623,13 @@ export type RuntimeMemoryContext = {
   memoryRecall: RecallOutcome;
   relationshipRecall: RuntimeRelationshipRecall;
   threadStateRecall: RuntimeThreadStateRecall;
+  timing_ms?: {
+    memory_recall: number;
+    nickname_recall: number;
+    preferred_name_recall: number;
+    address_style_recall: number;
+    total: number;
+  };
 };
 
 export async function loadRuntimeMemoryContext({
@@ -642,6 +657,7 @@ export async function loadRuntimeMemoryContext({
   activeNamespace?: ActiveRuntimeMemoryNamespace | null;
   supabase?: any;
 }): Promise<RuntimeMemoryContext> {
+  const totalStartedAt = nowMs();
   const emptyMemoryRecall: RecallOutcome = {
     memories: [],
     usedMemoryTypes: [],
@@ -675,10 +691,18 @@ export async function loadRuntimeMemoryContext({
     return {
       memoryRecall: emptyMemoryRecall,
       relationshipRecall: emptyRelationshipRecall,
-      threadStateRecall
+      threadStateRecall,
+      timing_ms: {
+        memory_recall: 0,
+        nickname_recall: 0,
+        preferred_name_recall: 0,
+        address_style_recall: 0,
+        total: elapsedMs(totalStartedAt)
+      }
     };
   }
 
+  const memoryRecallStartedAt = nowMs();
   const memoryRecall = await recallRelevantMemories({
     workspaceId,
     userId,
@@ -690,11 +714,13 @@ export async function loadRuntimeMemoryContext({
     activeNamespace,
     supabase: providedSupabase
   });
+  const memoryRecallDurationMs = elapsedMs(memoryRecallStartedAt);
 
   const directNamingQuestion = isDirectAgentNamingQuestion(latestUserMessage);
   const directPreferredNameQuestion =
     isDirectUserPreferredNameQuestion(latestUserMessage);
 
+  const nicknameRecallStartedAt = nowMs();
   const nicknameRecall =
     directNamingQuestion || relationshipStylePrompt || sameThreadContinuity
       ? await recallAgentNickname({
@@ -708,7 +734,9 @@ export async function loadRuntimeMemoryContext({
           directNamingQuestion: false,
           nicknameMemory: null
         };
+  const nicknameRecallDurationMs = elapsedMs(nicknameRecallStartedAt);
 
+  const preferredNameRecallStartedAt = nowMs();
   const preferredNameRecall =
     directPreferredNameQuestion || relationshipStylePrompt || sameThreadContinuity
       ? await recallUserPreferredName({
@@ -722,13 +750,16 @@ export async function loadRuntimeMemoryContext({
           directPreferredNameQuestion: false,
           preferredNameMemory: null
         };
+  const preferredNameRecallDurationMs = elapsedMs(preferredNameRecallStartedAt);
 
+  const addressStyleRecallStartedAt = nowMs();
   const addressStyleRecall = await recallUserAddressStyle({
     workspaceId,
     userId,
     agentId,
     supabase: providedSupabase
   });
+  const addressStyleRecallDurationMs = elapsedMs(addressStyleRecallStartedAt);
 
   return {
     memoryRecall,
@@ -740,6 +771,13 @@ export async function loadRuntimeMemoryContext({
       ...nicknameRecall,
       ...preferredNameRecall
     },
-    threadStateRecall
+    threadStateRecall,
+    timing_ms: {
+      memory_recall: memoryRecallDurationMs,
+      nickname_recall: nicknameRecallDurationMs,
+      preferred_name_recall: preferredNameRecallDurationMs,
+      address_style_recall: addressStyleRecallDurationMs,
+      total: elapsedMs(totalStartedAt)
+    }
   };
 }

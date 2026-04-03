@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
 import {
+  extractExplicitAudioContent,
   maybeGenerateAssistantArtifacts,
   prepareExplicitArtifactContext,
 } from "@/lib/chat/multimodal-artifacts";
@@ -18,6 +19,7 @@ import {
   resolveSupportedSingleSlotTarget
 } from "@/lib/chat/memory-v2";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
+import { readHumanizedArtifactAction } from "@/lib/chat/humanized-delivery-consumption";
 import {
   loadActiveSingleSlotMemoryRows,
   loadOwnedMemoryItemById
@@ -49,6 +51,7 @@ import {
   markAssistantMessageRetried
 } from "@/lib/chat/assistant-message-state-persistence";
 import { bootstrapRuntimeAssistantTurn } from "@/lib/chat/runtime-turn-bootstrap";
+import { updateAssistantPreviewMetadata } from "@/lib/chat/assistant-preview-metadata";
 import {
   persistAssistantRequestPreviews,
   processAssistantRuntimePostProcessing
@@ -1113,6 +1116,10 @@ export async function sendMessage(
       userMessage: runtimeContent,
       agentName: agent.name,
       personaSummary: agent.persona_summary,
+      agentMetadata:
+        agent.metadata && typeof agent.metadata === "object" && !Array.isArray(agent.metadata)
+          ? (agent.metadata as Record<string, unknown>)
+          : null,
     });
   } catch (artifactPreparationError) {
     console.error("Explicit artifact preparation failed:", artifactPreparationError);
@@ -1121,17 +1128,28 @@ export async function sendMessage(
   if (runtimeTurnInput?.message?.metadata && preparedArtifactContext) {
     const imageArtifact = preparedArtifactContext.imageResult?.artifact ?? null;
     const imageReady = imageArtifact?.status === "ready";
-    const imageFailed = preparedArtifactContext.intent.imageRequested && imageArtifact?.status === "failed";
+    const imageFailed =
+      preparedArtifactContext.intent.imageRequested && imageArtifact?.status === "failed";
     const audioRequested = preparedArtifactContext.intent.audioRequested;
+    const clarifyBeforeAction =
+      preparedArtifactContext.deliveryGate?.clarifyBeforeAction === true;
+    const audioColonContent = audioRequested
+      ? extractExplicitAudioContent(runtimeTurnInput.message.content)
+      : null;
     const generationHints = [
+      clarifyBeforeAction
+        ? `The user's current request is not aligned yet${preparedArtifactContext.deliveryGate?.conflictHint ? ` (${preparedArtifactContext.deliveryGate.conflictHint})` : ""}. Ask one short clarifying question first. Do not continue with image delivery, advice expansion, or action-taking in this turn.`
+        : "",
       imageReady
-        ? "The user explicitly requested an image. An image has already been prepared and will be delivered with your reply. Briefly acknowledge it naturally and do not say you cannot generate images."
+        ? "The user explicitly requested an image. An image has already been prepared and will be delivered shortly after your text reply. Let the image lead. Keep your text to 1-3 short sentences. Open from the scene, atmosphere, or feeling of seeing it, not from agent-led delivery phrasing. For companion-style delivery, structure it like shared viewing: sentence one notices the scene, sentence two stays in quiet resonance or co-feeling, and an optional third sentence gently invites the user back into the moment. Let the cadence vary naturally by moment: sometimes one short line is enough, sometimes two beats, and only occasionally a third. Avoid turning the image copy into a polished takeaway, emotional summary, user-serving benefit statement, or image-review paragraph. Do not sound like a museum caption, travel brochure, curated mood board, or aesthetic commentary. Use one or two concrete visual details and keep the wording colloquial, as if speaking while looking at it together. Favor short spoken sentences, simple phrasing, and slight natural looseness over polished prose. Avoid stacked modifiers, balanced parallel phrases, abstract summary nouns, or neat concluding lines. Briefly acknowledge it naturally and do not say you cannot generate images."
         : "",
       imageFailed
         ? `The user explicitly requested an image, but image generation failed before your reply was written${imageArtifact?.error ? ` (${imageArtifact.error})` : ""}. Briefly acknowledge the failed attempt and avoid promising that an image is attached.`
         : "",
-      audioRequested
-        ? "The user explicitly requested an audio reply. Write a concise reply that works well when spoken aloud, and do not claim that you cannot send audio."
+      audioRequested && audioColonContent
+        ? `The user wants you to speak exactly this text as your audio reply: "${audioColonContent}". Your written reply should be that exact text verbatim, nothing more.`
+        : audioRequested
+        ? "The user explicitly requested an audio reply. Write a concise reply that works well when spoken aloud, and do not claim that you cannot send audio. Let the cadence feel like live speech rather than a neatly composed note."
         : "",
     ]
       .filter((line) => line.length > 0)
@@ -1207,21 +1225,129 @@ export async function sendMessage(
     }
 
     try {
-      await maybeGenerateAssistantArtifacts({
+      const artifactAction = readHumanizedArtifactAction(
+        runtimeTurnResult.debug_metadata,
+        "artifact_action"
+      );
+      const imageArtifactAction = readHumanizedArtifactAction(
+        runtimeTurnResult.debug_metadata,
+        "image_artifact_action"
+      );
+      const audioArtifactAction = readHumanizedArtifactAction(
+        runtimeTurnResult.debug_metadata,
+        "audio_artifact_action"
+      );
+
+      const allowImageDelivery = imageArtifactAction !== "block";
+      const allowAudioDelivery = audioArtifactAction !== "block";
+      const deliverableImageRequested =
+        Boolean(preparedArtifactContext?.intent.imageRequested) && allowImageDelivery;
+      const deliverableAudioRequested =
+        Boolean(preparedArtifactContext?.intent.audioRequested) && allowAudioDelivery;
+      const billingRetryEvents = preparedArtifactContext?.billingRetryEvents ?? [];
+
+      if (
+        preparedArtifactContext &&
+        artifactAction !== "block" &&
+        (deliverableImageRequested || deliverableAudioRequested)
+      ) {
+        await updateAssistantPreviewMetadata({
+          supabase,
+          assistantMessageId: assistantPlaceholder.id,
+          threadId: thread.id,
+          workspaceId: workspace.id,
+          userId: user.id,
+          updates: (currentMetadata) => ({
+            web_delivery: {
+              ...(currentMetadata?.web_delivery &&
+              typeof currentMetadata.web_delivery === "object" &&
+              !Array.isArray(currentMetadata.web_delivery)
+                ? (currentMetadata.web_delivery as Record<string, unknown>)
+                : {}),
+              artifact_generation_started_at: new Date().toISOString(),
+              artifact_generation_status: "running",
+              explicit_media_delivery_mode: "artifact_first",
+              explicit_audio_requested: deliverableAudioRequested,
+              explicit_image_requested: deliverableImageRequested,
+              billing_retry_events: billingRetryEvents,
+            }
+          })
+        });
+
+        await maybeGenerateAssistantArtifacts({
+          supabase,
+          assistantMessageId: assistantPlaceholder.id,
+          threadId: thread.id,
+          workspaceId: workspace.id,
+          userId: user.id,
+          agentId: thread.agent_id,
+          userMessage: runtimeContent,
+          assistantReply: runtimeTurnResult.assistant_message.content,
+          agentName: agent.name,
+          personaSummary: agent.persona_summary,
+          agentMetadata:
+            agent.metadata && typeof agent.metadata === "object" && !Array.isArray(agent.metadata)
+              ? (agent.metadata as Record<string, unknown>)
+              : null,
+          preparedContext: {
+            ...preparedArtifactContext,
+            intent: {
+              ...preparedArtifactContext.intent,
+              imageRequested: deliverableImageRequested,
+              audioRequested: deliverableAudioRequested,
+            },
+          },
+          audioTranscriptOverride:
+            preparedArtifactContext?.audioTranscriptOverride ?? null,
+        });
+
+        await updateAssistantPreviewMetadata({
+          supabase,
+          assistantMessageId: assistantPlaceholder.id,
+          threadId: thread.id,
+          workspaceId: workspace.id,
+          userId: user.id,
+          updates: (currentMetadata) => ({
+            web_delivery: {
+              ...(currentMetadata?.web_delivery &&
+              typeof currentMetadata.web_delivery === "object" &&
+              !Array.isArray(currentMetadata.web_delivery)
+                ? (currentMetadata.web_delivery as Record<string, unknown>)
+                : {}),
+              artifact_generation_completed_at: new Date().toISOString(),
+              artifact_generation_status: "completed",
+              explicit_media_delivery_mode: "artifact_first",
+              explicit_audio_requested: deliverableAudioRequested,
+              explicit_image_requested: deliverableImageRequested,
+            }
+          })
+        });
+      }
+    } catch (artifactError) {
+      console.error("Assistant artifact generation failed:", artifactError);
+
+      await updateAssistantPreviewMetadata({
         supabase,
         assistantMessageId: assistantPlaceholder.id,
         threadId: thread.id,
         workspaceId: workspace.id,
         userId: user.id,
-        agentId: thread.agent_id,
-        userMessage: runtimeContent,
-        assistantReply: runtimeTurnResult.assistant_message.content,
-        agentName: agent.name,
-        personaSummary: agent.persona_summary,
-        preparedContext: preparedArtifactContext,
+        updates: (currentMetadata) => ({
+          web_delivery: {
+            ...(currentMetadata?.web_delivery &&
+            typeof currentMetadata.web_delivery === "object" &&
+            !Array.isArray(currentMetadata.web_delivery)
+              ? (currentMetadata.web_delivery as Record<string, unknown>)
+              : {}),
+            artifact_generation_completed_at: new Date().toISOString(),
+            artifact_generation_status: "scheduled",
+            artifact_generation_error:
+              artifactError instanceof Error
+                ? artifactError.message
+                : "web_artifact_generation_failed",
+          }
+        })
       });
-    } catch (artifactError) {
-      console.error("Assistant artifact generation failed:", artifactError);
     }
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);

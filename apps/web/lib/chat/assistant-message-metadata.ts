@@ -1,5 +1,6 @@
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
+import type { OutputGovernancePacketV1 } from "@/lib/chat/output-governance";
 import type {
   ReplyLanguageSource,
   RoleCoreMemoryCloseNoteArchive,
@@ -27,6 +28,12 @@ type RecalledMemoryMetadataItem = {
   semantic_layer?: string | null;
 };
 
+type RecalledMemoryPreviewItem = {
+  memory_type: string | null;
+  content_excerpt: string;
+  semantic_layer?: string | null;
+};
+
 export type BuildAssistantMetadataSummaryGroupsInput = {
   model_profile_id: string;
   model_profile_name: string;
@@ -50,6 +57,7 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   approx_context_pressure: ApproxContextPressure;
   memory_hit_count: number;
   memory_used: boolean;
+  recalled_memory_preview?: RecalledMemoryPreviewItem[];
   memory_types_used: string[];
   memory_semantic_layers: MemorySemanticLayer[];
   profile_snapshot: string[];
@@ -213,6 +221,23 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   compacted_thread_lifecycle_governance_fabric_plane_alignment_mode?: string | null;
   compacted_thread_lifecycle_governance_fabric_plane_reuse_mode?: string | null;
   compacted_thread_retained_fields?: string[];
+  output_governance?: OutputGovernancePacketV1 | null;
+  output_governance_expression_brief?: string | null;
+  output_governance_relational_brief?: string | null;
+  output_governance_scene_brief?: string | null;
+  output_governance_knowledge_brief?: string | null;
+  output_governance_role_mode?: string | null;
+  output_governance_role_identity_archetype?: string | null;
+  output_governance_role_tone?: string | null;
+  output_governance_role_proactivity_level?: string | null;
+  output_governance_role_relationship_mode?: string | null;
+  output_governance_volatile_override_label?: string | null;
+  output_governance_volatile_override_strength?: string | null;
+  output_governance_knowledge_route_label?: string | null;
+  output_governance_knowledge_intent_label?: string | null;
+  output_governance_avoidances?: string[];
+  output_governance_modality_rules?: string[];
+  output_governance_source_signals?: string[];
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -262,6 +287,7 @@ export type BuildAssistantMessageMetadataInput = {
   same_thread_continuation_preferred: boolean;
   distant_memory_fallback_allowed: boolean;
   recalled_memories: RecalledMemoryMetadataItem[];
+  recalled_memory_preview?: RecalledMemoryPreviewItem[];
   memory_hit_count: number;
   memory_used: boolean;
   memory_types_used: string[];
@@ -427,6 +453,7 @@ export type BuildAssistantMessageMetadataInput = {
   compacted_thread_lifecycle_governance_fabric_plane_alignment_mode?: string | null;
   compacted_thread_lifecycle_governance_fabric_plane_reuse_mode?: string | null;
   compacted_thread_retained_fields?: string[];
+  output_governance?: OutputGovernancePacketV1 | null;
   hidden_memory_exclusion_count: number;
   incorrect_memory_exclusion_count: number;
   follow_up_request_count: number;
@@ -472,9 +499,54 @@ export function buildAssistantMetadataSummaryGroups(
       recent_turn_count: input.recent_raw_turn_count,
       context_pressure: input.approx_context_pressure
     },
+    governance:
+      input.output_governance &&
+      (input.output_governance.expression_brief ||
+        input.output_governance.relational_brief ||
+        input.output_governance.scene_brief ||
+        input.output_governance.knowledge_brief ||
+        input.output_governance.role_mode ||
+        input.output_governance.role_identity_archetype ||
+        input.output_governance.role_tone ||
+        input.output_governance.role_proactivity_level ||
+        input.output_governance.role_relationship_mode ||
+        input.output_governance.volatile_override_label ||
+        input.output_governance.volatile_override_strength ||
+        input.output_governance.knowledge_route_label ||
+        input.output_governance.knowledge_intent_label ||
+        input.output_governance.avoidances.length > 0 ||
+        input.output_governance.modality_rules.length > 0 ||
+        input.output_governance.source_signals.length > 0)
+        ? {
+            expression_brief: input.output_governance.expression_brief,
+            relational_brief: input.output_governance.relational_brief,
+            scene_brief: input.output_governance.scene_brief,
+            knowledge_brief: input.output_governance.knowledge_brief,
+            role_mode: input.output_governance.role_mode,
+            role_identity_archetype:
+              input.output_governance.role_identity_archetype,
+            role_tone: input.output_governance.role_tone,
+            role_proactivity_level:
+              input.output_governance.role_proactivity_level,
+            role_relationship_mode:
+              input.output_governance.role_relationship_mode,
+            volatile_override_label:
+              input.output_governance.volatile_override_label,
+            volatile_override_strength:
+              input.output_governance.volatile_override_strength,
+            knowledge_route_label:
+              input.output_governance.knowledge_route_label,
+            knowledge_intent_label:
+              input.output_governance.knowledge_intent_label,
+            avoidances: input.output_governance.avoidances,
+            modality_rules: input.output_governance.modality_rules,
+            source_signals: input.output_governance.source_signals
+          }
+        : null,
     memory: {
       hit_count: input.memory_hit_count,
       used: input.memory_used,
+      recalled_memory_preview: input.recalled_memory_preview ?? [],
       types_used: input.memory_types_used,
       profile_snapshot: input.profile_snapshot,
       pack: input.scenario_memory_pack_id
@@ -1204,22 +1276,6 @@ export function buildAssistantMessageMetadata(
     model_requested: input.model_requested,
     model_profile_id: input.model_profile_id,
     role_core_packet: input.role_core_packet,
-    role_core_close_note_handoff_packet:
-      input.role_core_close_note_handoff_packet ?? null,
-    role_core_close_note_artifact:
-      input.role_core_close_note_artifact ?? null,
-    role_core_close_note_archive:
-      input.role_core_close_note_archive ?? null,
-    role_core_close_note_persistence_envelope:
-      input.role_core_close_note_persistence_envelope ?? null,
-    role_core_close_note_persistence_manifest:
-      input.role_core_close_note_persistence_manifest ?? null,
-    role_core_close_note_persistence_payload:
-      input.role_core_close_note_persistence_payload ?? null,
-    role_core_close_note_record:
-      input.role_core_close_note_record ?? null,
-    role_core_close_note_output:
-      input.role_core_close_note_output ?? null,
     question_type: input.question_type,
     answer_strategy: input.answer_strategy,
     answer_strategy_reason_code: input.answer_strategy_reason_code,
@@ -1239,30 +1295,45 @@ export function buildAssistantMessageMetadata(
     reply_language_target: input.reply_language_target,
     reply_language_detected: input.reply_language_detected,
     reply_language_source: input.reply_language_source,
+    output_governance_expression_brief:
+      input.output_governance?.expression_brief ?? null,
+    output_governance_relational_brief:
+      input.output_governance?.relational_brief ?? null,
+    output_governance_scene_brief:
+      input.output_governance?.scene_brief ?? null,
+    output_governance_knowledge_brief:
+      input.output_governance?.knowledge_brief ?? null,
+    output_governance_role_mode:
+      input.output_governance?.role_mode ?? null,
+    output_governance_role_identity_archetype:
+      input.output_governance?.role_identity_archetype ?? null,
+    output_governance_role_tone:
+      input.output_governance?.role_tone ?? null,
+    output_governance_role_proactivity_level:
+      input.output_governance?.role_proactivity_level ?? null,
+    output_governance_role_relationship_mode:
+      input.output_governance?.role_relationship_mode ?? null,
+    output_governance_volatile_override_label:
+      input.output_governance?.volatile_override_label ?? null,
+    output_governance_volatile_override_strength:
+      input.output_governance?.volatile_override_strength ?? null,
+    output_governance_knowledge_route_label:
+      input.output_governance?.knowledge_route_label ?? null,
+    output_governance_knowledge_intent_label:
+      input.output_governance?.knowledge_intent_label ?? null,
+    output_governance_avoidances:
+      input.output_governance?.avoidances ?? [],
+    output_governance_modality_rules:
+      input.output_governance?.modality_rules ?? [],
+    output_governance_source_signals:
+      input.output_governance?.source_signals ?? [],
     memory_hit_count: input.memory_hit_count,
     memory_used: input.memory_used,
-    recalled_memories: input.recalled_memories,
+    recalled_memory_preview: input.recalled_memory_preview ?? [],
     ...buildAssistantMetadataSummaryGroups(input),
     developer_diagnostics: {
       role_core_packet: input.role_core_packet,
-      role_core_close_note_handoff_packet:
-        input.role_core_close_note_handoff_packet ?? null,
-      role_core_close_note_artifact:
-        input.role_core_close_note_artifact ?? null,
-      role_core_close_note_archive:
-        input.role_core_close_note_archive ?? null,
-      role_core_close_note_persistence_envelope:
-        input.role_core_close_note_persistence_envelope ?? null,
-      role_core_close_note_persistence_manifest:
-        input.role_core_close_note_persistence_manifest ?? null,
-      role_core_close_note_persistence_payload:
-        input.role_core_close_note_persistence_payload ?? null,
-      role_core_close_note_record:
-        input.role_core_close_note_record ?? null,
-      role_core_close_note_output:
-        input.role_core_close_note_output ?? null,
       prepared_runtime_turn: {
-        input: input.runtime_input,
         session: {
           thread_id: input.session_thread_id,
           agent_id: input.session_agent_id,
@@ -1288,7 +1359,7 @@ export function buildAssistantMessageMetadata(
         input.same_thread_continuation_preferred,
       distant_memory_fallback_allowed: input.distant_memory_fallback_allowed,
       reply_language_source: input.reply_language_source,
-      recalled_memories: input.recalled_memories
+      recalled_memory_preview: input.recalled_memory_preview ?? []
     }
   };
 }

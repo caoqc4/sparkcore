@@ -199,6 +199,15 @@ export type AdapterRuntimeOutput = {
     persona_summary: string;
     pre_generated_image_artifact?: Record<string, unknown> | null;
     audio_transcript_override?: string | null;
+    explicit_image_requested?: boolean;
+    explicit_audio_requested?: boolean;
+    delivery_gate?: {
+      clarify_before_action: boolean;
+      reason: string | null;
+      conflict_hint: string | null;
+    } | null;
+    image_artifact_action?: "allow" | "defer" | "block" | null;
+    audio_artifact_action?: "allow" | "defer" | "block" | null;
   } | null;
   debug_metadata?: Record<string, unknown>;
 };
@@ -286,6 +295,8 @@ export class SupabaseBindingRepository implements BindingRepository {
             .eq("peer_id", input.peer_id)
             .eq("platform_user_id", input.platform_user_id)
             .eq("status", "active")
+            .order("updated_at", { ascending: false })
+            .limit(1)
         : this.supabase
             .from(this.tableName)
             .select(
@@ -431,20 +442,35 @@ export function buildReplyOutboundMessage(args: {
       )
     : [];
 
-  const outboundMessages: OutboundChannelMessage[] = [
-    {
-      platform: args.inbound.platform,
-      channel_id: args.inbound.channel_id,
-      peer_id: args.inbound.peer_id,
-      message_type: assistantMessage.message_type,
-      content: assistantMessage.content,
-      send_mode: "reply",
-      metadata: buildReplyOutboundMetadata({
-        language: assistantMessage.language ?? null,
-        messageMetadata: assistantMessage.metadata ?? {}
-      })
-    }
-  ];
+  const replyMetadata = buildReplyOutboundMetadata({
+    language: assistantMessage.language ?? null,
+    messageMetadata: assistantMessage.metadata ?? {}
+  });
+  const textChunks =
+    assistantMessage.message_type === "text"
+      ? assistantMessage.content
+          .split(/\n{2,}/)
+          .map((chunk) => chunk.trim())
+          .filter((chunk) => chunk.length > 0)
+      : [assistantMessage.content];
+  const shouldSplitTextReply =
+    assistantMessage.message_type === "text" &&
+    textChunks.length === 2 &&
+    textChunks[0].length <= 40 &&
+    textChunks[1].length <= 160;
+
+  const outboundMessages: OutboundChannelMessage[] = (shouldSplitTextReply
+    ? textChunks
+    : [assistantMessage.content]
+  ).map((content) => ({
+    platform: args.inbound.platform,
+    channel_id: args.inbound.channel_id,
+    peer_id: args.inbound.peer_id,
+    message_type: assistantMessage.message_type,
+    content,
+    send_mode: "reply",
+    metadata: replyMetadata
+  }));
 
   for (const artifact of artifacts) {
     if (artifact.status !== "ready") {
@@ -532,20 +558,39 @@ export function buildBindingNotFoundOutboundMessage(args: {
   inbound: InboundChannelMessage;
   reason?: string;
 }): OutboundChannelMessage[] {
+  const contentLines =
+    args.inbound.platform === "discord"
+      ? [
+          "This Discord DM is not bound to a SparkCore role yet.",
+          "Open the SparkCore connect flow, then paste these values:",
+          `DM Channel ID: ${args.inbound.channel_id}`,
+          `Discord User ID: ${args.inbound.peer_id}`,
+          "After saving the binding, send your message again."
+        ]
+      : args.inbound.platform === "telegram"
+        ? [
+            "This Telegram chat is not bound to a SparkCore role yet.",
+            "Open the SparkCore connect flow, then paste these values:",
+            `Chat ID: ${args.inbound.channel_id}`,
+            `User ID: ${args.inbound.peer_id}`,
+            "After saving the binding, send your message again."
+          ]
+        : [
+            "This channel is not bound to a SparkCore role yet.",
+            "Open the SparkCore connect flow, then paste these values:",
+            `channel_id: ${args.inbound.channel_id}`,
+            `peer_id: ${args.inbound.peer_id}`,
+            `platform_user_id: ${args.inbound.platform_user_id}`,
+            "After saving the binding, send your message again."
+          ];
+
   return [
     {
       platform: args.inbound.platform,
       channel_id: args.inbound.channel_id,
       peer_id: args.inbound.peer_id,
       message_type: "text",
-      content: [
-        "This channel is not bound to a SparkCore role yet.",
-        "Open the SparkCore connect flow, then paste these Telegram values:",
-        `channel_id: ${args.inbound.channel_id}`,
-        `peer_id: ${args.inbound.peer_id}`,
-        `platform_user_id: ${args.inbound.platform_user_id}`,
-        "After saving the binding, send your message again."
-      ].join("\n"),
+      content: contentLines.join("\n"),
       send_mode: "reply",
       metadata: buildBindingNotFoundMetadata({
         reason: args.reason ?? null

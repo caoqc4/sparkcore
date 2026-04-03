@@ -1,0 +1,6 @@
+{
+  "display_name": "Caria",
+  "style_tags": ["warm", "soft", "companion"],
+  "eligible_modes": ["companion"],
+  "default_for_character": "caria"
+}

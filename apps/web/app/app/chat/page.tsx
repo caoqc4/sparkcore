@@ -143,6 +143,7 @@ export default async function AppChatPage({
         messages={data.messages}
         threadId={data.thread.threadId}
         roleName={data.role.name}
+        showGovernanceDebug={process.env.CHAT_GOVERNANCE_DEBUG === "1"}
       />
     </ChatConsoleShell>
   );

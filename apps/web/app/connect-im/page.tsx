@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ProductConsoleShell } from "@/components/product-console-shell";
+import { DiscordBindingForm } from "@/components/discord-binding-form";
 import { TelegramBindingForm } from "@/components/telegram-binding-form";
 import { ProductEventTracker } from "@/components/product-event-tracker";
 import { requireUser } from "@/lib/auth-redirect";
@@ -7,12 +8,16 @@ import { createClient } from "@/lib/supabase/server";
 import { getTelegramBotConfig } from "@/lib/env";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { loadProductConnectImPageData } from "@/lib/product/connect-im";
+import { loadChannelPlatformCapabilities } from "@/lib/product/channels";
 import {
   getCharacterChannelLabel,
   recommendCharacterChannel
 } from "@/lib/product/character-channels";
 import { buildPageMetadata } from "@/lib/site";
-import { connectTelegramBinding } from "@/app/connect-im/actions";
+import {
+  connectDiscordBinding,
+  connectTelegramBinding
+} from "@/app/connect-im/actions";
 
 export const metadata = buildPageMetadata({
   title: "Connect an IM Channel",
@@ -29,8 +34,20 @@ type ConnectImPageProps = {
     created?: string;
     feedback?: string;
     feedback_type?: string;
+    platform?: string;
   }>;
 };
+
+const PLATFORM_LABELS = {
+  telegram: "Telegram",
+  discord: "Discord",
+} as const;
+
+type SupportedPlatform = keyof typeof PLATFORM_LABELS;
+
+function isSupportedPlatform(value: string | undefined): value is SupportedPlatform {
+  return value === "telegram" || value === "discord";
+}
 
 export default async function ConnectImPage({
   searchParams,
@@ -38,7 +55,7 @@ export default async function ConnectImPage({
   const params = await searchParams;
   const user = await requireUser("/connect-im");
   const supabase = await createClient();
-  const [data, overview] = await Promise.all([
+  const [data, overview, capabilities] = await Promise.all([
     loadProductConnectImPageData({
       supabase,
       userId: user.id,
@@ -48,7 +65,11 @@ export default async function ConnectImPage({
     loadDashboardOverview({
       supabase,
       userId: user.id,
+      roleId: typeof params.agent === "string" ? params.agent : null,
       threadId: typeof params.thread === "string" ? params.thread : null,
+    }),
+    loadChannelPlatformCapabilities({
+      supabase,
     }),
   ]);
 
@@ -63,16 +84,32 @@ export default async function ConnectImPage({
           avatarGender: data.role.avatarGender
         })
       : null;
+  const connectablePlatforms = capabilities
+    .filter((capability) =>
+      capability.availabilityStatus === "active" && capability.supportsBinding
+    )
+    .map((capability) => capability.platform)
+    .filter(isSupportedPlatform);
+  const selectedPlatform =
+    (typeof params.platform === "string" && isSupportedPlatform(params.platform)
+      ? params.platform
+      : null) ??
+    connectablePlatforms[0] ??
+    "telegram";
   const telegramBot =
+    selectedPlatform === "telegram" &&
     recommendedCharacterChannel &&
     process.env[`TELEGRAM_BOT_TOKEN_${recommendedCharacterChannel.toUpperCase()}`]
       ? getTelegramBotConfig(recommendedCharacterChannel)
       : null;
 
-  const activeBindings = data.bindings.filter((b) => b.status === "active");
+  const activeBindings = data.bindings.filter(
+    (b) => b.status === "active" && b.platform === selectedPlatform
+  );
   const hasBindingSuccess =
     params.feedback_type === "success" &&
-    params.feedback?.includes("binding saved");
+    typeof params.feedback === "string" &&
+    params.feedback.length > 0;
   const existingBinding =
     activeBindings.find((b) =>
       data.thread ? b.threadId === data.thread.threadId : false,
@@ -82,6 +119,27 @@ export default async function ConnectImPage({
   const recommendedBotName = recommendedCharacterChannel
     ? getCharacterChannelLabel(recommendedCharacterChannel)
     : null;
+  const selectedPlatformLabel = PLATFORM_LABELS[selectedPlatform];
+  const queryBase = new URLSearchParams();
+
+  if (data.thread?.threadId) {
+    queryBase.set("thread", data.thread.threadId);
+  }
+
+  if (data.role?.agentId) {
+    queryBase.set("agent", data.role.agentId);
+  }
+
+  const platformSwitchLinks = connectablePlatforms.map((platform) => {
+    const nextParams = new URLSearchParams(queryBase);
+    nextParams.set("platform", platform);
+
+    return {
+      href: `/connect-im?${nextParams.toString()}`,
+      label: PLATFORM_LABELS[platform],
+      platform,
+    };
+  });
 
   return (
     <ProductConsoleShell
@@ -96,10 +154,10 @@ export default async function ConnectImPage({
         </>
       }
       currentHref="/connect-im"
-      description="Link your Telegram account to this companion."
-      eyebrow="Telegram"
+      description="Connect one or more IM apps to this companion while keeping each conversation separate."
+      eyebrow="IM Setup"
       shellContext={overview}
-      title="Connect Telegram"
+      title={`Connect ${selectedPlatformLabel}`}
     >
       {params.created === "1" ? (
         <ProductEventTracker
@@ -110,14 +168,14 @@ export default async function ConnectImPage({
       {hasBindingSuccess ? (
         <ProductEventTracker
           event="im_bind_success"
-          payload={{ surface: "connect_im", platform: "telegram" }}
+          payload={{ surface: "connect_im", platform: selectedPlatform }}
         />
       ) : null}
 
       {/* ── Feedback notices ── */}
       {params.created === "1" ? (
         <div className="notice notice-success">
-          Role created. Connect Telegram to reach this companion from your phone.
+          Role created. Connect an IM app to reach this companion from your phone.
         </div>
       ) : null}
 
@@ -165,6 +223,27 @@ export default async function ConnectImPage({
         </div>
       </div>
 
+      <div className="connect-im-platforms" role="tablist" aria-label="IM platform picker">
+        {platformSwitchLinks.map((platform) => (
+          <Link
+            key={platform.platform}
+            className={`button ${
+              platform.platform === selectedPlatform
+                ? "button-primary"
+                : "button-secondary"
+            }`}
+            href={platform.href}
+          >
+            {platform.label}
+          </Link>
+        ))}
+      </div>
+
+      <p className="connect-im-platform-note">
+        You can connect more than one IM at the same time. Each app keeps its own conversation,
+        but the companion stays the same.
+      </p>
+
       {/* ── Main card ── */}
       {data.role && data.thread ? (
         <section className="site-card connect-im-card">
@@ -173,8 +252,10 @@ export default async function ConnectImPage({
             <div className="connect-im-step">
               <span className="connect-im-step-num">1</span>
               <span className="connect-im-step-text">
-                {botUsername
-                  ? <>Open Telegram and message{" "}
+                {selectedPlatform === "telegram" ? (
+                  botUsername ? (
+                    <>
+                      Open Telegram and message{" "}
                       <a
                         className="site-inline-link"
                         href={`https://t.me/${botUsername}`}
@@ -184,21 +265,36 @@ export default async function ConnectImPage({
                         @{botUsername}
                       </a>
                     </>
-                  : recommendedBotName
-                    ? `Open the ${recommendedBotName} bot in Telegram`
-                    : "Open your Telegram bot"}
+                  ) : recommendedBotName ? (
+                    `Open the ${recommendedBotName} bot in Telegram`
+                  ) : (
+                    "Open your Telegram bot"
+                  )
+                ) : (
+                  "Open Discord and send a DM to the SparkCore bot."
+                )}
               </span>
             </div>
             <div className="connect-im-step">
               <span className="connect-im-step-num">2</span>
               <span className="connect-im-step-text">
-                Send any message — the bot will reply with your <strong>Chat ID</strong> and <strong>User ID</strong>
+                {selectedPlatform === "telegram" ? (
+                  <>
+                    Send any message. The bot will reply with your <strong>Chat ID</strong> and{" "}
+                    <strong>User ID</strong>.
+                  </>
+                ) : (
+                  <>
+                    Turn on Discord Developer Mode, then copy the <strong>DM Channel ID</strong>{" "}
+                    and your <strong>User ID</strong>.
+                  </>
+                )}
               </span>
             </div>
             <div className="connect-im-step">
               <span className="connect-im-step-num">3</span>
               <span className="connect-im-step-text">
-                Paste those values below and save
+                Paste those values below and save.
               </span>
             </div>
           </div>
@@ -216,21 +312,33 @@ export default async function ConnectImPage({
 
           {data.role && recommendedCharacterChannel && recommendedBotName ? (
             <p className="connect-im-rebind-note">
-              Your role {data.role.name} will talk to you through {recommendedBotName} on
-              Telegram.
+              {selectedPlatform === "telegram"
+                ? `Your role ${data.role.name} will talk to you through ${recommendedBotName} on Telegram.`
+                : `Your role ${data.role.name} will use the same voice on Discord, while keeping the Discord conversation separate from your other apps.`}
             </p>
           ) : null}
 
           {/* Form */}
           <div className="connect-im-form-wrap">
-            <form action={connectTelegramBinding}>
-              <TelegramBindingForm
-                agentId={data.role.agentId}
-                characterChannelSlug={recommendedCharacterChannel ?? "caria"}
-                hasExistingBinding={Boolean(existingBinding)}
-                threadId={data.thread.threadId}
-              />
-            </form>
+            {selectedPlatform === "telegram" ? (
+              <form action={connectTelegramBinding}>
+                <TelegramBindingForm
+                  agentId={data.role.agentId}
+                  characterChannelSlug={recommendedCharacterChannel ?? "caria"}
+                  hasExistingBinding={Boolean(existingBinding)}
+                  threadId={data.thread.threadId}
+                />
+              </form>
+            ) : (
+              <form action={connectDiscordBinding}>
+                <DiscordBindingForm
+                  agentId={data.role.agentId}
+                  characterChannelSlug={recommendedCharacterChannel ?? "caria"}
+                  hasExistingBinding={Boolean(existingBinding)}
+                  threadId={data.thread.threadId}
+                />
+              </form>
+            )}
           </div>
         </section>
       ) : (

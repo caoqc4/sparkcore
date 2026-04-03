@@ -60,6 +60,12 @@ type BillingCreditRule = {
   metadata: Record<string, unknown>;
 };
 
+export type BillingTransientRetryEvent = {
+  scope: "billing_configuration" | "subscription_snapshot";
+  attempt: number;
+  message: string;
+};
+
 function coerceQualityTier(value: unknown): BillingModel["quality_tier"] {
   return value === "pro" || value === "premium" ? value : "free";
 }
@@ -116,7 +122,11 @@ function isTransientBillingFetchError(error: unknown) {
   );
 }
 
-export async function loadProductBillingConfiguration(args: { supabase: any }) {
+export async function loadProductBillingConfiguration(args: {
+  supabase: any;
+  onTransientRetry?: (event: BillingTransientRetryEvent) => void;
+}) {
+  const onTransientRetry = args.onTransientRetry ?? null;
   let data: { configuration?: unknown } | null = null;
   let error: { message: string } | null = null;
 
@@ -137,6 +147,11 @@ export async function loadProductBillingConfiguration(args: { supabase: any }) {
       break;
     } catch (loadError) {
       if (attempt === 0 && isTransientBillingFetchError(loadError)) {
+        onTransientRetry?.({
+          scope: "billing_configuration",
+          attempt: attempt + 1,
+          message: loadError instanceof Error ? loadError.message : String(loadError)
+        });
         await new Promise((resolve) => setTimeout(resolve, 250));
         continue;
       }
@@ -242,15 +257,51 @@ export async function loadProductBillingConfiguration(args: { supabase: any }) {
 export async function loadCurrentProductPlanSlug(args: {
   supabase: any;
   userId: string;
+  onTransientRetry?: (event: BillingTransientRetryEvent) => void;
 }) {
-  const [{ data: subscription, error }, billingConfiguration] = await Promise.all([
-    args.supabase
-      .from("user_subscription_snapshots")
-      .select("plan_name, plan_status")
-      .eq("user_id", args.userId)
-      .maybeSingle(),
-    loadProductBillingConfiguration({ supabase: args.supabase })
-  ]);
+  let subscription: { plan_name?: string | null; plan_status?: string | null } | null =
+    null;
+  let error: { message: string } | null = null;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const result = await args.supabase
+        .from("user_subscription_snapshots")
+        .select("plan_name, plan_status")
+        .eq("user_id", args.userId)
+        .maybeSingle();
+
+      subscription = result.data;
+      error = result.error;
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      break;
+    } catch (loadError) {
+      if (attempt === 0 && isTransientBillingFetchError(loadError)) {
+        args.onTransientRetry?.({
+          scope: "subscription_snapshot",
+          attempt: attempt + 1,
+          message: loadError instanceof Error ? loadError.message : String(loadError)
+        });
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        continue;
+      }
+
+      throw new Error(
+        `Failed to load subscription snapshot: ${
+          loadError instanceof Error ? loadError.message : String(loadError)
+        }`
+      );
+    }
+  }
+
+  const billingConfiguration = await loadProductBillingConfiguration({
+    supabase: args.supabase,
+    onTransientRetry: args.onTransientRetry
+  });
 
   if (error) {
     throw new Error(`Failed to load subscription snapshot: ${error.message}`);

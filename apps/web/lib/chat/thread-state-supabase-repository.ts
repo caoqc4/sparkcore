@@ -7,6 +7,10 @@ import type {
 } from "@/lib/chat/thread-state";
 import type { SessionReplyLanguage } from "@/lib/chat/session-context";
 import type { ThreadStateRepository } from "@/lib/chat/thread-state-repository";
+import {
+  isTransientSupabaseFetchError,
+  retryOnceOnTransientSupabaseFetch
+} from "@/lib/supabase/transient-fetch";
 
 export const DEFAULT_THREAD_STATES_TABLE = "thread_states";
 
@@ -51,18 +55,31 @@ export class SupabaseThreadStateRepository implements ThreadStateRepository {
   async loadThreadState(
     input: LoadThreadStateInput
   ): Promise<LoadThreadStateResult> {
-    const { data, error } = await this.supabase
-      .from(this.tableName)
-      .select(
-        "thread_id, agent_id, state_version, lifecycle_status, focus_mode, current_language_hint, recent_turn_window_size, continuity_status, last_user_message_id, last_assistant_message_id, updated_at"
-      )
-      .eq("thread_id", input.threadId)
-      .eq("agent_id", input.agentId)
-      .maybeSingle();
+    let data: ThreadStateRow | null = null;
 
-    if (error) {
+    try {
+      const result = await retryOnceOnTransientSupabaseFetch({
+        task: async () =>
+          this.supabase
+            .from(this.tableName)
+            .select(
+              "thread_id, agent_id, state_version, lifecycle_status, focus_mode, current_language_hint, recent_turn_window_size, continuity_status, last_user_message_id, last_assistant_message_id, updated_at"
+            )
+            .eq("thread_id", input.threadId)
+            .eq("agent_id", input.agentId)
+            .maybeSingle()
+      });
+
+      data = (result.data as ThreadStateRow | null) ?? null;
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+    } catch (loadError) {
       throw new Error(
-        `Failed to load thread state from ${this.tableName}: ${error.message}`
+        `Failed to load thread state from ${this.tableName}: ${
+          loadError instanceof Error ? loadError.message : String(loadError)
+        }`
       );
     }
 
@@ -98,6 +115,11 @@ export class SupabaseThreadStateRepository implements ThreadStateRepository {
       .upsert(payload, { onConflict: "thread_id,agent_id" });
 
     if (error) {
+      if (isTransientSupabaseFetchError(new Error(error.message))) {
+        throw new Error(
+          `Failed to save thread state to ${this.tableName}: ${error.message}`
+        );
+      }
       throw new Error(
         `Failed to save thread state to ${this.tableName}: ${error.message}`
       );

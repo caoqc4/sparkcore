@@ -12,6 +12,7 @@
     "telegram:webhook:delete": "tsx scripts/telegram-delete-webhook.ts",
     "telegram:binding:upsert": "tsx scripts/telegram-upsert-binding.ts",
     "telegram:binding:delete": "tsx scripts/telegram-delete-binding.ts",
+    "discord:gateway:dev": "tsx scripts/discord-gateway-dev.ts",
     "character-assets:import": "tsx scripts/import-character-assets.ts",
     "followup:claim:harness": "tsx scripts/follow-up-claim-harness.ts",
     "followup:send:harness": "tsx scripts/follow-up-send-harness.ts",

@@ -166,6 +166,50 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
       resolveProductAppRoute({ supabase, userId: user.id }),
       loadProductRoleCollection({ supabase, userId: user.id }),
     ]);
+
+  // Batch-load portrait URLs for all roles in the switcher
+  const rolePortraitMap = new Map<string, string>();
+  {
+    const agentIds = (roleCollection?.roles ?? []).map((r) => r.agentId);
+    if (agentIds.length > 0) {
+      const { data: mediaProfiles } = await supabase
+        .from("role_media_profiles")
+        .select("agent_id, portrait_asset_id")
+        .in("agent_id", agentIds)
+        .eq("owner_user_id", user.id);
+
+      const assetIds = (mediaProfiles ?? [])
+        .map((p: { agent_id: string; portrait_asset_id: string | null }) => p.portrait_asset_id)
+        .filter((id: string | null): id is string => typeof id === "string" && id.length > 0);
+
+      if (assetIds.length > 0) {
+        const { data: assets } = await supabase
+          .from("product_portrait_assets")
+          .select("id, public_url, storage_path")
+          .in("id", assetIds)
+          .eq("is_active", true);
+
+        const assetUrlMap = new Map<string, string>();
+        for (const asset of assets ?? []) {
+          const url =
+            typeof asset.public_url === "string" && asset.public_url.length > 0
+              ? asset.public_url
+              : typeof asset.storage_path === "string" && asset.storage_path.startsWith("character-assets/")
+                ? supabase.storage
+                    .from("character-assets")
+                    .getPublicUrl(asset.storage_path.replace(/^character-assets\//, "")).data.publicUrl
+                : null;
+          if (url) assetUrlMap.set(asset.id, url);
+        }
+
+        for (const profile of mediaProfiles ?? []) {
+          if (profile.portrait_asset_id && assetUrlMap.has(profile.portrait_asset_id)) {
+            rolePortraitMap.set(profile.agent_id, assetUrlMap.get(profile.portrait_asset_id)!);
+          }
+        }
+      }
+    }
+  }
   const [{ data: subscriptionSnapshot }, billingConfiguration] = await Promise.all([
     supabase
       .from("user_subscription_snapshots")
@@ -199,6 +243,10 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
     overview?.currentThread?.title ??
     null;
 
+  const activeRolePortraitUrl =
+    profileData?.role?.media?.portraitAssetUrl ??
+    (resolvedRoleId ? rolePortraitMap.get(resolvedRoleId) ?? null : null);
+
   return (
     <ProductConsoleShell
       actions={
@@ -209,6 +257,7 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
       currentHref="/app/role"
       description="Define this companion and review what the relationship remembers."
       eyebrow="Role"
+      rolePortraitUrl={activeRolePortraitUrl}
       shellContext={overview}
       title={profileData?.role?.name ?? "Role"}
     >
@@ -236,6 +285,7 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
           <div className="role-switcher-cards">
             {visibleRoles.map((role) => {
               const isActive = role.agentId === resolvedRoleId;
+              const portraitUrl = rolePortraitMap.get(role.agentId) ?? null;
               return (
                 <Link
                   key={role.agentId}
@@ -243,9 +293,17 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
                   href={`/app/role?role=${encodeURIComponent(role.agentId)}`}
                 >
                   <div className="role-switcher-card-portrait" aria-hidden="true">
-                    <span className="role-switcher-card-portrait-initial">
-                      {role.name.slice(0, 1).toUpperCase()}
-                    </span>
+                    {portraitUrl ? (
+                      <img
+                        src={portraitUrl}
+                        alt={role.name}
+                        className="role-switcher-card-portrait-img"
+                      />
+                    ) : (
+                      <span className="role-switcher-card-portrait-initial">
+                        {role.name.slice(0, 1).toUpperCase()}
+                      </span>
+                    )}
                     {isActive ? (
                       <span className="role-switcher-card-status-dot live" />
                     ) : null}

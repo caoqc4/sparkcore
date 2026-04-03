@@ -232,3 +232,10 @@ export type RuntimeTurnResult = {
   immediate_artifacts?: Array<Record<string, unknown>>;
   debug_metadata?: Record<string, unknown>;
 };
+
+// Execution-layer subset consumed by internal post-processing. This is a
+// downstream contract only; planning stays in the centralized runtime layer.
+export type RuntimeExecutionPayload = Pick<
+  RuntimeTurnResult,
+  "memory_write_requests" | "follow_up_requests"
+>;

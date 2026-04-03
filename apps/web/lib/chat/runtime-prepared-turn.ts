@@ -10,6 +10,10 @@ import {
   type RoleCorePacket,
   type RuntimeReplyLanguage
 } from "@/lib/chat/role-core";
+import {
+  buildOutputGovernance,
+  type PreparedOutputGovernanceV1
+} from "@/lib/chat/output-governance";
 import type { RuntimeTurnInput } from "@/lib/chat/runtime-input";
 import {
   buildSessionContext,
@@ -55,6 +59,7 @@ export type PreparedRuntimeTurn = {
   memory: {
     runtime_memory_context: RuntimeMemoryContext;
   };
+  governance?: PreparedOutputGovernanceV1;
   resources: {
     workspace: PreparedRuntimeWorkspace;
     thread: PreparedRuntimeThread;
@@ -70,6 +75,7 @@ export function buildPreparedRuntimeTurn(args: {
   roleCorePacket: RoleCorePacket;
   session: SessionContext;
   runtimeMemoryContext: RuntimeMemoryContext;
+  governance?: PreparedOutputGovernanceV1;
   workspace: PreparedRuntimeWorkspace;
   thread: PreparedRuntimeThread;
   messages: PreparedRuntimeMessage[];
@@ -86,6 +92,7 @@ export function buildPreparedRuntimeTurn(args: {
     memory: {
       runtime_memory_context: args.runtimeMemoryContext
     },
+    governance: args.governance,
     resources: {
       workspace: args.workspace,
       thread: args.thread,
@@ -200,5 +207,21 @@ export async function prepareRuntimeTurn(args: {
   assistantMessageId?: string;
   supabase?: unknown;
 }): Promise<PreparedRuntimeTurn> {
-  return buildPreparedRuntimeTurn(args);
+  const governance = buildOutputGovernance({
+    agent: args.agent,
+    roleCore: args.roleCorePacket,
+    session: args.session,
+    runtimeMemory: args.runtimeMemoryContext,
+    messages: args.messages.map((message) => ({
+      role: message.role,
+      content: message.content,
+      status: message.status
+    })),
+    turnInput: args.input
+  });
+
+  return buildPreparedRuntimeTurn({
+    ...args,
+    governance
+  });
 }

@@ -1,5 +1,6 @@
 import {
   loadLatestOwnedThread,
+  loadLatestOwnedThreadForAgent,
   loadOwnedActiveAgent,
   loadOwnedThread,
   loadPrimaryWorkspace
@@ -48,6 +49,17 @@ export async function loadProductConnectImPageData(args: {
     workspaceId: workspace.id,
     userId: args.userId
   });
+  const requestedAgentId =
+    typeof args.agentId === "string" && args.agentId.length > 0 ? args.agentId : null;
+
+  const latestThreadForRequestedAgentResult = requestedAgentId
+    ? await loadLatestOwnedThreadForAgent({
+        supabase: args.supabase,
+        workspaceId: workspace.id,
+        userId: args.userId,
+        agentId: requestedAgentId
+      })
+    : { data: null };
 
   const threadResult =
     typeof args.threadId === "string" && args.threadId.length > 0
@@ -57,11 +69,13 @@ export async function loadProductConnectImPageData(args: {
           userId: args.userId,
           workspaceId: workspace.id
         })
-      : latestThreadResult;
+      : latestThreadForRequestedAgentResult.data
+        ? latestThreadForRequestedAgentResult
+        : latestThreadResult;
 
   const resolvedAgentId =
-    (typeof args.agentId === "string" && args.agentId.length > 0 ? args.agentId : null) ??
     threadResult.data?.agent_id ??
+    requestedAgentId ??
     latestThreadResult.data?.agent_id ??
     null;
 

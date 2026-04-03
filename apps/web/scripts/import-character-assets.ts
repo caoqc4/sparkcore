@@ -9,6 +9,8 @@ type GenderPresentation = "female" | "male" | "neutral";
 type PortraitSourceType = "preset" | "upload" | "generated";
 type StyleTag = "realistic" | "anime" | "illustrated";
 
+type EligibleMode = "companion" | "assistant";
+
 type PortraitSidecar = {
   display_name?: string;
   provider?: string;
@@ -17,6 +19,7 @@ type PortraitSidecar = {
   style_tags?: string[];
   is_shared?: boolean;
   is_active?: boolean;
+  eligible_modes?: EligibleMode[];
   metadata?: Record<string, unknown>;
   default_for_character?: string | string[];
 };
@@ -29,6 +32,7 @@ type AudioSidecar = {
   tier?: "free" | "pro";
   is_default?: boolean;
   sort_order?: number;
+  eligible_modes?: EligibleMode[];
   metadata?: Record<string, unknown>;
   default_for_character?: string | string[];
 };
@@ -49,6 +53,15 @@ const MEDIA_EXTENSIONS = new Set([
 ]);
 const PORTRAIT_EXTENSIONS = new Set([".webp", ".png", ".jpg", ".jpeg"]);
 const AUDIO_EXTENSIONS = new Set([".mp3", ".wav", ".m4a"]);
+const CONTENT_TYPES: Record<string, string> = {
+  ".webp": "image/webp",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".mp3": "audio/mpeg",
+  ".wav": "audio/wav",
+  ".m4a": "audio/mp4"
+};
 const VALID_GENDERS = new Set<GenderPresentation>(["female", "male", "neutral"]);
 const VALID_PORTRAIT_STYLES = new Set<StyleTag>(["realistic", "anime", "illustrated"]);
 
@@ -261,6 +274,9 @@ function buildPortraitRecord(args: {
     ]),
     is_shared: sidecar?.is_shared ?? true,
     is_active: sidecar?.is_active ?? true,
+    eligible_modes: normalizeStringArray(sidecar?.eligible_modes).filter(
+      (m): m is EligibleMode => m === "companion" || m === "assistant"
+    ),
     metadata
   };
 }
@@ -316,6 +332,9 @@ function buildAudioRecord(args: {
     tier: sidecar?.tier ?? null,
     isDefault: typeof sidecar?.is_default === "boolean" ? sidecar.is_default : null,
     sortOrder: typeof sidecar?.sort_order === "number" ? sidecar.sort_order : null,
+    eligibleModes: normalizeStringArray(sidecar?.eligible_modes).filter(
+      (m): m is EligibleMode => m === "companion" || m === "assistant"
+    ),
     provider:
       typeof sidecar?.provider === "string" && sidecar.provider.trim().length > 0
         ? sidecar.provider.trim()
@@ -339,11 +358,12 @@ async function uploadFile(args: {
     return { storagePath };
   }
 
+  const ext = path.extname(args.fullPath).toLowerCase();
   const { error } = await args.supabase.storage
     .from(BUCKET)
     .upload(bucketPath, fileBuffer, {
       upsert: true,
-      contentType: undefined
+      contentType: CONTENT_TYPES[ext]
     });
 
   if (error) {
@@ -369,7 +389,7 @@ async function upsertPortraitRecord(args: {
 
   if (DRY_RUN) {
     console.log(
-      `[dry-run] upsert portrait asset ${record.display_name} -> ${args.storagePath} (${record.gender_presentation}, ${record.style_tags.join(", ")})`
+      `[dry-run] upsert portrait asset ${record.display_name} -> ${args.storagePath} (${record.gender_presentation}, modes=[${record.eligible_modes.join(", ") || "all"}], ${record.style_tags.join(", ")})`
     );
     return;
   }
@@ -483,6 +503,7 @@ async function upsertAudioSampleRecord(args: {
       tier: audioRecord.tier ?? existing.tier ?? null,
       sort_order: audioRecord.sortOrder ?? existing.sort_order ?? 0,
       is_default: audioRecord.isDefault ?? existing.is_default ?? false,
+      ...(audioRecord.eligibleModes.length > 0 && { eligible_modes: audioRecord.eligibleModes }),
       metadata: nextMetadata,
       updated_at: new Date().toISOString()
     })

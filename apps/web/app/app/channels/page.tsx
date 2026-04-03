@@ -142,16 +142,29 @@ export default async function AppChannelsPage({
             const visual =
               PLATFORM_VISUALS[platform.platform as keyof typeof PLATFORM_VISUALS] ??
               PLATFORM_VISUALS.telegram;
+            const baseConnectParams = new URLSearchParams();
+
+            if (resolvedRoleId) {
+              baseConnectParams.set("agent", resolvedRoleId);
+            }
+
+            if (threadId) {
+              baseConnectParams.set("thread", threadId);
+            }
+
+            baseConnectParams.set("platform", platform.platform);
             const activeBinding = platform.activeBinding;
-            const connectHref =
-              resolvedRoleId && platform.platform === "telegram"
-                ? `/connect-im?agent=${encodeURIComponent(resolvedRoleId)}`
-                : "/connect-im";
+            const connectHref = `/connect-im?${baseConnectParams.toString()}`;
+            const hasScopedContext = Boolean(resolvedRoleId || threadId);
             const rebindHref =
-              activeBinding?.threadId && activeBinding?.agentId
+              hasScopedContext
+                ? connectHref
+                : activeBinding?.threadId && activeBinding?.agentId
                 ? `/connect-im?thread=${encodeURIComponent(
                     activeBinding.threadId,
-                  )}&agent=${encodeURIComponent(activeBinding.agentId)}`
+                  )}&agent=${encodeURIComponent(activeBinding.agentId)}&platform=${encodeURIComponent(
+                    platform.platform,
+                  )}`
                 : connectHref;
 
             return (

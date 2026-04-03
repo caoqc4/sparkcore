@@ -1,4 +1,5 @@
 import { loadThreadMessages } from "@/lib/chat/message-read";
+import type { LoadThreadStateResult } from "@/lib/chat/thread-state";
 import { SupabaseThreadStateRepository } from "@/lib/chat/thread-state-supabase-repository";
 import {
   loadLatestOwnedThread,
@@ -187,13 +188,23 @@ export async function loadProductSupplementaryChatPageData(args: {
     count
   }));
 
-  const [threadState, pendingFollowUpsResult] = await Promise.all([
-    thread?.agent_id
-      ? new SupabaseThreadStateRepository(args.supabase).loadThreadState({
-          threadId: thread.id,
-          agentId: thread.agent_id
-        })
-      : Promise.resolve({ status: "not_found" as const }),
+  let threadState: LoadThreadStateResult = { status: "not_found" };
+  if (thread?.agent_id) {
+    try {
+      threadState = await new SupabaseThreadStateRepository(args.supabase).loadThreadState({
+        threadId: thread.id,
+        agentId: thread.agent_id
+      });
+    } catch (error) {
+      console.warn("[supplementary-chat] thread state load degraded", {
+        thread_id: thread.id,
+        agent_id: thread.agent_id,
+        error_message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  }
+
+  const pendingFollowUpsResult = await (
     thread
       ? args.supabase
           .from("pending_follow_ups")
@@ -204,7 +215,7 @@ export async function loadProductSupplementaryChatPageData(args: {
           .eq("status", "pending")
           .order("trigger_at", { ascending: true })
       : Promise.resolve({ data: [] as Array<{ trigger_at: string | null }> })
-  ]);
+  );
 
   const pendingFollowUps = pendingFollowUpsResult.data ?? [];
   const connectionStatus =

@@ -11,8 +11,16 @@ import {
 import { loadChannelPlatformCapability } from "@/lib/product/channels";
 import { isCharacterChannelSlug } from "@/lib/product/character-channels";
 
+const PLATFORM_LABELS = {
+  telegram: "Telegram",
+  discord: "Discord",
+} as const;
+
+type SupportedBindingPlatform = keyof typeof PLATFORM_LABELS;
+
 function redirectWithMessage(args: {
   agentId?: string | null;
+  platform?: string | null;
   threadId?: string | null;
   feedback: string;
   feedbackType: "error" | "success";
@@ -25,6 +33,10 @@ function redirectWithMessage(args: {
 
   if (args.agentId) {
     searchParams.set("agent", args.agentId);
+  }
+
+  if (args.platform) {
+    searchParams.set("platform", args.platform);
   }
 
   searchParams.set("feedback", args.feedback);
@@ -41,7 +53,10 @@ function normalizeIdentityField(value: FormDataEntryValue | null) {
   return value.replace(/\s+/g, " ").trim();
 }
 
-export async function connectTelegramBinding(formData: FormData) {
+async function connectBinding(
+  platform: SupportedBindingPlatform,
+  formData: FormData
+) {
   const threadId = normalizeIdentityField(formData.get("thread_id"));
   const agentId = normalizeIdentityField(formData.get("agent_id"));
   const channelId = normalizeIdentityField(formData.get("channel_id"));
@@ -56,27 +71,30 @@ export async function connectTelegramBinding(formData: FormData) {
 
   if (!threadId || !agentId) {
     redirectWithMessage({
+      platform,
       threadId,
       agentId,
-      feedback: "Create or select a role thread before binding Telegram.",
+      feedback: `Create or select a role thread before binding ${PLATFORM_LABELS[platform]}.`,
       feedbackType: "error"
     });
   }
 
   if (!channelId || !peerId || !platformUserId) {
     redirectWithMessage({
+      platform,
       threadId,
       agentId,
-      feedback: "Telegram binding requires channel id, peer id, and platform user id.",
+      feedback: `${PLATFORM_LABELS[platform]} binding requires a channel id and user id.`,
       feedbackType: "error"
     });
   }
 
   if (!characterChannelSlug) {
     redirectWithMessage({
+      platform,
       threadId,
       agentId,
-      feedback: "Telegram binding requires a valid character channel.",
+      feedback: `${PLATFORM_LABELS[platform]} binding requires a valid character channel.`,
       feedbackType: "error"
     });
   }
@@ -87,7 +105,11 @@ export async function connectTelegramBinding(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?next=${encodeURIComponent(`/connect-im?thread=${threadId}&agent=${agentId}`)}`);
+    const loginParams = new URLSearchParams();
+    loginParams.set("thread", threadId);
+    loginParams.set("agent", agentId);
+    loginParams.set("platform", platform);
+    redirect(`/login?next=${encodeURIComponent(`/connect-im?${loginParams.toString()}`)}`);
   }
 
   const { data: workspace } = await loadPrimaryWorkspace({
@@ -97,6 +119,7 @@ export async function connectTelegramBinding(formData: FormData) {
 
   if (!workspace) {
     redirectWithMessage({
+      platform,
       threadId,
       agentId,
       feedback: "No workspace is available for this account.",
@@ -104,21 +127,21 @@ export async function connectTelegramBinding(formData: FormData) {
     });
   }
 
-  const telegramCapability = await loadChannelPlatformCapability({
+  const capability = await loadChannelPlatformCapability({
     supabase,
-    platform: "telegram"
+    platform
   });
 
   if (
-    !telegramCapability ||
-    telegramCapability.availabilityStatus !== "active" ||
-    !telegramCapability.supportsBinding
+    !capability ||
+    capability.availabilityStatus !== "active" ||
+    !capability.supportsBinding
   ) {
     redirectWithMessage({
+      platform,
       threadId,
       agentId,
-      feedback:
-        "Telegram binding is not available in this environment yet.",
+      feedback: `${PLATFORM_LABELS[platform]} binding is not available in this environment yet.`,
       feedbackType: "error"
     });
   }
@@ -140,6 +163,7 @@ export async function connectTelegramBinding(formData: FormData) {
 
   if (!threadResult.data || !agentResult.data) {
     redirectWithMessage({
+      platform,
       threadId,
       agentId,
       feedback: "The selected role or thread is unavailable.",
@@ -148,7 +172,7 @@ export async function connectTelegramBinding(formData: FormData) {
   }
 
   const identity = {
-    platform: "telegram",
+    platform,
     channel_id: channelId,
     peer_id: peerId,
     platform_user_id: platformUserId,
@@ -164,6 +188,7 @@ export async function connectTelegramBinding(formData: FormData) {
 
   if (existingError) {
     redirectWithMessage({
+      platform,
       threadId,
       agentId,
       feedback: existingError.message,
@@ -185,6 +210,41 @@ export async function connectTelegramBinding(formData: FormData) {
     }
   };
 
+  const deactivateConflictingBindings = async (excludeId?: string) => {
+    let query = supabase
+      .from("channel_bindings")
+      .update({
+        status: "inactive",
+        updated_at: new Date().toISOString(),
+        metadata: {
+          ...payload.metadata,
+          superseded_by_platform_identity: true
+        }
+      })
+      .eq("user_id", user.id)
+      .eq("platform", platform)
+      .eq("channel_id", channelId)
+      .eq("peer_id", peerId)
+      .eq("platform_user_id", platformUserId)
+      .eq("status", "active");
+
+    if (excludeId) {
+      query = query.neq("id", excludeId);
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      redirectWithMessage({
+        platform,
+        threadId,
+        agentId,
+        feedback: error.message,
+        feedbackType: "error"
+      });
+    }
+  };
+
   if (existingBinding?.id) {
     const { error } = await supabase
       .from("channel_bindings")
@@ -201,17 +261,23 @@ export async function connectTelegramBinding(formData: FormData) {
 
     if (error) {
       redirectWithMessage({
+        platform,
         threadId,
         agentId,
         feedback: error.message,
         feedbackType: "error"
       });
     }
+
+    await deactivateConflictingBindings(existingBinding.id);
   } else {
+    await deactivateConflictingBindings();
+
     const { error } = await supabase.from("channel_bindings").insert(payload);
 
     if (error) {
       redirectWithMessage({
+        platform,
         threadId,
         agentId,
         feedback: error.message,
@@ -226,7 +292,20 @@ export async function connectTelegramBinding(formData: FormData) {
   revalidatePath("/app/settings");
 
   const channelsParams = new URLSearchParams();
-  channelsParams.set("feedback", "Telegram connected. You can now chat via the bot.");
+  channelsParams.set("role", agentId);
+  channelsParams.set("thread", threadId);
+  channelsParams.set(
+    "feedback",
+    `${PLATFORM_LABELS[platform]} connected. You can now chat through that app.`
+  );
   channelsParams.set("feedback_type", "success");
   redirect(`/app/channels?${channelsParams.toString()}`);
+}
+
+export async function connectTelegramBinding(formData: FormData) {
+  return connectBinding("telegram", formData);
+}
+
+export async function connectDiscordBinding(formData: FormData) {
+  return connectBinding("discord", formData);
 }

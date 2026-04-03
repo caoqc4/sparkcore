@@ -426,8 +426,8 @@ test.describe("core chat smoke", () => {
       recallThreadId
     );
     const metadata = latestAssistantMessage.metadata;
-    const recalledMemories = Array.isArray(metadata.recalled_memories)
-      ? metadata.recalled_memories
+    const recalledMemories = Array.isArray(metadata.recalled_memory_preview)
+      ? metadata.recalled_memory_preview
       : [];
     const recalledMemoryTypes = recalledMemories
       .map((memory) =>
@@ -537,8 +537,8 @@ test.describe("core chat smoke", () => {
       summaryThreadId
     );
     const metadata = latestAssistantMessage.metadata;
-    const recalledMemories = Array.isArray(metadata.recalled_memories)
-      ? metadata.recalled_memories
+    const recalledMemories = Array.isArray(metadata.recalled_memory_preview)
+      ? metadata.recalled_memory_preview
       : [];
     const recalledMemoryTypes = recalledMemories
       .map((memory) =>
@@ -904,9 +904,9 @@ test.describe("core chat smoke", () => {
     );
     const fallbackMetadata = fallbackAssistantMessage.metadata;
     const fallbackRecalledMemories = Array.isArray(
-      fallbackMetadata.recalled_memories
+      fallbackMetadata.recalled_memory_preview
     )
-      ? fallbackMetadata.recalled_memories
+      ? fallbackMetadata.recalled_memory_preview
       : [];
 
     expect(fallbackMetadata.question_type).toBe(
@@ -965,9 +965,9 @@ test.describe("core chat smoke", () => {
     );
     const restoredMetadata = restoredAssistantMessage.metadata;
     const restoredRecalledMemories = Array.isArray(
-      restoredMetadata.recalled_memories
+      restoredMetadata.recalled_memory_preview
     )
-      ? restoredMetadata.recalled_memories
+      ? restoredMetadata.recalled_memory_preview
       : [];
 
     expect(restoredMetadata.question_type).toBe(
@@ -984,7 +984,7 @@ test.describe("core chat smoke", () => {
       expect.arrayContaining([
         expect.objectContaining({
           memory_type: "relationship",
-          content: "小芳"
+          content_excerpt: expect.stringContaining("小芳")
         })
       ])
     );
@@ -2003,8 +2003,8 @@ test.describe("core chat smoke", () => {
     expect(latestAssistantMessage).toBeTruthy();
 
     const metadata = latestAssistantMessage?.metadata as Record<string, unknown>;
-    const recalledMemories = Array.isArray(metadata?.recalled_memories)
-      ? metadata.recalled_memories
+    const recalledMemories = Array.isArray(metadata?.recalled_memory_preview)
+      ? metadata.recalled_memory_preview
       : [];
     const recalledMemoryTypes = recalledMemories
       .map((memory) =>
@@ -2016,7 +2016,7 @@ test.describe("core chat smoke", () => {
     const recalledMemoryContents = recalledMemories
       .map((memory) =>
         typeof memory === "object" && memory !== null
-          ? (memory as Record<string, unknown>).content
+          ? (memory as Record<string, unknown>).content_excerpt
           : null
       )
       .filter((value): value is string => typeof value === "string");

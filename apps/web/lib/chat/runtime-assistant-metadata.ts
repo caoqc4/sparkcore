@@ -2,6 +2,7 @@ import type {
   BuildAssistantMessageMetadataInput,
 } from "@/lib/chat/assistant-message-metadata";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
+import type { OutputGovernancePacketV1 } from "@/lib/chat/output-governance";
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type {
   ReplyLanguageSource,
@@ -66,6 +67,7 @@ export type BuildRuntimeAssistantMetadataInput = {
     current_message_id?: string | null;
     recent_raw_turn_count: number;
     approx_context_pressure: ApproxContextPressure;
+    output_governance?: OutputGovernancePacketV1 | null;
   };
   reply_language: {
     target: RuntimeReplyLanguage;
@@ -130,6 +132,16 @@ export function buildRuntimeAssistantMetadataInput(
     knowledge: input.knowledge.snippets,
     activeNamespace: input.namespace.active_namespace ?? null
   });
+  const recalledMemoryPreview = input.memory.recalled_memories
+    .slice(0, 3)
+    .map((memory) => ({
+      memory_type: memory.memory_type,
+      content_excerpt:
+        memory.content.length > 120
+          ? `${memory.content.slice(0, 117).trimEnd()}...`
+          : memory.content,
+      semantic_layer: memory.semantic_layer ?? null
+    }));
 
   return {
     agent_id: input.agent.id,
@@ -165,6 +177,7 @@ export function buildRuntimeAssistantMetadataInput(
     current_message_id: input.runtime.current_message_id,
     recent_raw_turn_count: input.runtime.recent_raw_turn_count,
     approx_context_pressure: input.runtime.approx_context_pressure,
+    output_governance: input.runtime.output_governance ?? null,
     reply_language_target: input.reply_language.target,
     reply_language_detected: input.reply_language.detected,
     reply_language_source: input.reply_language.source,
@@ -189,6 +202,7 @@ export function buildRuntimeAssistantMetadataInput(
     distant_memory_fallback_allowed:
       input.session.distant_memory_fallback_allowed,
     recalled_memories: input.memory.recalled_memories,
+    recalled_memory_preview: recalledMemoryPreview,
     memory_hit_count: input.memory.hit_count,
     memory_used: input.memory.used,
     memory_types_used: input.memory.types_used,

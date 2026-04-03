@@ -70,7 +70,7 @@ export const CHARACTER_MANIFEST = {
     displayName: "Velia",
     mode: "assistant",
     avatarGender: "female",
-    avatarStyle: "illustrated",
+    avatarStyle: "realistic",
     assets: {
       portraitMain: assetPath("velia", "portrait-main.webp"),
       portraitChat: assetPath("velia", "portrait-chat.webp"),

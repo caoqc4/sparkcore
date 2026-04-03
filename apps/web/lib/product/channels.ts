@@ -74,20 +74,20 @@ export const DEFAULT_CHANNEL_PLATFORM_CAPABILITIES: ProductChannelPlatformCapabi
     label: "Telegram"
   },
   {
+    platform: "discord",
+    availabilityStatus: "active",
+    supportsBinding: true,
+    supportsAdvancedIdentityFields: true,
+    displayOrder: 2,
+    label: "Discord"
+  },
+  {
     platform: "wechat",
     availabilityStatus: "coming_soon",
     supportsBinding: false,
     supportsAdvancedIdentityFields: false,
-    displayOrder: 2,
-    label: "WeChat"
-  },
-  {
-    platform: "discord",
-    availabilityStatus: "coming_soon",
-    supportsBinding: false,
-    supportsAdvancedIdentityFields: false,
     displayOrder: 3,
-    label: "Discord"
+    label: "WeChat"
   }
 ];
 
@@ -113,6 +113,10 @@ function isTransientSupabaseFetchFailure(error: unknown) {
   return (
     error instanceof Error &&
     (error.message.includes("fetch failed") ||
+      error.message.includes("502: Bad gateway") ||
+      error.message.includes("502 Bad gateway") ||
+      error.message.includes("503 Service Unavailable") ||
+      error.message.includes("<!DOCTYPE html>") ||
       error.message.includes("ECONNRESET") ||
       error.message.includes("Client network socket disconnected"))
   );

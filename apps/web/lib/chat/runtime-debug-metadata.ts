@@ -1,6 +1,7 @@
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type { RuntimeThreadStateRecall } from "@/lib/chat/memory-recall";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
+import type { PreparedOutputGovernanceV1 } from "@/lib/chat/output-governance";
 import type {
   RoleCoreMemoryCloseNoteArchive,
   RoleCoreMemoryCloseNoteArtifact,
@@ -48,6 +49,7 @@ export type BuildRuntimeDebugMetadataInput = {
   relevant_knowledge?: RuntimeKnowledgeSnippet[];
   active_memory_namespace?: ActiveRuntimeMemoryNamespace | null;
   compacted_thread_summary?: CompactedThreadSummary | null;
+  output_governance?: PreparedOutputGovernanceV1 | null;
   role_core_close_note_handoff_packet?: RoleCoreMemoryCloseNoteHandoffPacket | null;
   role_core_close_note_artifact?: RoleCoreMemoryCloseNoteArtifact | null;
   role_core_close_note_archive?: RoleCoreMemoryCloseNoteArchive | null;
@@ -207,6 +209,15 @@ export function buildRuntimeDebugMetadata(
         activeNamespace: input.active_memory_namespace ?? null
       })
     },
+    governance: input.output_governance
+      ? {
+          role_expression: input.output_governance.role_expression,
+          relationship_state: input.output_governance.relationship_state,
+          scene_delivery: input.output_governance.scene_delivery,
+          knowledge_route: input.output_governance.knowledge_route,
+          output_governance: input.output_governance.output_governance
+        }
+      : null,
     memory_namespace: input.active_memory_namespace
       ? {
           namespace_id: input.active_memory_namespace.namespace_id,

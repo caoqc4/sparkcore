@@ -49,6 +49,8 @@ type ProductConsoleShellProps = {
   actions?: React.ReactNode;
   children: React.ReactNode;
   shellContext?: DashboardOverview | null;
+  /** Portrait photo URL for the current role — shown in the sidebar card */
+  rolePortraitUrl?: string | null;
 };
 
 function isActiveConsoleRoute(
@@ -107,6 +109,7 @@ export async function ProductConsoleShell({
   actions,
   children,
   shellContext,
+  rolePortraitUrl,
 }: ProductConsoleShellProps) {
   let overview = shellContext ?? null;
 
@@ -140,7 +143,15 @@ export async function ProductConsoleShell({
           >
             <div className="chat-sidebar-portrait">
               <div className="chat-sidebar-portrait-img" aria-hidden="true">
-                {summary.roleName.slice(0, 1).toUpperCase()}
+                {rolePortraitUrl ? (
+                  <img
+                    src={rolePortraitUrl}
+                    alt={summary.roleName}
+                    className="chat-sidebar-portrait-photo"
+                  />
+                ) : (
+                  summary.roleName.slice(0, 1).toUpperCase()
+                )}
               </div>
               <div
                 className={`chat-sidebar-portrait-status${summary.activeChannels > 0 ? " live" : ""}`}

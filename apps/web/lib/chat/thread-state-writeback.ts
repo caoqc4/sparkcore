@@ -30,6 +30,9 @@ export type WriteThreadStateAfterTurnResult =
 export function buildThreadStateAfterTurn(
   input: WriteThreadStateAfterTurnInput
 ): ThreadStateRecord | null {
+  // Thread-state writeback is a deterministic projection of prepared context
+  // plus the completed turn result. It should not introduce new turn-level
+  // strategy or output decisions.
   const base = input.prepared.session.thread_state ?? null;
   const assistantMessage = input.result.assistant_message;
   const assistantMessageId = input.prepared.resources.assistant_message_id;

@@ -1672,6 +1672,7 @@ export default async function ChatPage({
                 modelProfiles={availableModelProfiles}
                 memoryVisibility={memoryVisibility}
                 audioPlayback={audioPlayback}
+                showGovernanceDebug={process.env.CHAT_GOVERNANCE_DEBUG === "1"}
                 thread={thread}
               />
             )}

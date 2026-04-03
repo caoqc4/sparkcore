@@ -111,6 +111,32 @@ export function getTelegramBotConfig(slug: CharacterChannelSlug) {
   };
 }
 
+export function getDiscordEnv() {
+  const applicationId = process.env.DISCORD_APPLICATION_ID;
+  const publicKey = process.env.DISCORD_PUBLIC_KEY;
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+
+  if (!applicationId) {
+    throw new Error(
+      "Missing Discord application ID. Set DISCORD_APPLICATION_ID."
+    );
+  }
+
+  if (!publicKey) {
+    throw new Error("Missing Discord public key. Set DISCORD_PUBLIC_KEY.");
+  }
+
+  if (!botToken) {
+    throw new Error("Missing Discord bot token. Set DISCORD_BOT_TOKEN.");
+  }
+
+  return {
+    applicationId,
+    publicKey,
+    botToken
+  };
+}
+
 export function getFollowUpCronEnv() {
   const secret = process.env.FOLLOW_UP_CRON_SECRET;
   const defaultSender =

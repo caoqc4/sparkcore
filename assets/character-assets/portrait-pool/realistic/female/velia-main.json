@@ -1,0 +1,6 @@
+{
+  "display_name": "Velia",
+  "style_tags": ["playful", "bright", "assistant"],
+  "eligible_modes": ["assistant"],
+  "default_for_character": "velia"
+}
