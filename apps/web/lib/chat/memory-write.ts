@@ -164,7 +164,7 @@ export async function planMemoryWriteRequests({
         {
           role: "system",
           content:
-            "You are a structured memory extraction engine for SparkCore. Follow the instructions exactly and output valid JSON only."
+            "You are a structured memory extraction engine for Lagun. Follow the instructions exactly and output valid JSON only."
         },
         {
           role: "user",

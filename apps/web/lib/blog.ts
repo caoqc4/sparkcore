@@ -2,7 +2,7 @@ export const blogFeaturedPosts = [
   {
     category: "Compare",
     title: "Character.AI Alternative",
-    body: "Why SparkCore fits better when you want long memory, IM-native continuity, and a visible control layer.",
+    body: "Why Lagun fits better when you want long memory, IM-native continuity, and a visible control layer.",
     href: "/alternatives/character-ai",
   },
   {
@@ -20,19 +20,19 @@ export const blogFeaturedPosts = [
   {
     category: "Guide",
     title: "IM Chat Flow",
-    body: "Understand why SparkCore creates on web first, then moves the daily rhythm into IM after setup.",
+    body: "Understand why Lagun sets up on web first, then moves the daily rhythm into IM after setup.",
     href: "/features/im-chat",
   },
   {
     category: "Guide",
-    title: "How It Works",
-    body: "A plain walkthrough of the create -> connect -> continue -> control loop behind the product.",
-    href: "/how-it-works",
+    title: "AI Companion",
+    body: "What makes an AI companion different when long memory and IM-native continuity are part of the product design.",
+    href: "/ai-companion",
   },
   {
-    category: "Product",
-    title: "Pricing",
-    body: "How pricing is being shaped around relationship continuity, memory access, and channel support.",
-    href: "/pricing",
+    category: "Guide",
+    title: "AI Girlfriend",
+    body: "A relationship-first AI girlfriend experience with memory, continuity, and control — not just a chatbot with a romantic skin.",
+    href: "/ai-girlfriend",
   },
 ] as const;

@@ -6,7 +6,7 @@ import { buildPageMetadata } from "@/lib/site";
 export const metadata = buildPageMetadata({
   title: "AI Companion With Long Memory and IM Continuity",
   description:
-    "Learn how SparkCore turns AI companion into a long-memory, IM-native relationship loop with a web control center for memory and privacy.",
+    "Learn how Lagun turns AI companion into a long-memory, IM-native relationship loop with a web control center for memory and privacy.",
   path: "/ai-companion"
 });
 
@@ -16,7 +16,7 @@ export default function AiCompanionPage() {
       <PageFrame
         eyebrow="Companion"
         title="An AI companion that remembers you instead of resetting every session."
-        description="SparkCore is designed around relationship continuity. The role stays familiar, long-term memory stays visible, and your main conversation can live in IM instead of a browser tab."
+        description="Lagun is designed around relationship continuity. The role stays familiar, long-term memory stays visible, and your main conversation can live in IM instead of a browser tab."
       >
         <FeatureCardGrid
           items={[

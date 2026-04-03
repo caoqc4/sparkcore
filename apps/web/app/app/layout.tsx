@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/site";
 export const metadata = buildPageMetadata({
   title: "App Console",
   description:
-    "Protected SparkCore control surfaces for memory, channels, boundaries, and supplementary chat.",
+    "Protected Lagun control surfaces for memory, channels, boundaries, and supplementary chat.",
   path: "/app",
   noIndex: true,
 });

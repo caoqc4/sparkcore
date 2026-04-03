@@ -9,7 +9,7 @@ import { signOut } from "@/app/login/actions";
 
 export const metadata = buildPageMetadata({
   title: "Workspace",
-  description: "Protected SparkCore workspace shell used to bootstrap authenticated product access.",
+  description: "Protected Lagun workspace shell used to bootstrap authenticated product access.",
   path: "/workspace",
   noIndex: true
 });

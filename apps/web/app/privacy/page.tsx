@@ -5,7 +5,7 @@ import { buildPageMetadata } from "@/lib/site";
 export const metadata = buildPageMetadata({
   title: "Privacy Policy",
   description:
-    "SparkCore privacy policy — how we collect, use, and protect your personal data in our IM-native AI companion product.",
+    "Lagun privacy policy — how we collect, use, and protect your personal data in our IM-native AI companion product.",
   path: "/privacy"
 });
 
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
             <h2>2. How We Use Your Information</h2>
             <p>We use the information we collect to:</p>
             <ul>
-              <li>Provide, operate, and improve the SparkCore service</li>
+              <li>Provide, operate, and improve the Lagun service</li>
               <li>Maintain companion memory and relationship state across sessions</li>
               <li>Deliver messages through connected IM channels</li>
               <li>Authenticate your account and keep it secure</li>
@@ -48,7 +48,7 @@ export default function PrivacyPage() {
             <h2>3. Memory and Conversation Data</h2>
             <p>
               Conversation history and derived memory entries are stored to power the long-memory
-              features that are core to SparkCore. You can review stored memories at any time via
+              features that are core to Lagun. You can review stored memories at any time via
               the Memory Center, mark entries as incorrect, or delete them. Deleting a memory entry
               removes it from the active context used by your companion.
             </p>
@@ -57,19 +57,19 @@ export default function PrivacyPage() {
           <section>
             <h2>4. IM Channel Integrations</h2>
             <p>
-              When you connect an IM channel, SparkCore receives messages sent to your companion
+              When you connect an IM channel, Lagun receives messages sent to your companion
               through that channel. We do not store the full message history of other conversations
-              in connected IM accounts — only messages addressed to your SparkCore companion.
+              in connected IM accounts — only messages addressed to your Lagun companion.
             </p>
           </section>
 
           <section>
             <h2>5. Payment Data</h2>
             <p>
-              SparkCore offers paid subscription plans. Payment processing is handled by our
+              Lagun offers paid subscription plans. Payment processing is handled by our
               third-party payment processor (Creem). When you purchase a subscription or credits,
               your payment card details are entered directly on the payment processor's secure
-              form and are never stored on SparkCore servers. We receive only a non-sensitive
+              form and are never stored on Lagun servers. We receive only a non-sensitive
               transaction confirmation and your subscription status.
             </p>
             <p>
@@ -123,7 +123,7 @@ export default function PrivacyPage() {
           <section>
             <h2>9. Children</h2>
             <p>
-              SparkCore is not intended for users under 18 years of age. We do not knowingly
+              Lagun is not intended for users under 18 years of age. We do not knowingly
               collect personal data from minors. If we learn that we have collected data from a
               user under 18, we will delete it promptly.
             </p>
@@ -143,7 +143,7 @@ export default function PrivacyPage() {
             <p>
               We may update this privacy policy from time to time. Material changes will be
               communicated via email or a prominent notice in the product. Continued use of
-              SparkCore after changes take effect constitutes acceptance of the updated policy.
+              Lagun after changes take effect constitutes acceptance of the updated policy.
             </p>
           </section>
 

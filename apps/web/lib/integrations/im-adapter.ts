@@ -561,39 +561,39 @@ export function buildBindingNotFoundOutboundMessage(args: {
   const contentLines =
     args.inbound.platform === "discord"
       ? [
-          "This Discord DM is not bound to a SparkCore role yet.",
-          "Open the SparkCore connect flow, then paste these values:",
+          "This Discord DM is not bound to a Lagun role yet.",
+          "Open the Lagun connect flow, then paste these values:",
           `DM Channel ID: ${args.inbound.channel_id}`,
           `Discord User ID: ${args.inbound.peer_id}`,
           "After saving the binding, send your message again."
         ]
       : args.inbound.platform === "telegram"
         ? [
-            "This Telegram chat is not bound to a SparkCore role yet.",
-            "Open the SparkCore connect flow, then paste these values:",
+            "This Telegram chat is not bound to a Lagun role yet.",
+            "Open the Lagun connect flow, then paste these values:",
             `Chat ID: ${args.inbound.channel_id}`,
             `User ID: ${args.inbound.peer_id}`,
             "After saving the binding, send your message again."
           ]
         : args.inbound.platform === "wechat"
           ? [
-              "This WeChat chat is not bound to a SparkCore role yet.",
-              "Open the SparkCore connect flow, then paste these values:",
+              "This WeChat chat is not bound to a Lagun role yet.",
+              "Open the Lagun connect flow, then paste these values:",
               `WeChat Session ID: ${args.inbound.channel_id}`,
               `WeChat User ID: ${args.inbound.peer_id}`,
               "After saving the binding, send your message again."
             ]
         : args.inbound.platform === "feishu"
           ? [
-              "This Feishu chat is not bound to a SparkCore role yet.",
-              "Open the SparkCore connect flow, then paste these values:",
+              "This Feishu chat is not bound to a Lagun role yet.",
+              "Open the Lagun connect flow, then paste these values:",
               `Feishu Chat ID: ${args.inbound.channel_id}`,
               `Feishu Open ID: ${args.inbound.peer_id}`,
               "After saving the binding, send your message again."
             ]
         : [
-            "This channel is not bound to a SparkCore role yet.",
-            "Open the SparkCore connect flow, then paste these values:",
+            "This channel is not bound to a Lagun role yet.",
+            "Open the Lagun connect flow, then paste these values:",
             `channel_id: ${args.inbound.channel_id}`,
             `peer_id: ${args.inbound.peer_id}`,
             `platform_user_id: ${args.inbound.platform_user_id}`,

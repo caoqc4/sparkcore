@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 function buildPreviewCopy(displayName: string) {
-  return `Hi, this is ${displayName}. I am ready to support you with a calm, natural voice in SparkCore.`;
+  return `Hi, this is ${displayName}. I am ready to support you with a calm, natural voice in Lagun.`;
 }
 
 async function tryLoadSampleAudio(args: {

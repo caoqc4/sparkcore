@@ -26,7 +26,7 @@ import {
 export const metadata = buildPageMetadata({
   title: "Connect an IM Channel",
   description:
-    "Protected SparkCore onboarding flow for binding an existing relationship thread to an IM channel.",
+    "Protected Lagun onboarding flow for binding an existing relationship thread to an IM channel.",
   path: "/connect-im",
   noIndex: true,
 });
@@ -78,7 +78,7 @@ function renderPlatformSetupLead(platform: SupportedPlatform) {
       return {
         title: "Start your WeChat session",
         copy:
-          "SparkCore will open a QR page — scan it in WeChat, then send any message to finish binding automatically.",
+          "Lagun will open a QR page — scan it in WeChat, then send any message to finish binding automatically.",
       };
     case "telegram":
     default:
@@ -371,7 +371,7 @@ export default async function ConnectImPage({
                 <div className="connect-im-step">
                   <span className="connect-im-step-num">2</span>
                   <span className="connect-im-step-text">
-                    Send the bot <strong>any</strong> message — SparkCore will finish binding automatically.
+                    Send the bot <strong>any</strong> message — Lagun will finish binding automatically.
                   </span>
                 </div>
               </>

@@ -131,7 +131,7 @@ export async function ProductConsoleShell({
           <div className="app-console-brand">
             <Link href="/?preview=landing" className="app-console-brand-link">
               <span className="app-console-brand-mark">SC</span>
-              <span className="app-console-brand-name">SparkCore</span>
+              <span className="app-console-brand-name">Lagun</span>
             </Link>
           </div>
 

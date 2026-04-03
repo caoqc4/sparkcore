@@ -13,7 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata = buildPageMetadata({
   title: "AI Companion That Remembers You and Stays With You in IM",
   description:
-    "SparkCore is an IM-native AI companion with long memory, relationship continuity, and a web control center for memory, privacy, and channel management.",
+    "Lagun is an IM-native AI companion with long memory, relationship continuity, and a web control center for memory, privacy, and channel management.",
   path: "/",
 });
 
@@ -261,7 +261,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <p className="home-kicker">FAQ</p>
           <h2>Common questions about memory, IM, and privacy.</h2>
           <p>
-            SparkCore is built differently from a generic chatbot. These answers
+            Lagun is built differently from a generic chatbot. These answers
             explain how the relationship loop actually works.
           </p>
         </div>
@@ -293,7 +293,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <TrackedLink
             className="button button-primary home-cta-action"
             event="landing_cta_click"
-            href="/create"
+            href="/#home-hero"
             payload={{ source: "home_final_cta" }}
           >
             Create my companion

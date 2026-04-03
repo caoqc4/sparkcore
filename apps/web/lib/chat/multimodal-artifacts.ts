@@ -532,7 +532,7 @@ function buildImagePrompt(args: {
 
   const roleLine = args.agentName
     ? `Character inspiration: ${args.agentName}.`
-    : "Character inspiration: the current SparkCore companion.";
+    : "Character inspiration: the current Lagun companion.";
 
   return [
     "Create a polished conversational companion image that satisfies the user's request.",

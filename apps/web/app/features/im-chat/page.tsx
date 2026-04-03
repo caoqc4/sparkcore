@@ -6,7 +6,7 @@ import { buildPageMetadata } from "@/lib/site";
 export const metadata = buildPageMetadata({
   title: "IM Chat for AI Companion Continuity",
   description:
-    "Understand why SparkCore keeps the main companion relationship in IM while the website stays focused on setup, memory, and control.",
+    "Understand why Lagun keeps the main companion relationship in IM while the website stays focused on setup, memory, and control.",
   path: "/features/im-chat"
 });
 
@@ -16,7 +16,7 @@ export default function ImChatFeaturePage() {
       <PageFrame
         eyebrow="Feature"
         title="IM-native chat keeps the relationship where daily life already happens."
-        description="SparkCore treats IM as the main interaction surface. The website acts as a control center for setup, memory, and relationship state rather than forcing every conversation back into the browser."
+        description="Lagun treats IM as the main interaction surface. The website acts as a control center for setup, memory, and relationship state rather than forcing every conversation back into the browser."
       >
         <FeatureCardGrid
           items={[

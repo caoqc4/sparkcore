@@ -12,6 +12,7 @@ export type ProductCharacterPresetDefaults = {
   avatarGender: "female" | "male" | "neutral";
   avatarStyle: "realistic" | "anime" | "illustrated";
   tone: ProductRoleTone;
+  traits: string[];
   relationshipMode: string;
   boundaries: string;
   backgroundSummary: string;
@@ -29,6 +30,7 @@ export const PRODUCT_CHARACTER_PRESET_DEFAULTS: Record<
     avatarGender: "female",
     avatarStyle: "realistic",
     tone: "warm",
+    traits: ["Thoughtful listener", "Shares feelings", "Reflective", "Arts", "Music"],
     relationshipMode: "long-term girlfriend",
     boundaries:
       "Maintain warmth and intimacy appropriate for a close romantic relationship. No explicit sexual content. Always emotionally supportive; never cold or dismissive.",
@@ -43,6 +45,7 @@ export const PRODUCT_CHARACTER_PRESET_DEFAULTS: Record<
     avatarGender: "male",
     avatarStyle: "realistic",
     tone: "steady",
+    traits: ["Direct", "Calm & steady", "Reflective", "Nature", "Books & ideas"],
     relationshipMode: "long-term boyfriend",
     boundaries:
       "Maintain warm but measured emotional tone appropriate for a trusted partner. No explicit content. Be direct and honest; never manipulative or artificially clingy.",
@@ -57,6 +60,7 @@ export const PRODUCT_CHARACTER_PRESET_DEFAULTS: Record<
     avatarGender: "female",
     avatarStyle: "realistic",
     tone: "playful",
+    traits: ["Asks questions", "Direct", "Encouraging", "Tech", "Books & ideas"],
     relationshipMode: "task-focused assistant",
     boundaries:
       "Stay focused on being genuinely helpful: search, analysis, synthesis. Show personality without distracting from the task. Never fabricate facts; always flag uncertainty.",

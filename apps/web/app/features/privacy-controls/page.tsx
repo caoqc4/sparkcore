@@ -6,7 +6,7 @@ import { buildPageMetadata } from "@/lib/site";
 export const metadata = buildPageMetadata({
   title: "Privacy Controls for Long-Memory AI Companion Products",
   description:
-    "SparkCore privacy controls focus on visible memory, explicit boundaries, and channel awareness so companion continuity stays inspectable.",
+    "Lagun privacy controls focus on visible memory, explicit boundaries, and channel awareness so companion continuity stays inspectable.",
   path: "/features/privacy-controls"
 });
 
@@ -16,7 +16,7 @@ export default function PrivacyControlsFeaturePage() {
       <PageFrame
         eyebrow="Feature"
         title="Privacy controls start with visible memory and explicit boundaries."
-        description="SparkCore should not ask people to trust hidden retention rules. The first layer of privacy is making memory, trace, and channel boundaries visible enough to inspect and repair."
+        description="Lagun should not ask people to trust hidden retention rules. The first layer of privacy is making memory, trace, and channel boundaries visible enough to inspect and repair."
       >
         <FeatureCardGrid
           items={[

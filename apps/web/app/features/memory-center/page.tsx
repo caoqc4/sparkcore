@@ -6,7 +6,7 @@ import { buildPageMetadata } from "@/lib/site";
 export const metadata = buildPageMetadata({
   title: "Memory Center for Long-Term AI Companion Relationships",
   description:
-    "See how SparkCore memory center makes long-term AI companion memory visible, correctable, and trustworthy enough to support relationship continuity.",
+    "See how Lagun memory center makes long-term AI companion memory visible, correctable, and trustworthy enough to support relationship continuity.",
   path: "/features/memory-center"
 });
 
@@ -16,7 +16,7 @@ export default function MemoryCenterFeaturePage() {
       <PageFrame
         eyebrow="Feature"
         title="Memory center makes long-term relationship state visible and correctable."
-        description="SparkCore does not treat memory as an opaque side effect. The product is designed so you can understand what is remembered, why it matters, and how it affects continuity."
+        description="Lagun does not treat memory as an opaque side effect. The product is designed so you can understand what is remembered, why it matters, and how it affects continuity."
       >
         <FeatureCardGrid
           items={[

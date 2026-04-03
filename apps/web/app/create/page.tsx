@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata = buildPageMetadata({
   title: "Create Your Companion",
   description:
-    "Create a SparkCore companion with a name, personality, and portrait. Set up IM channels after.",
+    "Create a Lagun companion with a name, personality, and portrait. Set up IM channels after.",
   path: "/create",
   noIndex: true,
 });

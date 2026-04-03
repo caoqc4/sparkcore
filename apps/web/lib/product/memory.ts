@@ -195,15 +195,11 @@ export async function loadProductMemoryPageData(args: {
       return true;
     }
 
-    if (item.scope === "thread_local") {
+    if (item.scope === "thread_local" || item.scope === "user_agent") {
       return item.target_agent_id === requestedRoleId;
     }
 
-    if (item.scope === "user_agent") {
-      return item.target_agent_id === requestedRoleId;
-    }
-
-    return true;
+    return false;
   });
 
   const sourceMessageIds: string[] = Array.from(

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata = buildPageMetadata({
   title: "Sign In",
-  description: "Protected SparkCore sign-in flow for existing users.",
+  description: "Protected Lagun sign-in flow for existing users.",
   path: "/login",
   noIndex: true
 });
@@ -37,7 +37,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="shell">
       <section className="card">
-        <p className="eyebrow">SparkCore</p>
+        <p className="eyebrow">Lagun</p>
         <h1 className="title">Sign in</h1>
         <p className="lead">
           Sign in with your Google account to continue.

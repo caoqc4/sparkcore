@@ -60,7 +60,7 @@ export function WeChatBindingForm({
       case "connected":
         return "WeChat login is ready. Now send the bot any message to get your IDs.";
       case "identity_ready":
-        return "WeChat IDs found. SparkCore is saving this connection now.";
+        return "WeChat IDs found. Lagun is saving this connection now.";
       case "timed_out":
         return "Still waiting for your first WeChat message. You can keep waiting or restart the login flow.";
       case "error":
@@ -267,14 +267,14 @@ export function WeChatBindingForm({
 
       {sessionStatus === "pending" ? (
         <div className="notice notice-success">
-          Your WeChat login session is ready. Send the bot any message so SparkCore can capture the
+          Your WeChat login session is ready. Send the bot any message so Lagun can capture the
           session IDs and finish the binding.
         </div>
       ) : null}
 
       {loginStatus === "identity_ready" ? (
         <div className="notice notice-success" ref={statusNoticeRef}>
-          WeChat IDs found. SparkCore is confirming this connection for you now.
+          WeChat IDs found. Lagun is confirming this connection for you now.
         </div>
       ) : loginStatus === "timed_out" ? (
         <div className="notice notice-error" ref={statusNoticeRef}>

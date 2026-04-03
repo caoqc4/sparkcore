@@ -6,7 +6,7 @@ import { buildPageMetadata } from "@/lib/site";
 export const metadata = buildPageMetadata({
   title: "AI Girlfriend With Memory, Continuity, and IM Chat",
   description:
-    "SparkCore positions AI girlfriend as a relationship-first companion with visible memory, ongoing continuity, and IM-native daily conversation.",
+    "Lagun positions AI girlfriend as a relationship-first companion with visible memory, ongoing continuity, and IM-native daily conversation.",
   path: "/ai-girlfriend"
 });
 
@@ -16,7 +16,7 @@ export default function AiGirlfriendPage() {
       <PageFrame
         eyebrow="Relationship"
         title="A relationship-first AI girlfriend experience with memory, continuity, and control."
-        description="This is not positioned as a generic chatbot with a romantic skin. SparkCore is designed to support a more persistent bond, visible memory, and an IM-native relationship loop."
+        description="This is not a generic chatbot with a romantic skin. Lagun is designed to support a more persistent bond, visible memory, and an IM-native relationship loop."
       >
         <FeatureCardGrid
           items={[

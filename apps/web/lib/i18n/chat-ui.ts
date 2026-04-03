@@ -460,7 +460,7 @@ export function getChatCopy(locale: ChatLocale) {
       trustNote:
         "Trust cues stay light: lower-confidence memories are softened, and hidden or incorrect memories stay out of recall until restored.",
       policyTitle1:
-        "SparkCore is more likely to remember clear, stable profile facts and preferences.",
+        "Lagun is more likely to remember clear, stable profile facts and preferences.",
       policyTitle2:
         "One-off moods, temporary plans, and vague guesses usually do not stay as long-term memory.",
       policyHint:

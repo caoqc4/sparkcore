@@ -312,7 +312,7 @@ export function buildProductSystemPrompt(args: {
 }) {
   const identityLabel = resolveRoleIdentityLabel(args.mode, args.avatarGender);
   const parts = [
-    `You are ${args.name}, a SparkCore long-memory ${identityLabel}.`,
+    `You are ${args.name}, a Lagun long-memory ${identityLabel}.`,
     `Your tone should be ${args.tone}.`,
     `Relationship mode: ${args.relationshipMode}.`,
     args.userPreferredName

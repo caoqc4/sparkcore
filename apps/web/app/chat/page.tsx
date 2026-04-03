@@ -35,7 +35,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata = buildPageMetadata({
   title: "Chat Workspace",
-  description: "Protected SparkCore chat workspace for supplementary web conversation, memory review, and agent controls.",
+  description: "Protected Lagun chat workspace for supplementary web conversation, memory review, and agent controls.",
   path: "/chat",
   noIndex: true
 });

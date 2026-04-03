@@ -30,6 +30,7 @@ const footerGroups = [
       { href: "/ai-companion", label: "AI Companion" },
       { href: "/features/memory-center", label: "Memory Guide" },
       { href: "/features/im-chat", label: "IM Chat Guide" },
+      { href: "/pricing", label: "Pricing" },
     ],
   },
   {
@@ -52,7 +53,7 @@ export function SiteShell({ children }: SiteShellProps) {
         <header className="site-header">
           <div className="site-header-inner">
             <Link className="site-brand" href="/">
-              <span className="site-brand-mark">SC</span>
+              <span className="site-brand-mark">L</span>
               <span className="site-brand-lockup">
                 <strong>{siteConfig.name}</strong>
                 <span className="site-brand-copy">
@@ -99,7 +100,7 @@ export function SiteShell({ children }: SiteShellProps) {
             <div className="site-footer-grid">
               <div className="site-footer-brand-block">
                 <Link className="site-brand" href="/">
-                  <span className="site-brand-mark">SC</span>
+                  <span className="site-brand-mark">L</span>
                   <span className="site-brand-lockup">
                     <strong>{siteConfig.name}</strong>
                     <span className="site-brand-copy">
@@ -108,7 +109,7 @@ export function SiteShell({ children }: SiteShellProps) {
                   </span>
                 </Link>
                 <p className="site-footer-copy">
-                  SparkCore packages one persistent relationship loop across
+                  Lagun packages one persistent relationship loop across
                   role setup, IM continuity, memory review, and the web control
                   center.
                 </p>
@@ -141,6 +142,7 @@ export function SiteShell({ children }: SiteShellProps) {
 
             <div className="site-footer-bottom">
               <Link href="/how-it-works">How it works</Link>
+              <Link href="/pricing">Pricing</Link>
               <Link href="/blog">Blog</Link>
               <AdaptiveLink intent="privacy">Privacy</AdaptiveLink>
               <Link href="/safety">Safety</Link>
@@ -151,7 +153,7 @@ export function SiteShell({ children }: SiteShellProps) {
             </div>
           </div>
           <div className="site-footer-wordmark" aria-hidden="true">
-            SPARKCORE
+            LAGUN
           </div>
         </footer>
       </div>
@@ -174,7 +176,7 @@ export function MarketingHero({
   eyebrow,
   title,
   description,
-  primaryHref = "/create",
+  primaryHref = "/",
   primaryLabel = "Create your companion",
   secondaryHref = "/how-it-works",
   secondaryLabel = "See how it works",

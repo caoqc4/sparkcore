@@ -6,7 +6,7 @@ import { buildPageMetadata } from "@/lib/site";
 export const metadata = buildPageMetadata({
   title: "AI Boyfriend With Memory and IM-Native Continuity",
   description:
-    "SparkCore frames AI boyfriend as an ongoing relationship experience with long memory, IM-native contact, and visible web controls.",
+    "Lagun frames AI boyfriend as an ongoing relationship experience with long memory, IM-native contact, and visible web controls.",
   path: "/ai-boyfriend"
 });
 
@@ -16,7 +16,7 @@ export default function AiBoyfriendPage() {
       <PageFrame
         eyebrow="Relationship"
         title="A grounded AI boyfriend experience with continuity, memory, and room to actually continue."
-        description="SparkCore treats AI boyfriend as a relationship configuration inside one companion system, not as a disposable romance skin on top of generic chat."
+        description="Lagun treats AI boyfriend as a relationship configuration inside one companion system, not as a disposable romance skin on top of generic chat."
       >
         <FeatureCardGrid
           items={[

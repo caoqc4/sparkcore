@@ -4,9 +4,9 @@ import { TrackedLink } from "@/components/tracked-link";
 import { buildPageMetadata } from "@/lib/site";
 
 export const metadata = buildPageMetadata({
-  title: "How SparkCore Works",
+  title: "How It Works",
   description:
-    "See the SparkCore loop from role creation to IM connection to memory and privacy control on the web.",
+    "See the Lagun loop from role creation to IM connection to memory and privacy control on the web.",
   path: "/how-it-works"
 });
 

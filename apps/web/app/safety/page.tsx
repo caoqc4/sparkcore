@@ -4,9 +4,9 @@ import { TrackedLink } from "@/components/tracked-link";
 import { buildPageMetadata } from "@/lib/site";
 
 export const metadata = buildPageMetadata({
-  title: "SparkCore Safety",
+  title: "Safety",
   description:
-    "SparkCore safety focuses on relationship boundaries, manageable memory, and visible web controls for IM-native companion experiences.",
+    "Lagun safety focuses on relationship boundaries, manageable memory, and visible web controls for IM-native companion experiences.",
   path: "/safety"
 });
 
@@ -16,7 +16,7 @@ export default function SafetyPage() {
       <PageFrame
         eyebrow="Safety"
         title="Relationship-oriented AI needs clear boundaries, visible controls, and grounded expectations."
-        description="SparkCore is not trying to become an unrestricted fantasy sandbox. The product direction emphasizes continuity, controllability, and a more trustworthy control surface."
+        description="Lagun is not trying to become an unrestricted fantasy sandbox. The product direction emphasizes continuity, controllability, and a more trustworthy control surface."
       >
         <FeatureCardGrid
           items={[

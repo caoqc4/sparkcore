@@ -132,6 +132,52 @@ export function RoleCreateWizard({
 
   // Step 3 — Look
   const [photoIndex, setPhotoIndex] = useState(0);
+  function buildPortraitOptionsForMode(nextMode: "companion" | "assistant") {
+    return portraitAssets.map((asset) => {
+      const style = Array.isArray(asset.style_tags)
+        ? ((asset.style_tags.find(
+            (item): item is StyleTab =>
+              item === "realistic" || item === "anime" || item === "illustrated",
+          ) ?? "realistic") as StyleTab)
+        : ("realistic" as StyleTab);
+      const genderValue = asset.gender_presentation;
+      const resolvedGender: GenderKey =
+        genderValue === "female" || genderValue === "male" || genderValue === "neutral"
+          ? genderValue
+          : "neutral";
+
+      const meta =
+        asset.metadata && typeof asset.metadata === "object" && !Array.isArray(asset.metadata)
+          ? (asset.metadata as Record<string, unknown>)
+          : null;
+      const characterSlug = typeof meta?.character_slug === "string" ? meta.character_slug : null;
+
+      return {
+        id: asset.id,
+        name: asset.display_name ?? "Portrait",
+        style,
+        gender: resolvedGender,
+        storagePath: typeof asset.storage_path === "string" ? asset.storage_path : null,
+        publicUrl: typeof asset.public_url === "string" ? asset.public_url : null,
+        characterSlug,
+        eligibleForMode: isEligibleForMode(asset.eligible_modes, nextMode as AssetEligibleMode),
+      } satisfies PortraitAssetOption;
+    });
+  }
+
+  function resolvePresetPortraitIndex(args: {
+    preset: "caria" | "teven" | "velia";
+    nextMode: "companion" | "assistant";
+    nextGender: GenderKey;
+  }) {
+    const matchingOptions = buildPortraitOptionsForMode(args.nextMode).filter(
+      (p) => (p.gender === args.nextGender || p.gender === "neutral") && p.eligibleForMode,
+    );
+    const presetPortraitIndex = matchingOptions.findIndex(
+      (p) => p.characterSlug === args.preset,
+    );
+    return presetPortraitIndex >= 0 ? presetPortraitIndex : 0;
+  }
   const voiceOptions = filterAudioVoiceOptionsForRole({
     options: audioOptions,
     avatarGender: gender,
@@ -196,15 +242,18 @@ export function RoleCreateWizard({
         const defaults = getProductCharacterPresetDefaults(presetSlug);
         setSelectedPresetSlug(presetSlug);
         setMode(definition.mode);
+        setSelectedTraits(defaults?.traits ?? []);
         setRelationshipMode(defaults?.relationshipMode ?? "long-term companion");
         setBoundaries(defaults?.boundaries ?? "Be supportive, respectful, and avoid manipulative or coercive behavior.");
         setBackgroundSummary(defaults?.backgroundSummary ?? "");
         // Auto-select portrait for this preset
-        const matchingOptions = portraitOptions.filter(
-          (p) => p.gender === definition.avatarGender || p.gender === "neutral"
+        setPhotoIndex(
+          resolvePresetPortraitIndex({
+            preset: presetSlug,
+            nextMode: definition.mode,
+            nextGender: definition.avatarGender,
+          }),
         );
-        const idx = matchingOptions.findIndex((p) => p.characterSlug === presetSlug);
-        setPhotoIndex(idx >= 0 ? idx : 0);
       }
       // Override with what user specifically set in hero form
       if (saved.gender === "female" || saved.gender === "male" || saved.gender === "neutral") setGender(saved.gender);
@@ -219,6 +268,50 @@ export function RoleCreateWizard({
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (defaultPresetSlug) {
+      const definition = CHARACTER_MANIFEST[defaultPresetSlug];
+      const defaults = getProductCharacterPresetDefaults(defaultPresetSlug);
+      setSelectedPresetSlug(defaultPresetSlug);
+      setMode(defaultMode ?? definition.mode);
+      setGender(defaultGender ?? definition.avatarGender);
+      setName(defaultName ?? definition.displayName);
+      setTone(defaultTone ?? defaults?.tone ?? "warm");
+      setSelectedTraits(defaults?.traits ?? []);
+      setRelationshipMode(defaults?.relationshipMode ?? "long-term companion");
+      setBoundaries(
+        defaults?.boundaries ??
+          "Be supportive, respectful, and avoid manipulative or coercive behavior.",
+      );
+      setBackgroundSummary(defaults?.backgroundSummary ?? "");
+      setPhotoIndex(
+        resolvePresetPortraitIndex({
+          preset: defaultPresetSlug,
+          nextMode: defaultMode ?? definition.mode,
+          nextGender: defaultGender ?? definition.avatarGender,
+        }),
+      );
+      return;
+    }
+
+    setSelectedPresetSlug(null);
+    if (defaultMode) {
+      setMode(defaultMode);
+    }
+    if (defaultGender) {
+      setGender(defaultGender);
+    }
+    if (defaultName) {
+      setName(defaultName);
+    }
+    if (defaultTone) {
+      setTone(defaultTone);
+    }
+    setSelectedTraits([]);
+    setBackgroundSummary("");
+    setPhotoIndex(0);
+  }, [defaultPresetSlug, defaultMode, defaultGender, defaultName, defaultTone, portraitAssets]);
+
   function applyPreset(preset: "caria" | "teven" | "velia") {
     const definition = CHARACTER_MANIFEST[preset];
     const defaults = getProductCharacterPresetDefaults(preset);
@@ -227,6 +320,7 @@ export function RoleCreateWizard({
     setGender(definition.avatarGender);
     setName(definition.displayName);
     setTone(defaults?.tone ?? "warm");
+    setSelectedTraits(defaults?.traits ?? []);
     setRelationshipMode(defaults?.relationshipMode ?? "long-term companion");
     setBoundaries(
       defaults?.boundaries ??
@@ -234,49 +328,23 @@ export function RoleCreateWizard({
     );
     setBackgroundSummary(defaults?.backgroundSummary ?? "");
     // Auto-select this preset's designated portrait
-    const matchingOptions = portraitOptions.filter(
-      (p) => p.gender === definition.avatarGender || p.gender === "neutral"
+    setPhotoIndex(
+      resolvePresetPortraitIndex({
+        preset,
+        nextMode: definition.mode,
+        nextGender: definition.avatarGender,
+      }),
     );
-    const presetPortraitIndex = matchingOptions.findIndex((p) => p.characterSlug === preset);
-    setPhotoIndex(presetPortraitIndex >= 0 ? presetPortraitIndex : 0);
   }
 
   function applyBlankStart() {
     setSelectedPresetSlug(null);
+    setSelectedTraits([]);
     setBackgroundSummary("");
   }
 
   // Filtered presets for step 3
-  const portraitOptions: PortraitAssetOption[] = portraitAssets
-    .map((asset) => {
-      const style = Array.isArray(asset.style_tags)
-        ? (asset.style_tags.find(
-            (item): item is StyleTab =>
-              item === "realistic" || item === "anime" || item === "illustrated"
-          ) ?? "realistic" as StyleTab)
-        : "realistic" as StyleTab;
-      const genderValue = asset.gender_presentation;
-      const resolvedGender: GenderKey =
-        genderValue === "female" || genderValue === "male" || genderValue === "neutral"
-          ? genderValue
-          : "neutral";
-
-      const meta = asset.metadata && typeof asset.metadata === "object" && !Array.isArray(asset.metadata)
-        ? (asset.metadata as Record<string, unknown>)
-        : null;
-      const characterSlug = typeof meta?.character_slug === "string" ? meta.character_slug : null;
-
-      return {
-        id: asset.id,
-        name: asset.display_name ?? "Portrait",
-        style,
-        gender: resolvedGender,
-        storagePath: typeof asset.storage_path === "string" ? asset.storage_path : null,
-        publicUrl: typeof asset.public_url === "string" ? asset.public_url : null,
-        characterSlug,
-        eligibleForMode: isEligibleForMode(asset.eligible_modes, mode as AssetEligibleMode),
-      };
-    });
+  const portraitOptions: PortraitAssetOption[] = buildPortraitOptionsForMode(mode);
   const filteredPresets = portraitOptions.filter(
     (p) => (p.gender === gender || p.gender === "neutral") && p.eligibleForMode,
   );

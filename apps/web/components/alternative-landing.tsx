@@ -23,7 +23,6 @@ type AlternativeLandingProps = {
   }>;
   closingTitle: string;
   closingBody: string;
-  ctaVariant: "companion" | "girlfriend";
 };
 
 export function AlternativeLanding({
@@ -36,11 +35,7 @@ export function AlternativeLanding({
   migrationFit,
   closingTitle,
   closingBody,
-  ctaVariant
 }: AlternativeLandingProps) {
-  const createHref = ctaVariant === "girlfriend" ? "/ai-girlfriend" : "/ai-companion";
-  const createLabel =
-    ctaVariant === "girlfriend" ? "Create your AI girlfriend" : "Create your companion";
   const rivalSlug = rival.toLowerCase().replace(/[^a-z0-9]+/g, "_");
 
   return (
@@ -69,25 +64,11 @@ export function AlternativeLanding({
               <TrackedLink
                 className="button button-secondary"
                 event="landing_cta_click"
-                href={createHref}
-                payload={{ source: `${rivalSlug}_alternative_variant` }}
+                href="/how-it-works"
+                payload={{ source: `${rivalSlug}_alternative_how_it_works` }}
               >
-                {createLabel}
+                See how it works
               </TrackedLink>
-              <AdaptiveTrackedLink
-                className="site-inline-link"
-                event="landing_cta_click"
-                payload={{ source: `${rivalSlug}_alternative_connect_im` }}
-                intent="im_chat"
-                labels={{
-                  anonymous: "Connect in IM",
-                  signed_in_empty: "Create a role first",
-                  signed_in_role_only: "Connect an IM channel",
-                  signed_in_connected: "Open supplementary chat"
-                }}
-              >
-                Connect in IM
-              </AdaptiveTrackedLink>
             </div>
           </div>
 
@@ -121,13 +102,13 @@ export function AlternativeLanding({
         <section className="alternative-section alternative-section-accent">
           <div className="site-section-copy">
             <p className="eyebrow">Core Comparison</p>
-            <h2 className="section-title">This is where SparkCore is intentionally different.</h2>
+            <h2 className="section-title">This is where Lagun is intentionally different.</h2>
           </div>
 
-          <div className="alternative-compare-table" role="table" aria-label={`SparkCore vs ${rival}`}>
+          <div className="alternative-compare-table" role="table" aria-label={`Lagun vs ${rival}`}>
             <div className="alternative-compare-head" role="row">
               <span role="columnheader">Category</span>
-              <span role="columnheader">SparkCore</span>
+              <span role="columnheader">Lagun</span>
               <span role="columnheader">{rival}</span>
             </div>
             {comparisonRows.map((row) => (

@@ -104,8 +104,8 @@ function getPlatformDiscoveryHint(platform: string, isConnected: boolean) {
   switch (platform) {
     case "telegram":
       return isConnected
-        ? "Open Telegram and continue chatting with your SparkCore bot there."
-        : "After connecting, open Telegram and send a message to your SparkCore bot.";
+        ? "Open Telegram and continue chatting with your Lagun bot there."
+        : "After connecting, open Telegram and send a message to your Lagun bot.";
     case "discord":
       return isConnected
         ? "Open Discord and continue the conversation in your Lagun DM."

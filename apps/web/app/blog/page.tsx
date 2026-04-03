@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/site";
 import { blogFeaturedPosts } from "@/lib/blog";
 
 export const metadata = buildPageMetadata({
-  title: "SparkCore Blog",
+  title: "Blog",
   description:
     "Guides, comparisons, and product notes about long-memory companions, IM-native chat, and visible control over the relationship loop.",
   path: "/blog",
@@ -22,23 +22,17 @@ export default function BlogPage() {
     <SiteShell>
       <PageFrame
         eyebrow="Blog"
-        title="Guides, comparisons, and product notes for relationship-first companion products."
-        description="This hub keeps comparisons and product explainers in one public place, so the main landing page can stay focused while deeper reading still stays easy to reach."
+        title="Guides and comparisons for relationship-first AI companion products."
+        description="Comparisons with popular apps, feature explainers, and deep dives into what long-memory AI companionship actually means."
       >
-        <section className="product-section">
-          <div className="product-section-heading">
-            <p className="home-kicker">Featured comparisons</p>
-            <h2>
-              Compare SparkCore without hiding those pages behind a separate
-              top-level nav item.
-            </h2>
+        <div className="blog-section">
+          <div className="blog-section-heading">
+            <p className="home-kicker">Comparisons</p>
+            <h2>See how Lagun compares to popular AI companion apps.</h2>
             <p>
-              Comparison content still matters, but it belongs inside a broader
-              public reading layer rather than competing with the product
-              pillars in the header.
+              Long-memory continuity and IM-native design make for meaningful differences. These comparisons lay them out clearly.
             </p>
           </div>
-
           <div className="site-card-grid">
             {comparePosts.map((post) => (
               <article className="site-card" key={post.href}>
@@ -51,22 +45,16 @@ export default function BlogPage() {
               </article>
             ))}
           </div>
-        </section>
+        </div>
 
-        <section className="product-section">
-          <div className="product-section-heading">
-            <p className="home-kicker">Core guides</p>
-            <h2>
-              Read the product story from the outside before you step into the
-              console.
-            </h2>
+        <div className="blog-section">
+          <div className="blog-section-heading">
+            <p className="home-kicker">Guides</p>
+            <h2>Understand the product before you dive in.</h2>
             <p>
-              These public guides explain memory, IM chat, pricing, and the core
-              loop without forcing the landing page to hold every narrative at
-              once.
+              These guides explain how memory works, how IM continuity fits in, and what makes a relationship-first companion different from a generic chatbot.
             </p>
           </div>
-
           <div className="site-card-grid">
             {guidePosts.map((post) => (
               <article className="site-card" key={post.href}>
@@ -79,7 +67,7 @@ export default function BlogPage() {
               </article>
             ))}
           </div>
-        </section>
+        </div>
       </PageFrame>
     </SiteShell>
   );

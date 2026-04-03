@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
 export const siteConfig = {
-  name: "SparkCore",
+  name: "Lagun",
   tagline: "AI companion that remembers you and stays with you in IM.",
   description:
-    "SparkCore is an IM-native companion product with long memory, relationship continuity, and a website control center.",
+    "Lagun is an IM-native AI companion with long memory, relationship continuity, and a web control center for memory, privacy, and channel management.",
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   canonicalHost: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   nav: [

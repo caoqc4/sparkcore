@@ -154,12 +154,8 @@ export function resolveViewerRoute(
       return "/app/role";
 
     case "primary_flow":
-      if (!state.authenticated) {
-        return "/create";
-      }
-
-      if (!state.hasRole || !state.hasThread) {
-        return "/create";
+      if (!state.authenticated || (!state.hasRole || !state.hasThread)) {
+        return "/";
       }
 
       return state.nextStepHref ?? "/app";
@@ -169,21 +165,21 @@ export function resolveViewerRoute(
         return state.nextStepHref ?? "/app";
       }
 
-      return "/create";
+      return "/";
 
     case "create_girlfriend":
       if (state.authenticated && state.hasRole && state.hasThread) {
         return state.nextStepHref ?? "/app";
       }
 
-      return "/create?preset=caria";
+      return "/?preset=caria";
 
     case "create_boyfriend":
       if (state.authenticated && state.hasRole && state.hasThread) {
         return state.nextStepHref ?? "/app";
       }
 
-      return "/create?preset=teven";
+      return "/?preset=teven";
 
     case "dashboard":
       return state.authenticated ? "/app" : "/login";

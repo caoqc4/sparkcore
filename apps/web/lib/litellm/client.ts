@@ -130,7 +130,7 @@ function buildSmokeAssistantResponse(messages: LiteLLMMessage[]) {
   }
 
   if (normalizedUserMessage.includes("reply in one sentence with a quick hello")) {
-    return targetLanguage === "zh-Hans" ? "你好，我是 SparkCore。" : "Hello from SparkCore.";
+    return targetLanguage === "zh-Hans" ? "你好，我是 Lagun。" : "Hello from Lagun.";
   }
 
   if (
@@ -150,14 +150,14 @@ function buildSmokeAssistantResponse(messages: LiteLLMMessage[]) {
   if (
     normalizedUserMessage.includes("please introduce yourself in two short sentences")
   ) {
-    return "I am SparkCore, a chat workspace that helps you plan, remember key facts, and continue conversations across threads.";
+    return "I am Lagun, a chat workspace that helps you plan, remember key facts, and continue conversations across threads.";
   }
 
   if (
     latestUserMessage.includes("请用两句话介绍你自己") ||
     latestUserMessage.includes("你能如何帮助我")
   ) {
-    return "我是 SparkCore，可以用中文帮助你梳理计划、整理记忆，并继续当前线程里的对话。";
+    return "我是 Lagun，可以用中文帮助你梳理计划、整理记忆，并继续当前线程里的对话。";
   }
 
   return targetLanguage === "zh-Hans"

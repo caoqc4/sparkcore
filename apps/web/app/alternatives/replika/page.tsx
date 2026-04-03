@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/site";
 export const metadata = buildPageMetadata({
   title: "Replika Alternative With More Memory Visibility and IM Continuity",
   description:
-    "Compare SparkCore with Replika when you want a companion relationship with more visible memory, clearer controls, and IM-native continuity.",
+    "Compare Lagun with Replika when you want a companion relationship with more visible memory, clearer controls, and IM-native continuity.",
   path: "/alternatives/replika"
 });
 
@@ -14,7 +14,7 @@ export default function ReplikaAlternativePage() {
       rival="Replika"
       eyebrow="Alternative"
       title="An alternative to Replika for companion relationships with more memory visibility and IM continuity."
-      description="If you like the idea of a persistent AI relationship but want stronger long-memory visibility, a clearer control center, and the option to continue in IM instead of one app container, SparkCore is the more product-control-oriented alternative."
+      description="If you like the idea of a persistent AI relationship but want stronger long-memory visibility, a clearer control center, and the option to continue in IM instead of one app container, Lagun is the more product-control-oriented alternative."
       switchReasons={[
         "The bond may exist, but users can still want more transparent memory and more explicit repair loops.",
         "The relationship may feel too contained inside one product surface instead of continuing through IM.",
@@ -50,7 +50,7 @@ export default function ReplikaAlternativePage() {
         },
         {
           title: "Best for users who prefer IM-native continuity",
-          body: "SparkCore fits better when the daily loop should happen in IM rather than only inside one dedicated app."
+          body: "Lagun fits better when the daily loop should happen in IM rather than only inside one dedicated app."
         },
         {
           title: "Best for users who want a more governable role",
@@ -58,8 +58,7 @@ export default function ReplikaAlternativePage() {
         }
       ]}
       closingTitle="Move to a companion product where continuity is not just felt, but also visible and governable."
-      closingBody="SparkCore is a better fit when you want the relationship layer to stay emotionally persistent while the underlying memory, channel, and privacy controls stay inspectable."
-      ctaVariant="girlfriend"
+      closingBody="Lagun is a better fit when you want the relationship layer to stay emotionally persistent while the underlying memory, channel, and privacy controls stay inspectable."
     />
   );
 }

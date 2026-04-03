@@ -5,7 +5,7 @@ import { buildPageMetadata } from "@/lib/site";
 export const metadata = buildPageMetadata({
   title: "Terms of Service",
   description:
-    "SparkCore terms of service — the rules and conditions that govern use of our IM-native AI companion platform.",
+    "Lagun terms of service — the rules and conditions that govern use of our IM-native AI companion platform.",
   path: "/terms"
 });
 
@@ -14,14 +14,14 @@ export default function TermsPage() {
     <SiteShell>
       <PageFrame
         eyebrow="Terms of Service"
-        title="Rules for using SparkCore."
+        title="Rules for using Lagun."
         description="Last updated: March 30, 2026"
       >
         <div className="prose prose-invert max-w-none">
           <section>
             <h2>1. Acceptance of Terms</h2>
             <p>
-              By creating an account or using SparkCore, you agree to these Terms of Service and
+              By creating an account or using Lagun, you agree to these Terms of Service and
               our Privacy Policy. If you do not agree, do not use the service.
             </p>
           </section>
@@ -29,7 +29,7 @@ export default function TermsPage() {
           <section>
             <h2>2. Eligibility</h2>
             <p>
-              You must be at least 18 years old to use SparkCore. By using the service you
+              You must be at least 18 years old to use Lagun. By using the service you
               represent that you meet this requirement. We reserve the right to terminate accounts
               found to belong to minors.
             </p>
@@ -46,7 +46,7 @@ export default function TermsPage() {
 
           <section>
             <h2>4. Acceptable Use</h2>
-            <p>You agree not to use SparkCore to:</p>
+            <p>You agree not to use Lagun to:</p>
             <ul>
               <li>Violate any applicable law or regulation</li>
               <li>Harass, threaten, or harm other users or third parties</li>
@@ -67,7 +67,7 @@ export default function TermsPage() {
           <section>
             <h2>5. AI-Generated Content</h2>
             <p>
-              SparkCore uses large language models to generate responses. AI responses may
+              Lagun uses large language models to generate responses. AI responses may
               occasionally be inaccurate, inconsistent, or unexpected. Do not rely on companion
               responses for medical, legal, financial, or safety-critical decisions. We are not
               liable for harm arising from reliance on AI-generated content.
@@ -78,7 +78,7 @@ export default function TermsPage() {
             <h2>6. IM Channel Integrations</h2>
             <p>
               Connecting a third-party IM channel is subject to the terms of service of that
-              platform. SparkCore is not affiliated with or endorsed by any third-party IM
+              platform. Lagun is not affiliated with or endorsed by any third-party IM
               provider. You are responsible for ensuring your use of connected channels complies
               with their respective policies.
             </p>
@@ -87,7 +87,7 @@ export default function TermsPage() {
           <section>
             <h2>7. Subscriptions and Payments</h2>
             <p>
-              SparkCore offers monthly and annual subscription plans, as well as one-time credits
+              Lagun offers monthly and annual subscription plans, as well as one-time credits
               purchases. All paid plans are billed in advance. Payment is processed by our
               third-party payment processor; your card details are never stored on our servers.
             </p>
@@ -116,7 +116,7 @@ export default function TermsPage() {
           <section>
             <h2>8. Intellectual Property</h2>
             <p>
-              SparkCore and its underlying technology are owned by us and protected by copyright,
+              Lagun and its underlying technology are owned by us and protected by copyright,
               trademark, and other intellectual property laws. You retain ownership of original
               content you provide. You grant us a license to use that content solely to operate
               the service, including training and improving AI models in an anonymized and
@@ -136,7 +136,7 @@ export default function TermsPage() {
           <section>
             <h2>10. Limitation of Liability</h2>
             <p>
-              To the maximum extent permitted by law, SparkCore and its affiliates shall not be
+              To the maximum extent permitted by law, Lagun and its affiliates shall not be
               liable for indirect, incidental, special, consequential, or punitive damages, or
               loss of data, arising out of or related to your use of the service.
             </p>
@@ -145,7 +145,7 @@ export default function TermsPage() {
           <section>
             <h2>11. Governing Law</h2>
             <p>
-              These terms are governed by the laws of the jurisdiction in which SparkCore is
+              These terms are governed by the laws of the jurisdiction in which Lagun is
               incorporated, without regard to conflict of law principles. Disputes will be resolved
               through binding arbitration or in the courts of that jurisdiction.
             </p>
@@ -155,7 +155,7 @@ export default function TermsPage() {
             <h2>12. Changes to Terms</h2>
             <p>
               We may update these terms from time to time. Material changes will be communicated
-              with at least 14 days notice. Continued use of SparkCore after the effective date
+              with at least 14 days notice. Continued use of Lagun after the effective date
               constitutes acceptance of the updated terms.
             </p>
           </section>

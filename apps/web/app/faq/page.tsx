@@ -4,9 +4,9 @@ import { TrackedLink } from "@/components/tracked-link";
 import { buildPageMetadata } from "@/lib/site";
 
 export const metadata = buildPageMetadata({
-  title: "SparkCore FAQ",
+  title: "FAQ",
   description:
-    "Find answers about SparkCore memory, IM-native chat, privacy controls, supported channels, and how the website control center fits the product.",
+    "Find answers about Lagun memory, IM-native chat, privacy controls, supported channels, and how the website control center fits the product.",
   path: "/faq"
 });
 
@@ -16,13 +16,13 @@ export default function FaqPage() {
       <PageFrame
         eyebrow="FAQ"
         title="Common questions about memory, IM, and the website control center."
-        description="These answers establish the Batch 1 public-layer structure and reinforce how SparkCore differs from a generic browser chatbot."
+        description="These answers explain how Lagun differs from a generic browser chatbot — covering memory, IM continuity, privacy, and the web control center."
       >
         <FeatureCardGrid
           items={[
             {
               title: "Is this an AI girlfriend or an AI companion?",
-              body: "SparkCore uses AI companion as the broader product category. AI girlfriend, AI boyfriend, and roleplay entry points are relationship modes inside the same system."
+              body: "Lagun uses AI companion as the broader product category. AI girlfriend, AI boyfriend, and roleplay entry points are relationship modes inside the same system."
             },
             {
               title: "Does it remember past chats?",

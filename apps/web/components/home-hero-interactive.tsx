@@ -144,7 +144,7 @@ export function HomeHeroInteractive({ user, initialPreset, presetPortraits }: Ho
     <>
       {/* Full-width header: badge + H1 + lead */}
       <div className="home-hero-header">
-        <span className="home-hero-badge">SparkCore</span>
+        <span className="home-hero-badge">Lagun</span>
         <h1 className="home-hero-heading">
           Create a companion that remembers.
         </h1>

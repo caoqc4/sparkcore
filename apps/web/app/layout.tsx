@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     title: buildPageTitle(),
     description: buildPageDescription(),
     url: "/",
-    siteName: "SparkCore",
+    siteName: "Lagun",
     type: "website"
   }
 };

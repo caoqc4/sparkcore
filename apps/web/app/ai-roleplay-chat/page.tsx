@@ -10,7 +10,7 @@ import { buildPageMetadata } from "@/lib/site";
 export const metadata = buildPageMetadata({
   title: "AI Roleplay Chat That Remembers You",
   description:
-    "SparkCore is a relationship-first take on AI roleplay chat with persistent memory, IM continuity, and a web control center for repair and settings.",
+    "Lagun is a relationship-first take on AI roleplay chat with persistent memory, IM continuity, and a web control center for repair and settings.",
   path: "/ai-roleplay-chat"
 });
 
@@ -20,8 +20,8 @@ export default function AiRoleplayChatPage() {
       <MarketingHero
         eyebrow="Roleplay Entry"
         title="AI roleplay chat that remembers you."
-        description="SparkCore is not positioned as a heavy roleplay engine. It is a character-driven companion product for ongoing roleplay, relationships, and long-term conversations that can continue in IM."
-        primaryHref="/create"
+        description="Lagun is not positioned as a heavy roleplay engine. It is a character-driven companion product for ongoing roleplay, relationships, and long-term conversations that can continue in IM."
+        primaryHref="/"
         primaryLabel="Create your companion"
         secondaryHref="/ai-girlfriend"
         secondaryLabel="Explore AI girlfriend"
@@ -77,7 +77,7 @@ export default function AiRoleplayChatPage() {
         <div className="site-section-copy">
           <p className="eyebrow">What Makes This Different</p>
           <h2 className="section-title">
-            SparkCore treats roleplay as an entry style, then anchors it in memory, continuity, and
+            Lagun treats roleplay as an entry style, then anchors it in memory, continuity, and
             relationship control.
           </h2>
         </div>
@@ -140,7 +140,7 @@ export default function AiRoleplayChatPage() {
             <p className="eyebrow">Next Step</p>
             <h2>Start with a companion, not a heavy builder.</h2>
             <p>
-              The first version of roleplay on SparkCore is still grounded in the main product:
+              The first version of roleplay on Lagun is still grounded in the main product:
               create a companion, connect IM, and keep the same thread going.
             </p>
             <div className="toolbar">

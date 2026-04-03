@@ -43,7 +43,7 @@ export async function updateSession(request: NextRequest) {
     redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set(
       "message",
-      "Please sign in to access the SparkCore workspace."
+      "Please sign in to access the Lagun workspace."
     );
     return NextResponse.redirect(redirectUrl);
   }
