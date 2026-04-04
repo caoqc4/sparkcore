@@ -7,6 +7,7 @@ type CreemCheckoutButtonProps = {
   selectionKey: string;
   idleLabel: string;
   pendingLabel?: string;
+  errorLabel?: string;
   disabled?: boolean;
   className?: string;
 };
@@ -16,6 +17,7 @@ export function CreemCheckoutButton({
   selectionKey,
   idleLabel,
   pendingLabel = "Redirecting…",
+  errorLabel = "Unable to start checkout.",
   disabled = false,
   className,
 }: CreemCheckoutButtonProps) {
@@ -41,12 +43,12 @@ export function CreemCheckoutButton({
 
           const payload = (await response.json()) as { url?: string; error?: string };
           if (!response.ok || !payload.url) {
-            throw new Error(payload.error || "Unable to start checkout.");
+            throw new Error(payload.error || errorLabel);
           }
 
           window.location.href = payload.url;
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Unable to start checkout.";
+          const message = error instanceof Error ? error.message : errorLabel;
           window.alert(message);
           setPending(false);
         }

@@ -3,6 +3,7 @@ import { ProductConsoleShell } from "@/components/product-console-shell";
 import { ProductEventTracker } from "@/components/product-event-tracker";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { requireUser } from "@/lib/auth-redirect";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { loadProductKnowledgePageData } from "@/lib/product/knowledge";
 import { resolveProductAppRoute } from "@/lib/product/route-resolution";
@@ -78,12 +79,12 @@ function formatDate(value: string | null) {
       });
 }
 
-function StatusBadge({ status }: { status: KnowledgePageSource["status"] }) {
+function StatusBadge({ status, isZh }: { status: KnowledgePageSource["status"]; isZh: boolean }) {
   const map = {
-    active: { label: "Ready", cls: "knowledge-status-indexed" },
-    processing: { label: "Processing…", cls: "knowledge-status-processing" },
-    failed: { label: "Failed", cls: "knowledge-status-failed" },
-    placeholder: { label: "Not set up yet", cls: "knowledge-status-placeholder" },
+    active: { label: isZh ? "可用" : "Ready", cls: "knowledge-status-indexed" },
+    processing: { label: isZh ? "处理中…" : "Processing…", cls: "knowledge-status-processing" },
+    failed: { label: isZh ? "失败" : "Failed", cls: "knowledge-status-failed" },
+    placeholder: { label: isZh ? "尚未设置" : "Not set up yet", cls: "knowledge-status-placeholder" },
   };
   const { label, cls } = map[status];
   return <span className={`knowledge-status-badge ${cls}`}>{label}</span>;
@@ -92,9 +93,11 @@ function StatusBadge({ status }: { status: KnowledgePageSource["status"] }) {
 function SourceRow({
   source,
   redirectTo,
+  isZh,
 }: {
   source: KnowledgePageSource;
   redirectTo: string;
+  isZh: boolean;
 }) {
   const typeConfig = SOURCE_TYPES.find((t) => t.id === source.kind);
   const updatedLabel = formatDate(source.updatedAt);
@@ -107,7 +110,7 @@ function SourceRow({
       <div className="knowledge-source-row-body">
         <div className="knowledge-source-row-head">
           <span className="knowledge-source-title">{source.title}</span>
-          <StatusBadge status={source.status} />
+          <StatusBadge status={source.status} isZh={isZh} />
           {updatedLabel ? (
             <span className="knowledge-source-date">{updatedLabel}</span>
           ) : null}
@@ -142,8 +145,8 @@ function SourceRow({
                 <input name="redirect_to" type="hidden" value={redirectTo} />
                 <FormSubmitButton
                   className="button button-secondary knowledge-source-action-btn"
-                  idleText="Retry"
-                  pendingText="Retrying…"
+                  idleText={isZh ? "重试" : "Retry"}
+                  pendingText={isZh ? "重试中…" : "Retrying…"}
                 />
               </form>
             ) : null}
@@ -153,8 +156,8 @@ function SourceRow({
                 <input name="redirect_to" type="hidden" value={redirectTo} />
                 <FormSubmitButton
                   className="button button-secondary knowledge-source-action-btn"
-                  idleText="Archive"
-                  pendingText="Archiving…"
+                  idleText={isZh ? "归档" : "Archive"}
+                  pendingText={isZh ? "归档中…" : "Archiving…"}
                 />
               </form>
             ) : null}
@@ -164,8 +167,8 @@ function SourceRow({
                 <input name="redirect_to" type="hidden" value={redirectTo} />
                 <FormSubmitButton
                   className="button button-secondary knowledge-source-action-btn knowledge-source-action-delete"
-                  idleText="Delete"
-                  pendingText="Deleting…"
+                  idleText={isZh ? "删除" : "Delete"}
+                  pendingText={isZh ? "删除中…" : "Deleting…"}
                 />
               </form>
             ) : null}
@@ -180,25 +183,39 @@ function SourceGroup({
   type,
   sources,
   redirectTo,
+  isZh,
 }: {
   type: (typeof SOURCE_TYPES)[number];
   sources: KnowledgePageSource[];
   redirectTo: string;
+  isZh: boolean;
 }) {
+  const localizedLabel =
+    type.id === "document"
+      ? isZh ? "文档" : type.label
+      : type.id === "url"
+        ? isZh ? "网页参考" : type.label
+        : isZh ? "笔记" : type.label;
+  const localizedHint =
+    type.id === "document"
+      ? isZh ? "上传 PDF、Word、文本或表格文件" : type.hint
+      : type.id === "url"
+        ? isZh ? "添加文章、网页或在线文档" : type.hint
+        : isZh ? "粘贴文本、备忘或快速参考" : type.hint;
   return (
     <div className="knowledge-group">
       <div className="knowledge-group-label">
         <span className="knowledge-group-icon">{type.icon}</span>
-        {type.label}
+        {localizedLabel}
       </div>
       {sources.length > 0 ? (
         <div className="knowledge-source-list">
           {sources.map((s) => (
-            <SourceRow key={s.id} redirectTo={redirectTo} source={s} />
+            <SourceRow key={s.id} redirectTo={redirectTo} source={s} isZh={isZh} />
           ))}
         </div>
       ) : (
-        <p className="knowledge-group-empty">{type.hint}</p>
+        <p className="knowledge-group-empty">{localizedHint}</p>
       )}
     </div>
   );
@@ -221,6 +238,8 @@ export default async function AppKnowledgePage({
   const params = await searchParams;
   const user = await requireUser("/app/knowledge");
   const supabase = await createClient();
+  const { effectiveSystemLanguage } = await getSiteLanguageState();
+  const isZh = effectiveSystemLanguage === "zh-CN";
 
   const roleId =
     typeof params.role === "string" && params.role.length > 0
@@ -264,14 +283,18 @@ export default async function AppKnowledgePage({
     <ProductConsoleShell
       actions={
         <Link className="button button-primary" href={chatHref}>
-          Back to chat
+          {isZh ? "返回聊天" : "Back to chat"}
         </Link>
       }
       currentHref="/app/knowledge"
-      description="Add reference material to give this companion domain expertise."
-      eyebrow="Knowledge"
+      description={
+        isZh
+          ? "添加参考资料，让这位伴侣具备特定领域的知识。"
+          : "Add reference material to give this companion domain expertise."
+      }
+      eyebrow={isZh ? "知识" : "Knowledge"}
       shellContext={overview}
-      title="Knowledge"
+      title={isZh ? "知识" : "Knowledge"}
     >
       <ProductEventTracker
         event="knowledge_console_view"
@@ -291,15 +314,19 @@ export default async function AppKnowledgePage({
       {/* ── Overview strip ── */}
       <div className="role-state-bar">
         <div className="role-state-item">
-          <span className="role-state-label">Companion</span>
-          <span className="role-state-value">{roleName ?? "No role yet"}</span>
+          <span className="role-state-label">{isZh ? "伴侣" : "Companion"}</span>
+          <span className="role-state-value">{roleName ?? (isZh ? "暂无角色" : "No role yet")}</span>
         </div>
         <div className="role-state-divider" />
         <div className="role-state-item">
           <span className={`role-state-badge${totalCount === 0 ? " attention" : ""}`}>
             {totalCount > 0
-              ? `${totalCount} reference${totalCount > 1 ? "s" : ""}`
-              : "No references yet"}
+              ? isZh
+                ? `${totalCount} 条参考资料`
+                : `${totalCount} reference${totalCount > 1 ? "s" : ""}`
+              : isZh
+                ? "还没有参考资料"
+                : "No references yet"}
           </span>
         </div>
       </div>
@@ -309,14 +336,15 @@ export default async function AppKnowledgePage({
         <div className="role-section-head">
           <div className="knowledge-section-title-row">
             <h2 className="role-section-title">
-              Your references
+              {isZh ? "你的参考资料" : "Your references"}
               {totalCount > 0 ? (
                 <span className="knowledge-count-badge">{totalCount}</span>
               ) : null}
             </h2>
             <p className="knowledge-section-hint">
-              Knowledge shapes what the companion can draw from.
-              Unlike Memory, it&rsquo;s content you add directly.
+              {isZh
+                ? "知识库决定了角色能调用哪些外部内容。和记忆不同，这些内容由你主动添加。"
+                : "Knowledge shapes what the companion can draw from. Unlike Memory, it&rsquo;s content you add directly."}
             </p>
           </div>
         </div>
@@ -329,26 +357,26 @@ export default async function AppKnowledgePage({
               <span className="knowledge-create-icon">
                 {SOURCE_TYPES.find((t) => t.id === "note")?.icon}
               </span>
-              <h3 className="knowledge-create-title">Quick note</h3>
+              <h3 className="knowledge-create-title">{isZh ? "快速笔记" : "Quick note"}</h3>
             </div>
             <input
               className="site-input"
               name="title"
-              placeholder="Reference title"
+              placeholder={isZh ? "参考资料标题" : "Reference title"}
               required
               type="text"
             />
             <textarea
               className="site-textarea knowledge-create-textarea"
               name="note_content"
-              placeholder="Paste guidance, briefs, or reminders here…"
+              placeholder={isZh ? "在这里粘贴说明、简报或备忘…" : "Paste guidance, briefs, or reminders here…"}
               required
               rows={3}
             />
             <FormSubmitButton
               className="button button-secondary knowledge-create-btn"
-              idleText="Save note"
-              pendingText="Saving…"
+              idleText={isZh ? "保存笔记" : "Save note"}
+              pendingText={isZh ? "保存中…" : "Saving…"}
             />
           </form>
 
@@ -359,12 +387,12 @@ export default async function AppKnowledgePage({
               <span className="knowledge-create-icon">
                 {SOURCE_TYPES.find((t) => t.id === "url")?.icon}
               </span>
-              <h3 className="knowledge-create-title">Web reference</h3>
+              <h3 className="knowledge-create-title">{isZh ? "网页参考" : "Web reference"}</h3>
             </div>
             <input
               className="site-input"
               name="title"
-              placeholder="Reference title"
+              placeholder={isZh ? "参考资料标题" : "Reference title"}
               required
               type="text"
             />
@@ -377,8 +405,8 @@ export default async function AppKnowledgePage({
             />
             <FormSubmitButton
               className="button button-secondary knowledge-create-btn"
-              idleText="Add URL"
-              pendingText="Queueing…"
+              idleText={isZh ? "添加链接" : "Add URL"}
+              pendingText={isZh ? "排队处理中…" : "Queueing…"}
             />
           </form>
 
@@ -392,12 +420,12 @@ export default async function AppKnowledgePage({
               <span className="knowledge-create-icon">
                 {SOURCE_TYPES.find((t) => t.id === "document")?.icon}
               </span>
-              <h3 className="knowledge-create-title">Document</h3>
+              <h3 className="knowledge-create-title">{isZh ? "文档" : "Document"}</h3>
             </div>
             <input
               className="site-input"
               name="title"
-              placeholder="Document title"
+              placeholder={isZh ? "文档标题" : "Document title"}
               required
               type="text"
             />
@@ -413,13 +441,13 @@ export default async function AppKnowledgePage({
                 <path d="M8 11V3M5 6l3-3 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M2 13h12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
               </svg>
-              <span>Choose file</span>
+              <span>{isZh ? "选择文件" : "Choose file"}</span>
               <span className="knowledge-file-hint">.pdf .docx .txt .csv .xlsx</span>
             </label>
             <FormSubmitButton
               className="button button-secondary knowledge-create-btn"
-              idleText="Upload document"
-              pendingText="Uploading…"
+              idleText={isZh ? "上传文档" : "Upload document"}
+              pendingText={isZh ? "上传中…" : "Uploading…"}
             />
           </form>
         </div>
@@ -437,7 +465,9 @@ export default async function AppKnowledgePage({
               </svg>
             </div>
             <p className="knowledge-empty-lead">
-              No references yet. Use the forms above to add a note, link a web page, or upload a document.
+              {isZh
+                ? "还没有参考资料。可以用上面的表单添加笔记、网页链接或上传文档。"
+                : "No references yet. Use the forms above to add a note, link a web page, or upload a document."}
             </p>
           </div>
         ) : (
@@ -451,6 +481,7 @@ export default async function AppKnowledgePage({
                   redirectTo={redirectTo}
                   type={type}
                   sources={sources}
+                  isZh={isZh}
                 />
               ))}
           </div>

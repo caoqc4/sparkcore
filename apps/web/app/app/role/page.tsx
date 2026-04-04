@@ -4,6 +4,7 @@ import { ProductEventTracker } from "@/components/product-event-tracker";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { MemoryCategoryFilter } from "@/components/memory-category-filter";
 import { requireUser } from "@/lib/auth-redirect";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { resolveProductAppRoute } from "@/lib/product/route-resolution";
@@ -91,10 +92,12 @@ function RoleMemItem({
   item,
   action,
   redirectTo,
+  isZh = false,
 }: {
   item: ProductMemoryItem;
   action?: "hide" | "incorrect" | "restore";
   redirectTo: string;
+  isZh?: boolean;
 }) {
   const actionFn =
     action === "hide"
@@ -105,15 +108,17 @@ function RoleMemItem({
 
   const actionLabel =
     action === "hide"
-      ? "Hide"
+      ? isZh ? "隐藏" : "Hide"
       : action === "incorrect"
-        ? "Mark wrong"
+        ? isZh ? "标记错误" : "Mark wrong"
         : item.status === "hidden"
-          ? "Use again"
-          : "Restore";
+          ? isZh ? "重新启用" : "Use again"
+          : isZh ? "恢复" : "Restore";
 
   const actionPending =
-    action === "hide" || action === "incorrect" ? "Hiding..." : "Restoring...";
+    action === "hide" || action === "incorrect"
+      ? isZh ? "处理中..." : "Hiding..."
+      : isZh ? "恢复中..." : "Restoring...";
 
   return (
     <div className="role-mem-item">
@@ -125,7 +130,7 @@ function RoleMemItem({
             className="role-mem-source"
             href={`/app/chat?thread=${item.sourceThreadId}`}
           >
-            {item.sourceThreadTitle ?? "View source thread"}
+            {item.sourceThreadTitle ?? (isZh ? "查看来源对话" : "View source thread")}
           </a>
         ) : null}
       </div>
@@ -148,6 +153,8 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
   const params = await searchParams;
   const user = await requireUser("/app/role");
   const supabase = await createClient();
+  const { effectiveSystemLanguage } = await getSiteLanguageState();
+  const isZh = effectiveSystemLanguage === "zh-CN";
 
   const roleId =
     typeof params.role === "string" && params.role.length > 0
@@ -251,15 +258,19 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
     <ProductConsoleShell
       actions={
         <Link className="button button-primary" href={chatHref}>
-          Back to chat
+          {isZh ? "返回聊天" : "Back to chat"}
         </Link>
       }
       currentHref="/app/role"
-      description="Define this companion and review what the relationship remembers."
-      eyebrow="Role"
+      description={
+        isZh
+          ? "定义这位伴侣，并查看这段关系记住了什么。"
+          : "Define this companion and review what the relationship remembers."
+      }
+      eyebrow={isZh ? "角色" : "Role"}
       rolePortraitUrl={activeRolePortraitUrl}
       shellContext={overview}
-      title={profileData?.role?.name ?? "Role"}
+      title={profileData?.role?.name ?? (isZh ? "角色" : "Role")}
     >
       <ProductEventTracker
         event="role_assets_view"
@@ -280,7 +291,7 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
       {visibleRoles.length > 0 ? (
         <section className="role-switcher-section">
           <div className="role-switcher-section-head">
-            <span className="role-switcher-section-label">My roles</span>
+            <span className="role-switcher-section-label">{isZh ? "我的角色" : "My roles"}</span>
           </div>
           <div className="role-switcher-cards">
             {visibleRoles.map((role) => {
@@ -309,13 +320,13 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
                     ) : null}
                   </div>
                   {isActive ? (
-                    <span className="role-switcher-card-badge">Active</span>
+                    <span className="role-switcher-card-badge">{isZh ? "当前使用" : "Active"}</span>
                   ) : null}
                   <span className="role-switcher-card-name">{role.name}</span>
                   <span className="role-switcher-card-last">
                     {role.lastInteractionAt
                       ? new Date(role.lastInteractionAt).toLocaleDateString()
-                      : "No activity"}
+                      : isZh ? "暂无活动" : "No activity"}
                   </span>
                 </Link>
               );
@@ -324,8 +335,8 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
               <div className="role-switcher-card-portrait role-switcher-card-portrait-new" aria-hidden="true">
                 <span className="role-switcher-card-portrait-plus">+</span>
               </div>
-              <span className="role-switcher-card-name">New role</span>
-              <span className="role-switcher-card-last">Create</span>
+              <span className="role-switcher-card-name">{isZh ? "新角色" : "New role"}</span>
+              <span className="role-switcher-card-last">{isZh ? "创建" : "Create"}</span>
             </Link>
           </div>
         </section>
@@ -334,9 +345,9 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
       {/* ── Relationship state bar ── */}
       <div className="role-state-bar">
         <div className="role-state-item">
-          <span className="role-state-label">Thread</span>
+          <span className="role-state-label">{isZh ? "对话线程" : "Thread"}</span>
           <span className="role-state-value">
-            {currentThreadTitle ?? "No thread yet"}
+            {currentThreadTitle ?? (isZh ? "还没有对话" : "No thread yet")}
           </span>
         </div>
         <div className="role-state-divider" />
@@ -345,8 +356,10 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
             className={`role-state-badge${repairCount > 0 ? " attention" : ""}`}
           >
             {repairCount > 0
-              ? `${repairCount} memory item${repairCount > 1 ? "s" : ""} need attention`
-              : "Memory stable"}
+              ? isZh
+                ? `${repairCount} 条记忆需要处理`
+                : `${repairCount} memory item${repairCount > 1 ? "s" : ""} need attention`
+              : isZh ? "记忆状态稳定" : "Memory stable"}
           </span>
         </div>
         {followUpCount > 0 ? (
@@ -354,7 +367,9 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
             <div className="role-state-divider" />
             <div className="role-state-item">
               <span className="role-state-badge attention">
-                {followUpCount} follow-up{followUpCount > 1 ? "s" : ""} pending
+                {isZh
+                  ? `${followUpCount} 条后续跟进待处理`
+                  : `${followUpCount} follow-up${followUpCount > 1 ? "s" : ""} pending`}
               </span>
             </div>
           </>
@@ -364,7 +379,7 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
       {/* ── 1. Profile ── */}
       <section className="site-card role-profile-card">
         <div className="role-section-head">
-          <h2 className="role-section-title">Companion</h2>
+          <h2 className="role-section-title">{isZh ? "角色资料" : "Companion"}</h2>
         </div>
 
         {profileData?.role ? (
@@ -389,18 +404,21 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
             {/* ── Profile ── */}
             <div className="role-subsection">
               <div className="role-subsection-head">
-                <h3 className="role-subsection-title">Profile</h3>
+                <h3 className="role-subsection-title">{isZh ? "基础资料" : "Profile"}</h3>
               </div>
 
               {profileData.role.sourcePersonaPackName ? (
                 <div className="role-preset-banner">
                   <div className="role-preset-banner-copy">
                     <span className="role-state-badge">
-                      Based on {profileData.role.sourcePersonaPackName}
+                      {isZh
+                        ? `基于预设 ${profileData.role.sourcePersonaPackName}`
+                        : `Based on ${profileData.role.sourcePersonaPackName}`}
                     </span>
                     <p className="role-field-hint">
-                      This role started from a system preset. You can keep editing it, or restore the
-                      preset defaults for tone, background, portrait, and voice.
+                      {isZh
+                        ? "这个角色最初来自系统预设。你可以继续编辑，也可以恢复预设里的语气、背景、头像和语音。"
+                        : "This role started from a system preset. You can keep editing it, or restore the preset defaults for tone, background, portrait, and voice."}
                     </p>
                   </div>
                   <button
@@ -408,7 +426,7 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
                     formAction={restoreProductRoleDefaults}
                     type="submit"
                   >
-                    Restore defaults
+                    {isZh ? "恢复默认" : "Restore defaults"}
                   </button>
                 </div>
               ) : null}
@@ -416,9 +434,9 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
               {profileData.role.media.portraitAssetUrl ? (
                 <div className="role-portrait-panel">
                   <div className="role-portrait-panel-copy">
-                    <label className="label">Portrait</label>
+                    <label className="label">{isZh ? "头像" : "Portrait"}</label>
                     <p className="role-field-hint">
-                      Portrait is locked after creation to preserve continuity.
+                      {isZh ? "为了保持角色连续性，创建后头像会锁定。" : "Portrait is locked after creation to preserve continuity."}
                     </p>
                   </div>
                   <img
@@ -431,7 +449,7 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
 
               <div className="role-form-grid-3">
                 <div className="field">
-                  <label className="label" htmlFor="rp-name">Name</label>
+                  <label className="label" htmlFor="rp-name">{isZh ? "名称" : "Name"}</label>
                   <input
                     className="input"
                     defaultValue={profileData.role.name}
@@ -440,35 +458,35 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
                   />
                 </div>
                 <div className="field">
-                  <label className="label" htmlFor="rp-mode">Mode</label>
+                  <label className="label" htmlFor="rp-mode">{isZh ? "模式" : "Mode"}</label>
                   <select
                     className="input"
                     defaultValue={profileData.role.config.mode}
                     id="rp-mode"
                     name="mode"
                   >
-                    <option value="companion">Companion</option>
-                    <option value="assistant">Assistant</option>
+                    <option value="companion">{isZh ? "伴侣型" : "Companion"}</option>
+                    <option value="assistant">{isZh ? "助手型" : "Assistant"}</option>
                   </select>
                 </div>
                 <div className="field">
-                  <label className="label" htmlFor="rp-tone">Tone</label>
+                  <label className="label" htmlFor="rp-tone">{isZh ? "语气" : "Tone"}</label>
                   <select
                     className="input"
                     defaultValue={profileData.role.config.tone}
                     id="rp-tone"
                     name="tone"
                   >
-                    <option value="warm">Warm</option>
-                    <option value="playful">Playful</option>
-                    <option value="steady">Steady</option>
+                    <option value="warm">{isZh ? "温柔" : "Warm"}</option>
+                    <option value="playful">{isZh ? "活泼" : "Playful"}</option>
+                    <option value="steady">{isZh ? "沉稳" : "Steady"}</option>
                   </select>
                 </div>
               </div>
 
               <div className="role-form-grid-2">
                 <div className="field">
-                  <label className="label" htmlFor="rp-rel-mode">Relationship mode</label>
+                  <label className="label" htmlFor="rp-rel-mode">{isZh ? "关系模式" : "Relationship mode"}</label>
                   <input
                     className="input"
                     defaultValue={profileData.role.config.relationshipMode}
@@ -477,22 +495,22 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
                   />
                 </div>
                 <div className="field">
-                  <label className="label" htmlFor="rp-proactivity">Proactivity</label>
+                  <label className="label" htmlFor="rp-proactivity">{isZh ? "主动程度" : "Proactivity"}</label>
                   <select
                     className="input"
                     defaultValue={profileData.role.config.proactivityLevel}
                     id="rp-proactivity"
                     name="proactivity_level"
                   >
-                    <option value="low">Low</option>
-                    <option value="balanced">Balanced</option>
-                    <option value="active">Active</option>
+                    <option value="low">{isZh ? "低" : "Low"}</option>
+                    <option value="balanced">{isZh ? "平衡" : "Balanced"}</option>
+                    <option value="active">{isZh ? "高" : "Active"}</option>
                   </select>
                 </div>
               </div>
 
               <div className="field">
-                <label className="label" htmlFor="rp-boundaries">Boundaries</label>
+                <label className="label" htmlFor="rp-boundaries">{isZh ? "边界" : "Boundaries"}</label>
                 <textarea
                   className="input textarea"
                   defaultValue={profileData.role.config.boundaries}
@@ -503,7 +521,7 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
               </div>
 
               <div className="field">
-                <label className="label" htmlFor="rp-background">Background</label>
+                <label className="label" htmlFor="rp-background">{isZh ? "背景设定" : "Background"}</label>
                 <textarea
                   className="input textarea"
                   defaultValue={profileData.role.backgroundSummary ?? ""}
@@ -561,37 +579,40 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
               return (
                 <div className="role-subsection">
                   <div className="role-subsection-head">
-                    <h3 className="role-subsection-title">Voice</h3>
+                    <h3 className="role-subsection-title">{isZh ? "语音" : "Voice"}</h3>
                   </div>
                   <p className="role-field-hint">
-                    Choose the voice for this companion. Voice is role-specific and stays
-                    with this companion across conversations.
+                    {isZh
+                      ? "为这位伴侣选择语音。语音属于角色级设置，会在不同对话里保持一致。"
+                      : "Choose the voice for this companion. Voice is role-specific and stays with this companion across conversations."}
                   </p>
 
                   {rawAssets.length > 0 ? (
                     <RoleVoiceTabs
                       currentPlanSlug={currentPlanSlug === "pro" ? "pro" : "free"}
                       groups={voiceGroups}
+                      language={effectiveSystemLanguage}
                       selectedAssetId={profileData.role.media.audioAssetId}
                       upgradeHref={upgradeHref}
                     />
                   ) : (
-                    <p className="role-field-hint">Voice library is loading…</p>
+                    <p className="role-field-hint">{isZh ? "语音库加载中…" : "Voice library is loading…"}</p>
                   )}
                 </div>
               );
             })()}
 
             <div className="role-form-footer">
-              <FormSubmitButton idleText="Save" pendingText="Saving..." />
+              <FormSubmitButton idleText={isZh ? "保存" : "Save"} pendingText={isZh ? "保存中..." : "Saving..."} />
             </div>
           </form>
         ) : (
           <div className="product-empty-state">
-            <strong>No companion yet</strong>
+            <strong>{isZh ? "还没有角色" : "No companion yet"}</strong>
             <p>
-              Create a companion first, then come back here to shape long-term
-              behavior and memory.
+              {isZh
+                ? "先创建一位伴侣，再回来继续调整长期行为和记忆。"
+                : "Create a companion first, then come back here to shape long-term behavior and memory."}
             </p>
           </div>
         )}
@@ -600,29 +621,30 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
       {/* ── 2. Memory ── */}
       <section className="role-memory-section">
         <div className="role-section-head">
-          <h2 className="role-section-title">Memory</h2>
+          <h2 className="role-section-title">{isZh ? "记忆" : "Memory"}</h2>
           <div className="role-memory-stats">
             <span
               className={repairCount > 0 ? "role-memory-stat-warn" : undefined}
             >
-              {repairCount} to review
+              {isZh ? `${repairCount} 条待处理` : `${repairCount} to review`}
             </span>
             <span className="role-memory-stats-dot">·</span>
-            <span>{groups.activeLongTerm.length} saved</span>
+            <span>{isZh ? `${groups.activeLongTerm.length} 条已保存` : `${groups.activeLongTerm.length} saved`}</span>
             <span className="role-memory-stats-dot">·</span>
-            <span>{groups.activeThreadLocal.length} recent</span>
+            <span>{isZh ? `${groups.activeThreadLocal.length} 条近期` : `${groups.activeThreadLocal.length} recent`}</span>
           </div>
         </div>
 
         {/* Needs attention */}
         {repairCount > 0 ? (
           <div className="site-card role-attention-card">
-            <p className="role-attention-label">Needs attention</p>
+            <p className="role-attention-label">{isZh ? "需要处理" : "Needs attention"}</p>
             <div className="role-mem-list">
               {[...groups.incorrect, ...groups.hidden].map((item) => (
                 <RoleMemItem
                   key={item.id}
                   action="restore"
+                  isZh={isZh}
                   item={item}
                   redirectTo={redirectTo}
                 />
@@ -634,6 +656,7 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
         {/* Categorized memory with filter tabs */}
         <div className="site-card role-mem-filter-card">
           <MemoryCategoryFilter
+            language={effectiveSystemLanguage}
             redirectTo={redirectTo}
             items={[...groups.activeLongTerm, ...groups.activeThreadLocal].map((i) => ({
               id: i.id,
@@ -652,12 +675,13 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
         {groups.superseded.length > 0 ? (
           <details className="site-card role-mem-older">
             <summary className="role-mem-older-summary">
-              Older items ({groups.superseded.length})
+              {isZh ? `更早的记忆（${groups.superseded.length}）` : `Older items (${groups.superseded.length})`}
             </summary>
             <div className="role-mem-list role-mem-list-older">
               {groups.superseded.map((item) => (
                 <RoleMemItem
                   key={item.id}
+                  isZh={isZh}
                   item={item}
                   redirectTo={redirectTo}
                 />

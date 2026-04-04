@@ -102,11 +102,32 @@ function isMemoryApplicableToRecall({
   return true;
 }
 
+const GOAL_RECALL_HINT_PATTERN =
+  /计划|打算|目标|推进|下一步|下一阶段|想完成|deadline|plan|goal|next step|working on|trying to/i;
+const SOCIAL_RECALL_HINT_PATTERN =
+  /妈妈|爸爸|父母|家人|家里|老婆|老公|对象|伴侣|男朋友|女朋友|朋友|同事|老板|导师|孩子|family|partner|wife|husband|boyfriend|girlfriend|friend|colleague|boss|mentor|kid|child/i;
+const KEY_DATE_RECALL_HINT_PATTERN =
+  /生日|纪念日|截止|ddl|due|日期|哪天|什么时候|本周|下周|下个月|deadline|birthday|anniversary|date|when is|when's|due date/i;
+
+export function shouldPreferMemoryRecordRecall(message: string) {
+  const normalized = message.normalize("NFKC").trim();
+
+  return (
+    GOAL_RECALL_HINT_PATTERN.test(normalized) ||
+    SOCIAL_RECALL_HINT_PATTERN.test(normalized) ||
+    KEY_DATE_RECALL_HINT_PATTERN.test(normalized)
+  );
+}
+
 export function isDirectAgentNamingQuestion(message: string) {
   const normalized = message.normalize("NFKC").trim().toLowerCase();
 
   return (
     normalized.includes("你叫什么") ||
+    normalized.includes("我怎么称呼你") ||
+    normalized.includes("我该怎么称呼你") ||
+    normalized.includes("我应该怎么称呼你") ||
+    normalized.includes("怎么称呼你") ||
     normalized.includes("我以后怎么叫你") ||
     normalized.includes("你不是叫") ||
     normalized.includes("你叫啥") ||
@@ -150,6 +171,7 @@ export async function recallAgentNickname({
 }): Promise<{
   directNamingQuestion: boolean;
   nicknameMemory: {
+    memory_id: string;
     memory_type: "relationship";
     content: string;
     confidence: number;
@@ -215,6 +237,7 @@ export async function recallUserPreferredName({
 }): Promise<{
   directPreferredNameQuestion: boolean;
   preferredNameMemory: {
+    memory_id: string;
     memory_type: "relationship";
     content: string;
     confidence: number;
@@ -281,6 +304,7 @@ export async function recallUserAddressStyle({
   supabase?: any;
 }): Promise<{
   addressStyleMemory: {
+    memory_id: string;
     memory_type: "relationship";
     content: string;
     confidence: number;
@@ -349,6 +373,8 @@ export async function recallRelevantMemories({
     hasThreadState,
     activeNamespace
   });
+  const preferMemoryRecordRecall =
+    shouldPreferMemoryRecordRecall(latestUserMessage);
   const namespaceBoundary = resolveRuntimeMemoryBoundary(activeNamespace);
   const supabase = providedSupabase ?? (await createClient());
   const selectColumns =
@@ -447,7 +473,9 @@ export async function recallRelevantMemories({
         hiddenCandidates.length > 0 || hiddenMemoryRecordRows.length > 0 ? 1 : 0,
       incorrectExclusionCount:
         incorrectCandidates.length > 0 || incorrectMemoryRecordRows.length > 0 ? 1 : 0,
-      appliedRoutes
+      appliedRoutes,
+      memoryRecordRecallPreferred: preferMemoryRecordRecall,
+      profileFallbackSuppressed: preferMemoryRecordRecall
     };
   }
 
@@ -484,7 +512,7 @@ export async function recallRelevantMemories({
           .slice(0, MEMORY_RECALL_LIMIT)
           .map((memory) => buildRecalledProfileMemoryFromStoredMemory(memory))
           .filter((memory): memory is NonNullable<typeof memory> => memory != null)
-      : allowDistantFallback
+      : allowDistantFallback && !preferMemoryRecordRecall
         ? activeStaticProfileMemories
             .slice()
             .sort((left, right) => {
@@ -558,12 +586,21 @@ export async function recallRelevantMemories({
           .filter((memory): memory is NonNullable<typeof memory> => memory != null)
       : [];
 
-  const recalledMemories = [
-    ...recalledDynamicProfileMemories,
-    ...recalledProfileMemories,
-    ...recalledEpisodeMemories,
-    ...recalledTimelineMemories
-  ].slice(0, MEMORY_RECALL_LIMIT);
+  const recalledMemories = (
+    preferMemoryRecordRecall
+      ? [
+          ...recalledDynamicProfileMemories,
+          ...recalledEpisodeMemories,
+          ...recalledProfileMemories,
+          ...recalledTimelineMemories
+        ]
+      : [
+          ...recalledDynamicProfileMemories,
+          ...recalledProfileMemories,
+          ...recalledEpisodeMemories,
+          ...recalledTimelineMemories
+        ]
+  ).slice(0, MEMORY_RECALL_LIMIT);
 
   const countRelevantExclusions = (memories: StoredMemory[]) =>
     memories.filter(
@@ -583,7 +620,9 @@ export async function recallRelevantMemories({
     incorrectExclusionCount:
       countRelevantExclusions(incorrectCandidates) +
       countRelevantExclusions(incorrectMemoryRecordRows),
-    appliedRoutes
+    appliedRoutes,
+    memoryRecordRecallPreferred: preferMemoryRecordRecall,
+    profileFallbackSuppressed: preferMemoryRecordRecall
   };
 }
 
@@ -593,16 +632,19 @@ export type RuntimeRelationshipRecall = {
   relationshipStylePrompt: boolean;
   sameThreadContinuity: boolean;
   addressStyleMemory: {
+    memory_id: string;
     memory_type: "relationship";
     content: string;
     confidence: number;
   } | null;
   nicknameMemory: {
+    memory_id: string;
     memory_type: "relationship";
     content: string;
     confidence: number;
   } | null;
   preferredNameMemory: {
+    memory_id: string;
     memory_type: "relationship";
     content: string;
     confidence: number;
@@ -663,7 +705,9 @@ export async function loadRuntimeMemoryContext({
     usedMemoryTypes: [],
     hiddenExclusionCount: 0,
     incorrectExclusionCount: 0,
-    appliedRoutes: []
+    appliedRoutes: [],
+    memoryRecordRecallPreferred: false,
+    profileFallbackSuppressed: false
   };
 
   const emptyRelationshipRecall: RuntimeRelationshipRecall = {

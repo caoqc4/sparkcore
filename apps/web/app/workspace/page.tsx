@@ -3,16 +3,22 @@ import { redirect } from "next/navigation";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { ProductConsoleShell } from "@/components/product-console-shell";
 import { loadPrimaryWorkspace } from "@/lib/chat/runtime-turn-context";
-import { buildPageMetadata } from "@/lib/site";
+import { buildLocalizedPageMetadata } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
 
-export const metadata = buildPageMetadata({
-  title: "Workspace",
-  description: "Protected Lagun workspace shell used to bootstrap authenticated product access.",
-  path: "/workspace",
-  noIndex: true
-});
+export async function generateMetadata() {
+  return buildLocalizedPageMetadata({
+    title: { en: "Workspace", "zh-CN": "工作区" },
+    description: {
+      en: "Protected Lagun workspace shell used to bootstrap authenticated product access.",
+      "zh-CN": "用于初始化已认证产品访问的 Lagun 受保护工作区外壳。",
+    },
+    path: "/workspace",
+    noIndex: true,
+    languageSource: "system",
+  });
+}
 
 export default async function WorkspacePage() {
   const supabase = await createClient();

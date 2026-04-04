@@ -35,7 +35,9 @@ export type SmokePreparedAssistantTurnPersistenceArgs = {
   modelProfileId: string;
   modelProfileName: string;
   model: string;
+  sourceMessageId: string;
   assistantContent: string;
+  trimmedContent: string;
   relationshipStyleValue: string | null;
   replyLanguage: Parameters<typeof insertAnalyzedSmokeAssistantReply>[0]["replyLanguage"];
   replyLanguageSource: Parameters<
@@ -43,6 +45,9 @@ export type SmokePreparedAssistantTurnPersistenceArgs = {
   >[0]["replyLanguageSource"];
   analysis: SmokeAssistantTurnAnalysisSummary;
   createdTypes: SmokeCreatedMemoryType[];
+  plannerPreviewMetadata?: Record<string, unknown> | null;
+  relationshipRecallMetadata?: Record<string, unknown> | null;
+  runtimeMemoryUsageMetadata?: Record<string, unknown> | null;
 };
 
 export async function persistPreparedSmokeAssistantTurn(
@@ -81,6 +86,9 @@ export async function persistPreparedSmokeAssistantTurn(
     usedMemoryTypes: args.analysis.usedMemoryTypes,
     hiddenExclusionCount: args.analysis.hiddenExclusionCount,
     incorrectExclusionCount: args.analysis.incorrectExclusionCount,
-    createdTypes: args.createdTypes
+    createdTypes: args.createdTypes,
+    plannerPreviewMetadata: args.plannerPreviewMetadata ?? null,
+    relationshipRecallMetadata: args.relationshipRecallMetadata ?? null,
+    runtimeMemoryUsageMetadata: args.runtimeMemoryUsageMetadata ?? null
   });
 }

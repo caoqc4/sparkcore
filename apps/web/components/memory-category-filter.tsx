@@ -5,6 +5,7 @@ import {
   hideProductMemory,
   markProductMemoryIncorrect,
 } from "@/app/app/memory/actions";
+import type { AppLanguage } from "@/lib/i18n/site";
 
 export type MemoryFilterItem = {
   id: string;
@@ -79,9 +80,11 @@ function formatDate(iso: string) {
 type Props = {
   items: MemoryFilterItem[];
   redirectTo: string;
+  language?: AppLanguage;
 };
 
-export function MemoryCategoryFilter({ items, redirectTo }: Props) {
+export function MemoryCategoryFilter({ items, redirectTo, language = "en" }: Props) {
+  const isZh = language === "zh-CN";
   const [activeKey, setActiveKey] = useState<string>("all");
 
   const countByCategory = new Map<string, number>();
@@ -99,11 +102,21 @@ export function MemoryCategoryFilter({ items, redirectTo }: Props) {
     activeKey !== "all"
       ? CATEGORY_DEFS.find((d) => d.key === activeKey) ?? null
       : null;
+  const categoryLabels = new Map<string, string>([
+    ["Identity & Profile", isZh ? "身份与资料" : "Identity"],
+    ["Preferences", isZh ? "偏好" : "Preferences"],
+    ["Relationship Status", isZh ? "关系状态" : "Relationship"],
+    ["Goals", isZh ? "目标" : "Goals"],
+    ["Experiences", isZh ? "经历" : "Experiences"],
+    ["Emotional State", isZh ? "情绪" : "Mood"],
+    ["Key Dates", isZh ? "关键日期" : "Key Dates"],
+    ["Social Circle", isZh ? "社交圈" : "Social"],
+  ]);
 
   return (
     <div className="mcf-root">
       {/* ── Filter pills ── */}
-      <div className="mcf-pills" role="tablist" aria-label="Filter by category">
+      <div className="mcf-pills" role="tablist" aria-label={isZh ? "按类别筛选" : "Filter by category"}>
         <button
           role="tab"
           type="button"
@@ -111,7 +124,7 @@ export function MemoryCategoryFilter({ items, redirectTo }: Props) {
           className={`mcf-pill${activeKey === "all" ? " active" : ""}`}
           onClick={() => setActiveKey("all")}
         >
-          All
+          {isZh ? "全部" : "All"}
           {items.length > 0 ? (
             <span className="mcf-pill-count">{items.length}</span>
           ) : null}
@@ -128,7 +141,7 @@ export function MemoryCategoryFilter({ items, redirectTo }: Props) {
               onClick={() => setActiveKey(def.key)}
             >
               <span aria-hidden="true">{def.icon}</span>
-              {def.short}
+              {categoryLabels.get(def.key) ?? def.short}
               {count > 0 ? (
                 <span className="mcf-pill-count">{count}</span>
               ) : null}
@@ -149,7 +162,7 @@ export function MemoryCategoryFilter({ items, redirectTo }: Props) {
                   <span
                     className={`mcf-item-scope${item.scope === "thread_local" ? " local" : ""}`}
                   >
-                    {item.scope === "thread_local" ? "Recent" : "Long-term"}
+                    {item.scope === "thread_local" ? (isZh ? "近期" : "Recent") : isZh ? "长期" : "Long-term"}
                   </span>
                   <span className="mcf-item-date">{formatDate(item.createdAt)}</span>
                 </div>
@@ -164,7 +177,7 @@ export function MemoryCategoryFilter({ items, redirectTo }: Props) {
                       className="mcf-item-source"
                       href={`/app/chat?thread=${item.sourceThreadId}`}
                     >
-                      From: {item.sourceThreadTitle ?? "View source thread"}
+                      {isZh ? "来自：" : "From: "} {item.sourceThreadTitle ?? (isZh ? "查看来源对话" : "View source thread")}
                     </a>
                   ) : (
                     <span />
@@ -174,14 +187,14 @@ export function MemoryCategoryFilter({ items, redirectTo }: Props) {
                       <input type="hidden" name="memory_id" value={item.id} />
                       <input type="hidden" name="redirect_to" value={redirectTo} />
                       <button type="submit" className="mcf-action-btn">
-                        Hide
+                        {isZh ? "隐藏" : "Hide"}
                       </button>
                     </form>
                     <form action={markProductMemoryIncorrect}>
                       <input type="hidden" name="memory_id" value={item.id} />
                       <input type="hidden" name="redirect_to" value={redirectTo} />
                       <button type="submit" className="mcf-action-btn">
-                        Mark wrong
+                        {isZh ? "标记错误" : "Mark wrong"}
                       </button>
                     </form>
                   </div>
@@ -199,7 +212,7 @@ export function MemoryCategoryFilter({ items, redirectTo }: Props) {
                 <p className="mcf-empty-hint">{activeDef.empty}</p>
               </>
             ) : (
-              <p className="mcf-empty-hint">No memories saved yet.</p>
+              <p className="mcf-empty-hint">{isZh ? "还没有已保存的记忆。" : "No memories saved yet."}</p>
             )}
           </div>
         )}

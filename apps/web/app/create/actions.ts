@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
 import {
   createOwnedAgent,
@@ -78,6 +79,8 @@ function buildCreateErrorPath(args: {
 }
 
 export async function createProductRole(formData: FormData) {
+  const { effectiveSystemLanguage } = await getSiteLanguageState();
+  const isZh = effectiveSystemLanguage === "zh-CN";
   const supabase = await createClient();
   const {
     data: { user }
@@ -113,7 +116,7 @@ export async function createProductRole(formData: FormData) {
     trimProductText(formData.get("relationship_mode")) || "long-term companion";
   const boundaries =
     trimProductText(formData.get("boundaries")) ||
-    "Be supportive, respectful, and avoid manipulative or coercive behavior.";
+    (isZh ? "保持支持与尊重，避免操控或强迫行为。" : "Be supportive, respectful, and avoid manipulative or coercive behavior.");
   const backgroundSummary = trimProductText(formData.get("background_summary")) || null;
   let avatarStyle = avatarPresetId ? detectAvatarStyleFromPreset(avatarPresetId) : null;
 

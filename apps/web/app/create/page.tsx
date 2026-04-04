@@ -1,19 +1,35 @@
 import { RoleCreateWizard } from "@/components/role-create-wizard";
 import { SiteShell } from "@/components/site-shell";
 import { getOptionalUser } from "@/lib/auth-redirect";
-import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
+import { CHARACTER_MANIFEST } from "@/lib/characters/manifest";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { loadCurrentProductPlanSlug } from "@/lib/product/billing";
 import { loadActiveAudioAssets, loadSharedPresetPortraitAssets } from "@/lib/product/role-media";
-import { buildPageMetadata } from "@/lib/site";
+import { buildLocalizedPageMetadata } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = buildPageMetadata({
-  title: "Create Your Companion",
-  description:
-    "Create a Lagun companion with a name, personality, and portrait. Set up IM channels after.",
-  path: "/create",
-  noIndex: true,
-});
+const CREATE_PRESET_SLUGS = ["caria", "teven", "velia"] as const;
+type CreatePresetSlug = (typeof CREATE_PRESET_SLUGS)[number];
+
+function isCreatePresetSlug(value: string | undefined): value is CreatePresetSlug {
+  return (
+    value === "caria" ||
+    value === "teven" ||
+    value === "velia"
+  );
+}
+
+export async function generateMetadata() {
+  return buildLocalizedPageMetadata({
+    title: { en: "Create Your Companion", "zh-CN": "创建你的伴侣" },
+    description: {
+      en: "Create a Lagun companion with a name, personality, and portrait. Set up IM channels after.",
+      "zh-CN": "创建一个拥有名字、性格和头像的 Lagun 伴侣。IM 渠道连接会在之后完成。",
+    },
+    path: "/create",
+    noIndex: true,
+  });
+}
 
 type CreatePageProps = {
   searchParams: Promise<{
@@ -23,12 +39,11 @@ type CreatePageProps = {
 
 export default async function CreatePage({ searchParams }: CreatePageProps) {
   const params = await searchParams;
+  const { contentLanguage } = await getSiteLanguageState();
+  const isZh = contentLanguage === "zh-CN";
   const user = await getOptionalUser();
   const supabase = await createClient();
-  const presetSlug =
-    params.preset === "caria" || params.preset === "teven" || params.preset === "velia"
-      ? (params.preset as CharacterSlug)
-      : null;
+  const presetSlug = isCreatePresetSlug(params.preset) ? params.preset : null;
   const presetDefinition = presetSlug ? CHARACTER_MANIFEST[presetSlug] : null;
   const [{ data: audioOptions }, { data: portraitAssets }, currentPlanSlug] = await Promise.all([
     loadActiveAudioAssets({ supabase }),
@@ -54,13 +69,14 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
       <section className="page-frame onboarding-frame">
         <div className="page-frame-header onboarding-frame-header">
           <div className="onboarding-copy">
-            <p className="eyebrow">Create Companion</p>
+            <p className="eyebrow">{isZh ? "创建角色" : "Create Companion"}</p>
             <h1 className="title">
-              Build the relationship before you think about channels.
+              {isZh ? "先把角色关系建立起来，再去连接渠道。" : "Build the relationship before you think about channels."}
             </h1>
             <p className="lead">
-              Three quick steps — identity, personality, and portrait. IM
-              connection comes after, not first.
+              {isZh
+                ? "只需三步：身份、性格、形象。IM 连接放在后面，不放在前面。"
+                : "Three quick steps — identity, personality, and portrait. IM connection comes after, not first."}
             </p>
           </div>
         </div>
@@ -69,11 +85,11 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
           <div className="rcw-create-layout">
             <aside className="site-card rcw-create-presets">
               <div className="rcw-create-presets-head">
-                <span className="rcw-kicker">Presets</span>
-                <h2 className="rcw-title">Choose a starting point</h2>
+                <span className="rcw-kicker">{isZh ? "预设" : "Presets"}</span>
+                <h2 className="rcw-title">{isZh ? "选择一个起点" : "Choose a starting point"}</h2>
               </div>
               <div className="rcw-create-presets-list">
-                {(["caria", "teven", "velia"] as CharacterSlug[]).map((slug) => {
+                {CREATE_PRESET_SLUGS.map((slug) => {
                   const character = CHARACTER_MANIFEST[slug];
                   const active = presetSlug === slug;
                   return (
@@ -84,7 +100,9 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
                     >
                       <span className="rcw-create-preset-name">{character.displayName}</span>
                       <span className="rcw-create-preset-meta">
-                        {character.mode === "assistant" ? "Assistant" : "Companion"} · {character.avatarGender}
+                        {character.mode === "assistant"
+                          ? isZh ? "助手型" : "Assistant"
+                          : isZh ? "伴侣型" : "Companion"} · {character.avatarGender}
                       </span>
                     </a>
                   );
@@ -93,8 +111,8 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
                   className={`rcw-create-preset-link${presetSlug === null ? " active" : ""}`}
                   href="/create"
                 >
-                  <span className="rcw-create-preset-name">Blank</span>
-                  <span className="rcw-create-preset-meta">Start from scratch</span>
+                  <span className="rcw-create-preset-name">{isZh ? "空白开始" : "Blank"}</span>
+                  <span className="rcw-create-preset-meta">{isZh ? "从头开始创建" : "Start from scratch"}</span>
                 </a>
               </div>
             </aside>
@@ -110,6 +128,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
                 currentPlanSlug={currentPlanSlug === "pro" ? "pro" : "free"}
                 redirectAfterCreate="/app/chat"
                 loginNext="/create"
+                language={contentLanguage}
                 user={user ? { id: user.id } : null}
               />
             </div>

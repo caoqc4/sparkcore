@@ -1,51 +1,50 @@
 import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
-import { buildPageMetadata } from "@/lib/site";
+import { getSiteLanguageState } from "@/lib/i18n/site";
+import { getFaqCopy } from "@/lib/i18n/marketing-page-copy";
+import { buildLocalizedPageMetadata } from "@/lib/site";
 
-export const metadata = buildPageMetadata({
-  title: "FAQ",
-  description:
-    "Find answers about Lagun memory, IM-native chat, privacy controls, supported channels, and how the website control center fits the product.",
-  path: "/faq"
-});
+export async function generateMetadata() {
+  return buildLocalizedPageMetadata({
+    title: {
+      en: "AI Companion FAQ: Memory, IM Chat, and Privacy Controls",
+      "zh-CN": "AI 伴侣 FAQ：记忆、IM 聊天与隐私控制",
+    },
+    description: {
+      en: "Find answers about Lagun memory, IM-native chat, privacy controls, supported channels, and how the website control center fits the product.",
+      "zh-CN": "查看关于 Lagun 记忆、IM 原生聊天、隐私控制、支持渠道以及网页控制中心定位的答案。",
+    },
+    path: "/faq"
+  });
+}
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const { contentLanguage } = await getSiteLanguageState();
+  const copy = getFaqCopy(contentLanguage);
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: copy.items.map((item) => ({
+      "@type": "Question",
+      name: item.title,
+      acceptedAnswer: { "@type": "Answer", text: item.body },
+    })),
+  };
+
   return (
     <SiteShell>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <PageFrame
-        eyebrow="FAQ"
-        title="Common questions about memory, IM, and the website control center."
-        description="These answers explain how Lagun differs from a generic browser chatbot — covering memory, IM continuity, privacy, and the web control center."
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        description={copy.description}
       >
-        <FeatureCardGrid
-          items={[
-            {
-              title: "Is this an AI girlfriend or an AI companion?",
-              body: "Lagun uses AI companion as the broader product category. AI girlfriend, AI boyfriend, and roleplay entry points are relationship modes inside the same system."
-            },
-            {
-              title: "Does it remember past chats?",
-              body: "Yes. Long memory is a core part of the product, and the memory center is designed so remembered state can be reviewed and repaired."
-            },
-            {
-              title: "Do I need to chat on the website?",
-              body: "No. The website is mainly for setup, memory review, channel management, and privacy control. The main relationship loop is designed to live in IM."
-            },
-            {
-              title: "Which IM apps are supported?",
-              body: "The current product flow is built around connecting supported IM channels after role creation. Channel support is exposed as a product control surface rather than hidden setup state."
-            },
-            {
-              title: "Can I control or delete memories?",
-              body: "You can inspect memory, hide entries, mark them incorrect, and use the web control layer to repair relationship state when it drifts."
-            },
-            {
-              title: "Is it private?",
-              body: "Privacy is handled through explicit boundaries, visible memory, and channel awareness so relationship continuity does not have to feel like a black box."
-            }
-          ]}
-        />
+        <FeatureCardGrid items={copy.items} />
         <div className="toolbar">
           <AdaptiveTrackedLink
             className="button"
@@ -53,13 +52,13 @@ export default function FaqPage() {
             payload={{ source: "faq_create" }}
             intent="create_companion"
             labels={{
-              anonymous: "Create your companion",
-              signed_in_empty: "Create your companion",
-              signed_in_role_only: "Continue relationship flow",
-              signed_in_connected: "Continue relationship flow"
+              anonymous: copy.create,
+              signed_in_empty: copy.create,
+              signed_in_role_only: copy.continue,
+              signed_in_connected: copy.continue
             }}
           >
-            Create your companion
+            {copy.create}
           </AdaptiveTrackedLink>
           <TrackedLink
             className="button button-secondary"
@@ -67,7 +66,7 @@ export default function FaqPage() {
             href="/features/memory-center"
             payload={{ source: "faq_memory_center" }}
           >
-            Review memory center
+            {copy.memory}
           </TrackedLink>
           <TrackedLink
             className="site-inline-link"
@@ -75,7 +74,7 @@ export default function FaqPage() {
             href="/features/privacy-controls"
             payload={{ source: "faq_privacy_controls" }}
           >
-            Review privacy controls
+            {copy.privacy}
           </TrackedLink>
         </div>
       </PageFrame>

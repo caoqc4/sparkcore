@@ -5,7 +5,13 @@ import { SettingsModelCapabilityGrid } from "@/components/settings-model-capabil
 import { ProductConsoleShell } from "@/components/product-console-shell";
 import { ProductEventTracker } from "@/components/product-event-tracker";
 import { FormSubmitButton } from "@/components/form-submit-button";
+import { saveLanguagePreferences } from "@/app/actions/language";
 import { requireUser } from "@/lib/auth-redirect";
+import {
+  getLanguagePreferenceCopy,
+  getSiteChromeCopy,
+  getSiteLanguageState,
+} from "@/lib/i18n/site";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { resolveProductAppRoute } from "@/lib/product/route-resolution";
 import { loadProductSettingsPageData } from "@/lib/product/settings";
@@ -46,6 +52,37 @@ function formatDate(value: string | null) {
         month: "short",
         day: "numeric",
       });
+}
+
+function getCapabilityCopy(
+  capabilityType: "text" | "image" | "audio",
+  language: "en" | "zh-CN"
+) {
+  const isZh = language === "zh-CN";
+
+  switch (capabilityType) {
+    case "text":
+      return {
+        label: isZh ? "文本模型" : "Text model",
+        description: isZh
+          ? "决定主要对话的回复质量、推理深度和整体语气。"
+          : "Used for primary chat quality, reasoning depth, and response tone.",
+      };
+    case "image":
+      return {
+        label: isZh ? "图片模型" : "Image model",
+        description: isZh
+          ? "用于生成或编辑角色头像与图片内容。"
+          : "Used when the companion generates or transforms images.",
+      };
+    case "audio":
+      return {
+        label: isZh ? "语音模型" : "Audio model",
+        description: isZh
+          ? "用于生成语音回复和音频消息。"
+          : "Used when the companion replies with generated voice or audio messages.",
+      };
+  }
 }
 
 function SectionCard({
@@ -101,19 +138,27 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
     : "";
   const chatHref = `/app/chat${roleQuerySuffix}`;
   const redirectTo = `/app/settings${roleQuerySuffix}`;
+  const {
+    contentLanguage,
+    effectiveSystemLanguage,
+  } = await getSiteLanguageState();
+  const chromeCopy = getSiteChromeCopy(effectiveSystemLanguage);
+  const settingsCopy = chromeCopy.settings;
+  const consoleCopy = chromeCopy.console;
+  const languageCopy = getLanguagePreferenceCopy(effectiveSystemLanguage);
 
   return (
     <ProductConsoleShell
       actions={
         <Link className="button button-secondary" href={chatHref}>
-          Back to chat
+          {consoleCopy.status.backToChat}
         </Link>
       }
       currentHref="/app/settings"
-      description="Manage your account, model, subscription, and app preferences."
-      eyebrow="Settings"
+      description={settingsCopy.pageDescription}
+      eyebrow={settingsCopy.pageEyebrow}
       shellContext={overview}
-      title="Settings"
+      title={settingsCopy.pageTitle}
     >
       <ProductEventTracker
         event="settings_console_view"
@@ -133,12 +178,12 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
       {/* ── Account ── */}
       <section className="site-card settings-card">
         <div className="role-section-head">
-          <h2 className="role-section-title">Account</h2>
+          <h2 className="role-section-title">{settingsCopy.account}</h2>
           <form action={signOut}>
             <FormSubmitButton
               className="button button-secondary settings-danger-btn"
-              idleText="Sign out"
-              pendingText="Signing out…"
+              idleText={settingsCopy.signOut}
+              pendingText={settingsCopy.signingOut}
             />
           </form>
         </div>
@@ -156,17 +201,17 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
             <div className="settings-identity-meta">
               <span className="settings-identity-provider-label">
                 {settingsData.account.authLabel === "Google"
-                  ? "Google account"
+                  ? settingsCopy.googleAccount
                   : settingsData.account.authLabel}
               </span>
               {settingsData.account.authLabel !== "Google" ? (
-                <span className="settings-identity-legacy-tag">Legacy</span>
+                <span className="settings-identity-legacy-tag">{settingsCopy.legacy}</span>
               ) : null}
             </div>
           </div>
         </div>
         <div className="settings-identity-id-row">
-          <span className="settings-identity-id-label">ID</span>
+          <span className="settings-identity-id-label">{settingsCopy.id}</span>
           <span className="settings-identity-id-value">
             {settingsData.account.userId.slice(0, 16)}…
           </span>
@@ -176,7 +221,7 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
       {/* ── AI Model ── */}
       <section className="site-card settings-card">
         <div className="role-section-head">
-          <h2 className="role-section-title">AI Model</h2>
+          <h2 className="role-section-title">{settingsCopy.aiModel}</h2>
         </div>
         <form action={saveProductModelSettings} className="settings-model-form">
           <input name="redirect_to" type="hidden" value={redirectTo} />
@@ -195,12 +240,17 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
             return (
               <div key={capability.capabilityType} className="settings-model-capability">
                 <div className="settings-model-cap-head">
-                  <span className="settings-model-cap-label">{capability.label}</span>
-                  <span className="settings-model-cap-desc">{capability.description}</span>
+                  <span className="settings-model-cap-label">
+                    {getCapabilityCopy(capability.capabilityType, effectiveSystemLanguage).label}
+                  </span>
+                  <span className="settings-model-cap-desc">
+                    {getCapabilityCopy(capability.capabilityType, effectiveSystemLanguage).description}
+                  </span>
                 </div>
 
                 <SettingsModelCapabilityGrid
                   capabilityType={capability.capabilityType}
+                  language={effectiveSystemLanguage}
                   options={visible}
                   selectedSlug={capability.selectedSlug}
                   subscriptionSectionId="settings-subscription"
@@ -211,13 +261,13 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
 
           <FormSubmitButton
             className="button button-primary settings-submit-btn"
-            idleText="Save model settings"
-            pendingText="Saving…"
+            idleText={settingsCopy.saveModelSettings}
+            pendingText={settingsCopy.saving}
           />
         </form>
       </section>
 
-      <SectionCard id="settings-subscription" title="Subscription">
+      <SectionCard id="settings-subscription" title={settingsCopy.subscription}>
         <div className="settings-sub-compact">
           <div className="settings-sub-compact-top">
             <span
@@ -228,7 +278,7 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
             {settingsData.subscriptionSummary.currentPlanSlug === "pro" &&
               settingsData.subscriptionSummary.renewalDateLabel && (
               <span className="settings-sub-renewal">
-                Renews {formatDate(settingsData.subscriptionSummary.renewalDateLabel)}
+                {settingsCopy.renewsOn} {formatDate(settingsData.subscriptionSummary.renewalDateLabel)}
               </span>
             )}
           </div>
@@ -238,101 +288,117 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
                 className="button button-secondary"
                 href={settingsData.subscriptionSummary.upgradeHref}
               >
-                Manage billing
+                {settingsCopy.manageBilling}
               </Link>
               <Link className="button button-secondary" href="/app/credits">
-                Credits
+                {settingsCopy.credits}
               </Link>
             </div>
           ) : (
             <Link className="button button-primary" href="/app/subscription">
-              Upgrade to Pro
+              {settingsCopy.upgradeToPro}
             </Link>
           )}
         </div>
       </SectionCard>
 
-      <SectionCard title="App preferences">
+      <SectionCard title={settingsCopy.appPreferences}>
         <form action={saveProductAppSettings} className="settings-form-grid">
           <input name="redirect_to" type="hidden" value={redirectTo} />
           <div className="settings-form-row">
             <label className="settings-field">
-              <span className="settings-field-label">Theme</span>
+              <span className="settings-field-label">{settingsCopy.theme}</span>
               <select
                 className="site-select settings-select-compact"
                 defaultValue={settingsData.appSettings.theme}
                 name="theme"
               >
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </label>
-            <label className="settings-field">
-              <span className="settings-field-label">Language</span>
-              <select
-                className="site-select settings-select-compact"
-                defaultValue={settingsData.appSettings.interfaceLanguage ?? "en"}
-                name="interface_language"
-              >
-                <option value="en">English</option>
+                <option value="system">{settingsCopy.systemDefault}</option>
+                <option value="light">{settingsCopy.light}</option>
+                <option value="dark">{settingsCopy.dark}</option>
               </select>
             </label>
           </div>
 
           <FormSubmitButton
             className="button button-secondary settings-submit-btn"
-            idleText="Save preferences"
-            pendingText="Saving…"
+            idleText={languageCopy.savePreferences}
+            pendingText={languageCopy.savingPreferences}
           />
         </form>
       </SectionCard>
 
-      <SectionCard title="Data & Privacy">
+      <SectionCard title={languageCopy.contentLanguageLabel}>
+        <form action={saveLanguagePreferences} className="settings-form-grid">
+          <input name="redirect_to" type="hidden" value={redirectTo} />
+          <div className="settings-form-row">
+            <label className="settings-field">
+              <span className="settings-field-label">{languageCopy.contentLanguageLabel}</span>
+              <select
+                className="site-select settings-select-compact"
+                defaultValue={contentLanguage}
+                name="language"
+              >
+                <option value="en">{languageCopy.languageOptions.en}</option>
+                <option value="zh-CN">{languageCopy.languageOptions["zh-CN"]}</option>
+              </select>
+              <span className="settings-field-help">{languageCopy.contentLanguageHint}</span>
+            </label>
+          </div>
+
+          <FormSubmitButton
+            className="button button-secondary settings-submit-btn"
+            idleText={languageCopy.savePreferences}
+            pendingText={languageCopy.savingPreferences}
+          />
+        </form>
+      </SectionCard>
+
+      <SectionCard title={settingsCopy.dataPrivacy}>
         <p className="settings-privacy-desc">
-          Review how your data is handled and stored.
+          {settingsCopy.privacyDescription}
         </p>
         <div className="settings-privacy-links">
           <Link className="settings-privacy-link" href="/privacy" target="_blank">
-            Privacy Policy ↗
+            {settingsCopy.privacyPolicy}
           </Link>
           <Link className="settings-privacy-link" href="/terms" target="_blank">
-            Terms of Service ↗
+            {settingsCopy.terms}
           </Link>
         </div>
       </SectionCard>
 
       <section className="site-card settings-danger-card">
         <div className="role-section-head">
-          <h2 className="role-section-title settings-danger-title">Danger zone</h2>
+          <h2 className="role-section-title settings-danger-title">{settingsCopy.dangerZone}</h2>
         </div>
         <div className="settings-danger-list">
           <div className="settings-danger-row">
             <div className="settings-danger-row-info">
-              <span className="settings-danger-row-label">Sign out all devices</span>
+              <span className="settings-danger-row-label">{settingsCopy.signOutAllDevices}</span>
               <span className="settings-danger-row-desc">
-                End all active sessions across every device.
+                {settingsCopy.signOutAllDevicesHint}
               </span>
             </div>
             <form action={signOutAllProductSessions}>
               <input name="redirect_to" type="hidden" value={redirectTo} />
               <FormSubmitButton
                 className="button button-secondary settings-danger-btn"
-                idleText="Sign out all"
-                pendingText="Signing out…"
+                idleText={settingsCopy.signOutAllDevices}
+                pendingText={settingsCopy.signingOut}
               />
             </form>
           </div>
           <div className="settings-danger-row">
             <div className="settings-danger-row-info">
-              <span className="settings-danger-row-label">Delete account</span>
+              <span className="settings-danger-row-label">{settingsCopy.deleteAccount}</span>
               <span className="settings-danger-row-desc">
-                Permanently remove your account, all companions, memory, and chat
-                history. This cannot be undone.
+                {settingsCopy.deleteAccountHint}
               </span>
             </div>
             <DeleteAccountConfirm
               action={deleteCurrentProductAccount}
+              language={effectiveSystemLanguage}
               redirectTo={redirectTo}
             />
           </div>

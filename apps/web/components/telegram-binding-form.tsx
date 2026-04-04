@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { FormSubmitButton } from "@/components/form-submit-button";
+import type { AppLanguage } from "@/lib/i18n/site";
 
 type TelegramBindingFormProps = {
   agentId: string;
   characterChannelSlug: string;
   threadId: string;
   hasExistingBinding?: boolean;
+  language?: AppLanguage;
 };
 
 export function TelegramBindingForm({
@@ -15,7 +17,9 @@ export function TelegramBindingForm({
   characterChannelSlug,
   threadId,
   hasExistingBinding = false,
+  language = "en",
 }: TelegramBindingFormProps) {
+  const isZh = language === "zh-CN";
   const [peerId, setPeerId] = useState("");
   const [platformUserId, setPlatformUserId] = useState("");
 
@@ -31,19 +35,19 @@ export function TelegramBindingForm({
 
       <div className="field">
         <label className="label" htmlFor="channel_id">
-          Chat ID
+          {isZh ? "会话 ID" : "Chat ID"}
         </label>
         <input
           className="input"
           id="channel_id"
           name="channel_id"
-          placeholder="Paste the Chat ID from the bot reply"
+          placeholder={isZh ? "粘贴机器人回复里的会话 ID" : "Paste the Chat ID from the bot reply"}
         />
       </div>
 
       <div className="field">
         <label className="label" htmlFor="peer_id">
-          User ID
+          {isZh ? "用户 ID" : "User ID"}
         </label>
         <input
           className="input"
@@ -54,13 +58,15 @@ export function TelegramBindingForm({
             setPeerId(nextValue);
             setPlatformUserId(nextValue);
           }}
-          placeholder="Paste the User ID from the bot reply"
+          placeholder={isZh ? "粘贴机器人回复里的用户 ID" : "Paste the User ID from the bot reply"}
           value={peerId}
         />
       </div>
 
       <p className="helper-copy">
-        For most private chats the Chat ID and User ID are the same number — just paste it in both fields.
+        {isZh
+          ? "多数 Telegram 私聊里，会话 ID 和用户 ID 是同一个数字，两个输入框都填同一个值即可。"
+          : "For most private chats the Chat ID and User ID are the same number — just paste it in both fields."}
       </p>
 
       {/* platform_user_id is always synced to peer_id for standard 1:1 Telegram chats */}
@@ -69,8 +75,8 @@ export function TelegramBindingForm({
       <FormSubmitButton
         eventName="im_bind_started"
         eventPayload={{ platform: "telegram", surface: "connect_im" }}
-        idleText={hasExistingBinding ? "Update connection" : "Connect Telegram"}
-        pendingText="Saving..."
+        idleText={hasExistingBinding ? (isZh ? "更新连接" : "Update connection") : isZh ? "连接 Telegram" : "Connect Telegram"}
+        pendingText={isZh ? "保存中..." : "Saving..."}
       />
     </>
   );

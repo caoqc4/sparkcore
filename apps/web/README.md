@@ -174,6 +174,16 @@ Current privacy guardrails:
 
 - `smoke:test` depends on smoke-related env vars and `SUPABASE_SERVICE_ROLE_KEY`
 - smoke coverage uses deterministic test helpers and seeds its own test data through test-only routes
+- `.github/workflows/web-smoke.yml` runs `typecheck` and `smoke:test` for `apps/web`
+- the workflow expects these GitHub Actions secrets when smoke is enabled:
+  `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
+  `LITELLM_BASE_URL`, `LITELLM_API_KEY`, `REPLICATE_API_KEY`, `NEXT_PUBLIC_APP_URL`,
+  `PLAYWRIGHT_SMOKE_SECRET`, `PLAYWRIGHT_SMOKE_EMAIL`, `PLAYWRIGHT_SMOKE_PASSWORD`
+- if billing and analytics paths are exercised in CI, also set:
+  `CREEM_API_KEY`, `CREEM_WEBHOOK_SECRET`, `CREEM_PRICE_PRO_MONTHLY`,
+  `CREEM_PRICE_PRO_QUARTERLY`, `CREEM_PRICE_PRO_YEARLY`, `CREEM_PRICE_CREDITS_100`,
+  `CREEM_PRICE_CREDITS_250`, `CREEM_PRICE_CREDITS_700`, `NEXT_PUBLIC_POSTHOG_KEY`,
+  `NEXT_PUBLIC_POSTHOG_HOST`, `NEXT_PUBLIC_CLARITY_PROJECT_ID`
 - Chinese quickstart is available at [`README.zh-CN.md`](./README.zh-CN.md)
 - Trial checklist: [`../../docs-public/v1-trial-checklist.md`](../../docs-public/v1-trial-checklist.md)
 - Stage 1 quality baseline: [`../../docs-public/stage1-quality-eval-set.md`](../../docs-public/stage1-quality-eval-set.md)

@@ -1,39 +1,36 @@
 import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
-import { buildPageMetadata } from "@/lib/site";
+import { getSiteLanguageState } from "@/lib/i18n/site";
+import { getMemoryCenterFeatureCopy } from "@/lib/i18n/marketing-page-copy";
+import { buildLocalizedPageMetadata } from "@/lib/site";
 
-export const metadata = buildPageMetadata({
-  title: "Memory Center for Long-Term AI Companion Relationships",
-  description:
-    "See how Lagun memory center makes long-term AI companion memory visible, correctable, and trustworthy enough to support relationship continuity.",
-  path: "/features/memory-center"
-});
+export async function generateMetadata() {
+  return buildLocalizedPageMetadata({
+    title: {
+      en: "Memory Center for Long-Term AI Companion Relationships",
+      "zh-CN": "面向长期 AI 伴侣关系的记忆中心",
+    },
+    description: {
+      en: "See how Lagun memory center makes long-term AI companion memory visible, correctable, and trustworthy enough to support relationship continuity.",
+      "zh-CN": "了解 Lagun 的记忆中心如何让长期 AI 伴侣记忆保持可见、可修正，并足够可信以支撑关系连续性。",
+    },
+    path: "/features/memory-center"
+  });
+}
 
-export default function MemoryCenterFeaturePage() {
+export default async function MemoryCenterFeaturePage() {
+  const { contentLanguage } = await getSiteLanguageState();
+  const copy = getMemoryCenterFeatureCopy(contentLanguage);
+
   return (
     <SiteShell>
       <PageFrame
-        eyebrow="Feature"
-        title="Memory center makes long-term relationship state visible and correctable."
-        description="Lagun does not treat memory as an opaque side effect. The product is designed so you can understand what is remembered, why it matters, and how it affects continuity."
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        description={copy.description}
       >
-        <FeatureCardGrid
-          items={[
-            {
-              title: "Visible memory",
-              body: "Users can inspect what the companion is carrying as long-term memory instead of guessing."
-            },
-            {
-              title: "Corrective controls",
-              body: "Hide, mark incorrect, and restore flows help keep memory useful without making the relationship feel brittle."
-            },
-            {
-              title: "Relationship trust",
-              body: "Memory visibility is part of the product promise: not just that the companion remembers you, but that you can manage that continuity."
-            }
-          ]}
-        />
+        <FeatureCardGrid items={copy.items} />
         <div className="toolbar">
           <AdaptiveTrackedLink
             className="button"
@@ -41,13 +38,13 @@ export default function MemoryCenterFeaturePage() {
             payload={{ source: "feature_memory_create" }}
             intent="memory_action"
             labels={{
-              anonymous: "Create your companion",
-              signed_in_empty: "Create your first role",
-              signed_in_role_only: "Open memory center",
-              signed_in_connected: "Open memory center"
+              anonymous: copy.create,
+              signed_in_empty: copy.firstRole,
+              signed_in_role_only: copy.secondary,
+              signed_in_connected: copy.secondary
             }}
           >
-            Create your companion
+            {copy.create}
           </AdaptiveTrackedLink>
           <TrackedLink
             className="button button-secondary"
@@ -55,7 +52,7 @@ export default function MemoryCenterFeaturePage() {
             href="/ai-companion"
             payload={{ source: "feature_memory_companion" }}
           >
-            See the companion overview
+            {copy.tertiary}
           </TrackedLink>
         </div>
       </PageFrame>

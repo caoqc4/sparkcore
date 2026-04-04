@@ -1,59 +1,47 @@
 import Link from "next/link";
 import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { SiteShell, PageFrame } from "@/components/site-shell";
-import { buildPageMetadata } from "@/lib/site";
+import { getSiteLanguageState } from "@/lib/i18n/site";
+import { getPricingCopy } from "@/lib/i18n/marketing-page-copy";
+import { buildLocalizedPageMetadata } from "@/lib/site";
 
-export const metadata = buildPageMetadata({
-  title: "Pricing",
-  description:
-    "Lagun offers a free plan and a Pro plan starting at $14.99/mo. Memory visibility, IM channel access, and relationship continuity are included in both.",
-  path: "/pricing",
-});
+export async function generateMetadata() {
+  return buildLocalizedPageMetadata({
+    title: {
+      en: "Lagun Pricing: Free & Pro AI Companion Plans",
+      "zh-CN": "Lagun 定价：免费版与 Pro AI 伴侣方案",
+    },
+    description: {
+      en: "Lagun offers a free plan and a Pro plan starting at $14.99/mo. Memory visibility, IM channel access, and relationship continuity are included in both.",
+      "zh-CN": "Lagun 提供免费版和起价 $14.99/月 的 Pro 版。两个方案都包含记忆可见性、IM 渠道接入和关系连续性。",
+    },
+    path: "/pricing",
+  });
+}
 
-const FREE_FEATURES = [
-  "Standard text model for companion chat",
-  "Standard image model for companion portraits",
-  "10 image generations per month",
-  "15 audio minutes per month",
-  "Long-memory center with inspect and repair",
-  "IM channel connection (Telegram, WeChat, etc.)",
-];
+export default async function PricingPage() {
+  const { contentLanguage } = await getSiteLanguageState();
+  const copy = getPricingCopy(contentLanguage);
 
-const PRO_FEATURES = [
-  "Premium text model — higher quality responses",
-  "Premium image model — higher quality portraits",
-  "80 image generations per month",
-  "120 audio minutes per month",
-  "Credits for extended image and audio usage",
-  "Everything in Free",
-];
-
-const PRO_CADENCES = [
-  { label: "Monthly", price: "$14.99", period: "/ mo", note: null, badge: null },
-  { label: "Quarterly", price: "$39.99", period: "/ qtr", note: "~$13.33 / mo", badge: "Save 11%" },
-  { label: "Yearly", price: "$99.99", period: "/ yr", note: "~$8.33 / mo", badge: "Save 44%" },
-];
-
-export default function PricingPage() {
   return (
     <SiteShell>
       <PageFrame
-        eyebrow="Pricing"
-        title="One free plan. One Pro plan. No hidden tiers."
-        description="Both plans include long-memory and IM channel access. Pro unlocks premium models and higher monthly allowances."
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        description={copy.description}
       >
         <div className="pricing-plans">
           {/* Free plan */}
           <div className="pricing-plan">
             <div className="pricing-plan-head">
-              <span className="pricing-plan-name">Free</span>
+              <span className="pricing-plan-name">{copy.free}</span>
               <div className="pricing-plan-price">
                 <span className="pricing-price-amount">$0</span>
               </div>
-              <p className="pricing-plan-desc">Start building a relationship. Memory and IM are included at no cost.</p>
+              <p className="pricing-plan-desc">{copy.freeDesc}</p>
             </div>
             <ul className="pricing-feature-list">
-              {FREE_FEATURES.map((f) => (
+              {copy.freeFeatures.map((f) => (
                 <li key={f} className="pricing-feature">
                   <span className="pricing-check">✓</span>
                   <span>{f}</span>
@@ -67,13 +55,13 @@ export default function PricingPage() {
                 payload={{ source: "pricing_free_cta" }}
                 intent="create_companion"
                 labels={{
-                  anonymous: "Start free",
-                  signed_in_empty: "Start free",
-                  signed_in_role_only: "You're on Free",
-                  signed_in_connected: "You're on Free",
+                  anonymous: copy.startFree,
+                  signed_in_empty: copy.startFree,
+                  signed_in_role_only: copy.onFree,
+                  signed_in_connected: copy.onFree,
                 }}
               >
-                Start free
+                {copy.startFree}
               </AdaptiveTrackedLink>
             </div>
           </div>
@@ -82,11 +70,11 @@ export default function PricingPage() {
           <div className="pricing-plan pricing-plan-featured">
             <div className="pricing-plan-head">
               <div className="pricing-plan-name-row">
-                <span className="pricing-plan-name">Pro</span>
-                <span className="pricing-recommended-badge">Recommended</span>
+                <span className="pricing-plan-name">{copy.pro}</span>
+                <span className="pricing-recommended-badge">{copy.recommended}</span>
               </div>
               <div className="pricing-cadence-list">
-                {PRO_CADENCES.map((c) => (
+                {copy.cadences.map((c) => (
                   <div key={c.label} className="pricing-cadence-item">
                     <span className="pricing-cadence-label">{c.label}</span>
                     <div className="pricing-cadence-right">
@@ -98,10 +86,10 @@ export default function PricingPage() {
                   </div>
                 ))}
               </div>
-              <p className="pricing-plan-desc">More model power and higher monthly allowances for an active relationship loop.</p>
+              <p className="pricing-plan-desc">{copy.proDesc}</p>
             </div>
             <ul className="pricing-feature-list">
-              {PRO_FEATURES.map((f) => (
+              {copy.proFeatures.map((f) => (
                 <li key={f} className="pricing-feature">
                   <span className="pricing-check pricing-check-pro">✓</span>
                   <span>{f}</span>
@@ -115,21 +103,21 @@ export default function PricingPage() {
                 payload={{ source: "pricing_pro_cta" }}
                 intent="create_companion"
                 labels={{
-                  anonymous: "Get started",
-                  signed_in_empty: "Create your companion",
-                  signed_in_role_only: "Upgrade to Pro",
-                  signed_in_connected: "Upgrade to Pro",
+                  anonymous: copy.getStarted,
+                  signed_in_empty: copy.createCompanion,
+                  signed_in_role_only: copy.upgrade,
+                  signed_in_connected: copy.upgrade,
                 }}
               >
-                Get started
+                {copy.getStarted}
               </AdaptiveTrackedLink>
             </div>
           </div>
         </div>
 
         <div className="pricing-footnote">
-          <p>All plans include long-memory, IM channel connection, and the web control center. Credits for extended image and audio usage are available on Pro.</p>
-          <Link className="site-inline-link" href="/faq">Common questions about plans and credits →</Link>
+          <p>{copy.footnote}</p>
+          <Link className="site-inline-link" href="/faq">{copy.faq}</Link>
         </div>
       </PageFrame>
     </SiteShell>

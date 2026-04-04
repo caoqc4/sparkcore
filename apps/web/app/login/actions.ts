@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
 
 function getAppUrl() {
@@ -20,6 +21,8 @@ function getSafeNextPath(value: FormDataEntryValue | null) {
 }
 
 export async function signInWithGoogle(formData: FormData) {
+  const { contentLanguage } = await getSiteLanguageState();
+  const isZh = contentLanguage === "zh-CN";
   const next = getSafeNextPath(formData.get("next"));
 
   const supabase = await createClient();
@@ -38,7 +41,7 @@ export async function signInWithGoogle(formData: FormData) {
   if (error || typeof data?.url !== "string" || data.url.length === 0) {
     redirect(
       `/login?error=${encodeURIComponent(
-        error?.message ?? "Unable to start Google sign-in."
+        error?.message ?? (isZh ? "无法开始 Google 登录。" : "Unable to start Google sign-in.")
       )}&next=${encodeURIComponent(next)}`
     );
   }
@@ -47,7 +50,9 @@ export async function signInWithGoogle(formData: FormData) {
 }
 
 export async function signOut() {
+  const { contentLanguage } = await getSiteLanguageState();
+  const isZh = contentLanguage === "zh-CN";
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login?message=Signed+out+successfully.");
+  redirect(`/login?message=${encodeURIComponent(isZh ? "已成功退出登录。" : "Signed out successfully.")}`);
 }

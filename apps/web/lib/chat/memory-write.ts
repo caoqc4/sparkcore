@@ -72,6 +72,21 @@ import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_MODEL = "replicate-llama-3-8b";
 
+export type GenericExtractionCandidate = {
+  memory_type:
+    | "profile"
+    | "preference"
+    | "goal"
+    | "episode"
+    | "mood"
+    | "key_date"
+    | "social";
+  content: string;
+  should_store: boolean;
+  confidence: number;
+  reason: string;
+};
+
 function buildExtractionPrompt({
   latestUserMessage,
   recentContext
@@ -139,7 +154,105 @@ function parseMemoryExtraction(payload: string) {
           candidate.memory_type === "key_date" ||
           candidate.memory_type === "social") &&
         candidate.content.length > 0
-    );
+    ) as GenericExtractionCandidate[];
+}
+
+const DURABLE_MOOD_MARKER_PATTERN =
+  /一直|总是|经常|常常|长期|长时间|这段时间|这阵子|最近都|最近一直|最近总是|持续|反复|老是|每天都|好多天|几周来|几个月来|lately|these days|for weeks|for months|keep feeling|been feeling|always|often|consistently|recurring/i;
+
+const TRANSIENT_MOOD_MARKER_PATTERN =
+  /今天|刚刚|刚才|一下子|一会儿|这会儿|此刻|现在有点|突然|今晚|今早|今天下午|moment|right now|today|tonight|this morning|this afternoon|suddenly|at the moment/i;
+
+const MOOD_SIGNAL_GROUPS = [
+  {
+    id: "anxious",
+    pattern:
+      /焦虑|紧张|不安|担心|慌|压得喘不过气|anxious|anxiety|nervous|worried|panic/i
+  },
+  {
+    id: "sad",
+    pattern: /难过|伤心|低落|沮丧|想哭|sad|down|depressed|upset|heartbroken/i
+  },
+  {
+    id: "tired",
+    pattern: /累|疲惫|乏|没精神|精疲力尽|burned out|burnout|exhausted|tired|drained/i
+  },
+  {
+    id: "angry",
+    pattern: /生气|烦躁|恼火|火大|愤怒|angry|mad|irritated|frustrated/i
+  },
+  {
+    id: "lonely",
+    pattern: /孤单|孤独|寂寞|没人懂|lonely|alone|isolated/i
+  },
+  {
+    id: "stressed",
+    pattern: /压力大|压抑|绷着|stress|stressed|overwhelmed/i
+  },
+  {
+    id: "calm",
+    pattern: /平静|放松|安稳|calm|peaceful|steady/i
+  },
+  {
+    id: "happy",
+    pattern: /开心|高兴|愉快|踏实|happy|glad|content/i
+  }
+] as const;
+
+function detectMoodSignalGroup(text: string) {
+  const normalized = text.normalize("NFKC");
+
+  for (const group of MOOD_SIGNAL_GROUPS) {
+    if (group.pattern.test(normalized)) {
+      return group.id;
+    }
+  }
+
+  return null;
+}
+
+export function isDurableMoodCandidate(args: {
+  candidate: ReturnType<typeof parseMemoryExtraction>[number];
+  latestUserMessage: string;
+  recentContext: ContextMessage[];
+}) {
+  if (args.candidate.memory_type !== "mood") {
+    return true;
+  }
+
+  const latestMessage = args.latestUserMessage.normalize("NFKC").trim();
+  const candidateContent = args.candidate.content.normalize("NFKC").trim();
+  const candidateReason = args.candidate.reason.normalize("NFKC").trim();
+  const combinedText = [latestMessage, candidateContent, candidateReason]
+    .filter((value) => value.length > 0)
+    .join(" ");
+
+  if (DURABLE_MOOD_MARKER_PATTERN.test(combinedText)) {
+    return true;
+  }
+
+  if (TRANSIENT_MOOD_MARKER_PATTERN.test(combinedText)) {
+    return false;
+  }
+
+  const candidateSignal = detectMoodSignalGroup(
+    [candidateContent, latestMessage].join(" ")
+  );
+
+  if (!candidateSignal) {
+    return false;
+  }
+
+  const repeatedUserMentions = [latestMessage]
+    .concat(
+      args.recentContext
+        .filter((message) => message.role === "user")
+        .map((message) => message.content.normalize("NFKC").trim())
+    )
+    .filter((message) => message.length > 0)
+    .filter((message) => detectMoodSignalGroup(message) === candidateSignal);
+
+  return repeatedUserMentions.length >= 2;
 }
 
 export async function planMemoryWriteRequests({
@@ -151,8 +264,32 @@ export async function planMemoryWriteRequests({
   recentContext: ContextMessage[];
   sourceTurnId: string;
 }): Promise<RuntimeMemoryWriteRequest[]> {
+  const result = await planMemoryWriteRequestsWithPlannerInputs({
+    latestUserMessage,
+    recentContext,
+    sourceTurnId
+  });
+
+  return result.requests;
+}
+
+export async function planMemoryWriteRequestsWithPlannerInputs({
+  latestUserMessage,
+  recentContext,
+  sourceTurnId
+}: {
+  latestUserMessage: string;
+  recentContext: ContextMessage[];
+  sourceTurnId: string;
+}): Promise<{
+  requests: RuntimeMemoryWriteRequest[];
+  rejected_generic_candidates: GenericExtractionCandidate[];
+}> {
   if (!shouldAttemptExtraction(latestUserMessage)) {
-    return [];
+    return {
+      requests: [],
+      rejected_generic_candidates: []
+    };
   }
 
   let extraction;
@@ -176,35 +313,61 @@ export async function planMemoryWriteRequests({
       ]
     });
   } catch {
-    return [];
+    return {
+      requests: [],
+      rejected_generic_candidates: []
+    };
   }
 
-  let parsedCandidates: ReturnType<typeof parseMemoryExtraction>;
+  let parsedCandidates: GenericExtractionCandidate[];
 
   try {
     parsedCandidates = parseMemoryExtraction(extraction.content);
   } catch {
-    return [];
+    return {
+      requests: [],
+      rejected_generic_candidates: []
+    };
   }
 
-  const candidates = parsedCandidates
+  const acceptedCandidates = parsedCandidates
     .filter(
       (candidate) =>
         candidate.should_store &&
-        candidate.confidence >= MEMORY_CONFIDENCE_THRESHOLD
+        candidate.confidence >= MEMORY_CONFIDENCE_THRESHOLD &&
+        isDurableMoodCandidate({
+          candidate,
+          latestUserMessage,
+          recentContext
+        })
     )
     .slice(0, 2);
 
-  return candidates.map((candidate) => ({
-    kind: "generic_memory" as const,
-    memory_type: candidate.memory_type,
-    candidate_content: candidate.content,
-    reason: candidate.reason,
-    confidence: Number(candidate.confidence.toFixed(2)),
-    source_turn_id: sourceTurnId,
-    dedupe_key: `${candidate.memory_type}:${normalizeMemoryContent(candidate.content)}`,
-    write_mode: "upsert"
-  }));
+  const acceptedCandidateKeys = new Set(
+    acceptedCandidates.map(
+      (candidate) =>
+        `${candidate.memory_type}:${normalizeMemoryContent(candidate.content)}`
+    )
+  );
+
+  return {
+    requests: acceptedCandidates.map((candidate) => ({
+      kind: "generic_memory" as const,
+      memory_type: candidate.memory_type,
+      candidate_content: candidate.content,
+      reason: candidate.reason,
+      confidence: Number(candidate.confidence.toFixed(2)),
+      source_turn_id: sourceTurnId,
+      dedupe_key: `${candidate.memory_type}:${normalizeMemoryContent(candidate.content)}`,
+      write_mode: "upsert"
+    })),
+    rejected_generic_candidates: parsedCandidates.filter(
+      (candidate) =>
+        !acceptedCandidateKeys.has(
+          `${candidate.memory_type}:${normalizeMemoryContent(candidate.content)}`
+        )
+    )
+  };
 }
 
 function shouldAttemptExtraction(message: string) {

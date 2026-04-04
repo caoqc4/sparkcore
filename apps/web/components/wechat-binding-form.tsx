@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FormSubmitButton } from "@/components/form-submit-button";
+import type { AppLanguage } from "@/lib/i18n/site";
 
 type WeChatBindingFormProps = {
   agentId: string;
@@ -9,6 +10,7 @@ type WeChatBindingFormProps = {
   threadId: string;
   hasExistingBinding?: boolean;
   sessionStatus?: "pending" | "active" | "expired" | "revoked" | null;
+  language?: AppLanguage;
 };
 
 export function WeChatBindingForm({
@@ -16,8 +18,10 @@ export function WeChatBindingForm({
   characterChannelSlug,
   threadId,
   hasExistingBinding = false,
-  sessionStatus = null
+  sessionStatus = null,
+  language = "en",
 }: WeChatBindingFormProps) {
+  const isZh = language === "zh-CN";
   const containerRef = useRef<HTMLDivElement | null>(null);
   const statusNoticeRef = useRef<HTMLDivElement | null>(null);
   const autoSubmitButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -52,21 +56,21 @@ export function WeChatBindingForm({
   const loginStatusLabel = useMemo(() => {
     switch (loginStatus) {
       case "starting":
-        return "Preparing your WeChat QR page...";
+        return isZh ? "正在准备微信二维码页面..." : "Preparing your WeChat QR page...";
       case "qr_ready":
-        return "QR page is ready. Scan it in WeChat, then come back here.";
+        return isZh ? "二维码页面已准备好。请在微信中扫码，然后回到这里。" : "QR page is ready. Scan it in WeChat, then come back here.";
       case "scanned":
-        return "Scan confirmed. Finish the confirmation in WeChat.";
+        return isZh ? "已确认扫码。请在微信中完成确认。" : "Scan confirmed. Finish the confirmation in WeChat.";
       case "connected":
-        return "WeChat login is ready. Now send the bot any message to get your IDs.";
+        return isZh ? "微信登录已就绪。现在给机器人发送任意消息以获取你的 ID。" : "WeChat login is ready. Now send the bot any message to get your IDs.";
       case "identity_ready":
-        return "WeChat IDs found. Lagun is saving this connection now.";
+        return isZh ? "已获取微信 ID，Lagun 正在为你保存连接。" : "WeChat IDs found. Lagun is saving this connection now.";
       case "timed_out":
-        return "Still waiting for your first WeChat message. You can keep waiting or restart the login flow.";
+        return isZh ? "仍在等待你的第一条微信消息。你可以继续等待，或重新开始登录流程。" : "Still waiting for your first WeChat message. You can keep waiting or restart the login flow.";
       case "error":
-        return loginError ?? "WeChat login failed. Please try again.";
+        return loginError ?? (isZh ? "微信登录失败，请重试。" : "WeChat login failed. Please try again.");
       default:
-        return "Click the button below to start the WeChat login flow.";
+        return isZh ? "点击下方按钮开始微信登录流程。" : "Click the button below to start the WeChat login flow.";
     }
   }, [loginError, loginStatus]);
 
@@ -183,7 +187,9 @@ export function WeChatBindingForm({
 
     if (popupRef.current && !popupRef.current.closed) {
       popupRef.current.document.write(
-        "<title>Preparing WeChat QR</title><p style='font-family:system-ui;padding:24px'>Preparing the WeChat QR page...</p>"
+        isZh
+          ? "<title>准备微信二维码</title><p style='font-family:system-ui;padding:24px'>正在准备微信二维码页面...</p>"
+          : "<title>Preparing WeChat QR</title><p style='font-family:system-ui;padding:24px'>Preparing the WeChat QR page...</p>"
       );
     }
 
@@ -198,7 +204,7 @@ export function WeChatBindingForm({
       };
 
       if (!response.ok || !payload.attemptId) {
-        throw new Error(payload.error || "Unable to start WeChat login.");
+        throw new Error(payload.error || (isZh ? "无法启动微信登录。" : "Unable to start WeChat login."));
       }
 
       setLoginAttemptId(payload.attemptId);
@@ -228,12 +234,15 @@ export function WeChatBindingForm({
       {/* Already-active notice sits above the button so users see it first */}
       {isConnectedIdle ? (
         <div className="notice notice-success">
-          Your WeChat session is already active. If this connection stops working later, use
-          the button below to reconnect.
+          {isZh
+            ? "你的微信会话已经处于激活状态。如果之后连接失效，可以用下面的按钮重新连接。"
+            : "Your WeChat session is already active. If this connection stops working later, use the button below to reconnect."}
         </div>
       ) : shouldShowExpiredNotice ? (
         <div className="notice notice-error">
-          Your previous WeChat session expired. Start the login flow again to reconnect.
+          {isZh
+            ? "你之前的微信会话已过期。请重新开始登录流程以恢复连接。"
+            : "Your previous WeChat session expired. Start the login flow again to reconnect."}
         </div>
       ) : null}
 
@@ -245,13 +254,13 @@ export function WeChatBindingForm({
         >
           {loginStatus === "idle"
             ? isConnectedIdle
-              ? "Reconnect WeChat"
-              : "Start WeChat Login"
+              ? isZh ? "重新连接微信" : "Reconnect WeChat"
+              : isZh ? "开始微信登录" : "Start WeChat Login"
             : loginStatus === "starting"
-              ? "Opening QR Page..."
+              ? isZh ? "正在打开二维码页面..." : "Opening QR Page..."
               : loginStatus === "connected" || loginStatus === "identity_ready" || loginStatus === "timed_out"
-                ? "Restart WeChat Login"
-                : "Try Again"}
+                ? isZh ? "重新开始微信登录" : "Restart WeChat Login"
+                : isZh ? "重试" : "Try Again"}
         </button>
         {qrUrl ? (
           <a
@@ -260,26 +269,28 @@ export function WeChatBindingForm({
             rel="noopener noreferrer"
             target="_blank"
           >
-            Open QR Page Again
+            {isZh ? "再次打开二维码页面" : "Open QR Page Again"}
           </a>
         ) : null}
       </div>
 
       {sessionStatus === "pending" ? (
         <div className="notice notice-success">
-          Your WeChat login session is ready. Send the bot any message so Lagun can capture the
-          session IDs and finish the binding.
+          {isZh
+            ? "你的微信登录会话已就绪。给机器人发送任意消息，Lagun 就能获取会话 ID 并完成绑定。"
+            : "Your WeChat login session is ready. Send the bot any message so Lagun can capture the session IDs and finish the binding."}
         </div>
       ) : null}
 
       {loginStatus === "identity_ready" ? (
         <div className="notice notice-success" ref={statusNoticeRef}>
-          WeChat IDs found. Lagun is confirming this connection for you now.
+          {isZh ? "已获取微信 ID，Lagun 正在为你确认这个连接。" : "WeChat IDs found. Lagun is confirming this connection for you now."}
         </div>
       ) : loginStatus === "timed_out" ? (
         <div className="notice notice-error" ref={statusNoticeRef}>
-          Still waiting for your first WeChat message. Send the bot any message, or restart the
-          login flow.
+          {isZh
+            ? "仍在等待你的第一条微信消息。给机器人发送任意消息，或重新开始登录流程。"
+            : "Still waiting for your first WeChat message. Send the bot any message, or restart the login flow."}
         </div>
       ) : null}
 
@@ -288,18 +299,18 @@ export function WeChatBindingForm({
       ) : null}
 
       <div className="connect-im-or-divider">
-        <span>or enter IDs manually</span>
+        <span>{isZh ? "或手动输入 ID" : "or enter IDs manually"}</span>
       </div>
 
       <div className="field">
         <label className="label" htmlFor="channel_id">
-          WeChat Session ID
+          {isZh ? "微信会话 ID" : "WeChat Session ID"}
         </label>
         <input
           className="input"
           id="channel_id"
           name="channel_id"
-          placeholder="Paste the WeChat session ID"
+          placeholder={isZh ? "粘贴微信会话 ID" : "Paste the WeChat session ID"}
           value={channelId}
           onChange={(event) => setChannelId(event.target.value)}
         />
@@ -307,7 +318,7 @@ export function WeChatBindingForm({
 
       <div className="field">
         <label className="label" htmlFor="peer_id">
-          WeChat User ID
+          {isZh ? "微信用户 ID" : "WeChat User ID"}
         </label>
         <input
           className="input"
@@ -318,7 +329,7 @@ export function WeChatBindingForm({
             setPeerId(nextValue);
             setPlatformUserId(nextValue);
           }}
-          placeholder="Paste the WeChat from_user_id"
+          placeholder={isZh ? "粘贴微信 from_user_id" : "Paste the WeChat from_user_id"}
           value={peerId}
         />
       </div>
@@ -331,14 +342,14 @@ export function WeChatBindingForm({
         tabIndex={-1}
         type="submit"
       >
-        Auto submit WeChat binding
+        {isZh ? "自动提交微信绑定" : "Auto submit WeChat binding"}
       </button>
 
       <FormSubmitButton
         eventName="im_bind_started"
         eventPayload={{ platform: "wechat", surface: "connect_im" }}
-        idleText={hasExistingBinding ? "Update connection" : "Connect WeChat"}
-        pendingText={isAutoSubmitting ? "Confirming WeChat..." : "Saving..."}
+        idleText={hasExistingBinding ? (isZh ? "更新连接" : "Update connection") : isZh ? "连接微信" : "Connect WeChat"}
+        pendingText={isAutoSubmitting ? (isZh ? "正在确认微信..." : "Confirming WeChat...") : isZh ? "保存中..." : "Saving..."}
       />
     </div>
   );

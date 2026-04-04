@@ -346,6 +346,7 @@ export function getChatCopy(locale: ChatLocale) {
         summaryNote:
           "这里只解释当前回合，不会改写旧回复。",
         messageLabel: "消息",
+        messageRequired: "先输入消息再发送。",
         placeholderFirstTurn: "用一个目标、问题或规划场景开始这条线程……",
         placeholderOngoing: "在当前线程里发送一条消息……",
         firstTurnFooter:
@@ -353,6 +354,7 @@ export function getChatCopy(locale: ChatLocale) {
         ongoingFooter:
           "这个线程会一直绑定到同一个 agent 实例。发送消息时，反馈会保持在当前线程内，也会在 pending 期间避免重复提交。",
         sendMessage: "发送消息",
+        playbackFailed: "播放失败。",
         failureTimedOut: "回复超时",
         failureProvider: "模型提供方错误",
         failureGeneric: "回复失败",
@@ -710,6 +712,7 @@ export function getChatCopy(locale: ChatLocale) {
       summaryNote:
         "This only explains the current turn. It does not rewrite older replies.",
       messageLabel: "Message",
+      messageRequired: "Type a message before sending.",
       placeholderFirstTurn:
         "Start the thread with a goal, question, or planning problem...",
       placeholderOngoing: "Send a message into the active thread...",
@@ -718,6 +721,7 @@ export function getChatCopy(locale: ChatLocale) {
       ongoingFooter:
         "This thread stays bound to one agent instance. Sending a message will keep feedback local to the active thread and avoid duplicate submits while pending.",
       sendMessage: "Send message",
+      playbackFailed: "Playback failed.",
       failureTimedOut: "Reply timed out",
       failureProvider: "Provider error",
       failureGeneric: "Reply failed",

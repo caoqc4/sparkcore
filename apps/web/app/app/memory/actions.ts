@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
 import { classifyStoredMemorySemanticTarget } from "@/lib/chat/memory-records";
 import {
@@ -41,12 +42,30 @@ function redirectWithMessage(
   );
 }
 
+async function getMemoryActionCopy() {
+  const { effectiveSystemLanguage } = await getSiteLanguageState();
+  const isZh = effectiveSystemLanguage === "zh-CN";
+  return {
+    missingHide: isZh ? "无法确定要隐藏的记忆。" : "The memory to hide could not be determined.",
+    unavailable: isZh ? "所选记忆不可用。" : "The selected memory is unavailable.",
+    cannotHide: isZh ? "当前状态下无法隐藏这条记忆。" : "This memory cannot be hidden from its current state.",
+    hidden: isZh ? "记忆已从召回中隐藏。" : "Memory hidden from recall.",
+    missingCorrect: isZh ? "无法确定要纠正的记忆。" : "The memory to correct could not be determined.",
+    cannotIncorrect: isZh ? "当前状态下无法把这条记忆标记为错误。" : "This memory cannot be marked incorrect from its current state.",
+    incorrect: isZh ? "记忆已标记为错误，并从召回中移除。" : "Memory marked incorrect and removed from recall.",
+    missingRestore: isZh ? "无法确定要恢复的记忆。" : "The memory to restore could not be determined.",
+    cannotRestore: isZh ? "当前状态下无法恢复这条记忆。" : "This memory cannot be restored from its current state.",
+    restored: isZh ? "记忆已恢复到召回中。" : "Memory restored to recall.",
+  };
+}
+
 export async function hideProductMemory(formData: FormData) {
+  const copy = await getMemoryActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/memory");
   const memoryId = formData.get("memory_id");
 
   if (typeof memoryId !== "string" || memoryId.trim().length === 0) {
-    redirectWithMessage(redirectPath, "The memory to hide could not be determined.", "error");
+    redirectWithMessage(redirectPath, copy.missingHide, "error");
   }
   const memoryItemId = memoryId;
 
@@ -67,13 +86,13 @@ export async function hideProductMemory(formData: FormData) {
   });
 
   if (!memoryItem) {
-    redirectWithMessage(redirectPath, "The selected memory is unavailable.", "error");
+    redirectWithMessage(redirectPath, copy.unavailable, "error");
   }
 
   if (!canTransitionMemoryStatus(getMemoryStatus(memoryItem), "hidden")) {
     redirectWithMessage(
       redirectPath,
-      "This memory cannot be hidden from its current state.",
+      copy.cannotHide,
       "error"
     );
   }
@@ -102,17 +121,18 @@ export async function hideProductMemory(formData: FormData) {
   revalidatePath("/app/role");
   revalidatePath("/app/settings");
   revalidatePath("/chat");
-  redirectWithMessage(redirectPath, "Memory hidden from recall.", "success");
+  redirectWithMessage(redirectPath, copy.hidden, "success");
 }
 
 export async function markProductMemoryIncorrect(formData: FormData) {
+  const copy = await getMemoryActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/memory");
   const memoryId = formData.get("memory_id");
 
   if (typeof memoryId !== "string" || memoryId.trim().length === 0) {
     redirectWithMessage(
       redirectPath,
-      "The memory to correct could not be determined.",
+      copy.missingCorrect,
       "error"
     );
   }
@@ -135,13 +155,13 @@ export async function markProductMemoryIncorrect(formData: FormData) {
   });
 
   if (!memoryItem) {
-    redirectWithMessage(redirectPath, "The selected memory is unavailable.", "error");
+    redirectWithMessage(redirectPath, copy.unavailable, "error");
   }
 
   if (!canTransitionMemoryStatus(getMemoryStatus(memoryItem), "incorrect")) {
     redirectWithMessage(
       redirectPath,
-      "This memory cannot be marked incorrect from its current state.",
+      copy.cannotIncorrect,
       "error"
     );
   }
@@ -174,19 +194,20 @@ export async function markProductMemoryIncorrect(formData: FormData) {
   revalidatePath("/chat");
   redirectWithMessage(
     redirectPath,
-    "Memory marked incorrect and removed from recall.",
+    copy.incorrect,
     "success"
   );
 }
 
 export async function restoreProductMemory(formData: FormData) {
+  const copy = await getMemoryActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/memory");
   const memoryId = formData.get("memory_id");
 
   if (typeof memoryId !== "string" || memoryId.trim().length === 0) {
     redirectWithMessage(
       redirectPath,
-      "The memory to restore could not be determined.",
+      copy.missingRestore,
       "error"
     );
   }
@@ -210,13 +231,13 @@ export async function restoreProductMemory(formData: FormData) {
   });
 
   if (!memoryItem) {
-    redirectWithMessage(redirectPath, "The selected memory is unavailable.", "error");
+    redirectWithMessage(redirectPath, copy.unavailable, "error");
   }
 
   if (!canTransitionMemoryStatus(getMemoryStatus(memoryItem), "active")) {
     redirectWithMessage(
       redirectPath,
-      "This memory cannot be restored from its current state.",
+      copy.cannotRestore,
       "error"
     );
   }
@@ -303,5 +324,5 @@ export async function restoreProductMemory(formData: FormData) {
   revalidatePath("/app/role");
   revalidatePath("/app/settings");
   revalidatePath("/chat");
-  redirectWithMessage(redirectPath, "Memory restored to recall.", "success");
+  redirectWithMessage(redirectPath, copy.restored, "success");
 }

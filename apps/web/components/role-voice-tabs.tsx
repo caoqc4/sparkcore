@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import type { AppLanguage } from "@/lib/i18n/site";
 
 type VoiceAsset = {
   id: string;
@@ -25,12 +26,15 @@ export function RoleVoiceTabs({
   selectedAssetId,
   currentPlanSlug,
   upgradeHref,
+  language = "en",
 }: {
   groups: RoleVoiceGroup[];
   selectedAssetId: string | null;
   currentPlanSlug: "free" | "pro";
   upgradeHref: string;
+  language?: AppLanguage;
 }) {
+  const isZh = language === "zh-CN";
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(
     () =>
@@ -80,7 +84,7 @@ export function RoleVoiceTabs({
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? "Preview failed.");
+        throw new Error(payload?.error ?? (isZh ? "试听失败。" : "Preview failed."));
       }
 
       const blob = await response.blob();
@@ -101,7 +105,7 @@ export function RoleVoiceTabs({
       audioRef.current.src = objectUrl;
       await audioRef.current.play();
     } catch (error) {
-      setPreviewError(error instanceof Error ? error.message : "Preview failed.");
+      setPreviewError(error instanceof Error ? error.message : isZh ? "试听失败。" : "Preview failed.");
       setPreviewingAssetId(null);
     }
   }
@@ -131,7 +135,7 @@ export function RoleVoiceTabs({
           >
             <span className="role-voice-tab-label">{group.modelDisplayName}</span>
             <span className={`role-voice-tab-tier tier-${group.tier}`}>
-              {group.tier === "free" ? "Free" : "Pro"}
+              {group.tier === "free" ? (isZh ? "免费" : "Free") : "Pro"}
             </span>
           </button>
         ))}
@@ -191,10 +195,10 @@ export function RoleVoiceTabs({
                 {asset.genderPresentation ? (
                   <span className={`role-voice-gender-tag gender-${asset.genderPresentation}`}>
                     {asset.genderPresentation === "female"
-                      ? "♀ Female"
+                      ? isZh ? "♀ 女声" : "♀ Female"
                       : asset.genderPresentation === "male"
-                        ? "♂ Male"
-                        : "◈ Neutral"}
+                        ? isZh ? "♂ 男声" : "♂ Male"
+                        : isZh ? "◈ 中性" : "◈ Neutral"}
                   </span>
                 ) : null}
                 {isLocked ? <span className="role-voice-lock-badge">Pro</span> : null}
@@ -211,7 +215,7 @@ export function RoleVoiceTabs({
                   type="button"
                   className="role-voice-preview-btn"
                   disabled={asset.provider !== "Azure" && asset.provider !== "ElevenLabs"}
-                  aria-label="Preview voice"
+                  aria-label={isZh ? "试听语音" : "Preview voice"}
                   onClick={(event) => {
                     event.preventDefault();
                     void handlePreview(asset);
@@ -226,7 +230,7 @@ export function RoleVoiceTabs({
                   >
                     <polygon points="0,0 10,6 0,12" />
                   </svg>
-                  {previewingAssetId === asset.id ? "Stop" : "Preview"}
+                  {previewingAssetId === asset.id ? (isZh ? "停止" : "Stop") : isZh ? "试听" : "Preview"}
                 </button>
               </label>
             )})}
@@ -251,10 +255,10 @@ export function RoleVoiceTabs({
           >
             <div className="settings-upgrade-head">
               <h3 className="settings-upgrade-title" id="role-audio-upgrade-title">
-                Upgrade to use {upgradeGroupLabel} voices
+                {isZh ? `升级后可使用 ${upgradeGroupLabel} 语音` : `Upgrade to use ${upgradeGroupLabel} voices`}
               </h3>
               <button
-                aria-label="Close"
+                aria-label={isZh ? "关闭" : "Close"}
                 className="settings-upgrade-close"
                 onClick={() => setUpgradeGroupLabel(null)}
                 type="button"
@@ -263,18 +267,18 @@ export function RoleVoiceTabs({
               </button>
             </div>
             <p className="settings-upgrade-copy">
-              These voices are available on the Pro plan.
+              {isZh ? "这些语音仅在 Pro 方案中可用。" : "These voices are available on the Pro plan."}
             </p>
             <div className="settings-upgrade-actions">
               <button className="button button-primary" onClick={handleUpgradeView} type="button">
-                View Pro plan
+                {isZh ? "查看 Pro 方案" : "View Pro plan"}
               </button>
               <button
                 className="button button-secondary"
                 onClick={() => setUpgradeGroupLabel(null)}
                 type="button"
               >
-                Cancel
+                {isZh ? "取消" : "Cancel"}
               </button>
             </div>
           </div>

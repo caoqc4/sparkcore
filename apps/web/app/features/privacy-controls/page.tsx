@@ -1,39 +1,36 @@
 import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
-import { buildPageMetadata } from "@/lib/site";
+import { getSiteLanguageState } from "@/lib/i18n/site";
+import { getPrivacyControlsFeatureCopy } from "@/lib/i18n/marketing-page-copy";
+import { buildLocalizedPageMetadata } from "@/lib/site";
 
-export const metadata = buildPageMetadata({
-  title: "Privacy Controls for Long-Memory AI Companion Products",
-  description:
-    "Lagun privacy controls focus on visible memory, explicit boundaries, and channel awareness so companion continuity stays inspectable.",
-  path: "/features/privacy-controls"
-});
+export async function generateMetadata() {
+  return buildLocalizedPageMetadata({
+    title: {
+      en: "Privacy Controls for Long-Memory AI Companion Products",
+      "zh-CN": "面向长期记忆 AI 伴侣产品的隐私控制",
+    },
+    description: {
+      en: "Lagun privacy controls focus on visible memory, explicit boundaries, and channel awareness so companion continuity stays inspectable.",
+      "zh-CN": "Lagun 的隐私控制重点在于可见记忆、明确边界和渠道感知，让伴侣连续性保持可检查。",
+    },
+    path: "/features/privacy-controls"
+  });
+}
 
-export default function PrivacyControlsFeaturePage() {
+export default async function PrivacyControlsFeaturePage() {
+  const { contentLanguage } = await getSiteLanguageState();
+  const copy = getPrivacyControlsFeatureCopy(contentLanguage);
+
   return (
     <SiteShell>
       <PageFrame
-        eyebrow="Feature"
-        title="Privacy controls start with visible memory and explicit boundaries."
-        description="Lagun should not ask people to trust hidden retention rules. The first layer of privacy is making memory, trace, and channel boundaries visible enough to inspect and repair."
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        description={copy.description}
       >
-        <FeatureCardGrid
-          items={[
-            {
-              title: "Visible, not opaque",
-              body: "Users can see what long-term memory exists instead of treating privacy as a vague promise behind the scenes."
-            },
-            {
-              title: "Corrective controls",
-              body: "Hide, mark incorrect, and restore actions help repair remembered state without pretending the system is immutable."
-            },
-            {
-              title: "Channel boundary awareness",
-              body: "The product shows which IM channels are attached to the relationship so users can understand where continuity is entering from."
-            }
-          ]}
-        />
+        <FeatureCardGrid items={copy.items} />
         <div className="toolbar">
           <AdaptiveTrackedLink
             className="button"
@@ -41,13 +38,13 @@ export default function PrivacyControlsFeaturePage() {
             payload={{ source: "feature_privacy_create" }}
             intent="privacy_action"
             labels={{
-              anonymous: "Create your companion",
-              signed_in_empty: "Create your first role",
-              signed_in_role_only: "Open settings",
-              signed_in_connected: "Open settings"
+              anonymous: copy.create,
+              signed_in_empty: copy.firstRole,
+              signed_in_role_only: copy.secondary,
+              signed_in_connected: copy.secondary
             }}
           >
-            Create your companion
+            {copy.create}
           </AdaptiveTrackedLink>
           <TrackedLink
             className="button button-secondary"
@@ -55,7 +52,7 @@ export default function PrivacyControlsFeaturePage() {
             href="/ai-girlfriend"
             payload={{ source: "feature_privacy_girlfriend" }}
           >
-            Explore AI girlfriend
+            {copy.tertiary}
           </TrackedLink>
         </div>
       </PageFrame>

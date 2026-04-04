@@ -42,4 +42,7 @@ export type SmokeAssistantMetadataInput = {
   hiddenExclusionCount: number;
   incorrectExclusionCount: number;
   createdTypes: string[];
+  plannerPreviewMetadata?: Record<string, unknown> | null;
+  relationshipRecallMetadata?: Record<string, unknown> | null;
+  runtimeMemoryUsageMetadata?: Record<string, unknown> | null;
 };

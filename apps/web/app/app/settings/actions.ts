@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   DEFAULT_PRODUCT_APP_SETTINGS,
@@ -124,6 +125,31 @@ function redirectWithMessage(
   );
 }
 
+async function getSettingsActionCopy() {
+  const { effectiveSystemLanguage } = await getSiteLanguageState();
+  const isZh = effectiveSystemLanguage === "zh-CN";
+  return {
+    appSaved: isZh ? "应用偏好已保存。" : "App preferences saved.",
+    noPlan: isZh ? "无法为当前账户解析有效的订阅方案。" : "No active billing plan could be resolved for this account.",
+    modelNotAllowed: (capabilityType: string) =>
+      isZh ? `${capabilityType === "text" ? "文本" : "图像"}模型选择不被允许。` : `Model selection is not allowed for ${capabilityType}.`,
+    modelUnavailableOnPlan: (capabilityType: string) =>
+      isZh ? `当前方案不可用所选${capabilityType === "text" ? "文本" : "图像"}模型。` : `The selected ${capabilityType} model is not available on your current plan.`,
+    modelNotReady: isZh ? "这个模型暂时不可用。" : "This model is not available yet.",
+    upgradeToUseModel: (planLabel: string, capabilityType: string) =>
+      isZh
+        ? `升级到 ${planLabel === "Free" ? "Pro" : planLabel} 后可使用所选${capabilityType === "text" ? "文本" : "图像"}模型。`
+        : `Upgrade to ${planLabel === "Free" ? "Pro" : planLabel} to use the selected ${capabilityType} model.`,
+    modelSaved: isZh ? "模型设置已保存。" : "Model settings saved.",
+    privacySaved: isZh ? "隐私设置已保存。" : "Privacy settings saved.",
+    subscriptionSaved: isZh ? "订阅快照已保存。" : "Subscription snapshot saved.",
+    signedOutAll: isZh ? "已在所有设备上退出登录。" : "Signed out on all devices.",
+    deleteAuditFailed: isZh ? "无法记录账户删除审计。" : "Unable to record account deletion audit.",
+    accountDeleted: isZh ? "账户已删除。" : "Account deleted.",
+    exportGenerated: isZh ? "已为当前账户生成产品数据导出快照。" : "A product data export snapshot has been generated for this account.",
+  };
+}
+
 async function requireUserForSettings(redirectPath: string) {
   const supabase = await createClient();
   const {
@@ -144,10 +170,11 @@ function revalidateSettingsSurfaces() {
 }
 
 export async function saveProductAppSettings(formData: FormData) {
+  const copy = await getSettingsActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/settings");
   const { supabase, user } = await requireUserForSettings(redirectPath);
   const theme = coerceTheme(normalizeText(formData.get("theme")));
-  const interfaceLanguage = coerceLanguage(normalizeText(formData.get("interface_language")));
+  const requestedInterfaceLanguage = normalizeText(formData.get("interface_language"));
   const notificationsEnabled = formData.get("notifications_enabled") === "true";
   const log = await insertProductSettingsOperationLog({
     supabase,
@@ -156,6 +183,16 @@ export async function saveProductAppSettings(formData: FormData) {
     status: "started",
     metadata: { redirect_path: redirectPath }
   });
+
+  const { data: existingSettings } = await supabase
+    .from("user_app_settings")
+    .select("interface_language")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const interfaceLanguage = requestedInterfaceLanguage
+    ? coerceLanguage(requestedInterfaceLanguage)
+    : existingSettings?.interface_language ?? DEFAULT_PRODUCT_APP_SETTINGS.interfaceLanguage;
 
   const { error } = await supabase.from("user_app_settings").upsert(
     {
@@ -192,10 +229,11 @@ export async function saveProductAppSettings(formData: FormData) {
   });
 
   revalidateSettingsSurfaces();
-  redirectWithMessage(redirectPath, "App preferences saved.", "success");
+  redirectWithMessage(redirectPath, copy.appSaved, "success");
 }
 
 export async function saveProductModelSettings(formData: FormData) {
+  const copy = await getSettingsActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/settings");
   const { supabase, user } = await requireUserForSettings(redirectPath);
   const customApiKeyPresent = formData.get("custom_api_key_present") === "true";
@@ -241,13 +279,9 @@ export async function saveProductModelSettings(formData: FormData) {
       logId: log.id,
       userId: user.id,
       status: "failed",
-      metadata: { error: "No active billing plan could be resolved for this account." }
+      metadata: { error: copy.noPlan }
     });
-    redirectWithMessage(
-      redirectPath,
-      "No active billing plan could be resolved for this account.",
-      "error"
-    );
+    redirectWithMessage(redirectPath, copy.noPlan, "error");
   }
 
   function resolveCatalogAccessLevel(tier: "free" | "pro", planSlug: string) {
@@ -279,7 +313,7 @@ export async function saveProductModelSettings(formData: FormData) {
         userId: user.id,
         status: "failed",
         metadata: {
-          error: `Model selection is not allowed for ${item.capabilityType}.`,
+          error: copy.modelNotAllowed(item.capabilityType),
           requested_model_slug: item.slug,
           capability_type: item.capabilityType,
           plan_slug: currentPlanSlug
@@ -287,13 +321,13 @@ export async function saveProductModelSettings(formData: FormData) {
       });
       redirectWithMessage(
         redirectPath,
-        `The selected ${item.capabilityType} model is not available on your current plan.`,
+        copy.modelUnavailableOnPlan(item.capabilityType),
         "error"
       );
     }
 
     if (catalogItem.uiStatus !== "active") {
-      const statusLabel = catalogItem.statusLabel ?? "This model is not available yet.";
+      const statusLabel = catalogItem.statusLabel ?? copy.modelNotReady;
 
       await updateProductSettingsOperationLog({
         supabase,
@@ -314,9 +348,7 @@ export async function saveProductModelSettings(formData: FormData) {
 
     if (accessLevel !== "included") {
       const planLabel = currentPlan.name || currentPlan.slug || "Pro";
-      const upgradeMessage = `Upgrade to ${
-        planLabel === "Free" ? "Pro" : planLabel
-      } to use the selected ${item.capabilityType} model.`;
+      const upgradeMessage = copy.upgradeToUseModel(planLabel, item.capabilityType);
 
       await updateProductSettingsOperationLog({
         supabase,
@@ -378,10 +410,11 @@ export async function saveProductModelSettings(formData: FormData) {
   });
 
   revalidateSettingsSurfaces();
-  redirectWithMessage(redirectPath, "Model settings saved.", "success");
+  redirectWithMessage(redirectPath, copy.modelSaved, "success");
 }
 
 export async function saveProductDataPrivacySettings(formData: FormData) {
+  const copy = await getSettingsActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/settings");
   const { supabase, user } = await requireUserForSettings(redirectPath);
   const memoryRetentionPolicy = coerceMemoryRetentionPolicy(
@@ -429,10 +462,11 @@ export async function saveProductDataPrivacySettings(formData: FormData) {
   });
 
   revalidateSettingsSurfaces();
-  redirectWithMessage(redirectPath, "Privacy settings saved.", "success");
+  redirectWithMessage(redirectPath, copy.privacySaved, "success");
 }
 
 export async function saveProductSubscriptionSnapshot(formData: FormData) {
+  const copy = await getSettingsActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/settings");
   const { supabase, user } = await requireUserForSettings(redirectPath);
   const planName = normalizeText(formData.get("plan_name")) || null;
@@ -488,10 +522,11 @@ export async function saveProductSubscriptionSnapshot(formData: FormData) {
   });
 
   revalidateSettingsSurfaces();
-  redirectWithMessage(redirectPath, "Subscription snapshot saved.", "success");
+  redirectWithMessage(redirectPath, copy.subscriptionSaved, "success");
 }
 
 export async function signOutAllProductSessions(formData: FormData) {
+  const copy = await getSettingsActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/settings");
   const { supabase, user } = await requireUserForSettings(redirectPath);
   const log = await insertProductSettingsOperationLog({
@@ -522,10 +557,11 @@ export async function signOutAllProductSessions(formData: FormData) {
     metadata: { signed_out_scope: "global" }
   });
 
-  redirect("/login?message=Signed+out+on+all+devices.");
+  redirect(`/login?message=${encodeURIComponent(copy.signedOutAll)}`);
 }
 
 export async function deleteCurrentProductAccount(formData: FormData) {
+  const copy = await getSettingsActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/settings");
   const { supabase, user } = await requireUserForSettings(redirectPath);
   const admin = createAdminClient();
@@ -563,10 +599,10 @@ export async function deleteCurrentProductAccount(formData: FormData) {
       userId: user.id,
       status: "failed",
       metadata: {
-        error: auditInsertError?.message ?? "Unable to record account deletion audit."
+        error: auditInsertError?.message ?? copy.deleteAuditFailed
       }
     });
-    redirectWithMessage(redirectPath, auditInsertError?.message ?? "Unable to record account deletion audit.", "error");
+    redirectWithMessage(redirectPath, auditInsertError?.message ?? copy.deleteAuditFailed, "error");
   }
 
   const { error } = await admin.auth.admin.deleteUser(user.id);
@@ -619,10 +655,11 @@ export async function deleteCurrentProductAccount(formData: FormData) {
   });
 
   await supabase.auth.signOut({ scope: "global" });
-  redirect("/login?message=Account+deleted.");
+  redirect(`/login?message=${encodeURIComponent(copy.accountDeleted)}`);
 }
 
 export async function exportCurrentProductData(formData: FormData) {
+  const copy = await getSettingsActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/settings");
   const { supabase, user } = await requireUserForSettings(redirectPath);
   const log = await insertProductSettingsOperationLog({
@@ -666,7 +703,7 @@ export async function exportCurrentProductData(formData: FormData) {
   revalidateSettingsSurfaces();
   redirectWithMessage(
     redirectPath,
-    "A product data export snapshot has been generated for this account.",
+    copy.exportGenerated,
     "success"
   );
 }

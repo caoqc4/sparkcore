@@ -4,6 +4,7 @@ import { ProductConsoleShell } from "@/components/product-console-shell";
 import { ProductEventTracker } from "@/components/product-event-tracker";
 import { SupplementaryChatThread } from "@/components/supplementary-chat-thread";
 import { requireUser } from "@/lib/auth-redirect";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { loadCurrentProductPlanSlug } from "@/lib/product/billing";
 import { resolveProductAppRoute } from "@/lib/product/route-resolution";
@@ -27,6 +28,8 @@ export default async function AppChatPage({
   const params = await searchParams;
   const user = await requireUser("/app/chat");
   const supabase = await createClient();
+  const { effectiveSystemLanguage } = await getSiteLanguageState();
+  const isZh = effectiveSystemLanguage === "zh-CN";
   const roleId =
     typeof params.role === "string" && params.role.length > 0
       ? params.role
@@ -64,23 +67,28 @@ export default async function AppChatPage({
   // Empty state — no role or thread yet
   if (!data.thread || !data.role) {
     return (
-      <ProductConsoleShell
-        actions={
-          <Link className="button site-action-link" href="/create">
-            Create companion
+        <ProductConsoleShell
+          actions={
+            <Link className="button site-action-link" href="/create">
+            {isZh ? "创建伴侣" : "Create companion"}
           </Link>
         }
         currentHref="/app/chat"
-        description="Create a companion first, then come back here to continue the relationship."
-        eyebrow="Chat"
+        description={
+          isZh
+            ? "先创建一位伴侣，再回到这里继续这段关系。"
+            : "Create a companion first, then come back here to continue the relationship."
+        }
+        eyebrow={isZh ? "聊天" : "Chat"}
         shellContext={overview}
-        title="No conversation yet."
+        title={isZh ? "还没有对话。" : "No conversation yet."}
       >
         <div className="product-empty-state">
-          <strong>No companion set up</strong>
+          <strong>{isZh ? "还没有设置伴侣" : "No companion set up"}</strong>
           <p>
-            Start by creating a role, then your first conversation will appear
-            here.
+            {isZh
+              ? "先创建一个角色，你的第一段对话就会出现在这里。"
+              : "Start by creating a role, then your first conversation will appear here."}
           </p>
         </div>
       </ProductConsoleShell>
@@ -140,6 +148,7 @@ export default async function AppChatPage({
       />
       <SupplementaryChatThread
         audioPlayback={audioPlayback}
+        language={effectiveSystemLanguage}
         messages={data.messages}
         threadId={data.thread.threadId}
         roleName={data.role.name}

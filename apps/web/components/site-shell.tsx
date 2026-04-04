@@ -1,52 +1,69 @@
 import Link from "next/link";
 import { AdaptiveLink } from "@/components/adaptive-link";
+import { ContentLanguageSwitcher } from "@/components/content-language-switcher";
+import { SiteNav } from "@/components/site-nav";
 import { ViewerShellProvider } from "@/components/viewer-shell-provider";
+import { getSiteLanguageState, getSiteChromeCopy } from "@/lib/i18n/site";
 import { siteConfig } from "@/lib/site";
 
 type SiteShellProps = {
   children: React.ReactNode;
 };
 
-const footerGroups = [
-  {
-    title: "Landing",
-    links: [
-      { href: "/#home-memory", label: "Memory" },
-      { href: "/#home-im-chat", label: "IM Chat" },
-      { href: "/#home-faq", label: "FAQ" },
-    ],
-  },
-  {
-    title: "Blog",
-    links: [
-      { href: "/blog", label: "Blog home" },
-      { href: "/alternatives/character-ai", label: "Character.AI Alternative" },
-      { href: "/alternatives/replika", label: "Replika Alternative" },
-    ],
-  },
-  {
-    title: "Product",
-    links: [
-      { href: "/ai-companion", label: "AI Companion" },
-      { href: "/features/memory-center", label: "Memory Guide" },
-      { href: "/features/im-chat", label: "IM Chat Guide" },
-      { href: "/pricing", label: "Pricing" },
-    ],
-  },
-  {
-    title: "Trust",
-    links: [
-      { href: "/how-it-works", label: "How It Works" },
-      { href: "/features/privacy-controls", label: "Privacy" },
-      { href: "/safety", label: "Safety" },
-      { href: "/faq", label: "FAQ" },
-      { href: "/privacy", label: "Privacy Policy" },
-      { href: "/terms", label: "Terms of Service" },
-    ],
-  },
-] as const;
+export async function SiteShell({ children }: SiteShellProps) {
+  const { contentLanguage } = await getSiteLanguageState();
+  const copy = getSiteChromeCopy(contentLanguage);
+  const footerGroups = [
+    {
+      title: copy.marketing.footerGroups.landing,
+      links: [
+        { href: "/#home-memory", label: copy.marketing.footerLinks.memory },
+        { href: "/#home-im-chat", label: copy.marketing.footerLinks.imChat },
+        { href: "/#home-faq", label: copy.marketing.footerLinks.faq },
+      ],
+    },
+    {
+      title: copy.marketing.footerGroups.blog,
+      links: [
+        { href: "/blog", label: copy.marketing.footerLinks.blogHome },
+        {
+          href: "/alternatives/character-ai",
+          label: copy.marketing.footerLinks.characterAiAlt,
+        },
+        {
+          href: "/alternatives/replika",
+          label: copy.marketing.footerLinks.replikaAlt,
+        },
+      ],
+    },
+    {
+      title: copy.marketing.footerGroups.product,
+      links: [
+        { href: "/ai-companion", label: copy.marketing.footerLinks.aiCompanion },
+        { href: "/ai-girlfriend", label: copy.marketing.footerLinks.aiGirlfriend },
+        { href: "/ai-roleplay-chat", label: copy.marketing.footerLinks.aiRoleplay },
+        { href: "/ai-assistant", label: copy.marketing.footerLinks.aiAssistant },
+        {
+          href: "/features/memory-center",
+          label: copy.marketing.footerLinks.memoryGuide,
+        },
+        { href: "/features/im-chat", label: copy.marketing.footerLinks.imGuide },
+        { href: "/pricing", label: copy.marketing.footerLinks.pricing },
+      ],
+    },
+    {
+      title: copy.marketing.footerGroups.trust,
+      links: [
+        { href: "/how-it-works", label: copy.marketing.footerLinks.howItWorks },
+        { href: "/features/privacy-controls", label: copy.marketing.footerLinks.privacy },
+        { href: "/safety", label: copy.marketing.footerLinks.safety },
+        { href: "/faq", label: copy.marketing.footerLinks.faq },
+        { href: "/privacy", label: copy.marketing.footerLinks.privacyPolicy },
+        { href: "/terms", label: copy.marketing.footerLinks.terms },
+      ],
+    },
+  ] as const;
 
-export function SiteShell({ children }: SiteShellProps) {
   return (
     <ViewerShellProvider>
       <div className="site-shell">
@@ -56,37 +73,26 @@ export function SiteShell({ children }: SiteShellProps) {
               <span className="site-brand-mark">L</span>
               <span className="site-brand-lockup">
                 <strong>{siteConfig.name}</strong>
-                <span className="site-brand-copy">
-                  Relationship operating system
-                </span>
+                <span className="site-brand-copy">{copy.marketing.brandTagline}</span>
               </span>
             </Link>
 
-            <nav className="site-nav" aria-label="Primary">
-              <a href="/#home-im-chat">IM Chat</a>
-              <a href="/#home-faq">FAQ</a>
-              <Link href="/blog">Blog</Link>
-            </nav>
+            <SiteNav labels={copy.nav} />
 
             <div className="site-actions">
+              <ContentLanguageSwitcher
+                currentLanguage={contentLanguage}
+                label={copy.contentSwitch.label}
+                languages={{ en: "EN", "zh-CN": "中文" }}
+              />
               <AdaptiveLink
                 className="button button-secondary site-action-link"
                 intent="dashboard"
                 labels={{
-                  anonymous: "Sign in",
-                  signed_in_empty: "Console",
-                  signed_in_role_only: "Console",
-                  signed_in_connected: "Console",
-                }}
-              />
-              <AdaptiveLink
-                className="button site-action-link"
-                intent="primary_flow"
-                labels={{
-                  anonymous: "Create yours",
-                  signed_in_empty: "Create role",
-                  signed_in_role_only: "Continue flow",
-                  signed_in_connected: "Continue flow",
+                  anonymous: copy.marketing.ctas.signIn,
+                  signed_in_empty: copy.marketing.ctas.console,
+                  signed_in_role_only: copy.marketing.ctas.console,
+                  signed_in_connected: copy.marketing.ctas.console,
                 }}
               />
             </div>
@@ -103,16 +109,10 @@ export function SiteShell({ children }: SiteShellProps) {
                   <span className="site-brand-mark">L</span>
                   <span className="site-brand-lockup">
                     <strong>{siteConfig.name}</strong>
-                    <span className="site-brand-copy">
-                      Long-memory companion
-                    </span>
+                    <span className="site-brand-copy">{copy.marketing.footerBrandTagline}</span>
                   </span>
                 </Link>
-                <p className="site-footer-copy">
-                  Lagun packages one persistent relationship loop across
-                  role setup, IM continuity, memory review, and the web control
-                  center.
-                </p>
+                <p className="site-footer-copy">{copy.marketing.footerSummary}</p>
               </div>
 
               {footerGroups.map((group) => (
@@ -121,12 +121,14 @@ export function SiteShell({ children }: SiteShellProps) {
                   <nav className="site-footer-nav" aria-label={group.title}>
                     {group.title === "Trust" ? (
                       <>
-                        <Link href="/how-it-works">How It Works</Link>
-                        <AdaptiveLink intent="privacy">Privacy</AdaptiveLink>
-                        <Link href="/safety">Safety</Link>
-                        <Link href="/faq">FAQ</Link>
-                        <Link href="/privacy">Privacy Policy</Link>
-                        <Link href="/terms">Terms of Service</Link>
+                        <Link href="/how-it-works">{copy.marketing.footerLinks.howItWorks}</Link>
+                        <AdaptiveLink intent="privacy">
+                          {copy.marketing.footerLinks.privacy}
+                        </AdaptiveLink>
+                        <Link href="/safety">{copy.marketing.footerLinks.safety}</Link>
+                        <Link href="/faq">{copy.marketing.footerLinks.faq}</Link>
+                        <Link href="/privacy">{copy.marketing.footerLinks.privacyPolicy}</Link>
+                        <Link href="/terms">{copy.marketing.footerLinks.terms}</Link>
                       </>
                     ) : (
                       group.links.map((item) => (
@@ -141,15 +143,15 @@ export function SiteShell({ children }: SiteShellProps) {
             </div>
 
             <div className="site-footer-bottom">
-              <Link href="/how-it-works">How it works</Link>
-              <Link href="/pricing">Pricing</Link>
-              <Link href="/blog">Blog</Link>
-              <AdaptiveLink intent="privacy">Privacy</AdaptiveLink>
-              <Link href="/safety">Safety</Link>
-              <Link href="/faq">FAQ</Link>
-              <Link href="/privacy">Privacy Policy</Link>
-              <Link href="/terms">Terms of Service</Link>
-              <span>Built for relationship-first companion products.</span>
+              <Link href="/how-it-works">{copy.marketing.footerLinks.howItWorks}</Link>
+              <Link href="/pricing">{copy.marketing.footerLinks.pricing}</Link>
+              <Link href="/blog">{copy.marketing.footerGroups.blog}</Link>
+              <AdaptiveLink intent="privacy">{copy.marketing.footerLinks.privacy}</AdaptiveLink>
+              <Link href="/safety">{copy.marketing.footerLinks.safety}</Link>
+              <Link href="/faq">{copy.marketing.footerLinks.faq}</Link>
+              <Link href="/privacy">{copy.marketing.footerLinks.privacyPolicy}</Link>
+              <Link href="/terms">{copy.marketing.footerLinks.terms}</Link>
+              <span>{copy.marketing.footerBuiltFor}</span>
             </div>
           </div>
           <div className="site-footer-wordmark" aria-hidden="true">

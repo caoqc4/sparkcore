@@ -221,6 +221,7 @@ export function buildRecalledDynamicProfileMemoryFromStoredMemory(
 export function buildRecalledRelationshipMemoryFromStoredMemory(
   memory: StoredMemory
 ): {
+  memory_id: string;
   memory_type: "relationship";
   content: string;
   confidence: number;
@@ -233,6 +234,7 @@ export function buildRecalledRelationshipMemoryFromStoredMemory(
   const relationshipRecord = buildChatMemoryRecord(memory);
 
   return {
+    memory_id: memory.id,
     memory_type: "relationship",
     content: relationshipRecord.canonical_text,
     confidence: relationshipRecord.confidence ?? 0,

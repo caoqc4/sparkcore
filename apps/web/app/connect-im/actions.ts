@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
 import {
   loadOwnedActiveAgent,
@@ -20,6 +21,23 @@ const PLATFORM_LABELS = {
 } as const;
 
 type SupportedBindingPlatform = keyof typeof PLATFORM_LABELS;
+
+async function getConnectImCopy(platform: SupportedBindingPlatform) {
+  const { effectiveSystemLanguage } = await getSiteLanguageState();
+  const isZh = effectiveSystemLanguage === "zh-CN";
+  const platformLabel = PLATFORM_LABELS[platform];
+  return {
+    needThread: isZh ? `请先创建或选择一个角色线程，再绑定 ${platformLabel}。` : `Create or select a role thread before binding ${platformLabel}.`,
+    needIds: isZh ? `${platformLabel} 绑定需要会话 ID 和用户 ID。` : `${platformLabel} binding requires a channel id and user id.`,
+    needChannel: isZh ? `${platformLabel} 绑定需要有效的角色渠道。` : `${platformLabel} binding requires a valid character channel.`,
+    noWorkspace: isZh ? "当前账户没有可用工作区。" : "No workspace is available for this account.",
+    unavailable: isZh ? `${platformLabel} 绑定在当前环境中暂不可用。` : `${platformLabel} binding is not available in this environment yet.`,
+    roleOrThreadUnavailable: isZh ? "所选角色或线程不可用。" : "The selected role or thread is unavailable.",
+    wechatActivateFailed: isZh ? "激活微信会话失败。" : "Failed to activate the WeChat session.",
+    wechatSessionMissing: isZh ? "未找到微信会话。请重新开始微信登录流程，给机器人发送任意消息后再重试绑定。" : "WeChat session not found. Start the WeChat login flow again, send the bot any message, then retry the binding.",
+    success: isZh ? `${platformLabel} 已连接。你现在可以通过该应用继续聊天。` : `${platformLabel} connected. You can now chat through that app.`,
+  };
+}
 
 function redirectWithMessage(args: {
   agentId?: string | null;
@@ -60,6 +78,7 @@ async function connectBinding(
   platform: SupportedBindingPlatform,
   formData: FormData
 ) {
+  const copy = await getConnectImCopy(platform);
   const threadId = normalizeIdentityField(formData.get("thread_id"));
   const agentId = normalizeIdentityField(formData.get("agent_id"));
   const channelId = normalizeIdentityField(formData.get("channel_id"));
@@ -77,7 +96,7 @@ async function connectBinding(
       platform,
       threadId,
       agentId,
-      feedback: `Create or select a role thread before binding ${PLATFORM_LABELS[platform]}.`,
+      feedback: copy.needThread,
       feedbackType: "error"
     });
   }
@@ -87,7 +106,7 @@ async function connectBinding(
       platform,
       threadId,
       agentId,
-      feedback: `${PLATFORM_LABELS[platform]} binding requires a channel id and user id.`,
+      feedback: copy.needIds,
       feedbackType: "error"
     });
   }
@@ -97,7 +116,7 @@ async function connectBinding(
       platform,
       threadId,
       agentId,
-      feedback: `${PLATFORM_LABELS[platform]} binding requires a valid character channel.`,
+      feedback: copy.needChannel,
       feedbackType: "error"
     });
   }
@@ -125,7 +144,7 @@ async function connectBinding(
       platform,
       threadId,
       agentId,
-      feedback: "No workspace is available for this account.",
+      feedback: copy.noWorkspace,
       feedbackType: "error"
     });
   }
@@ -144,7 +163,7 @@ async function connectBinding(
       platform,
       threadId,
       agentId,
-      feedback: `${PLATFORM_LABELS[platform]} binding is not available in this environment yet.`,
+      feedback: copy.unavailable,
       feedbackType: "error"
     });
   }
@@ -169,7 +188,7 @@ async function connectBinding(
       platform,
       threadId,
       agentId,
-      feedback: "The selected role or thread is unavailable.",
+      feedback: copy.roleOrThreadUnavailable,
       feedbackType: "error"
     });
   }
@@ -309,7 +328,7 @@ async function connectBinding(
         platform,
         threadId,
         agentId,
-        feedback: error instanceof Error ? error.message : "Failed to activate the WeChat session.",
+        feedback: error instanceof Error ? error.message : copy.wechatActivateFailed,
         feedbackType: "error"
       });
     }
@@ -320,7 +339,7 @@ async function connectBinding(
         threadId,
         agentId,
         feedback:
-          "WeChat session not found. Start the WeChat login flow again, send the bot any message, then retry the binding.",
+          copy.wechatSessionMissing,
         feedbackType: "error"
       });
     }
@@ -336,7 +355,7 @@ async function connectBinding(
   channelsParams.set("thread", threadId);
   channelsParams.set(
     "feedback",
-    `${PLATFORM_LABELS[platform]} connected. You can now chat through that app.`
+    copy.success
   );
   channelsParams.set("feedback_type", "success");
   redirect(`/app/channels?${channelsParams.toString()}`);

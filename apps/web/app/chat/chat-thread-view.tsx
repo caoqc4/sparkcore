@@ -209,9 +209,14 @@ function shouldHideArtifactPlaceholderText(args: {
 
   return (
     trimmed === "Image" ||
+    trimmed === "图片" ||
     trimmed === "Voice input" ||
+    trimmed === "语音输入" ||
     trimmed === "Voice message" ||
+    trimmed === "语音消息" ||
     trimmed === "Audio file" ||
+    trimmed === "音频文件" ||
+    /^\d+\s+张图片$/.test(trimmed) ||
     /^\d+\s+images$/i.test(trimmed)
   );
 }
@@ -806,7 +811,7 @@ export function ChatThreadView({
     if (!trimmedContent) {
       setFeedback({
         tone: "error",
-        message: "Type a message before sending."
+        message: copy.thread.messageRequired
       });
       return;
     }
@@ -917,7 +922,7 @@ export function ChatThreadView({
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? "Playback failed.");
+        throw new Error(payload?.error ?? copy.thread.playbackFailed);
       }
 
       const blob = await response.blob();
@@ -939,7 +944,7 @@ export function ChatThreadView({
       await playbackAudioRef.current.play();
     } catch (error) {
       setPlayingMessageId(null);
-      setPlaybackError(error instanceof Error ? error.message : "Playback failed.");
+      setPlaybackError(error instanceof Error ? error.message : copy.thread.playbackFailed);
     }
   }
 

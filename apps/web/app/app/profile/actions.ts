@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
 import {
   loadActivePersonaPackById,
@@ -58,6 +59,24 @@ function redirectWithMessage(
   );
 }
 
+async function getRoleActionCopy() {
+  const { effectiveSystemLanguage } = await getSiteLanguageState();
+  const isZh = effectiveSystemLanguage === "zh-CN";
+  return {
+    isZh,
+    missingRole: isZh ? "无法确定要更新的角色。" : "The role to update could not be determined.",
+    noWorkspace: isZh ? "当前账户没有可用工作区。" : "No workspace is available for this account.",
+    roleUnavailable: isZh ? "所选角色不可用。" : "The selected role is unavailable.",
+    portraitUnavailable: isZh ? "所选头像资源不可用。" : "The selected portrait asset is unavailable.",
+    audioUnavailable: isZh ? "所选语音资源不可用。" : "The selected audio asset is unavailable.",
+    roleUpdated: isZh ? "角色核心资料已更新。" : "Role core updated.",
+    missingRestoreRole: isZh ? "无法确定要恢复的角色。" : "The role to restore could not be determined.",
+    notPresetRole: isZh ? "这个角色不是从预设创建的。" : "This role was not created from a preset.",
+    presetUnavailable: isZh ? "这个角色对应的预设默认值不可用。" : "The preset defaults for this role are unavailable.",
+    restored: isZh ? "预设默认值已恢复。" : "Preset defaults restored.",
+  };
+}
+
 function normalizeRoleName(name: string, fallbackName: string) {
   const normalized = name.replace(/\s+/g, " ").trim();
   const candidate = normalized.length > 0 ? normalized : fallbackName;
@@ -83,11 +102,13 @@ function normalizeRelationshipMode(value: string) {
   return normalized.slice(0, 120).trimEnd();
 }
 
-function normalizeBoundaries(value: string) {
+function normalizeBoundaries(value: string, isZh = false) {
   const normalized = value.replace(/\s+/g, " ").trim();
 
   if (normalized.length === 0) {
-    return "Be supportive, respectful, and avoid manipulative or coercive behavior.";
+    return isZh
+      ? "保持支持与尊重，避免操控或强迫行为。"
+      : "Be supportive, respectful, and avoid manipulative or coercive behavior.";
   }
 
   if (normalized.length <= 400) {
@@ -121,11 +142,12 @@ function normalizeOptionalId(value: FormDataEntryValue | null) {
 }
 
 export async function updateProductRoleProfile(formData: FormData) {
+  const copy = await getRoleActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/profile");
   const agentId = formData.get("agent_id");
 
   if (typeof agentId !== "string" || agentId.trim().length === 0) {
-    redirectWithMessage(redirectPath, "The role to update could not be determined.", "error");
+    redirectWithMessage(redirectPath, copy.missingRole, "error");
   }
 
   const supabase = await createClient();
@@ -143,7 +165,7 @@ export async function updateProductRoleProfile(formData: FormData) {
   });
 
   if (!workspace) {
-    redirectWithMessage(redirectPath, "No workspace is available for this account.", "error");
+    redirectWithMessage(redirectPath, copy.noWorkspace, "error");
   }
 
   const { data: agent } = await loadOwnedActiveAgent({
@@ -154,7 +176,7 @@ export async function updateProductRoleProfile(formData: FormData) {
   });
 
   if (!agent) {
-    redirectWithMessage(redirectPath, "The selected role is unavailable.", "error");
+    redirectWithMessage(redirectPath, copy.roleUnavailable, "error");
   }
 
   const name = normalizeRoleName(trimProductText(formData.get("name")), agent.name);
@@ -163,7 +185,7 @@ export async function updateProductRoleProfile(formData: FormData) {
   const relationshipMode = normalizeRelationshipMode(
     trimProductText(formData.get("relationship_mode"))
   );
-  const boundaries = normalizeBoundaries(trimProductText(formData.get("boundaries")));
+  const boundaries = normalizeBoundaries(trimProductText(formData.get("boundaries")), copy.isZh);
   const backgroundSummary = normalizeBackgroundSummary(
     trimProductText(formData.get("background_summary"))
   );
@@ -189,7 +211,7 @@ export async function updateProductRoleProfile(formData: FormData) {
     });
 
     if (!portraitAsset) {
-      redirectWithMessage(redirectPath, "The selected portrait asset is unavailable.", "error");
+      redirectWithMessage(redirectPath, copy.portraitUnavailable, "error");
     }
   }
 
@@ -203,7 +225,7 @@ export async function updateProductRoleProfile(formData: FormData) {
     });
 
     if (!audioAsset) {
-      redirectWithMessage(redirectPath, "The selected audio asset is unavailable.", "error");
+      redirectWithMessage(redirectPath, copy.audioUnavailable, "error");
     }
 
     resolvedAudioProvider =
@@ -293,15 +315,16 @@ export async function updateProductRoleProfile(formData: FormData) {
   revalidatePath("/create");
   revalidatePath("/connect-im");
   revalidatePath("/chat");
-  redirectWithMessage(redirectPath, "Role core updated.", "success");
+  redirectWithMessage(redirectPath, copy.roleUpdated, "success");
 }
 
 export async function restoreProductRoleDefaults(formData: FormData) {
+  const copy = await getRoleActionCopy();
   const redirectPath = resolveRedirectPath(formData, "/app/role");
   const agentId = formData.get("agent_id");
 
   if (typeof agentId !== "string" || agentId.trim().length === 0) {
-    redirectWithMessage(redirectPath, "The role to restore could not be determined.", "error");
+    redirectWithMessage(redirectPath, copy.missingRestoreRole, "error");
   }
 
   const supabase = await createClient();
@@ -319,7 +342,7 @@ export async function restoreProductRoleDefaults(formData: FormData) {
   });
 
   if (!workspace) {
-    redirectWithMessage(redirectPath, "No workspace is available for this account.", "error");
+    redirectWithMessage(redirectPath, copy.noWorkspace, "error");
   }
 
   const { data: agent } = await loadOwnedActiveAgent({
@@ -330,14 +353,14 @@ export async function restoreProductRoleDefaults(formData: FormData) {
   });
 
   if (!agent) {
-    redirectWithMessage(redirectPath, "The selected role is unavailable.", "error");
+    redirectWithMessage(redirectPath, copy.roleUnavailable, "error");
   }
 
   if (
     typeof agent.source_persona_pack_id !== "string" ||
     agent.source_persona_pack_id.trim().length === 0
   ) {
-    redirectWithMessage(redirectPath, "This role was not created from a preset.", "error");
+    redirectWithMessage(redirectPath, copy.notPresetRole, "error");
   }
 
   const [{ data: sourcePack }, { data: existingRoleMedia }, { data: appSettings }] =
@@ -368,7 +391,7 @@ export async function restoreProductRoleDefaults(formData: FormData) {
   const presetDefaults = getProductCharacterPresetDefaults(sourceCharacterSlug);
 
   if (!presetDefaults) {
-    redirectWithMessage(redirectPath, "The preset defaults for this role are unavailable.", "error");
+    redirectWithMessage(redirectPath, copy.presetUnavailable, "error");
   }
 
   const appSettingsMetadata =
@@ -482,5 +505,5 @@ export async function restoreProductRoleDefaults(formData: FormData) {
   revalidatePath("/app/profile");
   revalidatePath("/app/role");
   revalidatePath("/app/settings");
-  redirectWithMessage(redirectPath, "Preset defaults restored.", "success");
+  redirectWithMessage(redirectPath, copy.restored, "success");
 }

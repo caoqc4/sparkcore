@@ -2,6 +2,11 @@ import type {
   MemoryType,
   RecalledMemoryType
 } from "@/lib/chat/memory-shared";
+import type { PlannerCandidatePreview } from "@/lib/chat/memory-planner-candidates";
+import type {
+  ThreadStateContinuityProjectionReason,
+  ThreadStateFocusProjectionReason
+} from "@/lib/chat/thread-state-writeback";
 
 export type RuntimeAssistantMessage = {
   role: "assistant";
@@ -49,6 +54,11 @@ export type RuntimeFollowUpRequest = {
   trigger_at: string;
   reason: string;
   payload: Record<string, unknown>;
+};
+
+export type RuntimeMemoryUsageUpdate = {
+  memory_item_id: string;
+  usage_kind: "relationship_recall";
 };
 
 export type RuntimeFollowUpExecutionStatus =
@@ -162,6 +172,25 @@ export type RuntimeMemoryRecalledEvent = {
     memory_types: RecalledMemoryType[];
     hidden_exclusion_count: number;
     incorrect_exclusion_count: number;
+    memory_record_recall_preferred: boolean;
+    profile_fallback_suppressed: boolean;
+  };
+};
+
+export type RuntimeKnowledgeSelectedEvent = {
+  type: "knowledge_selected";
+  payload: {
+    count: number;
+    knowledge_route: string | null;
+    available: boolean;
+    available_count: number;
+    should_inject: boolean;
+    injection_gap_reason: string | null;
+    suppressed: boolean;
+    suppression_reason: string | null;
+    query_token_count: number;
+    zero_match_filtered_count: number;
+    weak_match_filtered_count: number;
   };
 };
 
@@ -169,11 +198,20 @@ export type RuntimeMemoryWritePlannedEvent = {
   type: "memory_write_planned";
   payload: {
     count: number;
+    planner_candidate_count: number;
+    rejected_candidate_count: number;
+    downgraded_candidate_count: number;
     memory_types: RuntimeMemoryWriteRequest["memory_type"][];
     record_targets: Array<
       "static_profile" | "memory_record" | "thread_state_candidate"
     >;
     write_boundaries: Array<"default" | "thread" | "project" | "world">;
+    decision_kind_counts: Record<string, number>;
+    target_layer_counts: Record<string, number>;
+    boundary_reason_counts: Record<string, number>;
+    decision_reason_counts: Record<string, number>;
+    downgrade_reason_counts: Record<string, number>;
+    rejection_reason_counts: Record<string, number>;
   };
 };
 
@@ -213,11 +251,16 @@ export type RuntimeThreadStateWritebackCompletedEvent = {
   payload: {
     status: "written" | "skipped" | "failed";
     repository: "supabase" | "in_memory" | "unknown";
+    reason?: string | null;
+    anchor_mode?: "current_assistant_message" | "previous_assistant_message" | null;
+    focus_projection_reason?: ThreadStateFocusProjectionReason | null;
+    continuity_projection_reason?: ThreadStateContinuityProjectionReason | null;
   };
 };
 
 export type RuntimeEvent =
   | RuntimeMemoryRecalledEvent
+  | RuntimeKnowledgeSelectedEvent
   | RuntimeMemoryWritePlannedEvent
   | RuntimeFollowUpPlannedEvent
   | RuntimeAnswerStrategySelectedEvent
@@ -227,7 +270,9 @@ export type RuntimeEvent =
 export type RuntimeTurnResult = {
   assistant_message: RuntimeAssistantMessage | null;
   memory_write_requests: RuntimeMemoryWriteRequest[];
+  memory_planner_candidates?: PlannerCandidatePreview[];
   follow_up_requests: RuntimeFollowUpRequest[];
+  memory_usage_updates: RuntimeMemoryUsageUpdate[];
   runtime_events: RuntimeEvent[];
   immediate_artifacts?: Array<Record<string, unknown>>;
   debug_metadata?: Record<string, unknown>;
@@ -237,5 +282,8 @@ export type RuntimeTurnResult = {
 // downstream contract only; planning stays in the centralized runtime layer.
 export type RuntimeExecutionPayload = Pick<
   RuntimeTurnResult,
-  "memory_write_requests" | "follow_up_requests"
+  | "memory_write_requests"
+  | "memory_planner_candidates"
+  | "follow_up_requests"
+  | "memory_usage_updates"
 >;

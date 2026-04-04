@@ -43,9 +43,11 @@ export type SmokeTurnAnalysisResult = {
   nicknameMemory: import("@/lib/testing/smoke-turn-strategy-context").SmokeTurnStrategyContext["nicknameMemory"];
   preferredNameMemory: import("@/lib/testing/smoke-turn-strategy-context").SmokeTurnStrategyContext["preferredNameMemory"];
   preferSameThreadContinuation: boolean;
+  relationshipStylePrompt: boolean;
   recentAssistantReply: SmokeContinuityReply | null;
   recentRawTurnCount: number;
   recalledMemories: import("@/lib/testing/smoke-turn-memory-context").SmokeTurnMemoryContext["recalledMemories"];
+  sameThreadContinuity: boolean;
   sameThreadContinuationApplicable: boolean;
   usedMemoryTypes: string[];
 };

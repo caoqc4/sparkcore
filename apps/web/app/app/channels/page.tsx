@@ -4,6 +4,7 @@ import { ProductEventTracker } from "@/components/product-event-tracker";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { unbindProductChannel } from "@/app/app/channels/actions";
 import { requireUser } from "@/lib/auth-redirect";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { loadProductChannelsPageData } from "@/lib/product/channels";
 import { resolveProductAppRoute } from "@/lib/product/route-resolution";
@@ -59,18 +60,18 @@ const PLATFORM_VISUALS = {
   },
 } as const;
 
-function formatStatusLabel(status: string) {
+function formatStatusLabel(status: string, isZh: boolean) {
   switch (status) {
     case "connected":
-      return "Connected";
+      return isZh ? "已连接" : "Connected";
     case "needs_attention":
-      return "Needs attention";
+      return isZh ? "需要处理" : "Needs attention";
     case "not_connected":
-      return "Not connected";
+      return isZh ? "未连接" : "Not connected";
     case "coming_soon":
-      return "Coming soon";
+      return isZh ? "即将上线" : "Coming soon";
     case "disabled":
-      return "Unavailable";
+      return isZh ? "不可用" : "Unavailable";
     default:
       return status;
   }
@@ -79,49 +80,52 @@ function formatStatusLabel(status: string) {
 function getPlatformActionLabel(args: {
   actionMode: "connect" | "rebind" | "unavailable";
   availabilityStatus: "active" | "coming_soon" | "disabled";
+  isZh: boolean;
 }) {
   if (args.actionMode === "rebind") {
-    return "Reconnect";
+    return args.isZh ? "重新连接" : "Reconnect";
   }
 
   if (args.actionMode === "connect") {
-    return "Connect";
+    return args.isZh ? "连接" : "Connect";
   }
 
-  return args.availabilityStatus === "coming_soon" ? "Soon" : "Unavailable";
+  return args.availabilityStatus === "coming_soon"
+    ? args.isZh ? "即将上线" : "Soon"
+    : args.isZh ? "不可用" : "Unavailable";
 }
 
-function getPlatformDiscoveryLabel(platform: string, isConnected: boolean) {
+function getPlatformDiscoveryLabel(platform: string, isConnected: boolean, isZh: boolean) {
   switch (platform) {
     case "wechat":
-      return isConnected ? "Continue here" : "Start here";
+      return isConnected ? (isZh ? "在这里继续" : "Continue here") : isZh ? "从这里开始" : "Start here";
     default:
-      return isConnected ? "Open the chat" : "Start here";
+      return isConnected ? (isZh ? "打开聊天" : "Open the chat") : isZh ? "从这里开始" : "Start here";
   }
 }
 
-function getPlatformDiscoveryHint(platform: string, isConnected: boolean) {
+function getPlatformDiscoveryHint(platform: string, isConnected: boolean, isZh: boolean) {
   switch (platform) {
     case "telegram":
       return isConnected
-        ? "Open Telegram and continue chatting with your Lagun bot there."
-        : "After connecting, open Telegram and send a message to your Lagun bot.";
+        ? isZh ? "打开 Telegram，在那里继续和你的 Lagun 机器人聊天。" : "Open Telegram and continue chatting with your Lagun bot there."
+        : isZh ? "连接完成后，打开 Telegram 并给你的 Lagun 机器人发一条消息。" : "After connecting, open Telegram and send a message to your Lagun bot.";
     case "discord":
       return isConnected
-        ? "Open Discord and continue the conversation in your Lagun DM."
-        : "After connecting, open Discord, find Lagun, and send it any message to start the thread.";
+        ? isZh ? "打开 Discord，在你的 Lagun 私信里继续对话。" : "Open Discord and continue the conversation in your Lagun DM."
+        : isZh ? "连接完成后，打开 Discord，找到 Lagun 并发送任意消息开始对话。" : "After connecting, open Discord, find Lagun, and send it any message to start the thread.";
     case "feishu":
       return isConnected
-        ? "Open Feishu and continue chatting with Lagun in your workspace."
-        : "After connecting, open Feishu, search for Lagun, and send it any message to get your IDs.";
+        ? isZh ? "打开飞书，在你的工作区里继续和 Lagun 聊天。" : "Open Feishu and continue chatting with Lagun in your workspace."
+        : isZh ? "连接完成后，打开飞书，搜索 Lagun 并发送任意消息获取你的 ID。" : "After connecting, open Feishu, search for Lagun, and send it any message to get your IDs.";
     case "wechat":
       return isConnected
-        ? "Open the WeChat bot thread created by your QR login and continue chatting there."
-        : "Start the WeChat QR login flow first, then send the generated bot thread any message.";
+        ? isZh ? "打开扫码登录后创建的微信机器人会话，并在那里继续聊天。" : "Open the WeChat bot thread created by your QR login and continue chatting there."
+        : isZh ? "先完成微信扫码登录流程，再给生成的机器人会话发送任意消息。" : "Start the WeChat QR login flow first, then send the generated bot thread any message.";
     default:
       return isConnected
-        ? "Continue chatting through this app."
-        : "Connect this app first to start chatting there.";
+        ? isZh ? "通过这个应用继续聊天。" : "Continue chatting through this app."
+        : isZh ? "先连接这个应用，再在那里开始聊天。" : "Connect this app first to start chatting there.";
   }
 }
 
@@ -131,6 +135,8 @@ export default async function AppChannelsPage({
   const params = await searchParams;
   const user = await requireUser("/app/channels");
   const supabase = await createClient();
+  const { effectiveSystemLanguage } = await getSiteLanguageState();
+  const isZh = effectiveSystemLanguage === "zh-CN";
 
   const roleId =
     typeof params.role === "string" && params.role.length > 0 ? params.role : null;
@@ -156,14 +162,14 @@ export default async function AppChannelsPage({
     <ProductConsoleShell
       actions={
         <Link className="button button-secondary" href={chatHref}>
-          Back to chat
+          {isZh ? "返回聊天" : "Back to chat"}
         </Link>
       }
       currentHref="/app/channels"
-      description="Connect this companion to the right IM path."
-      eyebrow="Channels"
+      description={isZh ? "把这位伴侣连接到合适的 IM 渠道。" : "Connect this companion to the right IM path."}
+      eyebrow={isZh ? "渠道" : "Channels"}
       shellContext={overview}
-      title="Channels"
+      title={isZh ? "渠道" : "Channels"}
     >
       <ProductEventTracker
         event="first_privacy_view"
@@ -182,7 +188,7 @@ export default async function AppChannelsPage({
 
       <section className="site-card channel-card">
         <div className="role-section-head">
-          <h2 className="role-section-title">IM Connections</h2>
+          <h2 className="role-section-title">{isZh ? "IM 连接" : "IM Connections"}</h2>
         </div>
 
         <div className="channel-platform-list">
@@ -242,7 +248,7 @@ export default async function AppChannelsPage({
                               : ""
                         }`}
                       />
-                      {formatStatusLabel(platform.displayStatus)}
+                      {formatStatusLabel(platform.displayStatus, isZh)}
                     </span>
                   </div>
 
@@ -251,6 +257,7 @@ export default async function AppChannelsPage({
                       {getPlatformActionLabel({
                         actionMode: platform.actionMode,
                         availabilityStatus: platform.availabilityStatus,
+                        isZh,
                       })}
                     </span>
                   ) : (
@@ -265,6 +272,7 @@ export default async function AppChannelsPage({
                       {getPlatformActionLabel({
                         actionMode: platform.actionMode,
                         availabilityStatus: platform.availabilityStatus,
+                        isZh,
                       })}
                     </Link>
                   )}
@@ -275,25 +283,25 @@ export default async function AppChannelsPage({
                     <div className="channel-connection-body">
                       <div className="channel-connection-meta">
                         <span className="channel-connection-role">
-                          {activeBinding.agentName ?? "Companion"}
+                          {activeBinding.agentName ?? (isZh ? "角色" : "Companion")}
                         </span>
                         <span className="channel-connection-thread">
                           {activeBinding.threadTitle ??
                             activeBinding.threadId ??
-                            "Unknown conversation"}
+                            (isZh ? "未知对话" : "Unknown conversation")}
                         </span>
                         {(activeBinding.channelId || activeBinding.peerId) ? (
                           <span className="channel-connection-ids">
-                            {activeBinding.channelId ? `Chat ID: ${activeBinding.channelId}` : ""}
+                            {activeBinding.channelId ? `${isZh ? "会话 ID" : "Chat ID"}: ${activeBinding.channelId}` : ""}
                             {activeBinding.channelId && activeBinding.peerId ? "  ·  " : ""}
-                            {activeBinding.peerId ? `User ID: ${activeBinding.peerId}` : ""}
+                            {activeBinding.peerId ? `${isZh ? "用户 ID" : "User ID"}: ${activeBinding.peerId}` : ""}
                           </span>
                         ) : null}
                         <span className="channel-connection-hint-label">
-                          {getPlatformDiscoveryLabel(platform.platform, true)}
+                          {getPlatformDiscoveryLabel(platform.platform, true, isZh)}
                         </span>
                         <span className="channel-connection-hint">
-                          {getPlatformDiscoveryHint(platform.platform, true)}
+                          {getPlatformDiscoveryHint(platform.platform, true, isZh)}
                         </span>
                       </div>
                       <form action={unbindProductChannel}>
@@ -301,8 +309,8 @@ export default async function AppChannelsPage({
                         <input name="redirect_to" type="hidden" value={redirectTo} />
                         <FormSubmitButton
                           className="channel-unbind-btn"
-                          idleText="Disconnect"
-                          pendingText="Disconnecting…"
+                          idleText={isZh ? "断开连接" : "Disconnect"}
+                          pendingText={isZh ? "断开中…" : "Disconnecting…"}
                         />
                       </form>
                     </div>
@@ -314,30 +322,30 @@ export default async function AppChannelsPage({
                   <div className="channel-connection-detail">
                     <div className="channel-connection-summary">
                       {platform.invalidBindingCount > 0 ? (
-                        <span>{platform.invalidBindingCount} invalid connection(s)</span>
+                        <span>{isZh ? `${platform.invalidBindingCount} 个失效连接` : `${platform.invalidBindingCount} invalid connection(s)`}</span>
                       ) : null}
                       {platform.invalidBindingCount > 0 &&
                       platform.inactiveBindingCount > 0 ? (
                         <span className="channel-connection-sep">·</span>
                       ) : null}
                       {platform.inactiveBindingCount > 0 ? (
-                        <span>{platform.inactiveBindingCount} inactive connection(s)</span>
+                        <span>{isZh ? `${platform.inactiveBindingCount} 个未激活连接` : `${platform.inactiveBindingCount} inactive connection(s)`}</span>
                       ) : null}
                     </div>
                     <div className="channel-connection-hint-label">
-                      {getPlatformDiscoveryLabel(platform.platform, false)}
+                      {getPlatformDiscoveryLabel(platform.platform, false, isZh)}
                     </div>
                     <div className="channel-connection-hint">
-                      {getPlatformDiscoveryHint(platform.platform, false)}
+                      {getPlatformDiscoveryHint(platform.platform, false, isZh)}
                     </div>
                   </div>
                 ) : !activeBinding ? (
                   <div className="channel-connection-detail">
                     <div className="channel-connection-hint-label">
-                      {getPlatformDiscoveryLabel(platform.platform, false)}
+                      {getPlatformDiscoveryLabel(platform.platform, false, isZh)}
                     </div>
                     <div className="channel-connection-hint">
-                      {getPlatformDiscoveryHint(platform.platform, false)}
+                      {getPlatformDiscoveryHint(platform.platform, false, isZh)}
                     </div>
                   </div>
                 ) : null}

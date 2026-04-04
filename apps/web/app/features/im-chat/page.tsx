@@ -1,39 +1,36 @@
 import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
-import { buildPageMetadata } from "@/lib/site";
+import { getSiteLanguageState } from "@/lib/i18n/site";
+import { getImChatFeatureCopy } from "@/lib/i18n/marketing-page-copy";
+import { buildLocalizedPageMetadata } from "@/lib/site";
 
-export const metadata = buildPageMetadata({
-  title: "IM Chat for AI Companion Continuity",
-  description:
-    "Understand why Lagun keeps the main companion relationship in IM while the website stays focused on setup, memory, and control.",
-  path: "/features/im-chat"
-});
+export async function generateMetadata() {
+  return buildLocalizedPageMetadata({
+    title: {
+      en: "IM-Native AI Companion: Build Your Relationship Outside the Browser",
+      "zh-CN": "IM 原生 AI 伴侣：把关系建立在浏览器之外",
+    },
+    description: {
+      en: "Understand why Lagun keeps the main companion relationship in IM while the website stays focused on setup, memory, and control.",
+      "zh-CN": "理解为什么 Lagun 把主要伴侣关系放在 IM 中，而网站则专注于设置、记忆和控制。",
+    },
+    path: "/features/im-chat"
+  });
+}
 
-export default function ImChatFeaturePage() {
+export default async function ImChatFeaturePage() {
+  const { contentLanguage } = await getSiteLanguageState();
+  const copy = getImChatFeatureCopy(contentLanguage);
+
   return (
     <SiteShell>
       <PageFrame
-        eyebrow="Feature"
-        title="IM-native chat keeps the relationship where daily life already happens."
-        description="Lagun treats IM as the main interaction surface. The website acts as a control center for setup, memory, and relationship state rather than forcing every conversation back into the browser."
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        description={copy.description}
       >
-        <FeatureCardGrid
-          items={[
-            {
-              title: "Natural entry point",
-              body: "People already use IM all day. Keeping the companion there lowers friction and supports steady return behavior."
-            },
-            {
-              title: "Shared state, not mirrored clutter",
-              body: "The canonical thread and relationship state stay shared, but website messages do not have to become mirrored IM bubbles."
-            },
-            {
-              title: "Website as control center",
-              body: "IM stays lightweight while the website handles configuration, channel control, and memory visibility."
-            }
-          ]}
-        />
+        <FeatureCardGrid items={copy.items} />
         <div className="toolbar">
           <AdaptiveTrackedLink
             className="button"
@@ -41,13 +38,13 @@ export default function ImChatFeaturePage() {
             payload={{ source: "feature_im_create" }}
             intent="im_action"
             labels={{
-              anonymous: "Create your companion",
-              signed_in_empty: "Create your first role",
-              signed_in_role_only: "Connect an IM channel",
-              signed_in_connected: "Open supplementary chat"
+              anonymous: copy.create,
+              signed_in_empty: copy.firstRole,
+              signed_in_role_only: copy.connectIm,
+              signed_in_connected: copy.openChat
             }}
           >
-            Create your companion
+            {copy.create}
           </AdaptiveTrackedLink>
           <AdaptiveTrackedLink
             className="button button-secondary"
@@ -55,13 +52,13 @@ export default function ImChatFeaturePage() {
             payload={{ source: "feature_im_connect" }}
             intent="im_action"
             labels={{
-              anonymous: "See the connect flow",
-              signed_in_empty: "Create a role first",
-              signed_in_role_only: "Connect an IM channel",
-              signed_in_connected: "Open supplementary chat"
+              anonymous: copy.secondary,
+              signed_in_empty: copy.firstRole,
+              signed_in_role_only: copy.connectIm,
+              signed_in_connected: copy.openChat
             }}
           >
-            See the connect flow
+            {copy.secondary}
           </AdaptiveTrackedLink>
         </div>
       </PageFrame>

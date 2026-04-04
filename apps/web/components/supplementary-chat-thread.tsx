@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { sendMessage, type SendMessageResult } from "@/app/chat/actions";
+import { resolveChatLocale } from "@/lib/i18n/chat-ui";
 import {
   getAssistantGovernanceAvoidances,
   getAssistantGovernanceExpressionBrief,
@@ -27,6 +28,7 @@ import { trackProductEvent } from "@/lib/product/events";
 type ChatThreadProps = {
   threadId: string;
   roleName: string;
+  language?: "en" | "zh-CN";
   audioPlayback: {
     enabled: boolean;
     provider: string | null;
@@ -83,25 +85,27 @@ function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-function formatDateDivider(iso: string) {
+function formatDateDivider(iso: string, language: "en" | "zh-CN") {
   const date = new Date(iso);
   const today = startOfDay(new Date());
   const targetDay = startOfDay(date);
   const diffDays = Math.round(
     (today.getTime() - targetDay.getTime()) / (1000 * 60 * 60 * 24)
   );
+  const locale = resolveChatLocale(language);
+  const displayLocale = locale === "zh-CN" ? "zh-CN" : THREAD_DISPLAY_LOCALE;
 
   if (diffDays === 0) {
-    return "Today";
+    return locale === "zh-CN" ? "今天" : "Today";
   }
 
   if (diffDays === 1) {
-    return "Yesterday";
+    return locale === "zh-CN" ? "昨天" : "Yesterday";
   }
 
   const sameYear = today.getFullYear() === targetDay.getFullYear();
 
-  return new Intl.DateTimeFormat(THREAD_DISPLAY_LOCALE, {
+  return new Intl.DateTimeFormat(displayLocale, {
     month: "short",
     day: "numeric",
     ...(sameYear ? {} : { year: "numeric" }),
@@ -293,9 +297,14 @@ function shouldHideArtifactPlaceholderText(args: {
 
   return (
     trimmed === "Image" ||
+    trimmed === "图片" ||
     trimmed === "Voice input" ||
+    trimmed === "语音输入" ||
     trimmed === "Voice message" ||
+    trimmed === "语音消息" ||
     trimmed === "Audio file" ||
+    trimmed === "音频文件" ||
+    /^\d+\s+张图片$/.test(trimmed) ||
     /^\d+\s+images$/i.test(trimmed)
   );
 }
@@ -386,9 +395,11 @@ function buildImageGridLayout(count: number) {
 
 function renderArtifactGallery(args: {
   artifacts: MessageArtifact[];
+  locale: "en" | "zh-CN";
   tone: "user" | "assistant";
   messageId?: string;
 }) {
+  const isZh = args.locale === "zh-CN";
   const imageArtifacts = args.artifacts.filter(
     (artifact) => artifact.type === "image" && artifact.status === "ready" && artifact.url
   );
@@ -493,13 +504,23 @@ function renderArtifactGallery(args: {
           }}
         >
           <strong style={{ display: "block", marginBottom: 6 }}>
-            {artifact.type === "audio" ? "Audio generation failed" : "Image generation failed"}
+            {artifact.type === "audio"
+              ? isZh
+                ? "音频生成失败"
+                : "Audio generation failed"
+              : isZh
+                ? "图片生成失败"
+                : "Image generation failed"}
           </strong>
           <span style={{ fontSize: 13, opacity: 0.82 }}>
             {artifact.error ??
               (artifact.type === "audio"
-                ? "The audio could not be generated this time."
-                : "The image could not be generated this time.")}
+                ? isZh
+                  ? "这次未能成功生成音频。"
+                  : "The audio could not be generated this time."
+                : isZh
+                  ? "这次未能成功生成图片。"
+                  : "The image could not be generated this time.")}
           </span>
         </div>
       ))}
@@ -527,10 +548,31 @@ function shouldHideMessage(message: ChatThreadProps["messages"][number]) {
 export function SupplementaryChatThread({
   threadId,
   roleName,
+  language = "en",
   audioPlayback,
   messages,
   showGovernanceDebug = false,
 }: ChatThreadProps) {
+  const locale = resolveChatLocale(language);
+  const isZh = locale === "zh-CN";
+  const text = {
+    playbackFailed: isZh ? "播放失败。" : "Playback failed.",
+    microphoneUnavailable: isZh ? "无法访问麦克风。" : "Microphone access was not available.",
+    thinking: isZh ? "思考中" : "Thinking",
+    offlineNewMessages: isZh ? "你离开期间有新消息" : "New messages while you were away",
+    selectedImage: isZh ? "已选图片" : "Selected image",
+    removeImage: isZh ? "移除图片" : "Remove image",
+    voiceInput: isZh ? "语音输入" : "Voice input",
+    removeAudio: isZh ? "移除音频" : "Remove audio",
+    attachImage: isZh ? "添加图片" : "Attach image",
+    messagePlaceholder: isZh ? "输入消息…（可粘贴图片预览）" : "Message... (paste image to preview)",
+    stopRecording: isZh ? "停止录音" : "Stop recording",
+    recordVoice: isZh ? "录制语音" : "Record voice",
+    voiceMessage: isZh ? "语音消息" : "Voice message",
+    sendMessage: isZh ? "发送消息" : "Send message",
+    recordingHint: isZh ? "录音中…再次点击麦克风即可结束" : "Recording... tap the mic again to finish",
+    inputHint: isZh ? "回车发送 · Shift+回车换行" : "Enter to send · Shift+Enter for new line",
+  } as const;
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -814,7 +856,11 @@ export function SupplementaryChatThread({
       const remainingSlots = MAX_COMPOSER_IMAGES - current.length;
 
       if (remainingSlots <= 0) {
-        setError(`You can attach up to ${MAX_COMPOSER_IMAGES} images at a time.`);
+        setError(
+          isZh
+            ? `一次最多只能添加 ${MAX_COMPOSER_IMAGES} 张图片。`
+            : `You can attach up to ${MAX_COMPOSER_IMAGES} images at a time.`
+        );
         return current;
       }
 
@@ -825,11 +871,15 @@ export function SupplementaryChatThread({
         file,
         url: URL.createObjectURL(file),
         kind: "image" as const,
-        label: file.name || "Image"
+        label: file.name || (isZh ? "图片" : "Image")
       }));
 
       if (skippedCount > 0) {
-        setError(`You can attach up to ${MAX_COMPOSER_IMAGES} images at a time.`);
+        setError(
+          isZh
+            ? `一次最多只能添加 ${MAX_COMPOSER_IMAGES} 张图片。`
+            : `You can attach up to ${MAX_COMPOSER_IMAGES} images at a time.`
+        );
       } else {
         setError(null);
       }
@@ -891,7 +941,7 @@ export function SupplementaryChatThread({
         file,
         url: nextUrl,
         kind: "audio",
-        label: file.name || "Voice input"
+        label: file.name || text.voiceInput
       };
     });
   }
@@ -955,7 +1005,7 @@ export function SupplementaryChatThread({
       setError(
           recordingError instanceof Error
             ? recordingError.message
-            : "Microphone access was not available."
+            : text.microphoneUnavailable
       );
     }
   }
@@ -1003,7 +1053,7 @@ export function SupplementaryChatThread({
         status: "ready",
         modelSlug: "web-image",
         url: image.url,
-        alt: trimmedContent || image.label || "Image"
+        alt: trimmedContent || image.label || (isZh ? "图片" : "Image")
       });
       }
     }
@@ -1016,7 +1066,7 @@ export function SupplementaryChatThread({
         modelSlug: "web-audio",
         url: selectedAudio.url,
         provider: "Web",
-        voiceName: selectedAudio.label ?? "Voice input"
+        voiceName: selectedAudio.label ?? text.voiceInput
       });
     }
 
@@ -1029,11 +1079,15 @@ export function SupplementaryChatThread({
           content:
             trimmedContent ||
             (selectedAudio
-              ? "Voice input"
+              ? text.voiceInput
               : selectedImages.length > 1
-                ? `${selectedImages.length} images`
+                ? isZh
+                  ? `${selectedImages.length} 张图片`
+                  : `${selectedImages.length} images`
                 : selectedImages.length === 1
-                  ? "Image"
+                  ? isZh
+                    ? "图片"
+                    : "Image"
                   : ""),
           status: "completed",
           metadata: {
@@ -1041,11 +1095,11 @@ export function SupplementaryChatThread({
             ...(trimmedContent
               ? { display_content: trimmedContent }
               : selectedAudio
-                ? { display_content: "Voice input" }
+                ? { display_content: text.voiceInput }
                 : selectedImages.length > 1
-                  ? { display_content: `${selectedImages.length} images` }
+                  ? { display_content: isZh ? `${selectedImages.length} 张图片` : `${selectedImages.length} images` }
                   : selectedImages.length === 1
-                    ? { display_content: "Image" }
+                    ? { display_content: isZh ? "图片" : "Image" }
                     : {})
           },
           createdAt: new Date().toISOString(),
@@ -1100,7 +1154,7 @@ export function SupplementaryChatThread({
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? "Playback failed.");
+        throw new Error(payload?.error ?? text.playbackFailed);
       }
 
       const blob = await response.blob();
@@ -1122,7 +1176,7 @@ export function SupplementaryChatThread({
       await audioRef.current.play();
     } catch (err) {
       setPlayingMessageId(null);
-      setPlaybackError(err instanceof Error ? err.message : "Playback failed.");
+      setPlaybackError(err instanceof Error ? err.message : text.playbackFailed);
     }
   }
 
@@ -1153,9 +1207,11 @@ export function SupplementaryChatThread({
           {optimisticMessages.length === 0 && !isPending ? (
             <div className="chat-empty">
               <div className="chat-empty-inner">
-                <p className="chat-empty-title">No messages yet</p>
+                <p className="chat-empty-title">{isZh ? "还没有消息" : "No messages yet"}</p>
                 <p className="chat-empty-text">
-                  Send a message to continue this relationship thread.
+                  {isZh
+                    ? "发送一条消息，继续这段关系里的对话。"
+                    : "Send a message to continue this relationship thread."}
                 </p>
               </div>
             </div>
@@ -1216,7 +1272,7 @@ export function SupplementaryChatThread({
                             whiteSpace: "nowrap",
                           }}
                         >
-                          {formatDateDivider(msg.createdAt)}
+                          {formatDateDivider(msg.createdAt, locale)}
                         </span>
                         <div style={{ flex: 1, height: 1, background: "rgba(148, 163, 184, 0.2)" }} />
                       </div>
@@ -1248,6 +1304,7 @@ export function SupplementaryChatThread({
                             artifacts.length > 0
                               ? renderArtifactGallery({
                                   artifacts,
+                                  locale,
                                   tone: "assistant",
                                   messageId: msg.id
                                 })
@@ -1546,6 +1603,7 @@ export function SupplementaryChatThread({
                         {artifacts.length > 0
                           ? renderArtifactGallery({
                               artifacts,
+                              locale,
                               tone: "user",
                               messageId: msg.id
                             })
@@ -1565,7 +1623,7 @@ export function SupplementaryChatThread({
 
           {isPending || imMessageInFlight ? (
             <div className="chat-bubble chat-bubble-assistant">
-              <div className="chat-typing" aria-label="Thinking">
+              <div className="chat-typing" aria-label={text.thinking}>
                 <span className="chat-typing-dot" />
                 <span className="chat-typing-dot" />
                 <span className="chat-typing-dot" />
@@ -1603,7 +1661,7 @@ export function SupplementaryChatThread({
                   cursor: "pointer"
                 }}
               >
-                New messages while you were away
+                {text.offlineNewMessages}
               </button>
             </div>
           ) : null}
@@ -1613,12 +1671,12 @@ export function SupplementaryChatThread({
             <div className="chat-input-image-previews">
               {selectedImages.map((selectedImage) => (
                 <div key={selectedImage.id} className="chat-input-image-preview">
-                  <img src={selectedImage.url} alt={selectedImage.label ?? "Selected image"} />
+                  <img src={selectedImage.url} alt={selectedImage.label ?? text.selectedImage} />
                   <button
                     type="button"
                     className="chat-input-image-remove"
                     onClick={() => clearSelectedImage(selectedImage.id)}
-                    aria-label="Remove image"
+                    aria-label={text.removeImage}
                   >
                     ×
                   </button>
@@ -1644,13 +1702,13 @@ export function SupplementaryChatThread({
                     }}
                   >
                     <span style={{ fontSize: 13, color: "#475569" }}>
-                      {selectedAudio.label ?? "Voice input"}
+                      {selectedAudio.label ?? text.voiceInput}
                     </span>
                     <button
                       type="button"
                       className="chat-input-image-remove"
                       onClick={() => clearSelectedAudio()}
-                      aria-label="Remove audio"
+                      aria-label={text.removeAudio}
                     >
                       ×
                     </button>
@@ -1666,8 +1724,8 @@ export function SupplementaryChatThread({
               type="button"
               className="chat-media-btn"
               onClick={() => imageInputRef.current?.click()}
-              title="Attach image"
-              aria-label="Attach image"
+              title={text.attachImage}
+              aria-label={text.attachImage}
             >
               <ImageIcon />
             </button>
@@ -1687,7 +1745,7 @@ export function SupplementaryChatThread({
               className="chat-input-textarea"
               name="content"
               rows={1}
-              placeholder="Message... (paste image to preview)"
+              placeholder={text.messagePlaceholder}
               onInput={handleTextareaInput}
               onKeyDown={handleKeyDown}
               onPaste={handlePaste}
@@ -1696,8 +1754,8 @@ export function SupplementaryChatThread({
               type="button"
               className="chat-media-btn"
               onClick={() => void handleVoiceButtonClick()}
-              title={isRecordingAudio ? "Stop recording" : "Record voice"}
-              aria-label="Voice message"
+              title={isRecordingAudio ? text.stopRecording : text.recordVoice}
+              aria-label={text.voiceMessage}
             >
               <MicIcon />
             </button>
@@ -1705,15 +1763,15 @@ export function SupplementaryChatThread({
               type="submit"
               className="chat-send-btn"
               disabled={isPending}
-              aria-label="Send message"
+              aria-label={text.sendMessage}
             >
               <SendIcon />
             </button>
           </div>
           <p className="chat-input-hint">
             {isRecordingAudio
-              ? "Recording... tap the mic again to finish"
-              : "Enter to send · Shift+Enter for new line"}
+              ? text.recordingHint
+              : text.inputHint}
           </p>
         </div>
       </form>

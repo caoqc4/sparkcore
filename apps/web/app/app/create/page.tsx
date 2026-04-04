@@ -2,10 +2,22 @@ import Link from "next/link";
 import { RoleCreateWizard } from "@/components/role-create-wizard";
 import { ProductConsoleShell } from "@/components/product-console-shell";
 import { getOptionalUser } from "@/lib/auth-redirect";
-import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
+import { CHARACTER_MANIFEST } from "@/lib/characters/manifest";
+import { getSiteLanguageState } from "@/lib/i18n/site";
 import { loadCurrentProductPlanSlug } from "@/lib/product/billing";
 import { loadActiveAudioAssets, loadSharedPresetPortraitAssets } from "@/lib/product/role-media";
 import { createClient } from "@/lib/supabase/server";
+
+const CREATE_PRESET_SLUGS = ["caria", "teven", "velia"] as const;
+type CreatePresetSlug = (typeof CREATE_PRESET_SLUGS)[number];
+
+function isCreatePresetSlug(value: string | undefined): value is CreatePresetSlug {
+  return (
+    value === "caria" ||
+    value === "teven" ||
+    value === "velia"
+  );
+}
 
 type AppCreatePageProps = {
   searchParams: Promise<{
@@ -18,10 +30,9 @@ export default async function AppCreatePage({ searchParams }: AppCreatePageProps
   const params = await searchParams;
   const user   = await getOptionalUser();
   const supabase = await createClient();
-  const presetSlug =
-    params.preset === "caria" || params.preset === "teven" || params.preset === "velia"
-      ? (params.preset as CharacterSlug)
-      : null;
+  const { effectiveSystemLanguage } = await getSiteLanguageState();
+  const isZh = effectiveSystemLanguage === "zh-CN";
+  const presetSlug = isCreatePresetSlug(params.preset) ? params.preset : null;
   const presetDefinition = presetSlug ? CHARACTER_MANIFEST[presetSlug] : null;
   const [{ data: audioOptions }, { data: portraitAssets }, currentPlanSlug] = await Promise.all([
     loadActiveAudioAssets({ supabase }),
@@ -46,13 +57,13 @@ export default async function AppCreatePage({ searchParams }: AppCreatePageProps
     <ProductConsoleShell
       actions={
         <Link className="button button-secondary" href="/app/role">
-          Cancel
+          {isZh ? "取消" : "Cancel"}
         </Link>
       }
       currentHref="/app/create"
-      description="Set up your companion in three steps."
-      eyebrow="New Role"
-      title="Create a new role"
+      description={isZh ? "用三步完成伴侣设置。" : "Set up your companion in three steps."}
+      eyebrow={isZh ? "新角色" : "New Role"}
+      title={isZh ? "创建新角色" : "Create a new role"}
     >
       {params.error ? (
         <div className="notice notice-error">{params.error}</div>
@@ -60,11 +71,11 @@ export default async function AppCreatePage({ searchParams }: AppCreatePageProps
       <div className="rcw-create-layout">
         <aside className="site-card rcw-create-presets">
           <div className="rcw-create-presets-head">
-            <span className="rcw-kicker">Presets</span>
-            <h2 className="rcw-title">Choose a starting point</h2>
+            <span className="rcw-kicker">{isZh ? "预设" : "Presets"}</span>
+            <h2 className="rcw-title">{isZh ? "选择一个起点" : "Choose a starting point"}</h2>
           </div>
           <div className="rcw-create-presets-list">
-            {(["caria", "teven", "velia"] as CharacterSlug[]).map((slug) => {
+            {CREATE_PRESET_SLUGS.map((slug) => {
               const character = CHARACTER_MANIFEST[slug];
               const active = presetSlug === slug;
               return (
@@ -75,7 +86,9 @@ export default async function AppCreatePage({ searchParams }: AppCreatePageProps
                 >
                   <span className="rcw-create-preset-name">{character.displayName}</span>
                   <span className="rcw-create-preset-meta">
-                    {character.mode === "assistant" ? "Assistant" : "Companion"} · {character.avatarGender}
+                    {character.mode === "assistant"
+                      ? isZh ? "助手型" : "Assistant"
+                      : isZh ? "伴侣型" : "Companion"} · {character.avatarGender}
                   </span>
                 </Link>
               );
@@ -84,8 +97,8 @@ export default async function AppCreatePage({ searchParams }: AppCreatePageProps
               className={`rcw-create-preset-link${presetSlug === null ? " active" : ""}`}
               href="/app/create"
             >
-              <span className="rcw-create-preset-name">Blank</span>
-              <span className="rcw-create-preset-meta">Start from scratch</span>
+              <span className="rcw-create-preset-name">{isZh ? "空白开始" : "Blank"}</span>
+              <span className="rcw-create-preset-meta">{isZh ? "从头开始创建" : "Start from scratch"}</span>
             </Link>
           </div>
         </aside>
@@ -100,6 +113,7 @@ export default async function AppCreatePage({ searchParams }: AppCreatePageProps
             portraitAssets={resolvedPortraitAssets}
             currentPlanSlug={currentPlanSlug === "pro" ? "pro" : "free"}
             loginNext="/app/create"
+            language={effectiveSystemLanguage}
             redirectAfterCreate="/app/role"
             user={user ? { id: user.id } : null}
           />

@@ -129,6 +129,16 @@ npm run quality:eval
 
 - `smoke:test` 依赖 `.env.local` 里的 smoke 相关变量以及 `SUPABASE_SERVICE_ROLE_KEY`
 - smoke 回归会通过测试专用接口自动 seed 测试数据，不需要你手工准备一整套演示数据
+- `.github/workflows/web-smoke.yml` 会在 `apps/web` 相关改动时跑 `typecheck` 和 `smoke:test`
+- 如果要让这个 workflow 在 GitHub Actions 上可用，至少需要配置这些 secrets：
+  `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY`、
+  `LITELLM_BASE_URL`、`LITELLM_API_KEY`、`REPLICATE_API_KEY`、`NEXT_PUBLIC_APP_URL`、
+  `PLAYWRIGHT_SMOKE_SECRET`、`PLAYWRIGHT_SMOKE_EMAIL`、`PLAYWRIGHT_SMOKE_PASSWORD`
+- 如果 CI 里还要覆盖计费和分析链路，再补这些 secrets：
+  `CREEM_API_KEY`、`CREEM_WEBHOOK_SECRET`、`CREEM_PRICE_PRO_MONTHLY`、
+  `CREEM_PRICE_PRO_QUARTERLY`、`CREEM_PRICE_PRO_YEARLY`、`CREEM_PRICE_CREDITS_100`、
+  `CREEM_PRICE_CREDITS_250`、`CREEM_PRICE_CREDITS_700`、`NEXT_PUBLIC_POSTHOG_KEY`、
+  `NEXT_PUBLIC_POSTHOG_HOST`、`NEXT_PUBLIC_CLARITY_PROJECT_ID`
 - 当前试用文档同时提供英文版：[`README.md`](./README.md)
 - 更完整的试用检查项见：[`../../docs-public/v1-trial-checklist.zh-CN.md`](../../docs-public/v1-trial-checklist.zh-CN.md)
 - Stage 1 质量评测样例集见：[`../../docs-public/stage1-quality-eval-set.zh-CN.md`](../../docs-public/stage1-quality-eval-set.zh-CN.md)

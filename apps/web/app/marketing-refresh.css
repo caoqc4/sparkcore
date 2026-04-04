@@ -401,29 +401,31 @@ textarea.input {
 }
 
 .site-nav-group summary::after {
-  content: "+";
-  margin-left: 6px;
-  font-size: 0.92rem;
+  content: "▾";
+  margin-left: 5px;
+  font-size: 0.82rem;
   color: var(--accent-strong);
+  display: inline-block;
+  transition: transform 180ms ease;
 }
 
 .site-nav-group[open] summary::after {
-  content: "-";
+  transform: rotate(180deg);
 }
 
 .site-nav-menu {
   position: absolute;
-  top: calc(100% + 12px);
+  top: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%);
   min-width: 220px;
   display: grid;
-  gap: 6px;
-  padding: 12px;
-  border: 1px solid hsl(230 25% 8% / 0.1);
-  border-radius: 22px;
-  background: hsl(240 18% 14%);
-  box-shadow: 0 24px 54px hsl(230 25% 8% / 0.12);
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid hsl(240 16% 26%);
+  border-radius: 18px;
+  background: hsl(240 20% 12%);
+  box-shadow: 0 16px 40px hsl(230 25% 4% / 0.5);
 }
 
 .site-nav-menu a {

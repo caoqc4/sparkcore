@@ -34,6 +34,8 @@ export function prepareSmokeTurnAnalysisContext({
     preferSameThreadContinuation,
     preferredNameMemory,
     recentRawTurnCount,
+    relationshipStylePrompt,
+    sameThreadContinuity,
     sameThreadContinuationApplicable
   } = getSmokeTurnStrategyContext({
     trimmedContent,
@@ -55,9 +57,11 @@ export function prepareSmokeTurnAnalysisContext({
     nicknameMemory,
     preferredNameMemory,
     preferSameThreadContinuation,
+    relationshipStylePrompt,
     recentAssistantReply,
     recentRawTurnCount,
     recalledMemories,
+    sameThreadContinuity,
     sameThreadContinuationApplicable
   };
 }

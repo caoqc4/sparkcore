@@ -30,15 +30,21 @@ import {
   loadOwnedRoleMediaProfile,
   resolveConsumableAudioAsset
 } from "@/lib/product/role-media";
-import { buildPageMetadata } from "@/lib/site";
+import { buildLocalizedPageMetadata } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = buildPageMetadata({
-  title: "Chat Workspace",
-  description: "Protected Lagun chat workspace for supplementary web conversation, memory review, and agent controls.",
-  path: "/chat",
-  noIndex: true
-});
+export async function generateMetadata() {
+  return buildLocalizedPageMetadata({
+    title: { en: "Chat Workspace", "zh-CN": "聊天工作区" },
+    description: {
+      en: "Protected Lagun chat workspace for supplementary web conversation, memory review, and agent controls.",
+      "zh-CN": "用于补充网页对话、记忆查看和 agent 控制的 Lagun 受保护聊天工作区。",
+    },
+    path: "/chat",
+    noIndex: true,
+    languageSource: "system",
+  });
+}
 
 function getMemoryConfidenceView(confidence: number) {
   if (confidence >= 0.9) {

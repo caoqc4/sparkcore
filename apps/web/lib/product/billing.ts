@@ -4,6 +4,10 @@ type BillingConfiguration = {
   globalCreditRules: BillingCreditRule[];
 };
 
+function isSmokeModeEnabled() {
+  return process.env.PLAYWRIGHT_SMOKE_MODE === "1";
+}
+
 type BillingPlan = {
   slug: string;
   name: string;
@@ -126,6 +130,27 @@ export async function loadProductBillingConfiguration(args: {
   supabase: any;
   onTransientRetry?: (event: BillingTransientRetryEvent) => void;
 }) {
+  if (isSmokeModeEnabled()) {
+    return {
+      plans: [
+        {
+          slug: "free",
+          name: "Free",
+          description: "Smoke-mode fallback plan.",
+          status: "active",
+          billing_interval: "monthly",
+          is_default: true,
+          metadata: {},
+          model_access: [],
+          entitlements: [],
+          credit_rules: []
+        }
+      ],
+      modelCatalog: [],
+      globalCreditRules: []
+    } satisfies BillingConfiguration;
+  }
+
   const onTransientRetry = args.onTransientRetry ?? null;
   let data: { configuration?: unknown } | null = null;
   let error: { message: string } | null = null;
@@ -259,6 +284,10 @@ export async function loadCurrentProductPlanSlug(args: {
   userId: string;
   onTransientRetry?: (event: BillingTransientRetryEvent) => void;
 }) {
+  if (isSmokeModeEnabled()) {
+    return "free";
+  }
+
   let subscription: { plan_name?: string | null; plan_status?: string | null } | null =
     null;
   let error: { message: string } | null = null;

@@ -72,6 +72,8 @@ export type RecallOutcome = {
   hiddenExclusionCount: number;
   incorrectExclusionCount: number;
   appliedRoutes: MemoryRecallRoute[];
+  memoryRecordRecallPreferred?: boolean;
+  profileFallbackSuppressed?: boolean;
 };
 
 export type MemoryRecallRoute =

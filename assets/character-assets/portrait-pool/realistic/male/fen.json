@@ -1,0 +1,6 @@
+{
+  "display_name": "Fen",
+  "style_tags": ["warm", "thoughtful", "creative"],
+  "eligible_modes": ["assistant"],
+  "default_for_character": "fen"
+}

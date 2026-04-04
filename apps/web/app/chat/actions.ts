@@ -83,6 +83,59 @@ export type RenameAgentResult =
 
 type ChatFeedbackTone = "success" | "error";
 
+async function getChatActionCopy() {
+  const cookieStore = await cookies();
+  const locale = resolveChatLocale(cookieStore.get(CHAT_UI_LANGUAGE_COOKIE)?.value);
+  const isZh = locale === "zh-CN";
+  return {
+    choosePersonaPack: isZh ? "请先选择一个 persona pack 再创建 agent。" : "Choose a persona pack before creating an agent.",
+    sessionExpired: isZh ? "登录状态已过期，请重新登录后继续。" : "Your session expired. Sign in again to continue.",
+    noWorkspace: isZh ? "当前账户没有可用工作区。" : "No workspace is available for this account.",
+    selectedPersonaPackUnavailable: isZh ? "所选 persona pack 当前不可用。" : "The selected persona pack is unavailable.",
+    createAgentFailed: isZh ? "创建新 agent 失败。" : "Failed to create the new agent.",
+    renameAgentMissing: isZh ? "无法确定要重命名的 agent。" : "The agent to rename could not be determined.",
+    agentNameRequired: isZh ? "先输入 agent 名称再保存。" : "Type an agent name before saving.",
+    selectedAgentUnavailable: isZh ? "所选 agent 当前不可用。" : "The selected agent is unavailable.",
+    selectedModelUnavailable: isZh ? "所选模型配置当前不可用。" : "The selected model profile is unavailable.",
+    renameAgentFailed: isZh ? "重命名 agent 失败。" : "Failed to rename the agent.",
+    chooseAgentBeforeNewThread: isZh ? "请先选择一个 agent 再创建新线程。" : "Choose an agent before creating a new thread.",
+    selectedAgentUnavailableForWorkspace: isZh ? "当前工作区里无法使用所选 agent。" : "The selected agent is unavailable for this workspace.",
+    createThreadFailed: isZh ? "创建新线程失败。" : "Failed to create the new thread.",
+    newChatReady: isZh ? "新聊天已就绪，随时可以发送第一条消息。" : "New chat is ready. Send the first message when you are ready.",
+    chooseActiveAgentBeforeDefault: isZh ? "请先选择一个可用 agent 再设为默认。" : "Choose an active agent before setting a default.",
+    activeAgentsLoadFailed: isZh ? "加载可用 agent 失败。" : "Failed to load active agents.",
+    defaultAgentUnavailable: isZh ? "所选默认 agent 当前不可用。" : "The selected default agent is unavailable.",
+    defaultAgentUpdated: isZh ? "工作区默认 agent 已更新。" : "Workspace default agent updated.",
+    memoryMissingHide: isZh ? "无法确定要隐藏的记忆。" : "The memory to hide could not be determined.",
+    memoryUnavailable: isZh ? "所选记忆不可用。" : "The selected memory is unavailable.",
+    memoryCannotHide: isZh ? "当前状态下无法隐藏这条记忆。" : "This memory cannot be hidden from its current state.",
+    memoryHidden: isZh ? "记忆已从召回中隐藏。" : "Memory hidden from recall.",
+    memoryMissingRestore: isZh ? "无法确定要恢复的记忆。" : "The memory to restore could not be determined.",
+    memoryHiddenUnavailable: isZh ? "所选隐藏记忆不可用。" : "The selected hidden memory is unavailable.",
+    memoryCannotRestore: isZh ? "当前状态下无法恢复这条记忆。" : "This memory cannot be restored from its current state.",
+    memoryRestored: isZh ? "记忆已恢复到召回中。" : "Memory restored to recall.",
+    memoryMissingCorrect: isZh ? "无法确定要纠正的记忆。" : "The memory to correct could not be determined.",
+    memoryCannotIncorrect: isZh ? "当前状态下无法将这条记忆标记为错误。" : "This memory cannot be marked incorrect from its current state.",
+    memoryIncorrect: isZh ? "记忆已标记为错误，并从召回中移除。" : "Memory marked as incorrect and removed from recall.",
+    sendMessageRequired: isZh ? "先输入消息再发送。" : "Type a message before sending.",
+    activeThreadMissing: isZh ? "无法确定当前活跃线程。" : "The active thread could not be determined.",
+    requestedThreadMissing: isZh ? "无法加载请求的线程。" : "The requested thread could not be loaded.",
+    threadUnbound: isZh ? "这个线程还没有绑定 agent。" : "This thread is not bound to an agent yet.",
+    boundAgentMissing: isZh ? "无法加载这个线程绑定的 agent。" : "The bound agent for this thread could not be loaded.",
+    prepareMediaFailed: isZh ? "处理上传媒体失败。" : "Failed to prepare the uploaded media.",
+    storeMessageFailed: isZh ? "保存用户消息失败。" : "Failed to store the user message.",
+    initAssistantFailed: isZh ? "初始化助手回复失败。" : "Failed to initialize the assistant reply.",
+    failedTurnMissing: isZh ? "无法定位失败的助手回合。" : "The failed assistant turn could not be located.",
+    activeThreadOrAgentMissing: isZh ? "无法解析当前线程或其绑定 agent。" : "The active thread or its agent could not be resolved.",
+    loadThreadMessagesFailed: isZh ? "加载线程消息失败。" : "Failed to load thread messages.",
+    failedTurnUnavailable: isZh ? "所选失败回合已经不可用。" : "The selected failed assistant turn is no longer available.",
+    sourceUserMessageMissing: isZh ? "无法恢复这次失败回复对应的用户消息。" : "The user message for this failed reply could not be recovered.",
+    renameThreadMissing: isZh ? "无法确定要重命名的线程。" : "The thread to rename could not be determined.",
+    threadTitleRequired: isZh ? "先输入标题再保存。" : "Type a title before saving.",
+    renameThreadFailed: isZh ? "重命名线程失败。" : "Failed to rename the thread.",
+  };
+}
+
 function normalizeThreadTitle(title: string) {
   const normalized = title.replace(/\s+/g, " ").trim();
 
@@ -180,6 +233,7 @@ export async function setChatUiLanguage(formData: FormData) {
 export async function createAgentFromPersonaPack(
   formData: FormData
 ): Promise<CreateAgentResult> {
+  const copy = await getChatActionCopy();
   const personaPackId = formData.get("persona_pack_id");
   const requestedName = formData.get("agent_name");
 
@@ -187,7 +241,7 @@ export async function createAgentFromPersonaPack(
     return {
       ok: false,
       agentId: null,
-      message: "Choose a persona pack before creating an agent."
+      message: copy.choosePersonaPack
     };
   }
 
@@ -200,7 +254,7 @@ export async function createAgentFromPersonaPack(
     return {
       ok: false,
       agentId: null,
-      message: "Your session expired. Sign in again to continue."
+      message: copy.sessionExpired
     };
   }
 
@@ -213,7 +267,7 @@ export async function createAgentFromPersonaPack(
     return {
       ok: false,
       agentId: null,
-      message: "No workspace is available for this account."
+      message: copy.noWorkspace
     };
   }
 
@@ -226,7 +280,7 @@ export async function createAgentFromPersonaPack(
     return {
       ok: false,
       agentId: null,
-      message: "The selected persona pack is unavailable."
+      message: copy.selectedPersonaPackUnavailable
     };
   }
 
@@ -259,7 +313,7 @@ export async function createAgentFromPersonaPack(
     return {
       ok: false,
       agentId: null,
-      message: error?.message ?? "Failed to create the new agent."
+      message: error?.message ?? copy.createAgentFailed
     };
   }
 
@@ -275,6 +329,7 @@ export async function createAgentFromPersonaPack(
 export async function renameAgent(
   formData: FormData
 ): Promise<RenameAgentResult> {
+  const copy = await getChatActionCopy();
   const agentId = formData.get("agent_id");
   const agentName = formData.get("agent_name");
   const modelProfileId = formData.get("model_profile_id");
@@ -286,7 +341,7 @@ export async function renameAgent(
     return {
       ok: false,
       agentId: null,
-      message: "The agent to rename could not be determined."
+      message: copy.renameAgentMissing
     };
   }
 
@@ -294,7 +349,7 @@ export async function renameAgent(
     return {
       ok: false,
       agentId,
-      message: "Type an agent name before saving."
+      message: copy.agentNameRequired
     };
   }
 
@@ -307,7 +362,7 @@ export async function renameAgent(
     return {
       ok: false,
       agentId,
-      message: "Your session expired. Sign in again to continue."
+      message: copy.sessionExpired
     };
   }
 
@@ -320,7 +375,7 @@ export async function renameAgent(
     return {
       ok: false,
       agentId,
-      message: "No workspace is available for this account."
+      message: copy.noWorkspace
     };
   }
 
@@ -335,7 +390,7 @@ export async function renameAgent(
     return {
       ok: false,
       agentId,
-      message: "The selected agent is unavailable."
+      message: copy.selectedAgentUnavailable
     };
   }
 
@@ -368,7 +423,7 @@ export async function renameAgent(
       return {
         ok: false,
         agentId,
-        message: "The selected model profile is unavailable."
+        message: copy.selectedModelUnavailable
       };
     }
 
@@ -400,7 +455,7 @@ export async function renameAgent(
     return {
       ok: false,
       agentId,
-      message: error?.message ?? "Failed to rename the agent."
+      message: error?.message ?? copy.renameAgentFailed
     };
   }
 
@@ -414,13 +469,14 @@ export async function renameAgent(
 }
 
 export async function createThread(formData: FormData) {
+  const copy = await getChatActionCopy();
   const agentId = formData.get("agent_id");
 
   if (typeof agentId !== "string" || agentId.trim().length === 0) {
     redirect(
       appendChatFeedback("/chat", {
         type: "error",
-        message: "Choose an agent before creating a new thread."
+        message: copy.chooseAgentBeforeNewThread
       })
     );
   }
@@ -454,7 +510,7 @@ export async function createThread(formData: FormData) {
     redirect(
       appendChatFeedback("/chat", {
         type: "error",
-        message: "The selected agent is unavailable for this workspace."
+        message: copy.selectedAgentUnavailableForWorkspace
       })
     );
   }
@@ -470,7 +526,7 @@ export async function createThread(formData: FormData) {
     redirect(
       appendChatFeedback("/chat", {
         type: "error",
-        message: error?.message ?? "Failed to create the new thread."
+        message: error?.message ?? copy.createThreadFailed
       })
     );
   }
@@ -479,12 +535,13 @@ export async function createThread(formData: FormData) {
   redirect(
     appendChatFeedback(`/chat?thread=${encodeURIComponent(createdThread.id)}`, {
       type: "success",
-      message: "New chat is ready. Send the first message when you are ready."
+      message: copy.newChatReady
     })
   );
 }
 
 export async function setDefaultAgent(formData: FormData) {
+  const copy = await getChatActionCopy();
   const agentId = formData.get("agent_id");
   const redirectThreadId = formData.get("redirect_thread_id");
   const redirectTarget = buildChatRedirectTarget(redirectThreadId);
@@ -493,7 +550,7 @@ export async function setDefaultAgent(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: "Choose an active agent before setting a default."
+        message: copy.chooseActiveAgentBeforeDefault
       })
     );
   }
@@ -526,7 +583,7 @@ export async function setDefaultAgent(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: activeAgentsError?.message ?? "Failed to load active agents."
+        message: activeAgentsError?.message ?? copy.activeAgentsLoadFailed
       })
     );
   }
@@ -540,7 +597,7 @@ export async function setDefaultAgent(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: "The selected default agent is unavailable."
+        message: copy.defaultAgentUnavailable
       })
     );
   }
@@ -579,12 +636,13 @@ export async function setDefaultAgent(formData: FormData) {
   redirect(
     appendChatFeedback(redirectTarget, {
       type: "success",
-      message: "Workspace default agent updated."
+      message: copy.defaultAgentUpdated
     })
   );
 }
 
 export async function hideMemory(formData: FormData) {
+  const copy = await getChatActionCopy();
   const memoryId = formData.get("memory_id");
   const redirectTarget = buildChatRedirectTarget(formData.get("redirect_thread_id"));
 
@@ -592,7 +650,7 @@ export async function hideMemory(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: "The memory to hide could not be determined."
+        message: copy.memoryMissingHide
       })
     );
   }
@@ -617,7 +675,7 @@ export async function hideMemory(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: "The selected memory is unavailable."
+        message: copy.memoryUnavailable
       })
     );
   }
@@ -626,7 +684,7 @@ export async function hideMemory(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: "This memory cannot be hidden from its current state."
+        message: copy.memoryCannotHide
       })
     );
   }
@@ -659,12 +717,13 @@ export async function hideMemory(formData: FormData) {
   redirect(
     appendChatFeedback(redirectTarget, {
       type: "success",
-      message: "Memory hidden from recall."
+      message: copy.memoryHidden
     })
   );
 }
 
 export async function restoreMemory(formData: FormData) {
+  const copy = await getChatActionCopy();
   const memoryId = formData.get("memory_id");
   const redirectTarget = buildChatRedirectTarget(formData.get("redirect_thread_id"));
 
@@ -672,7 +731,7 @@ export async function restoreMemory(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: "The memory to restore could not be determined."
+        message: copy.memoryMissingRestore
       })
     );
   }
@@ -698,7 +757,7 @@ export async function restoreMemory(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: "The selected hidden memory is unavailable."
+        message: copy.memoryHiddenUnavailable
       })
     );
   }
@@ -707,7 +766,7 @@ export async function restoreMemory(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: "This memory cannot be restored from its current state."
+        message: copy.memoryCannotRestore
       })
     );
   }
@@ -810,12 +869,13 @@ export async function restoreMemory(formData: FormData) {
   redirect(
     appendChatFeedback(redirectTarget, {
       type: "success",
-      message: "Memory restored to recall."
+      message: copy.memoryRestored
     })
   );
 }
 
 export async function markMemoryIncorrect(formData: FormData) {
+  const copy = await getChatActionCopy();
   const memoryId = formData.get("memory_id");
   const redirectTarget = buildChatRedirectTarget(formData.get("redirect_thread_id"));
 
@@ -823,7 +883,7 @@ export async function markMemoryIncorrect(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: "The memory to correct could not be determined."
+        message: copy.memoryMissingCorrect
       })
     );
   }
@@ -848,7 +908,7 @@ export async function markMemoryIncorrect(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: "The selected memory is unavailable."
+        message: copy.memoryUnavailable
       })
     );
   }
@@ -857,7 +917,7 @@ export async function markMemoryIncorrect(formData: FormData) {
     redirect(
       appendChatFeedback(redirectTarget, {
         type: "error",
-        message: "This memory cannot be marked incorrect from its current state."
+        message: copy.memoryCannotIncorrect
       })
     );
   }
@@ -892,7 +952,7 @@ export async function markMemoryIncorrect(formData: FormData) {
   redirect(
     appendChatFeedback(redirectTarget, {
       type: "success",
-      message: "Memory marked as incorrect and removed from recall."
+      message: copy.memoryIncorrect
     })
   );
 }
@@ -900,6 +960,7 @@ export async function markMemoryIncorrect(formData: FormData) {
 export async function sendMessage(
   formData: FormData
 ): Promise<SendMessageResult> {
+  const copy = await getChatActionCopy();
   const content = formData.get("content");
   const threadId = formData.get("thread_id");
   const imageFileEntries = formData.getAll("image_file");
@@ -917,7 +978,7 @@ export async function sendMessage(
     return {
       ok: false,
       threadId: typeof threadId === "string" ? threadId : null,
-      message: "Type a message before sending."
+      message: copy.sendMessageRequired
     };
   }
 
@@ -925,7 +986,7 @@ export async function sendMessage(
     return {
       ok: false,
       threadId: null,
-      message: "The active thread could not be determined."
+      message: copy.activeThreadMissing
     };
   }
 
@@ -938,7 +999,7 @@ export async function sendMessage(
     return {
       ok: false,
       threadId,
-      message: "Your session expired. Sign in again to continue."
+      message: copy.sessionExpired
     };
   }
 
@@ -951,7 +1012,7 @@ export async function sendMessage(
     return {
       ok: false,
       threadId,
-      message: "No workspace is available for this account."
+      message: copy.noWorkspace
     };
   }
 
@@ -966,7 +1027,7 @@ export async function sendMessage(
     return {
       ok: false,
       threadId: null,
-      message: "The requested thread could not be loaded."
+      message: copy.requestedThreadMissing
     };
   }
 
@@ -974,7 +1035,7 @@ export async function sendMessage(
     return {
       ok: false,
       threadId: thread.id,
-      message: "This thread is not bound to an agent yet."
+      message: copy.threadUnbound
     };
   }
 
@@ -989,7 +1050,7 @@ export async function sendMessage(
     return {
       ok: false,
       threadId: thread.id,
-      message: "The bound agent for this thread could not be loaded."
+      message: copy.boundAgentMissing
     };
   }
 
@@ -1008,7 +1069,7 @@ export async function sendMessage(
       message:
         error instanceof Error
           ? error.message
-          : "Failed to prepare the uploaded media."
+          : copy.prepareMediaFailed
     };
   }
 
@@ -1052,7 +1113,7 @@ export async function sendMessage(
     return {
       ok: false,
       threadId: thread.id,
-      message: insertError?.message ?? "Failed to store the user message."
+      message: insertError?.message ?? copy.storeMessageFailed
     };
   }
 
@@ -1097,7 +1158,7 @@ export async function sendMessage(
       message:
         bootstrapError instanceof Error
           ? bootstrapError.message
-          : "Failed to initialize the assistant reply."
+          : copy.initAssistantFailed
     };
   }
 
@@ -1381,6 +1442,7 @@ export async function sendMessage(
 export async function retryAssistantReply(
   formData: FormData
 ): Promise<RetryAssistantReplyResult> {
+  const copy = await getChatActionCopy();
   const failedMessageId = formData.get("failed_message_id");
   const threadId = formData.get("thread_id");
 
@@ -1393,7 +1455,7 @@ export async function retryAssistantReply(
     return {
       ok: false,
       threadId: typeof threadId === "string" ? threadId : null,
-      message: "The failed assistant turn could not be located."
+      message: copy.failedTurnMissing
     };
   }
 
@@ -1406,7 +1468,7 @@ export async function retryAssistantReply(
     return {
       ok: false,
       threadId,
-      message: "Your session expired. Sign in again to continue."
+      message: copy.sessionExpired
     };
   }
 
@@ -1419,7 +1481,7 @@ export async function retryAssistantReply(
     return {
       ok: false,
       threadId,
-      message: "No workspace is available for this account."
+      message: copy.noWorkspace
     };
   }
 
@@ -1434,7 +1496,7 @@ export async function retryAssistantReply(
     return {
       ok: false,
       threadId,
-      message: "The active thread or its agent could not be resolved."
+      message: copy.activeThreadOrAgentMissing
     };
   }
 
@@ -1449,7 +1511,7 @@ export async function retryAssistantReply(
     return {
       ok: false,
       threadId,
-      message: "The bound agent for this thread could not be loaded."
+      message: copy.boundAgentMissing
     };
   }
 
@@ -1463,7 +1525,7 @@ export async function retryAssistantReply(
     return {
       ok: false,
       threadId,
-      message: messagesError?.message ?? "Failed to load thread messages."
+      message: messagesError?.message ?? copy.loadThreadMessagesFailed
     };
   }
 
@@ -1483,7 +1545,7 @@ export async function retryAssistantReply(
     return {
       ok: false,
       threadId,
-      message: "The selected failed assistant turn is no longer available."
+      message: copy.failedTurnUnavailable
     };
   }
 
@@ -1491,7 +1553,7 @@ export async function retryAssistantReply(
     return {
       ok: false,
       threadId,
-      message: "The user message for this failed reply could not be recovered."
+      message: copy.sourceUserMessageMissing
     };
   }
 
@@ -1591,6 +1653,7 @@ export async function retryAssistantReply(
 export async function renameThread(
   formData: FormData
 ): Promise<RenameThreadResult> {
+  const copy = await getChatActionCopy();
   const threadId = formData.get("thread_id");
   const title = formData.get("title");
 
@@ -1598,7 +1661,7 @@ export async function renameThread(
     return {
       ok: false,
       threadId: null,
-      message: "The thread to rename could not be determined."
+      message: copy.renameThreadMissing
     };
   }
 
@@ -1606,7 +1669,7 @@ export async function renameThread(
     return {
       ok: false,
       threadId,
-      message: "Type a title before saving."
+      message: copy.threadTitleRequired
     };
   }
 
@@ -1616,7 +1679,7 @@ export async function renameThread(
     return {
       ok: false,
       threadId,
-      message: "Type a title before saving."
+      message: copy.threadTitleRequired
     };
   }
 
@@ -1629,7 +1692,7 @@ export async function renameThread(
     return {
       ok: false,
       threadId,
-      message: "Your session expired. Sign in again to continue."
+      message: copy.sessionExpired
     };
   }
 
@@ -1648,7 +1711,7 @@ export async function renameThread(
     return {
       ok: false,
       threadId,
-      message: error?.message ?? "Failed to rename the thread."
+      message: error?.message ?? copy.renameThreadFailed
     };
   }
 

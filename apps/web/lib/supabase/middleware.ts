@@ -2,15 +2,24 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv } from "@/lib/env";
 
+function buildRequestHeaders(request: NextRequest) {
+  const headers = new Headers(request.headers);
+  headers.set("x-sparkcore-pathname", request.nextUrl.pathname);
+  return headers;
+}
+
 function isProtectedPath(pathname: string) {
   return pathname.startsWith("/workspace");
 }
 
 export async function updateSession(request: NextRequest) {
   const { url, anonKey } = getSupabaseEnv();
+  const requestHeaders = buildRequestHeaders(request);
 
   let response = NextResponse.next({
-    request
+    request: {
+      headers: requestHeaders,
+    },
   });
 
   const supabase = createServerClient(url, anonKey, {
@@ -24,7 +33,9 @@ export async function updateSession(request: NextRequest) {
         });
 
         response = NextResponse.next({
-          request
+          request: {
+            headers: requestHeaders,
+          },
         });
 
         cookiesToSet.forEach(({ name, value, options }) => {

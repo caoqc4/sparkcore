@@ -87,9 +87,14 @@ import {
 import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 import { loadThreadMessages } from "@/lib/chat/message-read";
 import {
-  planMemoryWriteRequests,
+  planMemoryWriteRequestsWithPlannerInputs,
   planRelationshipMemoryWriteRequests
 } from "@/lib/chat/memory-write";
+import { buildPlannerCandidatePreviewFromGenericExtraction } from "@/lib/chat/memory-planner-candidates";
+import {
+  buildPlannerCandidatePreviewsFromWriteRequests,
+  summarizePlannerCandidates
+} from "@/lib/chat/memory-planner-candidates";
 import {
   type ApproxContextPressure,
   type RecentRawTurn,
@@ -140,7 +145,12 @@ import type {
   RuntimeTurnResult
 } from "@/lib/chat/runtime-contract";
 import { maybeWriteThreadStateAfterTurn } from "@/lib/chat/thread-state-writeback";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { isTransientSupabaseFetchError } from "@/lib/supabase/transient-fetch";
+import { getSmokeConfig } from "@/lib/testing/smoke-config";
+import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 function nowMs() {
   return Date.now();
@@ -156,6 +166,71 @@ function hashString(input: string) {
 
 function elapsedMs(startedAt: number) {
   return Math.max(0, nowMs() - startedAt);
+}
+
+function isSmokeModeEnabled() {
+  return process.env.PLAYWRIGHT_SMOKE_MODE === "1";
+}
+
+type RuntimePageUser = {
+  id: string;
+  email?: string | null;
+};
+
+async function resolveRuntimePageUserWithSmokeFallback(
+  supabase: SupabaseClient
+): Promise<{
+  supabase: SupabaseClient;
+  user: RuntimePageUser | null;
+}> {
+  try {
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      return {
+        supabase,
+        user: {
+          id: user.id,
+          email: user.email ?? null
+        }
+      };
+    }
+  } catch (error) {
+    if (!isTransientSupabaseFetchError(error) || !isSmokeModeEnabled()) {
+      throw error;
+    }
+  }
+
+  if (!isSmokeModeEnabled()) {
+    return {
+      supabase,
+      user: null
+    };
+  }
+
+  const smokeConfig = getSmokeConfig();
+
+  if (!smokeConfig) {
+    return {
+      supabase,
+      user: null
+    };
+  }
+
+  const admin = createAdminClient();
+  const smokeUser = await ensureSmokeUserState(admin, smokeConfig, {
+    resetPassword: false
+  });
+
+  return {
+    supabase: admin,
+    user: {
+      id: smokeUser.id,
+      email: smokeUser.email
+    }
+  };
 }
 
 function approximateTokenCountFromBytes(bytes: number) {
@@ -1929,6 +2004,62 @@ function buildDirectRecallInstructions(
       ];
 }
 
+export function buildRelationshipAdoptionInstructions(args: {
+  isZh: boolean;
+  mode: "open-ended-summary" | "open-ended-advice" | "same-thread-continuation";
+  relationshipRecall: {
+    nicknameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+    preferredNameMemory: {
+      memory_type: "relationship";
+      content: string;
+      confidence: number;
+    } | null;
+  };
+}) {
+  const sections: string[] = [];
+  const nickname = args.relationshipRecall.nicknameMemory?.content?.trim() ?? "";
+  const preferredName =
+    args.relationshipRecall.preferredNameMemory?.content?.trim() ?? "";
+
+  if (preferredName) {
+    sections.push(
+      args.isZh
+        ? args.mode === "same-thread-continuation"
+          ? `如果这轮回复会直接称呼用户，优先继续用“${preferredName}”这个已记住的称呼，尤其在开场、接续和收尾里不要退回成泛泛的“你”或重新发明别的叫法。`
+          : `如果这轮回复里需要称呼用户，优先直接用“${preferredName}”这个已记住的称呼，而不是退回成泛泛称呼或重新发明别的叫法。`
+        : args.mode === "same-thread-continuation"
+          ? `If this reply directly addresses the user, keep using the stored preferred name "${preferredName}", especially in openings, carry-forward lines, and closings, instead of dropping back to generic wording or inventing a different address term.`
+          : `If this reply addresses the user, prefer the stored preferred name "${preferredName}" instead of falling back to generic wording or inventing a different address term.`
+    );
+  }
+
+  if (nickname) {
+    sections.push(
+      args.isZh
+        ? args.mode === "same-thread-continuation"
+          ? `如果这轮回复里会提到你自己的名字、身份或开场自称，优先继续用“${nickname}”这个昵称，不要刚命中过一次又掉回 canonical name。`
+          : `如果这轮回复里会提到你自己的名字、自我介绍或开场自称，优先使用“${nickname}”这个昵称，不要刚命中过一次又掉回 canonical name。`
+        : args.mode === "same-thread-continuation"
+          ? `If this reply mentions your own name, identity, or opening self-reference, keep using the stored nickname "${nickname}" instead of dropping back to the canonical name after the first successful recall.`
+          : `If this reply mentions your own name, self-introduction, or opening self-reference, prefer the stored nickname "${nickname}" instead of dropping back to the canonical name.`
+    );
+  }
+
+  if (preferredName && nickname) {
+    sections.push(
+      args.isZh
+        ? "如果这轮回复里同时自然涉及双方称呼，让这两个已记住的叫法稳定一起出现，而不是只保留其中一个。"
+        : "If this reply naturally touches both sides of the relationship, let both remembered address choices stay visible together instead of keeping only one of them."
+    );
+  }
+
+  return sections;
+}
+
 function buildAnswerStrategyInstructions({
   latestUserMessage,
   answerQuestionType,
@@ -2010,6 +2141,14 @@ function buildAnswerStrategyInstructions({
         recalledMemories,
         questionType: answerQuestionType,
         relationshipRecall
+      }),
+      ...buildRelationshipAdoptionInstructions({
+        isZh,
+        mode:
+          answerStrategy === "grounded-open-ended-summary"
+            ? "open-ended-summary"
+            : "open-ended-advice",
+        relationshipRecall
       })
     ];
   }
@@ -2043,6 +2182,11 @@ function buildAnswerStrategyInstructions({
               "The user is asking you to soften the tone. Relax the voice naturally like the same ongoing role instead of replying with a preference-setting explanation."
             ]
         : []),
+      ...buildRelationshipAdoptionInstructions({
+        isZh,
+        mode: "same-thread-continuation",
+        relationshipRecall
+      }),
       ...(isOneLineSoftCatchPrompt(latestUserMessage)
         ? isZh
           ? [
@@ -2827,6 +2971,10 @@ type HumanizedCaptionScene =
   | "sky_birds"
   | "sunset"
   | "generic";
+type HumanizedProductFeedbackCategory =
+  | "memory_capability_mocking"
+  | "image_mismatch"
+  | "general_quality_complaint";
 
 // Central decision contract for humanized output.
 // Runtime owns output decisions; downstream renderers should only execute these
@@ -2905,6 +3053,8 @@ type HumanizedDeliveryPacket = {
       surfaceIntent: HumanizedUserIntent;
       deepIntent: HumanizedUserIntent | null;
       relationshipProbe: boolean;
+      negativeProductFeedback: boolean;
+      negativeProductFeedbackCategory: HumanizedProductFeedbackCategory | null;
       confidence: "high" | "medium" | "low";
     };
     behaviorSignals: {
@@ -2944,6 +3094,8 @@ type HumanizedDeliveryPacket = {
     repeatedEmotion: HumanizedUserEmotion | null;
     inputConflict: boolean;
     conflictHint: string | null;
+    negativeProductFeedback: boolean;
+    negativeProductFeedbackCategory: HumanizedProductFeedbackCategory | null;
   };
   deliveryStrategy: HumanizedDeliveryStrategy;
   execution: {
@@ -3471,6 +3623,70 @@ function detectInputConflictSignal(latestUserMessage: string) {
   };
 }
 
+function detectNegativeProductFeedbackSignal(latestUserMessage: string): {
+  detected: boolean;
+  category: HumanizedProductFeedbackCategory | null;
+  confidence: "high" | "medium" | "low";
+  reason: string | null;
+} {
+  const normalized = latestUserMessage.normalize("NFKC").trim().toLowerCase();
+
+  if (!normalized) {
+    return {
+      detected: false,
+      category: null,
+      confidence: "low",
+      reason: null
+    };
+  }
+
+  if (
+    /记忆(力|能力)?(不行|太差|好差|很差|拉胯|不太行|不怎么样)|你.*记不住|你又忘了|你怎么又忘了|你这记忆|memory.*(bad|weak|terrible)|you.*forgot again|you can'?t remember/i.test(
+      normalized
+    )
+  ) {
+    return {
+      detected: true,
+      category: "memory_capability_mocking",
+      confidence: "high",
+      reason: "user_negative_feedback_about_memory"
+    };
+  }
+
+  if (
+    /图片(不对|不符|不符合|不一样|不匹配|跑偏|偏了|有问题)|图不对|图有问题|图片和.*不符|image.*(wrong|off|doesn'?t match|mismatch)|picture.*(wrong|off|doesn'?t match|mismatch)/i.test(
+      normalized
+    )
+  ) {
+    return {
+      detected: true,
+      category: "image_mismatch",
+      confidence: "high",
+      reason: "user_negative_feedback_about_image_match"
+    };
+  }
+
+  if (
+    /你这产品|你这个产品|这个功能(不行|很差|太差)|回复(不对|很差|不行)|效果(不行|很差|不好)|体验(很差|不好)|bug|有毛病|吐槽|槽点|bad product|poor quality|this is wrong|this is bad/i.test(
+      normalized
+    )
+  ) {
+    return {
+      detected: true,
+      category: "general_quality_complaint",
+      confidence: "medium",
+      reason: "user_general_negative_product_feedback"
+    };
+  }
+
+  return {
+    detected: false,
+    category: null,
+    confidence: "low",
+    reason: null
+  };
+}
+
 function buildHumanizedDeliveryPacket(args: {
   latestUserMessage: string;
   temporalContext: RuntimeTemporalContext;
@@ -3510,6 +3726,9 @@ function buildHumanizedDeliveryPacket(args: {
     latestEmotion: userEmotion
   });
   const inputConflict = detectInputConflictSignal(args.latestUserMessage);
+  const negativeProductFeedback = detectNegativeProductFeedbackSignal(
+    args.latestUserMessage
+  );
   const repeatedSameMessage = recentUserMessages.some((message) => {
     if (message === args.latestUserMessage) {
       return false;
@@ -3840,6 +4059,8 @@ function buildHumanizedDeliveryPacket(args: {
         surfaceIntent: userIntent,
         deepIntent,
         relationshipProbe,
+        negativeProductFeedback: negativeProductFeedback.detected,
+        negativeProductFeedbackCategory: negativeProductFeedback.category,
         confidence: intentConfidence
       },
       behaviorSignals: {
@@ -3888,7 +4109,9 @@ function buildHumanizedDeliveryPacket(args: {
       recurrentTheme,
       repeatedEmotion,
       inputConflict: inputConflict.inputConflict,
-      conflictHint: inputConflict.conflictHint
+      conflictHint: inputConflict.conflictHint,
+      negativeProductFeedback: negativeProductFeedback.detected,
+      negativeProductFeedbackCategory: negativeProductFeedback.category
     },
     deliveryStrategy: {
       temporalMode,
@@ -3986,6 +4209,11 @@ function buildHumanizedDeliveryPromptSection(args: {
         `如果用户同一句里把对象说混了（例如 ${packet.patternSignals.conflictHint}），先用一句轻量校准，不要直接顺滑生成。`
       );
     }
+    if (packet.patternSignals.negativeProductFeedback) {
+      sceneDirectives.push(
+        `如果用户对产品效果表达了负面评价（${packet.patternSignals.negativeProductFeedbackCategory ?? "negative_product_feedback"}），先正面接住问题，不要装作没看见，也不要立刻自我辩护。`
+      );
+    }
     if (
       packet.deliveryStrategy.confidence.intent === "low" ||
       packet.deliveryStrategy.confidence.emotion === "low"
@@ -4049,6 +4277,9 @@ function buildHumanizedDeliveryPromptSection(args: {
     `Temporal mode: ${packet.temporalContext.temporalMode}; part of day: ${packet.temporalContext.partOfDay}.`,
     `User state: emotion=${packet.userState.emotion}/${packet.userState.emotionIntensity}; intent=${packet.userState.intent}${packet.userState.deepIntent ? `→${packet.userState.deepIntent}` : ""}; stage=${packet.userState.interactionStage}.`,
     `Dialog state: topic=${packet.dialogState.topicState}; relationship=${packet.dialogState.relationshipState}; warmth=${packet.userState.relationshipTemperature}.`,
+    packet.patternSignals.negativeProductFeedback
+      ? `Product feedback signal: ${packet.patternSignals.negativeProductFeedbackCategory ?? "negative_product_feedback"}.`
+      : "",
     `Delivery: objective=${packet.deliveryStrategy.responseObjective}; primary=${packet.deliveryStrategy.primaryPosture}${packet.deliveryStrategy.secondaryPosture ? `; secondary=${packet.deliveryStrategy.secondaryPosture}` : ""}${packet.deliveryStrategy.forbiddenPosture ? `; forbidden=${packet.deliveryStrategy.forbiddenPosture}` : ""}; length=${packet.deliveryStrategy.responseLength}; opening=${packet.deliveryStrategy.openingStyle}; tone=${packet.deliveryStrategy.toneTension}.`,
     `Text rendering: mode=${packet.deliveryStrategy.textRenderMode}; policy=${packet.deliveryStrategy.textFollowUpPolicy}; depth=${packet.deliveryStrategy.textFollowUpDepth}; sentences=${packet.deliveryStrategy.textSentenceCount}; second_sentence_role=${packet.deliveryStrategy.textSecondSentenceRole}; rhythm=${packet.deliveryStrategy.textRhythmVariant}; lead_rewrite=${packet.deliveryStrategy.textLeadRewriteMode}; cleanup=${JSON.stringify(packet.deliveryStrategy.textCleanupPolicy)}; movement_mode=${packet.deliveryStrategy.movementImpulseMode ?? "none"}; repeated=${packet.deliveryStrategy.movementImpulseRepeated ? "yes" : "no"}; variant=${packet.deliveryStrategy.textVariantIndex}.`,
     `Image caption: policy=${packet.deliveryStrategy.captionPolicy}; sentences=${packet.deliveryStrategy.captionSentenceCount}; rhythm=${packet.deliveryStrategy.captionRhythmVariant}; scene=${packet.deliveryStrategy.captionScene}; variant=${packet.deliveryStrategy.captionVariantIndex}.`,
@@ -5484,10 +5715,9 @@ export async function resolveAgentForWorkspace({
 }
 
 export async function getChatState() {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const initialSupabase = await createClient();
+  const { supabase, user } =
+    await resolveRuntimePageUserWithSmokeFallback(initialSupabase);
 
   if (!user) {
     return null;
@@ -5597,10 +5827,9 @@ export async function getChatPageState({
 }: {
   requestedThreadId?: string;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const initialSupabase = await createClient();
+  const { supabase, user } =
+    await resolveRuntimePageUserWithSmokeFallback(initialSupabase);
 
   if (!user) {
     return null;
@@ -6264,10 +6493,19 @@ export async function generateAgentReply({
     relationshipRecall.nicknameMemory,
     relationshipRecall.preferredNameMemory
   ].filter(Boolean) as Array<{
+    memory_id: string;
     memory_type: "relationship";
     content: string;
     confidence: number;
   }>;
+  const relationshipRecallKeys = [
+    relationshipRecall.addressStyleMemory ? "user_address_style" : null,
+    relationshipRecall.nicknameMemory ? "agent_nickname" : null,
+    relationshipRecall.preferredNameMemory ? "user_preferred_name" : null
+  ].filter((value): value is string => value !== null);
+  const relationshipRecallMemoryIds = relationshipMemories.map(
+    (memory) => memory.memory_id
+  );
   const allRecalledMemories =
     relationshipMemories.length > 0
       ? [...recalledMemories, ...relationshipMemories]
@@ -6411,6 +6649,7 @@ export async function runPreparedRuntimeTurn({
   latestUserMessageContent: string | null;
   allRecalledMemories: RecalledMemory[];
   relationshipMemories: Array<{
+    memory_id: string;
     memory_type: "relationship";
     content: string;
     confidence: number;
@@ -6439,6 +6678,14 @@ export async function runPreparedRuntimeTurn({
   const relationshipRecall =
     preparedRuntimeTurn.memory.runtime_memory_context.relationshipRecall;
   const memoryRecall = preparedRuntimeTurn.memory.runtime_memory_context.memoryRecall;
+  const relationshipRecallKeys = [
+    relationshipRecall.addressStyleMemory ? "user_address_style" : null,
+    relationshipRecall.nicknameMemory ? "agent_nickname" : null,
+    relationshipRecall.preferredNameMemory ? "user_preferred_name" : null
+  ].filter((value): value is string => value !== null);
+  const relationshipRecallMemoryIds = relationshipMemories.map(
+    (memory) => memory.memory_id
+  );
   const recalledProfileSnapshot =
     buildRecalledStaticProfileSnapshot(memoryRecall.memories);
   const compactedThreadSummary = selectRetainedThreadCompactionSummary({
@@ -6452,17 +6699,36 @@ export async function runPreparedRuntimeTurn({
     preparedRuntimeTurn.governance?.knowledge_route?.route ?? null;
   const knowledgeLoadLimit = resolveKnowledgeLoadLimit(knowledgeRoute);
   const knowledgeLoadStartedAt = nowMs();
-  const relevantKnowledge =
+  const knowledgeLoad =
     knowledgeLoadLimit > 0
       ? await loadRelevantKnowledgeForRuntime({
           userId,
           workspaceId: preparedRuntimeTurn.resources.workspace.id,
           agentId: agent.id,
           latestUserMessage: latestUserMessageContent,
+          knowledgeRoute,
           limit: knowledgeLoadLimit
         })
-      : [];
+      : {
+          snippets: [],
+        gating: {
+          knowledge_route: knowledgeRoute,
+          query_token_count: 0,
+          available: false,
+          available_count: 0,
+          should_inject: false,
+          injection_gap_reason: null,
+          retained_count: 0,
+          suppressed: knowledgeLoadLimit === 0,
+          suppression_reason:
+            knowledgeLoadLimit === 0 ? "knowledge_route_no_knowledge" : null,
+            zero_match_filtered_count: 0,
+            weak_match_filtered_count: 0
+          }
+        };
   const knowledgeLoadDurationMs = elapsedMs(knowledgeLoadStartedAt);
+  const relevantKnowledge = knowledgeLoad.snippets;
+  const knowledgeGating = knowledgeLoad.gating;
   const activeMemoryNamespace = resolveActiveMemoryNamespace({
     userId,
     agentId: agent.id,
@@ -6473,6 +6739,14 @@ export async function runPreparedRuntimeTurn({
     knowledge: relevantKnowledge,
     namespace: activeMemoryNamespace
   });
+  const knowledgeInjectionGapReason =
+    knowledgeGating.should_inject && applicableKnowledge.length === 0
+      ? "namespace_filtered_after_availability"
+      : null;
+  const knowledgeGatingWithOutcome = {
+    ...knowledgeGating,
+    injection_gap_reason: knowledgeInjectionGapReason
+  };
   const activeScenarioMemoryPack = resolveActiveScenarioMemoryPack({
     activeNamespace: activeMemoryNamespace,
     relevantKnowledge: applicableKnowledge
@@ -6788,27 +7062,54 @@ export async function runPreparedRuntimeTurn({
     conflictHint: humanizedDeliveryPacket?.patternSignals.conflictHint ?? null
   });
 
-  const memoryWriteRequests =
-    latestUserMessageContent !== null &&
-    preparedRuntimeTurn.session.current_message_id !== undefined
-      ? [
-          ...(await planMemoryWriteRequests({
+  const currentSourceMessageId =
+    preparedRuntimeTurn.session.current_message_id ?? null;
+  const recentUserContextForMemoryPlanning =
+    preparedRuntimeTurn.session.recent_raw_turns.slice(-3).map((message) => ({
+      role: message.role,
+      content: message.content
+    }));
+  const memoryWritePlanning =
+    latestUserMessageContent !== null && currentSourceMessageId !== null
+      ? await planMemoryWriteRequestsWithPlannerInputs({
             latestUserMessage: latestUserMessageContent,
-            recentContext: preparedRuntimeTurn.session.recent_raw_turns
-              .slice(-3)
-              .map((message) => ({
-                role: message.role,
-                content: message.content
-              })),
-            sourceTurnId: preparedRuntimeTurn.session.current_message_id
-          })),
-          ...planRelationshipMemoryWriteRequests({
+            recentContext: recentUserContextForMemoryPlanning,
+            sourceTurnId: currentSourceMessageId
+          })
+      : {
+          requests: [],
+          rejected_generic_candidates: []
+        };
+  const memoryWriteRequests = [
+    ...memoryWritePlanning.requests,
+    ...(
+      latestUserMessageContent !== null && currentSourceMessageId !== null
+        ? planRelationshipMemoryWriteRequests({
             latestUserMessage: latestUserMessageContent,
-            sourceTurnId: preparedRuntimeTurn.session.current_message_id,
+            sourceTurnId: currentSourceMessageId,
             agentId: agent.id
           })
-        ]
+        : []
+    )
+  ];
+  const memoryPlannerCandidates =
+    latestUserMessageContent !== null && currentSourceMessageId !== null
+      ? memoryWritePlanning.rejected_generic_candidates.map((candidate) =>
+          buildPlannerCandidatePreviewFromGenericExtraction({
+            candidate,
+            latestUserMessage: latestUserMessageContent,
+            recentContext: recentUserContextForMemoryPlanning,
+            sourceTurnId: currentSourceMessageId
+          })
+        )
       : [];
+  const runtimePlannedCandidates = buildPlannerCandidatePreviewsFromWriteRequests({
+    requests: memoryWriteRequests,
+    activeNamespace: activeMemoryNamespace
+  }).concat(memoryPlannerCandidates);
+  const memoryPlannerSummary = summarizePlannerCandidates(
+    runtimePlannedCandidates
+  );
   const followUpRequests = buildFollowUpRequests({
     latestUserMessage: latestUserMessageContent,
     threadId: thread.id,
@@ -6873,7 +7174,21 @@ export async function runPreparedRuntimeTurn({
         strategy_priority_label: getAnswerStrategyPriorityLabel(
           answerStrategyPriority,
           replyLanguage === "zh-Hans"
-        )
+        ),
+        relationship_recall: {
+          used: relationshipMemories.length > 0,
+          direct_naming_question: relationshipRecall.directNamingQuestion,
+          direct_preferred_name_question:
+            relationshipRecall.directPreferredNameQuestion,
+          relationship_style_prompt: relationshipRecall.relationshipStylePrompt,
+          same_thread_continuity: relationshipRecall.sameThreadContinuity,
+          recalled_keys: relationshipRecallKeys,
+          recalled_memory_ids: relationshipRecallMemoryIds,
+          adopted_agent_nickname_target:
+            relationshipRecall.nicknameMemory?.content ?? null,
+          adopted_user_preferred_name_target:
+            relationshipRecall.preferredNameMemory?.content ?? null
+        }
       },
       session: {
         continuation_reason_code: continuationReasonCode,
@@ -6923,13 +7238,18 @@ export async function runPreparedRuntimeTurn({
               .filter((layer): layer is NonNullable<typeof layer> => Boolean(layer))
           )
         ),
+        memory_record_recall_preferred:
+          memoryRecall.memoryRecordRecallPreferred === true,
+        profile_fallback_suppressed:
+          memoryRecall.profileFallbackSuppressed === true,
         profile_snapshot: recalledProfileSnapshot,
         scenario_pack: activeScenarioMemoryPack,
         hidden_exclusion_count: memoryRecall.hiddenExclusionCount,
         incorrect_exclusion_count: memoryRecall.incorrectExclusionCount
       },
       knowledge: {
-        snippets: applicableKnowledge
+        snippets: applicableKnowledge,
+        gating: knowledgeGatingWithOutcome
       },
       namespace: {
         active_namespace: activeMemoryNamespace
@@ -6989,8 +7309,31 @@ export async function runPreparedRuntimeTurn({
       metadata: assistantPayload.metadata as Record<string, unknown>
     },
     memory_write_requests: memoryWriteRequests,
+    memory_planner_candidates: memoryPlannerCandidates,
     follow_up_requests: followUpRequests,
+    memory_usage_updates: relationshipMemories.map((memory) => ({
+      memory_item_id: memory.memory_id,
+      usage_kind: "relationship_recall"
+    })),
     runtime_events: [
+      {
+        type: "knowledge_selected",
+        payload: {
+          count: applicableKnowledge.length,
+          knowledge_route: knowledgeGating.knowledge_route,
+          available: knowledgeGatingWithOutcome.available,
+          available_count: knowledgeGatingWithOutcome.available_count,
+          should_inject: knowledgeGatingWithOutcome.should_inject,
+          injection_gap_reason: knowledgeGatingWithOutcome.injection_gap_reason,
+          suppressed: knowledgeGatingWithOutcome.suppressed,
+          suppression_reason: knowledgeGatingWithOutcome.suppression_reason,
+          query_token_count: knowledgeGatingWithOutcome.query_token_count,
+          zero_match_filtered_count:
+            knowledgeGatingWithOutcome.zero_match_filtered_count,
+          weak_match_filtered_count:
+            knowledgeGatingWithOutcome.weak_match_filtered_count
+        }
+      },
       {
         type: "memory_recalled",
         payload: {
@@ -7001,13 +7344,22 @@ export async function runPreparedRuntimeTurn({
               )
             : memoryRecall.usedMemoryTypes,
           hidden_exclusion_count: memoryRecall.hiddenExclusionCount,
-          incorrect_exclusion_count: memoryRecall.incorrectExclusionCount
+          incorrect_exclusion_count: memoryRecall.incorrectExclusionCount,
+          memory_record_recall_preferred:
+            memoryRecall.memoryRecordRecallPreferred === true,
+          profile_fallback_suppressed:
+            memoryRecall.profileFallbackSuppressed === true
         }
       },
       {
         type: "memory_write_planned",
         payload: {
           count: memoryWriteRequests.length,
+          planner_candidate_count: memoryPlannerSummary.candidate_count,
+          rejected_candidate_count:
+            memoryPlannerSummary.rejected_candidate_count,
+          downgraded_candidate_count:
+            memoryPlannerSummary.downgraded_candidate_count,
           memory_types: Array.from(
             new Set(memoryWriteRequests.map((request) => request.memory_type))
           ),
@@ -7032,7 +7384,15 @@ export async function runPreparedRuntimeTurn({
                   ).writeBoundary
               )
             )
-          )
+          ),
+          decision_kind_counts: memoryPlannerSummary.decision_kind_counts,
+          target_layer_counts: memoryPlannerSummary.target_layer_counts,
+          boundary_reason_counts: memoryPlannerSummary.boundary_reason_counts,
+          decision_reason_counts: memoryPlannerSummary.decision_reason_counts,
+          downgrade_reason_counts:
+            memoryPlannerSummary.downgrade_reason_counts,
+          rejection_reason_counts:
+            memoryPlannerSummary.rejection_reason_counts
         }
       },
       {
@@ -7070,6 +7430,20 @@ export async function runPreparedRuntimeTurn({
       model_profile_id: modelProfile.id,
       answer_strategy: answerStrategy,
       answer_strategy_reason_code: answerStrategyReasonCode,
+      relationship_recall: {
+        used: relationshipMemories.length > 0,
+        direct_naming_question: relationshipRecall.directNamingQuestion,
+        direct_preferred_name_question:
+          relationshipRecall.directPreferredNameQuestion,
+        relationship_style_prompt: relationshipRecall.relationshipStylePrompt,
+        same_thread_continuity: relationshipRecall.sameThreadContinuity,
+        recalled_keys: relationshipRecallKeys,
+        recalled_memory_ids: relationshipRecallMemoryIds,
+        adopted_agent_nickname_target:
+          relationshipRecall.nicknameMemory?.content ?? null,
+        adopted_user_preferred_name_target:
+          relationshipRecall.preferredNameMemory?.content ?? null
+      },
       recalled_memory_count: allRecalledMemories.length,
       memory_types_used:
         relationshipMemories.length > 0
@@ -7085,8 +7459,13 @@ export async function runPreparedRuntimeTurn({
         )
       ),
       memory_recall_routes: memoryRecall.appliedRoutes,
+      memory_record_recall_preferred:
+        memoryRecall.memoryRecordRecallPreferred === true,
+      profile_fallback_suppressed:
+        memoryRecall.profileFallbackSuppressed === true,
       profile_snapshot: recalledProfileSnapshot,
       memory_write_request_count: memoryWriteRequests.length,
+      memory_planner_summary: memoryPlannerSummary,
       follow_up_request_count: followUpRequests.length,
       continuation_reason_code: continuationReasonCode,
       recent_turn_count: recentRawTurnCount,
@@ -7100,6 +7479,7 @@ export async function runPreparedRuntimeTurn({
         relevantKnowledge: applicableKnowledge
       }),
       relevant_knowledge: applicableKnowledge,
+      knowledge_gating: knowledgeGatingWithOutcome,
       active_memory_namespace: activeMemoryNamespace,
       compacted_thread_summary: compactedThreadSummary,
       role_core_close_note_handoff_packet: roleCoreCloseNoteHandoffPacket,
@@ -7130,7 +7510,23 @@ export async function runPreparedRuntimeTurn({
       type: "thread_state_writeback_completed",
       payload: {
         status: threadStateWriteback.status,
-        repository: threadStateWriteback.repository
+        repository: threadStateWriteback.repository,
+        anchor_mode:
+          threadStateWriteback.status === "written"
+            ? threadStateWriteback.anchor_mode
+            : null,
+        focus_projection_reason:
+          threadStateWriteback.status === "written"
+            ? threadStateWriteback.focus_projection_reason
+            : null,
+        continuity_projection_reason:
+          threadStateWriteback.status === "written"
+            ? threadStateWriteback.continuity_projection_reason
+            : null,
+        reason:
+          threadStateWriteback.status === "written"
+            ? null
+            : threadStateWriteback.reason
       }
     });
 
@@ -7179,6 +7575,10 @@ export async function runPreparedRuntimeTurn({
               humanizedDeliveryPacket.deliveryStrategy.audioArtifactAction,
             input_conflict: humanizedDeliveryPacket.patternSignals.inputConflict,
             conflict_hint: humanizedDeliveryPacket.patternSignals.conflictHint,
+            negative_product_feedback_detected:
+              humanizedDeliveryPacket.patternSignals.negativeProductFeedback,
+            negative_product_feedback_category:
+              humanizedDeliveryPacket.patternSignals.negativeProductFeedbackCategory,
           }
         : null,
       runtime_timing_ms: {
@@ -7217,7 +7617,12 @@ export async function runPreparedRuntimeTurn({
         threadStateWriteback.status === "written"
           ? {
               status: threadStateWriteback.status,
-              repository: threadStateWriteback.repository
+              repository: threadStateWriteback.repository,
+              anchor_mode: threadStateWriteback.anchor_mode,
+              focus_projection_reason:
+                threadStateWriteback.focus_projection_reason,
+              continuity_projection_reason:
+                threadStateWriteback.continuity_projection_reason
             }
           : {
               status: threadStateWriteback.status,
@@ -7269,6 +7674,10 @@ export async function runPreparedRuntimeTurn({
               humanizedDeliveryPacket.deliveryStrategy.imageArtifactAction,
             audio_artifact_action:
               humanizedDeliveryPacket.deliveryStrategy.audioArtifactAction,
+            negative_product_feedback_detected:
+              humanizedDeliveryPacket.patternSignals.negativeProductFeedback,
+            negative_product_feedback_category:
+              humanizedDeliveryPacket.patternSignals.negativeProductFeedbackCategory,
           }
         : null,
       runtime_timing_ms: {
@@ -7404,6 +7813,11 @@ export async function runPreparedRuntimeTurn({
       humanizedDeliveryPacket?.patternSignals.inputConflict ?? false,
     humanized_conflict_hint:
       humanizedDeliveryPacket?.patternSignals.conflictHint ?? null,
+    humanized_negative_product_feedback:
+      humanizedDeliveryPacket?.patternSignals.negativeProductFeedback ?? false,
+    humanized_negative_product_feedback_category:
+      humanizedDeliveryPacket?.patternSignals.negativeProductFeedbackCategory ??
+      null,
     prompt_user_chars: promptUserChars,
     prompt_assistant_chars: promptAssistantChars,
     prompt_total_chars: promptTotalChars,

@@ -66,6 +66,19 @@ export function buildSmokeAssistantMetadata(args: SmokeAssistantMetadataInput) {
     ...buildSmokeAssistantMemoryOutcome({
       recalledMemories: args.recalledMemories,
       createdTypes: args.createdTypes
-    })
+    }),
+    ...(args.relationshipRecallMetadata
+      ? {
+          memory: {
+            relationship_recall: args.relationshipRecallMetadata
+          }
+        }
+      : {}),
+    ...(args.runtimeMemoryUsageMetadata
+      ? {
+          runtime_memory_usage: args.runtimeMemoryUsageMetadata
+        }
+      : {}),
+    ...(args.plannerPreviewMetadata ?? {})
   };
 }

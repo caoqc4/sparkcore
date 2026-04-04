@@ -32,7 +32,10 @@ export function buildSmokeAssistantMessagePayload(
       usedMemoryTypes: args.usedMemoryTypes,
       hiddenExclusionCount: args.hiddenExclusionCount,
       incorrectExclusionCount: args.incorrectExclusionCount,
-      createdTypes: args.createdTypes
+      createdTypes: args.createdTypes,
+      plannerPreviewMetadata: args.plannerPreviewMetadata ?? null,
+      relationshipRecallMetadata: args.relationshipRecallMetadata ?? null,
+      runtimeMemoryUsageMetadata: args.runtimeMemoryUsageMetadata ?? null
     })
   };
 }

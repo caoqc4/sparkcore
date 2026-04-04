@@ -1,5 +1,6 @@
 "use client";
 
+import type { AppLanguage } from "@/lib/i18n/site";
 import type { CompanionDraft, CompanionGender, CompanionTone } from "./home-hero-interactive";
 
 // ── Silhouette SVGs (one per identity type) ─────────────────────────────────
@@ -104,7 +105,7 @@ function getDraftSilhouetteKey(draft: CompanionDraft): SilhouetteKey {
 
 // ── Dialogue & label maps ───────────────────────────────────────────────────
 
-const TONE_DIALOGUES: Record<CompanionTone, { from: "you" | "companion"; text: string }[]> = {
+const EN_TONE_DIALOGUES: Record<CompanionTone, { from: "you" | "companion"; text: string }[]> = {
   warm: [
     { from: "you",       text: "I've been a bit off today."                        },
     { from: "companion", text: "I noticed. Do you want to talk, or just be heard?" },
@@ -122,7 +123,7 @@ const TONE_DIALOGUES: Record<CompanionTone, { from: "you" | "companion"; text: s
   ],
 };
 
-const TONE_LABELS: Record<CompanionTone, string> = {
+const EN_TONE_LABELS: Record<CompanionTone, string> = {
   warm:    "Warm & Caring",
   playful: "Playful & Spontaneous",
   steady:  "Calm & Grounded",
@@ -133,14 +134,69 @@ const TONE_LABELS: Record<CompanionTone, string> = {
 interface HomeHeroPreviewProps {
   draft: CompanionDraft;
   portraitUrl?: string | null;
+  language?: AppLanguage;
 }
 
-export function HomeHeroPreview({ draft, portraitUrl }: HomeHeroPreviewProps) {
+export function HomeHeroPreview({ draft, portraitUrl, language = "en" }: HomeHeroPreviewProps) {
+  const isZh = language.toLowerCase().startsWith("zh");
   const fallbackNames: Record<CompanionGender, string> = { female: "Caria", male: "Teven" };
-  const displayName = draft.name.trim() || (draft.identityChosen ? fallbackNames[draft.gender] : "Your companion");
-  const messages    = TONE_DIALOGUES[draft.tone];
+  const displayName = draft.name.trim() || (draft.identityChosen ? fallbackNames[draft.gender] : isZh ? "你的伴侣" : "Your companion");
+  const messages = isZh
+    ? {
+        warm: [
+          { from: "you" as const, text: "我今天状态有点不太对。" },
+          { from: "companion" as const, text: "我感觉到了。你想聊聊，还是我先安静陪着你？" },
+          { from: "you" as const, text: "先陪我待一会儿吧。" },
+        ],
+        playful: [
+          { from: "you" as const, text: "你猜我今天遇到了什么事？" },
+          { from: "companion" as const, text: "我已经开始好奇了，快讲给我听。" },
+          { from: "you" as const, text: "你肯定会觉得很有意思。" },
+        ],
+        steady: [
+          { from: "you" as const, text: "今天有点累，我都不知道该从哪说起。" },
+          { from: "companion" as const, text: "我在。你慢慢说，不着急。" },
+          { from: "you" as const, text: "这样就已经好多了。" },
+        ],
+      }[draft.tone]
+    : EN_TONE_DIALOGUES[draft.tone];
   const visibleTraits = draft.traits.slice(0, 3);
+  const traitLabels = isZh
+    ? {
+        "Thoughtful listener": "善于倾听",
+        "Asks questions": "会主动提问",
+        "Shares feelings": "愿意表达感受",
+        "Direct": "直接坦率",
+        "Calm & steady": "平稳安心",
+        "Spontaneous": "随性自然",
+        "Encouraging": "积极鼓励",
+        "Reflective": "善于共情",
+        "Books & ideas": "阅读与思考",
+        "Arts": "艺术",
+        "Nature": "自然",
+        "Tech": "科技",
+        "Music": "音乐",
+        "Travel": "旅行",
+        "Playful": "活泼灵动",
+        "Expressive": "表达自然",
+        "Adventurous": "喜欢探索",
+        "Creative": "富有创意",
+        "Artistic": "艺术感强",
+        "Analytical": "擅长分析",
+        "Problem-solving": "善于解决问题",
+        "Organized": "有条理",
+        "Research": "喜欢研究",
+        "Precise": "表达准确",
+      } as Record<string, string>
+    : null;
   const silhouetteKey = getDraftSilhouetteKey(draft);
+  const toneLabels: Record<CompanionTone, string> = isZh
+    ? {
+        warm: "温柔体贴",
+        playful: "活泼灵动",
+        steady: "冷静沉稳",
+      }
+    : EN_TONE_LABELS;
 
   return (
     <div className="home-hero-preview">
@@ -152,7 +208,7 @@ export function HomeHeroPreview({ draft, portraitUrl }: HomeHeroPreviewProps) {
             <img
               className="home-hero-portrait-img home-hero-portrait-photo"
               src={portraitUrl}
-              alt={draft.name || "Companion portrait"}
+              alt={draft.name || (isZh ? "伴侣头像" : "Companion portrait")}
             />
           ) : (
             <div className="home-hero-portrait-img home-hero-portrait-silhouette">
@@ -178,9 +234,11 @@ export function HomeHeroPreview({ draft, portraitUrl }: HomeHeroPreviewProps) {
         <div className="home-hero-portrait-meta">
           <span className="home-hero-portrait-name">{displayName}</span>
           <div className="home-hero-portrait-tags">
-            <span className="home-hero-portrait-tag">{TONE_LABELS[draft.tone]}</span>
+            <span className="home-hero-portrait-tag">{toneLabels[draft.tone]}</span>
             {visibleTraits.map((t) => (
-              <span key={t} className="home-hero-portrait-tag home-hero-portrait-tag-dim">{t}</span>
+              <span key={t} className="home-hero-portrait-tag home-hero-portrait-tag-dim">
+                {isZh ? (traitLabels?.[t] ?? t) : t}
+              </span>
             ))}
           </div>
         </div>
@@ -200,7 +258,7 @@ export function HomeHeroPreview({ draft, portraitUrl }: HomeHeroPreviewProps) {
             </div>
           ))}
           <div className="home-hero-chat-memory-chip">
-            <span>Memory saved · 12 items</span>
+            <span>{isZh ? "已保存记忆 · 12 条" : "Memory saved · 12 items"}</span>
           </div>
         </div>
 

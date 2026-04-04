@@ -1529,7 +1529,18 @@ function main() {
         strategy: "grounded_answer",
         strategy_reason_code: "memory_supported",
         strategy_priority: "high",
-        strategy_priority_label: "High"
+        strategy_priority_label: "High",
+        relationship_recall: {
+          used: true,
+          direct_naming_question: true,
+          direct_preferred_name_question: false,
+          relationship_style_prompt: false,
+          same_thread_continuity: true,
+          recalled_keys: ["agent_nickname"],
+          recalled_memory_ids: ["mem-relationship"],
+          adopted_agent_nickname_target: "小助手",
+          adopted_user_preferred_name_target: null
+        }
       },
       session: {
         continuation_reason_code: "same_thread",
@@ -1561,6 +1572,8 @@ function main() {
         used: true,
         types_used: ["profile", "relationship"],
         semantic_layers: ["static_profile", "memory_record"],
+        memory_record_recall_preferred: false,
+        profile_fallback_suppressed: false,
         profile_snapshot: ["User prefers concise technical explanations."],
         scenario_pack: scenarioMemoryPack,
         hidden_exclusion_count: 0,
@@ -1584,10 +1597,23 @@ function main() {
     model_profile_id: "profile-1",
     answer_strategy: "grounded_answer",
     answer_strategy_reason_code: "memory_supported",
+    relationship_recall: {
+      used: true,
+      direct_naming_question: true,
+      direct_preferred_name_question: false,
+      relationship_style_prompt: false,
+      same_thread_continuity: true,
+      recalled_keys: ["agent_nickname"],
+      recalled_memory_ids: ["mem-relationship"],
+      adopted_agent_nickname_target: "小助手",
+      adopted_user_preferred_name_target: null
+    },
     recalled_memory_count: 2,
     memory_types_used: ["profile", "relationship"],
     memory_semantic_layers: ["static_profile", "memory_record"],
     memory_recall_routes: ["thread_state", "profile", "episode", "timeline"],
+    memory_record_recall_preferred: false,
+    profile_fallback_suppressed: false,
     profile_snapshot: ["User prefers concise technical explanations."],
     memory_write_request_count: 1,
     follow_up_request_count: 1,

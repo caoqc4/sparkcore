@@ -1,5 +1,6 @@
 import {
   buildRuntimeFollowUpExecutionMetadata,
+  buildRuntimeMemoryUsageMetadata,
   buildRuntimeFollowUpRequestMetadata,
   buildRuntimeMemoryWriteOutcomeMetadata,
   buildRuntimeMemoryWriteRequestMetadata,
@@ -67,13 +68,17 @@ export async function updateAssistantMemoryWriteRequestPreview(
   args: AssistantPreviewTarget & {
     requests: Parameters<typeof buildRuntimeMemoryWriteRequestMetadata>[0];
     activeNamespace?: ActiveRuntimeMemoryNamespace | null;
+    extraPlannerCandidates?: Parameters<
+      typeof buildRuntimeMemoryWriteRequestMetadata
+    >[2];
   }
 ) {
   return updateAssistantPreviewMetadata({
     ...args,
     updates: buildRuntimeMemoryWriteRequestMetadata(
       args.requests,
-      args.activeNamespace ?? null
+      args.activeNamespace ?? null,
+      args.extraPlannerCandidates ?? []
     )
   });
 }
@@ -112,5 +117,16 @@ export async function updateAssistantFollowUpExecutionPreview(
   return updateAssistantPreviewMetadata({
     ...args,
     updates: buildRuntimeFollowUpExecutionMetadata(args.execution)
+  });
+}
+
+export async function updateAssistantMemoryUsagePreview(
+  args: AssistantPreviewTarget & {
+    usage: Parameters<typeof buildRuntimeMemoryUsageMetadata>[0];
+  }
+) {
+  return updateAssistantPreviewMetadata({
+    ...args,
+    updates: buildRuntimeMemoryUsageMetadata(args.usage)
   });
 }

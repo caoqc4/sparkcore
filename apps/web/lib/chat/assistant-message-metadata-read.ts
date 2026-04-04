@@ -57,6 +57,20 @@ export function getAssistantMemoryPackMetadata(
   return getAssistantMetadataGroup(memoryMetadata, "pack");
 }
 
+export function getAssistantMemoryRecallPolicyMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const memoryMetadata = getAssistantMemoryMetadata(metadata);
+  return getAssistantMetadataGroup(memoryMetadata, "recall_policy");
+}
+
+export function getAssistantRelationshipRecallMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const memoryMetadata = getAssistantMemoryMetadata(metadata);
+  return getAssistantMetadataGroup(memoryMetadata, "relationship_recall");
+}
+
 export function getAssistantKnowledgeMetadata(
   metadata: Record<string, unknown> | null | undefined
 ) {
@@ -98,6 +112,18 @@ export function getAssistantFollowUpMetadata(
   metadata: Record<string, unknown> | null | undefined
 ) {
   return getAssistantMetadataGroup(metadata, "follow_up");
+}
+
+export function getAssistantProductFeedbackIncidentMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "product_feedback_incident");
+}
+
+export function getAssistantHumanizedDeliveryMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return getAssistantMetadataGroup(metadata, "humanized_delivery");
 }
 
 export function getAssistantGovernanceMetadata(
@@ -243,6 +269,50 @@ export function getAssistantModelProfileTierLabel(
   );
 }
 
+export function getAssistantRelationshipAdoptedAgentNicknameTarget(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const relationshipRecallMetadata = getAssistantRelationshipRecallMetadata(metadata);
+  const answerStrategyMetadata = getAssistantAnswerStrategyMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      relationshipRecallMetadata,
+      "adopted_agent_nickname_target"
+    ) ??
+    getAssistantMetadataString(
+      answerStrategyMetadata,
+      "relationship_recall_adopted_agent_nickname_target"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "relationship_recall_adopted_agent_nickname_target"
+    )
+  );
+}
+
+export function getAssistantRelationshipAdoptedUserPreferredNameTarget(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const relationshipRecallMetadata = getAssistantRelationshipRecallMetadata(metadata);
+  const answerStrategyMetadata = getAssistantAnswerStrategyMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      relationshipRecallMetadata,
+      "adopted_user_preferred_name_target"
+    ) ??
+    getAssistantMetadataString(
+      answerStrategyMetadata,
+      "relationship_recall_adopted_user_preferred_name_target"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "relationship_recall_adopted_user_preferred_name_target"
+    )
+  );
+}
+
 export function getAssistantModelProfileUsageNote(
   metadata: Record<string, unknown> | null | undefined
 ) {
@@ -295,6 +365,46 @@ export function getAssistantMemoryUsed(
     ) ??
     getAssistantMetadataBoolean(memoryMetadata ?? metadata, "used") ??
     (typeof memoryHitCount === "number" ? memoryHitCount > 0 : null)
+  );
+}
+
+export function getAssistantMemoryRecordRecallPreferred(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+  const recallPolicyMetadata = getAssistantMemoryRecallPolicyMetadata(metadata);
+  const diagnosticsMetadata = getAssistantDeveloperDiagnosticsMetadata(metadata);
+
+  return (
+    getPreferredAssistantMetadataBoolean(
+      explanationMetadata,
+      metadata,
+      "memory_record_recall_preferred"
+    ) ??
+    getAssistantMetadataBoolean(
+      recallPolicyMetadata ?? diagnosticsMetadata,
+      "memory_record_recall_preferred"
+    )
+  );
+}
+
+export function getAssistantProfileFallbackSuppressed(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const explanationMetadata = getAssistantExplanationMetadata(metadata);
+  const recallPolicyMetadata = getAssistantMemoryRecallPolicyMetadata(metadata);
+  const diagnosticsMetadata = getAssistantDeveloperDiagnosticsMetadata(metadata);
+
+  return (
+    getPreferredAssistantMetadataBoolean(
+      explanationMetadata,
+      metadata,
+      "profile_fallback_suppressed"
+    ) ??
+    getAssistantMetadataBoolean(
+      recallPolicyMetadata ?? diagnosticsMetadata,
+      "profile_fallback_suppressed"
+    )
   );
 }
 
@@ -2923,6 +3033,172 @@ export function getAssistantGovernanceKnowledgeIntentLabel(
     getAssistantMetadataString(
       metadata,
       "output_governance_knowledge_intent_label"
+    )
+  );
+}
+
+export function getAssistantKnowledgeGatingMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const knowledgeMetadata = getAssistantMetadataObject(metadata?.knowledge);
+
+  return getAssistantMetadataObject(knowledgeMetadata?.gating);
+}
+
+export function getAssistantKnowledgeGatingSuppressed(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const grouped = getAssistantKnowledgeGatingMetadata(metadata);
+
+  return (
+    getAssistantMetadataBoolean(grouped, "suppressed") ??
+    getAssistantMetadataBoolean(metadata, "knowledge_gating_suppressed")
+  );
+}
+
+export function getAssistantKnowledgeGatingAvailable(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const grouped = getAssistantKnowledgeGatingMetadata(metadata);
+
+  return (
+    getAssistantMetadataBoolean(grouped, "available") ??
+    getAssistantMetadataBoolean(metadata, "knowledge_gating_available")
+  );
+}
+
+export function getAssistantKnowledgeGatingAvailableCount(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const grouped = getAssistantKnowledgeGatingMetadata(metadata);
+
+  return (
+    getAssistantMetadataNumber(grouped, "available_count") ??
+    getAssistantMetadataNumber(
+      metadata,
+      "knowledge_gating_available_count"
+    )
+  );
+}
+
+export function getAssistantKnowledgeGatingShouldInject(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const grouped = getAssistantKnowledgeGatingMetadata(metadata);
+
+  return (
+    getAssistantMetadataBoolean(grouped, "should_inject") ??
+    getAssistantMetadataBoolean(metadata, "knowledge_gating_should_inject")
+  );
+}
+
+export function getAssistantKnowledgeGatingInjectionGapReason(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const grouped = getAssistantKnowledgeGatingMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(grouped, "injection_gap_reason") ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_gating_injection_gap_reason"
+    )
+  );
+}
+
+export function getAssistantKnowledgeGatingSuppressionReason(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const grouped = getAssistantKnowledgeGatingMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(grouped, "suppression_reason") ??
+    getAssistantMetadataString(
+      metadata,
+      "knowledge_gating_suppression_reason"
+    )
+  );
+}
+
+export function getAssistantKnowledgeGatingZeroMatchFilteredCount(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const grouped = getAssistantKnowledgeGatingMetadata(metadata);
+
+  return (
+    getAssistantMetadataNumber(grouped, "zero_match_filtered_count") ??
+    getAssistantMetadataNumber(
+      metadata,
+      "knowledge_gating_zero_match_filtered_count"
+    )
+  );
+}
+
+export function getAssistantKnowledgeGatingWeakMatchFilteredCount(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const grouped = getAssistantKnowledgeGatingMetadata(metadata);
+
+  return (
+    getAssistantMetadataNumber(grouped, "weak_match_filtered_count") ??
+    getAssistantMetadataNumber(
+      metadata,
+      "knowledge_gating_weak_match_filtered_count"
+    )
+  );
+}
+
+export function getAssistantProductFeedbackIncidentId(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const incidentMetadata = getAssistantProductFeedbackIncidentMetadata(metadata);
+
+  return getAssistantMetadataString(incidentMetadata, "incident_id");
+}
+
+export function getAssistantProductFeedbackSignalCategory(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const incidentMetadata = getAssistantProductFeedbackIncidentMetadata(metadata);
+
+  return getAssistantMetadataString(incidentMetadata, "signal_category");
+}
+
+export function getAssistantProductFeedbackReusedExisting(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const incidentMetadata = getAssistantProductFeedbackIncidentMetadata(metadata);
+
+  return getAssistantMetadataBoolean(incidentMetadata, "reused_existing");
+}
+
+export function getAssistantHumanizedNegativeProductFeedbackDetected(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const humanizedMetadata = getAssistantHumanizedDeliveryMetadata(metadata);
+
+  return (
+    getAssistantMetadataBoolean(
+      humanizedMetadata,
+      "negative_product_feedback_detected"
+    ) ??
+    getAssistantMetadataBoolean(metadata, "humanized_negative_product_feedback")
+  );
+}
+
+export function getAssistantHumanizedNegativeProductFeedbackCategory(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const humanizedMetadata = getAssistantHumanizedDeliveryMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(
+      humanizedMetadata,
+      "negative_product_feedback_category"
+    ) ??
+    getAssistantMetadataString(
+      metadata,
+      "humanized_negative_product_feedback_category"
     )
   );
 }

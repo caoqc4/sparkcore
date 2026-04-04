@@ -4,42 +4,8 @@ import {
   loadDashboardOverview,
   type DashboardOverview,
 } from "@/lib/product/dashboard";
+import { getSiteChromeCopy, getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
-
-const productConsoleNavItems = [
-  {
-    href: "/app/chat",
-    label: "Chat",
-    description: "Continue the current relationship thread",
-    match: ["/app/chat", "/chat"],
-  },
-  {
-    href: "/app/role",
-    label: "Role",
-    description: "Define the companion and review memory",
-    match: ["/app/role", "/app/memory", "/app/profile", "/app/privacy"],
-  },
-  {
-    href: "/app/knowledge",
-    label: "Knowledge",
-    description: "Manage the sources the companion can use",
-    match: ["/app/knowledge"],
-  },
-  {
-    href: "/app/channels",
-    label: "Channels",
-    description: "Connect and maintain IM paths",
-    match: ["/app/channels", "/connect-im"],
-  },
-  {
-    href: "/app/settings",
-    label: "Settings",
-    description: "Account, model, and preferences",
-    match: [
-      "/app/settings",
-    ],
-  },
-] as const;
 
 type ProductConsoleShellProps = {
   currentHref: string;
@@ -75,19 +41,59 @@ function buildConsoleNavHref(href: string, roleId: string | null) {
   return href;
 }
 
-function buildConsoleSummary(overview: DashboardOverview | null) {
-  const roleName = overview?.currentRole?.name ?? "No role yet";
+function buildProductConsoleNavItems(
+  copy: ReturnType<typeof getSiteChromeCopy>["console"],
+) {
+  return [
+    {
+      href: "/app/chat",
+      label: copy.sections.chat,
+      description: copy.descriptions.chat,
+      match: ["/app/chat", "/chat"],
+    },
+    {
+      href: "/app/role",
+      label: copy.sections.role,
+      description: copy.descriptions.role,
+      match: ["/app/role", "/app/memory", "/app/profile", "/app/privacy"],
+    },
+    {
+      href: "/app/knowledge",
+      label: copy.sections.knowledge,
+      description: copy.descriptions.knowledge,
+      match: ["/app/knowledge"],
+    },
+    {
+      href: "/app/channels",
+      label: copy.sections.channels,
+      description: copy.descriptions.channels,
+      match: ["/app/channels", "/connect-im"],
+    },
+    {
+      href: "/app/settings",
+      label: copy.sections.settings,
+      description: copy.descriptions.settings,
+      match: ["/app/settings"],
+    },
+  ] as const;
+}
+
+function buildConsoleSummary(
+  overview: DashboardOverview | null,
+  copy: ReturnType<typeof getSiteChromeCopy>["console"],
+) {
+  const roleName = overview?.currentRole?.name ?? copy.status.noRoleYet;
   const personaSummary =
     overview?.currentRole?.personaSummary ??
-    "Create a role to start the relationship loop.";
-  const relationshipLabel = overview?.relationshipSummary.label ?? "Setup needed";
+    copy.status.noRoleDescription;
+  const relationshipLabel = overview?.relationshipSummary.label ?? copy.status.setupNeeded;
   const currentThread = overview?.currentThread;
   const activeChannels = overview?.channelSummary.active ?? 0;
   const memoryCount = overview?.memorySummary.active ?? 0;
   const platformLabel = overview?.channelSummary.platforms.length
     ? overview.channelSummary.platforms.join(", ")
-    : "No IM connected";
-  const statusTitle = activeChannels > 0 ? "IM live" : "Web only";
+    : copy.status.noImConnected;
+  const statusTitle = activeChannels > 0 ? copy.status.imLive : copy.status.webOnly;
 
   return {
     roleName,
@@ -119,11 +125,14 @@ export async function ProductConsoleShell({
     overview = await loadDashboardOverview({ supabase, userId: user.id });
   }
 
-  const summary = buildConsoleSummary(overview);
+  const { effectiveSystemLanguage } = await getSiteLanguageState();
+  const copy = getSiteChromeCopy(effectiveSystemLanguage).console;
+  const productConsoleNavItems = buildProductConsoleNavItems(copy);
+  const summary = buildConsoleSummary(overview, copy);
   const activeRoleId = overview?.currentRole?.agentId ?? null;
 
   return (
-    <div className="app-console-shell">
+    <div className="app-console-shell" lang={effectiveSystemLanguage}>
       {/* ── Left Sidebar ── */}
       <aside className="app-console-sidebar">
         <div className="app-console-sidebar-inner">
@@ -139,7 +148,7 @@ export async function ProductConsoleShell({
           <Link
             href={buildConsoleNavHref("/app/role", activeRoleId)}
             className="chat-sidebar-portrait-link"
-            aria-label="View role"
+            aria-label={copy.viewRole}
           >
             <div className="chat-sidebar-portrait">
               <div className="chat-sidebar-portrait-img" aria-hidden="true">
@@ -163,7 +172,7 @@ export async function ProductConsoleShell({
           </Link>
 
           {/* Nav — 3 modules */}
-          <nav className="app-console-nav" aria-label="Console">
+          <nav className="app-console-nav" aria-label={copy.navLabel}>
             {productConsoleNavItems.map((item) => {
               const active = isActiveConsoleRoute(currentHref, item.match);
               return (
@@ -183,7 +192,7 @@ export async function ProductConsoleShell({
         {/* Sidebar footer */}
         <div className="app-console-sidebar-footer">
           <Link href="/?preview=landing" className="app-console-exit-link">
-            ← Back to site
+            {copy.exitToSite}
           </Link>
         </div>
       </aside>

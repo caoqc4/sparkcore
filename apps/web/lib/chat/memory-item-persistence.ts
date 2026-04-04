@@ -23,6 +23,21 @@ export function updateMemoryItem(args: {
     .eq("id", args.memoryItemId);
 }
 
+export function updateMemoryItems(args: {
+  supabase: any;
+  memoryItemIds: string[];
+  patch: Record<string, unknown>;
+}) {
+  if (args.memoryItemIds.length === 0) {
+    return Promise.resolve({ data: null, error: null });
+  }
+
+  return args.supabase
+    .from("memory_items")
+    .update(args.patch)
+    .in("id", args.memoryItemIds);
+}
+
 export function deleteOwnedMemoryItems(args: {
   supabase: any;
   userId: string;

@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import type { AppLanguage } from "@/lib/i18n/site";
 
 type DeleteAccountConfirmProps = {
   action: (formData: FormData) => Promise<void>;
   redirectTo: string;
+  language?: AppLanguage;
 };
 
-export function DeleteAccountConfirm({ action, redirectTo }: DeleteAccountConfirmProps) {
+export function DeleteAccountConfirm({ action, redirectTo, language = "en" }: DeleteAccountConfirmProps) {
+  const isZh = language === "zh-CN";
   const [open, setOpen] = useState(false);
 
   return (
@@ -17,7 +20,7 @@ export function DeleteAccountConfirm({ action, redirectTo }: DeleteAccountConfir
         onClick={() => setOpen(true)}
         type="button"
       >
-        Delete account
+        {isZh ? "删除账户" : "Delete account"}
       </button>
 
       {open && (
@@ -35,10 +38,10 @@ export function DeleteAccountConfirm({ action, redirectTo }: DeleteAccountConfir
           >
             <div className="settings-upgrade-head">
               <h3 className="settings-upgrade-title delete-account-title" id="delete-account-title">
-                Delete your account?
+                {isZh ? "确认删除账户？" : "Delete your account?"}
               </h3>
               <button
-                aria-label="Close"
+                aria-label={isZh ? "关闭" : "Close"}
                 className="settings-upgrade-close"
                 onClick={() => setOpen(false)}
                 type="button"
@@ -47,8 +50,9 @@ export function DeleteAccountConfirm({ action, redirectTo }: DeleteAccountConfir
               </button>
             </div>
             <p className="settings-upgrade-copy delete-account-copy">
-              This will permanently remove your account, all companions, memory, and chat history.
-              This action cannot be undone.
+              {isZh
+                ? "这会永久删除你的账户、所有角色、记忆和聊天记录，而且无法撤销。"
+                : "This will permanently remove your account, all companions, memory, and chat history. This action cannot be undone."}
             </p>
             <form action={action} className="settings-upgrade-actions">
               <input name="redirect_to" type="hidden" value={redirectTo} />
@@ -57,10 +61,10 @@ export function DeleteAccountConfirm({ action, redirectTo }: DeleteAccountConfir
                 onClick={() => setOpen(false)}
                 type="button"
               >
-                Cancel
+                {isZh ? "取消" : "Cancel"}
               </button>
               <button className="button button-danger" type="submit">
-                Delete account
+                {isZh ? "删除账户" : "Delete account"}
               </button>
             </form>
           </div>

@@ -20,6 +20,8 @@ import {
   type ActiveScenarioMemoryPack
 } from "@/lib/chat/memory-packs";
 import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
+import type { RuntimeKnowledgeGatingSummary } from "@/lib/chat/runtime-knowledge-sources";
+import type { PlannerCandidateSummary } from "@/lib/chat/memory-planner-candidates";
 import {
   resolveNamespaceGovernanceFabricPlanePhaseSnapshot,
   resolveRuntimeMemoryBoundary,
@@ -33,12 +35,26 @@ export type BuildRuntimeDebugMetadataInput = {
   model_profile_id: string;
   answer_strategy: string;
   answer_strategy_reason_code: string | null;
+  relationship_recall?: {
+    used: boolean;
+    direct_naming_question: boolean;
+    direct_preferred_name_question: boolean;
+    relationship_style_prompt: boolean;
+    same_thread_continuity: boolean;
+    recalled_keys: string[];
+    recalled_memory_ids: string[];
+    adopted_agent_nickname_target: string | null;
+    adopted_user_preferred_name_target: string | null;
+  } | null;
   recalled_memory_count: number;
   memory_types_used: string[];
   memory_semantic_layers?: Array<MemorySemanticLayer | null | undefined>;
   memory_recall_routes: Array<"profile" | "episode" | "timeline" | "thread_state">;
+  memory_record_recall_preferred?: boolean;
+  profile_fallback_suppressed?: boolean;
   profile_snapshot: string[];
   memory_write_request_count: number;
+  memory_planner_summary?: PlannerCandidateSummary | null;
   follow_up_request_count: number;
   continuation_reason_code: string | null;
   recent_turn_count: number;
@@ -47,6 +63,7 @@ export type BuildRuntimeDebugMetadataInput = {
   reply_language: string;
   scenario_memory_pack?: ActiveScenarioMemoryPack | null;
   relevant_knowledge?: RuntimeKnowledgeSnippet[];
+  knowledge_gating?: RuntimeKnowledgeGatingSummary | null;
   active_memory_namespace?: ActiveRuntimeMemoryNamespace | null;
   compacted_thread_summary?: CompactedThreadSummary | null;
   output_governance?: PreparedOutputGovernanceV1 | null;
@@ -87,9 +104,16 @@ export function buildRuntimeDebugMetadata(
       reason_code: input.answer_strategy_reason_code
     },
     memory: {
+      relationship_recall: input.relationship_recall ?? null,
       recalled_count: input.recalled_memory_count,
       types_used: input.memory_types_used,
       routes: input.memory_recall_routes,
+      recall_policy: {
+        memory_record_recall_preferred:
+          input.memory_record_recall_preferred ?? false,
+        profile_fallback_suppressed:
+          input.profile_fallback_suppressed ?? false
+      },
       profile_snapshot: input.profile_snapshot,
       semantic_summary: buildRuntimeMemorySemanticSummary({
         memoryTypesUsed: input.memory_types_used,
@@ -201,9 +225,27 @@ export function buildRuntimeDebugMetadata(
               scenarioPackStrategy?.assembly_layer_order ?? []
           }
         : null,
-      write_request_count: input.memory_write_request_count
+      write_request_count: input.memory_write_request_count,
+      planner_candidates_summary: input.memory_planner_summary ?? null
     },
     knowledge: {
+      gating: input.knowledge_gating
+        ? {
+            knowledge_route: input.knowledge_gating.knowledge_route,
+            available: input.knowledge_gating.available,
+            available_count: input.knowledge_gating.available_count,
+            should_inject: input.knowledge_gating.should_inject,
+            injection_gap_reason: input.knowledge_gating.injection_gap_reason,
+            suppressed: input.knowledge_gating.suppressed,
+            suppression_reason: input.knowledge_gating.suppression_reason,
+            query_token_count: input.knowledge_gating.query_token_count,
+            retained_count: input.knowledge_gating.retained_count,
+            zero_match_filtered_count:
+              input.knowledge_gating.zero_match_filtered_count,
+            weak_match_filtered_count:
+              input.knowledge_gating.weak_match_filtered_count
+          }
+        : null,
       ...buildKnowledgeSummary({
         knowledge: input.relevant_knowledge ?? [],
         activeNamespace: input.active_memory_namespace ?? null

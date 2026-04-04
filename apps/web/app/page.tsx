@@ -5,17 +5,32 @@ import { SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
 import { getOptionalUser } from "@/lib/auth-redirect";
 import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
+import {
+  HomePresetSlug,
+  getHomeFaqItems,
+  getHomeImConversationPreview,
+  getHomeMemoryPreviewCards,
+  getHomePresetShowcaseMeta,
+} from "@/lib/i18n/home-page-copy";
+import { getSiteChromeCopy, getSiteLanguageState } from "@/lib/i18n/site";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
 import { loadSharedPresetPortraitAssets } from "@/lib/product/role-media";
-import { buildPageMetadata } from "@/lib/site";
+import { buildLocalizedPageMetadata } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = buildPageMetadata({
-  title: "AI Companion That Remembers You and Stays With You in IM",
-  description:
-    "Lagun is an IM-native AI companion with long memory, relationship continuity, and a web control center for memory, privacy, and channel management.",
-  path: "/",
-});
+export async function generateMetadata() {
+  return buildLocalizedPageMetadata({
+    title: {
+      en: "AI Companion That Remembers You and Stays With You in IM",
+      "zh-CN": "会记住你、并在 IM 中持续陪着你的 AI 伴侣",
+    },
+    description: {
+      en: "Meet your AI companion who actually remembers you. Long memory, IM-native relationship loop, and a web control center for memory, privacy, and channel settings.",
+      "zh-CN": "认识一个真正会记住你的 AI 伴侣。长期记忆、IM 原生关系循环，以及用于记忆、隐私和渠道设置的网页控制中心。",
+    },
+    path: "/",
+  });
+}
 
 type HomePageProps = {
   searchParams: Promise<{
@@ -24,87 +39,65 @@ type HomePageProps = {
   }>;
 };
 
-const PRESET_SHOWCASE_META: Record<CharacterSlug, { type: string; tagline: string; emoji: string }> = {
-  caria: {
-    type: "Companion · Female",
-    tagline: "Warm and emotionally present. Remembers every detail you share.",
-    emoji: "🌸",
-  },
-  teven: {
-    type: "Companion · Male",
-    tagline: "Steady and honest. Grounding presence without forcing closeness.",
-    emoji: "🌿",
-  },
-  velia: {
-    type: "Assistant · Female",
-    tagline: "Sharp and efficient. Gets things done with a touch of personality.",
-    emoji: "✦",
+const softwareAppSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Lagun",
+  applicationCategory: "EntertainmentApplication",
+  operatingSystem: "Web",
+  description:
+    "Lagun is an IM-native AI companion with long memory, relationship continuity, and a web control center for memory, privacy, and channel management.",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
   },
 };
 
-const faqItems = [
-  {
-    q: "Does it remember our past conversations?",
-    a: "Yes. Long memory is a core part of the product. Every significant detail is stored in visible rows you can inspect, verify, and repair from the web control center.",
-  },
-  {
-    q: "Do I need to chat on the website?",
-    a: "No. The website is for setup, memory review, channel management, and privacy control. The daily relationship loop is designed to live in IM after setup.",
-  },
-  {
-    q: "Which IM apps are supported?",
-    a: "You connect a supported IM channel after creating your role. Channel support is a product control surface — not hidden setup state.",
-  },
-  {
-    q: "Can I edit or delete memories?",
-    a: "You can inspect every memory row, hide entries, mark them incorrect, and restore them. The memory center is built for repair, not just review.",
-  },
-  {
-    q: "Is it private?",
-    a: "Privacy works through explicit boundaries, visible memory, and channel awareness. Relationship continuity does not have to feel like a black box.",
-  },
-] as const;
+function isTransientNetworkError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
 
-const memoryPreviewCards = [
-  {
-    label: "Visible memory",
-    title: "Favorite late-night voice notes calm her down.",
-    body: "Rows stay inspectable instead of hiding inside a vague black-box feeling of continuity.",
-  },
-  {
-    label: "Source trace",
-    title: "Linked back to the exact relationship thread that created it.",
-    body: "When something drifts, you can verify where it came from before deciding what to keep.",
-  },
-  {
-    label: "Repair actions",
-    title: "Hide, mark incorrect, or restore without starting over.",
-    body: "The relationship can stay emotionally consistent while the control layer stays repairable.",
-  },
-] as const;
+  const message = error.message.toLowerCase();
+  const cause = error.cause;
+  const causeCode =
+    cause && typeof cause === "object" && "code" in cause && typeof cause.code === "string"
+      ? cause.code
+      : null;
 
-const imConversationPreview = [
-  {
-    role: "You",
-    body: "I only have ten minutes, but I still wanted to check in before bed.",
-  },
-  {
-    role: "Companion",
-    body: "Then let's keep this light and close. I still remember what mattered from yesterday.",
-  },
-  {
-    role: "System",
-    body: "The same role, the same thread, and the same relationship continue in IM instead of resetting on web.",
-  },
-] as const;
+  return (
+    message.includes("fetch failed") ||
+    message.includes("econnreset") ||
+    causeCode === "ECONNRESET"
+  );
+}
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
-  const user = await getOptionalUser();
+  const { contentLanguage } = await getSiteLanguageState();
+  const homeCopy = getSiteChromeCopy(contentLanguage).homepage;
+  let user = null;
+  try {
+    user = await getOptionalUser();
+  } catch (error) {
+    if (!isTransientNetworkError(error)) {
+      throw error;
+    }
+    console.warn("[home] optional user load degraded", error);
+  }
   const supabase = await createClient();
-  const overview = user
-    ? await loadDashboardOverview({ supabase, userId: user.id })
-    : null;
+  let overview = null;
+  if (user) {
+    try {
+      overview = await loadDashboardOverview({ supabase, userId: user.id });
+    } catch (error) {
+      if (!isTransientNetworkError(error)) {
+        throw error;
+      }
+      console.warn("[home] dashboard overview degraded", error);
+    }
+  }
   const hasConsoleReady = Boolean(overview?.currentRole && overview?.currentThread);
   const allowLandingPreview = params.preview === "landing";
   if (hasConsoleReady && !allowLandingPreview) {
@@ -114,11 +107,20 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   // Resolve initialPreset from URL
   const initialPreset =
     params.preset === "caria" || params.preset === "teven" || params.preset === "velia"
-      ? (params.preset as CharacterSlug)
+      ? (params.preset as HomePresetSlug)
       : null;
 
   // Load preset portrait assets for second screen and hero preview
-  const { data: portraitAssets } = await loadSharedPresetPortraitAssets({ supabase });
+  let portraitAssets: Awaited<ReturnType<typeof loadSharedPresetPortraitAssets>>["data"] = null;
+  try {
+    const result = await loadSharedPresetPortraitAssets({ supabase });
+    portraitAssets = result.data;
+  } catch (error) {
+    if (!isTransientNetworkError(error)) {
+      throw error;
+    }
+    console.warn("[home] preset portrait load degraded", error);
+  }
   const presetPortraits: Partial<Record<CharacterSlug, string>> = {};
   for (const asset of portraitAssets ?? []) {
     const meta = asset.metadata && typeof asset.metadata === "object" && !Array.isArray(asset.metadata)
@@ -138,15 +140,27 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     }
   }
 
-  const showcasePresets: PresetShowcaseItem[] = (["caria", "teven", "velia"] as CharacterSlug[]).map((slug) => ({
+  const presetMeta = getHomePresetShowcaseMeta(contentLanguage);
+  const faqItems = getHomeFaqItems(contentLanguage);
+  const memoryPreviewCards = getHomeMemoryPreviewCards(contentLanguage);
+  const imConversationPreview = getHomeImConversationPreview(
+    contentLanguage,
+    homeCopy.previewRoles,
+  );
+
+  const showcasePresets: PresetShowcaseItem[] = (["caria", "teven", "velia"] as HomePresetSlug[]).map((slug) => ({
     slug,
     name: CHARACTER_MANIFEST[slug].displayName,
     portraitUrl: presetPortraits[slug] ?? null,
-    ...PRESET_SHOWCASE_META[slug],
+    ...presetMeta[slug],
   }));
 
   return (
     <SiteShell>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareAppSchema) }}
+      />
       {/* Hero Section */}
       <section id="home-hero" className="home-section">
         <div className="home-hero-grid">
@@ -154,6 +168,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             user={user ? { id: user.id } : null}
             initialPreset={initialPreset}
             presetPortraits={presetPortraits}
+            heading={homeCopy.heading}
+            lead={homeCopy.lead}
+            language={contentLanguage}
           />
         </div>
       </section>
@@ -161,24 +178,19 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       {/* Role Showcase Section */}
       <section className="home-feature-spotlight" id="home-roles">
         <div className="home-section-heading">
-          <p className="home-kicker">Presets</p>
-          <h2>
-            Start with a preset. Adjust anything you want.
-          </h2>
-          <p>
-            Pick one of the three starting points below.
-            It fills in the form above — name, tone, and personality — but you can change any of it before creating.
-          </p>
+          <p className="home-kicker">{homeCopy.presetsKicker}</p>
+          <h2>{homeCopy.presetsTitle}</h2>
+          <p>{homeCopy.presetsBody}</p>
         </div>
 
-        <HomePresetShowcase presets={showcasePresets} />
+        <HomePresetShowcase language={contentLanguage} presets={showcasePresets} />
       </section>
 
       {/* IM Chat Feature Section */}
       <section className="home-feature-spotlight" id="home-im-chat">
         <div className="home-section-heading">
-          <p className="home-kicker">IM Chat</p>
-          <h2>Set up on web. Keep the relationship alive in IM.</h2>
+          <p className="home-kicker">{homeCopy.imKicker}</p>
+          <h2>{homeCopy.imTitle}</h2>
         </div>
 
         <div className="home-feature-grid home-feature-grid-reverse">
@@ -186,9 +198,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             {imConversationPreview.map((message) => (
               <article
                 className={`home-im-bubble ${
-                  message.role === "Companion"
+                  message.variant === "assistant"
                     ? "home-im-bubble-assistant"
-                    : message.role === "System"
+                    : message.variant === "system"
                       ? "home-im-bubble-system"
                       : "home-im-bubble-user"
                 }`}
@@ -201,11 +213,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </aside>
 
           <article className="home-feature-panel">
-            <h3>Web is for setup and control. IM is where the bond continues.</h3>
+            <h3>{homeCopy.imPanelTitle}</h3>
             <ul className="site-bullet-list">
-              <li>Create the role and thread once on web.</li>
-              <li>Connect Telegram. The same relationship continues there.</li>
-              <li>Return to web only when you need memory or channel repair.</li>
+              {homeCopy.imBullets.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
             <TrackedLink
               className="site-inline-link"
@@ -213,7 +225,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               href="/features/im-chat"
               payload={{ source: "home_im_section_guide" }}
             >
-              Read the IM chat guide
+              {homeCopy.imGuide}
             </TrackedLink>
           </article>
         </div>
@@ -222,17 +234,17 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       {/* Memory Feature Section */}
       <section className="home-feature-spotlight" id="home-memory">
         <div className="home-section-heading">
-          <p className="home-kicker">Memory</p>
-          <h2>Memory that stays visible — not hidden in a black box.</h2>
+          <p className="home-kicker">{homeCopy.memoryKicker}</p>
+          <h2>{homeCopy.memoryTitle}</h2>
         </div>
 
         <div className="home-feature-grid">
           <article className="home-feature-panel home-feature-panel-dark">
-            <h3>Inspect, trace, and repair what the companion remembers.</h3>
+            <h3>{homeCopy.memoryPanelTitle}</h3>
             <ul className="site-bullet-list">
-              <li>Visible memory rows you can inspect anytime.</li>
-              <li>Source trace back to the conversation that created it.</li>
-              <li>Repair actions — hide, mark incorrect, or restore.</li>
+              {homeCopy.memoryBullets.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
             <TrackedLink
               className="site-inline-link"
@@ -240,7 +252,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               href="/features/memory-center"
               payload={{ source: "home_memory_section_guide" }}
             >
-              Memory guide
+              {homeCopy.memoryGuide}
             </TrackedLink>
           </article>
 
@@ -258,12 +270,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       {/* FAQ / Trust Section */}
       <section className="home-feature-spotlight" id="home-faq">
         <div className="home-section-heading">
-          <p className="home-kicker">FAQ</p>
-          <h2>Common questions about memory, IM, and privacy.</h2>
-          <p>
-            Lagun is built differently from a generic chatbot. These answers
-            explain how the relationship loop actually works.
-          </p>
+          <p className="home-kicker">{homeCopy.faqKicker}</p>
+          <h2>{homeCopy.faqTitle}</h2>
+          <p>{homeCopy.faqBody}</p>
         </div>
 
         <div className="home-faq-grid">
@@ -278,15 +287,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
       <section className="home-cta-band">
         <div>
-          <p className="home-kicker">Ready?</p>
-          <h2>
-            Create your companion. Connect IM. Keep the relationship moving.
-          </h2>
-          <p>
-            Choose a name, pick a tone, and start the first conversation. The
-            rest of the relationship loop — memory, IM continuity, and privacy
-            control — follows from there.
-          </p>
+          <p className="home-kicker">{homeCopy.readyKicker}</p>
+          <h2>{homeCopy.ctaTitle}</h2>
+          <p>{homeCopy.ctaBody}</p>
         </div>
 
         <div className="home-cta-actions">
@@ -296,7 +299,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             href="/#home-hero"
             payload={{ source: "home_final_cta" }}
           >
-            Create my companion
+            {homeCopy.createCompanion}
           </TrackedLink>
           <TrackedLink
             className="button button-secondary home-cta-action"
@@ -304,7 +307,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             href="/how-it-works"
             payload={{ source: "home_final_how" }}
           >
-            See how it works
+            {homeCopy.seeHowItWorks}
           </TrackedLink>
         </div>
       </section>

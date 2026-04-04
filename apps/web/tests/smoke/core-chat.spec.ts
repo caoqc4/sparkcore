@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { retryOnceOnTransientSupabaseFetch } from "@/lib/supabase/transient-fetch";
 
 const smokeSecret = process.env.PLAYWRIGHT_SMOKE_SECRET ?? "sparkcore-smoke-local";
 const hasServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -23,12 +24,15 @@ function getSmokeAdminClient() {
 
 async function getSmokeAgentByName(name: string) {
   const admin = getSmokeAdminClient();
-  const { data, error } = await admin
-    .from("agents")
-    .select("id, name, default_model_profile_id")
-    .eq("name", name)
-    .eq("status", "active")
-    .maybeSingle();
+  const { data, error } = await retryOnceOnTransientSupabaseFetch({
+    task: async () =>
+      await admin
+        .from("agents")
+        .select("id, name, default_model_profile_id")
+        .eq("name", name)
+        .eq("status", "active")
+        .maybeSingle()
+  });
 
   expect(error).toBeNull();
   expect(data).toBeTruthy();
@@ -42,12 +46,15 @@ async function getSmokeAgentByName(name: string) {
 
 async function getSmokeModelProfileBySlug(slug: string) {
   const admin = getSmokeAdminClient();
-  const { data, error } = await admin
-    .from("model_profiles")
-    .select("id, slug, name")
-    .eq("slug", slug)
-    .eq("is_active", true)
-    .maybeSingle();
+  const { data, error } = await retryOnceOnTransientSupabaseFetch({
+    task: async () =>
+      await admin
+        .from("model_profiles")
+        .select("id, slug, name")
+        .eq("slug", slug)
+        .eq("is_active", true)
+        .maybeSingle()
+  });
 
   expect(error).toBeNull();
   expect(data).toBeTruthy();
@@ -63,14 +70,17 @@ async function getLatestAssistantMessageForThread(
   threadId: string
 ) {
   const admin = getSmokeAdminClient();
-  const { data, error } = await admin
-    .from("messages")
-    .select("content, metadata")
-    .eq("thread_id", threadId)
-    .eq("role", "assistant")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const { data, error } = await retryOnceOnTransientSupabaseFetch({
+    task: async () =>
+      await admin
+        .from("messages")
+        .select("content, metadata")
+        .eq("thread_id", threadId)
+        .eq("role", "assistant")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+  });
 
   expect(error).toBeNull();
   expect(data).toBeTruthy();
@@ -79,6 +89,79 @@ async function getLatestAssistantMessageForThread(
     content: string;
     metadata: Record<string, unknown>;
   };
+}
+
+function getRelationshipRecallMetadata(metadata: Record<string, unknown>) {
+  const memory =
+    metadata.memory && typeof metadata.memory === "object" && !Array.isArray(metadata.memory)
+      ? (metadata.memory as Record<string, unknown>)
+      : null;
+  const relationshipRecall =
+    memory?.relationship_recall &&
+    typeof memory.relationship_recall === "object" &&
+    !Array.isArray(memory.relationship_recall)
+      ? (memory.relationship_recall as {
+          used?: boolean;
+          direct_naming_question?: boolean;
+          direct_preferred_name_question?: boolean;
+          relationship_style_prompt?: boolean;
+          same_thread_continuity?: boolean;
+          recalled_keys?: string[];
+          recalled_memory_ids?: string[];
+        })
+      : null;
+
+  return relationshipRecall;
+}
+
+function getRelationshipRecallUsagePreview(metadata: Record<string, unknown>) {
+  const runtimeMemoryUsage =
+    metadata.runtime_memory_usage &&
+    typeof metadata.runtime_memory_usage === "object" &&
+    !Array.isArray(metadata.runtime_memory_usage)
+      ? (metadata.runtime_memory_usage as Record<string, unknown>)
+      : null;
+  const relationshipRecall =
+    runtimeMemoryUsage?.relationship_recall &&
+    typeof runtimeMemoryUsage.relationship_recall === "object" &&
+    !Array.isArray(runtimeMemoryUsage.relationship_recall)
+      ? (runtimeMemoryUsage.relationship_recall as {
+          update_count?: number;
+          memory_ids?: string[];
+          used?: boolean;
+          direct_naming_question?: boolean;
+          direct_preferred_name_question?: boolean;
+          relationship_style_prompt?: boolean;
+          same_thread_continuity?: boolean;
+          recalled_keys?: string[];
+        })
+      : null;
+
+  return relationshipRecall;
+}
+
+function getRuntimeMemoryCandidatesGroup(metadata: Record<string, unknown>) {
+  return metadata.runtime_memory_candidates &&
+    typeof metadata.runtime_memory_candidates === "object" &&
+    !Array.isArray(metadata.runtime_memory_candidates)
+    ? (metadata.runtime_memory_candidates as Record<string, unknown>)
+    : null;
+}
+
+function getRuntimeMemoryCandidatesPreview(metadata: Record<string, unknown>) {
+  const runtimeMemoryCandidates = getRuntimeMemoryCandidatesGroup(metadata);
+  return Array.isArray(runtimeMemoryCandidates?.preview)
+    ? (runtimeMemoryCandidates.preview as Array<Record<string, unknown>>)
+    : [];
+}
+
+function getRuntimeMemoryCandidatesSummary(metadata: Record<string, unknown>) {
+  const runtimeMemoryCandidates = getRuntimeMemoryCandidatesGroup(metadata);
+  return runtimeMemoryCandidates?.summary &&
+    typeof runtimeMemoryCandidates.summary === "object" &&
+    !Array.isArray(runtimeMemoryCandidates.summary)
+    ? (runtimeMemoryCandidates.summary as Record<string, unknown>)
+    : null;
 }
 
 async function getAssistantMessagesForThread(threadId: string) {
@@ -97,6 +180,35 @@ async function getAssistantMessagesForThread(threadId: string) {
     content: string;
     metadata: Record<string, unknown>;
   }>;
+}
+
+async function getLatestRelationshipMemoryRow(args: {
+  agentId: string;
+  key: "agent_nickname" | "user_preferred_name" | "user_address_style";
+}) {
+  const admin = getSmokeAdminClient();
+  const { data, error } = await admin
+    .from("memory_items")
+    .select("id, content, status, last_used_at, last_confirmed_at")
+    .eq("category", "relationship")
+    .eq("key", args.key)
+    .eq("scope", "user_agent")
+    .eq("target_agent_id", args.agentId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  expect(error).toBeNull();
+  expect(data).toBeTruthy();
+
+  return data as {
+    id: string;
+    content: string;
+    status: string;
+    last_used_at: string | null;
+    last_confirmed_at: string | null;
+  };
 }
 
 function getLatestRuntimeSummaryHeading(page: Page) {
@@ -969,6 +1081,10 @@ test.describe("core chat smoke", () => {
     )
       ? restoredMetadata.recalled_memory_preview
       : [];
+    const restoredRelationshipRecall =
+      getRelationshipRecallMetadata(restoredMetadata);
+    const restoredRelationshipUsagePreview =
+      getRelationshipRecallUsagePreview(restoredMetadata);
 
     expect(restoredMetadata.question_type).toBe(
       "direct-relationship-confirmation"
@@ -987,6 +1103,16 @@ test.describe("core chat smoke", () => {
           content_excerpt: expect.stringContaining("小芳")
         })
       ])
+    );
+    expect(restoredRelationshipRecall?.used).toBe(true);
+    expect(restoredRelationshipRecall?.direct_naming_question).toBe(true);
+    expect(restoredRelationshipRecall?.recalled_keys ?? []).toContain(
+      "agent_nickname"
+    );
+    expect(restoredRelationshipUsagePreview?.used).toBe(true);
+    expect(restoredRelationshipUsagePreview?.update_count).toBe(1);
+    expect(restoredRelationshipUsagePreview?.recalled_keys ?? []).toContain(
+      "agent_nickname"
     );
     expect(restoredAssistantMessage.content).toBe("哈哈，我叫小芳！");
   });
@@ -1107,7 +1233,7 @@ test.describe("core chat smoke", () => {
     const { data: nicknameRowsAfterRestore, error: nicknameRowsAfterRestoreError } =
       await admin
         .from("memory_items")
-        .select("content, status")
+        .select("id, content, status, last_confirmed_at")
         .eq("category", "relationship")
         .eq("key", "agent_nickname")
         .eq("scope", "user_agent")
@@ -1123,9 +1249,12 @@ test.describe("core chat smoke", () => {
       nicknameRowsAfterRestore
         ?.filter((row) => row.status === "superseded")
         .map((row) => row.content) ?? [];
+    const restoredActiveRow =
+      nicknameRowsAfterRestore?.find((row) => row.status === "active") ?? null;
 
     expect(activeRowsAfterRestore).toEqual(["小芳"]);
     expect(supersededRowsAfterRestore).toEqual(expect.arrayContaining(["阿花"]));
+    expect(restoredActiveRow?.last_confirmed_at).toBeTruthy();
 
     const restoredThreadResponse = await request.post("/api/test/smoke-create-thread", {
       headers: {
@@ -1157,7 +1286,25 @@ test.describe("core chat smoke", () => {
     const restoredAssistantMessage = await getLatestAssistantMessageForThread(
       restoredThreadId
     );
+    const restoredRelationshipRecall = getRelationshipRecallMetadata(
+      restoredAssistantMessage.metadata
+    );
+    const restoredRelationshipUsagePreview = getRelationshipRecallUsagePreview(
+      restoredAssistantMessage.metadata
+    );
+
     expect(restoredAssistantMessage.content).toBe("哈哈，我叫小芳！");
+    expect(restoredAssistantMessage.content).not.toContain("阿花");
+    expect(restoredRelationshipRecall?.used).toBe(true);
+    expect(restoredRelationshipRecall?.direct_naming_question).toBe(true);
+    expect(restoredRelationshipRecall?.recalled_keys ?? []).toContain(
+      "agent_nickname"
+    );
+    expect(restoredRelationshipUsagePreview?.used).toBe(true);
+    expect(restoredRelationshipUsagePreview?.update_count).toBe(1);
+    expect(restoredRelationshipUsagePreview?.recalled_keys ?? []).toContain(
+      "agent_nickname"
+    );
   });
 
   test("recalls the user's preferred name for the same agent without leaking it to other agents", async ({
@@ -1490,6 +1637,106 @@ test.describe("core chat smoke", () => {
     });
   });
 
+  test("updates relationship last_used_at after cross-thread naming recall", async ({
+    request
+  }) => {
+    const smokeAgent = await getSmokeAgentByName("Smoke Memory Coach");
+    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(seedThreadResponse.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = (await seedThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const seedNicknameResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: seedThreadId,
+        content: "以后我叫你小芳可以吗？"
+      }
+    });
+
+    expect(seedNicknameResponse.ok()).toBeTruthy();
+
+    const memoryBeforeRecall = await getLatestRelationshipMemoryRow({
+      agentId: smokeAgent.id,
+      key: "agent_nickname"
+    });
+
+    expect(memoryBeforeRecall.content).toBe("小芳");
+    expect(memoryBeforeRecall.last_used_at).toBeNull();
+
+    const recallThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Memory Coach"
+      }
+    });
+
+    expect(recallThreadResponse.ok()).toBeTruthy();
+    const { threadId: recallThreadId } = (await recallThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const recallResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId: recallThreadId,
+        content: "我怎么称呼你？"
+      }
+    });
+
+    expect(recallResponse.ok()).toBeTruthy();
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      recallThreadId
+    );
+    const relationshipRecall = getRelationshipRecallMetadata(
+      latestAssistantMessage.metadata
+    );
+    const relationshipUsagePreview = getRelationshipRecallUsagePreview(
+      latestAssistantMessage.metadata
+    );
+
+    expect(latestAssistantMessage.content).toContain("小芳");
+    expect(relationshipRecall?.used).toBe(true);
+    expect(relationshipRecall?.direct_naming_question).toBe(true);
+    expect(relationshipRecall?.recalled_keys ?? []).toContain(
+      "agent_nickname"
+    );
+    expect(relationshipUsagePreview?.used).toBe(true);
+    expect(relationshipUsagePreview?.direct_naming_question).toBe(true);
+    expect(relationshipUsagePreview?.update_count).toBe(1);
+    expect(relationshipUsagePreview?.recalled_keys ?? []).toContain(
+      "agent_nickname"
+    );
+
+    const memoryAfterRecall = await getLatestRelationshipMemoryRow({
+      agentId: smokeAgent.id,
+      key: "agent_nickname"
+    });
+
+    expect(memoryAfterRecall.id).toBe(memoryBeforeRecall.id);
+    expect(memoryAfterRecall.last_used_at).toBeTruthy();
+  });
+
   test("grounds direct reply-style questions in remembered relationship style", async ({
     page,
     request
@@ -1752,6 +1999,7 @@ test.describe("core chat smoke", () => {
       "brief-summary-carryover"
     );
     expect(secondIntroAssistant.content).toContain("阿强");
+    expect(secondIntroAssistant.content).toContain("小芳");
 
     const explanatoryTurn = await request.post("/api/test/smoke-send-turn", {
       headers: {
@@ -1895,6 +2143,12 @@ test.describe("core chat smoke", () => {
     expect(preferredNameFollowUpResponse.ok()).toBeTruthy();
 
     const latestAssistant = await getLatestAssistantMessageForThread(threadId);
+    const relationshipRecall = getRelationshipRecallMetadata(
+      latestAssistant.metadata
+    );
+    const relationshipUsagePreview = getRelationshipRecallUsagePreview(
+      latestAssistant.metadata
+    );
 
     expect(latestAssistant.content).toContain("阿强");
     expect(latestAssistant.metadata.question_type).toBe(
@@ -1909,6 +2163,17 @@ test.describe("core chat smoke", () => {
     expect(latestAssistant.metadata.continuation_reason_code).toBeNull();
     expect(latestAssistant.metadata.answer_strategy).not.toBe(
       "default-grounded"
+    );
+    expect(relationshipRecall?.used).toBe(true);
+    expect(relationshipRecall?.direct_preferred_name_question).toBe(true);
+    expect(relationshipRecall?.recalled_keys ?? []).toContain(
+      "user_preferred_name"
+    );
+    expect(relationshipUsagePreview?.used).toBe(true);
+    expect(relationshipUsagePreview?.direct_preferred_name_question).toBe(true);
+    expect(relationshipUsagePreview?.update_count).toBe(1);
+    expect(relationshipUsagePreview?.recalled_keys ?? []).toContain(
+      "user_preferred_name"
     );
   });
 
@@ -7328,5 +7593,205 @@ test.describe("core chat smoke", () => {
     expect(defaultMetadata.model_profile_id).not.toBe(altMetadata.model_profile_id);
     expect(defaultRun.content).toContain("Spark Default");
     expect(altRun.content).toContain("Smoke Alt");
+  });
+
+  test("keeps planner preview summary aligned on a mixed relationship and product-feedback turn", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const turnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "你怎么又忘了，以后你叫我阿强。"
+      }
+    });
+
+    expect(turnResponse.ok()).toBeTruthy();
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+    const plannerPreview = getRuntimeMemoryCandidatesPreview(metadata);
+    const plannerSummary = getRuntimeMemoryCandidatesSummary(metadata);
+
+    expect(plannerPreview.length).toBeGreaterThanOrEqual(2);
+    expect(plannerSummary).toBeTruthy();
+    expect(plannerSummary?.candidate_count).toBe(plannerPreview.length);
+
+    const decisionReasonCounts =
+      plannerSummary?.decision_reason_counts &&
+      typeof plannerSummary.decision_reason_counts === "object" &&
+      !Array.isArray(plannerSummary.decision_reason_counts)
+        ? (plannerSummary.decision_reason_counts as Record<string, unknown>)
+        : {};
+    const targetLayerCounts =
+      plannerSummary?.target_layer_counts &&
+      typeof plannerSummary.target_layer_counts === "object" &&
+      !Array.isArray(plannerSummary.target_layer_counts)
+        ? (plannerSummary.target_layer_counts as Record<string, unknown>)
+        : {};
+
+    expect(decisionReasonCounts.explicit_relationship_contract).toBe(1);
+    expect(decisionReasonCounts.negative_product_feedback_event_only).toBe(1);
+    expect(targetLayerCounts.memory_record).toBe(1);
+    expect(targetLayerCounts.event_archive).toBe(1);
+  });
+
+  test("keeps planner preview summary aligned on a thread-bound goal turn", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const turnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content: "帮我规划一版用户访谈方案。"
+      }
+    });
+
+    expect(turnResponse.ok()).toBeTruthy();
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+    const plannerPreview = getRuntimeMemoryCandidatesPreview(metadata);
+    const plannerSummary = getRuntimeMemoryCandidatesSummary(metadata);
+
+    expect(plannerPreview.length).toBeGreaterThanOrEqual(1);
+    expect(plannerSummary).toBeTruthy();
+    expect(plannerSummary?.candidate_count).toBe(plannerPreview.length);
+
+    const decisionReasonCounts =
+      plannerSummary?.decision_reason_counts &&
+      typeof plannerSummary.decision_reason_counts === "object" &&
+      !Array.isArray(plannerSummary.decision_reason_counts)
+        ? (plannerSummary.decision_reason_counts as Record<string, unknown>)
+        : {};
+    const downgradeReasonCounts =
+      plannerSummary?.downgrade_reason_counts &&
+      typeof plannerSummary.downgrade_reason_counts === "object" &&
+      !Array.isArray(plannerSummary.downgrade_reason_counts)
+        ? (plannerSummary.downgrade_reason_counts as Record<string, unknown>)
+        : {};
+    const boundaryReasonCounts =
+      plannerSummary?.boundary_reason_counts &&
+      typeof plannerSummary.boundary_reason_counts === "object" &&
+      !Array.isArray(plannerSummary.boundary_reason_counts)
+        ? (plannerSummary.boundary_reason_counts as Record<string, unknown>)
+        : {};
+    const targetLayerCounts =
+      plannerSummary?.target_layer_counts &&
+      typeof plannerSummary.target_layer_counts === "object" &&
+      !Array.isArray(plannerSummary.target_layer_counts)
+        ? (plannerSummary.target_layer_counts as Record<string, unknown>)
+        : {};
+
+    expect(decisionReasonCounts.goal_focus_projection).toBe(1);
+    expect(downgradeReasonCounts.goal_routed_to_thread_state_candidate).toBe(1);
+    expect(
+      boundaryReasonCounts.thread_boundary_preserved_thread_state_candidate
+    ).toBe(1);
+    expect(targetLayerCounts.thread_state_candidate).toBe(1);
+  });
+
+  test("keeps planner preview summary aligned on a mixed accepted and rejected turn", async ({
+    request
+  }) => {
+    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        agentName: "Smoke Guide"
+      }
+    });
+
+    expect(createThreadResponse.ok()).toBeTruthy();
+    const { threadId } = (await createThreadResponse.json()) as {
+      threadId: string;
+    };
+
+    const turnResponse = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: {
+        threadId,
+        content:
+          "以后你叫我阿强。我今天有点难过，这只是今天的情绪，不用记住。"
+      }
+    });
+
+    expect(turnResponse.ok()).toBeTruthy();
+
+    const latestAssistantMessage = await getLatestAssistantMessageForThread(
+      threadId
+    );
+    const metadata = latestAssistantMessage.metadata;
+    const plannerPreview = getRuntimeMemoryCandidatesPreview(metadata);
+    const plannerSummary = getRuntimeMemoryCandidatesSummary(metadata);
+
+    expect(plannerPreview.length).toBeGreaterThanOrEqual(1);
+    expect(plannerSummary).toBeTruthy();
+    expect(plannerSummary?.candidate_count).toBe(plannerPreview.length);
+
+    const decisionReasonCounts =
+      plannerSummary?.decision_reason_counts &&
+      typeof plannerSummary.decision_reason_counts === "object" &&
+      !Array.isArray(plannerSummary.decision_reason_counts)
+        ? (plannerSummary.decision_reason_counts as Record<string, unknown>)
+        : {};
+    const rejectionReasonCounts =
+      plannerSummary?.rejection_reason_counts &&
+      typeof plannerSummary.rejection_reason_counts === "object" &&
+      !Array.isArray(plannerSummary.rejection_reason_counts)
+        ? (plannerSummary.rejection_reason_counts as Record<string, unknown>)
+        : {};
+
+    expect(decisionReasonCounts.explicit_relationship_contract).toBe(1);
+    expect(plannerSummary?.rejected_candidate_count).toBeGreaterThanOrEqual(1);
+    expect(
+      Number(rejectionReasonCounts.transient_mood_rejected ?? 0) +
+        Number(rejectionReasonCounts.extractor_marked_not_storable ?? 0)
+    ).toBeGreaterThanOrEqual(1);
   });
 });

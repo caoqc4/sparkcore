@@ -44,6 +44,7 @@ export async function executeSmokeTurnSteps(args: {
       modelProfileId: args.context.modelProfileId,
       modelProfileName: args.context.modelProfileName,
       model: args.context.model,
+      sourceMessageId: ensuredUserMessage.id,
       trimmedContent: args.trimmedContent,
       analysis: args.analysis,
       createdTypes

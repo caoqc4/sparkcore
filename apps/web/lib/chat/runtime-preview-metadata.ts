@@ -1,8 +1,14 @@
 import type {
+  RuntimeMemoryUsageUpdate,
   RuntimeFollowUpRequest,
   RuntimeMemoryWriteRequest
 } from "@/lib/chat/runtime-contract";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
+import {
+  buildPlannerCandidatePreviewsFromWriteRequests,
+  summarizePlannerCandidates,
+  type PlannerCandidatePreview
+} from "@/lib/chat/memory-planner-candidates";
 import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 import { buildPlannedThreadStateCandidatePreview } from "@/lib/chat/memory-write-record-candidates";
 
@@ -206,7 +212,8 @@ function buildFollowUpEnqueuedRecordsPreview(
 
 export function buildRuntimeMemoryWriteRequestMetadata(
   requests: RuntimeMemoryWriteRequest[],
-  activeNamespace?: ActiveRuntimeMemoryNamespace | null
+  activeNamespace?: ActiveRuntimeMemoryNamespace | null,
+  extraPlannerCandidates?: PlannerCandidatePreview[]
 ) {
   const preview = buildRuntimeMemoryWriteRequestPreview(
     requests,
@@ -220,14 +227,30 @@ export function buildRuntimeMemoryWriteRequestMetadata(
     requests,
     activeNamespace
   );
+  const plannerCandidates = buildPlannerCandidatePreviewsFromWriteRequests({
+    requests,
+    activeNamespace: activeNamespace ?? null
+  });
+  const mergedPlannerCandidates = plannerCandidates.concat(
+    extraPlannerCandidates ?? []
+  );
+  const plannerSummary = summarizePlannerCandidates(mergedPlannerCandidates);
 
   return {
+    runtime_memory_candidates: {
+      count: mergedPlannerCandidates.length,
+      preview: mergedPlannerCandidates,
+      summary: plannerSummary
+    },
     runtime_memory_writes: {
       request_count: requests.length,
       record_targets: recordTargets,
       write_boundaries: writeBoundaries,
       preview
     },
+    runtime_memory_candidate_count: mergedPlannerCandidates.length,
+    runtime_memory_candidates_preview: mergedPlannerCandidates,
+    runtime_memory_candidates_summary: plannerSummary,
     runtime_memory_write_request_count: requests.length,
     runtime_memory_write_record_targets: recordTargets,
     runtime_memory_write_boundaries: writeBoundaries,
@@ -296,5 +319,88 @@ export function buildRuntimeFollowUpExecutionMetadata(args: {
     follow_up_execution_results_preview: resultsPreview,
     follow_up_enqueued_count: args.followUpEnqueueInsertedCount,
     follow_up_enqueued_records_preview: enqueuedRecordsPreview
+  };
+}
+
+export function buildRuntimeMemoryUsageMetadata(args: {
+  updates: RuntimeMemoryUsageUpdate[];
+  assistantMetadata?: Record<string, unknown> | null;
+}) {
+  const relationshipRecallMetadata =
+    args.assistantMetadata &&
+    typeof args.assistantMetadata === "object" &&
+    !Array.isArray(args.assistantMetadata)
+      ? getRuntimePreviewMetadataObject(
+          getRuntimePreviewMetadataObject(args.assistantMetadata.memory)
+            ?.relationship_recall
+        )
+      : null;
+
+  const usageKinds = Array.from(
+    new Set(args.updates.map((update) => update.usage_kind))
+  );
+  const relationshipUpdates = args.updates.filter(
+    (update) => update.usage_kind === "relationship_recall"
+  );
+
+  return {
+    runtime_memory_usage: {
+      update_count: args.updates.length,
+      usage_kinds: usageKinds,
+      relationship_recall:
+        relationshipUpdates.length > 0 || relationshipRecallMetadata
+          ? {
+              update_count: relationshipUpdates.length,
+              memory_ids: relationshipUpdates.map(
+                (update) => update.memory_item_id
+              ),
+              used:
+                typeof relationshipRecallMetadata?.used === "boolean"
+                  ? relationshipRecallMetadata.used
+                  : relationshipUpdates.length > 0,
+              direct_naming_question:
+                typeof relationshipRecallMetadata?.direct_naming_question ===
+                "boolean"
+                  ? relationshipRecallMetadata.direct_naming_question
+                  : false,
+              direct_preferred_name_question:
+                typeof relationshipRecallMetadata?.direct_preferred_name_question ===
+                "boolean"
+                  ? relationshipRecallMetadata.direct_preferred_name_question
+                  : false,
+              relationship_style_prompt:
+                typeof relationshipRecallMetadata?.relationship_style_prompt ===
+                "boolean"
+                  ? relationshipRecallMetadata.relationship_style_prompt
+                  : false,
+              same_thread_continuity:
+                typeof relationshipRecallMetadata?.same_thread_continuity ===
+                "boolean"
+                  ? relationshipRecallMetadata.same_thread_continuity
+                  : false,
+              recalled_keys: Array.isArray(
+                relationshipRecallMetadata?.recalled_keys
+              )
+                ? relationshipRecallMetadata.recalled_keys.filter(
+                    (item): item is string =>
+                      typeof item === "string" && item.length > 0
+                  )
+                : []
+              ,
+              adopted_agent_nickname_target:
+                typeof relationshipRecallMetadata?.adopted_agent_nickname_target ===
+                "string"
+                  ? relationshipRecallMetadata.adopted_agent_nickname_target
+                  : null,
+              adopted_user_preferred_name_target:
+                typeof relationshipRecallMetadata?.adopted_user_preferred_name_target ===
+                "string"
+                  ? relationshipRecallMetadata.adopted_user_preferred_name_target
+                  : null
+            }
+          : null
+    },
+    runtime_memory_usage_update_count: args.updates.length,
+    runtime_memory_usage_kinds: usageKinds
   };
 }

@@ -13,6 +13,9 @@ import {
 export type ProductAppSettings = {
   theme: "light" | "dark" | "system";
   interfaceLanguage: string;
+  contentLanguage: string;
+  systemLanguageMode: "follow-content" | "manual";
+  systemLanguage: string;
   notificationsEnabled: boolean;
   memoryRetentionPolicy: "standard" | "extended" | "minimal";
   dataRegion: string;
@@ -132,6 +135,9 @@ export type ProductSettingsPageData = {
 export const DEFAULT_PRODUCT_APP_SETTINGS: ProductAppSettings = {
   theme: "system",
   interfaceLanguage: "en",
+  contentLanguage: "en",
+  systemLanguageMode: "follow-content",
+  systemLanguage: "en",
   notificationsEnabled: false,
   memoryRetentionPolicy: "standard",
   dataRegion: "global",
@@ -541,6 +547,13 @@ export async function loadProductSettingsPageData(args: {
       ? {
           theme: appSettings.theme,
           interfaceLanguage: appSettings.interface_language,
+          contentLanguage:
+            getStringMetadataValue(appSettingsMetadata, "content_language") ??
+            appSettings.interface_language,
+          systemLanguageMode: "follow-content",
+          systemLanguage:
+            getStringMetadataValue(appSettingsMetadata, "content_language") ??
+            appSettings.interface_language,
           notificationsEnabled: appSettings.notifications_enabled === true,
           memoryRetentionPolicy: appSettings.memory_retention_policy,
           dataRegion: appSettings.data_region,

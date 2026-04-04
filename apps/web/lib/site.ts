@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getSiteLanguageState, type AppLanguage } from "@/lib/i18n/site";
 
 export const siteConfig = {
   name: "Lagun",
@@ -8,9 +9,12 @@ export const siteConfig = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   canonicalHost: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   nav: [
+    { href: "/ai-companion", label: "AI Companion" },
+    { href: "/ai-girlfriend", label: "AI Girlfriend" },
+    { href: "/ai-roleplay-chat", label: "AI Roleplay Chat" },
+    { href: "/alternatives/character-ai", label: "Character.AI Alternative" },
+    { href: "/alternatives/replika", label: "Replika Alternative" },
     { href: "/#home-im-chat", label: "IM Chat" },
-    { href: "/#home-faq", label: "FAQ" },
-    { href: "/blog", label: "Blog" },
   ],
   footer: [
     { href: "/how-it-works", label: "How it works" },
@@ -91,4 +95,45 @@ export function buildPageMetadata({
         }
       : undefined,
   };
+}
+
+type LocalizedStringMap = {
+  en: string;
+  "zh-CN": string;
+};
+
+type LocalizedPageMetadataOptions = {
+  title: LocalizedStringMap;
+  description: LocalizedStringMap;
+  path: string;
+  keywords?: string[];
+  noIndex?: boolean;
+  language?: AppLanguage;
+  languageSource?: "content" | "system";
+};
+
+export async function buildLocalizedPageMetadata({
+  title,
+  description,
+  path,
+  keywords,
+  noIndex = false,
+  language,
+  languageSource = "content",
+}: LocalizedPageMetadataOptions): Promise<Metadata> {
+  const state = language ? null : await getSiteLanguageState();
+  const resolvedLanguage =
+    language ??
+    (languageSource === "system"
+      ? state?.effectiveSystemLanguage
+      : state?.contentLanguage) ??
+    "en";
+
+  return buildPageMetadata({
+    title: title[resolvedLanguage],
+    description: description[resolvedLanguage],
+    path,
+    keywords,
+    noIndex,
+  });
 }

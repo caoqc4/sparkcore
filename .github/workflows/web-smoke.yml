@@ -1,0 +1,82 @@
+name: Web Smoke
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/web-smoke.yml"
+      - "apps/web/**"
+      - "supabase/migrations/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/web-smoke.yml"
+      - "apps/web/**"
+      - "supabase/migrations/**"
+  workflow_dispatch:
+
+concurrency:
+  group: web-smoke-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+  smoke:
+    runs-on: ubuntu-latest
+    needs: typecheck
+    defaults:
+      run:
+        working-directory: apps/web
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      LITELLM_BASE_URL: ${{ secrets.LITELLM_BASE_URL }}
+      LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+      REPLICATE_API_KEY: ${{ secrets.REPLICATE_API_KEY }}
+      NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+      NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
+      NEXT_PUBLIC_POSTHOG_HOST: ${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
+      NEXT_PUBLIC_CLARITY_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_CLARITY_PROJECT_ID }}
+      CREEM_API_KEY: ${{ secrets.CREEM_API_KEY }}
+      CREEM_WEBHOOK_SECRET: ${{ secrets.CREEM_WEBHOOK_SECRET }}
+      CREEM_PRICE_PRO_MONTHLY: ${{ secrets.CREEM_PRICE_PRO_MONTHLY }}
+      CREEM_PRICE_PRO_QUARTERLY: ${{ secrets.CREEM_PRICE_PRO_QUARTERLY }}
+      CREEM_PRICE_PRO_YEARLY: ${{ secrets.CREEM_PRICE_PRO_YEARLY }}
+      CREEM_PRICE_CREDITS_100: ${{ secrets.CREEM_PRICE_CREDITS_100 }}
+      CREEM_PRICE_CREDITS_250: ${{ secrets.CREEM_PRICE_CREDITS_250 }}
+      CREEM_PRICE_CREDITS_700: ${{ secrets.CREEM_PRICE_CREDITS_700 }}
+      PLAYWRIGHT_SMOKE_SECRET: ${{ secrets.PLAYWRIGHT_SMOKE_SECRET }}
+      PLAYWRIGHT_SMOKE_EMAIL: ${{ secrets.PLAYWRIGHT_SMOKE_EMAIL }}
+      PLAYWRIGHT_SMOKE_PASSWORD: ${{ secrets.PLAYWRIGHT_SMOKE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run smoke:test

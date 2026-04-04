@@ -18,6 +18,8 @@ export default function robots(): MetadataRoute.Robots {
           "/workspace",
           "/chat",
           "/login",
+          "/create",
+          "/connect-im",
         ],
       },
     ],

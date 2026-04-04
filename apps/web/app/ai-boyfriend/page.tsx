@@ -1,39 +1,36 @@
+import type { Metadata } from "next";
 import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { FeatureCardGrid, PageFrame, SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
-import { buildPageMetadata } from "@/lib/site";
+import { getSiteLanguageState } from "@/lib/i18n/site";
+import { getAiBoyfriendCopy } from "@/lib/i18n/marketing-page-copy";
+import { buildLocalizedPageMetadata } from "@/lib/site";
 
-export const metadata = buildPageMetadata({
-  title: "AI Boyfriend With Memory and IM-Native Continuity",
-  description:
-    "Lagun frames AI boyfriend as an ongoing relationship experience with long memory, IM-native contact, and visible web controls.",
-  path: "/ai-boyfriend"
-});
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedPageMetadata({
+    title: {
+      en: "AI Boyfriend With Memory and IM-Native Continuity",
+      "zh-CN": "带记忆与 IM 连续性的 AI 男友",
+    },
+    description: {
+      en: "Lagun frames AI boyfriend as an ongoing relationship experience with long memory, IM-native contact, and visible web controls.",
+      "zh-CN": "Lagun 将 AI 男友定义为一段持续中的关系体验，具备长期记忆、IM 原生联系能力和可见网页控制层。",
+    },
+    path: "/ai-boyfriend"
+  });
+}
 
-export default function AiBoyfriendPage() {
+export default async function AiBoyfriendPage() {
+  const { contentLanguage } = await getSiteLanguageState();
+  const copy = getAiBoyfriendCopy(contentLanguage);
   return (
     <SiteShell>
       <PageFrame
-        eyebrow="Relationship"
-        title="A grounded AI boyfriend experience with continuity, memory, and room to actually continue."
-        description="Lagun treats AI boyfriend as a relationship configuration inside one companion system, not as a disposable romance skin on top of generic chat."
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        description={copy.description}
       >
-        <FeatureCardGrid
-          items={[
-            {
-              title: "More consistent presence",
-              body: "The role can keep tone, shared context, and relationship state over time instead of resetting every time you open a tab."
-            },
-            {
-              title: "Built for ongoing contact",
-              body: "IM stays the main daily surface, which makes the bond easier to maintain without turning every moment into a browser session."
-            },
-            {
-              title: "Visible control when it matters",
-              body: "The website gives you a place to review memory, tune the role core, manage channels, and keep privacy legible."
-            }
-          ]}
-        />
+        <FeatureCardGrid items={copy.items} />
         <div className="toolbar">
           <AdaptiveTrackedLink
             className="button"
@@ -41,13 +38,13 @@ export default function AiBoyfriendPage() {
             payload={{ source: "ai_boyfriend_create" }}
             intent="create_boyfriend"
             labels={{
-              anonymous: "Create your AI boyfriend",
-              signed_in_empty: "Create your AI boyfriend",
-              signed_in_role_only: "Continue relationship flow",
-              signed_in_connected: "Continue relationship flow"
+              anonymous: copy.create,
+              signed_in_empty: copy.create,
+              signed_in_role_only: copy.continue,
+              signed_in_connected: copy.continue
             }}
           >
-            Create your AI boyfriend
+            {copy.create}
           </AdaptiveTrackedLink>
           <AdaptiveTrackedLink
             className="button button-secondary"
@@ -55,13 +52,13 @@ export default function AiBoyfriendPage() {
             payload={{ source: "ai_boyfriend_im" }}
             intent="im_chat"
             labels={{
-              anonymous: "See how IM continuity works",
-              signed_in_empty: "Create a role first",
-              signed_in_role_only: "Connect an IM channel",
-              signed_in_connected: "Open supplementary chat"
+              anonymous: copy.imHow,
+              signed_in_empty: copy.roleFirst,
+              signed_in_role_only: copy.connectIm,
+              signed_in_connected: copy.openChat
             }}
           >
-            See how IM continuity works
+            {copy.imHow}
           </AdaptiveTrackedLink>
           <TrackedLink
             className="site-inline-link"
@@ -69,7 +66,7 @@ export default function AiBoyfriendPage() {
             href="/ai-companion"
             payload={{ source: "ai_boyfriend_to_companion" }}
           >
-            Want the broader companion overview?
+            {copy.companionOverview}
           </TrackedLink>
         </div>
       </PageFrame>

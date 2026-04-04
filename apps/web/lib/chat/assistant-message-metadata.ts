@@ -48,6 +48,15 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   answer_strategy_reason_code: string | null;
   answer_strategy_priority: string | null;
   answer_strategy_priority_label: string | null;
+  relationship_recall_used?: boolean;
+  relationship_recall_direct_naming_question?: boolean;
+  relationship_recall_direct_preferred_name_question?: boolean;
+  relationship_recall_style_prompt?: boolean;
+  relationship_recall_same_thread_continuity?: boolean;
+  relationship_recall_keys?: string[];
+  relationship_recall_memory_ids?: string[];
+  relationship_recall_adopted_agent_nickname_target?: string | null;
+  relationship_recall_adopted_user_preferred_name_target?: string | null;
   continuation_reason_code: string | null;
   thread_state_lifecycle_status?: string | null;
   thread_state_focus_mode?: string | null;
@@ -60,6 +69,8 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   recalled_memory_preview?: RecalledMemoryPreviewItem[];
   memory_types_used: string[];
   memory_semantic_layers: MemorySemanticLayer[];
+  memory_record_recall_preferred?: boolean;
+  profile_fallback_suppressed?: boolean;
   profile_snapshot: string[];
   scenario_memory_pack_id?: string | null;
   scenario_memory_pack_label?: string | null;
@@ -107,6 +118,15 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   scenario_memory_pack_strategy_bundle_id?: string | null;
   scenario_memory_pack_strategy_assembly_order?: string[];
   knowledge_count?: number;
+  knowledge_gating_suppressed?: boolean;
+  knowledge_gating_available?: boolean;
+  knowledge_gating_available_count?: number;
+  knowledge_gating_should_inject?: boolean;
+  knowledge_gating_injection_gap_reason?: string | null;
+  knowledge_gating_suppression_reason?: string | null;
+  knowledge_gating_query_token_count?: number;
+  knowledge_gating_zero_match_filtered_count?: number;
+  knowledge_gating_weak_match_filtered_count?: number;
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
   knowledge_scope_layers?: string[];
@@ -277,6 +297,15 @@ export type BuildAssistantMessageMetadataInput = {
   answer_strategy_reason_code: string | null;
   answer_strategy_priority: string;
   answer_strategy_priority_label: string;
+  relationship_recall_used?: boolean;
+  relationship_recall_direct_naming_question?: boolean;
+  relationship_recall_direct_preferred_name_question?: boolean;
+  relationship_recall_style_prompt?: boolean;
+  relationship_recall_same_thread_continuity?: boolean;
+  relationship_recall_keys?: string[];
+  relationship_recall_memory_ids?: string[];
+  relationship_recall_adopted_agent_nickname_target?: string | null;
+  relationship_recall_adopted_user_preferred_name_target?: string | null;
   continuation_reason_code: string | null;
   thread_state_lifecycle_status?: string | null;
   thread_state_focus_mode?: string | null;
@@ -292,6 +321,8 @@ export type BuildAssistantMessageMetadataInput = {
   memory_used: boolean;
   memory_types_used: string[];
   memory_semantic_layers: MemorySemanticLayer[];
+  memory_record_recall_preferred?: boolean;
+  profile_fallback_suppressed?: boolean;
   profile_snapshot: string[];
   scenario_memory_pack_id?: string | null;
   scenario_memory_pack_label?: string | null;
@@ -339,6 +370,15 @@ export type BuildAssistantMessageMetadataInput = {
   scenario_memory_pack_strategy_bundle_id?: string | null;
   scenario_memory_pack_strategy_assembly_order?: string[];
   knowledge_count?: number;
+  knowledge_gating_suppressed?: boolean;
+  knowledge_gating_available?: boolean;
+  knowledge_gating_available_count?: number;
+  knowledge_gating_should_inject?: boolean;
+  knowledge_gating_injection_gap_reason?: string | null;
+  knowledge_gating_suppression_reason?: string | null;
+  knowledge_gating_query_token_count?: number;
+  knowledge_gating_zero_match_filtered_count?: number;
+  knowledge_gating_weak_match_filtered_count?: number;
   knowledge_titles?: string[];
   knowledge_source_kinds?: string[];
   knowledge_scope_layers?: string[];
@@ -479,7 +519,34 @@ export function buildAssistantMetadataSummaryGroups(
       reason_code: input.answer_strategy_reason_code,
       priority: input.answer_strategy_priority,
       priority_label: input.answer_strategy_priority_label,
-      question_type: input.question_type
+      question_type: input.question_type,
+      relationship_recall:
+        input.relationship_recall_used ||
+        input.relationship_recall_direct_naming_question ||
+        input.relationship_recall_direct_preferred_name_question ||
+        input.relationship_recall_style_prompt ||
+        input.relationship_recall_same_thread_continuity ||
+        (input.relationship_recall_keys?.length ?? 0) > 0
+          ? {
+              used: input.relationship_recall_used ?? false,
+              direct_naming_question:
+                input.relationship_recall_direct_naming_question ?? false,
+              direct_preferred_name_question:
+                input.relationship_recall_direct_preferred_name_question ??
+                false,
+              relationship_style_prompt:
+                input.relationship_recall_style_prompt ?? false,
+              same_thread_continuity:
+                input.relationship_recall_same_thread_continuity ?? false,
+              recalled_keys: input.relationship_recall_keys ?? [],
+              recalled_memory_ids: input.relationship_recall_memory_ids ?? [],
+              adopted_agent_nickname_target:
+                input.relationship_recall_adopted_agent_nickname_target ?? null,
+              adopted_user_preferred_name_target:
+                input.relationship_recall_adopted_user_preferred_name_target ??
+                null
+            }
+          : null
     },
     session: {
       continuation_reason_code: input.continuation_reason_code,
@@ -544,6 +611,39 @@ export function buildAssistantMetadataSummaryGroups(
           }
         : null,
     memory: {
+      relationship_recall:
+        input.relationship_recall_used ||
+        input.relationship_recall_direct_naming_question ||
+        input.relationship_recall_direct_preferred_name_question ||
+        input.relationship_recall_style_prompt ||
+        input.relationship_recall_same_thread_continuity ||
+        (input.relationship_recall_keys?.length ?? 0) > 0
+          ? {
+              used: input.relationship_recall_used ?? false,
+              direct_naming_question:
+                input.relationship_recall_direct_naming_question ?? false,
+              direct_preferred_name_question:
+                input.relationship_recall_direct_preferred_name_question ??
+                false,
+              relationship_style_prompt:
+                input.relationship_recall_style_prompt ?? false,
+              same_thread_continuity:
+                input.relationship_recall_same_thread_continuity ?? false,
+              recalled_keys: input.relationship_recall_keys ?? [],
+              recalled_memory_ids: input.relationship_recall_memory_ids ?? [],
+              adopted_agent_nickname_target:
+                input.relationship_recall_adopted_agent_nickname_target ?? null,
+              adopted_user_preferred_name_target:
+                input.relationship_recall_adopted_user_preferred_name_target ??
+                null
+            }
+          : null,
+      recall_policy: {
+        memory_record_recall_preferred:
+          input.memory_record_recall_preferred ?? false,
+        profile_fallback_suppressed:
+          input.profile_fallback_suppressed ?? false
+      },
       hit_count: input.memory_hit_count,
       used: input.memory_used,
       recalled_memory_preview: input.recalled_memory_preview ?? [],
@@ -674,6 +774,20 @@ export function buildAssistantMetadataSummaryGroups(
     },
     knowledge: {
       count: input.knowledge_count ?? 0,
+      gating: {
+        suppressed: input.knowledge_gating_suppressed ?? false,
+        available: input.knowledge_gating_available ?? false,
+        available_count: input.knowledge_gating_available_count ?? 0,
+        should_inject: input.knowledge_gating_should_inject ?? false,
+        injection_gap_reason:
+          input.knowledge_gating_injection_gap_reason ?? null,
+        suppression_reason: input.knowledge_gating_suppression_reason ?? null,
+        query_token_count: input.knowledge_gating_query_token_count ?? 0,
+        zero_match_filtered_count:
+          input.knowledge_gating_zero_match_filtered_count ?? 0,
+        weak_match_filtered_count:
+          input.knowledge_gating_weak_match_filtered_count ?? 0
+      },
       titles: input.knowledge_titles ?? [],
       source_kinds: input.knowledge_source_kinds ?? [],
       scope_layers: input.knowledge_scope_layers ?? [],
@@ -947,6 +1061,26 @@ export function buildAssistantMetadataSummaryGroups(
       model_profile_usage_note: input.model_profile_usage_note,
       memory_hit_count: input.memory_hit_count,
       memory_used: input.memory_used,
+      memory_record_recall_preferred:
+        input.memory_record_recall_preferred ?? false,
+      profile_fallback_suppressed:
+        input.profile_fallback_suppressed ?? false,
+      relationship_recall_used: input.relationship_recall_used ?? false,
+      relationship_recall_direct_naming_question:
+        input.relationship_recall_direct_naming_question ?? false,
+      relationship_recall_direct_preferred_name_question:
+        input.relationship_recall_direct_preferred_name_question ?? false,
+      relationship_recall_style_prompt:
+        input.relationship_recall_style_prompt ?? false,
+      relationship_recall_same_thread_continuity:
+        input.relationship_recall_same_thread_continuity ?? false,
+      relationship_recall_keys: input.relationship_recall_keys ?? [],
+      relationship_recall_memory_ids:
+        input.relationship_recall_memory_ids ?? [],
+      relationship_recall_adopted_agent_nickname_target:
+        input.relationship_recall_adopted_agent_nickname_target ?? null,
+      relationship_recall_adopted_user_preferred_name_target:
+        input.relationship_recall_adopted_user_preferred_name_target ?? null,
       memory_types_used: input.memory_types_used,
       memory_semantic_layers: input.memory_semantic_layers,
       profile_snapshot: input.profile_snapshot,
@@ -1039,6 +1173,20 @@ export function buildAssistantMetadataSummaryGroups(
       scenario_memory_pack_strategy_assembly_order:
         input.scenario_memory_pack_strategy_assembly_order,
       knowledge_count: input.knowledge_count,
+      knowledge_gating_suppressed: input.knowledge_gating_suppressed,
+      knowledge_gating_available: input.knowledge_gating_available,
+      knowledge_gating_available_count: input.knowledge_gating_available_count,
+      knowledge_gating_should_inject: input.knowledge_gating_should_inject,
+      knowledge_gating_injection_gap_reason:
+        input.knowledge_gating_injection_gap_reason,
+      knowledge_gating_suppression_reason:
+        input.knowledge_gating_suppression_reason,
+      knowledge_gating_query_token_count:
+        input.knowledge_gating_query_token_count,
+      knowledge_gating_zero_match_filtered_count:
+        input.knowledge_gating_zero_match_filtered_count,
+      knowledge_gating_weak_match_filtered_count:
+        input.knowledge_gating_weak_match_filtered_count,
       knowledge_titles: input.knowledge_titles,
       knowledge_source_kinds: input.knowledge_source_kinds,
       knowledge_scope_layers: input.knowledge_scope_layers,
@@ -1349,6 +1497,22 @@ export function buildAssistantMessageMetadata(
       answer_strategy_reason_code: input.answer_strategy_reason_code,
       answer_strategy_priority: input.answer_strategy_priority,
       answer_strategy_priority_label: input.answer_strategy_priority_label,
+      relationship_recall_used: input.relationship_recall_used ?? false,
+      relationship_recall_direct_naming_question:
+        input.relationship_recall_direct_naming_question ?? false,
+      relationship_recall_direct_preferred_name_question:
+        input.relationship_recall_direct_preferred_name_question ?? false,
+      relationship_recall_style_prompt:
+        input.relationship_recall_style_prompt ?? false,
+      relationship_recall_same_thread_continuity:
+        input.relationship_recall_same_thread_continuity ?? false,
+      relationship_recall_keys: input.relationship_recall_keys ?? [],
+      relationship_recall_memory_ids:
+        input.relationship_recall_memory_ids ?? [],
+      relationship_recall_adopted_agent_nickname_target:
+        input.relationship_recall_adopted_agent_nickname_target ?? null,
+      relationship_recall_adopted_user_preferred_name_target:
+        input.relationship_recall_adopted_user_preferred_name_target ?? null,
       continuation_reason_code: input.continuation_reason_code,
       recent_raw_turn_count: input.recent_raw_turn_count,
       approx_context_pressure: input.approx_context_pressure,
@@ -1359,7 +1523,23 @@ export function buildAssistantMessageMetadata(
         input.same_thread_continuation_preferred,
       distant_memory_fallback_allowed: input.distant_memory_fallback_allowed,
       reply_language_source: input.reply_language_source,
-      recalled_memory_preview: input.recalled_memory_preview ?? []
+      recalled_memory_preview: input.recalled_memory_preview ?? [],
+      knowledge_gating_suppressed: input.knowledge_gating_suppressed ?? false,
+      knowledge_gating_available: input.knowledge_gating_available ?? false,
+      knowledge_gating_available_count:
+        input.knowledge_gating_available_count ?? 0,
+      knowledge_gating_should_inject:
+        input.knowledge_gating_should_inject ?? false,
+      knowledge_gating_injection_gap_reason:
+        input.knowledge_gating_injection_gap_reason ?? null,
+      knowledge_gating_suppression_reason:
+        input.knowledge_gating_suppression_reason ?? null,
+      knowledge_gating_query_token_count:
+        input.knowledge_gating_query_token_count ?? 0,
+      knowledge_gating_zero_match_filtered_count:
+        input.knowledge_gating_zero_match_filtered_count ?? 0,
+      knowledge_gating_weak_match_filtered_count:
+        input.knowledge_gating_weak_match_filtered_count ?? 0
     }
   };
 }

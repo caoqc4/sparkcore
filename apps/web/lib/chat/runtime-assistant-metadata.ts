@@ -28,6 +28,7 @@ import {
   resolveKnowledgeScopeLayer,
   type RuntimeKnowledgeSnippet
 } from "@/lib/chat/memory-knowledge";
+import type { RuntimeKnowledgeGatingSummary } from "@/lib/chat/runtime-knowledge-sources";
 import {
   resolveRuntimeMemoryBoundary,
   type ActiveRuntimeMemoryNamespace
@@ -80,6 +81,17 @@ export type BuildRuntimeAssistantMetadataInput = {
     strategy_reason_code: string | null;
     strategy_priority: string;
     strategy_priority_label: string;
+    relationship_recall: {
+      used: boolean;
+      direct_naming_question: boolean;
+      direct_preferred_name_question: boolean;
+      relationship_style_prompt: boolean;
+      same_thread_continuity: boolean;
+      recalled_keys: string[];
+      recalled_memory_ids: string[];
+      adopted_agent_nickname_target: string | null;
+      adopted_user_preferred_name_target: string | null;
+    };
   };
   session: {
     continuation_reason_code: string | null;
@@ -100,6 +112,8 @@ export type BuildRuntimeAssistantMetadataInput = {
     used: boolean;
     types_used: string[];
     semantic_layers: MemorySemanticLayer[];
+    memory_record_recall_preferred: boolean;
+    profile_fallback_suppressed: boolean;
     profile_snapshot: string[];
     scenario_pack: ActiveScenarioMemoryPack | null;
     hidden_exclusion_count: number;
@@ -107,6 +121,7 @@ export type BuildRuntimeAssistantMetadataInput = {
   };
   knowledge: {
     snippets: RuntimeKnowledgeSnippet[];
+    gating?: RuntimeKnowledgeGatingSummary | null;
   };
   namespace: {
     active_namespace: ActiveRuntimeMemoryNamespace | null;
@@ -186,6 +201,22 @@ export function buildRuntimeAssistantMetadataInput(
     answer_strategy_reason_code: input.answer.strategy_reason_code,
     answer_strategy_priority: input.answer.strategy_priority,
     answer_strategy_priority_label: input.answer.strategy_priority_label,
+    relationship_recall_used: input.answer.relationship_recall.used,
+    relationship_recall_direct_naming_question:
+      input.answer.relationship_recall.direct_naming_question,
+    relationship_recall_direct_preferred_name_question:
+      input.answer.relationship_recall.direct_preferred_name_question,
+    relationship_recall_style_prompt:
+      input.answer.relationship_recall.relationship_style_prompt,
+    relationship_recall_same_thread_continuity:
+      input.answer.relationship_recall.same_thread_continuity,
+    relationship_recall_keys: input.answer.relationship_recall.recalled_keys,
+    relationship_recall_memory_ids:
+      input.answer.relationship_recall.recalled_memory_ids,
+    relationship_recall_adopted_agent_nickname_target:
+      input.answer.relationship_recall.adopted_agent_nickname_target,
+    relationship_recall_adopted_user_preferred_name_target:
+      input.answer.relationship_recall.adopted_user_preferred_name_target,
     continuation_reason_code: input.session.continuation_reason_code,
     thread_state_lifecycle_status:
       input.session.thread_state?.lifecycle_status ?? null,
@@ -207,6 +238,9 @@ export function buildRuntimeAssistantMetadataInput(
     memory_used: input.memory.used,
     memory_types_used: input.memory.types_used,
     memory_semantic_layers: input.memory.semantic_layers,
+    memory_record_recall_preferred:
+      input.memory.memory_record_recall_preferred,
+    profile_fallback_suppressed: input.memory.profile_fallback_suppressed,
     profile_snapshot: input.memory.profile_snapshot,
     scenario_memory_pack_id: input.memory.scenario_pack?.pack_id ?? null,
     scenario_memory_pack_label: input.memory.scenario_pack?.label ?? null,
@@ -301,6 +335,22 @@ export function buildRuntimeAssistantMetadataInput(
     hidden_memory_exclusion_count: input.memory.hidden_exclusion_count,
     incorrect_memory_exclusion_count: input.memory.incorrect_exclusion_count,
     knowledge_count: knowledgeSummary.count,
+    knowledge_gating_suppressed: input.knowledge.gating?.suppressed ?? false,
+    knowledge_gating_available: input.knowledge.gating?.available ?? false,
+    knowledge_gating_available_count:
+      input.knowledge.gating?.available_count ?? 0,
+    knowledge_gating_should_inject:
+      input.knowledge.gating?.should_inject ?? false,
+    knowledge_gating_injection_gap_reason:
+      input.knowledge.gating?.injection_gap_reason ?? null,
+    knowledge_gating_suppression_reason:
+      input.knowledge.gating?.suppression_reason ?? null,
+    knowledge_gating_query_token_count:
+      input.knowledge.gating?.query_token_count ?? 0,
+    knowledge_gating_zero_match_filtered_count:
+      input.knowledge.gating?.zero_match_filtered_count ?? 0,
+    knowledge_gating_weak_match_filtered_count:
+      input.knowledge.gating?.weak_match_filtered_count ?? 0,
     knowledge_titles: knowledgeSummary.titles,
     knowledge_source_kinds: knowledgeSummary.source_kinds,
     knowledge_scope_layers: knowledgeSummary.scope_layers,

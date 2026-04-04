@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { CharacterSlug } from "@/lib/characters/manifest";
+import type { AppLanguage } from "@/lib/i18n/site";
 
 export type PresetShowcaseItem = {
   slug: CharacterSlug;
@@ -15,9 +16,18 @@ export type PresetShowcaseItem = {
 
 interface HomePresetShowcaseProps {
   presets: PresetShowcaseItem[];
+  heroId?: string;
+  basePath?: string;
+  language?: AppLanguage;
 }
 
-export function HomePresetShowcase({ presets }: HomePresetShowcaseProps) {
+export function HomePresetShowcase({
+  presets,
+  heroId = "home-hero",
+  basePath = "/",
+  language = "en",
+}: HomePresetShowcaseProps) {
+  const isZh = language.toLowerCase().startsWith("zh");
   const router = useRouter();
   const searchParams = useSearchParams();
   const activePreset = searchParams.get("preset") as CharacterSlug | null;
@@ -25,8 +35,8 @@ export function HomePresetShowcase({ presets }: HomePresetShowcaseProps) {
 
   function handleSelect(slug: CharacterSlug) {
     setJustSelected(slug);
-    document.getElementById("home-hero")?.scrollIntoView({ behavior: "smooth" });
-    router.push(`/?preset=${encodeURIComponent(slug)}`, { scroll: false });
+    document.getElementById(heroId)?.scrollIntoView({ behavior: "smooth" });
+    router.push(`${basePath}?preset=${encodeURIComponent(slug)}`, { scroll: false });
   }
 
   return (
@@ -59,7 +69,7 @@ export function HomePresetShowcase({ presets }: HomePresetShowcaseProps) {
           </div>
           <p className="home-role-showcase-tagline">{preset.tagline}</p>
           <span className="home-role-showcase-cta">
-            {isSelected ? "✓ Selected" : "Use this preset →"}
+            {isSelected ? (isZh ? "✓ 已选择" : "✓ Selected") : isZh ? "使用这个预设 →" : "Use this preset →"}
           </span>
         </button>
         );

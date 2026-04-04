@@ -12,6 +12,7 @@ export function detectSmokeNicknameCandidate(content: string) {
 export function detectSmokeUserPreferredNameCandidate(content: string) {
   const normalized = normalizeSmokePromptText(content);
   const patterns = [
+    /以后你叫我([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})/u,
     /以后你(?:可以)?叫我([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})可以吗/u,
     /你以后(?:可以)?叫我([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})/u,
     /你可以叫我([^\s，。！？,.!?：:;；"'“”‘’()（）]{1,16})/u,

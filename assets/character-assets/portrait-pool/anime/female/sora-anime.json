@@ -1,0 +1,6 @@
+{
+  "display_name": "Sora",
+  "style_tags": ["anime", "creative", "soft"],
+  "eligible_modes": ["companion", "assistant"],
+  "default_for_character": "sora-anime"
+}

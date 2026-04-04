@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createProductRole } from "@/app/create/actions";
 import { RoleVoiceTabs, type RoleVoiceGroup } from "@/components/role-voice-tabs";
 import { CHARACTER_MANIFEST } from "@/lib/characters/manifest";
+import type { AppLanguage } from "@/lib/i18n/site";
 import { getProductCharacterPresetDefaults } from "@/lib/characters/preset-defaults";
 import {
   filterAudioVoiceOptionsForRole,
@@ -81,6 +82,7 @@ type Props = {
   defaultGender?: "female" | "male" | "neutral";
   defaultName?: string;
   defaultTone?: "warm" | "playful" | "steady";
+  language?: AppLanguage;
 };
 
 // ── Wizard ────────────────────────────────────────────────────────────────────
@@ -98,7 +100,12 @@ export function RoleCreateWizard({
   defaultGender,
   defaultName,
   defaultTone,
+  language = "en",
 }: Props) {
+  const isZh = language === "zh-CN";
+  const defaultBoundaries = isZh
+    ? "保持支持与尊重，避免操控或强迫行为。"
+    : "Be supportive, respectful, and avoid manipulative or coercive behavior.";
   // Step state
   const [step, setStep] = useState(0);
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -125,9 +132,7 @@ export function RoleCreateWizard({
         ? "long-term boyfriend"
         : "long-term girlfriend",
   );
-  const [boundaries, setBoundaries] = useState(
-    "Be supportive, respectful, and avoid manipulative or coercive behavior.",
-  );
+  const [boundaries, setBoundaries] = useState(defaultBoundaries);
   const [backgroundSummary, setBackgroundSummary] = useState("");
 
   // Step 3 — Look
@@ -154,7 +159,7 @@ export function RoleCreateWizard({
 
       return {
         id: asset.id,
-        name: asset.display_name ?? "Portrait",
+        name: asset.display_name ?? (isZh ? "形象" : "Portrait"),
         style,
         gender: resolvedGender,
         storagePath: typeof asset.storage_path === "string" ? asset.storage_path : null,
@@ -244,7 +249,7 @@ export function RoleCreateWizard({
         setMode(definition.mode);
         setSelectedTraits(defaults?.traits ?? []);
         setRelationshipMode(defaults?.relationshipMode ?? "long-term companion");
-        setBoundaries(defaults?.boundaries ?? "Be supportive, respectful, and avoid manipulative or coercive behavior.");
+        setBoundaries(defaults?.boundaries ?? defaultBoundaries);
         setBackgroundSummary(defaults?.backgroundSummary ?? "");
         // Auto-select portrait for this preset
         setPhotoIndex(
@@ -279,10 +284,7 @@ export function RoleCreateWizard({
       setTone(defaultTone ?? defaults?.tone ?? "warm");
       setSelectedTraits(defaults?.traits ?? []);
       setRelationshipMode(defaults?.relationshipMode ?? "long-term companion");
-      setBoundaries(
-        defaults?.boundaries ??
-          "Be supportive, respectful, and avoid manipulative or coercive behavior.",
-      );
+      setBoundaries(defaults?.boundaries ?? defaultBoundaries);
       setBackgroundSummary(defaults?.backgroundSummary ?? "");
       setPhotoIndex(
         resolvePresetPortraitIndex({
@@ -322,10 +324,7 @@ export function RoleCreateWizard({
     setTone(defaults?.tone ?? "warm");
     setSelectedTraits(defaults?.traits ?? []);
     setRelationshipMode(defaults?.relationshipMode ?? "long-term companion");
-    setBoundaries(
-      defaults?.boundaries ??
-        "Be supportive, respectful, and avoid manipulative or coercive behavior."
-    );
+    setBoundaries(defaults?.boundaries ?? defaultBoundaries);
     setBackgroundSummary(defaults?.backgroundSummary ?? "");
     // Auto-select this preset's designated portrait
     setPhotoIndex(
@@ -363,19 +362,28 @@ export function RoleCreateWizard({
   // ── Step 1: Basics ────────────────────────────────────────────────────────
 
   function renderStep0() {
-    const namePronoun = gender === "male" ? "him" : "her";
+    const namePronoun = isZh ? (gender === "male" ? "他" : "她") : gender === "male" ? "him" : "her";
+    const currentCaller = name.trim() || (isZh ? (gender === "male" ? "他" : "她") : (gender === "male" ? "he" : "she"));
+    const identityOptions: typeof IDENTITY_OPTIONS = isZh
+      ? [
+          { value: "girlfriend", label: "AI 女友", desc: "伴侣型 · 女性", gender: "female", mode: "companion" },
+          { value: "boyfriend", label: "AI 男友", desc: "伴侣型 · 男性", gender: "male", mode: "companion" },
+          { value: "female-assistant", label: "女性助理", desc: "助手型 · 女性", gender: "female", mode: "assistant" },
+          { value: "male-assistant", label: "男性助理", desc: "助手型 · 男性", gender: "male", mode: "assistant" },
+        ]
+      : IDENTITY_OPTIONS;
 
     return (
       <div className="rcw-step">
         <div className="rcw-step-head">
-          <h2 className="rcw-title">Who is this companion?</h2>
+          <h2 className="rcw-title">{isZh ? "这个角色是什么类型？" : "Who is this companion?"}</h2>
         </div>
 
         {/* Identity (gender + mode combined) — 2×2 grid, no emoji */}
         <div className="rcw-field">
-          <label className="rcw-label">Identity</label>
+          <label className="rcw-label">{isZh ? "身份类型" : "Identity"}</label>
           <div className="rcw-identity-grid">
-            {IDENTITY_OPTIONS.map((opt) => {
+            {identityOptions.map((opt) => {
               const active = gender === opt.gender && mode === opt.mode;
               return (
                 <button
@@ -394,27 +402,35 @@ export function RoleCreateWizard({
 
         {/* Name */}
         <div className="rcw-field">
-          <label className="rcw-label" htmlFor="rcw-name">Give {namePronoun} a name</label>
+          <label className="rcw-label" htmlFor="rcw-name">
+            {isZh ? `给${namePronoun}起个名字` : `Give ${namePronoun} a name`}
+          </label>
           <input
             id="rcw-name"
             className="input"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={gender === "male" ? "e.g. Teven" : mode === "assistant" ? "e.g. Velia" : "e.g. Caria"}
+            placeholder={
+              gender === "male"
+                ? isZh ? "例如：Teven" : "e.g. Teven"
+                : mode === "assistant"
+                  ? isZh ? "例如：Velia" : "e.g. Velia"
+                  : isZh ? "例如：Caria" : "e.g. Caria"
+            }
           />
         </div>
 
         {/* User preferred name */}
         <div className="rcw-field">
           <label className="rcw-label" htmlFor="rcw-user-name">
-            What should {name.trim() || (gender === "male" ? "he" : "she")} call you?
+            {isZh ? `${currentCaller}该怎么称呼你？` : `What should ${currentCaller} call you?`}
           </label>
           <input
             id="rcw-user-name"
             className="input"
             value={userPreferredName}
             onChange={(e) => setUserPreferredName(e.target.value)}
-            placeholder="Your name or nickname…"
+            placeholder={isZh ? "你的名字或昵称…" : "Your name or nickname…"}
           />
         </div>
 
@@ -425,7 +441,7 @@ export function RoleCreateWizard({
             onClick={() => setStep(1)}
             disabled={!name.trim()}
           >
-            Next →
+            {isZh ? "下一步" : "Next"} →
           </button>
         </div>
       </div>
@@ -436,36 +452,36 @@ export function RoleCreateWizard({
 
   function renderStep1() {
     const tones = [
-      { id: "warm" as const,    label: "Warm",    desc: "Caring and emotionally present" },
-      { id: "playful" as const, label: "Playful", desc: "Light-hearted and spontaneous" },
-      { id: "steady" as const,  label: "Steady",  desc: "Calm and intellectually grounded" },
+      { id: "warm" as const, label: isZh ? "温柔" : "Warm", desc: isZh ? "更体贴，也更有陪在身边的感觉" : "Caring and emotionally present" },
+      { id: "playful" as const, label: isZh ? "活泼" : "Playful", desc: isZh ? "更轻松，也更有互动感" : "Light-hearted and spontaneous" },
+      { id: "steady" as const, label: isZh ? "沉稳" : "Steady", desc: isZh ? "更冷静，也更有稳定感" : "Calm and intellectually grounded" },
     ];
 
     // Trait tag groups — placeholder categories, more to be added
     const traitGroups = [
       {
-        category: "Communication",
-        tags: ["Thoughtful listener", "Asks questions", "Shares feelings", "Direct"],
+        category: isZh ? "沟通方式" : "Communication",
+        tags: isZh ? ["善于倾听", "会主动提问", "愿意表达感受", "直接坦率"] : ["Thoughtful listener", "Asks questions", "Shares feelings", "Direct"],
       },
       {
-        category: "Energy",
-        tags: ["Calm & steady", "Spontaneous", "Encouraging", "Reflective"],
+        category: isZh ? "相处氛围" : "Energy",
+        tags: isZh ? ["平稳安心", "随性自然", "积极鼓励", "善于共情"] : ["Calm & steady", "Spontaneous", "Encouraging", "Reflective"],
       },
       {
-        category: "Interests",
-        tags: ["Books & ideas", "Arts", "Nature", "Tech", "Music", "Travel"],
+        category: isZh ? "兴趣方向" : "Interests",
+        tags: isZh ? ["阅读与思考", "艺术", "自然", "科技", "音乐", "旅行"] : ["Books & ideas", "Arts", "Nature", "Tech", "Music", "Travel"],
       },
     ];
 
     return (
       <div className="rcw-step">
         <div className="rcw-step-head">
-          <h2 className="rcw-title">Shape their character</h2>
+          <h2 className="rcw-title">{isZh ? "定义这个角色的性格" : "Shape their character"}</h2>
         </div>
 
         {/* Tone */}
         <div className="rcw-field">
-          <label className="rcw-label">Tone</label>
+          <label className="rcw-label">{isZh ? "相处语气" : "Tone"}</label>
           <div className="rcw-tone-cards">
             {tones.map((t) => (
               <button
@@ -484,8 +500,8 @@ export function RoleCreateWizard({
         {/* Trait tags */}
         <div className="rcw-field">
           <label className="rcw-label">
-            Traits
-            <span className="rcw-label-note"> — pick any that feel right</span>
+            {isZh ? "个性标签" : "Traits"}
+            <span className="rcw-label-note">{isZh ? " · 选择你觉得合适的即可" : " — pick any that feel right"}</span>
           </label>
           <div className="rcw-trait-groups">
             {traitGroups.map((group) => (
@@ -516,23 +532,23 @@ export function RoleCreateWizard({
             className="rcw-advanced-toggle"
             onClick={() => setAdvancedOpen((open) => !open)}
           >
-            <span>Advanced</span>
+            <span>{isZh ? "高级设置" : "Advanced"}</span>
             <span className={`rcw-advanced-chevron${advancedOpen ? " open" : ""}`}>⌄</span>
           </button>
           {advancedOpen ? (
             <div className="rcw-advanced-body">
               <div className="rcw-field">
-                <label className="rcw-label" htmlFor="rcw-relationship-mode">Relationship mode</label>
+                <label className="rcw-label" htmlFor="rcw-relationship-mode">{isZh ? "关系模式" : "Relationship mode"}</label>
                 <input
                   id="rcw-relationship-mode"
                   className="input"
                   value={relationshipMode}
                   onChange={(e) => setRelationshipMode(e.target.value)}
-                  placeholder="How this role relates to the user…"
+                  placeholder={isZh ? "这个角色与你的关系定位…" : "How this role relates to the user…"}
                 />
               </div>
               <div className="rcw-field">
-                <label className="rcw-label" htmlFor="rcw-bounds">Boundaries</label>
+                <label className="rcw-label" htmlFor="rcw-bounds">{isZh ? "边界" : "Boundaries"}</label>
                 <textarea
                   id="rcw-bounds"
                   className="input"
@@ -542,14 +558,14 @@ export function RoleCreateWizard({
                 />
               </div>
               <div className="rcw-field">
-                <label className="rcw-label" htmlFor="rcw-background">Background</label>
+                <label className="rcw-label" htmlFor="rcw-background">{isZh ? "背景设定" : "Background"}</label>
                 <textarea
                   id="rcw-background"
                   className="input"
                   rows={3}
                   value={backgroundSummary}
                   onChange={(e) => setBackgroundSummary(e.target.value)}
-                  placeholder="A short background the model can reference…"
+                  placeholder={isZh ? "补充一段可供模型参考的背景设定…" : "A short background the model can reference…"}
                 />
               </div>
             </div>
@@ -558,10 +574,10 @@ export function RoleCreateWizard({
 
         <div className="rcw-actions rcw-actions-row">
           <button type="button" className="button button-secondary" onClick={() => setStep(0)}>
-            ← Back
+            ← {isZh ? "上一步" : "Back"}
           </button>
           <button type="button" className="button button-primary" onClick={() => setStep(2)}>
-            Next →
+            {isZh ? "下一步" : "Next"} →
           </button>
         </div>
       </div>
@@ -574,7 +590,7 @@ export function RoleCreateWizard({
     return (
       <div className="rcw-step">
         <div className="rcw-step-head">
-          <h2 className="rcw-title">Choose {name || "their"} appearance</h2>
+          <h2 className="rcw-title">{isZh ? `选择${name || "TA"}的形象` : `Choose ${name || "their"} appearance`}</h2>
         </div>
 
         {/* Large portrait carousel */}
@@ -583,7 +599,7 @@ export function RoleCreateWizard({
             type="button"
             className="rcw-carousel-arrow rcw-carousel-arrow-left"
             onClick={prevPortrait}
-            aria-label="Previous"
+            aria-label={isZh ? "上一张" : "Previous"}
           >
             ‹
           </button>
@@ -608,7 +624,7 @@ export function RoleCreateWizard({
                   type="button"
                   className={`rcw-carousel-dot${i === safeIndex ? " active" : ""}`}
                   onClick={() => { setPhotoIndex(i); }}
-                  aria-label={`Portrait ${i + 1}`}
+                  aria-label={isZh ? `形象 ${i + 1}` : `Portrait ${i + 1}`}
                 />
               ))}
             </div>
@@ -618,7 +634,7 @@ export function RoleCreateWizard({
             type="button"
             className="rcw-carousel-arrow rcw-carousel-arrow-right"
             onClick={nextPortrait}
-            aria-label="Next"
+            aria-label={isZh ? "下一张" : "Next"}
           >
             ›
           </button>
@@ -656,15 +672,17 @@ export function RoleCreateWizard({
             {voiceGroups.length > 0 ? (
               <div className="role-subsection">
                 <div className="role-subsection-head">
-                  <h3 className="role-subsection-title">Voice</h3>
+                  <h3 className="role-subsection-title">{isZh ? "语音" : "Voice"}</h3>
                 </div>
                 <p className="role-field-hint">
-                  We preselect a recommended voice based on tone and identity. You can switch
-                  within your available options before creating.
+                  {isZh
+                    ? "我们会先根据语气和身份推荐一个语音，你也可以在创建前切换到其他可用语音。"
+                    : "We preselect a recommended voice based on tone and identity. You can switch within your available options before creating."}
                 </p>
                 <RoleVoiceTabs
                   currentPlanSlug={currentPlanSlug}
                   groups={voiceGroups}
+                  language={language}
                   selectedAssetId={recommendedVoice?.id ?? null}
                   upgradeHref="/app/settings#settings-subscription"
                 />
@@ -672,23 +690,23 @@ export function RoleCreateWizard({
             ) : null}
             <div className="rcw-actions rcw-actions-row">
               <button type="button" className="button button-secondary" onClick={() => setStep(1)}>
-                ← Back
+                ← {isZh ? "上一步" : "Back"}
               </button>
               <button type="submit" className="button button-primary rcw-create-btn">
-                Create {name} →
+                {isZh ? `创建${name}` : `Create ${name}`} →
               </button>
             </div>
           </form>
         ) : (
           <div className="rcw-actions rcw-actions-row">
             <button type="button" className="button button-secondary" onClick={() => setStep(1)}>
-              ← Back
+                ← {isZh ? "上一步" : "Back"}
             </button>
             <a
               className="button button-primary"
               href={`/login?next=${encodeURIComponent(loginNext)}`}
             >
-              Sign in to create
+              {isZh ? "登录后创建" : "Sign in to create"}
             </a>
           </div>
         )}

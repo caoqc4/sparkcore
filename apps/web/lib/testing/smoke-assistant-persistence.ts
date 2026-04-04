@@ -37,6 +37,9 @@ export type SmokeAssistantPersistenceSharedFields = {
   hiddenExclusionCount: number;
   incorrectExclusionCount: number;
   createdTypes: SmokeCreatedMemoryType[];
+  plannerPreviewMetadata?: Record<string, unknown> | null;
+  relationshipRecallMetadata?: Record<string, unknown> | null;
+  runtimeMemoryUsageMetadata?: Record<string, unknown> | null;
 };
 
 export type SmokeAssistantInsertArgs = {
