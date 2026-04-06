@@ -10,15 +10,22 @@ ALLOW_UNAUTHENTICATED="${ALLOW_UNAUTHENTICATED:-true}"
 ENV_VARS_FILE="${ENV_VARS_FILE:-}"
 
 echo "==> Building image ${IMAGE_URI}"
-BUILD_ID="$(
+BUILD_SUBMIT_OUTPUT="$(
   gcloud builds submit \
     --project "${PROJECT_ID}" \
     --config apps/web/deploy/cloudbuild.web.yaml \
     --substitutions "_IMAGE_URI=${IMAGE_URI}" \
     --async \
     --suppress-logs \
-    --format='value(metadata.build.id)' \
     .
+)"
+
+echo "${BUILD_SUBMIT_OUTPUT}"
+
+BUILD_ID="$(
+  printf '%s\n' "${BUILD_SUBMIT_OUTPUT}" \
+    | sed -nE 's#.*?/builds/([a-z0-9-]+).*#\1#p' \
+    | tail -n 1
 )"
 
 if [[ -z "${BUILD_ID}" ]]; then
