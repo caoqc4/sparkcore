@@ -14,6 +14,7 @@ gcloud builds submit \
   --project "${PROJECT_ID}" \
   --config apps/web/deploy/cloudbuild.web.yaml \
   --substitutions "_IMAGE_URI=${IMAGE_URI}" \
+  --suppress-logs \
   .
 
 DEPLOY_ARGS=(
