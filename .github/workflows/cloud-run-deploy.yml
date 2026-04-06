@@ -24,9 +24,6 @@ jobs:
       PROJECT_ID: ${{ vars.GCP_PROJECT_ID || 'sparkcore-492512' }}
       REGION: ${{ vars.GCP_REGION || 'asia-east1' }}
       SERVICE_NAME: ${{ vars.CLOUD_RUN_SERVICE_NAME || 'sparkcore-web' }}
-    defaults:
-      run:
-        working-directory: apps/web
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,9 +36,11 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
 
       - name: Install dependencies
+        working-directory: apps/web
         run: npm ci
 
       - name: Typecheck
+        working-directory: apps/web
         run: npm run typecheck
 
       - name: Authenticate to Google Cloud
@@ -55,5 +54,4 @@ jobs:
           project_id: ${{ env.PROJECT_ID }}
 
       - name: Deploy to Cloud Run
-        run: |
-          bash scripts/cloud-run-deploy.sh
+        run: bash apps/web/scripts/cloud-run-deploy.sh
