@@ -10,12 +10,43 @@ ALLOW_UNAUTHENTICATED="${ALLOW_UNAUTHENTICATED:-true}"
 ENV_VARS_FILE="${ENV_VARS_FILE:-}"
 
 echo "==> Building image ${IMAGE_URI}"
-gcloud builds submit \
-  --project "${PROJECT_ID}" \
-  --config apps/web/deploy/cloudbuild.web.yaml \
-  --substitutions "_IMAGE_URI=${IMAGE_URI}" \
-  --suppress-logs \
-  .
+BUILD_ID="$(
+  gcloud builds submit \
+    --project "${PROJECT_ID}" \
+    --config apps/web/deploy/cloudbuild.web.yaml \
+    --substitutions "_IMAGE_URI=${IMAGE_URI}" \
+    --async \
+    --suppress-logs \
+    --format='value(metadata.build.id)' \
+    .
+)"
+
+if [[ -z "${BUILD_ID}" ]]; then
+  echo "Failed to capture Cloud Build ID." >&2
+  exit 1
+fi
+
+echo "==> Waiting for Cloud Build ${BUILD_ID}"
+while true; do
+  BUILD_STATUS="$(
+    gcloud builds describe "${BUILD_ID}" \
+      --project "${PROJECT_ID}" \
+      --format='value(status)'
+  )"
+
+  case "${BUILD_STATUS}" in
+    SUCCESS)
+      break
+      ;;
+    FAILURE|INTERNAL_ERROR|TIMEOUT|CANCELLED|EXPIRED)
+      echo "Cloud Build ${BUILD_ID} finished with status ${BUILD_STATUS}." >&2
+      exit 1
+      ;;
+    *)
+      sleep 5
+      ;;
+  esac
+done
 
 DEPLOY_ARGS=(
   "${SERVICE_NAME}"
