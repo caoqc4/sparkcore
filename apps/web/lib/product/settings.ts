@@ -1,4 +1,8 @@
 import {
+  FIXED_IMAGE_MODEL_SLUG,
+  FIXED_TEXT_MODEL_SLUG
+} from "@/lib/ai/fixed-models";
+import {
   getCapabilityDescription,
   getCapabilityLabel,
   loadProductBillingConfiguration,
@@ -235,6 +239,10 @@ function resolveBillingInterval(planName: string | null, fallback: string | unde
   return fallback ?? "monthly";
 }
 
+function getFixedCapabilitySlug(capabilityType: ProductModelCapabilityType) {
+  return capabilityType === "text" ? FIXED_TEXT_MODEL_SLUG : FIXED_IMAGE_MODEL_SLUG;
+}
+
 function resolveCatalogAccessLevel(
   item: ProductModelCatalogItem,
   currentPlanSlug: string
@@ -405,7 +413,10 @@ export async function loadProductSettingsPageData(args: {
         .map((item) => [item.model_slug ?? "", item])
     );
     const catalogItems = getProductModelCatalogByCapability(capabilityType);
-    const options = catalogItems.map((item) => {
+    const fixedSlug = getFixedCapabilitySlug(capabilityType);
+    const options = catalogItems
+      .filter((item) => item.slug === fixedSlug)
+      .map((item) => {
       const entitlement =
         entitlementByModelSlug.get(item.slug) ??
         entitlementByModelSlug.get(`${capabilityType}:monthly_generations`) ??
@@ -414,26 +425,26 @@ export async function loadProductSettingsPageData(args: {
         null;
       const creditRule = creditsByModelSlug.get(item.slug) ?? null;
 
-      return {
-        slug: item.slug,
-        displayName: item.displayName,
-        provider: item.provider,
-        modelKey: item.litellmModelName ?? item.replicateModelRef ?? item.slug,
-        qualityTier: item.tier,
-        availabilityStatus: item.uiStatus === "active" ? "active" : "disabled",
-        accessLevel: resolveCatalogAccessLevel(item, currentPlanSlug),
-        includedUnits: entitlement?.included_units ?? null,
-        overageMode: entitlement?.overage_mode ?? null,
-        creditsCost: creditRule?.credits_cost ?? null,
-        isPlanDefault:
-          item.isDefault &&
-          (item.tier === currentPlanSlug ||
-            (currentPlanSlug !== "pro" && item.tier === "free")),
-        isCatalogDefault: item.isDefault,
-        tags: item.tags,
-        statusLabel: item.statusLabel ?? null
-      } satisfies ProductModelOption;
-    }).sort((left, right) => {
+        return {
+          slug: item.slug,
+          displayName: item.displayName,
+          provider: item.provider,
+          modelKey: item.runtimeModelKey ?? item.replicateModelRef ?? item.slug,
+          qualityTier: item.tier,
+          availabilityStatus: item.uiStatus === "active" ? "active" : "disabled",
+          accessLevel: resolveCatalogAccessLevel(item, currentPlanSlug),
+          includedUnits: entitlement?.included_units ?? null,
+          overageMode: entitlement?.overage_mode ?? null,
+          creditsCost: creditRule?.credits_cost ?? null,
+          isPlanDefault:
+            item.isDefault &&
+            (item.tier === currentPlanSlug ||
+              (currentPlanSlug !== "pro" && item.tier === "free")),
+          isCatalogDefault: item.isDefault,
+          tags: item.tags,
+          statusLabel: item.statusLabel ?? null
+        } satisfies ProductModelOption;
+      }).sort((left, right) => {
       const byAvailability =
         getAvailabilitySortValue(left.availabilityStatus) -
         getAvailabilitySortValue(right.availabilityStatus);
@@ -464,17 +475,6 @@ export async function loadProductSettingsPageData(args: {
 
       return left.displayName.localeCompare(right.displayName);
     });
-
-    const selectedSlug = getStringMetadataValue(appSettingsMetadata, selectedMetadataKey);
-    const includedSelectedOption =
-      selectedSlug
-        ? options.find(
-            (item) =>
-              item.slug === selectedSlug &&
-              item.accessLevel === "included" &&
-              item.availabilityStatus === "active"
-          ) ?? null
-        : null;
     const planDefaultOption =
       options.find(
         (item) =>
@@ -493,7 +493,7 @@ export async function loadProductSettingsPageData(args: {
       capabilityType,
       label: getCapabilityLabel(capabilityType),
       description: getCapabilityDescription(capabilityType),
-      selectedSlug: includedSelectedOption?.slug ?? planDefaultOption?.slug ?? null,
+      selectedSlug: planDefaultOption?.slug ?? fixedSlug,
       planDefaultSlug: planDefaultOption?.slug ?? null,
       options
     } satisfies ProductModelCapabilitySettings;
@@ -557,10 +557,8 @@ export async function loadProductSettingsPageData(args: {
           notificationsEnabled: appSettings.notifications_enabled === true,
           memoryRetentionPolicy: appSettings.memory_retention_policy,
           dataRegion: appSettings.data_region,
-          defaultTextModelSlug:
-            getStringMetadataValue(appSettingsMetadata, "default_text_model_slug"),
-          defaultImageModelSlug:
-            getStringMetadataValue(appSettingsMetadata, "default_image_model_slug"),
+          defaultTextModelSlug: FIXED_TEXT_MODEL_SLUG,
+          defaultImageModelSlug: FIXED_IMAGE_MODEL_SLUG,
           defaultModelProvider: appSettings.default_model_provider ?? null,
           defaultModelId: appSettings.default_model_id ?? null,
           customApiKeyPresent: appSettings.custom_api_key_present === true,

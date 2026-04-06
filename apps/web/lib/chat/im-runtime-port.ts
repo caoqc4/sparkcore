@@ -5,7 +5,7 @@ import {
   type AdapterRuntimePort
 } from "@/lib/integrations/im-adapter";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
-import { LiteLLMFetchError } from "@/lib/litellm/client";
+import { AiProviderError, AiProviderFetchError } from "@/lib/ai/client";
 import {
   readHumanizedArtifactAction,
   readHumanizedDeliveryGate,
@@ -897,13 +897,15 @@ async function runImRuntimeTurnWithSupabase(args: {
       assistant_message_id: assistantPlaceholder.id,
       source_message_id: insertedMessage.id,
       error_type: assistantFailure.errorType,
+      provider_failure_category: assistantFailure.providerFailureCategory,
       error_message: assistantFailure.message,
-      litellm_operation:
-        error instanceof LiteLLMFetchError ? error.operation : null,
-      litellm_endpoint:
-        error instanceof LiteLLMFetchError ? error.endpoint : null,
+      provider_status: error instanceof AiProviderError ? error.status : null,
+      provider_operation:
+        error instanceof AiProviderFetchError ? error.operation : null,
+      provider_endpoint:
+        error instanceof AiProviderFetchError ? error.endpoint : null,
       cause_message:
-        error instanceof LiteLLMFetchError &&
+        error instanceof AiProviderFetchError &&
         error.causeError instanceof Error
           ? error.causeError.message
           : null

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { AiProviderError, AiProviderFetchError } from "@/lib/ai/client";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
 import { extractExplicitAudioContent } from "@/lib/chat/multimodal-intent-decision";
 import {
@@ -1414,6 +1415,28 @@ export async function sendMessage(
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);
 
+    console.error("[web-chat:send-message-failed]", {
+      thread_id: thread.id,
+      agent_id: thread.agent_id,
+      user_id: user.id,
+      workspace_id: workspace.id,
+      assistant_message_id: assistantPlaceholder.id,
+      source_message_id: insertedMessage.id,
+      error_type: assistantFailure.errorType,
+      provider_failure_category: assistantFailure.providerFailureCategory,
+      error_message: assistantFailure.message,
+      provider_status: error instanceof AiProviderError ? error.status : null,
+      provider_operation:
+        error instanceof AiProviderFetchError ? error.operation : null,
+      provider_endpoint:
+        error instanceof AiProviderFetchError ? error.endpoint : null,
+      cause_message:
+        error instanceof AiProviderFetchError &&
+        error.causeError instanceof Error
+          ? error.causeError.message
+          : null
+    });
+
     await markAssistantMessageFailed({
       supabase,
       assistantMessageId: assistantPlaceholder.id,
@@ -1625,6 +1648,28 @@ export async function retryAssistantReply(
     });
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);
+
+    console.error("[web-chat:retry-assistant-failed]", {
+      thread_id: thread.id,
+      agent_id: thread.agent_id,
+      user_id: user.id,
+      workspace_id: workspace.id,
+      assistant_message_id: failedMessage.id,
+      source_message_id: latestUserMessage.id,
+      error_type: assistantFailure.errorType,
+      provider_failure_category: assistantFailure.providerFailureCategory,
+      error_message: assistantFailure.message,
+      provider_status: error instanceof AiProviderError ? error.status : null,
+      provider_operation:
+        error instanceof AiProviderFetchError ? error.operation : null,
+      provider_endpoint:
+        error instanceof AiProviderFetchError ? error.endpoint : null,
+      cause_message:
+        error instanceof AiProviderFetchError &&
+        error.causeError instanceof Error
+          ? error.causeError.message
+          : null
+    });
 
     await markAssistantMessageFailed({
       supabase,

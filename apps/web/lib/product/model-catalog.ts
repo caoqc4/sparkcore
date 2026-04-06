@@ -1,3 +1,10 @@
+import {
+  FIXED_IMAGE_MODEL_NAME,
+  FIXED_IMAGE_MODEL_SLUG,
+  FIXED_TEXT_MODEL_NAME,
+  FIXED_TEXT_MODEL_SLUG
+} from "@/lib/ai/fixed-models";
+
 export type ProductModelCatalogCapability = "text" | "image" | "audio";
 export type ProductModelCatalogTier = "free" | "pro";
 export type ProductModelIntegrationMode = "replicate" | "official";
@@ -13,7 +20,7 @@ export type ProductModelCatalogItem = {
   tags: string[];
   integrationMode: ProductModelIntegrationMode;
   uiStatus: ProductModelUiStatus;
-  litellmModelName?: string;
+  runtimeModelKey?: string;
   replicateModelRef?: string;
   runtimeProfileSlug?: string;
   statusLabel?: string;
@@ -36,7 +43,7 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
     tags: ["Fast", "Low cost"],
     integrationMode: "replicate",
     uiStatus: "active",
-    litellmModelName: "replicate-gpt-4o-mini",
+    runtimeModelKey: "replicate-gpt-4o-mini",
     replicateModelRef: "replicate/openai/gpt-4o-mini",
     runtimeProfileSlug: "text-core-lite",
     statusLabel: "Available now"
@@ -51,7 +58,7 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
     tags: ["Natural companion", "Reasoning"],
     integrationMode: "replicate",
     uiStatus: "active",
-    litellmModelName: "replicate-claude-4-sonnet",
+    runtimeModelKey: "replicate-claude-4-sonnet",
     replicateModelRef: "replicate/anthropic/claude-4-sonnet",
     runtimeProfileSlug: "text-reasoning-pro",
     statusLabel: "Available now"
@@ -66,7 +73,7 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
     tags: ["Reliable", "Balanced quality"],
     integrationMode: "replicate",
     uiStatus: "active",
-    litellmModelName: "replicate-gpt-4.1",
+    runtimeModelKey: "replicate-gpt-4.1",
     replicateModelRef: "replicate/openai/gpt-4.1",
     runtimeProfileSlug: "text-gpt-4-1",
     statusLabel: "Available now"
@@ -84,16 +91,16 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
     statusLabel: "Official integration planned"
   },
   {
-    slug: "text-gemini-2-5-flash",
+    slug: FIXED_TEXT_MODEL_SLUG,
     capability: "text",
-    displayName: "Google Gemini 2.5 Flash",
-    provider: "Google",
+    displayName: FIXED_TEXT_MODEL_NAME,
+    provider: "Google AI Studio",
     tier: "free",
-    isDefault: false,
+    isDefault: true,
     tags: ["Fast", "Low cost"],
     integrationMode: "official",
-    uiStatus: "planned",
-    statusLabel: "Official integration planned"
+    uiStatus: "active",
+    statusLabel: "Available now"
   },
   {
     slug: "text-deepseek-chat",
@@ -129,7 +136,7 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
     tags: ["Fast", "Low cost"],
     integrationMode: "replicate",
     uiStatus: "active",
-    litellmModelName: "replicate-llama-3-8b",
+    runtimeModelKey: "replicate-llama-3-8b",
     replicateModelRef: "replicate/meta/meta-llama-3-8b-instruct",
     runtimeProfileSlug: "text-creative-lite",
     statusLabel: "Available now"
@@ -144,7 +151,7 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
     tags: ["Fast", "Everyday use"],
     integrationMode: "replicate",
     uiStatus: "active",
-    litellmModelName: "replicate-nano-banana",
+    runtimeModelKey: "replicate-nano-banana",
     replicateModelRef: "replicate/google/nano-banana",
     statusLabel: "Available now"
   },
@@ -158,7 +165,7 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
     tags: ["Portrait quality", "Premium"],
     integrationMode: "replicate",
     uiStatus: "active",
-    litellmModelName: "replicate-nano-banana-pro",
+    runtimeModelKey: "replicate-nano-banana-pro",
     replicateModelRef: "replicate/google/nano-banana-pro",
     statusLabel: "Available now"
   },
@@ -172,8 +179,20 @@ export const PRODUCT_MODEL_CATALOG: ProductModelCatalogItem[] = [
     tags: ["High quality", "Photorealistic"],
     integrationMode: "replicate",
     uiStatus: "active",
-    litellmModelName: "replicate-flux-2-pro",
+    runtimeModelKey: "replicate-flux-2-pro",
     replicateModelRef: "replicate/black-forest-labs/flux-2-pro",
+    statusLabel: "Available now"
+  },
+  {
+    slug: FIXED_IMAGE_MODEL_SLUG,
+    capability: "image",
+    displayName: FIXED_IMAGE_MODEL_NAME,
+    provider: "fal.ai",
+    tier: "free",
+    isDefault: true,
+    tags: ["Fast", "Consistent"],
+    integrationMode: "official",
+    uiStatus: "active",
     statusLabel: "Available now"
   },
   {
@@ -316,6 +335,10 @@ export function getProductModelCatalogByCapability(capability: ProductModelCatal
 
 export function getVisibleAudioModelSlugs() {
   return Array.from(ACTIVE_AUDIO_MODEL_SLUGS);
+}
+
+export function isFixedModelSlug(slug: string | null | undefined) {
+  return slug === FIXED_TEXT_MODEL_SLUG || slug === FIXED_IMAGE_MODEL_SLUG;
 }
 
 export function isVisibleAudioModelSlug(slug: string | null | undefined) {

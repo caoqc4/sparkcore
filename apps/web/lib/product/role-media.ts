@@ -1,3 +1,4 @@
+import { FIXED_IMAGE_MODEL_SLUG } from "@/lib/ai/fixed-models";
 import {
   PRODUCT_MODEL_CATALOG,
   getVisibleAudioModelSlugs,
@@ -98,51 +99,14 @@ export function resolveDefaultAudioModelSlug(metadata: Record<string, unknown>) 
 }
 
 export function resolveDefaultImageModelSlug(metadata: Record<string, unknown>) {
-  const configured =
-    typeof metadata.default_image_model_slug === "string"
-      ? metadata.default_image_model_slug.trim()
-      : "";
-
-  if (configured.length > 0) {
-    return configured;
-  }
-
-  const freeDefault = PRODUCT_MODEL_CATALOG.find(
-    (item) =>
-      item.capability === "image" &&
-      item.tier === "free" &&
-      item.isDefault
-  );
-
-  if (freeDefault) {
-    return freeDefault.slug;
-  }
-
-  const anyDefault = PRODUCT_MODEL_CATALOG.find(
-    (item) => item.capability === "image" && item.isDefault
-  );
-
-  return anyDefault?.slug ?? null;
+  return FIXED_IMAGE_MODEL_SLUG;
 }
 
 export function resolveConsumableImageModelSlug(args: {
   currentPlanSlug: string;
   requestedModelSlug: string | null;
 }) {
-  const requested =
-    typeof args.requestedModelSlug === "string" && args.requestedModelSlug.length > 0
-      ? getProductModelCatalogItemBySlug(args.requestedModelSlug)
-      : null;
-
-  if (requested && (args.currentPlanSlug === "pro" || requested.tier === "free")) {
-    return requested.slug;
-  }
-
-  const fallbackFreeDefault = PRODUCT_MODEL_CATALOG.find(
-    (item) => item.capability === "image" && item.tier === "free" && item.isDefault
-  );
-
-  return fallbackFreeDefault?.slug ?? requested?.slug ?? null;
+  return getProductModelCatalogItemBySlug(FIXED_IMAGE_MODEL_SLUG)?.slug ?? null;
 }
 
 export async function loadActiveAudioVoiceOptionsByModelSlug(args: {

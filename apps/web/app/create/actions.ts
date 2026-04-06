@@ -4,11 +4,11 @@ import { redirect } from "next/navigation";
 import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
 import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
+import { getDefaultModelProfile } from "@/lib/chat/runtime-model-profile-resolution";
 import {
   createOwnedAgent,
   createOwnedThread,
   loadActivePersonaPackBySlug,
-  loadActiveModelProfileBySlug,
   loadOwnedUserAppSettingsMetadata,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
@@ -172,15 +172,7 @@ export async function createProductRole(formData: FormData) {
       ? (appSettings.metadata as Record<string, unknown>)
       : {};
   const preferredAudioModelSlug = resolveDefaultAudioModelSlug(appSettingsMetadata);
-  const preferredTextModelSlug =
-    typeof appSettingsMetadata.default_text_model_slug === "string" &&
-    appSettingsMetadata.default_text_model_slug.trim().length > 0
-      ? appSettingsMetadata.default_text_model_slug.trim()
-      : "text-core-lite";
-  const { data: modelProfile } = await loadActiveModelProfileBySlug({
-    supabase,
-    slug: preferredTextModelSlug
-  });
+  const modelProfile = await getDefaultModelProfile(supabase);
 
   if (!workspace || !modelProfile || (presetDefinition && !personaPack)) {
     redirect(

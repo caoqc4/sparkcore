@@ -1,4 +1,6 @@
-import { getAzureSpeechEnv, getLiteLLMEnv } from "@/lib/env";
+import { FIXED_TEXT_MODEL_ID } from "@/lib/ai/fixed-models";
+import { describeImage as describeImageWithGemini } from "@/lib/ai/client";
+import { getAzureSpeechEnv } from "@/lib/env";
 import type {
   InboundChannelMessage,
   OutboundChannelMessage
@@ -76,8 +78,6 @@ type AzureFastTranscriptionResponse = {
   }>;
 };
 
-const TELEGRAM_VISION_MODEL = "replicate-gpt-4o-mini";
-
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -111,10 +111,6 @@ function isTransientTelegramDeliveryBody(body: unknown) {
 
 function getTrimmedString(value: unknown) {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-}
-
-function normalizeBaseUrl(baseUrl: string) {
-  return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
 }
 
 function buildTelegramArtifactId(args: {
@@ -674,85 +670,21 @@ function inferFileExtension(args: {
   return args.fallback;
 }
 
-function arrayBufferToDataUrl(args: {
-  buffer: ArrayBuffer;
-  mimeType: string;
-}) {
-  const base64 = Buffer.from(args.buffer).toString("base64");
-  return `data:${args.mimeType};base64,${base64}`;
-}
-
 async function describeTelegramImage(args: {
   imageBuffer: ArrayBuffer;
   mimeType: string;
   caption: string | null;
 }) {
-  const { baseUrl, apiKey } = getLiteLLMEnv();
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30_000);
-
-  try {
-    const response = await fetch(
-      `${normalizeBaseUrl(baseUrl)}/chat/completions`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: TELEGRAM_VISION_MODEL,
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: [
-                    "The user sent an image in Telegram.",
-                    args.caption ? `User caption: ${args.caption}` : "There is no user caption.",
-                    "Describe only the details that matter for continuing the conversation.",
-                    "Keep it concise and grounded in what is actually visible."
-                  ].join("\n")
-                },
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: arrayBufferToDataUrl({
-                      buffer: args.imageBuffer,
-                      mimeType: args.mimeType
-                    }),
-                    detail: "low"
-                  }
-                }
-              ]
-            }
-          ],
-          temperature: 0.2,
-          max_tokens: 180
-        }),
-        signal: controller.signal
-      }
-    );
-
-    const payload = await response.json().catch(() => null);
-    const content =
-      typeof payload?.choices?.[0]?.message?.content === "string"
-        ? payload.choices[0].message.content.trim()
-        : null;
-
-    if (!response.ok || !content) {
-      throw new Error(
-        typeof payload?.error?.message === "string"
-          ? payload.error.message
-          : "Image understanding failed."
-      );
-    }
-
-    return content;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  return describeImageWithGemini({
+    imageBuffer: args.imageBuffer,
+    mimeType: args.mimeType,
+    prompt: [
+      "The user sent an image in Telegram.",
+      args.caption ? `User caption: ${args.caption}` : "There is no user caption.",
+      "Describe only the details that matter for continuing the conversation.",
+      "Keep it concise and grounded in what is actually visible."
+    ].join("\n")
+  });
 }
 
 async function transcribeTelegramAudio(args: {
@@ -870,7 +802,7 @@ export async function enrichTelegramInboundMessage(args: {
       });
 
       metadata.analysis_summary = summary;
-      metadata.analysis_model = TELEGRAM_VISION_MODEL;
+      metadata.analysis_model = FIXED_TEXT_MODEL_ID;
 
       const visibleContent = caption ?? "Photo";
       const runtimeContent = caption

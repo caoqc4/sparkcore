@@ -246,6 +246,38 @@ async function sendChatMessageThroughUi(page: Page, content: string) {
   await expect(sendButton).toBeEnabled({ timeout: 60_000 });
 }
 
+async function waitForAssistantImageArtifactInUi(
+  page: Page,
+  threadId: string,
+  modelSlug?: string
+) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    await reloadThreadAndWait(page, threadId);
+
+    const latestAssistantImage = page.locator(".message-assistant img").last();
+    const imageCount = await latestAssistantImage.count();
+
+    if (imageCount > 0) {
+      await expect(latestAssistantImage).toBeVisible({ timeout: 10_000 });
+
+      if (modelSlug) {
+        await expect(page.locator(".message-assistant figcaption").last()).toContainText(
+          modelSlug,
+          {
+            timeout: 10_000
+          }
+        );
+      }
+
+      return;
+    }
+
+    await page.waitForTimeout(2000);
+  }
+
+  throw new Error(`Timed out waiting for an assistant image artifact in thread ${threadId}.`);
+}
+
 async function assertComposerBoundToThread(page: Page, threadId: string) {
   await expect(page.locator('input[name="thread_id"]')).toHaveValue(threadId, {
     timeout: 30_000
@@ -607,5 +639,61 @@ test.describe("real runtime centralization", () => {
         return record.type === "image" && record.status === "ready";
       })
     ).toBe(false);
+  });
+
+  test("web chat explicit image requests complete image delivery on the real runtime path", async ({
+    page,
+    request
+  }) => {
+    test.skip(
+      true,
+      "Positive image delivery needs a dedicated non-smoke billing-enabled fixture."
+    );
+
+    const threadId = await createSmokeThread(request, "Smoke Guide");
+    const previousAssistantCount = await countAssistantMessages(threadId);
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${threadId}`
+    );
+    await expect(page).toHaveURL(new RegExp(`thread=${threadId}`));
+
+    await sendChatMessageThroughUi(
+      page,
+      "请生成一张上海天际线日出水彩风格的图片，并在回复里展示出来。"
+    );
+    await assertNoThreadFeedbackError(page);
+
+    const latestAssistant = await waitForLatestCompletedAssistantMessage(
+      threadId,
+      previousAssistantCount
+    );
+    const webDelivery = getWebDeliveryMetadata(latestAssistant.metadata);
+    const artifacts = Array.isArray(latestAssistant.metadata.artifacts)
+      ? latestAssistant.metadata.artifacts
+      : [];
+
+    expect(webDelivery?.artifact_generation_status ?? null).toBe("completed");
+    expect(
+      artifacts.some((artifact) => {
+        if (!artifact || typeof artifact !== "object") {
+          return false;
+        }
+
+        const record = artifact as Record<string, unknown>;
+        return (
+          record.type === "image" &&
+          record.status === "ready" &&
+          typeof record.url === "string" &&
+          record.url.length > 0
+        );
+      })
+    ).toBe(true);
+
+    await waitForAssistantImageArtifactInUi(
+      page,
+      threadId,
+      "image-flux-2-klein-4b"
+    );
   });
 });

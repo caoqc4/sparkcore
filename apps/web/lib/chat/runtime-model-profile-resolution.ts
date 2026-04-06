@@ -1,11 +1,16 @@
 import {
+  FIXED_TEXT_MODEL_ID,
+  FIXED_TEXT_MODEL_NAME,
+  FIXED_TEXT_MODEL_PROVIDER,
+  FIXED_TEXT_MODEL_SLUG
+} from "@/lib/ai/fixed-models";
+import {
   bindOwnedAgentModelProfile,
   loadActiveModelProfileById,
   loadActiveModelProfileBySlug,
   loadActivePersonaPackBySlug,
   loadFirstActiveModelProfile,
   loadFirstActivePersonaPack,
-  loadOwnedUserAppSettingsMetadata
 } from "@/lib/chat/runtime-turn-context";
 import type { AgentRecord } from "@/lib/chat/role-core";
 import { elapsedMs, nowMs } from "@/lib/chat/runtime-core-helpers";
@@ -85,39 +90,22 @@ export async function getDefaultModelProfile(providedSupabase?: any) {
   return fallbackProfile as RuntimeModelProfileRecord;
 }
 
-async function getAccountLevelModelProfileForUser(args: {
-  userId: string;
-  supabase?: any;
-}) {
-  const supabase = args.supabase ?? (await createClient());
-  const { data: appSettings } = await loadOwnedUserAppSettingsMetadata({
-    supabase,
-    userId: args.userId
-  });
-  const metadata =
-    appSettings?.metadata &&
-    typeof appSettings.metadata === "object" &&
-    !Array.isArray(appSettings.metadata)
-      ? (appSettings.metadata as Record<string, unknown>)
-      : {};
-  const preferredTextModelSlug =
-    typeof metadata.default_text_model_slug === "string" &&
-    metadata.default_text_model_slug.trim().length > 0
-      ? metadata.default_text_model_slug.trim()
-      : null;
-
-  if (preferredTextModelSlug) {
-    const { data: preferredProfile } = await loadActiveModelProfileBySlug({
-      supabase,
-      slug: preferredTextModelSlug
-    });
-
-    if (preferredProfile) {
-      return preferredProfile as RuntimeModelProfileRecord;
+function normalizeToFixedTextModelProfile(
+  profile: RuntimeModelProfileRecord
+): RuntimeModelProfileRecord {
+  return {
+    ...profile,
+    slug: FIXED_TEXT_MODEL_SLUG,
+    name: FIXED_TEXT_MODEL_NAME,
+    provider: FIXED_TEXT_MODEL_PROVIDER,
+    model: FIXED_TEXT_MODEL_ID,
+    metadata: {
+      ...(profile.metadata ?? {}),
+      underlying_model: FIXED_TEXT_MODEL_ID,
+      fixed_model_slug: FIXED_TEXT_MODEL_SLUG,
+      fixed_provider: FIXED_TEXT_MODEL_PROVIDER
     }
-  }
-
-  return null;
+  };
 }
 
 export async function resolveModelProfileForAgent({
@@ -134,25 +122,7 @@ export async function resolveModelProfileForAgent({
   const supabase = providedSupabase ?? (await createClient());
   const totalStartedAt = nowMs();
 
-  const accountLevelStartedAt = nowMs();
-  const accountLevelProfile = await getAccountLevelModelProfileForUser({
-    supabase,
-    userId
-  });
-  const accountLevelDurationMs = elapsedMs(accountLevelStartedAt);
-
-  if (accountLevelProfile) {
-    return {
-      profile: accountLevelProfile,
-      timingMs: {
-        total: elapsedMs(totalStartedAt),
-        account_level_lookup: accountLevelDurationMs,
-        bound_profile_lookup: 0,
-        default_profile_lookup: 0,
-        bind_default_profile: 0
-      } satisfies RuntimeModelProfileResolutionTimingMs
-    };
-  }
+  const accountLevelDurationMs = 0;
 
   if (agent.default_model_profile_id) {
     const boundProfileStartedAt = nowMs();
@@ -164,7 +134,9 @@ export async function resolveModelProfileForAgent({
 
     if (boundProfile) {
       return {
-        profile: boundProfile as RuntimeModelProfileRecord,
+        profile: normalizeToFixedTextModelProfile(
+          boundProfile as RuntimeModelProfileRecord
+        ),
         timingMs: {
           total: elapsedMs(totalStartedAt),
           account_level_lookup: accountLevelDurationMs,
@@ -199,7 +171,7 @@ export async function resolveModelProfileForAgent({
   agent.default_model_profile_id = defaultProfile.id;
 
   return {
-    profile: defaultProfile,
+    profile: normalizeToFixedTextModelProfile(defaultProfile),
     timingMs: {
       total: elapsedMs(totalStartedAt),
       account_level_lookup: accountLevelDurationMs,

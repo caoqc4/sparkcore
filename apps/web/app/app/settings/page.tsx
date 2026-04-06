@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DeleteAccountConfirm } from "@/components/delete-account-confirm";
-import { SettingsModelCapabilityGrid } from "@/components/settings-model-capability-grid";
 import { ProductConsoleShell } from "@/components/product-console-shell";
 import { ProductEventTracker } from "@/components/product-event-tracker";
 import { FormSubmitButton } from "@/components/form-submit-button";
@@ -19,7 +18,6 @@ import { createClient } from "@/lib/supabase/server";
 import {
   deleteCurrentProductAccount,
   saveProductAppSettings,
-  saveProductModelSettings,
   signOutAllProductSessions,
 } from "@/app/app/settings/actions";
 import { signOut } from "@/app/login/actions";
@@ -223,19 +221,14 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
         <div className="role-section-head">
           <h2 className="role-section-title">{settingsCopy.aiModel}</h2>
         </div>
-        <form action={saveProductModelSettings} className="settings-model-form">
-          <input name="redirect_to" type="hidden" value={redirectTo} />
-          {/* Preserve custom API key flag — not user-editable, set via admin */}
-          <input
-            name="custom_api_key_present"
-            type="hidden"
-            value={settingsData.appSettings.customApiKeyPresent ? "true" : "false"}
-          />
-
+        <div className="settings-model-form">
           {settingsData.modelSettings.capabilities.map((capability) => {
-            const visible = capability.options.filter(
-              (o) => o.accessLevel !== "hidden" && o.availabilityStatus === "active",
-            );
+            const activeOption =
+              capability.options.find(
+                (option) =>
+                  option.slug === capability.selectedSlug &&
+                  option.availabilityStatus === "active",
+              ) ?? capability.options[0] ?? null;
 
             return (
               <div key={capability.capabilityType} className="settings-model-capability">
@@ -247,24 +240,24 @@ export default async function AppSettingsPage({ searchParams }: SettingsPageProp
                     {getCapabilityCopy(capability.capabilityType, effectiveSystemLanguage).description}
                   </span>
                 </div>
-
-                <SettingsModelCapabilityGrid
-                  capabilityType={capability.capabilityType}
-                  language={effectiveSystemLanguage}
-                  options={visible}
-                  selectedSlug={capability.selectedSlug}
-                  subscriptionSectionId="settings-subscription"
-                />
+                {activeOption ? (
+                  <div className="settings-model-locked-card">
+                    <strong>{activeOption.displayName}</strong>
+                    <p className="helper-copy">
+                      {activeOption.provider}
+                      {activeOption.tags.length > 0 ? ` · ${activeOption.tags.join(" · ")}` : ""}
+                    </p>
+                    <p className="helper-copy">
+                      {effectiveSystemLanguage === "zh-CN"
+                        ? "当前版本已固定，不支持用户切换。"
+                        : "This version is fixed and no longer user-selectable."}
+                    </p>
+                  </div>
+                ) : null}
               </div>
             );
           })}
-
-          <FormSubmitButton
-            className="button button-primary settings-submit-btn"
-            idleText={settingsCopy.saveModelSettings}
-            pendingText={settingsCopy.saving}
-          />
-        </form>
+        </div>
       </section>
 
       <SectionCard id="settings-subscription" title={settingsCopy.subscription}>

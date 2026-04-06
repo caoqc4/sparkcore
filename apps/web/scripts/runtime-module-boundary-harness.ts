@@ -114,13 +114,13 @@ async function main() {
         "@/lib/chat/runtime-observability-builders",
         "@/lib/chat/runtime-turn-observability",
         "@/lib/supabase/",
-        "@/lib/litellm/"
+        "@/lib/ai/"
       ]
     },
     {
       id: "observability_layer_avoids_model_and_db_ports",
       relativePath: "lib/chat/runtime-observability-builders.ts",
-      forbiddenPrefixes: ["@/lib/supabase/", "@/lib/litellm/"]
+      forbiddenPrefixes: ["@/lib/supabase/", "@/lib/ai/"]
     },
     {
       id: "generation_context_avoids_side_effect_and_db_ports",
@@ -133,7 +133,7 @@ async function main() {
         "@/lib/chat/runtime-turn-observability",
         "@/lib/chat/runtime-humanized-observability",
         "@/lib/supabase/",
-        "@/lib/litellm/"
+        "@/lib/ai/"
       ]
     },
     {
@@ -143,7 +143,7 @@ async function main() {
         "@/lib/chat/runtime-turn-side-effects",
         "@/lib/chat/runtime-event-builders",
         "@/lib/supabase/",
-        "@/lib/litellm/"
+        "@/lib/ai/"
       ]
     },
     {
@@ -169,7 +169,7 @@ async function main() {
         "@/lib/chat/runtime-observability-builders",
         "@/lib/chat/runtime-turn-observability",
         "@/lib/supabase/",
-        "@/lib/litellm/"
+        "@/lib/ai/"
       ]
     },
     {
@@ -237,7 +237,7 @@ async function main() {
         "@/lib/chat/runtime-turn-preparation",
         "@/lib/chat/runtime-turn-side-effects",
         "@/lib/supabase/",
-        "@/lib/litellm/"
+        "@/lib/ai/"
       ]
     },
     {
@@ -255,7 +255,7 @@ async function main() {
         "@/lib/chat/agent-system-prompt-builders",
         "@/lib/chat/response-surface-prompts",
         "@/lib/supabase/",
-        "@/lib/litellm/"
+        "@/lib/ai/"
       ]
     },
     {
@@ -272,7 +272,7 @@ async function main() {
         "@/lib/chat/runtime-observability-builders",
         "@/lib/chat/runtime-turn-observability",
         "@/lib/supabase/",
-        "@/lib/litellm/"
+        "@/lib/ai/"
       ]
     },
     {
@@ -293,7 +293,7 @@ async function main() {
         "@/lib/chat/agent-system-prompt-builders",
         "@/lib/chat/response-surface-prompts",
         "@/lib/supabase/",
-        "@/lib/litellm/"
+        "@/lib/ai/"
       ]
     }
   ];

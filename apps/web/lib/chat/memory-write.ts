@@ -1,4 +1,4 @@
-import { generateText } from "@/lib/litellm/client";
+import { generateText } from "@/lib/ai/client";
 import {
   buildMemoryV2Fields,
   canTransitionMemoryStatus,

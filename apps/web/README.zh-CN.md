@@ -18,12 +18,8 @@
 - Node.js 20+
 - npm
 - 一个 Supabase 项目
-- 一个 LiteLLM 网关
-
-如果你想直接用仓库自带的本地 LiteLLM proxy，还需要：
-
-- `uv`
-- `REPLICATE_API_KEY`
+- 一个 Google AI Studio API Key
+- 一个 fal.ai API Key
 
 ## 环境变量
 
@@ -35,9 +31,8 @@
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-LITELLM_BASE_URL=
-LITELLM_API_KEY=
-REPLICATE_API_KEY=
+GOOGLE_AI_STUDIO_API_KEY=
+FAL_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 CREEM_API_KEY=
 CREEM_WEBHOOK_SECRET=
@@ -74,23 +69,12 @@ npm install
 
 当前最简单的方式，是在 Supabase SQL Editor 中按时间顺序执行 `supabase/migrations` 里的 SQL 文件。
 
-3. 启动 LiteLLM
+3. 配置模型提供方
 
-如果你已经有自己的 LiteLLM 网关，直接把 `LITELLM_BASE_URL` 和 `LITELLM_API_KEY` 指向它即可。
+当前 SparkCore 直接调用官方/原生提供方：
 
-如果你想使用仓库提供的本地 proxy：
-
-```bash
-cd /Users/caoq/git/sparkcore
-./scripts/start-litellm-proxy.sh
-```
-
-仓库自带的本地 LiteLLM 配置目前已经包含这些 Replicate 别名：
-
-- 文本：`replicate-gpt-4o-mini`、`replicate-claude-4-sonnet`、`replicate-gpt-4.1`、`replicate-llama-3-8b`
-- 图片：`replicate-nano-banana`、`replicate-nano-banana-pro`、`replicate-flux-2-pro`
-
-如果你的 Web 实际连的是另一套独立部署的 LiteLLM gateway，而不是这个本地 proxy，那么那边的配置也必须同步暴露相同别名，这些模型运行时才会真正可用。
+- 文本：Google AI Studio `gemini-2.5-flash`
+- 图片：fal.ai `fal-ai/flux-2/klein/4b`
 
 4. 启动 Web 应用
 
@@ -120,7 +104,7 @@ npm run dev
 npm run dev
 npm run typecheck
 npm run build
-npm run litellm:test -- --model <your-model-name>
+npm run ai:test
 npm run smoke:test
 npm run quality:eval
 ```
@@ -132,7 +116,7 @@ npm run quality:eval
 - `.github/workflows/web-smoke.yml` 会在 `apps/web` 相关改动时跑 `typecheck` 和 `smoke:test`
 - 如果要让这个 workflow 在 GitHub Actions 上可用，至少需要配置这些 secrets：
   `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY`、
-  `LITELLM_BASE_URL`、`LITELLM_API_KEY`、`REPLICATE_API_KEY`、`NEXT_PUBLIC_APP_URL`、
+  `GOOGLE_AI_STUDIO_API_KEY`、`FAL_KEY`、`NEXT_PUBLIC_APP_URL`、
   `PLAYWRIGHT_SMOKE_SECRET`、`PLAYWRIGHT_SMOKE_EMAIL`、`PLAYWRIGHT_SMOKE_PASSWORD`
 - 如果 CI 里还要覆盖计费和分析链路，再补这些 secrets：
   `CREEM_API_KEY`、`CREEM_WEBHOOK_SECRET`、`CREEM_PRICE_PRO_MONTHLY`、

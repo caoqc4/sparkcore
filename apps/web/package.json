@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "litellm:test": "tsx scripts/test-litellm.ts",
+    "ai:test": "tsx scripts/test-ai.ts",
+    "ai:healthcheck": "tsx scripts/ai-healthcheck.ts",
     "telegram:webhook:set": "tsx scripts/telegram-set-webhook.ts",
     "telegram:webhook:delete": "tsx scripts/telegram-delete-webhook.ts",
     "telegram:binding:upsert": "tsx scripts/telegram-upsert-binding.ts",
@@ -51,7 +52,8 @@
     "smoke:test": "playwright test",
     "smoke:baseline-confirmation": "playwright test tests/smoke/core-chat.spec.ts -g \"keeps short continuation after direct preferred-name confirmation on the same agent|keeps explicit Chinese continuation requests in Chinese after the thread already switched|keeps profession recall follow-ups on the direct-recall path|keeps correction-aftermath metadata stable for relationship nickname recall\" --reporter=line",
     "smoke:planner-regression": "playwright test tests/smoke/core-chat.spec.ts -g \"keeps planner preview summary aligned on a mixed relationship and product-feedback turn|keeps planner preview summary aligned on a thread-bound goal turn|keeps planner preview summary aligned on a mixed accepted and rejected turn\" --reporter=line",
-    "quality:eval": "tsx scripts/quality-eval.ts"
+    "quality:eval": "tsx scripts/quality-eval.ts",
+    "integration:image:test": "playwright test -c playwright.integration.config.ts tests/integration/image-delivery.spec.ts --reporter=line"
   },
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.60.0",

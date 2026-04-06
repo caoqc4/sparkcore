@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  FIXED_IMAGE_MODEL_SLUG,
+  FIXED_TEXT_MODEL_SLUG
+} from "@/lib/ai/fixed-models";
 import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
@@ -237,8 +241,8 @@ export async function saveProductModelSettings(formData: FormData) {
   const redirectPath = resolveRedirectPath(formData, "/app/settings");
   const { supabase, user } = await requireUserForSettings(redirectPath);
   const customApiKeyPresent = formData.get("custom_api_key_present") === "true";
-  const requestedTextModelSlug = normalizeText(formData.get("default_text_model_slug")) || null;
-  const requestedImageModelSlug = normalizeText(formData.get("default_image_model_slug")) || null;
+  const requestedTextModelSlug = FIXED_TEXT_MODEL_SLUG;
+  const requestedImageModelSlug = FIXED_IMAGE_MODEL_SLUG;
   const log = await insertProductSettingsOperationLog({
     supabase,
     userId: user.id,

@@ -1,3 +1,4 @@
+import { FIXED_IMAGE_MODEL_SLUG } from "@/lib/ai/fixed-models";
 import { synthesizeAudioForVoiceOption } from "@/lib/audio/synthesis";
 import {
   detectMultimodalIntent,
@@ -6,7 +7,7 @@ import {
 } from "@/lib/chat/multimodal-intent-decision";
 import { loadScopedMessageById } from "@/lib/chat/message-read";
 import { updateScopedMessage } from "@/lib/chat/message-persistence";
-import { generateImage } from "@/lib/litellm/client";
+import { generateImage } from "@/lib/ai/client";
 import {
   CapabilityBillingError,
   authorizeCapabilityConsumption,
@@ -657,16 +658,16 @@ async function maybeGenerateImageArtifact(
   });
   const imageModel =
     getProductModelCatalogItemBySlug(selectedImageModelSlug) ??
-    getProductModelCatalogItemBySlug("image-nano-banana");
+    getProductModelCatalogItemBySlug(FIXED_IMAGE_MODEL_SLUG);
 
-  if (!imageModel?.litellmModelName) {
+  if (!imageModel) {
     return {
       artifact: {
         id: buildArtifactRecordId("img"),
         type: "image",
         status: "failed",
         source: "intent",
-        modelSlug: selectedImageModelSlug ?? "image-nano-banana",
+        modelSlug: selectedImageModelSlug ?? FIXED_IMAGE_MODEL_SLUG,
         prompt: "",
         url: null,
         alt: buildImageAltText({
@@ -714,7 +715,7 @@ async function maybeGenerateImageArtifact(
     });
 
     const image = await generateImage({
-      model: imageModel.litellmModelName,
+      model: imageModel.runtimeModelKey ?? imageModel.slug,
       replicateModelRef: imageModel.replicateModelRef,
       prompt,
       n: 1,

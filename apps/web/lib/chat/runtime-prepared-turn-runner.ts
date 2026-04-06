@@ -1,4 +1,4 @@
-import { generateText } from "@/lib/litellm/client";
+import { generateText } from "@/lib/ai/client";
 import type { RecalledMemory } from "@/lib/chat/memory-shared";
 import type {
   AnswerCarryoverPolicy,
@@ -25,7 +25,7 @@ import type { RuntimeTurnResult } from "@/lib/chat/runtime-contract";
 import type { PreparedRuntimeTurnRunnerArgs } from "@/lib/chat/runtime-entry-contracts";
 import type { PreparedRuntimeTurnExecutionContext } from "@/lib/chat/runtime-turn-observability-contracts";
 
-const IM_LITELLM_TIMEOUT_MS = 30_000;
+const IM_PROVIDER_TIMEOUT_MS = 30_000;
 
 export async function runPreparedRuntimeTurn(
   args: PreparedRuntimeTurnRunnerArgs
@@ -78,7 +78,7 @@ export async function runPreparedRuntimeTurn(
     maxOutputTokens: args.modelProfile.max_output_tokens,
     timeoutMs:
       args.preparedRuntimeTurn.input.message.source === "im"
-        ? IM_LITELLM_TIMEOUT_MS
+        ? IM_PROVIDER_TIMEOUT_MS
         : undefined
   });
   const generateTextDurationMs = elapsedMs(generateTextStartedAt);

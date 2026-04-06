@@ -18,12 +18,8 @@ Before local trial, prepare:
 - Node.js 20+
 - npm
 - a Supabase project
-- a LiteLLM gateway
-
-If you want to use the repository-provided local LiteLLM proxy, also prepare:
-
-- `uv`
-- `REPLICATE_API_KEY`
+- a Google AI Studio API key
+- a fal.ai API key
 
 ## Environment Setup
 
@@ -39,9 +35,8 @@ Common variables:
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-LITELLM_BASE_URL=
-LITELLM_API_KEY=
-REPLICATE_API_KEY=
+GOOGLE_AI_STUDIO_API_KEY=
+FAL_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_POSTHOG_KEY=
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
@@ -85,23 +80,12 @@ npm install
 
 At the moment, the simplest path is to open Supabase SQL Editor and apply the SQL files in `supabase/migrations` in timestamp order.
 
-3. Start LiteLLM
+3. Configure model providers
 
-If you already have a LiteLLM gateway, point `LITELLM_BASE_URL` and `LITELLM_API_KEY` to it.
+SparkCore currently calls providers directly:
 
-If you want to use the bundled local proxy:
-
-```bash
-cd /Users/caoq/git/sparkcore
-./scripts/start-litellm-proxy.sh
-```
-
-The repository-provided local LiteLLM config currently includes these Replicate aliases:
-
-- text: `replicate-gpt-4o-mini`, `replicate-claude-4-sonnet`, `replicate-gpt-4.1`, `replicate-llama-3-8b`
-- image: `replicate-nano-banana`, `replicate-nano-banana-pro`, `replicate-flux-2-pro`
-
-If your web app points to a separate deployed LiteLLM gateway instead of this local proxy, the deployed config must expose the same aliases before those models will work at runtime.
+- text: Google AI Studio `gemini-2.5-flash`
+- image: fal.ai `fal-ai/flux-2/klein/4b`
 
 4. Start the web app
 
@@ -129,7 +113,7 @@ npm run dev
 npm run dev
 npm run typecheck
 npm run build
-npm run litellm:test -- --model <your-model-name>
+npm run ai:test
 npm run telegram:webhook:set -- --webhook-base-url <public-https-url>
 npm run telegram:webhook:delete -- --drop-pending-updates
 npm run telegram:binding:upsert -- --thread-id <thread_id> --channel-id <channel_id> --peer-id <peer_id> --platform-user-id <platform_user_id>
@@ -177,7 +161,7 @@ Current privacy guardrails:
 - `.github/workflows/web-smoke.yml` runs `typecheck` and `smoke:test` for `apps/web`
 - the workflow expects these GitHub Actions secrets when smoke is enabled:
   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
-  `LITELLM_BASE_URL`, `LITELLM_API_KEY`, `REPLICATE_API_KEY`, `NEXT_PUBLIC_APP_URL`,
+  `GOOGLE_AI_STUDIO_API_KEY`, `FAL_KEY`, `NEXT_PUBLIC_APP_URL`,
   `PLAYWRIGHT_SMOKE_SECRET`, `PLAYWRIGHT_SMOKE_EMAIL`, `PLAYWRIGHT_SMOKE_PASSWORD`
 - if billing and analytics paths are exercised in CI, also set:
   `CREEM_API_KEY`, `CREEM_WEBHOOK_SECRET`, `CREEM_PRICE_PRO_MONTHLY`,
@@ -188,4 +172,3 @@ Current privacy guardrails:
 - Trial checklist: [`../../docs-public/v1-trial-checklist.md`](../../docs-public/v1-trial-checklist.md)
 - Stage 1 quality baseline: [`../../docs-public/stage1-quality-eval-set.md`](../../docs-public/stage1-quality-eval-set.md)
 - Real chat regression set: [`../../docs-public/real-chat-quality-regression-set.md`](../../docs-public/real-chat-quality-regression-set.md)
-- LiteLLM development runbook: [`../../docs/engineering/litellm_dev_runbook_v1.0.md`](../../docs/engineering/litellm_dev_runbook_v1.0.md)

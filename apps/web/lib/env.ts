@@ -13,17 +13,26 @@ export function getSupabaseEnv() {
   return { url, anonKey };
 }
 
-export function getLiteLLMEnv() {
-  const baseUrl = process.env.LITELLM_BASE_URL;
-  const apiKey = process.env.LITELLM_API_KEY;
+export function getGoogleAiStudioEnv() {
+  const apiKey = process.env.GOOGLE_AI_STUDIO_API_KEY ?? process.env.GEMINI_API_KEY;
 
-  if (!baseUrl || !apiKey) {
+  if (!apiKey) {
     throw new Error(
-      "Missing LiteLLM environment variables. Set LITELLM_BASE_URL and LITELLM_API_KEY."
+      "Missing Google AI Studio API key. Set GOOGLE_AI_STUDIO_API_KEY or GEMINI_API_KEY."
     );
   }
 
-  return { baseUrl, apiKey };
+  return { apiKey };
+}
+
+export function getFalAiEnv() {
+  const apiKey = process.env.FAL_KEY ?? process.env.FAL_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("Missing fal.ai API key. Set FAL_KEY or FAL_API_KEY.");
+  }
+
+  return { apiKey };
 }
 
 export function getAzureSpeechEnv() {

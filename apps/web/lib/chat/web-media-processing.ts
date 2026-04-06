@@ -1,10 +1,6 @@
-import { getAzureSpeechEnv, getLiteLLMEnv } from "@/lib/env";
-
-const WEB_VISION_MODEL = "replicate-gpt-4o-mini";
-
-function normalizeBaseUrl(baseUrl: string) {
-  return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-}
+import { describeImage as describeImageWithGemini } from "@/lib/ai/client";
+import { FIXED_TEXT_MODEL_ID } from "@/lib/ai/fixed-models";
+import { getAzureSpeechEnv } from "@/lib/env";
 
 function arrayBufferToDataUrl(args: {
   buffer: ArrayBuffer;
@@ -40,76 +36,23 @@ function inferFileExtension(args: {
   return args.fallback;
 }
 
-async function describeImage(args: {
+async function describeAttachedImage(args: {
   imageBuffer: ArrayBuffer;
   mimeType: string;
   promptContext: string | null;
 }) {
-  const { baseUrl, apiKey } = getLiteLLMEnv();
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30_000);
-
-  try {
-    const response = await fetch(`${normalizeBaseUrl(baseUrl)}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: WEB_VISION_MODEL,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: [
-                  "The user attached an image to a chat message.",
-                  args.promptContext
-                    ? `User text: ${args.promptContext}`
-                    : "There is no accompanying user text.",
-                  "Describe only the visually important details that help continue the conversation.",
-                  "Keep it concise, grounded, and conversational."
-                ].join("\n")
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: arrayBufferToDataUrl({
-                    buffer: args.imageBuffer,
-                    mimeType: args.mimeType
-                  }),
-                  detail: "low"
-                }
-              }
-            ]
-          }
-        ],
-        temperature: 0.2,
-        max_tokens: 180
-      }),
-      signal: controller.signal
-    });
-
-    const payload = await response.json().catch(() => null);
-    const content =
-      typeof payload?.choices?.[0]?.message?.content === "string"
-        ? payload.choices[0].message.content.trim()
-        : null;
-
-    if (!response.ok || !content) {
-      throw new Error(
-        typeof payload?.error?.message === "string"
-          ? payload.error.message
-          : "Image understanding failed."
-      );
-    }
-
-    return content;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  return describeImageWithGemini({
+    imageBuffer: args.imageBuffer,
+    mimeType: args.mimeType,
+    prompt: [
+      "The user attached an image to a chat message.",
+      args.promptContext
+        ? `User text: ${args.promptContext}`
+        : "There is no accompanying user text.",
+      "Describe only the visually important details that help continue the conversation.",
+      "Keep it concise, grounded, and conversational."
+    ].join("\n")
+  });
 }
 
 async function transcribeAudio(args: {
@@ -192,7 +135,7 @@ export async function prepareWebMediaInput(args: {
     let summary: string | null = null;
 
     try {
-      summary = await describeImage({
+      summary = await describeAttachedImage({
         imageBuffer,
         mimeType,
         promptContext: trimmedContent || null
@@ -211,7 +154,7 @@ export async function prepareWebMediaInput(args: {
         ...(summary
           ? {
               analysis_summary: summary,
-              analysis_model: WEB_VISION_MODEL
+              analysis_model: FIXED_TEXT_MODEL_ID
             }
           : {})
       }

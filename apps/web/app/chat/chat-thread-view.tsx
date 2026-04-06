@@ -194,6 +194,16 @@ function getVisibleMessageContent(message: ChatMessage) {
   return displayContent ?? message.content;
 }
 
+function getArtifactDeliveryMetadata(
+  metadata: Record<string, unknown> | undefined,
+  key: "web_delivery" | "im_delivery"
+) {
+  const raw = metadata?.[key];
+  return raw && typeof raw === "object" && !Array.isArray(raw)
+    ? (raw as Record<string, unknown>)
+    : null;
+}
+
 function shouldHideArtifactPlaceholderText(args: {
   content: string;
   artifacts: MessageArtifact[];
@@ -259,12 +269,7 @@ function shouldHideAssistantTextForAudioArtifact(args: {
     return true;
   }
 
-  const imDelivery =
-    args.metadata?.im_delivery &&
-    typeof args.metadata.im_delivery === "object" &&
-    !Array.isArray(args.metadata.im_delivery)
-      ? (args.metadata.im_delivery as Record<string, unknown>)
-      : null;
+  const imDelivery = getArtifactDeliveryMetadata(args.metadata, "im_delivery");
   const source = typeof args.metadata?.source === "string" ? args.metadata.source : null;
   const artifactGenerationStatus =
     typeof imDelivery?.artifact_generation_status === "string"
@@ -282,6 +287,49 @@ function shouldHideAssistantTextForAudioArtifact(args: {
     args.artifacts.every((artifact) => artifact.type !== "audio" || artifact.status !== "ready") &&
     (artifactGenerationStatus === "running" || artifactGenerationStatus === "scheduled")
   );
+}
+
+function hasPendingAssistantArtifactDelivery(message: ChatMessage) {
+  if (message.role !== "assistant") {
+    return false;
+  }
+
+  const artifacts = getMessageArtifacts(message);
+  const webDelivery = getArtifactDeliveryMetadata(message.metadata, "web_delivery");
+  const artifactGenerationStatus =
+    typeof webDelivery?.artifact_generation_status === "string"
+      ? webDelivery.artifact_generation_status
+      : null;
+  const explicitImageRequested = webDelivery?.explicit_image_requested === true;
+  const explicitAudioRequested = webDelivery?.explicit_audio_requested === true;
+
+  if (
+    artifactGenerationStatus !== "running" &&
+    artifactGenerationStatus !== "scheduled"
+  ) {
+    return false;
+  }
+
+  if (!explicitImageRequested && !explicitAudioRequested) {
+    return false;
+  }
+
+  const hasReadyImage = artifacts.some(
+    (artifact) => artifact.type === "image" && artifact.status === "ready"
+  );
+  const hasReadyAudio = artifacts.some(
+    (artifact) => artifact.type === "audio" && artifact.status === "ready"
+  );
+
+  if (explicitImageRequested && !hasReadyImage) {
+    return true;
+  }
+
+  if (explicitAudioRequested && !hasReadyAudio) {
+    return true;
+  }
+
+  return false;
 }
 
 function formatMemoryTypeLabel(type: string, locale: ChatLocale) {
@@ -757,6 +805,13 @@ export function ChatThreadView({
 
   const isComposerDisabled = isSending || isRetryPending || isRenamePending;
   const isFirstTurn = optimisticMessages.length === 0;
+  const shouldRefreshPendingArtifacts = useMemo(
+    () =>
+      !isSending &&
+      !isRetryPending &&
+      optimisticMessages.some((message) => hasPendingAssistantArtifactDelivery(message)),
+    [isRetryPending, isSending, optimisticMessages]
+  );
   const threadAgentSummary = agentName ?? copy.sidebar.unassignedAgent;
   const defaultAgentCopy = workspaceDefaultAgentName
     ? workspaceDefaultAgentName === agentName
@@ -794,6 +849,20 @@ export function ChatThreadView({
       }
     ];
   }, [isSending, optimisticMessages, retryingMessageId, thread.id]);
+
+  useEffect(() => {
+    if (!shouldRefreshPendingArtifacts) {
+      return;
+    }
+
+    const refreshTimer = window.setTimeout(() => {
+      router.refresh();
+    }, 2000);
+
+    return () => {
+      window.clearTimeout(refreshTimer);
+    };
+  }, [router, shouldRefreshPendingArtifacts]);
 
   async function handleSubmit(formData: FormData) {
     if (isComposerDisabled) {

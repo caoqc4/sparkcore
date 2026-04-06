@@ -1,3 +1,4 @@
+import { FIXED_IMAGE_MODEL_SLUG } from "@/lib/ai/fixed-models";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   loadProductBillingConfiguration,
@@ -79,7 +80,8 @@ export function resolveBillingModelCapabilitySlug(args: {
 
     if (
       productModelSlug === "image-nano-banana" ||
-      productModelSlug === "image-flux-2-pro"
+      productModelSlug === "image-flux-2-pro" ||
+      productModelSlug === FIXED_IMAGE_MODEL_SLUG
     ) {
       return "image-fast-lite";
     }
