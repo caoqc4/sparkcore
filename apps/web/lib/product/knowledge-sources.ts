@@ -1,4 +1,8 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  deleteKnowledgeDocument,
+  getKnowledgeStorageBucketName,
+  uploadKnowledgeDocument
+} from "@/lib/knowledge-storage";
 
 export type ProductKnowledgeSourceType = "document" | "url" | "note" | "pack";
 export type ProductKnowledgeSourceStatus =
@@ -13,7 +17,7 @@ export type ProductKnowledgeProcessingStatus =
   | "indexed"
   | "failed";
 
-const KNOWLEDGE_STORAGE_BUCKET = "knowledge-sources";
+const KNOWLEDGE_STORAGE_BUCKET = getKnowledgeStorageBucketName();
 
 function normalizeText(value: FormDataEntryValue | string | null | undefined) {
   return typeof value === "string" ? value.trim() : "";
@@ -180,20 +184,12 @@ export async function createKnowledgeDocumentSource(args: {
   title: string;
   file: File;
 }) {
-  const admin = createAdminClient();
   const safeName = getSafeFileName(args.file.name || "upload.bin");
   const storagePath = `${args.userId}/${args.roleId ?? "workspace"}/${Date.now()}-${safeName}`;
-
-  const { error: uploadError } = await admin.storage
-    .from(KNOWLEDGE_STORAGE_BUCKET)
-    .upload(storagePath, args.file, {
-      upsert: false,
-      contentType: args.file.type || "application/octet-stream"
-    });
-
-  if (uploadError) {
-    throw new Error(`Failed to upload knowledge file: ${uploadError.message}`);
-  }
+  const uploaded = await uploadKnowledgeDocument({
+    storagePath,
+    file: args.file
+  });
 
   return createKnowledgeSourceRecord({
     supabase: args.supabase,
@@ -208,7 +204,8 @@ export async function createKnowledgeDocumentSource(args: {
     mimeType: args.file.type || null,
     originalFileName: args.file.name || null,
     metadata: {
-      storage_bucket: KNOWLEDGE_STORAGE_BUCKET
+      storage_provider: uploaded.provider,
+      storage_bucket: uploaded.bucket
     }
   });
 }
@@ -455,14 +452,10 @@ export async function deleteKnowledgeSourceRecord(args: {
   }
 
   if (typeof source.storage_path === "string" && source.storage_path.length > 0) {
-    const admin = createAdminClient();
-    const { error: storageError } = await admin.storage
-      .from(KNOWLEDGE_STORAGE_BUCKET)
-      .remove([source.storage_path]);
-
-    if (storageError) {
-      throw new Error(`Failed to delete stored knowledge file: ${storageError.message}`);
-    }
+    await deleteKnowledgeDocument({
+      storagePath: source.storage_path,
+      metadata: source.metadata
+    });
   }
 
   const { error } = await args.supabase

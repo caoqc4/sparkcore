@@ -1,0 +1,14 @@
+app = "sparkcore-feishu"
+kill_signal = "SIGINT"
+kill_timeout = "30s"
+
+[build]
+  dockerfile = "../Dockerfile"
+
+[processes]
+  app = "npm run feishu:ws:worker"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"

@@ -137,16 +137,21 @@ export async function startWeChatOpenILinkWorkerWithClient(
           }
         });
 
-        const loginAttempt = findPendingWeChatOpenILinkLoginAttemptByWeChatUserId(
-          inbound.peer_id
-        );
+        const loginAttempt = await findPendingWeChatOpenILinkLoginAttemptByWeChatUserId({
+          supabase: admin,
+          wechatUserId: inbound.peer_id
+        });
 
         if (loginAttempt) {
-          updateWeChatOpenILinkLoginAttempt(loginAttempt.id, {
-            status: "identity_ready",
-            channelId: inbound.channel_id,
-            peerId: inbound.peer_id,
-            platformUserId: inbound.platform_user_id
+          await updateWeChatOpenILinkLoginAttempt({
+            supabase: admin,
+            attemptId: loginAttempt.id,
+            patch: {
+              status: "identity_ready",
+              channel_id: inbound.channel_id,
+              peer_id: inbound.peer_id,
+              platform_user_id: inbound.platform_user_id
+            }
           });
 
           if (args.stopOnIdentityReady) {

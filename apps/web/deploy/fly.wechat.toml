@@ -1,0 +1,14 @@
+app = "sparkcore-wechat"
+kill_signal = "SIGINT"
+kill_timeout = "30s"
+
+[build]
+  dockerfile = "../Dockerfile"
+
+[processes]
+  app = "npm run wechat:openilink:manager"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "1gb"

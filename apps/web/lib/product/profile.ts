@@ -6,6 +6,7 @@ import {
   loadOwnedUserAppSettingsMetadata,
   loadPrimaryWorkspace
 } from "@/lib/chat/runtime-turn-context";
+import { resolveCharacterAssetPublicUrl } from "@/lib/character-assets";
 import {
   resolveProductRoleCore,
   resolveStoredProductRoleAppearance,
@@ -232,14 +233,13 @@ export async function loadProductProfilePageData(args: {
         }),
         portraitSourceLabel: formatPortraitSourceLabel(roleMediaProfile?.portrait_source_type),
         portraitAssetUrl:
-          typeof portraitAsset?.public_url === "string" && portraitAsset.public_url.length > 0
-            ? portraitAsset.public_url
-            : typeof portraitAsset?.storage_path === "string" &&
-                portraitAsset.storage_path.startsWith("character-assets/")
-              ? args.supabase.storage
-                  .from("character-assets")
-                  .getPublicUrl(portraitAsset.storage_path.replace(/^character-assets\//, "")).data.publicUrl
-              : null,
+          resolveCharacterAssetPublicUrl({
+            publicUrl:
+              typeof portraitAsset?.public_url === "string" ? portraitAsset.public_url : null,
+            storagePath:
+              typeof portraitAsset?.storage_path === "string" ? portraitAsset.storage_path : null,
+            supabase: args.supabase
+          }),
         portraitStyle:
           typeof roleMediaProfile?.portrait_style === "string"
             ? roleMediaProfile.portrait_style

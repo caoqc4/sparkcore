@@ -1,5 +1,6 @@
 import { FIXED_IMAGE_MODEL_SLUG } from "@/lib/ai/fixed-models";
 import { synthesizeAudioForVoiceOption } from "@/lib/audio/synthesis";
+import { resolveCharacterAssetPublicUrl } from "@/lib/character-assets";
 import {
   detectMultimodalIntent,
   extractExplicitAudioContent,
@@ -21,6 +22,7 @@ import {
 import { resolveStoredProductRoleAppearance } from "@/lib/product/role-core";
 import {
   loadActiveAudioAssetById,
+  loadAccessiblePortraitAssetById,
   loadOwnedRoleMediaProfile,
   resolveConsumableAudioAsset,
   resolveConsumableImageModelSlug,
@@ -53,6 +55,9 @@ type ImageArtifactRecord = {
   status: "ready" | "failed";
   source: "intent";
   modelSlug: string;
+  referenceStrength: "none" | "light" | "strong";
+  referenceSource: "role_portrait" | null;
+  referenceImageUrl: string | null;
   prompt: string;
   url: string | null;
   alt: string;
@@ -374,6 +379,8 @@ function buildImagePrompt(args: {
   personaSummary: string;
   agentMetadata?: Record<string, unknown> | null;
   recentImageVariationHint?: string;
+  referenceStrength?: "none" | "light" | "strong";
+  referenceImageUrl?: string | null;
 }) {
   const wantsPhotoStyle = isPhotoStyleRequest(args.userMessage);
   const appearance = resolveStoredProductRoleAppearance(args.agentMetadata ?? null);
@@ -389,6 +396,12 @@ function buildImagePrompt(args: {
     args.personaSummary.trim().length > 0
       ? `Role essence to preserve lightly: ${args.personaSummary.trim()}.`
       : "";
+  const referenceLine =
+    args.referenceImageUrl && args.referenceStrength !== "none"
+      ? args.referenceStrength === "strong"
+        ? "Use the supplied role portrait as a strong identity reference so the person clearly reads as the same character."
+        : "Use the supplied role portrait as a light identity reference so the person loosely preserves the same character features."
+      : "";
 
   if (wantsPhotoStyle) {
     return [
@@ -402,6 +415,7 @@ function buildImagePrompt(args: {
         : "",
       genderLine,
       personaLine,
+      referenceLine,
       `User request: ${args.userMessage.trim()}`,
       "Style target: believable photo, natural lighting, camera-like detail, grounded composition, not an illustration.",
       sceneFirstLine,
@@ -422,6 +436,7 @@ function buildImagePrompt(args: {
     roleLine,
     genderLine,
     personaLine,
+    referenceLine,
     `User request: ${args.userMessage.trim()}`,
     args.assistantReply?.trim()
       ? `Reply context: ${args.assistantReply.trim()}`
@@ -643,6 +658,8 @@ async function maybeGenerateImageArtifact(
     personaSummary: string;
     agentMetadata?: Record<string, unknown> | null;
     imageRequested: boolean;
+    shouldUseRolePortraitReference?: boolean;
+    rolePortraitReferenceStrength?: "none" | "light" | "strong";
   }
 ) {
   if (!args.imageRequested) {
@@ -668,6 +685,9 @@ async function maybeGenerateImageArtifact(
         status: "failed",
         source: "intent",
         modelSlug: selectedImageModelSlug ?? FIXED_IMAGE_MODEL_SLUG,
+        referenceStrength: "none",
+        referenceSource: null,
+        referenceImageUrl: null,
         prompt: "",
         url: null,
         alt: buildImageAltText({
@@ -682,15 +702,57 @@ async function maybeGenerateImageArtifact(
     };
   }
 
+  const roleMediaProfile = args.shouldUseRolePortraitReference
+    ? (
+        await loadOwnedRoleMediaProfile({
+          supabase: args.supabase,
+          agentId: args.agentId,
+          workspaceId: args.workspaceId,
+          userId: args.userId
+        })
+      ).data
+    : null;
+
+  const portraitReferenceEnabledByDefault =
+    roleMediaProfile?.portrait_reference_enabled_by_default ?? true;
+  const requestedReferenceStrength = args.rolePortraitReferenceStrength ?? "none";
+  const shouldUsePortraitReference =
+    Boolean(args.shouldUseRolePortraitReference) &&
+    requestedReferenceStrength !== "none" &&
+    (portraitReferenceEnabledByDefault || requestedReferenceStrength === "strong");
+
+  const portraitAssetId =
+    shouldUsePortraitReference && typeof roleMediaProfile?.portrait_asset_id === "string"
+      ? roleMediaProfile.portrait_asset_id
+      : null;
+  const portraitAsset = portraitAssetId
+    ? (await loadAccessiblePortraitAssetById({
+        supabase: args.supabase,
+        portraitAssetId
+      })).data
+    : null;
+  const referenceImageUrl =
+    resolveCharacterAssetPublicUrl({
+      publicUrl:
+        getString(portraitAsset?.public_url) ??
+        getString(roleMediaProfile?.portrait_public_url),
+      storagePath: getString(portraitAsset?.storage_path),
+      supabase: args.supabase
+    });
+  const effectiveReferenceStrength =
+    shouldUsePortraitReference && referenceImageUrl ? requestedReferenceStrength : "none";
+
   const prompt = buildImagePrompt({
+    userMessage: args.userMessage,
+    assistantReply: args.assistantReply,
+    agentName: args.agentName,
+    personaSummary: args.personaSummary,
+    agentMetadata: args.agentMetadata ?? null,
+    referenceStrength: effectiveReferenceStrength,
+    referenceImageUrl,
+    recentImageVariationHint: buildRecentImageVariationHint({
       userMessage: args.userMessage,
-      assistantReply: args.assistantReply,
-      agentName: args.agentName,
-      personaSummary: args.personaSummary,
-      agentMetadata: args.agentMetadata ?? null,
-      recentImageVariationHint: buildRecentImageVariationHint({
-        userMessage: args.userMessage,
-        recentImages: getRecentImageArtifacts(
+      recentImages: getRecentImageArtifacts(
         await loadRecentAssistantMessages({
           ...args,
           limit: 6,
@@ -720,6 +782,7 @@ async function maybeGenerateImageArtifact(
       prompt,
       n: 1,
       size: "1024x1024",
+      referenceImageUrls: referenceImageUrl ? [referenceImageUrl] : null
     });
 
     return {
@@ -729,6 +792,9 @@ async function maybeGenerateImageArtifact(
         status: "ready",
         source: "intent",
         modelSlug: imageModel.slug,
+        referenceStrength: effectiveReferenceStrength,
+        referenceSource: referenceImageUrl ? "role_portrait" : null,
+        referenceImageUrl,
         prompt,
         url: image.url,
         alt: buildImageAltText({
@@ -770,6 +836,9 @@ async function maybeGenerateImageArtifact(
         status: "failed",
         source: "intent",
         modelSlug: imageModel.slug,
+        referenceStrength: effectiveReferenceStrength,
+        referenceSource: referenceImageUrl ? "role_portrait" : null,
+        referenceImageUrl,
         prompt,
         url: null,
         alt: buildImageAltText({
@@ -857,6 +926,8 @@ export async function prepareExplicitArtifactContext(
           personaSummary: args.personaSummary,
           agentMetadata: args.agentMetadata ?? null,
           imageRequested: true,
+          shouldUseRolePortraitReference: intent.shouldUseRolePortraitReference,
+          rolePortraitReferenceStrength: intent.rolePortraitReferenceStrength,
         });
         imagePreGenerateDurationMs = elapsedMs(startedAt);
         return value;
@@ -1163,6 +1234,9 @@ export async function maybeGenerateAssistantArtifacts(
       personaSummary: args.personaSummary,
       agentMetadata: args.agentMetadata ?? null,
       imageRequested: intent.imageRequested && !gateClarifyBeforeAction,
+      shouldUseRolePortraitReference:
+        intent.shouldUseRolePortraitReference && !gateClarifyBeforeAction,
+      rolePortraitReferenceStrength: intent.rolePortraitReferenceStrength,
     }));
 
   if (imageResult.artifact) {
@@ -1175,6 +1249,9 @@ export async function maybeGenerateAssistantArtifacts(
           status: imageResult.status,
           model_slug: imageResult.artifact.modelSlug,
           error: imageResult.artifact.error ?? null,
+          role_portrait_reference_used:
+            imageResult.artifact.referenceSource === "role_portrait",
+          role_portrait_reference_strength: imageResult.artifact.referenceStrength,
           intent_source: intent.source,
           intent_confidence: intent.imageConfidence,
           intent_reasoning: gateClarifyBeforeAction
@@ -1213,6 +1290,10 @@ export async function maybeGenerateAssistantArtifacts(
         status: imageResult.status,
         model_slug: imageResult.artifact?.modelSlug ?? null,
         error: imageResult.artifact?.error ?? null,
+        role_portrait_reference_used:
+          imageResult.artifact?.referenceSource === "role_portrait",
+        role_portrait_reference_strength:
+          imageResult.artifact?.referenceStrength ?? intent.rolePortraitReferenceStrength,
         intent_source: intent.source,
         intent_confidence: intent.imageConfidence,
         intent_reasoning: gateClarifyBeforeAction

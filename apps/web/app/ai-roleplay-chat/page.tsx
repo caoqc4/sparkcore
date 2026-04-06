@@ -4,6 +4,7 @@ import { SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
 import { AdaptiveTrackedLink } from "@/components/adaptive-tracked-link";
 import { getOptionalUser } from "@/lib/auth-redirect";
+import { resolveCharacterAssetPublicUrl } from "@/lib/character-assets";
 import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
 import { getSiteLanguageState } from "@/lib/i18n/site";
 import { getAiRoleplayLandingCopy } from "@/lib/i18n/product-page-copy";
@@ -49,14 +50,11 @@ export default async function AiRoleplayChatPage({ searchParams }: PageProps) {
       : null;
     const slug = typeof meta?.character_slug === "string" ? meta.character_slug : null;
     if (slug === "caria" || slug === "velia" || slug === "sora-anime") {
-      const publicUrl =
-        typeof asset.public_url === "string" && asset.public_url.length > 0
-          ? asset.public_url
-          : typeof asset.storage_path === "string" && asset.storage_path.startsWith("character-assets/")
-            ? supabase.storage
-                .from("character-assets")
-                .getPublicUrl(asset.storage_path.replace(/^character-assets\//, "")).data.publicUrl
-            : null;
+      const publicUrl = resolveCharacterAssetPublicUrl({
+        publicUrl: typeof asset.public_url === "string" ? asset.public_url : null,
+        storagePath: typeof asset.storage_path === "string" ? asset.storage_path : null,
+        supabase
+      });
       if (publicUrl) presetPortraits[slug as CharacterSlug] = publicUrl;
     }
   }

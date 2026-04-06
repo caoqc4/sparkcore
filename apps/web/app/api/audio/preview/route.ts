@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-redirect";
+import { resolveCharacterAssetPublicUrl } from "@/lib/character-assets";
 import {
   asMetadataRecord,
   getString,
@@ -21,12 +22,11 @@ async function tryLoadSampleAudio(args: {
   const samplePublicUrl = getString(args.metadata.sample_public_url);
   const sampleStoragePath = getString(args.metadata.sample_storage_path);
 
-  let resolvedPublicUrl = samplePublicUrl;
-  if (!resolvedPublicUrl && sampleStoragePath?.startsWith("character-assets/")) {
-    resolvedPublicUrl = args.supabase.storage
-      .from("character-assets")
-      .getPublicUrl(sampleStoragePath.replace(/^character-assets\//, "")).data.publicUrl;
-  }
+  const resolvedPublicUrl = resolveCharacterAssetPublicUrl({
+    publicUrl: samplePublicUrl,
+    storagePath: sampleStoragePath,
+    supabase: args.supabase
+  });
 
   if (!resolvedPublicUrl) {
     return null;

@@ -1,6 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
-import crypto from "node:crypto";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type WeChatOpenILinkLoginAttemptStatus =
   | "starting"
@@ -12,119 +10,142 @@ export type WeChatOpenILinkLoginAttemptStatus =
 
 export type WeChatOpenILinkLoginAttempt = {
   id: string;
+  user_id: string;
+  workspace_id: string;
+  status: WeChatOpenILinkLoginAttemptStatus;
+  qr_url: string | null;
+  error_message: string | null;
+  bot_id: string | null;
+  wechat_user_id: string | null;
+  channel_id: string | null;
+  peer_id: string | null;
+  platform_user_id: string | null;
+  connected_at: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
+type WeChatOpenILinkLoginAttemptPatch = Partial<
+  Omit<
+    WeChatOpenILinkLoginAttempt,
+    "id" | "user_id" | "workspace_id" | "created_at" | "updated_at"
+  >
+>;
+
+type SupabaseLike = SupabaseClient<any, "public", any>;
+
+export async function createWeChatOpenILinkLoginAttempt(args: {
+  supabase: SupabaseLike;
   userId: string;
   workspaceId: string;
-  status: WeChatOpenILinkLoginAttemptStatus;
-  qrUrl: string | null;
-  errorMessage: string | null;
-  botId: string | null;
-  wechatUserId: string | null;
-  channelId: string | null;
-  peerId: string | null;
-  platformUserId: string | null;
-  connectedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+  metadata?: Record<string, unknown>;
+}) {
+  const { data, error } = await args.supabase
+    .from("wechat_openilink_login_attempts")
+    .insert({
+      user_id: args.userId,
+      workspace_id: args.workspaceId,
+      status: "starting",
+      metadata: args.metadata ?? {}
+    })
+    .select("*")
+    .single<WeChatOpenILinkLoginAttempt>();
 
-type WeChatOpenILinkLoginAttemptStore = {
-  attempts: Record<string, WeChatOpenILinkLoginAttempt>;
-};
-
-function getStoreFilePath() {
-  return path.join(process.cwd(), ".openilink-wechat-login-attempts.json");
-}
-
-function readStore(): WeChatOpenILinkLoginAttemptStore {
-  const storeFilePath = getStoreFilePath();
-
-  if (!fs.existsSync(storeFilePath)) {
-    return { attempts: {} };
+  if (error) {
+    throw error;
   }
 
-  try {
-    const raw = JSON.parse(
-      fs.readFileSync(storeFilePath, "utf8")
-    ) as WeChatOpenILinkLoginAttemptStore;
-
-    if (!raw || typeof raw !== "object" || !raw.attempts || typeof raw.attempts !== "object") {
-      return { attempts: {} };
-    }
-
-    return raw;
-  } catch {
-    return { attempts: {} };
-  }
+  return data;
 }
 
-function writeStore(store: WeChatOpenILinkLoginAttemptStore) {
-  fs.writeFileSync(getStoreFilePath(), JSON.stringify(store, null, 2));
-}
+export async function loadOwnedWeChatOpenILinkLoginAttempt(args: {
+  supabase: SupabaseLike;
+  attemptId: string;
+  userId: string;
+}) {
+  const { data, error } = await args.supabase
+    .from("wechat_openilink_login_attempts")
+    .select("*")
+    .eq("id", args.attemptId)
+    .eq("user_id", args.userId)
+    .maybeSingle<WeChatOpenILinkLoginAttempt>();
 
-export function createWeChatOpenILinkLoginAttempt(userId: string, workspaceId: string) {
-  const store = readStore();
-  const now = new Date().toISOString();
-  const attempt: WeChatOpenILinkLoginAttempt = {
-    id: crypto.randomUUID(),
-    userId,
-    workspaceId,
-    status: "starting",
-    qrUrl: null,
-    errorMessage: null,
-    botId: null,
-    wechatUserId: null,
-    channelId: null,
-    peerId: null,
-    platformUserId: null,
-    connectedAt: null,
-    createdAt: now,
-    updatedAt: now
-  };
-
-  store.attempts[attempt.id] = attempt;
-  writeStore(store);
-
-  return attempt;
-}
-
-export function readWeChatOpenILinkLoginAttempt(attemptId: string) {
-  const store = readStore();
-  return store.attempts[attemptId] ?? null;
-}
-
-export function updateWeChatOpenILinkLoginAttempt(
-  attemptId: string,
-  patch: Partial<Omit<WeChatOpenILinkLoginAttempt, "id" | "userId" | "workspaceId" | "createdAt">>
-) {
-  const store = readStore();
-  const current = store.attempts[attemptId];
-
-  if (!current) {
-    return null;
+  if (error) {
+    throw error;
   }
 
-  const next: WeChatOpenILinkLoginAttempt = {
-    ...current,
-    ...patch,
-    updatedAt: new Date().toISOString()
-  };
-
-  store.attempts[attemptId] = next;
-  writeStore(store);
-  return next;
+  return data ?? null;
 }
 
-export function findPendingWeChatOpenILinkLoginAttemptByWeChatUserId(
-  wechatUserId: string
-) {
-  const store = readStore();
-  const attempts = Object.values(store.attempts)
-    .filter(
-      (attempt) =>
-        attempt.wechatUserId === wechatUserId &&
-        (attempt.status === "connected" || attempt.status === "identity_ready")
-    )
-    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+export async function loadWeChatOpenILinkLoginAttemptById(args: {
+  supabase: SupabaseLike;
+  attemptId: string;
+}) {
+  const { data, error } = await args.supabase
+    .from("wechat_openilink_login_attempts")
+    .select("*")
+    .eq("id", args.attemptId)
+    .maybeSingle<WeChatOpenILinkLoginAttempt>();
 
-  return attempts[0] ?? null;
+  if (error) {
+    throw error;
+  }
+
+  return data ?? null;
+}
+
+export async function updateWeChatOpenILinkLoginAttempt(args: {
+  supabase: SupabaseLike;
+  attemptId: string;
+  patch: WeChatOpenILinkLoginAttemptPatch;
+}) {
+  const { data, error } = await args.supabase
+    .from("wechat_openilink_login_attempts")
+    .update(args.patch)
+    .eq("id", args.attemptId)
+    .select("*")
+    .maybeSingle<WeChatOpenILinkLoginAttempt>();
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? null;
+}
+
+export async function listStartingWeChatOpenILinkLoginAttempts(args: {
+  supabase: SupabaseLike;
+}) {
+  const { data, error } = await args.supabase
+    .from("wechat_openilink_login_attempts")
+    .select("*")
+    .eq("status", "starting")
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as WeChatOpenILinkLoginAttempt[];
+}
+
+export async function findPendingWeChatOpenILinkLoginAttemptByWeChatUserId(args: {
+  supabase: SupabaseLike;
+  wechatUserId: string;
+}) {
+  const { data, error } = await args.supabase
+    .from("wechat_openilink_login_attempts")
+    .select("*")
+    .eq("wechat_user_id", args.wechatUserId)
+    .in("status", ["connected", "identity_ready"])
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<WeChatOpenILinkLoginAttempt>();
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? null;
 }

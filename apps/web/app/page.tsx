@@ -4,6 +4,7 @@ import { HomePresetShowcase, type PresetShowcaseItem } from "@/components/home-p
 import { SiteShell } from "@/components/site-shell";
 import { TrackedLink } from "@/components/tracked-link";
 import { getOptionalUser } from "@/lib/auth-redirect";
+import { resolveCharacterAssetPublicUrl } from "@/lib/character-assets";
 import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
 import {
   HomePresetSlug,
@@ -128,14 +129,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       : null;
     const slug = typeof meta?.character_slug === "string" ? meta.character_slug : null;
     if (slug === "caria" || slug === "teven" || slug === "velia") {
-      const publicUrl =
-        typeof asset.public_url === "string" && asset.public_url.length > 0
-          ? asset.public_url
-          : typeof asset.storage_path === "string" && asset.storage_path.startsWith("character-assets/")
-            ? supabase.storage
-                .from("character-assets")
-                .getPublicUrl(asset.storage_path.replace(/^character-assets\//, "")).data.publicUrl
-            : null;
+      const publicUrl = resolveCharacterAssetPublicUrl({
+        publicUrl: typeof asset.public_url === "string" ? asset.public_url : null,
+        storagePath: typeof asset.storage_path === "string" ? asset.storage_path : null,
+        supabase
+      });
       if (publicUrl) presetPortraits[slug] = publicUrl;
     }
   }

@@ -687,13 +687,15 @@ export async function generateImage({
   prompt,
   size = "1024x1024",
   n = 1,
-  replicateModelRef
+  replicateModelRef,
+  referenceImageUrls
 }: {
   model: string;
   prompt: string;
   size?: string;
   n?: number;
   replicateModelRef?: string | null;
+  referenceImageUrls?: string[] | null;
 }) {
   const startedAt = Date.now();
 
@@ -713,7 +715,16 @@ export async function generateImage({
   }
 
   const { apiKey } = getFalAiEnv();
-  const submitEndpoint = "https://queue.fal.run/fal-ai/flux-2/klein/4b";
+  const normalizedReferenceUrls = Array.isArray(referenceImageUrls)
+    ? referenceImageUrls
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0)
+    : [];
+  const useReferenceEdit = normalizedReferenceUrls.length > 0;
+  const submitEndpoint = useReferenceEdit
+    ? "https://queue.fal.run/fal-ai/flux-2/klein/4b/edit"
+    : "https://queue.fal.run/fal-ai/flux-2/klein/4b";
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), DEFAULT_AI_TIMEOUT_MS);
 
@@ -729,7 +740,8 @@ export async function generateImage({
       body: JSON.stringify({
         prompt,
         image_size: mapFalImageSize(size),
-        num_images: n
+        num_images: n,
+        ...(useReferenceEdit ? { image_urls: normalizedReferenceUrls } : {})
       }),
       signal: controller.signal
     });
@@ -739,7 +751,11 @@ export async function generateImage({
       operation: "image_generations",
       model: FIXED_IMAGE_MODEL_ID,
       durationMs: Date.now() - startedAt,
-      error
+      error,
+      metadata: {
+        generation_mode: useReferenceEdit ? "edit" : "text_to_image",
+        reference_image_count: normalizedReferenceUrls.length
+      }
     });
 
     if (error instanceof DOMException && error.name === "AbortError") {
@@ -781,7 +797,11 @@ export async function generateImage({
       operation: "image_generations",
       model: FIXED_IMAGE_MODEL_ID,
       durationMs: Date.now() - startedAt,
-      error: providerError
+      error: providerError,
+      metadata: {
+        generation_mode: useReferenceEdit ? "edit" : "text_to_image",
+        reference_image_count: normalizedReferenceUrls.length
+      }
     });
     throw providerError;
   }
@@ -822,7 +842,11 @@ export async function generateImage({
       operation: "image_generations",
       model: FIXED_IMAGE_MODEL_ID,
       durationMs: Date.now() - startedAt,
-      error: providerError
+      error: providerError,
+      metadata: {
+        generation_mode: useReferenceEdit ? "edit" : "text_to_image",
+        reference_image_count: normalizedReferenceUrls.length
+      }
     });
     throw providerError;
   }
@@ -833,7 +857,9 @@ export async function generateImage({
     model: FIXED_IMAGE_MODEL_ID,
     durationMs: Date.now() - startedAt,
     metadata: {
-      image_url_present: true
+      image_url_present: true,
+      generation_mode: useReferenceEdit ? "edit" : "text_to_image",
+      reference_image_count: normalizedReferenceUrls.length
     }
   });
 

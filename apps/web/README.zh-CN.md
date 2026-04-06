@@ -33,6 +33,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 GOOGLE_AI_STUDIO_API_KEY=
 FAL_KEY=
+CF_R2_ACCOUNT_ID=
+CF_R2_ACCESS_KEY_ID=
+CF_R2_SECRET_ACCESS_KEY=
+CF_R2_CHARACTER_ASSETS_BUCKET=
+CF_R2_CHARACTER_ASSETS_PUBLIC_BASE_URL=
+CF_R2_KNOWLEDGE_BUCKET=
+CF_R2_KNOWLEDGE_ACCESS_KEY_ID=
+CF_R2_KNOWLEDGE_SECRET_ACCESS_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 CREEM_API_KEY=
 CREEM_WEBHOOK_SECRET=
@@ -55,6 +63,14 @@ CREEM_SIMULATE=true
 - `CREEM_PRICE_PRO_MONTHLY`、`CREEM_PRICE_PRO_QUARTERLY`、`CREEM_PRICE_PRO_YEARLY` 对应 Pro 的三个计费周期 price id
 - `CREEM_PRICE_CREDITS_100`、`CREEM_PRICE_CREDITS_250`、`CREEM_PRICE_CREDITS_700` 对应积分包 price id
 - 本地调试时可设置 `CREEM_SIMULATE=true`，这样会走站内模拟跳转，不创建真实支付
+
+角色形象图存储相关补充：
+
+- `CF_R2_ACCOUNT_ID`、`CF_R2_ACCESS_KEY_ID`、`CF_R2_SECRET_ACCESS_KEY`、`CF_R2_CHARACTER_ASSETS_BUCKET` 一起配置后，会把 `character-assets` 迁到 Cloudflare R2
+- `CF_R2_CHARACTER_ASSETS_PUBLIC_BASE_URL` 建议配置成这个 bucket 对外提供访问的公共 URL 前缀
+- `CF_R2_KNOWLEDGE_BUCKET` 配置后，上传的知识文档会改存到私有 R2 bucket，但解析和索引流程保持不变
+- 如果知识文档 bucket 使用了单独的 R2 token，就再配置 `CF_R2_KNOWLEDGE_ACCESS_KEY_ID` 和 `CF_R2_KNOWLEDGE_SECRET_ACCESS_KEY`
+- 如果不配置这些变量，SparkCore 会继续从 Supabase Storage 读取 `character-assets`
 
 ## 推荐本地启动路径
 
@@ -105,9 +121,24 @@ npm run dev
 npm run typecheck
 npm run build
 npm run ai:test
+npm run character-assets:import
+npm run discord:gateway:worker
+npm run feishu:ws:worker
+npm run wechat:openilink:manager
 npm run smoke:test
 npm run quality:eval
 ```
+
+## 部署建议
+
+当前推荐的拆分方式：
+
+- Cloud Run：`apps/web` 与 Telegram webhook
+- Fly.io：Discord gateway worker、Feishu websocket worker、WeChat OpenILink manager
+
+完整部署说明见：
+
+- [`../../docs/engineering/2026-04-06-im-and-deployment-topology.md`](../../docs/engineering/2026-04-06-im-and-deployment-topology.md)
 
 ## 说明
 

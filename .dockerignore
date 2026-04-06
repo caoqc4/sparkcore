@@ -1,0 +1,14 @@
+.git
+.github
+.next
+node_modules
+**/node_modules
+**/.next
+**/.turbo
+**/coverage
+**/playwright-report
+**/test-results
+**/.env.local
+**/.env.production.local
+**/.env.development.local
+**/.DS_Store

@@ -2,6 +2,7 @@ import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
 import * as XLSX from "xlsx";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { downloadKnowledgeDocument } from "@/lib/knowledge-storage";
 import {
   buildKnowledgeSnapshotRecords,
   clearKnowledgeSnapshotsForSource,
@@ -27,8 +28,6 @@ type KnowledgeSourceProcessRow = {
   error_message: string | null;
   metadata: Record<string, unknown> | null;
 };
-
-const KNOWLEDGE_STORAGE_BUCKET = "knowledge-sources";
 
 function getMetadataRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -406,8 +405,6 @@ async function processUrlSource(source: KnowledgeSourceProcessRow) {
 }
 
 async function processDocumentSource(source: KnowledgeSourceProcessRow) {
-  const admin = createAdminClient();
-
   if (!source.storage_path) {
     const message = "Missing storage path for document source.";
     await markKnowledgeProcessingFailed(source, message);
@@ -424,17 +421,20 @@ async function processDocumentSource(source: KnowledgeSourceProcessRow) {
     }
   });
 
-  const { data, error } = await admin.storage
-    .from(KNOWLEDGE_STORAGE_BUCKET)
-    .download(source.storage_path);
-
-  if (error || !data) {
-    const message = error?.message ?? "Failed to download stored document.";
+  let downloaded: Awaited<ReturnType<typeof downloadKnowledgeDocument>>;
+  try {
+    downloaded = await downloadKnowledgeDocument({
+      storagePath: source.storage_path,
+      mimeType: source.mime_type,
+      metadata: source.metadata
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to download stored document.";
     await markKnowledgeProcessingFailed(source, message);
     return { ok: false, sourceId: source.id, message };
   }
 
-  const mimeType = source.mime_type ?? data.type ?? "";
+  const mimeType = source.mime_type ?? downloaded.mimeType ?? "";
   let excerpt: string | null = null;
   let extractedText = "";
 
@@ -445,13 +445,13 @@ async function processDocumentSource(source: KnowledgeSourceProcessRow) {
     message: "Extracting document content.",
     metadata: {
       mime_type: mimeType || "unknown",
-      file_size: data.size
+      file_size: downloaded.size
     }
   });
 
   try {
     const text = await extractTextFromDocument({
-      blob: data,
+      blob: downloaded.blob,
       mimeType
     });
     extractedText = text;

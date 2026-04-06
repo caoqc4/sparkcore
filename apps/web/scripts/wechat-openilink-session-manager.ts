@@ -1,11 +1,15 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
+  listStartingWeChatOpenILinkLoginAttempts
+} from "@/lib/integrations/wechat-openilink-login-attempt";
+import {
   listActiveWeChatOpenILinkSessions,
   markWeChatOpenILinkSessionExpired,
   toWeChatOpenILinkRuntimeSession,
   updateWeChatOpenILinkSessionRuntimeState
 } from "@/lib/integrations/wechat-openilink-sessions";
 import { createWeChatOpenILinkClient } from "@/lib/integrations/wechat-openilink";
+import { runWeChatOpenILinkLoginAttempt } from "@/lib/integrations/wechat-openilink-login-runner";
 import { startWeChatOpenILinkWorkerWithClient } from "@/lib/integrations/wechat-openilink-worker";
 import { loadLocalEnv } from "./load-local-env";
 
@@ -77,6 +81,14 @@ async function startManagedSession(sessionId: string) {
   });
 }
 
+async function startManagedLoginAttempt(attemptId: string) {
+  console.info("[wechat-openilink-session-manager] starting login attempt", {
+    attempt_id: attemptId
+  });
+
+  await runWeChatOpenILinkLoginAttempt(attemptId);
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -84,10 +96,14 @@ function sleep(ms: number) {
 async function main() {
   const admin = createAdminClient();
   const runningSessionIds = new Set<string>();
+  const runningAttemptIds = new Set<string>();
   let lastReportedCount = -1;
 
   while (true) {
     try {
+      const loginAttempts = await listStartingWeChatOpenILinkLoginAttempts({
+        supabase: admin
+      });
       const sessions = await listActiveWeChatOpenILinkSessions(admin);
 
       if (sessions.length !== lastReportedCount) {
@@ -95,6 +111,25 @@ async function main() {
           count: sessions.length
         });
         lastReportedCount = sessions.length;
+      }
+
+      for (const attempt of loginAttempts) {
+        if (runningAttemptIds.has(attempt.id)) {
+          continue;
+        }
+
+        runningAttemptIds.add(attempt.id);
+        void startManagedLoginAttempt(attempt.id)
+          .catch((error) => {
+            console.error("[wechat-openilink-session-manager] login attempt failed", {
+              attempt_id: attempt.id,
+              user_id: attempt.user_id,
+              error_message: formatError(error)
+            });
+          })
+          .finally(() => {
+            runningAttemptIds.delete(attempt.id);
+          });
       }
 
       for (const session of sessions) {

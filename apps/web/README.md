@@ -37,6 +37,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 GOOGLE_AI_STUDIO_API_KEY=
 FAL_KEY=
+CF_R2_ACCOUNT_ID=
+CF_R2_ACCESS_KEY_ID=
+CF_R2_SECRET_ACCESS_KEY=
+CF_R2_CHARACTER_ASSETS_BUCKET=
+CF_R2_CHARACTER_ASSETS_PUBLIC_BASE_URL=
+CF_R2_KNOWLEDGE_BUCKET=
+CF_R2_KNOWLEDGE_ACCESS_KEY_ID=
+CF_R2_KNOWLEDGE_SECRET_ACCESS_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_POSTHOG_KEY=
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
@@ -66,6 +74,14 @@ Billing variables:
 - `CREEM_PRICE_PRO_MONTHLY`, `CREEM_PRICE_PRO_QUARTERLY`, `CREEM_PRICE_PRO_YEARLY` map SparkCore Pro billing cadences to Creem price ids
 - `CREEM_PRICE_CREDITS_100`, `CREEM_PRICE_CREDITS_250`, `CREEM_PRICE_CREDITS_700` map credits packs to Creem price ids
 - `CREEM_SIMULATE=true` can be used locally to emulate checkout redirects without creating real charges
+
+Character asset storage variables:
+
+- `CF_R2_ACCOUNT_ID`, `CF_R2_ACCESS_KEY_ID`, `CF_R2_SECRET_ACCESS_KEY`, and `CF_R2_CHARACTER_ASSETS_BUCKET` enable Cloudflare R2 uploads for `character-assets`
+- `CF_R2_CHARACTER_ASSETS_PUBLIC_BASE_URL` should point at the public URL base that serves those uploaded assets
+- `CF_R2_KNOWLEDGE_BUCKET` enables private R2 storage for uploaded knowledge documents while keeping parsing/indexing behavior unchanged
+- `CF_R2_KNOWLEDGE_ACCESS_KEY_ID` and `CF_R2_KNOWLEDGE_SECRET_ACCESS_KEY` can be used when the knowledge bucket has its own scoped R2 token
+- if these variables are omitted, SparkCore keeps reading `character-assets` from Supabase Storage
 
 ## Recommended Local Startup
 
@@ -114,6 +130,10 @@ npm run dev
 npm run typecheck
 npm run build
 npm run ai:test
+npm run character-assets:import
+npm run discord:gateway:worker
+npm run feishu:ws:worker
+npm run wechat:openilink:manager
 npm run telegram:webhook:set -- --webhook-base-url <public-https-url>
 npm run telegram:webhook:delete -- --drop-pending-updates
 npm run telegram:binding:upsert -- --thread-id <thread_id> --channel-id <channel_id> --peer-id <peer_id> --platform-user-id <platform_user_id>
@@ -121,6 +141,17 @@ npm run telegram:binding:delete -- --channel-id <channel_id> --peer-id <peer_id>
 npm run smoke:test
 npm run quality:eval
 ```
+
+## Deployment
+
+Current recommended topology:
+
+- Cloud Run: `apps/web` and Telegram webhook routes
+- Fly.io: Discord gateway worker, Feishu websocket worker, WeChat OpenILink manager
+
+Deployment notes and commands:
+
+- [`../../docs/engineering/2026-04-06-im-and-deployment-topology.md`](../../docs/engineering/2026-04-06-im-and-deployment-topology.md)
 
 ## Product Analytics
 

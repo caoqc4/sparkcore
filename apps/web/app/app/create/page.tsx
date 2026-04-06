@@ -2,6 +2,7 @@ import Link from "next/link";
 import { RoleCreateWizard } from "@/components/role-create-wizard";
 import { ProductConsoleShell } from "@/components/product-console-shell";
 import { getOptionalUser } from "@/lib/auth-redirect";
+import { resolveCharacterAssetPublicUrl } from "@/lib/character-assets";
 import { CHARACTER_MANIFEST } from "@/lib/characters/manifest";
 import { getSiteLanguageState } from "@/lib/i18n/site";
 import { loadCurrentProductPlanSlug } from "@/lib/product/billing";
@@ -42,14 +43,11 @@ export default async function AppCreatePage({ searchParams }: AppCreatePageProps
   const resolvedPortraitAssets = Array.isArray(portraitAssets)
     ? portraitAssets.map((asset) => ({
         ...asset,
-        public_url:
-          typeof asset.public_url === "string" && asset.public_url.length > 0
-            ? asset.public_url
-            : typeof asset.storage_path === "string" && asset.storage_path.startsWith("character-assets/")
-              ? supabase.storage
-                  .from("character-assets")
-                  .getPublicUrl(asset.storage_path.replace(/^character-assets\//, "")).data.publicUrl
-              : null
+        public_url: resolveCharacterAssetPublicUrl({
+          publicUrl: typeof asset.public_url === "string" ? asset.public_url : null,
+          storagePath: typeof asset.storage_path === "string" ? asset.storage_path : null,
+          supabase
+        })
       }))
     : [];
 

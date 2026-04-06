@@ -4,6 +4,7 @@ import { ProductEventTracker } from "@/components/product-event-tracker";
 import { FormSubmitButton } from "@/components/form-submit-button";
 import { MemoryCategoryFilter } from "@/components/memory-category-filter";
 import { requireUser } from "@/lib/auth-redirect";
+import { resolveCharacterAssetPublicUrl } from "@/lib/character-assets";
 import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
 import { loadDashboardOverview } from "@/lib/product/dashboard";
@@ -198,14 +199,11 @@ export default async function AppRolePage({ searchParams }: RolePageProps) {
 
         const assetUrlMap = new Map<string, string>();
         for (const asset of assets ?? []) {
-          const url =
-            typeof asset.public_url === "string" && asset.public_url.length > 0
-              ? asset.public_url
-              : typeof asset.storage_path === "string" && asset.storage_path.startsWith("character-assets/")
-                ? supabase.storage
-                    .from("character-assets")
-                    .getPublicUrl(asset.storage_path.replace(/^character-assets\//, "")).data.publicUrl
-                : null;
+          const url = resolveCharacterAssetPublicUrl({
+            publicUrl: typeof asset.public_url === "string" ? asset.public_url : null,
+            storagePath: typeof asset.storage_path === "string" ? asset.storage_path : null,
+            supabase
+          });
           if (url) assetUrlMap.set(asset.id, url);
         }
 

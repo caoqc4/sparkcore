@@ -262,6 +262,8 @@ export async function runDeferredImArtifactGeneration(args: {
             audioRequested:
               (args.explicitAudioRequested ?? false) &&
               args.audioArtifactAction !== "block",
+            shouldUseRolePortraitReference: false,
+            rolePortraitReferenceStrength: "none",
             imageConfidence: (args.explicitImageRequested ?? false) ? 1 : 0.01,
             audioConfidence: (args.explicitAudioRequested ?? false) ? 1 : 0.01,
             source: "fallback_rules",

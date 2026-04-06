@@ -1,5 +1,3 @@
-import path from "node:path";
-import { spawn } from "node:child_process";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { loadPrimaryWorkspace } from "@/lib/chat/runtime-turn-context";
@@ -28,18 +26,11 @@ export async function POST() {
     return NextResponse.json({ error: "Workspace not found" }, { status: 400 });
   }
 
-  const attempt = createWeChatOpenILinkLoginAttempt(user.id, workspace.id);
-  const cwd = process.cwd();
-  const tsxBin = path.join(cwd, "node_modules", ".bin", "tsx");
-  const scriptPath = path.join(cwd, "scripts", "wechat-openilink-attempt-runner.ts");
-
-  const child = spawn(tsxBin, [scriptPath, attempt.id], {
-    cwd,
-    detached: true,
-    stdio: "ignore"
+  const attempt = await createWeChatOpenILinkLoginAttempt({
+    supabase,
+    userId: user.id,
+    workspaceId: workspace.id
   });
-
-  child.unref();
 
   return NextResponse.json({
     attemptId: attempt.id,

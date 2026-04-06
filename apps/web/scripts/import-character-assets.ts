@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { getCharacterAssetsBucketName, resolveCharacterAssetPublicUrl, stripCharacterAssetsBucketPrefix } from "@/lib/character-assets";
+import { getOptionalCharacterAssetsR2Env, uploadCharacterAssetToR2 } from "@/lib/r2";
 import { loadLocalEnv } from "./load-local-env";
 
 loadLocalEnv(path.resolve(process.cwd()));
@@ -37,7 +39,7 @@ type AudioSidecar = {
   default_for_character?: string | string[];
 };
 
-const BUCKET = "character-assets";
+const BUCKET = getCharacterAssetsBucketName();
 const DEFAULT_ASSET_ROOT = path.resolve(process.cwd(), "../../assets/character-assets");
 const DRY_RUN = process.argv.includes("--dry-run");
 const PORTRAIT_POOL_DIR = "portrait-pool";
@@ -350,7 +352,7 @@ async function uploadFile(args: {
   fullPath: string;
 }) {
   const storagePath = normalizeStoragePath(args.rootDir, args.fullPath);
-  const bucketPath = storagePath.replace(/^character-assets\//, "");
+  const bucketPath = stripCharacterAssetsBucketPrefix(storagePath);
   const fileBuffer = fs.readFileSync(args.fullPath);
 
   if (DRY_RUN) {
@@ -359,6 +361,22 @@ async function uploadFile(args: {
   }
 
   const ext = path.extname(args.fullPath).toLowerCase();
+  const r2Env = getOptionalCharacterAssetsR2Env();
+
+  if (r2Env) {
+    const uploaded = await uploadCharacterAssetToR2({
+      objectKey: bucketPath,
+      body: fileBuffer,
+      contentType: CONTENT_TYPES[ext]
+    });
+
+    console.log(`uploaded ${storagePath} -> R2 (${uploaded.bucket})`);
+    return {
+      storagePath,
+      publicUrl: uploaded.publicUrl
+    };
+  }
+
   const { error } = await args.supabase.storage
     .from(BUCKET)
     .upload(bucketPath, fileBuffer, {
@@ -371,7 +389,13 @@ async function uploadFile(args: {
   }
 
   console.log(`uploaded ${storagePath}`);
-  return { storagePath };
+  return {
+    storagePath,
+    publicUrl: resolveCharacterAssetPublicUrl({
+      storagePath,
+      supabase: args.supabase
+    })
+  };
 }
 
 async function upsertPortraitRecord(args: {
@@ -379,6 +403,7 @@ async function upsertPortraitRecord(args: {
   rootDir: string;
   fullPath: string;
   storagePath: string;
+  publicUrl: string | null;
 }) {
   const record = buildPortraitRecord(args);
 
@@ -411,6 +436,7 @@ async function upsertPortraitRecord(args: {
       .from("product_portrait_assets")
       .update({
         ...record,
+        public_url: args.publicUrl,
         updated_at: new Date().toISOString()
       })
       .eq("id", existing.id);
@@ -427,7 +453,10 @@ async function upsertPortraitRecord(args: {
 
   const { error: insertError } = await args.supabase
     .from("product_portrait_assets")
-    .insert(record);
+    .insert({
+      ...record,
+      public_url: args.publicUrl
+    });
 
   if (insertError) {
     throw new Error(`Failed to insert portrait asset ${args.storagePath}: ${insertError.message}`);
@@ -441,6 +470,7 @@ async function upsertAudioSampleRecord(args: {
   rootDir: string;
   fullPath: string;
   storagePath: string;
+  publicUrl: string | null;
 }) {
   const audioRecord = buildAudioRecord(args);
 
@@ -448,10 +478,6 @@ async function upsertAudioSampleRecord(args: {
     console.log(`skipped audio db sync for ${args.storagePath}`);
     return;
   }
-
-  const publicUrl = args.supabase.storage
-    .from(BUCKET)
-    .getPublicUrl(args.storagePath.replace(/^character-assets\//, "")).data.publicUrl;
 
   if (DRY_RUN) {
     console.log(
@@ -485,7 +511,7 @@ async function upsertAudioSampleRecord(args: {
     ...currentMetadata,
     ...audioRecord.metadata,
     sample_storage_path: audioRecord.storagePath,
-    sample_public_url: publicUrl
+    sample_public_url: args.publicUrl
   };
 
   const { error: updateError } = await args.supabase
@@ -537,7 +563,7 @@ async function main() {
   console.log(DRY_RUN ? "Mode: dry-run" : "Mode: apply");
 
   for (const fullPath of files) {
-    const { storagePath } = await uploadFile({
+    const { storagePath, publicUrl } = await uploadFile({
       supabase,
       rootDir: assetRoot,
       fullPath
@@ -548,7 +574,8 @@ async function main() {
         supabase,
         rootDir: assetRoot,
         fullPath,
-        storagePath
+        storagePath,
+        publicUrl
       });
       continue;
     }
@@ -558,7 +585,8 @@ async function main() {
         supabase,
         rootDir: assetRoot,
         fullPath,
-        storagePath
+        storagePath,
+        publicUrl
       });
       continue;
     }

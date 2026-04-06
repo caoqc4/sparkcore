@@ -1,6 +1,8 @@
 export type MultimodalIntentDecision = {
   imageRequested: boolean;
   audioRequested: boolean;
+  shouldUseRolePortraitReference: boolean;
+  rolePortraitReferenceStrength: "none" | "light" | "strong";
   imageConfidence: number;
   audioConfidence: number;
   source: "rules" | "fallback_rules";
@@ -56,23 +58,109 @@ export function detectMultimodalIntentByRules(content: string) {
   };
 }
 
+function decideRolePortraitReference(content: string) {
+  const normalized = content.normalize("NFKC").trim();
+  if (!normalized) {
+    return {
+      shouldUseRolePortraitReference: false,
+      rolePortraitReferenceStrength: "none" as const,
+      reasoning: "No content available for portrait-reference decision."
+    };
+  }
+
+  const strongSignals = [
+    /她本人|他本人|她的样子|他的样子|她长什么样|他长什么样/u,
+    /她的脸|他的脸|她的长相|他的长相/u,
+    /她的照片|他的照片|她的相片|他的相片/u,
+    /自拍|近照|证件照|头像照/u,
+    /\b(look like|looks like|face|facial features|selfie|headshot|close[- ]?up)\b/i,
+    /\b(photo of her|photo of him|picture of her|picture of him)\b/i
+  ];
+
+  const lightSignals = [
+    /她在|他在|她穿着|他穿着|她坐在|他坐在|她站在|他站在/u,
+    /给我看她|给我看他|来一张她|来一张他/u,
+    /画她|画他|拍她|拍他/u,
+    /以她为主|以他为主|主角是她|主角是他/u,
+    /\b(her|him)\b[\s\S]{0,18}\b(photo|image|picture|portrait)\b/i,
+    /\b(show|draw|make|create)\b[\s\S]{0,18}\b(her|him)\b/i
+  ];
+
+  const sceneFirstSignals = [
+    /风景|场景|天空|海边|海景|山景|日落|月亮|夜景|街景|房间|室内|壁纸/u,
+    /海报|封面|旅行照|旅游照|明信片/u,
+    /咖啡杯|蛋糕|桌面|菜单|建筑|城市天际线/u,
+    /\b(landscape|scenery|skyline|room|interior|wallpaper|poster|environment|scene)\b/i,
+    /\b(mountain|beach|sunset|moon|ocean|cityscape)\b/i
+  ];
+
+  const strongMatches = strongSignals.filter((pattern) => pattern.test(normalized)).length;
+  const lightMatches = lightSignals.filter((pattern) => pattern.test(normalized)).length;
+  const sceneMatches = sceneFirstSignals.filter((pattern) => pattern.test(normalized)).length;
+
+  const weightedScore = strongMatches * 3 + lightMatches - sceneMatches;
+
+  if (strongMatches > 0 || weightedScore >= 3) {
+    return {
+      shouldUseRolePortraitReference: true,
+      rolePortraitReferenceStrength: "strong" as const,
+      reasoning: "User wording strongly suggests character likeness or a role-centered photo."
+    };
+  }
+
+  if (lightMatches > 0 && weightedScore >= 1) {
+    return {
+      shouldUseRolePortraitReference: true,
+      rolePortraitReferenceStrength: "light" as const,
+      reasoning: "User wording suggests the role should appear with some visual consistency."
+    };
+  }
+
+  return {
+    shouldUseRolePortraitReference: false,
+    rolePortraitReferenceStrength: "none" as const,
+    reasoning:
+      sceneMatches > 0
+        ? "Scene-first wording outweighs character-likeness cues."
+        : "No clear need to preserve portrait-level character consistency."
+  };
+}
+
 export async function detectMultimodalIntent(
   content: string
 ): Promise<MultimodalIntentDecision> {
   const ruleDecision = detectMultimodalIntentByRules(content);
+  const portraitReferenceDecision = ruleDecision.imageRequested
+    ? decideRolePortraitReference(content)
+    : {
+        shouldUseRolePortraitReference: false,
+        rolePortraitReferenceStrength: "none" as const,
+        reasoning: "No image request detected, so no portrait reference is needed."
+      };
   if (ruleDecision.imageRequested || ruleDecision.audioRequested) {
     return {
       ...ruleDecision,
+      shouldUseRolePortraitReference:
+        portraitReferenceDecision.shouldUseRolePortraitReference,
+      rolePortraitReferenceStrength:
+        portraitReferenceDecision.rolePortraitReferenceStrength,
       imageConfidence: ruleDecision.imageRequested ? 0.98 : 0.02,
       audioConfidence: ruleDecision.audioRequested ? 0.98 : 0.02,
       source: "rules",
-      reasoning: "Matched high-confidence multimodal intent rules."
+      reasoning: [
+        "Matched high-confidence multimodal intent rules.",
+        portraitReferenceDecision.reasoning
+      ]
+        .filter(Boolean)
+        .join(" ")
     };
   }
 
   return {
     imageRequested: false,
     audioRequested: false,
+    shouldUseRolePortraitReference: false,
+    rolePortraitReferenceStrength: "none",
     imageConfidence: 0.01,
     audioConfidence: 0.01,
     source: "fallback_rules",
