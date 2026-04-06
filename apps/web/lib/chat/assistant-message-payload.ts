@@ -8,9 +8,16 @@ export type BuildRuntimeAssistantPayloadInput = {
   metadata: BuildAssistantMessageMetadataInput;
 };
 
+export type RuntimeAssistantPayload = {
+  role: "assistant";
+  content: string;
+  status: "completed";
+  metadata: ReturnType<typeof buildAssistantMessageMetadata>;
+};
+
 export function buildRuntimeAssistantPayload(
   input: BuildRuntimeAssistantPayloadInput
-) {
+): RuntimeAssistantPayload {
   return {
     role: "assistant" as const,
     content: input.content,

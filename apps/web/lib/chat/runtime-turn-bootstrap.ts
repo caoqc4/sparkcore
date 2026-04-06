@@ -13,6 +13,15 @@ function elapsedMs(startedAt: number) {
   return Math.max(0, nowMs() - startedAt);
 }
 
+function isInvalidUuidLike(value: unknown) {
+  return (
+    typeof value !== "string" ||
+    value.trim().length === 0 ||
+    value === "undefined" ||
+    value === "null"
+  );
+}
+
 type RuntimeTurnBootstrapTarget = {
   supabase: any;
   thread: {
@@ -79,6 +88,12 @@ export async function bootstrapRuntimeAssistantTurn(
     throw new Error(
       assistantPlaceholderError?.message ??
         "Failed to initialize the assistant reply placeholder."
+    );
+  }
+
+  if (isInvalidUuidLike((assistantPlaceholder as { id?: unknown }).id)) {
+    throw new Error(
+      "Assistant reply placeholder was created without a valid message id."
     );
   }
 

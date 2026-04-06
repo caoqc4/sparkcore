@@ -58,6 +58,7 @@ async function main() {
   const peerId = getArgValue("--peer-id");
   const platformUserId = getArgValue("--platform-user-id");
   const platform = getArgValue("--platform") ?? "telegram";
+  const characterChannelSlug = getArgValue("--character-channel-slug") ?? null;
 
   if (!channelId || !peerId || !platformUserId) {
     throw new Error(
@@ -71,7 +72,8 @@ async function main() {
     platform,
     channel_id: channelId,
     peer_id: peerId,
-    platform_user_id: platformUserId
+    platform_user_id: platformUserId,
+    character_channel_slug: characterChannelSlug
   };
 
   const { data: existing, error: existingError } = await supabase
@@ -96,7 +98,8 @@ async function main() {
     status: "active",
     metadata: {
       source: "telegram_poc_script",
-      managed_by: "telegram-upsert-binding"
+      managed_by: "telegram-upsert-binding",
+      character_channel_slug: characterChannelSlug
     }
   };
 

@@ -28,6 +28,38 @@ function elapsedMs(startedAt: number) {
   return Math.max(0, nowMs() - startedAt);
 }
 
+const INLINE_TELEGRAM_WORKER_IN_DEV = process.env.NODE_ENV !== "production";
+const INLINE_TELEGRAM_WORKER_BATCH_SIZE = 4;
+const INLINE_TELEGRAM_WORKER_MAX_PASSES = 4;
+
+async function drainTelegramInboundWorker(args: {
+  characterChannelSlug: CharacterChannelSlug;
+  claimedBy: string;
+}) {
+  const records: Array<Record<string, unknown>> = [];
+
+  for (let pass = 0; pass < INLINE_TELEGRAM_WORKER_MAX_PASSES; pass += 1) {
+    const result = await runTelegramInboundWorker({
+      characterChannelSlug: args.characterChannelSlug,
+      claimedBy: args.claimedBy,
+      limit: INLINE_TELEGRAM_WORKER_BATCH_SIZE
+    });
+
+    if (result.records.length > 0) {
+      records.push(...result.records);
+    }
+
+    if (result.claimed_count < INLINE_TELEGRAM_WORKER_BATCH_SIZE) {
+      break;
+    }
+  }
+
+  return {
+    processed_count: records.length,
+    records
+  };
+}
+
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ character_channel_slug: string }> }
@@ -147,15 +179,23 @@ export async function POST(
         character_channel_slug: characterChannelSlug
       }
     });
-    after(async () => {
+    const claimedBy = `telegram-webhook:${characterChannelSlug}`;
+
+    if (INLINE_TELEGRAM_WORKER_IN_DEV) {
       try {
-        await runTelegramInboundWorker({
+        const drainResult = await drainTelegramInboundWorker({
           characterChannelSlug,
-          limit: 1,
-          claimedBy: `telegram-webhook:${characterChannelSlug}`
+          claimedBy
+        });
+
+        console.info("[telegram-webhook:inline-worker]", {
+          character_channel_slug: characterChannelSlug,
+          receipt_id: receiptId,
+          job_id: enqueuedJob.job.id,
+          processed_count: drainResult.processed_count
         });
       } catch (workerError) {
-        console.error("[telegram-webhook:after-worker]", {
+        console.error("[telegram-webhook:inline-worker]", {
           character_channel_slug: characterChannelSlug,
           receipt_id: receiptId,
           job_id: enqueuedJob.job.id,
@@ -163,7 +203,25 @@ export async function POST(
             workerError instanceof Error ? workerError.message : String(workerError)
         });
       }
-    });
+    } else {
+      after(async () => {
+        try {
+          await runTelegramInboundWorker({
+            characterChannelSlug,
+            limit: 1,
+            claimedBy
+          });
+        } catch (workerError) {
+          console.error("[telegram-webhook:after-worker]", {
+            character_channel_slug: characterChannelSlug,
+            receipt_id: receiptId,
+            job_id: enqueuedJob.job.id,
+            error_message:
+              workerError instanceof Error ? workerError.message : String(workerError)
+          });
+        }
+      });
+    }
 
     console.info("[telegram-webhook]", {
       character_channel_slug: characterChannelSlug,

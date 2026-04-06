@@ -1,8 +1,13 @@
-import { LiteLLMError, LiteLLMTimeoutError } from "@/lib/litellm/client";
+import {
+  LiteLLMError,
+  LiteLLMFetchError,
+  LiteLLMTimeoutError
+} from "@/lib/litellm/client";
 
 export type AssistantErrorType =
   | "timeout"
   | "provider_error"
+  | "provider_fetch_failed"
   | "generation_failed";
 
 export function classifyAssistantError(error: unknown): {
@@ -21,6 +26,13 @@ export function classifyAssistantError(error: unknown): {
     return {
       errorType: "provider_error",
       message: `Provider error: ${error.message}`
+    };
+  }
+
+  if (error instanceof LiteLLMFetchError) {
+    return {
+      errorType: "provider_fetch_failed",
+      message: `Provider fetch failed during ${error.operation}.`
     };
   }
 

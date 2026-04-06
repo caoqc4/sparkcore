@@ -212,6 +212,14 @@ export type AdapterRuntimeOutput = {
   debug_metadata?: Record<string, unknown>;
 };
 
+export type AdapterDeferredPostProcessingPayload = Pick<
+  AdapterRuntimeOutput,
+  "memory_write_requests" | "follow_up_requests"
+> &
+  Partial<
+    Pick<AdapterRuntimeOutput, "deferred_post_processing" | "debug_metadata">
+  >;
+
 export type AdapterRuntimePort = {
   runTurn: (input: AdapterRuntimeInput) => Promise<AdapterRuntimeOutput>;
 };
@@ -274,6 +282,28 @@ export function mapBindingRowToChannelBinding(row: BindingRow): ChannelBinding {
   };
 }
 
+function isValidBindingIdentityValue(value: unknown) {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const trimmed = value.trim();
+  return (
+    trimmed.length > 0 &&
+    trimmed !== "undefined" &&
+    trimmed !== "null"
+  );
+}
+
+function isRuntimeUsableChannelBinding(row: BindingRow) {
+  return (
+    isValidBindingIdentityValue(row.workspace_id) &&
+    isValidBindingIdentityValue(row.user_id) &&
+    isValidBindingIdentityValue(row.agent_id) &&
+    isValidBindingIdentityValue(row.thread_id ?? null)
+  );
+}
+
 export class SupabaseBindingRepository implements BindingRepository {
   constructor(
     private readonly supabase: any,
@@ -296,7 +326,7 @@ export class SupabaseBindingRepository implements BindingRepository {
             .eq("platform_user_id", input.platform_user_id)
             .eq("status", "active")
             .order("updated_at", { ascending: false })
-            .limit(1)
+            .limit(20)
         : this.supabase
             .from(this.tableName)
             .select(
@@ -307,20 +337,28 @@ export class SupabaseBindingRepository implements BindingRepository {
             .eq("peer_id", input.peer_id)
             .eq("platform_user_id", input.platform_user_id)
             .eq("character_channel_slug", input.character_channel_slug)
-            .eq("status", "active");
+            .eq("status", "active")
+            .order("updated_at", { ascending: false })
+            .limit(20);
 
-    const { data, error } = await query.maybeSingle();
+    const { data, error } = await query;
     if (error) {
       throw new Error(
         `Failed to load channel binding from ${this.tableName}: ${error.message}`
       );
     }
 
-    if (!data) {
+    if (!Array.isArray(data) || data.length === 0) {
       return null;
     }
 
-    return mapBindingRowToChannelBinding(data as BindingRow);
+    const validRow = (data as BindingRow[]).find(isRuntimeUsableChannelBinding);
+
+    if (!validRow) {
+      return null;
+    }
+
+    return mapBindingRowToChannelBinding(validRow);
   }
 }
 
@@ -395,10 +433,37 @@ export function buildRuntimeInputFromInbound(args: {
 }): AdapterRuntimeInput {
   const { inbound, binding } = args;
 
+  const invalidField = (
+    [
+      ["binding.user_id", binding.user_id],
+      ["binding.agent_id", binding.agent_id],
+      ["binding.thread_id", binding.thread_id],
+      ["binding.workspace_id", binding.workspace_id]
+    ] as const
+  ).find(([, value]) => {
+    if (typeof value !== "string") {
+      return true;
+    }
+
+    const trimmed = value.trim();
+    return (
+      trimmed.length === 0 ||
+      trimmed === "undefined" ||
+      trimmed === "null"
+    );
+  });
+
+  if (invalidField) {
+    const [fieldName, fieldValue] = invalidField;
+    throw new Error(
+      `Invalid active channel binding field ${fieldName} for binding ${binding.id ?? "unknown"}: ${String(fieldValue)}`
+    );
+  }
+
   return {
-    user_id: binding.user_id,
-    agent_id: binding.agent_id,
-    thread_id: binding.thread_id ?? "",
+    user_id: binding.user_id.trim(),
+    agent_id: binding.agent_id.trim(),
+    thread_id: binding.thread_id!.trim(),
     message: inbound.content,
     message_type: inbound.message_type,
     source: "im",
@@ -655,6 +720,20 @@ export async function handleInboundChannelMessage(args: {
   const runtimeInput = buildRuntimeInputFromInbound({
     inbound: args.inbound,
     binding: lookupResult.binding
+  });
+  console.info("[im-adapter:binding-found]", {
+    binding_id: lookupResult.binding.id ?? null,
+    platform: lookupResult.binding.platform,
+    channel_id: lookupResult.binding.channel_id,
+    peer_id: lookupResult.binding.peer_id,
+    platform_user_id: lookupResult.binding.platform_user_id,
+    character_channel_slug: lookupResult.binding.character_channel_slug ?? null,
+    workspace_id: lookupResult.binding.workspace_id,
+    user_id: lookupResult.binding.user_id,
+    agent_id: lookupResult.binding.agent_id,
+    thread_id: lookupResult.binding.thread_id ?? null,
+    runtime_user_id: runtimeInput.user_id,
+    dedupe_key: dedupeKey
   });
   const runtimeOutput = await args.runtimePort.runTurn(runtimeInput);
   const outboundMessages = [

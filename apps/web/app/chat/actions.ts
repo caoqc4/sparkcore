@@ -5,8 +5,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
+import { extractExplicitAudioContent } from "@/lib/chat/multimodal-intent-decision";
 import {
-  extractExplicitAudioContent,
   maybeGenerateAssistantArtifacts,
   prepareExplicitArtifactContext,
 } from "@/lib/chat/multimodal-artifacts";
@@ -20,6 +20,7 @@ import {
 } from "@/lib/chat/memory-v2";
 import { buildAgentSourceMetadata } from "@/lib/chat/agent-metadata";
 import { readHumanizedArtifactAction } from "@/lib/chat/humanized-delivery-consumption";
+import { getDefaultModelProfile } from "@/lib/chat/runtime-model-profile-resolution";
 import {
   loadActiveSingleSlotMemoryRows,
   loadOwnedMemoryItemById
@@ -30,7 +31,7 @@ import {
   insertAndPersistRuntimeUserMessage
 } from "@/lib/chat/runtime-user-message-persistence";
 import { prepareWebMediaInput } from "@/lib/chat/web-media-processing";
-import { getDefaultModelProfile, runAgentTurn } from "@/lib/chat/runtime";
+import { runAgentTurn } from "@/lib/chat/runtime";
 import {
   loadActiveModelProfileById,
   loadActivePersonaPackById,

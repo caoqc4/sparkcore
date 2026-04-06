@@ -1,3 +1,5 @@
+import type { AnswerStrategyAddressStyleRecallSpec } from "@/lib/chat/runtime-composition-contracts";
+
 export type RoleProfile = {
   id: string;
   name: string;
@@ -436,13 +438,7 @@ export type RoleCoreMemoryCloseNotePersistenceManifest = {
 };
 
 export function getRoleCoreRelationshipStance(
-  relationshipRecall: {
-    addressStyleMemory: {
-      memory_type: "relationship";
-      content: string;
-      confidence: number;
-    } | null;
-  }
+  relationshipRecall: AnswerStrategyAddressStyleRecallSpec
 ): RoleCorePacket["relationship_stance"] {
   const styleValue = relationshipRecall.addressStyleMemory?.content ?? null;
 
@@ -475,13 +471,7 @@ export function buildRoleCorePacket({
   replyLanguage: RuntimeReplyLanguage;
   replyLanguageSource: ReplyLanguageSource;
   preferSameThreadContinuation: boolean;
-  relationshipRecall: {
-    addressStyleMemory: {
-      memory_type: "relationship";
-      content: string;
-      confidence: number;
-    } | null;
-  };
+  relationshipRecall: AnswerStrategyAddressStyleRecallSpec;
 }): RoleCorePacket {
   return {
     packet_version: "v1",

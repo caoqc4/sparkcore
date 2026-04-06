@@ -5,16 +5,36 @@ type MessageTarget = {
   userId: string;
 };
 
+function normalizeRequiredUuidLike(field: string, value: string) {
+  const trimmed =
+    typeof value === "string"
+      ? value.trim()
+      : "";
+
+  if (
+    trimmed.length === 0 ||
+    trimmed === "undefined" ||
+    trimmed === "null"
+  ) {
+    throw new Error(`Invalid UUID-like value for ${field}.`);
+  }
+
+  return trimmed;
+}
+
 export function insertMessage(
   args: MessageTarget & {
     payload: Record<string, unknown>;
     select?: string;
   }
 ) {
+  const threadId = normalizeRequiredUuidLike("threadId", args.threadId);
+  const workspaceId = normalizeRequiredUuidLike("workspaceId", args.workspaceId);
+  const userId = normalizeRequiredUuidLike("userId", args.userId);
   let query = args.supabase.from("messages").insert({
-    thread_id: args.threadId,
-    workspace_id: args.workspaceId,
-    user_id: args.userId,
+    thread_id: threadId,
+    workspace_id: workspaceId,
+    user_id: userId,
     ...args.payload
   });
 
@@ -31,11 +51,16 @@ export function updateScopedMessage(
     patch: Record<string, unknown>;
   }
 ) {
+  const messageId = normalizeRequiredUuidLike("messageId", args.messageId);
+  const threadId = normalizeRequiredUuidLike("threadId", args.threadId);
+  const workspaceId = normalizeRequiredUuidLike("workspaceId", args.workspaceId);
+  const userId = normalizeRequiredUuidLike("userId", args.userId);
+
   return args.supabase
     .from("messages")
     .update(args.patch)
-    .eq("id", args.messageId)
-    .eq("thread_id", args.threadId)
-    .eq("workspace_id", args.workspaceId)
-    .eq("user_id", args.userId);
+    .eq("id", messageId)
+    .eq("thread_id", threadId)
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId);
 }

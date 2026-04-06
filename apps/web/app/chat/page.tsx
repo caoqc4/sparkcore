@@ -19,7 +19,7 @@ import { ThreadUrlSync } from "@/app/chat/thread-url-sync";
 import { classifyStoredMemorySemanticTarget } from "@/lib/chat/memory-records";
 import type { StoredMemory } from "@/lib/chat/memory-shared";
 import { getMemoryCategory, getMemoryScope } from "@/lib/chat/memory-v2";
-import { getChatPageState } from "@/lib/chat/runtime";
+import { getChatPageState } from "@/lib/chat/runtime-chat-page-state";
 import { loadCurrentProductPlanSlug } from "@/lib/product/billing";
 import {
   CHAT_UI_LANGUAGE_COOKIE,

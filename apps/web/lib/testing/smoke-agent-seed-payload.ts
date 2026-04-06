@@ -23,12 +23,16 @@ export function buildSmokeSeedAgentPayloads(args: {
       default_model_profile_id: args.defaultProfileId,
       is_custom: false,
       status: "active" as const,
-      metadata: buildAgentSourceMetadata({
-        smokeSeed: true,
-        sourceSlug: args.sparkGuidePack.slug,
-        sourceDescription: args.sparkGuidePack.description,
-        isDefaultForWorkspace: true
-      })
+      metadata: {
+        ...buildAgentSourceMetadata({
+          smokeSeed: true,
+          sourceSlug: args.sparkGuidePack.slug,
+          sourceDescription: args.sparkGuidePack.description,
+          isDefaultForWorkspace: true
+        }),
+        background_summary:
+          "A calm field guide who has spent years helping founders turn messy notes and conversations into clear decisions."
+      }
     },
     {
       workspace_id: args.user.workspaceId,
@@ -41,11 +45,15 @@ export function buildSmokeSeedAgentPayloads(args: {
       default_model_profile_id: args.altProfileId,
       is_custom: false,
       status: "active" as const,
-      metadata: buildAgentSourceMetadata({
-        smokeSeed: true,
-        sourceSlug: args.memoryCoachPack.slug,
-        sourceDescription: args.memoryCoachPack.description
-      })
+      metadata: {
+        ...buildAgentSourceMetadata({
+          smokeSeed: true,
+          sourceSlug: args.memoryCoachPack.slug,
+          sourceDescription: args.memoryCoachPack.description
+        }),
+        background_summary:
+          "A continuity-first reflection coach who helps people notice patterns over time without sounding clinical."
+      }
     }
   ];
 }

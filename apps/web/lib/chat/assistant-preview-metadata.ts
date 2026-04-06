@@ -7,6 +7,7 @@ import {
   getRuntimePreviewMetadataGroup
 } from "@/lib/chat/runtime-preview-metadata";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
+import type { RuntimeMetadataObject } from "@/lib/chat/runtime-contract";
 import { loadScopedMessageById } from "@/lib/chat/message-read";
 import { updateScopedMessage } from "@/lib/chat/message-persistence";
 
@@ -25,8 +26,8 @@ export async function updateAssistantPreviewMetadata(args: {
   workspaceId: string;
   userId: string;
   updates:
-    | Record<string, unknown>
-    | ((currentMetadata: Record<string, unknown> | null) => Record<string, unknown>);
+    | RuntimeMetadataObject
+    | ((currentMetadata: RuntimeMetadataObject | null) => RuntimeMetadataObject);
 }) {
   const { data: assistantMessage } = await loadScopedMessageById({
     supabase: args.supabase,
@@ -41,7 +42,7 @@ export async function updateAssistantPreviewMetadata(args: {
     assistantMessage?.metadata &&
     typeof assistantMessage.metadata === "object" &&
     !Array.isArray(assistantMessage.metadata)
-      ? (assistantMessage.metadata as Record<string, unknown>)
+      ? (assistantMessage.metadata as RuntimeMetadataObject)
       : null;
   const nextUpdates =
     typeof args.updates === "function"
@@ -102,10 +103,13 @@ export async function updateAssistantMemoryWriteOutcomePreview(
   return updateAssistantPreviewMetadata({
     ...args,
     updates: (currentMetadata) =>
-      buildRuntimeMemoryWriteOutcomeMetadata(
-        args.outcome,
-        getRuntimePreviewMetadataGroup(currentMetadata, "runtime_memory_writes")
-      )
+      buildRuntimeMemoryWriteOutcomeMetadata({
+        ...args.outcome,
+        existingRuntimeMemoryWrites: getRuntimePreviewMetadataGroup(
+          currentMetadata,
+          "runtime_memory_writes"
+        )
+      })
   });
 }
 

@@ -1,7 +1,13 @@
 import type {
-  RuntimeMemoryUsageUpdate,
+  BuildRuntimeFollowUpExecutionMetadataArgs,
+  BuildRuntimeMemoryWriteOutcomeMetadataArgs,
+  BuildRuntimeMemoryUsageMetadataArgs,
+  RuntimeFollowUpExecutionResult,
   RuntimeFollowUpRequest,
-  RuntimeMemoryWriteRequest
+  RuntimeMetadataObject,
+  RuntimeMemoryWriteRequest,
+  PendingFollowUpPreviewRecord,
+  RuntimePreviewRelationshipRecallMetadata
 } from "@/lib/chat/runtime-contract";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
 import {
@@ -12,37 +18,16 @@ import {
 import { resolvePlannedMemoryWriteTarget } from "@/lib/chat/memory-write-targets";
 import { buildPlannedThreadStateCandidatePreview } from "@/lib/chat/memory-write-record-candidates";
 
-type MemoryWriteOutcome = {
-  createdCount: number;
-  updatedCount: number;
-  createdTypes: string[];
-  updatedTypes: string[];
-};
-
-type FollowUpExecutionResult = {
-  kind: string;
-  status: string;
-  reason?: string | null;
-  trigger_at?: string | null;
-};
-
-type FollowUpEnqueueRecord = {
-  id: string;
-  kind: string;
-  status: string;
-  trigger_at: string;
-};
-
 export function getRuntimePreviewMetadataObject(
   value: unknown
-): Record<string, unknown> | null {
+): RuntimeMetadataObject | null {
   return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+    ? (value as RuntimeMetadataObject)
     : null;
 }
 
 export function getRuntimePreviewMetadataGroup(
-  metadata: Record<string, unknown> | null | undefined,
+  metadata: RuntimeMetadataObject | null | undefined,
   key: string
 ) {
   return getRuntimePreviewMetadataObject(metadata?.[key]);
@@ -189,7 +174,7 @@ function buildRuntimeFollowUpRequestPreview(
 }
 
 function buildFollowUpExecutionResultsPreview(
-  results: FollowUpExecutionResult[]
+  results: RuntimeFollowUpExecutionResult[]
 ) {
   return results.map((result) => ({
     kind: result.kind,
@@ -200,7 +185,7 @@ function buildFollowUpExecutionResultsPreview(
 }
 
 function buildFollowUpEnqueuedRecordsPreview(
-  records: FollowUpEnqueueRecord[]
+  records: PendingFollowUpPreviewRecord[]
 ) {
   return records.map((record) => ({
     id: record.id,
@@ -274,9 +259,9 @@ export function buildRuntimeFollowUpRequestMetadata(
 }
 
 export function buildRuntimeMemoryWriteOutcomeMetadata(
-  outcome: MemoryWriteOutcome,
-  existingRuntimeMemoryWrites?: Record<string, unknown> | null
+  args: BuildRuntimeMemoryWriteOutcomeMetadataArgs
 ) {
+  const { outcome, existingRuntimeMemoryWrites } = args;
   const writeTypes = Array.from(
     new Set([...outcome.createdTypes, ...outcome.updatedTypes])
   );
@@ -296,11 +281,9 @@ export function buildRuntimeMemoryWriteOutcomeMetadata(
   };
 }
 
-export function buildRuntimeFollowUpExecutionMetadata(args: {
-  followUpExecutionResults: FollowUpExecutionResult[];
-  followUpEnqueueInsertedCount: number;
-  followUpEnqueueRecords: FollowUpEnqueueRecord[];
-}) {
+export function buildRuntimeFollowUpExecutionMetadata(
+  args: BuildRuntimeFollowUpExecutionMetadataArgs
+) {
   const resultsPreview = buildFollowUpExecutionResultsPreview(
     args.followUpExecutionResults
   );
@@ -322,10 +305,9 @@ export function buildRuntimeFollowUpExecutionMetadata(args: {
   };
 }
 
-export function buildRuntimeMemoryUsageMetadata(args: {
-  updates: RuntimeMemoryUsageUpdate[];
-  assistantMetadata?: Record<string, unknown> | null;
-}) {
+export function buildRuntimeMemoryUsageMetadata(
+  args: BuildRuntimeMemoryUsageMetadataArgs
+) {
   const relationshipRecallMetadata =
     args.assistantMetadata &&
     typeof args.assistantMetadata === "object" &&
@@ -342,63 +324,59 @@ export function buildRuntimeMemoryUsageMetadata(args: {
   const relationshipUpdates = args.updates.filter(
     (update) => update.usage_kind === "relationship_recall"
   );
+  const relationshipRecallPreview: RuntimePreviewRelationshipRecallMetadata | null =
+    relationshipUpdates.length > 0 || relationshipRecallMetadata
+      ? {
+          update_count: relationshipUpdates.length,
+          memory_ids: relationshipUpdates.map((update) => update.memory_item_id),
+          used:
+            typeof relationshipRecallMetadata?.used === "boolean"
+              ? relationshipRecallMetadata.used
+              : relationshipUpdates.length > 0,
+          direct_naming_question:
+            typeof relationshipRecallMetadata?.direct_naming_question ===
+            "boolean"
+              ? relationshipRecallMetadata.direct_naming_question
+              : false,
+          direct_preferred_name_question:
+            typeof relationshipRecallMetadata?.direct_preferred_name_question ===
+            "boolean"
+              ? relationshipRecallMetadata.direct_preferred_name_question
+              : false,
+          relationship_style_prompt:
+            typeof relationshipRecallMetadata?.relationship_style_prompt ===
+            "boolean"
+              ? relationshipRecallMetadata.relationship_style_prompt
+              : false,
+          same_thread_continuity:
+            typeof relationshipRecallMetadata?.same_thread_continuity ===
+            "boolean"
+              ? relationshipRecallMetadata.same_thread_continuity
+              : false,
+          recalled_keys: Array.isArray(relationshipRecallMetadata?.recalled_keys)
+            ? relationshipRecallMetadata.recalled_keys.filter(
+                (item): item is string =>
+                  typeof item === "string" && item.length > 0
+              )
+            : [],
+          adopted_agent_nickname_target:
+            typeof relationshipRecallMetadata?.adopted_agent_nickname_target ===
+            "string"
+              ? relationshipRecallMetadata.adopted_agent_nickname_target
+              : null,
+          adopted_user_preferred_name_target:
+            typeof relationshipRecallMetadata?.adopted_user_preferred_name_target ===
+            "string"
+              ? relationshipRecallMetadata.adopted_user_preferred_name_target
+              : null
+        }
+      : null;
 
   return {
     runtime_memory_usage: {
       update_count: args.updates.length,
       usage_kinds: usageKinds,
-      relationship_recall:
-        relationshipUpdates.length > 0 || relationshipRecallMetadata
-          ? {
-              update_count: relationshipUpdates.length,
-              memory_ids: relationshipUpdates.map(
-                (update) => update.memory_item_id
-              ),
-              used:
-                typeof relationshipRecallMetadata?.used === "boolean"
-                  ? relationshipRecallMetadata.used
-                  : relationshipUpdates.length > 0,
-              direct_naming_question:
-                typeof relationshipRecallMetadata?.direct_naming_question ===
-                "boolean"
-                  ? relationshipRecallMetadata.direct_naming_question
-                  : false,
-              direct_preferred_name_question:
-                typeof relationshipRecallMetadata?.direct_preferred_name_question ===
-                "boolean"
-                  ? relationshipRecallMetadata.direct_preferred_name_question
-                  : false,
-              relationship_style_prompt:
-                typeof relationshipRecallMetadata?.relationship_style_prompt ===
-                "boolean"
-                  ? relationshipRecallMetadata.relationship_style_prompt
-                  : false,
-              same_thread_continuity:
-                typeof relationshipRecallMetadata?.same_thread_continuity ===
-                "boolean"
-                  ? relationshipRecallMetadata.same_thread_continuity
-                  : false,
-              recalled_keys: Array.isArray(
-                relationshipRecallMetadata?.recalled_keys
-              )
-                ? relationshipRecallMetadata.recalled_keys.filter(
-                    (item): item is string =>
-                      typeof item === "string" && item.length > 0
-                  )
-                : []
-              ,
-              adopted_agent_nickname_target:
-                typeof relationshipRecallMetadata?.adopted_agent_nickname_target ===
-                "string"
-                  ? relationshipRecallMetadata.adopted_agent_nickname_target
-                  : null,
-              adopted_user_preferred_name_target:
-                typeof relationshipRecallMetadata?.adopted_user_preferred_name_target ===
-                "string"
-                  ? relationshipRecallMetadata.adopted_user_preferred_name_target
-                  : null
-            }
-          : null
+      relationship_recall: relationshipRecallPreview
     },
     runtime_memory_usage_update_count: args.updates.length,
     runtime_memory_usage_kinds: usageKinds

@@ -1,9 +1,11 @@
 import {
+  type AdapterDeferredPostProcessingPayload,
   type AdapterRuntimeInput,
   type AdapterRuntimeOutput,
   type AdapterRuntimePort
 } from "@/lib/integrations/im-adapter";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
+import { LiteLLMFetchError } from "@/lib/litellm/client";
 import {
   readHumanizedArtifactAction,
   readHumanizedDeliveryGate,
@@ -20,11 +22,11 @@ import {
 } from "@/lib/chat/runtime-turn-post-processing";
 import { updateAssistantPreviewMetadata } from "@/lib/chat/assistant-preview-metadata";
 import {
-  extractExplicitAudioContent,
   maybeGenerateAssistantArtifacts,
   prepareExplicitArtifactContext,
   type PreparedExplicitArtifactContext,
 } from "@/lib/chat/multimodal-artifacts";
+import { extractExplicitAudioContent } from "@/lib/chat/multimodal-intent-decision";
 import { buildImRuntimeTurnInput } from "@/lib/chat/runtime-input";
 import { insertRuntimeUserMessage } from "@/lib/chat/runtime-user-message-persistence";
 import { SupabaseRoleRepository } from "@/lib/chat/role-repository";
@@ -35,7 +37,7 @@ import {
 } from "@/lib/chat/runtime-turn-context";
 import { runAgentTurn } from "@/lib/chat/runtime";
 import type {
-  RuntimeExecutionPayload,
+  RuntimeDeferredPostProcessingPayload,
   RuntimeTurnResult,
 } from "@/lib/chat/runtime-contract";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -61,6 +63,18 @@ function withDebugMetadata<T extends { debug_metadata?: Record<string, unknown> 
   };
 }
 
+function toRuntimeDeferredPostProcessingPayload(
+  payload: AdapterDeferredPostProcessingPayload
+): RuntimeDeferredPostProcessingPayload {
+  return {
+    memory_write_requests:
+      payload.memory_write_requests as RuntimeDeferredPostProcessingPayload["memory_write_requests"],
+    follow_up_requests:
+      payload.follow_up_requests as RuntimeDeferredPostProcessingPayload["follow_up_requests"],
+    memory_usage_updates: []
+  };
+}
+
 export async function runDeferredImPostProcessing(args: {
   assistantMessageId: string;
   threadId: string;
@@ -68,10 +82,7 @@ export async function runDeferredImPostProcessing(args: {
   userId: string;
   agentId: string;
   sourceMessageId: string;
-  runtimeTurnResult: Pick<
-    AdapterRuntimeOutput,
-    "memory_write_requests" | "follow_up_requests"
-  >;
+  runtimeTurnResult: AdapterDeferredPostProcessingPayload;
 }) {
   const supabase = createAdminClient();
   const startedAt = new Date().toISOString();
@@ -104,7 +115,9 @@ export async function runDeferredImPostProcessing(args: {
       userId: args.userId,
       agentId: args.agentId,
       sourceMessageId: args.sourceMessageId,
-      runtimeTurnResult: args.runtimeTurnResult as RuntimeExecutionPayload
+      runtimeTurnResult: toRuntimeDeferredPostProcessingPayload(
+        args.runtimeTurnResult
+      )
     });
 
     await updateAssistantPreviewMetadata({
@@ -335,6 +348,14 @@ async function runImRuntimeTurnWithSupabase(args: {
   const { supabase, input } = args;
   const imRuntimeStartedAt = nowMs();
 
+  console.info("[im-runtime:start]", {
+    user_id: input.user_id,
+    agent_id: input.agent_id,
+    thread_id: input.thread_id,
+    source: input.source,
+    message_type: input.message_type
+  });
+
   if (!input.thread_id || input.thread_id.trim().length === 0) {
     throw new Error("IM runtime input requires a resolved thread_id.");
   }
@@ -409,6 +430,13 @@ async function runImRuntimeTurnWithSupabase(args: {
   if (insertError || !insertedMessage) {
     throw new Error(insertError?.message ?? "Failed to store inbound IM user message.");
   }
+
+  console.info("[im-runtime:user-message-stored]", {
+    user_id: input.user_id,
+    thread_id: thread.id,
+    workspace_id: workspace.id,
+    message_id: insertedMessage.id
+  });
 
   const bootstrapStartedAt = nowMs();
   const {
@@ -860,6 +888,26 @@ async function runImRuntimeTurnWithSupabase(args: {
     };
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);
+
+    console.error("[im-runtime:run-agent-turn-failed]", {
+      thread_id: thread.id,
+      agent_id: thread.agent_id,
+      user_id: input.user_id,
+      workspace_id: workspace.id,
+      assistant_message_id: assistantPlaceholder.id,
+      source_message_id: insertedMessage.id,
+      error_type: assistantFailure.errorType,
+      error_message: assistantFailure.message,
+      litellm_operation:
+        error instanceof LiteLLMFetchError ? error.operation : null,
+      litellm_endpoint:
+        error instanceof LiteLLMFetchError ? error.endpoint : null,
+      cause_message:
+        error instanceof LiteLLMFetchError &&
+        error.causeError instanceof Error
+          ? error.causeError.message
+          : null
+    });
 
     await markAssistantMessageFailed({
       supabase,

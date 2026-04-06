@@ -85,19 +85,71 @@ function getWebDeliveryMetadata(
 }
 
 async function createSmokeThread(request: APIRequestContext, agentName: string) {
-  const response = await request.post("/api/test/smoke-create-thread", {
-    headers: {
-      "x-smoke-secret": smokeSecret,
-      "Content-Type": "application/json"
-    },
-    data: { agentName }
-  });
+  let lastFailure = "Smoke thread creation failed without a response body.";
 
-  expect(response.ok()).toBeTruthy();
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const response = await request.post("/api/test/smoke-create-thread", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: { agentName }
+    });
 
-  const payload = (await response.json()) as { threadId: string };
-  expect(payload.threadId).toBeTruthy();
-  return payload.threadId;
+    if (response.ok()) {
+      const payload = (await response.json()) as { threadId: string };
+      expect(payload.threadId).toBeTruthy();
+      return payload.threadId;
+    }
+
+    lastFailure = await response.text();
+    const normalizedFailure = lastFailure.toLowerCase();
+    const shouldRetry =
+      normalizedFailure.includes("fetch failed") ||
+      normalizedFailure.includes("connect timeout") ||
+      normalizedFailure.includes("tls");
+
+    if (!shouldRetry || attempt === 2) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  throw new Error(`Smoke thread creation failed: ${lastFailure}`);
+}
+
+async function sendSmokeTurn(request: APIRequestContext, threadId: string, content: string) {
+  let lastFailure = "Smoke turn creation failed without a response body.";
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const response = await request.post("/api/test/smoke-send-turn", {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data: { threadId, content }
+    });
+
+    if (response.ok()) {
+      return;
+    }
+
+    lastFailure = await response.text();
+    const normalizedFailure = lastFailure.toLowerCase();
+    const shouldRetry =
+      normalizedFailure.includes("fetch failed") ||
+      normalizedFailure.includes("connect timeout") ||
+      normalizedFailure.includes("tls");
+
+    if (!shouldRetry || attempt === 2) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  throw new Error(`Smoke turn creation failed: ${lastFailure}`);
 }
 
 async function waitForLatestCompletedAssistantMessage(
@@ -143,21 +195,183 @@ async function waitForLatestCompletedAssistantMessage(
 
 async function countAssistantMessages(threadId: string) {
   const admin = getSmokeAdminClient();
-  const { count, error } = await withSupabaseRetry(async () =>
-    admin
-      .from("messages")
-      .select("*", { count: "exact", head: true })
-      .eq("thread_id", threadId)
-      .eq("role", "assistant")
-  );
+  const startedAt = Date.now();
 
-  expect(error).toBeNull();
-  return count ?? 0;
+  while (Date.now() - startedAt < 30_000) {
+    const { count, error } = await withSupabaseRetry(async () =>
+      admin
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .eq("thread_id", threadId)
+        .eq("role", "assistant")
+    );
+
+    if (error && !isTransientSupabaseError(error)) {
+      expect(error).toBeNull();
+    }
+
+    if (!error) {
+      return count ?? 0;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  throw new Error("Timed out counting assistant messages due to transient Supabase errors.");
 }
 
 async function sendChatMessageThroughUi(page: Page, content: string) {
-  await page.locator('textarea[name="content"]').fill(content);
-  await page.getByRole("button", { name: /send message/i }).click();
+  let textarea = page.locator('textarea[name="content"]');
+  let sendButton = page.getByRole("button", { name: /send message/i });
+
+  await expect(textarea).toBeVisible({ timeout: 30_000 });
+  await expect(textarea).toBeEditable({ timeout: 30_000 });
+  await expect(sendButton).toBeEnabled({ timeout: 30_000 });
+
+  await textarea.fill(content);
+  await sendButton.click();
+
+  await Promise.race([
+    sendButton.waitFor({ state: "detached", timeout: 10_000 }),
+    expect(sendButton).toBeDisabled({ timeout: 10_000 })
+  ]).catch(() => null);
+
+  await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => null);
+
+  textarea = page.locator('textarea[name="content"]');
+  sendButton = page.getByRole("button", { name: /send message/i });
+
+  await expect(textarea).toBeVisible({ timeout: 60_000 });
+  await expect(textarea).toBeEditable({ timeout: 60_000 });
+  await expect(sendButton).toBeEnabled({ timeout: 60_000 });
+}
+
+async function assertComposerBoundToThread(page: Page, threadId: string) {
+  await expect(page.locator('input[name="thread_id"]')).toHaveValue(threadId, {
+    timeout: 30_000
+  });
+}
+
+async function chatWorkspaceShowsLoadFailure(page: Page) {
+  const unavailableHeading = page.getByRole("heading", {
+    name: "Chat workspace is unavailable"
+  });
+
+  if ((await unavailableHeading.count()) === 0) {
+    return false;
+  }
+
+  return unavailableHeading.isVisible().catch(() => false);
+}
+
+async function reloadThreadAndWait(page: Page, threadId: string) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (attempt === 0) {
+      await page.reload();
+    } else {
+      await page.goto(
+        `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${threadId}`
+      );
+    }
+
+    await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => null);
+    await expect(page).toHaveURL(new RegExp(`thread=${threadId}`), {
+      timeout: 30_000
+    });
+
+    if (await chatWorkspaceShowsLoadFailure(page)) {
+      continue;
+    }
+
+    const threadInput = page.locator('input[name="thread_id"]');
+    if ((await threadInput.count()) === 0) {
+      await page.waitForTimeout(500);
+      continue;
+    }
+
+    await assertComposerBoundToThread(page, threadId);
+    return;
+  }
+
+  throw new Error(`Failed to restore chat thread composer for ${threadId}.`);
+}
+
+async function waitForHydratedThreadContext(
+  page: Page,
+  threadId: string,
+  expectedTexts: string[]
+) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await reloadThreadAndWait(page, threadId);
+
+    try {
+      for (const text of expectedTexts) {
+        await expect(page.getByText(text).last()).toBeVisible({
+          timeout: 10_000
+        });
+      }
+      return;
+    } catch (error) {
+      if (attempt === 2) {
+        throw error;
+      }
+    }
+  }
+}
+
+async function assertNoThreadFeedbackError(page: Page) {
+  const errorNotice = page.locator(".notice.notice-error").last();
+  const count = await errorNotice.count();
+
+  if (count === 0) {
+    return;
+  }
+
+  const text = (await errorNotice.textContent())?.trim() ?? "";
+
+  if (text.length === 0) {
+    return;
+  }
+
+  throw new Error(`Chat UI surfaced an error notice: ${text}`);
+}
+
+function getAnswerStrategyMetadata(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  return {
+    questionType:
+      typeof metadata?.question_type === "string" ? metadata.question_type : null,
+    answerStrategy:
+      typeof metadata?.answer_strategy === "string"
+        ? metadata.answer_strategy
+        : null,
+    answerStrategyReasonCode:
+      typeof metadata?.answer_strategy_reason_code === "string"
+        ? metadata.answer_strategy_reason_code
+        : null
+  };
+}
+
+async function prepareRolePresenceThread(
+  page: Page,
+  request: APIRequestContext
+) {
+  const threadId = await createSmokeThread(request, "Smoke Memory Coach");
+  const initialAssistantCount = await countAssistantMessages(threadId);
+  await sendSmokeTurn(request, threadId, "我最近有点烦。");
+  await waitForLatestCompletedAssistantMessage(threadId, initialAssistantCount);
+
+  await page.goto(
+    `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${threadId}`
+  );
+  await expect(page).toHaveURL(new RegExp(`thread=${threadId}`));
+  await waitForHydratedThreadContext(page, threadId, [
+    "我最近有点烦。",
+    "好的，我已经记下来了，接下来可以继续帮你。"
+  ]);
+
+  return threadId;
 }
 
 test.describe("real runtime centralization", () => {
@@ -193,8 +407,10 @@ test.describe("real runtime centralization", () => {
       `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${threadId}`
     );
     await expect(page).toHaveURL(new RegExp(`thread=${threadId}`));
+    await assertComposerBoundToThread(page, threadId);
 
     await sendChatMessageThroughUi(page, "有点烦，想离开一下");
+    await assertNoThreadFeedbackError(page);
 
     const latestAssistant = await waitForLatestCompletedAssistantMessage(
       threadId,
@@ -218,6 +434,140 @@ test.describe("real runtime centralization", () => {
     });
   });
 
+  test("web chat keeps role background and persona anchors visible on the real runtime path", async ({
+    page,
+    request
+  }) => {
+    const threadId = await createSmokeThread(request, "Smoke Guide");
+    const previousAssistantCount = await countAssistantMessages(threadId);
+
+    await page.goto(
+      `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${threadId}`
+    );
+    await expect(page).toHaveURL(new RegExp(`thread=${threadId}`));
+    await assertComposerBoundToThread(page, threadId);
+
+    await sendChatMessageThroughUi(
+      page,
+      "Briefly introduce yourself and include a little of your background."
+    );
+    await assertNoThreadFeedbackError(page);
+
+    const latestAssistant = await waitForLatestCompletedAssistantMessage(
+      threadId,
+      previousAssistantCount
+    );
+    const governance = getGovernanceMetadata(latestAssistant.metadata);
+    const expressionBrief =
+      governance && typeof governance.expression_brief === "string"
+        ? governance.expression_brief
+        : "";
+    const relationalBrief =
+      governance && typeof governance.relational_brief === "string"
+        ? governance.relational_brief
+        : "";
+
+    expect(expressionBrief).toContain("Background anchor:");
+    expect(relationalBrief).toContain(
+      "include one concrete detail from this background anchor"
+    );
+
+    await page.reload();
+    await expect(page.getByText(latestAssistant.content).last()).toBeVisible({
+      timeout: 30_000
+    });
+  });
+
+  test("web chat keeps explicit self-intro questions ahead of same-thread continuity on the real runtime path", async ({
+    page,
+    request
+  }) => {
+    const threadId = await prepareRolePresenceThread(page, request);
+    const previousAssistantCount = await countAssistantMessages(threadId);
+
+    await sendChatMessageThroughUi(page, "你先介绍一下你自己。");
+    await assertNoThreadFeedbackError(page);
+
+    const introAssistant = await waitForLatestCompletedAssistantMessage(
+      threadId,
+      previousAssistantCount
+    );
+    expect(getAnswerStrategyMetadata(introAssistant.metadata)).toEqual({
+      questionType: "role-self-introduction",
+      answerStrategy: "role-presence-first",
+      answerStrategyReasonCode: "role-self-intro-prompt"
+    });
+    expect(introAssistant.content).toContain("我是 Memory Coach");
+  });
+
+  test("web chat keeps explicit capability questions ahead of same-thread continuity on the real runtime path", async ({
+    page,
+    request
+  }) => {
+    const threadId = await prepareRolePresenceThread(page, request);
+    const previousAssistantCount = await countAssistantMessages(threadId);
+
+    await sendChatMessageThroughUi(page, "你平时会怎么帮我？");
+    await assertNoThreadFeedbackError(page);
+
+    const capabilityAssistant = await waitForLatestCompletedAssistantMessage(
+      threadId,
+      previousAssistantCount
+    );
+    expect(getAnswerStrategyMetadata(capabilityAssistant.metadata)).toEqual({
+      questionType: "role-capability",
+      answerStrategy: "role-presence-first",
+      answerStrategyReasonCode: "role-capability-prompt"
+    });
+    expect(capabilityAssistant.content).not.toContain("最堵的那一点");
+    expect(capabilityAssistant.content).toContain("我平时会");
+  });
+
+  test("web chat keeps explicit background questions ahead of same-thread continuity on the real runtime path", async ({
+    page,
+    request
+  }) => {
+    const threadId = await prepareRolePresenceThread(page, request);
+    const previousAssistantCount = await countAssistantMessages(threadId);
+
+    await sendChatMessageThroughUi(page, "简单说说你的背景。");
+    await assertNoThreadFeedbackError(page);
+
+    const backgroundAssistant = await waitForLatestCompletedAssistantMessage(
+      threadId,
+      previousAssistantCount
+    );
+    expect(getAnswerStrategyMetadata(backgroundAssistant.metadata)).toEqual({
+      questionType: "role-background",
+      answerStrategy: "role-presence-first",
+      answerStrategyReasonCode: "role-background-prompt"
+    });
+    expect(backgroundAssistant.content).toContain("陪伴");
+  });
+
+  test("web chat keeps explicit boundary questions ahead of same-thread continuity on the real runtime path", async ({
+    page,
+    request
+  }) => {
+    const threadId = await prepareRolePresenceThread(page, request);
+    const previousAssistantCount = await countAssistantMessages(threadId);
+
+    await sendChatMessageThroughUi(page, "你能做什么，不能做什么？");
+    await assertNoThreadFeedbackError(page);
+
+    const boundaryAssistant = await waitForLatestCompletedAssistantMessage(
+      threadId,
+      previousAssistantCount
+    );
+    expect(getAnswerStrategyMetadata(boundaryAssistant.metadata)).toEqual({
+      questionType: "role-boundary",
+      answerStrategy: "role-presence-first",
+      answerStrategyReasonCode: "role-boundary-prompt"
+    });
+    expect(boundaryAssistant.content).toContain("我能");
+    expect(boundaryAssistant.content).toContain("不能");
+  });
+
   test("web chat clarify-before-action blocks image delivery on the real runtime path", async ({
     page,
     request
@@ -234,6 +584,7 @@ test.describe("real runtime centralization", () => {
       page,
       "去北海你建议吗？你有阿拉斯加的照片吗"
     );
+    await assertNoThreadFeedbackError(page);
 
     const latestAssistant = await waitForLatestCompletedAssistantMessage(
       threadId,

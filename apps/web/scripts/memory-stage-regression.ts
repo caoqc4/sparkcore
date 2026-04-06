@@ -64,6 +64,36 @@ function getRegressionSteps(suite: RegressionSuite): RegressionStep[] {
       args: ["run", "memory:relationship-adoption-preview:harness"]
     },
     {
+      id: "answer_decision_metadata",
+      label: "Answer decision metadata harness",
+      command: "pnpm",
+      args: ["run", "memory:answer-decision-metadata:harness"]
+    },
+    {
+      id: "answer_decision_event",
+      label: "Answer decision event harness",
+      command: "pnpm",
+      args: ["run", "memory:answer-decision-event:harness"]
+    },
+    {
+      id: "multimodal_intent",
+      label: "Multimodal intent harness",
+      command: "pnpm",
+      args: ["run", "memory:multimodal-intent:harness"]
+    },
+    {
+      id: "runtime_module_boundary",
+      label: "Runtime module boundary harness",
+      command: "pnpm",
+      args: ["run", "memory:runtime-module-boundary:harness"]
+    },
+    {
+      id: "runtime_composition_contract",
+      label: "Runtime composition contract harness",
+      command: "pnpm",
+      args: ["run", "memory:runtime-composition-contract:harness"]
+    },
+    {
       id: "recall_routing",
       label: "Recall routing harness",
       command: "pnpm",

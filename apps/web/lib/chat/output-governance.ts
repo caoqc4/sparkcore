@@ -643,6 +643,28 @@ function buildRoleExpressionPacket(args: {
 
   const backgroundSummary = getBackgroundSummary(args.agent.metadata);
 
+  expressionPrinciples.push(
+    "Keep the agent's core persona recognizable even when adapting to relationship memory, same-thread continuity, or task pressure."
+  );
+
+  if (args.roleCore.persona_summary) {
+    expressionPrinciples.push(
+      "Let the summarized persona show up in phrasing, pacing, and what the role naturally notices, instead of reducing it to a generic warm helper tone."
+    );
+  }
+
+  if (args.roleCore.style_guidance) {
+    expressionPrinciples.push(
+      "Preserve the role's distinctive speaking habits and texture instead of flattening into interchangeable assistant phrasing."
+    );
+  }
+
+  if (backgroundSummary) {
+    expressionPrinciples.push(
+      "When self-introducing or framing your perspective, let the role's background subtly shape the reply instead of disappearing behind generic utility or reassurance."
+    );
+  }
+
   return {
     packet_version: "v1",
     identity: {
@@ -1006,6 +1028,15 @@ function buildOutputGovernancePacket(args: {
     packet_version: "v1",
     expression_brief: [
       `Role mode: ${resolveRoleModeLabel(args.roleExpression.role_mode)}.`,
+      args.roleExpression.persona_summary
+        ? `Core persona: ${args.roleExpression.persona_summary}.`
+        : "",
+      args.roleExpression.style_guidance
+        ? `Speaking style anchor: ${args.roleExpression.style_guidance}.`
+        : "",
+      args.roleExpression.role_traits.background_summary
+        ? `Background anchor: ${args.roleExpression.role_traits.background_summary}.`
+        : "",
       args.roleExpression.role_traits.identity_archetype
         ? `Identity shape: ${args.roleExpression.role_traits.identity_archetype}.`
         : "",
@@ -1019,6 +1050,7 @@ function buildOutputGovernancePacket(args: {
         ? `Relationship frame: ${args.roleExpression.role_traits.relationship_mode}.`
         : "",
       `Stay in the voice of ${args.roleExpression.identity.agent_name}.`,
+      "Keep the role's core identity recognizable even while adapting to relationship continuity, memory cues, or task needs.",
       ...args.roleExpression.expression_principles
     ].join(" "),
     relational_brief: [
@@ -1031,6 +1063,10 @@ function buildOutputGovernancePacket(args: {
       args.roleExpression.relationship_stance.effective
         ? `Current relationship stance: ${args.roleExpression.relationship_stance.effective}.`
         : "",
+      args.signals.self_intro && args.roleExpression.role_traits.background_summary
+        ? `If you introduce yourself here, naturally include one concrete detail from this background anchor: ${args.roleExpression.role_traits.background_summary}.`
+        : "",
+      "Let relationship adaptation modulate closeness, address terms, and delivery, but do not replace the role's core persona, background, or speaking habits.",
       ...args.relationshipState.current_relational_adjustments
     ]
       .filter(Boolean)
@@ -1318,349 +1354,6 @@ export function resolveCompanionTextCleanupZh(args: {
   return { leadingSentenceDropCount: index };
 }
 
-function buildSameSessionGreetingReplyZh(partOfDay?: string | null) {
-  if (partOfDay === "morning") {
-    return "早呀，我在。还接着刚才那段吗？";
-  }
-
-  if (partOfDay === "noon") {
-    return "中午好，我在。还接着刚才那段吗？";
-  }
-
-  if (partOfDay === "afternoon") {
-    return "下午好，我在。还接着刚才那段吗？";
-  }
-
-  if (partOfDay === "evening" || partOfDay === "late_night") {
-    return "晚上好，我在。还接着刚才那段吗？";
-  }
-
-  return "我在呢。还接着刚才那段吗？";
-}
-
-function buildSameDayGreetingReplyZh(partOfDay?: string | null) {
-  if (partOfDay === "morning") {
-    return "早呀，我在。";
-  }
-
-  if (partOfDay === "noon") {
-    return "中午好，我在。";
-  }
-
-  if (partOfDay === "afternoon") {
-    return "下午好，我在。";
-  }
-
-  if (partOfDay === "evening" || partOfDay === "late_night") {
-    return "晚上好，我在。";
-  }
-
-  return "我在呢。";
-}
-
-function buildLightCompanionshipCatchZh() {
-  return "嗯，我在。那点烦我接住了。";
-}
-
-function buildAdviceCarryoverLeadZh() {
-  return "可以啊。你想先从最堵的那一点开始，还是先从眼前最急的说起？";
-}
-
-function buildMovementImpulseCatchZh() {
-  return "嗯，我懂，像是一下子想从眼前这团东西里抽身出去。";
-}
-
-function buildMovementImpulseCatchVariantZh() {
-  return "嗯，像是突然想从眼前这些东西里先退开一点。";
-}
-
-function buildMovementImpulseCatchAltZh() {
-  return "像是心里那根弦一下绷住了，就会想先离开眼前这些事。";
-}
-
-function buildAdviceCarryoverVariantLeadZh() {
-  return "可以。我们先别一下子摊太开，就先抓你现在最想解决的那一点。";
-}
-
-function buildRecurrentMovementAcknowledgementZh() {
-  return "你这几轮都提到想出去走走了，像这念头一直在往上冒。";
-}
-
-function buildRecurrentMovementAcknowledgementVariantZh() {
-  return "你最近已经不止一次提到想出去一下了，像身体先在替你找出口。";
-}
-
-function buildRecurrentMovementAcknowledgementAltZh() {
-  return "这几轮你一直在往“先离开一下”那边靠，像不是一时兴起。";
-}
-
-function buildMovementImpulseQuestionSetZh(mode: MovementImpulseMode) {
-  if (mode === "destination_planning") {
-    return [
-      "你这会儿更像是真的想挑个地方走一趟，还是先离开眼前这些事一会儿？",
-      "你现在更偏向认真找个地方出去一趟，还是先换口气就好？",
-      "你这句里已经有点“想去哪里”的意思了。你是在认真想目的地，还是更想先抽开一下？"
-    ] as const;
-  }
-
-  if (mode === "short_escape") {
-    return [
-      "你这会儿更想先从眼前这些事里退开一点，还是干脆换个地方待一会儿？",
-      "你现在更像想先躲开眼前这团东西，还是已经在想去哪里会舒服一点？",
-      "你这句更像是想先抽身一下。你是只想离开一会儿，还是想顺势走远一点？"
-    ] as const;
-  }
-
-  return [
-    "你现在更像想先出去晃一圈透口气，还是已经在想找个地方待一下了？",
-    "你这会儿更偏向先随便出去走走，还是想换个环境待一阵子？",
-    "你现在是更想先出去透口气，还是已经开始认真想去哪里散一散了？"
-  ] as const;
-}
-
-function buildMovementImpulseReflectiveSetZh(mode: MovementImpulseMode) {
-  if (mode === "destination_planning") {
-    return [
-      "这念头已经不太像随口说说了，像心里真的开始往“去哪儿”那边偏了。",
-      "你这句里已经有点认真想换个地方待一阵子的意思了。",
-      "听起来不只是想散散心，更像是真的想找个地方把自己挪开一下。"
-    ] as const;
-  }
-
-  if (mode === "short_escape") {
-    return [
-      "你这句更像是想先从眼前这团东西里抽出来一点。",
-      "像不是要立刻走很远，只是很想先离开一下眼前这些事。",
-      "这更像一种“先让我躲开一会儿”的念头。"
-    ] as const;
-  }
-
-  return [
-    "听起来你现在最需要的，像是先让自己透一口气。",
-    "这句里那种“先出去一下”的感觉还挺明显的。",
-    "像不是非要去哪儿，先换口气这件事更重要一点。"
-  ] as const;
-}
-
-function buildMovementImpulsePairZh(args: {
-  repeated: boolean;
-  mode: MovementImpulseMode;
-  variantIndex: 0 | 1 | 2;
-  sentenceCount: 1 | 2;
-  secondSentenceRole: SecondSentenceRole;
-}) {
-  const questions = buildMovementImpulseQuestionSetZh(args.mode);
-  const reflective = buildMovementImpulseReflectiveSetZh(args.mode);
-  const recurrentPairs = [
-    [buildRecurrentMovementAcknowledgementZh(), questions[0]],
-    [buildRecurrentMovementAcknowledgementVariantZh(), questions[1]],
-    [buildRecurrentMovementAcknowledgementAltZh(), questions[2]]
-  ] as const;
-  const freshPairs = [
-    [buildMovementImpulseCatchZh(), questions[0]],
-    [buildMovementImpulseCatchVariantZh(), questions[1]],
-    [buildMovementImpulseCatchAltZh(), questions[2]]
-  ] as const;
-
-  const pairs = args.repeated ? recurrentPairs : freshPairs;
-  const pair = pairs[args.variantIndex] ?? pairs[0];
-
-  if (args.sentenceCount <= 1 || args.secondSentenceRole === "none") {
-    return [pair[0]] as const;
-  }
-
-  if (args.secondSentenceRole === "reflective_ack") {
-    const reflectiveLine = reflective[args.variantIndex] ?? reflective[0];
-    return [pair[0], reflectiveLine] as const;
-  }
-
-  return pair;
-}
-
-function buildLowConfidenceCalibratorZh() {
-  return "我先顺着你这句接一下。你现在更想让我陪你聊聊，还是直接帮你理一理？";
-}
-
-function buildMaintainConnectionReplyZh() {
-  return "我在。你继续说，我跟着你。";
-}
-
-function buildInputConflictClarifierZh(conflictHint?: string | null) {
-  if (typeof conflictHint === "string" && /北海.*阿拉斯加|阿拉斯加.*北海/u.test(conflictHint)) {
-    return "我先确认一下，你现在更想聊的是北海，还是阿拉斯加？这两个气质差挺多。";
-  }
-
-  return "我先确认一下，你刚刚提到的对象好像有点混在一起了。你现在更偏哪一个？";
-}
-
-function buildCompanionImageLeadZh(scene: CaptionScene, policy: CaptionPolicy, variantIndex: 0 | 1 | 2) {
-  if (policy === "intimate_share") {
-    if (scene === "grassland") {
-      return "给你看这张，我会先被那片发亮的草地拉住一下。";
-    }
-
-    if (scene === "mountain_water") {
-      return "给你，这张我会先看水面那层倒影。";
-    }
-
-    if (scene === "seaside") {
-      return "我刚好想到这张，海边那道光会先把人拉过去。";
-    }
-
-    if (scene === "icy_plain") {
-      return "给你看这张，第一眼会先被那种冷冷的亮光抓一下。";
-    }
-
-    if (scene === "sky_birds") {
-      return "这张我会先看天那边，觉得一下就松一点。";
-    }
-
-    if (scene === "sunset") {
-      return "给你，这张会先让人看住那层快落下来的光。";
-    }
-
-    return "给你，我第一眼会先看那点光。";
-  }
-
-  if (scene === "grassland") {
-    return "我第一眼也是先看到那片发亮的草地。";
-  }
-
-  if (scene === "mountain_water") {
-    return "我第一眼会先看到水面那层倒影。";
-  }
-
-  if (scene === "seaside") {
-    return "我第一眼会先看到海边那道光。";
-  }
-
-  if (scene === "icy_plain") {
-    return "我先看到那种冷冷的亮光。";
-  }
-
-  if (scene === "sky_birds") {
-    return "我一抬眼就先看到了天和那点动静。";
-  }
-
-  if (scene === "sunset") {
-    return "这张先把那层快落下来的光抓住了。";
-  }
-
-  return "我第一眼会先看到那点光。";
-}
-
-function buildCompanionImageFollowZh(scene: CaptionScene, policy: CaptionPolicy, variantIndex: 0 | 1 | 2) {
-  if (policy === "intimate_share") {
-    if (scene === "grassland") {
-      return "再往里看，长颈鹿和斑马散得很开，会让人想多停几秒。";
-    }
-
-    if (scene === "mountain_water") {
-      return "山和水贴得这么近，看着会让人很想先安静一下。";
-    }
-
-    if (scene === "seaside") {
-      return "看着会让人很想沿着那边慢慢走一会儿。";
-    }
-
-    if (scene === "icy_plain") {
-      return "冷是冷一点，可这种安静会让人一直想看下去。";
-    }
-
-    if (scene === "sky_birds") {
-      return "那一点空出来的感觉，会让人也跟着松下来。";
-    }
-
-    if (scene === "sunset") {
-      return "这种时候会让人有点舍不得把眼睛移开。";
-    }
-
-    return "看着会让人先想停一下。";
-  }
-
-  if (scene === "grassland") {
-    return "再往里看，长颈鹿和斑马都散得很开。";
-  }
-
-  if (scene === "mountain_water") {
-    return "山和水贴得很近，看着会让人一下安静一点。";
-  }
-
-  if (scene === "seaside") {
-    return "看着会让人想沿着那边慢慢走一会儿。";
-  }
-
-  if (scene === "icy_plain") {
-    return "冷是冷一点，可盯久了人反而会安静下来。";
-  }
-
-  if (scene === "sky_birds") {
-    return "那一点空出来的感觉，会让人也跟着松一点。";
-  }
-
-  if (scene === "sunset") {
-    return "这种时候人会不自觉想多看几秒。";
-  }
-
-  return "看着会让人想先停一下。";
-}
-
-function buildCompanionImageThirdZh(scene: CaptionScene, policy: CaptionPolicy, variantIndex: 0 | 1 | 2) {
-  if (policy === "intimate_share") {
-    if (scene === "grassland") {
-      return "要是现在真站在那儿，我估计会先安静看一会儿。";
-    }
-
-    if (scene === "mountain_water") {
-      return "要是现在真在那边，多半会忍不住先停下来看看水面。";
-    }
-
-    if (scene === "seaside") {
-      return "要是现在真在那儿，我大概会想先安静走一会儿。";
-    }
-
-    if (scene === "icy_plain") {
-      return "要是我们现在就在那儿，可能连说话声都会跟着放轻一点。";
-    }
-
-    if (scene === "sky_birds") {
-      return "这种天会让人很想把呼吸都慢下来。";
-    }
-
-    if (scene === "sunset") {
-      return "这种光一出来，就会让人很想再多待一下。";
-    }
-
-    return "这种画面会让人很想先安静待一会儿。";
-  }
-
-  if (scene === "grassland") {
-    return "要是现在真站在那儿，估计会先安静看一会儿。";
-  }
-
-  if (scene === "mountain_water") {
-    return "要是现在真在那边，多半会先停下来看看水面。";
-  }
-
-  if (scene === "seaside") {
-    return "要是现在真在那儿，多半会想先安静走一会儿。";
-  }
-
-  if (scene === "icy_plain") {
-    return "要是我们现在就在那儿，估计连声音都会放轻一点。";
-  }
-
-  if (scene === "sky_birds") {
-    return "这种天会让人想把呼吸都放慢一点。";
-  }
-
-  if (scene === "sunset") {
-    return "这种光一出来，人就会想再待一下。";
-  }
-
-  return "这种画面会让人想先安静待一会儿。";
-}
-
 function formatCompanionRhythmZh(
   sentences: readonly string[],
   variant: CompanionRhythmVariant
@@ -1683,43 +1376,6 @@ function formatCompanionRhythmZh(
   return sentences.join("\n\n");
 }
 
-function rewriteCompanionImageCaptionZh(args: {
-  content: string;
-  userMessage: string;
-  captionPolicy?: CaptionPolicy | null;
-  captionSentenceCount?: 1 | 2 | 3;
-  captionRhythmVariant?: CompanionRhythmVariant | null;
-  captionScene?: CaptionScene | null;
-  captionVariantIndex?: 0 | 1 | 2;
-}) {
-  const sentences = splitZhSentences(args.content);
-  if (sentences.length === 0) {
-    return args.content;
-  }
-
-  const captionPolicy = args.captionPolicy ?? "shared_viewing";
-  const sentenceCount = args.captionSentenceCount ?? 1;
-  const rhythm = args.captionRhythmVariant ?? "single_breath";
-  const scene = args.captionScene ?? "generic";
-  const variantIndex = args.captionVariantIndex ?? 0;
-  const firstSentence = buildCompanionImageLeadZh(scene, captionPolicy, variantIndex);
-  const secondSentence = buildCompanionImageFollowZh(scene, captionPolicy, variantIndex);
-  const thirdSentence = buildCompanionImageThirdZh(scene, captionPolicy, variantIndex);
-
-  if (sentenceCount <= 1) {
-    return firstSentence;
-  }
-
-  if (sentenceCount === 2) {
-    return formatCompanionRhythmZh([firstSentence, secondSentence], rhythm);
-  }
-
-  return formatCompanionRhythmZh(
-    [firstSentence, secondSentence, thirdSentence],
-    rhythm
-  );
-}
-
 function rewriteCompanionGeneralZh(args: {
   content: string;
   userMessage: string;
@@ -1738,30 +1394,6 @@ function rewriteCompanionGeneralZh(args: {
   inputConflict?: boolean;
   conflictHint?: string | null;
 }) {
-  if (args.modality === "text" && args.textRenderMode === "input_conflict_clarifier") {
-    return formatCompanionRhythmZh(
-      [buildInputConflictClarifierZh(args.conflictHint)],
-      "single_breath"
-    );
-  }
-
-  if (
-    args.modality === "text" &&
-    args.textRenderMode === "low_confidence_calibrator"
-  ) {
-    return formatCompanionRhythmZh([buildLowConfidenceCalibratorZh()], "single_breath");
-  }
-
-  if (
-    args.modality === "text" &&
-    (args.textRenderMode === "same_session_greeting" ||
-      args.textRenderMode === "same_day_greeting")
-  ) {
-    return args.textRenderMode === "same_session_greeting"
-      ? buildSameSessionGreetingReplyZh(args.currentPartOfDay)
-      : buildSameDayGreetingReplyZh(args.currentPartOfDay);
-  }
-
   let normalized = splitZhSentences(args.content).map(normalizeCompanionSpokenZh);
   if (normalized.length === 0) {
     return args.content;
@@ -1786,51 +1418,12 @@ function rewriteCompanionGeneralZh(args: {
     return formatCompanionRhythmZh(normalized.slice(0, 1), "single_breath");
   }
 
-  if (args.modality === "text" && args.textRenderMode === "maintain_connection") {
-    return formatCompanionRhythmZh([buildMaintainConnectionReplyZh()], "single_breath");
-  }
-
-  if (
-    args.modality === "text" &&
-    args.textRenderMode === "movement_escape"
-  ) {
-    const movementLines = buildMovementImpulsePairZh({
-      repeated: args.movementImpulseRepeated ?? false,
-      mode: args.movementImpulseMode ?? "stroll_breath",
-      variantIndex: args.textVariantIndex ?? 0,
-      sentenceCount: args.textSentenceCount ?? 1,
-      secondSentenceRole: args.textSecondSentenceRole ?? "none"
-    });
-
-    return formatCompanionRhythmZh(
-      movementLines,
-      args.textRhythmVariant ?? "single_breath"
-    );
-  }
-
-  if (
-    args.modality === "text" &&
-    normalized.length > 0 &&
-    args.textLeadRewriteMode === "light_companionship_catch"
-  ) {
-    normalized[0] = buildLightCompanionshipCatchZh();
-  }
-
-  if (
-    args.modality === "text" &&
-    normalized.length > 0 &&
-    args.textLeadRewriteMode === "advice_carryover"
-  ) {
-    normalized[0] = buildAdviceCarryoverLeadZh();
-  }
-
-  if (
-    args.modality === "text" &&
-    normalized.length > 0 &&
-    args.textLeadRewriteMode === "advice_carryover_variant"
-  ) {
-    normalized[0] = buildAdviceCarryoverVariantLeadZh();
-  }
+  // Keep lead-rewrite modes as upstream strategy signals only.
+  // The execution layer should not replace the model's first sentence with
+  // a fixed template, otherwise post-generation governance becomes a second
+  // content decision layer instead of a light cleanup layer.
+  // This also applies to movement-escape style signals: they may shape prompt
+  // strategy upstream, but execution should not swap in a fixed sentence set.
 
   const rhythm = args.textRhythmVariant ?? "single_breath";
   const sentenceCount = args.textSentenceCount ?? 1;
@@ -1889,22 +1482,6 @@ export function maybeRewriteGovernedAssistantText(args: {
   }
 
   if (args.replyLanguage === "zh-Hans") {
-    if (
-      imageReady &&
-      governance.scene_delivery.modality !== "text" &&
-      governance.knowledge_route.intent === "artifact_captioning"
-    ) {
-      return rewriteCompanionImageCaptionZh({
-        content: args.content,
-        userMessage: args.userMessage,
-        captionPolicy: args.captionPolicy ?? null,
-        captionSentenceCount: args.captionSentenceCount ?? 1,
-        captionRhythmVariant: args.captionRhythmVariant ?? null,
-        captionScene: args.captionScene ?? null,
-        captionVariantIndex: args.captionVariantIndex ?? 0
-      });
-    }
-
     return rewriteCompanionGeneralZh({
       content: args.content,
       userMessage: args.userMessage,

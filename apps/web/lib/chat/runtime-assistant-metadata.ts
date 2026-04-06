@@ -3,6 +3,7 @@ import type {
 } from "@/lib/chat/assistant-message-metadata";
 import type { MemorySemanticLayer } from "@/lib/chat/memory-shared";
 import type { OutputGovernancePacketV1 } from "@/lib/chat/output-governance";
+import type { RuntimeObservabilityRelationshipRecallMetadata } from "@/lib/chat/runtime-observability-contracts";
 import type { ApproxContextPressure } from "@/lib/chat/session-context";
 import type {
   ReplyLanguageSource,
@@ -81,17 +82,10 @@ export type BuildRuntimeAssistantMetadataInput = {
     strategy_reason_code: string | null;
     strategy_priority: string;
     strategy_priority_label: string;
-    relationship_recall: {
-      used: boolean;
-      direct_naming_question: boolean;
-      direct_preferred_name_question: boolean;
-      relationship_style_prompt: boolean;
-      same_thread_continuity: boolean;
-      recalled_keys: string[];
-      recalled_memory_ids: string[];
-      adopted_agent_nickname_target: string | null;
-      adopted_user_preferred_name_target: string | null;
-    };
+    carryover_policy: string;
+    forbidden_moves: string[];
+    scene_goal: string;
+    relationship_recall: RuntimeObservabilityRelationshipRecallMetadata;
   };
   session: {
     continuation_reason_code: string | null;
@@ -201,6 +195,9 @@ export function buildRuntimeAssistantMetadataInput(
     answer_strategy_reason_code: input.answer.strategy_reason_code,
     answer_strategy_priority: input.answer.strategy_priority,
     answer_strategy_priority_label: input.answer.strategy_priority_label,
+    answer_carryover_policy: input.answer.carryover_policy,
+    answer_forbidden_moves: input.answer.forbidden_moves,
+    answer_scene_goal: input.answer.scene_goal,
     relationship_recall_used: input.answer.relationship_recall.used,
     relationship_recall_direct_naming_question:
       input.answer.relationship_recall.direct_naming_question,

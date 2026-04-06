@@ -22,6 +22,7 @@ import {
 import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
 import type { RuntimeKnowledgeGatingSummary } from "@/lib/chat/runtime-knowledge-sources";
 import type { PlannerCandidateSummary } from "@/lib/chat/memory-planner-candidates";
+import type { RuntimeObservabilityRelationshipRecallMetadata } from "@/lib/chat/runtime-observability-contracts";
 import {
   resolveNamespaceGovernanceFabricPlanePhaseSnapshot,
   resolveRuntimeMemoryBoundary,
@@ -35,17 +36,10 @@ export type BuildRuntimeDebugMetadataInput = {
   model_profile_id: string;
   answer_strategy: string;
   answer_strategy_reason_code: string | null;
-  relationship_recall?: {
-    used: boolean;
-    direct_naming_question: boolean;
-    direct_preferred_name_question: boolean;
-    relationship_style_prompt: boolean;
-    same_thread_continuity: boolean;
-    recalled_keys: string[];
-    recalled_memory_ids: string[];
-    adopted_agent_nickname_target: string | null;
-    adopted_user_preferred_name_target: string | null;
-  } | null;
+  answer_carryover_policy?: string | null;
+  answer_forbidden_moves?: string[];
+  answer_scene_goal?: string | null;
+  relationship_recall?: RuntimeObservabilityRelationshipRecallMetadata | null;
   recalled_memory_count: number;
   memory_types_used: string[];
   memory_semantic_layers?: Array<MemorySemanticLayer | null | undefined>;
@@ -101,7 +95,10 @@ export function buildRuntimeDebugMetadata(
     model_profile_id: input.model_profile_id,
     answer_strategy: {
       selected: input.answer_strategy,
-      reason_code: input.answer_strategy_reason_code
+      reason_code: input.answer_strategy_reason_code,
+      carryover_policy: input.answer_carryover_policy ?? null,
+      forbidden_moves: input.answer_forbidden_moves ?? [],
+      scene_goal: input.answer_scene_goal ?? null
     },
     memory: {
       relationship_recall: input.relationship_recall ?? null,

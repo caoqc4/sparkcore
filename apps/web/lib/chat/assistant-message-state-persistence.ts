@@ -15,6 +15,24 @@ type AssistantMessageStateTarget = {
   userId: string;
 };
 
+function normalizeOptionalUuidLike(value?: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  if (
+    trimmed.length === 0 ||
+    trimmed === "undefined" ||
+    trimmed === "null"
+  ) {
+    return null;
+  }
+
+  return trimmed;
+}
+
 export async function insertPendingAssistantMessage(
   args: AssistantMessageStateTarget & {
     agentId: string;
@@ -109,10 +127,14 @@ export async function persistCompletedAssistantMessage(
     };
   }
 ) {
-  return args.assistantMessageId
+  const normalizedAssistantMessageId = normalizeOptionalUuidLike(
+    args.assistantMessageId
+  );
+
+  return normalizedAssistantMessageId
     ? updateScopedMessage({
         supabase: args.supabase,
-        messageId: args.assistantMessageId,
+        messageId: normalizedAssistantMessageId,
         threadId: args.threadId,
         workspaceId: args.workspaceId,
         userId: args.userId,

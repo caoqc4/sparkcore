@@ -1,6 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext, type APIResponse, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { retryOnceOnTransientSupabaseFetch } from "@/lib/supabase/transient-fetch";
+import {
+  isTransientSupabaseFetchError,
+  retryOnceOnTransientSupabaseFetch
+} from "@/lib/supabase/transient-fetch";
 
 const smokeSecret = process.env.PLAYWRIGHT_SMOKE_SECRET ?? "sparkcore-smoke-local";
 const hasServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -19,6 +22,57 @@ function getSmokeAdminClient() {
       autoRefreshToken: false,
       persistSession: false
     }
+  });
+}
+
+async function postSmokeJsonWithRetry(
+  request: APIRequestContext,
+  url: string,
+  data: Record<string, unknown>
+) {
+  let response: APIResponse | null = null;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    response = await request.post(url, {
+      headers: {
+        "x-smoke-secret": smokeSecret,
+        "Content-Type": "application/json"
+      },
+      data
+    });
+
+    if (response.ok() || attempt === 2) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+
+  expect(response?.ok()).toBeTruthy();
+  return response as APIResponse;
+}
+
+async function createSmokeThreadThroughApi(
+  request: APIRequestContext,
+  agentName: string
+) {
+  const response = await postSmokeJsonWithRetry(
+    request,
+    "/api/test/smoke-create-thread",
+    { agentName }
+  );
+
+  return (await response.json()) as { threadId: string };
+}
+
+async function sendSmokeTurnThroughApi(
+  request: APIRequestContext,
+  threadId: string,
+  content: string
+) {
+  await postSmokeJsonWithRetry(request, "/api/test/smoke-send-turn", {
+    threadId,
+    content
   });
 }
 
@@ -70,17 +124,47 @@ async function getLatestAssistantMessageForThread(
   threadId: string
 ) {
   const admin = getSmokeAdminClient();
-  const { data, error } = await retryOnceOnTransientSupabaseFetch({
-    task: async () =>
-      await admin
-        .from("messages")
-        .select("content, metadata")
-        .eq("thread_id", threadId)
-        .eq("role", "assistant")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle()
-  });
+  let data: unknown = null;
+  let error: unknown = null;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const result = await retryOnceOnTransientSupabaseFetch({
+      task: async () =>
+        await admin
+          .from("messages")
+          .select("content, metadata")
+          .eq("thread_id", threadId)
+          .eq("role", "assistant")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      delayMs: 300
+    });
+
+    data = result.data;
+    error = result.error;
+
+    if (!error) {
+      break;
+    }
+
+    const transientResponseError =
+      typeof error === "object" &&
+      error !== null &&
+      isTransientSupabaseFetchError(
+        new Error(
+          `${String((error as { message?: string | null }).message ?? "")} ${String(
+            (error as { details?: string | null }).details ?? ""
+          )}`.trim()
+        )
+      );
+
+    if (!transientResponseError || attempt === 2) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
 
   expect(error).toBeNull();
   expect(data).toBeTruthy();
@@ -932,33 +1016,11 @@ test.describe("core chat smoke", () => {
     page,
     request
   }) => {
-    const nicknameSeedThread = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Memory Coach"
-      }
-    });
-
-    expect(nicknameSeedThread.ok()).toBeTruthy();
-    const { threadId: seedThreadId } = (await nicknameSeedThread.json()) as {
-      threadId: string;
-    };
-
-    const seedNicknameTurn = await request.post("/api/test/smoke-send-turn", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        threadId: seedThreadId,
-        content: "以后我叫你小芳可以吗？"
-      }
-    });
-
-    expect(seedNicknameTurn.ok()).toBeTruthy();
+    const { threadId: seedThreadId } = await createSmokeThreadThroughApi(
+      request,
+      "Smoke Memory Coach"
+    );
+    await sendSmokeTurnThroughApi(request, seedThreadId, "以后我叫你小芳可以吗？");
 
     await page.goto(
       `/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat?thread=${seedThreadId}`
@@ -983,33 +1045,11 @@ test.describe("core chat smoke", () => {
         .first()
     ).toBeVisible({ timeout: 45_000 });
 
-    const fallbackThread = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Memory Coach"
-      }
-    });
-
-    expect(fallbackThread.ok()).toBeTruthy();
-    const { threadId: fallbackThreadId } = (await fallbackThread.json()) as {
-      threadId: string;
-    };
-
-    const fallbackRecallTurn = await request.post("/api/test/smoke-send-turn", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        threadId: fallbackThreadId,
-        content: "你叫什么？"
-      }
-    });
-
-    expect(fallbackRecallTurn.ok()).toBeTruthy();
+    const { threadId: fallbackThreadId } = await createSmokeThreadThroughApi(
+      request,
+      "Smoke Memory Coach"
+    );
+    await sendSmokeTurnThroughApi(request, fallbackThreadId, "你叫什么？");
 
     const fallbackAssistantMessage = await getLatestAssistantMessageForThread(
       fallbackThreadId
@@ -1044,33 +1084,11 @@ test.describe("core chat smoke", () => {
       .first();
     await incorrectNicknameCard.getByRole("button", { name: "Restore" }).click();
 
-    const restoredThread = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Memory Coach"
-      }
-    });
-
-    expect(restoredThread.ok()).toBeTruthy();
-    const { threadId: restoredThreadId } = (await restoredThread.json()) as {
-      threadId: string;
-    };
-
-    const restoredRecallTurn = await request.post("/api/test/smoke-send-turn", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        threadId: restoredThreadId,
-        content: "你叫什么？"
-      }
-    });
-
-    expect(restoredRecallTurn.ok()).toBeTruthy();
+    const { threadId: restoredThreadId } = await createSmokeThreadThroughApi(
+      request,
+      "Smoke Memory Coach"
+    );
+    await sendSmokeTurnThroughApi(request, restoredThreadId, "你叫什么？");
 
     const restoredAssistantMessage = await getLatestAssistantMessageForThread(
       restoredThreadId
@@ -2797,18 +2815,7 @@ test.describe("core chat smoke", () => {
   test("keeps explicit Chinese continuation requests in Chinese after the thread already switched", async ({
     request
   }) => {
-    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Guide"
-      }
-    });
-
-    expect(createThreadResponse.ok()).toBeTruthy();
-    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+    const { threadId } = await createSmokeThreadThroughApi(request, "Smoke Guide");
 
     for (const content of [
       "I am a product designer and I prefer concise weekly planning.",
@@ -2818,18 +2825,7 @@ test.describe("core chat smoke", () => {
       "再用一句话说一遍。",
       "ok, now continue in Chinese."
     ]) {
-      const response = await request.post("/api/test/smoke-send-turn", {
-        headers: {
-          "x-smoke-secret": smokeSecret,
-          "Content-Type": "application/json"
-        },
-        data: {
-          threadId,
-          content
-        }
-      });
-
-      expect(response.ok()).toBeTruthy();
+      await sendSmokeTurnThroughApi(request, threadId, content);
     }
 
     const latestAssistantMessage = await getLatestAssistantMessageForThread(
@@ -2900,64 +2896,20 @@ test.describe("core chat smoke", () => {
   test("keeps profession recall follow-ups on the direct-recall path", async ({
     request
   }) => {
-    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Guide"
-      }
-    });
+    const { threadId: seedThreadId } = await createSmokeThreadThroughApi(
+      request,
+      "Smoke Guide"
+    );
+    await sendSmokeTurnThroughApi(request, seedThreadId, "I am a product designer.");
 
-    expect(seedThreadResponse.ok()).toBeTruthy();
-    const { threadId: seedThreadId } = (await seedThreadResponse.json()) as {
-      threadId: string;
-    };
-
-    const seedTurnResponse = await request.post("/api/test/smoke-send-turn", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        threadId: seedThreadId,
-        content: "I am a product designer."
-      }
-    });
-
-    expect(seedTurnResponse.ok()).toBeTruthy();
-
-    const recallThreadResponse = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Guide"
-      }
-    });
-
-    expect(recallThreadResponse.ok()).toBeTruthy();
-    const { threadId } = (await recallThreadResponse.json()) as { threadId: string };
+    const { threadId } = await createSmokeThreadThroughApi(request, "Smoke Guide");
 
     for (const content of [
       "What profession do you remember that I work in? If you do not know, say you do not know.",
       "So what kind of work do I do?",
       "What do you remember about my work?"
     ]) {
-      const response = await request.post("/api/test/smoke-send-turn", {
-        headers: {
-          "x-smoke-secret": smokeSecret,
-          "Content-Type": "application/json"
-        },
-        data: {
-          threadId,
-          content
-        }
-      });
-
-      expect(response.ok()).toBeTruthy();
+      await sendSmokeTurnThroughApi(request, threadId, content);
     }
 
     const latestAssistantMessage = await getLatestAssistantMessageForThread(
@@ -3234,12 +3186,10 @@ test.describe("core chat smoke", () => {
 
     const introMessage = await getLatestAssistantMessageForThread(threadId);
 
-    expect(introMessage.metadata.question_type).toBe("open-ended-summary");
-    expect(introMessage.metadata.answer_strategy).toBe(
-      "grounded-open-ended-summary"
-    );
+    expect(introMessage.metadata.question_type).toBe("role-self-introduction");
+    expect(introMessage.metadata.answer_strategy).toBe("role-presence-first");
     expect(introMessage.metadata.answer_strategy_reason_code).toBe(
-      "relationship-answer-shape-prompt"
+      "role-self-intro-prompt"
     );
     expect(introMessage.content).toContain("阿强");
 
@@ -3277,48 +3227,19 @@ test.describe("core chat smoke", () => {
   test("keeps short continuation after direct preferred-name confirmation on the same agent", async ({
     request
   }) => {
-    const seedThreadResponse = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Memory Coach"
-      }
-    });
-
-    expect(seedThreadResponse.ok()).toBeTruthy();
-    const { threadId: seedThreadId } = (await seedThreadResponse.json()) as {
-      threadId: string;
-    };
+    const { threadId: seedThreadId } = await createSmokeThreadThroughApi(
+      request,
+      "Smoke Memory Coach"
+    );
 
     for (const content of ["以后我叫你小芳可以吗？", "以后你叫我阿强可以吗？"]) {
-      const response = await request.post("/api/test/smoke-send-turn", {
-        headers: {
-          "x-smoke-secret": smokeSecret,
-          "Content-Type": "application/json"
-        },
-        data: {
-          threadId: seedThreadId,
-          content
-        }
-      });
-
-      expect(response.ok()).toBeTruthy();
+      await sendSmokeTurnThroughApi(request, seedThreadId, content);
     }
 
-    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Memory Coach"
-      }
-    });
-
-    expect(createThreadResponse.ok()).toBeTruthy();
-    const { threadId } = (await createThreadResponse.json()) as { threadId: string };
+    const { threadId } = await createSmokeThreadThroughApi(
+      request,
+      "Smoke Memory Coach"
+    );
 
     for (const content of [
       "请简单介绍一下你自己。",
@@ -3326,18 +3247,7 @@ test.describe("core chat smoke", () => {
       "那你接下来会怎么称呼我？",
       "好，继续。"
     ]) {
-      const response = await request.post("/api/test/smoke-send-turn", {
-        headers: {
-          "x-smoke-secret": smokeSecret,
-          "Content-Type": "application/json"
-        },
-        data: {
-          threadId,
-          content
-        }
-      });
-
-      expect(response.ok()).toBeTruthy();
+      await sendSmokeTurnThroughApi(request, threadId, content);
     }
 
     const latestAssistantMessage = await getLatestAssistantMessageForThread(
@@ -3352,6 +3262,64 @@ test.describe("core chat smoke", () => {
     );
     expect(metadata.continuation_reason_code).toBe("short-fuzzy-follow-up");
     expect(latestAssistantMessage.content).toContain("阿强");
+  });
+
+  test("keeps explicit role-presence questions ahead of same-thread continuity carryover", async ({
+    request
+  }) => {
+    const { threadId } = await createSmokeThreadThroughApi(
+      request,
+      "Smoke Memory Coach"
+    );
+
+    await sendSmokeTurnThroughApi(request, threadId, "我最近有点烦。");
+
+    await sendSmokeTurnThroughApi(request, threadId, "你先介绍一下你自己。");
+    const introMessage = await getLatestAssistantMessageForThread(threadId);
+    expect(introMessage.metadata.question_type).toBe("role-self-introduction");
+    expect(introMessage.metadata.answer_strategy).toBe("role-presence-first");
+    expect(introMessage.metadata.answer_strategy_reason_code).toBe(
+      "role-self-intro-prompt"
+    );
+
+    await sendSmokeTurnThroughApi(request, threadId, "你平时会怎么帮我？");
+    const capabilityMessage = await getLatestAssistantMessageForThread(threadId);
+    expect(capabilityMessage.metadata.question_type).toBe("role-capability");
+    expect(capabilityMessage.metadata.answer_strategy).toBe(
+      "role-presence-first"
+    );
+    expect(capabilityMessage.metadata.answer_strategy_reason_code).toBe(
+      "role-capability-prompt"
+    );
+    expect(capabilityMessage.content).not.toContain("最堵的那一点");
+    expect(capabilityMessage.content).toContain("我平时会");
+    expect(capabilityMessage.content).not.toContain("想先从");
+
+    await sendSmokeTurnThroughApi(request, threadId, "简单说说你的背景。");
+    const backgroundMessage = await getLatestAssistantMessageForThread(threadId);
+    expect(backgroundMessage.metadata.question_type).toBe("role-background");
+    expect(backgroundMessage.metadata.answer_strategy).toBe(
+      "role-presence-first"
+    );
+    expect(backgroundMessage.metadata.answer_strategy_reason_code).toBe(
+      "role-background-prompt"
+    );
+    expect(backgroundMessage.content).not.toContain("最堵的那一点");
+    expect(backgroundMessage.content).toContain("你可以把我理解成");
+    expect(backgroundMessage.content).not.toBe(introMessage.content);
+    expect(backgroundMessage.content).not.toContain("帮你梳理思路");
+    expect(backgroundMessage.content).not.toContain("记住对话里真正重要的细节");
+
+    await sendSmokeTurnThroughApi(request, threadId, "你能做什么，不能做什么？");
+    const boundaryMessage = await getLatestAssistantMessageForThread(threadId);
+    expect(boundaryMessage.metadata.question_type).toBe("role-boundary");
+    expect(boundaryMessage.metadata.answer_strategy).toBe(
+      "role-presence-first"
+    );
+    expect(boundaryMessage.metadata.answer_strategy_reason_code).toBe(
+      "role-boundary-prompt"
+    );
+    expect(boundaryMessage.content).not.toContain("最堵的那一点");
   });
 
   test("keeps natural rephrased continuation prompts on the same-thread carryover path", async ({
@@ -7598,33 +7566,12 @@ test.describe("core chat smoke", () => {
   test("keeps planner preview summary aligned on a mixed relationship and product-feedback turn", async ({
     request
   }) => {
-    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Guide"
-      }
-    });
-
-    expect(createThreadResponse.ok()).toBeTruthy();
-    const { threadId } = (await createThreadResponse.json()) as {
-      threadId: string;
-    };
-
-    const turnResponse = await request.post("/api/test/smoke-send-turn", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        threadId,
-        content: "你怎么又忘了，以后你叫我阿强。"
-      }
-    });
-
-    expect(turnResponse.ok()).toBeTruthy();
+    const { threadId } = await createSmokeThreadThroughApi(request, "Smoke Guide");
+    await sendSmokeTurnThroughApi(
+      request,
+      threadId,
+      "你怎么又忘了，以后你叫我阿强。"
+    );
 
     const latestAssistantMessage = await getLatestAssistantMessageForThread(
       threadId
@@ -7659,33 +7606,8 @@ test.describe("core chat smoke", () => {
   test("keeps planner preview summary aligned on a thread-bound goal turn", async ({
     request
   }) => {
-    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Guide"
-      }
-    });
-
-    expect(createThreadResponse.ok()).toBeTruthy();
-    const { threadId } = (await createThreadResponse.json()) as {
-      threadId: string;
-    };
-
-    const turnResponse = await request.post("/api/test/smoke-send-turn", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        threadId,
-        content: "帮我规划一版用户访谈方案。"
-      }
-    });
-
-    expect(turnResponse.ok()).toBeTruthy();
+    const { threadId } = await createSmokeThreadThroughApi(request, "Smoke Guide");
+    await sendSmokeTurnThroughApi(request, threadId, "帮我规划一版用户访谈方案。");
 
     const latestAssistantMessage = await getLatestAssistantMessageForThread(
       threadId
@@ -7734,34 +7656,12 @@ test.describe("core chat smoke", () => {
   test("keeps planner preview summary aligned on a mixed accepted and rejected turn", async ({
     request
   }) => {
-    const createThreadResponse = await request.post("/api/test/smoke-create-thread", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        agentName: "Smoke Guide"
-      }
-    });
-
-    expect(createThreadResponse.ok()).toBeTruthy();
-    const { threadId } = (await createThreadResponse.json()) as {
-      threadId: string;
-    };
-
-    const turnResponse = await request.post("/api/test/smoke-send-turn", {
-      headers: {
-        "x-smoke-secret": smokeSecret,
-        "Content-Type": "application/json"
-      },
-      data: {
-        threadId,
-        content:
-          "以后你叫我阿强。我今天有点难过，这只是今天的情绪，不用记住。"
-      }
-    });
-
-    expect(turnResponse.ok()).toBeTruthy();
+    const { threadId } = await createSmokeThreadThroughApi(request, "Smoke Guide");
+    await sendSmokeTurnThroughApi(
+      request,
+      threadId,
+      "以后你叫我阿强。我今天有点难过，这只是今天的情绪，不用记住。"
+    );
 
     const latestAssistantMessage = await getLatestAssistantMessageForThread(
       threadId

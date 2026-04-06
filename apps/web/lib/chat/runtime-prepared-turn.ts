@@ -3,6 +3,7 @@ import {
   type RuntimeMemoryContext
 } from "@/lib/chat/memory-recall";
 import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
+import type { AnswerStrategyAddressStyleRecallSpec } from "@/lib/chat/runtime-composition-contracts";
 import {
   buildRoleCorePacket,
   type AgentRecord,
@@ -150,13 +151,7 @@ export function prepareRuntimeRole(args: {
   replyLanguage: RuntimeReplyLanguage;
   replyLanguageSource: ReplyLanguageSource;
   preferSameThreadContinuation: boolean;
-  relationshipRecall: {
-    addressStyleMemory: {
-      memory_type: "relationship";
-      content: string;
-      confidence: number;
-    } | null;
-  };
+  relationshipRecall: AnswerStrategyAddressStyleRecallSpec;
 }): RoleCorePacket {
   return buildRoleCorePacket({
     agent: args.agent,

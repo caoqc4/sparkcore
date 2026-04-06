@@ -3,6 +3,7 @@ import {
   buildSmokeSeedMetadata,
   mergeSmokeSeedMetadata
 } from "@/lib/testing/smoke-seed-metadata";
+import { isTransientSmokeError } from "@/lib/testing/smoke-retry";
 
 export type SmokeConfigLike = {
   email: string;
@@ -23,7 +24,19 @@ async function retrySmokeAdminCall<T>(
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
     try {
-      return await run();
+      const result = await run();
+
+      if (
+        result &&
+        typeof result === "object" &&
+        "error" in result &&
+        (result as { error?: unknown }).error &&
+        isTransientSmokeError((result as { error?: unknown }).error)
+      ) {
+        throw (result as { error?: unknown }).error;
+      }
+
+      return result;
     } catch (error) {
       lastError = error;
 

@@ -2,6 +2,10 @@ export type SmokeReplyLanguage = "zh-Hans" | "en" | "unknown";
 export type SmokeAnswerQuestionType =
   | "direct-fact"
   | "direct-relationship-confirmation"
+  | "role-self-introduction"
+  | "role-capability"
+  | "role-background"
+  | "role-boundary"
   | "open-ended-advice"
   | "open-ended-summary"
   | "fuzzy-follow-up"
@@ -9,6 +13,7 @@ export type SmokeAnswerQuestionType =
 export type SmokeAnswerStrategy =
   | "structured-recall-first"
   | "relationship-recall-first"
+  | "role-presence-first"
   | "grounded-open-ended-advice"
   | "grounded-open-ended-summary"
   | "same-thread-continuation"
@@ -16,6 +21,10 @@ export type SmokeAnswerStrategy =
 export type SmokeAnswerStrategyReasonCode =
   | "direct-relationship-question"
   | "direct-memory-question"
+  | "role-self-intro-prompt"
+  | "role-capability-prompt"
+  | "role-background-prompt"
+  | "role-boundary-prompt"
   | "open-ended-advice-prompt"
   | "open-ended-summary-prompt"
   | "relationship-answer-shape-prompt"

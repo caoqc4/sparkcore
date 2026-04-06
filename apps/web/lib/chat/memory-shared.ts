@@ -59,6 +59,8 @@ export type StoredMemory = {
   updated_at?: string | null;
 };
 
+export type StoredMemorySeed = Pick<StoredMemory, "id" | "content">;
+
 export type RecalledMemory = {
   memory_type: RecalledMemoryType;
   content: string;

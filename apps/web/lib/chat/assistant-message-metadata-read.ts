@@ -408,6 +408,57 @@ export function getAssistantProfileFallbackSuppressed(
   );
 }
 
+export function getAssistantAnswerCarryoverPolicy(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const answerStrategyMetadata = getAssistantAnswerStrategyMetadata(metadata);
+  const diagnosticsMetadata = getAssistantDeveloperDiagnosticsMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(answerStrategyMetadata, "carryover_policy") ??
+    getAssistantMetadataString(diagnosticsMetadata, "answer_carryover_policy") ??
+    getAssistantMetadataString(metadata, "answer_carryover_policy")
+  );
+}
+
+export function getAssistantAnswerForbiddenMoves(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const answerStrategyMetadata = getAssistantAnswerStrategyMetadata(metadata);
+  const diagnosticsMetadata = getAssistantDeveloperDiagnosticsMetadata(metadata);
+
+  const answerStrategyValue = getAssistantMetadataStringArray(
+    answerStrategyMetadata,
+    "forbidden_moves"
+  );
+
+  if (answerStrategyValue.length > 0) {
+    return answerStrategyValue;
+  }
+
+  const diagnosticsValue = getAssistantMetadataStringArray(
+    diagnosticsMetadata,
+    "answer_forbidden_moves"
+  );
+
+  return diagnosticsValue.length > 0
+    ? diagnosticsValue
+    : getAssistantMetadataStringArray(metadata, "answer_forbidden_moves");
+}
+
+export function getAssistantAnswerSceneGoal(
+  metadata: Record<string, unknown> | null | undefined
+) {
+  const answerStrategyMetadata = getAssistantAnswerStrategyMetadata(metadata);
+  const diagnosticsMetadata = getAssistantDeveloperDiagnosticsMetadata(metadata);
+
+  return (
+    getAssistantMetadataString(answerStrategyMetadata, "scene_goal") ??
+    getAssistantMetadataString(diagnosticsMetadata, "answer_scene_goal") ??
+    getAssistantMetadataString(metadata, "answer_scene_goal")
+  );
+}
+
 export function getAssistantMemoryScenarioPackId(
   metadata: Record<string, unknown> | null | undefined
 ) {

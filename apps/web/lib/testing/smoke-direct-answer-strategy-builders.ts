@@ -35,3 +35,39 @@ export function buildSmokeOpenEndedSummaryStrategy(): SmokeAnswerStrategyDecisio
     continuationReasonCode: null
   };
 }
+
+export function buildSmokeRoleSelfIntroStrategy(): SmokeAnswerStrategyDecision {
+  return {
+    questionType: "role-self-introduction",
+    answerStrategy: "role-presence-first",
+    reasonCode: "role-self-intro-prompt",
+    continuationReasonCode: null
+  };
+}
+
+export function buildSmokeRoleCapabilityStrategy(): SmokeAnswerStrategyDecision {
+  return {
+    questionType: "role-capability",
+    answerStrategy: "role-presence-first",
+    reasonCode: "role-capability-prompt",
+    continuationReasonCode: null
+  };
+}
+
+export function buildSmokeRoleBackgroundStrategy(): SmokeAnswerStrategyDecision {
+  return {
+    questionType: "role-background",
+    answerStrategy: "role-presence-first",
+    reasonCode: "role-background-prompt",
+    continuationReasonCode: null
+  };
+}
+
+export function buildSmokeRoleBoundaryStrategy(): SmokeAnswerStrategyDecision {
+  return {
+    questionType: "role-boundary",
+    answerStrategy: "role-presence-first",
+    reasonCode: "role-boundary-prompt",
+    continuationReasonCode: null
+  };
+}

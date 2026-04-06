@@ -817,10 +817,12 @@ export function ChatThreadView({
     }
 
     setFeedback(null);
+    const pendingMessageId = `pending-user-${Date.now()}`;
+
     setOptimisticMessages((current) => [
       ...current,
       {
-        id: `pending-user-${Date.now()}`,
+        id: pendingMessageId,
         role: "user",
         content: trimmedContent,
         status: "completed",
@@ -832,16 +834,30 @@ export function ChatThreadView({
     formRef.current?.reset();
 
     startSendTransition(async () => {
-      const result: SendMessageResult = await sendMessage(formData);
+      try {
+        const result: SendMessageResult = await sendMessage(formData);
 
-      if (!result.ok) {
+        if (!result.ok) {
+          setOptimisticMessages((current) =>
+            current.filter((message) => message.id !== pendingMessageId)
+          );
+          setFeedback({
+            tone: "error",
+            message: result.message
+          });
+          return;
+        }
+
+        router.refresh();
+      } catch (error) {
+        setOptimisticMessages((current) =>
+          current.filter((message) => message.id !== pendingMessageId)
+        );
         setFeedback({
           tone: "error",
-          message: result.message
+          message: error instanceof Error ? error.message : copy.thread.failureGeneric
         });
       }
-
-      router.refresh();
     });
   }
 
@@ -865,6 +881,8 @@ export function ChatThreadView({
           tone: "error",
           message: result.message
         });
+        setRetryingMessageId(null);
+        return;
       }
 
       setRetryingMessageId(null);

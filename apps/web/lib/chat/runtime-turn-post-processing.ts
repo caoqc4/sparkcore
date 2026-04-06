@@ -1,4 +1,7 @@
-import type { RuntimeExecutionPayload } from "@/lib/chat/runtime-contract";
+import type {
+  RuntimeDeferredPostProcessingPayload,
+  RuntimePreviewAssistantMetadata
+} from "@/lib/chat/runtime-contract";
 import {
   updateAssistantFollowUpExecutionPreview,
   updateAssistantMemoryUsagePreview,
@@ -30,7 +33,7 @@ type AssistantPostProcessingTarget = {
 export async function persistAssistantRequestPreviews(
   args: AssistantPostProcessingTarget & {
     activeNamespace?: ActiveRuntimeMemoryNamespace | null;
-    runtimeTurnResult: RuntimeExecutionPayload;
+    runtimeTurnResult: RuntimeDeferredPostProcessingPayload;
   }
 ) {
   if (
@@ -67,12 +70,13 @@ export async function processAssistantRuntimePostProcessing(
     agentId: string;
     sourceMessageId: string;
     activeMemoryNamespace?: ActiveRuntimeMemoryNamespace | null;
-    runtimeTurnResult: RuntimeExecutionPayload;
+    runtimeTurnResult: RuntimeDeferredPostProcessingPayload;
   }
 ) {
+  const memoryUsageUpdates = args.runtimeTurnResult.memory_usage_updates ?? [];
   const usedRelationshipMemoryIds = Array.from(
     new Set(
-      args.runtimeTurnResult.memory_usage_updates
+      memoryUsageUpdates
         .filter((update) => update.usage_kind === "relationship_recall")
         .map((update) => update.memory_item_id)
         .filter((id) => typeof id === "string" && id.length > 0)
@@ -174,11 +178,13 @@ export async function processAssistantRuntimePostProcessing(
       threadId: args.threadId,
       workspaceId: args.workspaceId,
       userId: args.userId,
-      outcome: memoryWriteOutcome
+      outcome: {
+        outcome: memoryWriteOutcome
+      }
     });
   }
 
-  if (args.runtimeTurnResult.memory_usage_updates.length > 0) {
+  if (memoryUsageUpdates.length > 0) {
     await updateAssistantMemoryUsagePreview({
       supabase: args.supabase,
       assistantMessageId: args.assistantMessageId,
@@ -186,12 +192,12 @@ export async function processAssistantRuntimePostProcessing(
       workspaceId: args.workspaceId,
       userId: args.userId,
       usage: {
-        updates: args.runtimeTurnResult.memory_usage_updates,
+        updates: memoryUsageUpdates,
         assistantMetadata:
           assistantMessage?.metadata &&
           typeof assistantMessage.metadata === "object" &&
           !Array.isArray(assistantMessage.metadata)
-            ? (assistantMessage.metadata as Record<string, unknown>)
+            ? (assistantMessage.metadata as RuntimePreviewAssistantMetadata)
             : null
       }
     });

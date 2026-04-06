@@ -1,19 +1,50 @@
 import type {
+  MemoryWriteOutcome,
   MemoryType,
+  RecallOutcome,
+  RecalledMemory,
   RecalledMemoryType
 } from "@/lib/chat/memory-shared";
-import type { PlannerCandidatePreview } from "@/lib/chat/memory-planner-candidates";
+import type { RuntimeAssistantPayload } from "@/lib/chat/assistant-message-payload";
+import type {
+  PlannerCandidatePreview,
+  PlannerCandidateSummary
+} from "@/lib/chat/memory-planner-candidates";
 import type {
   ThreadStateContinuityProjectionReason,
   ThreadStateFocusProjectionReason
 } from "@/lib/chat/thread-state-writeback";
+import type { BuildAssistantMessageMetadataInput } from "@/lib/chat/assistant-message-metadata";
+import type { ActiveRuntimeMemoryNamespace } from "@/lib/chat/memory-namespace";
+import type { RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
+import type { RuntimeKnowledgeGatingSummary } from "@/lib/chat/runtime-knowledge-sources";
+import type {
+  AnswerCarryoverPolicy,
+  AnswerForbiddenMove,
+  AnswerQuestionType,
+  AnswerSceneGoal,
+  AnswerStrategy,
+  AnswerStrategyPriority,
+  AnswerStrategyReasonCode,
+  ContinuationReasonCode
+} from "@/lib/chat/answer-decision";
+import type { RuntimeReplyLanguage } from "@/lib/chat/role-core";
+
+export type RuntimeMetadataObject = Record<string, unknown>;
 
 export type RuntimeAssistantMessage = {
   role: "assistant";
   content: string;
   language: string;
   message_type: "text";
-  metadata?: Record<string, unknown>;
+  metadata?: RuntimeAssistantPayload["metadata"];
+};
+
+export type RuntimeRelationshipMemorySummary = {
+  memory_id: string;
+  memory_type: "relationship";
+  content: string;
+  confidence: number;
 };
 
 export type RuntimeGenericMemoryWriteRequest = {
@@ -53,7 +84,7 @@ export type RuntimeFollowUpRequest = {
   kind: "gentle_check_in";
   trigger_at: string;
   reason: string;
-  payload: Record<string, unknown>;
+  payload: RuntimeMetadataObject;
 };
 
 export type RuntimeMemoryUsageUpdate = {
@@ -73,7 +104,7 @@ export type RuntimeFollowUpExecutionResult = {
   status: RuntimeFollowUpExecutionStatus;
   reason: string;
   trigger_at?: string;
-  payload?: Record<string, unknown>;
+  payload?: RuntimeMetadataObject;
 };
 
 export type PendingFollowUpStatus =
@@ -92,12 +123,19 @@ export type PendingFollowUpRecord = {
   user_id: string;
   agent_id: string;
   thread_id: string;
-  request_payload: Record<string, unknown>;
+  request_payload: RuntimeMetadataObject;
   request_reason: string;
   source_message_id?: string | null;
   source_request_index: number;
   created_at: string;
   updated_at: string;
+};
+
+export type PendingFollowUpPreviewRecord = {
+  id: PendingFollowUpRecord["id"];
+  kind: PendingFollowUpRecord["kind"];
+  status: PendingFollowUpRecord["status"];
+  trigger_at: PendingFollowUpRecord["trigger_at"];
 };
 
 export type EnqueuePendingFollowUpsInput = {
@@ -130,7 +168,7 @@ export type ClaimDuePendingFollowUpsResult = {
 export type MarkFollowUpExecutedInput = {
   id: string;
   executed_at: string;
-  execution_metadata?: Record<string, unknown>;
+  execution_metadata?: RuntimeMetadataObject;
 };
 
 export type MarkFollowUpExecutedResult = {
@@ -142,7 +180,7 @@ export type MarkFollowUpFailedInput = {
   id: string;
   failed_at: string;
   failure_reason: string;
-  failure_metadata?: Record<string, unknown>;
+  failure_metadata?: RuntimeMetadataObject;
 };
 
 export type MarkFollowUpFailedResult = {
@@ -230,6 +268,9 @@ export type RuntimeAnswerStrategySelectedEvent = {
     strategy: string;
     reason_code: string | null;
     priority: string;
+    carryover_policy: string;
+    forbidden_moves: string[];
+    scene_goal: string;
     continuation_reason_code: string | null;
     reply_language: string;
   };
@@ -258,6 +299,76 @@ export type RuntimeThreadStateWritebackCompletedEvent = {
   };
 };
 
+export type RuntimeKnowledgeSelectedEventGatingSummary = {
+  knowledge_route: RuntimeKnowledgeSelectedEvent["payload"]["knowledge_route"];
+  available: RuntimeKnowledgeSelectedEvent["payload"]["available"];
+  available_count: RuntimeKnowledgeSelectedEvent["payload"]["available_count"];
+  should_inject: RuntimeKnowledgeSelectedEvent["payload"]["should_inject"];
+  injection_gap_reason:
+    RuntimeKnowledgeSelectedEvent["payload"]["injection_gap_reason"];
+  suppressed: RuntimeKnowledgeSelectedEvent["payload"]["suppressed"];
+  suppression_reason:
+    RuntimeKnowledgeSelectedEvent["payload"]["suppression_reason"];
+  query_token_count:
+    RuntimeKnowledgeSelectedEvent["payload"]["query_token_count"];
+  zero_match_filtered_count:
+    RuntimeKnowledgeSelectedEvent["payload"]["zero_match_filtered_count"];
+  weak_match_filtered_count:
+    RuntimeKnowledgeSelectedEvent["payload"]["weak_match_filtered_count"];
+};
+
+export type BuildKnowledgeSelectedEventArgs = {
+  applicableKnowledgeCount: number;
+  knowledgeGating: RuntimeKnowledgeSelectedEventGatingSummary;
+};
+
+export type BuildMemoryRecalledEventArgs = {
+  recalledCount: number;
+  memoryTypes: RecalledMemoryType[];
+  hiddenExclusionCount: number;
+  incorrectExclusionCount: number;
+  memoryRecordRecallPreferred: boolean;
+  profileFallbackSuppressed: boolean;
+};
+
+export type BuildMemoryWritePlannedEventArgs = {
+  memoryWriteRequests: RuntimeMemoryWriteRequest[];
+  activeMemoryNamespace: ActiveRuntimeMemoryNamespace | null;
+  memoryPlannerSummary: PlannerCandidateSummary;
+};
+
+export type BuildFollowUpPlannedEventArgs = {
+  followUpRequests: RuntimeFollowUpRequest[];
+};
+
+export type BuildAnswerStrategySelectedEventArgs = {
+  questionType: AnswerQuestionType;
+  strategy: AnswerStrategy;
+  reasonCode: AnswerStrategyReasonCode;
+  priority: AnswerStrategyPriority;
+  carryoverPolicy: AnswerCarryoverPolicy;
+  forbiddenMoves: AnswerForbiddenMove[];
+  sceneGoal: AnswerSceneGoal;
+  continuationReasonCode: ContinuationReasonCode | null;
+  replyLanguage: RuntimeReplyLanguage;
+};
+
+export type BuildAssistantReplyCompletedEventArgs = {
+  threadId: string;
+  agentId: string;
+  recalledCount: number;
+  replyLanguage: RuntimeReplyLanguage;
+};
+
+export type BuildThreadStateWritebackCompletedEventArgs = {
+  status: RuntimeThreadStateWritebackCompletedEvent["payload"]["status"];
+  repository: RuntimeThreadStateWritebackCompletedEvent["payload"]["repository"];
+  anchorMode?: RuntimeThreadStateWritebackCompletedEvent["payload"]["anchor_mode"];
+  focusProjectionReason?: ThreadStateFocusProjectionReason | null;
+  continuityProjectionReason?: ThreadStateContinuityProjectionReason | null;
+  reason?: string | null;
+};
+
 export type RuntimeEvent =
   | RuntimeMemoryRecalledEvent
   | RuntimeKnowledgeSelectedEvent
@@ -274,16 +385,124 @@ export type RuntimeTurnResult = {
   follow_up_requests: RuntimeFollowUpRequest[];
   memory_usage_updates: RuntimeMemoryUsageUpdate[];
   runtime_events: RuntimeEvent[];
-  immediate_artifacts?: Array<Record<string, unknown>>;
-  debug_metadata?: Record<string, unknown>;
+  immediate_artifacts?: RuntimeMetadataObject[];
+  debug_metadata?: RuntimeMetadataObject;
+};
+
+export type RuntimeRelationshipRecallUsageRecord = {
+  memory_id: string;
+  memory_type: "relationship";
+  content: string;
+  confidence: number;
+};
+
+export type BuildRuntimeTurnResultArtifactsArgs = {
+  finalAssistantContent: string;
+  assistantMetadata: BuildAssistantMessageMetadataInput;
+  replyLanguage: RuntimeReplyLanguage;
+  memoryWriteRequests: RuntimeMemoryWriteRequest[];
+  memoryPlannerCandidates: PlannerCandidatePreview[] | undefined;
+  followUpRequests: RuntimeFollowUpRequest[];
+  relationshipMemories: RuntimeRelationshipRecallUsageRecord[];
+  allRecalledMemories: RecalledMemory[];
+  memoryRecall: RecallOutcome;
+  applicableKnowledge: RuntimeKnowledgeSnippet[];
+  knowledgeGatingWithOutcome: RuntimeKnowledgeGatingSummary;
+  activeMemoryNamespace: ActiveRuntimeMemoryNamespace;
+  memoryPlannerSummary: PlannerCandidateSummary;
+  answerQuestionType: AnswerQuestionType;
+  answerStrategy: AnswerStrategy;
+  answerStrategyReasonCode: AnswerStrategyReasonCode;
+  answerStrategyPriority: AnswerStrategyPriority;
+  answerCarryoverPolicy: AnswerCarryoverPolicy;
+  answerForbiddenMoves: AnswerForbiddenMove[];
+  answerSceneGoal: AnswerSceneGoal;
+  continuationReasonCode: ContinuationReasonCode | null;
+  threadId: string;
+  agentId: string;
+  debugMetadata: RuntimeMetadataObject | undefined;
+};
+
+export type RuntimeTurnResultArtifacts = {
+  assistantPayload: RuntimeAssistantPayload;
+  assistantPayloadContentBytes: number;
+  assistantPayloadMetadataBytes: number;
+  assistantPayloadTotalBytes: number;
+  runtimeTurnResult: RuntimeTurnResult;
+};
+
+export type RuntimeTurnPlanningArgs = {
+  latestUserMessageContent: string | null;
+  currentSourceMessageId: string | null;
+  recentRawTurns: Array<{ role: "user" | "assistant"; content: string }>;
+  activeMemoryNamespace: ActiveRuntimeMemoryNamespace | null;
+  threadId: string;
+  agentId: string;
+  userId: string;
+  continuationReasonCode: ContinuationReasonCode | null;
+  replyLanguage: RuntimeReplyLanguage;
+};
+
+export type RuntimeTurnPlanningArtifacts = {
+  memoryWriteRequests: RuntimeMemoryWriteRequest[];
+  memoryPlannerCandidates: PlannerCandidatePreview[];
+  runtimePlannedCandidates: PlannerCandidatePreview[];
+  memoryPlannerSummary: PlannerCandidateSummary;
+  followUpRequests: RuntimeFollowUpRequest[];
 };
 
 // Execution-layer subset consumed by internal post-processing. This is a
 // downstream contract only; planning stays in the centralized runtime layer.
-export type RuntimeExecutionPayload = Pick<
-  RuntimeTurnResult,
-  | "memory_write_requests"
-  | "memory_planner_candidates"
-  | "follow_up_requests"
-  | "memory_usage_updates"
->;
+export type RuntimeExecutionPayload = {
+  memory_write_requests: RuntimeTurnResult["memory_write_requests"];
+  memory_planner_candidates: RuntimeTurnResult["memory_planner_candidates"];
+  follow_up_requests: RuntimeTurnResult["follow_up_requests"];
+  memory_usage_updates: RuntimeTurnResult["memory_usage_updates"];
+};
+
+export type RuntimeDeferredPostProcessingPayload = {
+  memory_write_requests: RuntimeExecutionPayload["memory_write_requests"];
+  follow_up_requests: RuntimeExecutionPayload["follow_up_requests"];
+  memory_planner_candidates?: RuntimeExecutionPayload["memory_planner_candidates"];
+  memory_usage_updates?: RuntimeExecutionPayload["memory_usage_updates"];
+};
+
+export type BuildRuntimeFollowUpExecutionMetadataArgs = {
+  followUpExecutionResults: RuntimeFollowUpExecutionResult[];
+  followUpEnqueueInsertedCount: number;
+  followUpEnqueueRecords: PendingFollowUpPreviewRecord[];
+};
+
+export type BuildRuntimeMemoryUsageMetadataArgs = {
+  updates: RuntimeMemoryUsageUpdate[];
+  assistantMetadata?: RuntimePreviewAssistantMetadata | null;
+};
+
+export type BuildRuntimeMemoryWriteOutcomeMetadataArgs = {
+  outcome: MemoryWriteOutcome;
+  existingRuntimeMemoryWrites?: RuntimeMetadataObject | null;
+};
+
+export type RuntimePreviewRelationshipRecallMetadata = {
+  update_count: number;
+  memory_ids: string[];
+  used: boolean;
+  direct_naming_question: boolean;
+  direct_preferred_name_question: boolean;
+  relationship_style_prompt: boolean;
+  same_thread_continuity: boolean;
+  recalled_keys: string[];
+  adopted_agent_nickname_target: string | null;
+  adopted_user_preferred_name_target: string | null;
+};
+
+export type RuntimePreviewAssistantMetadata = {
+  memory?: {
+    relationship_recall?: Omit<
+      RuntimePreviewRelationshipRecallMetadata,
+      "update_count" | "memory_ids"
+    > & {
+      recalled_memory_ids?: string[];
+    } | null;
+  } | null;
+};

@@ -7,14 +7,22 @@ import {
 } from "@/lib/testing/smoke-direct-question-prompts";
 import {
   isSmokeOpenEndedPlanningHelpQuestion,
-  isSmokeOpenEndedSummaryQuestion
+  isSmokeOpenEndedSummaryQuestion,
+  isSmokeRoleBackgroundQuestion,
+  isSmokeRoleBoundaryQuestion,
+  isSmokeRoleCapabilityQuestion
 } from "@/lib/testing/smoke-open-ended-question-prompts";
+import { isSmokeSelfIntroGreetingRequest } from "@/lib/testing/smoke-relationship-prompts";
 import type { SmokeAnswerStrategyDecision } from "@/lib/testing/smoke-assistant-builders";
 import {
   buildSmokeDirectFactStrategy,
   buildSmokeDirectRelationshipStrategy,
   buildSmokeOpenEndedAdviceStrategy,
-  buildSmokeOpenEndedSummaryStrategy
+  buildSmokeOpenEndedSummaryStrategy,
+  buildSmokeRoleBackgroundStrategy,
+  buildSmokeRoleBoundaryStrategy,
+  buildSmokeRoleCapabilityStrategy,
+  buildSmokeRoleSelfIntroStrategy
 } from "@/lib/testing/smoke-direct-answer-strategy-builders";
 
 export function getSmokeDirectOrOpenEndedAnswerStrategy(
@@ -34,6 +42,22 @@ export function getSmokeDirectOrOpenEndedAnswerStrategy(
 
   if (directFactQuestion) {
     return buildSmokeDirectFactStrategy();
+  }
+
+  if (isSmokeSelfIntroGreetingRequest(content)) {
+    return buildSmokeRoleSelfIntroStrategy();
+  }
+
+  if (isSmokeRoleCapabilityQuestion(content)) {
+    return buildSmokeRoleCapabilityStrategy();
+  }
+
+  if (isSmokeRoleBackgroundQuestion(content)) {
+    return buildSmokeRoleBackgroundStrategy();
+  }
+
+  if (isSmokeRoleBoundaryQuestion(content)) {
+    return buildSmokeRoleBoundaryStrategy();
   }
 
   if (isSmokeOpenEndedPlanningHelpQuestion(content)) {

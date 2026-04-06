@@ -109,6 +109,23 @@ export type ActiveScenarioMemoryPack = ScenarioMemoryPack & {
   governance_fabric_plane_reuse_mode: ScenarioGovernanceFabricPlaneReuseMode;
 };
 
+export type ScenarioMemoryPackIdSpec = Pick<ActiveScenarioMemoryPack, "pack_id">;
+
+export type ScenarioMemoryPackPolicySpec = Pick<
+  ActiveScenarioMemoryPack,
+  "pack_id" | "selection_reason" | "governance_route_bias"
+>;
+
+export type ScenarioGovernanceFabricPlaneSnapshotSpec = Pick<
+  ActiveScenarioMemoryPack,
+  | "governance_fabric_plane_digest_id"
+  | "strategy_governance_fabric_plane_summary"
+  | "orchestration_governance_fabric_plane_mode"
+  | "governance_fabric_plane_reuse_mode"
+  | "preferred_routes"
+  | "assembly_order"
+>;
+
 function resolveKnowledgeGovernanceRouteWeights(args: {
   relevantKnowledge?: RuntimeKnowledgeSnippet[];
   defaultRouteWeight: number;
@@ -168,7 +185,7 @@ function resolveKnowledgeGovernanceRouteWeights(args: {
 }
 
 export function resolveScenarioMemoryPackStrategy(
-  pack: Pick<ActiveScenarioMemoryPack, "pack_id">
+  pack: ScenarioMemoryPackIdSpec
 ): ScenarioMemoryPackStrategy {
   if (pack.pack_id === "project_ops") {
     return {
@@ -208,10 +225,7 @@ export function resolveScenarioMemoryPackStrategy(
 }
 
 export function resolveScenarioMemoryPackPolicy(
-  pack: Pick<
-    ActiveScenarioMemoryPack,
-    "pack_id" | "selection_reason" | "governance_route_bias"
-  >
+  pack: ScenarioMemoryPackPolicySpec
 ) {
   if (pack.pack_id === "project_ops") {
     return {
@@ -404,15 +418,7 @@ export function resolveScenarioMemoryPackPolicy(
 }
 
 export function resolveScenarioGovernanceFabricPlanePhaseSnapshot(
-  pack: Pick<
-    ActiveScenarioMemoryPack,
-    | "governance_fabric_plane_digest_id"
-    | "strategy_governance_fabric_plane_summary"
-    | "orchestration_governance_fabric_plane_mode"
-    | "governance_fabric_plane_reuse_mode"
-    | "preferred_routes"
-    | "assembly_order"
-  >
+  pack: ScenarioGovernanceFabricPlaneSnapshotSpec
 ) {
   return {
     phase_snapshot_id: `${pack.governance_fabric_plane_digest_id}_phase_snapshot`,

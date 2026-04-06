@@ -3,7 +3,8 @@ import type {
   RuntimeKnowledgeSelectedEvent,
   RuntimeThreadStateWritebackCompletedEvent,
   RuntimeMemoryRecalledEvent,
-  RuntimeMemoryWritePlannedEvent
+  RuntimeMemoryWritePlannedEvent,
+  RuntimeAnswerStrategySelectedEvent
 } from "@/lib/chat/runtime-contract";
 
 export function getRuntimeMemoryRecalledEvent(
@@ -108,6 +109,42 @@ export function getRuntimeMemoryWritePlannedEvent(
   );
 
   return event ?? null;
+}
+
+export function getRuntimeAnswerStrategySelectedEvent(
+  events: RuntimeEvent[] | null | undefined
+): RuntimeAnswerStrategySelectedEvent | null {
+  const event = (events ?? []).find(
+    (item): item is RuntimeAnswerStrategySelectedEvent =>
+      item.type === "answer_strategy_selected"
+  );
+
+  return event ?? null;
+}
+
+export function getRuntimeAnswerCarryoverPolicy(
+  events: RuntimeEvent[] | null | undefined
+) {
+  return (
+    getRuntimeAnswerStrategySelectedEvent(events)?.payload.carryover_policy ??
+    null
+  );
+}
+
+export function getRuntimeAnswerForbiddenMoves(
+  events: RuntimeEvent[] | null | undefined
+) {
+  return (
+    getRuntimeAnswerStrategySelectedEvent(events)?.payload.forbidden_moves ?? []
+  );
+}
+
+export function getRuntimeAnswerSceneGoal(
+  events: RuntimeEvent[] | null | undefined
+) {
+  return (
+    getRuntimeAnswerStrategySelectedEvent(events)?.payload.scene_goal ?? null
+  );
 }
 
 export function getRuntimePlannerCandidateCount(

@@ -48,6 +48,9 @@ export type BuildAssistantMetadataSummaryGroupsInput = {
   answer_strategy_reason_code: string | null;
   answer_strategy_priority: string | null;
   answer_strategy_priority_label: string | null;
+  answer_carryover_policy?: string | null;
+  answer_forbidden_moves?: string[];
+  answer_scene_goal?: string | null;
   relationship_recall_used?: boolean;
   relationship_recall_direct_naming_question?: boolean;
   relationship_recall_direct_preferred_name_question?: boolean;
@@ -297,6 +300,9 @@ export type BuildAssistantMessageMetadataInput = {
   answer_strategy_reason_code: string | null;
   answer_strategy_priority: string;
   answer_strategy_priority_label: string;
+  answer_carryover_policy?: string | null;
+  answer_forbidden_moves?: string[];
+  answer_scene_goal?: string | null;
   relationship_recall_used?: boolean;
   relationship_recall_direct_naming_question?: boolean;
   relationship_recall_direct_preferred_name_question?: boolean;
@@ -520,6 +526,9 @@ export function buildAssistantMetadataSummaryGroups(
       priority: input.answer_strategy_priority,
       priority_label: input.answer_strategy_priority_label,
       question_type: input.question_type,
+      carryover_policy: input.answer_carryover_policy ?? null,
+      forbidden_moves: input.answer_forbidden_moves ?? [],
+      scene_goal: input.answer_scene_goal ?? null,
       relationship_recall:
         input.relationship_recall_used ||
         input.relationship_recall_direct_naming_question ||
@@ -1427,6 +1436,9 @@ export function buildAssistantMessageMetadata(
     question_type: input.question_type,
     answer_strategy: input.answer_strategy,
     answer_strategy_reason_code: input.answer_strategy_reason_code,
+    answer_carryover_policy: input.answer_carryover_policy ?? null,
+    answer_forbidden_moves: input.answer_forbidden_moves ?? [],
+    answer_scene_goal: input.answer_scene_goal ?? null,
     continuation_reason_code: input.continuation_reason_code,
     thread_state_lifecycle_status: input.thread_state_lifecycle_status,
     thread_state_focus_mode: input.thread_state_focus_mode,
@@ -1497,6 +1509,9 @@ export function buildAssistantMessageMetadata(
       answer_strategy_reason_code: input.answer_strategy_reason_code,
       answer_strategy_priority: input.answer_strategy_priority,
       answer_strategy_priority_label: input.answer_strategy_priority_label,
+      answer_carryover_policy: input.answer_carryover_policy ?? null,
+      answer_forbidden_moves: input.answer_forbidden_moves ?? [],
+      answer_scene_goal: input.answer_scene_goal ?? null,
       relationship_recall_used: input.relationship_recall_used ?? false,
       relationship_recall_direct_naming_question:
         input.relationship_recall_direct_naming_question ?? false,

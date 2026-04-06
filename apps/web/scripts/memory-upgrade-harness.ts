@@ -13,8 +13,9 @@ import {
   isStoredMemoryRelationshipMemoryRecord,
   isStoredMemoryStaticProfile
 } from "@/lib/chat/memory-records";
+import { buildVisibleMemoryRecord } from "@/lib/chat/memory-visible-records";
+import { buildAgentSystemPrompt } from "@/lib/chat/agent-system-prompt-builders";
 import {
-  buildAgentSystemPrompt,
   buildRoleCoreMemoryCloseNoteArtifactPrompt,
   buildRoleCoreMemoryCloseNoteArchivePrompt,
   buildRoleCoreMemoryCloseNoteHandoffPrompt,
@@ -22,9 +23,8 @@ import {
   buildRoleCoreMemoryCloseNotePersistenceManifestPrompt,
   buildRoleCoreMemoryCloseNotePersistencePayloadPrompt,
   buildRoleCoreMemoryCloseNoteRecordPrompt,
-  buildRoleCoreMemoryCloseNoteOutputPrompt,
-  buildVisibleMemoryRecord
-} from "@/lib/chat/runtime";
+  buildRoleCoreMemoryCloseNoteOutputPrompt
+} from "@/lib/chat/agent-system-prompt-builders";
 import {
   buildRoleCoreMemoryCloseNoteArtifact,
   buildRoleCoreMemoryCloseNoteArchive,
@@ -232,7 +232,7 @@ import {
   buildPlannedStaticProfileRecord,
   buildPlannedThreadStateCandidate
 } from "@/lib/chat/memory-write-record-candidates";
-import type { StoredMemory } from "@/lib/chat/memory-shared";
+import type { StoredMemory, StoredMemorySeed } from "@/lib/chat/memory-shared";
 import { resolveSupportedSingleSlotTarget } from "@/lib/chat/memory-v2";
 import { buildRuntimeAssistantMetadataInput } from "@/lib/chat/runtime-assistant-metadata";
 import { buildRuntimeTurnInput } from "@/lib/chat/runtime-input";
@@ -260,7 +260,7 @@ function summarizeGate<T extends Record<string, boolean | undefined>>(checks: T)
 }
 
 function createStoredMemory(
-  overrides: Partial<StoredMemory> & Pick<StoredMemory, "id" | "content">
+  overrides: Partial<StoredMemory> & StoredMemorySeed
 ): StoredMemory {
   return {
     id: overrides.id,
@@ -1530,6 +1530,9 @@ function main() {
         strategy_reason_code: "memory_supported",
         strategy_priority: "high",
         strategy_priority_label: "High",
+        carryover_policy: "allowed",
+        forbidden_moves: [],
+        scene_goal: "answer_grounded_default",
         relationship_recall: {
           used: true,
           direct_naming_question: true,

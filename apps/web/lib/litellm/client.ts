@@ -59,6 +59,24 @@ export class LiteLLMTimeoutError extends Error {
   }
 }
 
+export class LiteLLMFetchError extends Error {
+  readonly endpoint: string;
+  readonly operation: "chat_completions" | "image_generations" | "replicate_prediction";
+  readonly causeError?: unknown;
+
+  constructor(args: {
+    endpoint: string;
+    operation: "chat_completions" | "image_generations" | "replicate_prediction";
+    cause?: unknown;
+  }) {
+    super(`LiteLLM fetch failed during ${args.operation}.`);
+    this.name = "LiteLLMFetchError";
+    this.endpoint = args.endpoint;
+    this.operation = args.operation;
+    this.causeError = args.cause;
+  }
+}
+
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
 }
@@ -160,6 +178,47 @@ function buildSmokeAssistantResponse(messages: LiteLLMMessage[]) {
     return "我是 Lagun，可以用中文帮助你梳理计划、整理记忆，并继续当前线程里的对话。";
   }
 
+  if (
+    latestUserMessage.includes("你先介绍一下你自己") ||
+    latestUserMessage.includes("你先介绍下你自己") ||
+    latestUserMessage.includes("介绍一下你自己")
+  ) {
+    return targetLanguage === "zh-Hans"
+      ? "我是 Memory Coach，会陪你聊天、帮你梳理思路，也会记住对话里真正重要的细节。"
+      : "I am Memory Coach. I stay with you in conversation, help untangle your thoughts, and remember the details that matter.";
+  }
+
+  if (
+    latestUserMessage.includes("你平时会怎么帮我") ||
+    latestUserMessage.includes("你平时怎么帮我") ||
+    latestUserMessage.includes("你能怎么帮我")
+  ) {
+    return targetLanguage === "zh-Hans"
+      ? "我平时会陪你把想法说清楚，帮你整理重点、接住情绪起伏，也会记住你明确说过的重要偏好和约定。"
+      : "I usually help you sort through your thoughts, organize what matters, stay with emotional turns, and remember the important preferences and agreements you state clearly.";
+  }
+
+  if (
+    latestUserMessage.includes("简单说说你的背景") ||
+    latestUserMessage.includes("说说你的背景") ||
+    latestUserMessage.includes("你的背景是什么")
+  ) {
+    return targetLanguage === "zh-Hans"
+      ? "你可以把我理解成一个长期陪在你身边、安静又贴心的陪伴者，所以我说话会偏温柔稳当，不会一上来就很用力地推着你走。"
+      : "You can think of me as a steady companion who stays close over time, which is why my voice leans warm and grounded instead of pushing you too hard from the start.";
+  }
+
+  if (
+    latestUserMessage.includes("你能做什么，不能做什么") ||
+    latestUserMessage.includes("你能做什么不能做什么") ||
+    latestUserMessage.includes("你能做什么") ||
+    latestUserMessage.includes("你不能做什么")
+  ) {
+    return targetLanguage === "zh-Hans"
+      ? "我能陪你聊天、帮你整理想法、总结重点、记住你明确说过的重要信息；但我不能替你亲自去现实里行动，也不该把没确认过的事说成我真的知道。"
+      : "I can talk with you, help organize your thinking, summarize what matters, and remember important details you state clearly. I cannot act in the real world for you, and I should not pretend I know things that were never actually confirmed.";
+  }
+
   return targetLanguage === "zh-Hans"
     ? "好的，我已经记下来了，接下来可以继续帮你。"
     : "Thanks, I noted that and I am ready to help with the next step.";
@@ -233,7 +292,11 @@ export async function generateText({
       throw new LiteLLMTimeoutError(timeoutMs);
     }
 
-    throw error;
+    throw new LiteLLMFetchError({
+      endpoint,
+      operation: "chat_completions",
+      cause: error
+    });
   } finally {
     clearTimeout(timeoutId);
   }
@@ -327,7 +390,11 @@ export async function generateImage({
       throw new LiteLLMTimeoutError(DEFAULT_LITELLM_TIMEOUT_MS);
     }
 
-    throw error;
+    throw new LiteLLMFetchError({
+      endpoint,
+      operation: "image_generations",
+      cause: error
+    });
   } finally {
     clearTimeout(timeoutId);
   }
@@ -400,9 +467,10 @@ async function generateImageViaReplicate(args: {
     throw new Error(`Invalid Replicate model ref: ${args.replicateModelRef}`);
   }
 
-  const createResponse = await fetch(
-    `https://api.replicate.com/v1/models/${owner}/${name}/predictions`,
-    {
+  const replicateEndpoint = `https://api.replicate.com/v1/models/${owner}/${name}/predictions`;
+  let createResponse: Response;
+  try {
+    createResponse = await fetch(replicateEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -414,8 +482,14 @@ async function generateImageViaReplicate(args: {
           prompt: args.prompt
         }
       })
-    }
-  );
+    });
+  } catch (error) {
+    throw new LiteLLMFetchError({
+      endpoint: replicateEndpoint,
+      operation: "replicate_prediction",
+      cause: error
+    });
+  }
 
   const createPayload = (await createResponse.json().catch(() => null)) as ReplicatePredictionResponse | null;
 
@@ -445,11 +519,20 @@ async function generateImageViaReplicate(args: {
 
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    const pollResponse = await fetch(pollUrl, {
-      headers: {
-        Authorization: `Token ${apiKey}`
-      }
-    });
+    let pollResponse: Response;
+    try {
+      pollResponse = await fetch(pollUrl, {
+        headers: {
+          Authorization: `Token ${apiKey}`
+        }
+      });
+    } catch (error) {
+      throw new LiteLLMFetchError({
+        endpoint: pollUrl,
+        operation: "replicate_prediction",
+        cause: error
+      });
+    }
     const polledPrediction = (await pollResponse.json().catch(() => null)) as ReplicatePredictionResponse | null;
 
     if (!polledPrediction) {

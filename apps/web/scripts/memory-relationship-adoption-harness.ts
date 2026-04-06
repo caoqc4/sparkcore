@@ -1,8 +1,31 @@
-import { buildRelationshipAdoptionInstructions } from "@/lib/chat/runtime";
+import { buildRelationshipAdoptionInstructions } from "@/lib/chat/answer-strategy-instructions";
+import type { AnswerStrategyNamingRecallSpec } from "@/lib/chat/runtime-composition-contracts";
 
 type RelationshipAdoptionCase = {
   id: string;
   actual: () => boolean;
+};
+
+const zhStoredNames: AnswerStrategyNamingRecallSpec = {
+  preferredNameMemory: {
+    memory_type: "relationship",
+    content: "阿强",
+    confidence: 0.98
+  },
+  nicknameMemory: {
+    memory_type: "relationship",
+    content: "小芳",
+    confidence: 0.97
+  }
+};
+
+const enStoredPreferredNameOnly: AnswerStrategyNamingRecallSpec = {
+  preferredNameMemory: {
+    memory_type: "relationship",
+    content: "A-Qiang",
+    confidence: 0.98
+  },
+  nicknameMemory: null
 };
 
 const CASES: RelationshipAdoptionCase[] = [
@@ -12,18 +35,7 @@ const CASES: RelationshipAdoptionCase[] = [
       const instructions = buildRelationshipAdoptionInstructions({
         isZh: true,
         mode: "same-thread-continuation",
-        relationshipRecall: {
-          preferredNameMemory: {
-            memory_type: "relationship",
-            content: "阿强",
-            confidence: 0.98
-          },
-          nicknameMemory: {
-            memory_type: "relationship",
-            content: "小芳",
-            confidence: 0.97
-          }
-        }
+        relationshipRecall: zhStoredNames
       }).join("\n");
 
       return (
@@ -40,18 +52,7 @@ const CASES: RelationshipAdoptionCase[] = [
       const instructions = buildRelationshipAdoptionInstructions({
         isZh: true,
         mode: "open-ended-summary",
-        relationshipRecall: {
-          preferredNameMemory: {
-            memory_type: "relationship",
-            content: "阿强",
-            confidence: 0.98
-          },
-          nicknameMemory: {
-            memory_type: "relationship",
-            content: "小芳",
-            confidence: 0.97
-          }
-        }
+        relationshipRecall: zhStoredNames
       }).join("\n");
 
       return (
@@ -68,14 +69,7 @@ const CASES: RelationshipAdoptionCase[] = [
       const instructions = buildRelationshipAdoptionInstructions({
         isZh: false,
         mode: "open-ended-advice",
-        relationshipRecall: {
-          preferredNameMemory: {
-            memory_type: "relationship",
-            content: "A-Qiang",
-            confidence: 0.98
-          },
-          nicknameMemory: null
-        }
+        relationshipRecall: enStoredPreferredNameOnly
       }).join("\n");
 
       return (

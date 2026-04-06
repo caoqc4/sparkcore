@@ -7,7 +7,10 @@ export {
 } from "@/lib/testing/smoke-direct-question-prompts";
 export {
   isSmokeOpenEndedPlanningHelpQuestion,
-  isSmokeOpenEndedSummaryQuestion
+  isSmokeOpenEndedSummaryQuestion,
+  isSmokeRoleBackgroundQuestion,
+  isSmokeRoleBoundaryQuestion,
+  isSmokeRoleCapabilityQuestion
 } from "@/lib/testing/smoke-open-ended-question-prompts";
 export {
   isSmokeBriefGreetingRequest,
