@@ -250,6 +250,7 @@ Deployment assets:
 
 - [cloud-run-deploy.sh](/Users/caoq/git/sparkcore/apps/web/scripts/cloud-run-deploy.sh)
 - [cloudbuild.web.yaml](/Users/caoq/git/sparkcore/apps/web/deploy/cloudbuild.web.yaml)
+- [cloud-run-deploy.yml](/Users/caoq/git/sparkcore/.github/workflows/cloud-run-deploy.yml)
 
 ### 7.4 Post-Deploy Updates
 
@@ -258,6 +259,34 @@ After the first deploy:
 - update `NEXT_PUBLIC_APP_URL` to the real Cloud Run URL or production domain
 - redeploy if `NEXT_PUBLIC_APP_URL` changed
 - set Telegram webhook against the Cloud Run service
+
+### 7.5 GitHub Auto Deploy
+
+Cloud Run can now be deployed automatically from GitHub Actions on every push to `main`.
+
+Required GitHub configuration:
+
+- repository secret: `GCP_CREDENTIALS`
+  this should be a Google Cloud service account JSON key with permission to run Cloud Build and deploy Cloud Run
+- repository variable: `GCP_PROJECT_ID`
+  current production value: `sparkcore-492512`
+- repository variable: `GCP_REGION`
+  current production value: `asia-east1`
+- repository variable: `CLOUD_RUN_SERVICE_NAME`
+  current production value: `sparkcore-web`
+
+Current workflow behavior:
+
+- checkout repository
+- run `npm ci`
+- run `npm run typecheck`
+- authenticate to Google Cloud
+- call the existing deploy script
+
+Important:
+
+- this workflow intentionally reuses the Cloud Run service's existing env vars
+- changing runtime env vars still requires an explicit `gcloud run services update ...` or a manual deploy with `ENV_VARS_FILE`
 
 ## 8. Fly.io Deployment
 
