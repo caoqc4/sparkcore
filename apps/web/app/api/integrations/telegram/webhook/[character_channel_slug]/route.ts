@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import {
   buildInboundDedupeKey,
 } from "@/lib/integrations/im-adapter";
@@ -29,6 +29,7 @@ function elapsedMs(startedAt: number) {
 }
 
 const INLINE_TELEGRAM_WORKER_IN_DEV = process.env.NODE_ENV !== "production";
+const BACKGROUND_TELEGRAM_WORKER_IN_PROD = process.env.NODE_ENV === "production";
 const INLINE_TELEGRAM_WORKER_BATCH_SIZE = 4;
 const INLINE_TELEGRAM_WORKER_MAX_PASSES = 4;
 
@@ -203,6 +204,30 @@ export async function POST(
             workerError instanceof Error ? workerError.message : String(workerError)
         });
       }
+    } else if (BACKGROUND_TELEGRAM_WORKER_IN_PROD) {
+      after(async () => {
+        try {
+          const drainResult = await drainTelegramInboundWorker({
+            characterChannelSlug,
+            claimedBy
+          });
+
+          console.info("[telegram-webhook:after-worker]", {
+            character_channel_slug: characterChannelSlug,
+            receipt_id: receiptId,
+            job_id: enqueuedJob.job.id,
+            processed_count: drainResult.processed_count
+          });
+        } catch (workerError) {
+          console.error("[telegram-webhook:after-worker]", {
+            character_channel_slug: characterChannelSlug,
+            receipt_id: receiptId,
+            job_id: enqueuedJob.job.id,
+            error_message:
+              workerError instanceof Error ? workerError.message : String(workerError)
+          });
+        }
+      });
     }
 
     console.info("[telegram-webhook]", {
