@@ -1,4 +1,5 @@
 import { SupabaseThreadStateRepository } from "@/lib/chat/thread-state-supabase-repository";
+import { resolveCharacterAssetPublicUrl } from "@/lib/character-assets";
 import type { LoadThreadStateResult } from "@/lib/chat/thread-state";
 import {
   loadCompletedMessagesForThreads,
@@ -7,6 +8,10 @@ import {
   loadPrimaryWorkspace,
   loadRecentOwnedMemories,
 } from "@/lib/chat/runtime-turn-context";
+import {
+  loadAccessiblePortraitAssetById,
+  loadOwnedRoleMediaProfile
+} from "@/lib/product/role-media";
 
 export type DashboardOverview = {
   workspaceId: string;
@@ -51,6 +56,7 @@ export type DashboardOverview = {
     agentId: string;
     name: string;
     personaSummary: string;
+    portraitUrl: string | null;
   } | null;
   currentThread: {
     threadId: string;
@@ -323,6 +329,32 @@ export async function loadDashboardOverview(args: {
       ).data
     : null;
 
+  const { data: roleMediaProfile } =
+    agentId && agent
+      ? await loadOwnedRoleMediaProfile({
+          supabase: args.supabase,
+          agentId,
+          workspaceId: workspace.id,
+          userId: args.userId
+        })
+      : { data: null };
+
+  const { data: portraitAsset } =
+    typeof roleMediaProfile?.portrait_asset_id === "string" &&
+    roleMediaProfile.portrait_asset_id.length > 0
+      ? await loadAccessiblePortraitAssetById({
+          supabase: args.supabase,
+          portraitAssetId: roleMediaProfile.portrait_asset_id
+        })
+      : { data: null };
+
+  const currentRolePortraitUrl = resolveCharacterAssetPublicUrl({
+    publicUrl: typeof portraitAsset?.public_url === "string" ? portraitAsset.public_url : null,
+    storagePath:
+      typeof portraitAsset?.storage_path === "string" ? portraitAsset.storage_path : null,
+    supabase: args.supabase
+  });
+
   const messagePreview = threadRow
     ? (
         await loadCompletedMessagesForThreads({
@@ -409,6 +441,7 @@ export async function loadDashboardOverview(args: {
           agentId: agent.id,
           name: agent.name,
           personaSummary: agent.persona_summary,
+          portraitUrl: currentRolePortraitUrl,
         }
       : null,
     currentThread: threadRow

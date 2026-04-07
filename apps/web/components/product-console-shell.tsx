@@ -130,6 +130,7 @@ export async function ProductConsoleShell({
   const productConsoleNavItems = buildProductConsoleNavItems(copy);
   const summary = buildConsoleSummary(overview, copy);
   const activeRoleId = overview?.currentRole?.agentId ?? null;
+  const resolvedRolePortraitUrl = rolePortraitUrl ?? overview?.currentRole?.portraitUrl ?? null;
 
   return (
     <div className="app-console-shell" lang={effectiveSystemLanguage}>
@@ -152,9 +153,9 @@ export async function ProductConsoleShell({
           >
             <div className="chat-sidebar-portrait">
               <div className="chat-sidebar-portrait-img" aria-hidden="true">
-                {rolePortraitUrl ? (
+                {resolvedRolePortraitUrl ? (
                   <img
-                    src={rolePortraitUrl}
+                    src={resolvedRolePortraitUrl}
                     alt={summary.roleName}
                     className="chat-sidebar-portrait-photo"
                   />

@@ -109,6 +109,7 @@ export async function ChatConsoleShell({
   const productConsoleNavItems = buildProductConsoleNavItems(copy);
   const summary = buildConsoleSummary(overview, copy);
   const activeRoleId = overview?.currentRole?.agentId ?? null;
+  const rolePortraitUrl = overview?.currentRole?.portraitUrl ?? null;
 
   return (
     <div className="app-console-shell" lang={effectiveSystemLanguage}>
@@ -131,7 +132,15 @@ export async function ChatConsoleShell({
           >
             <div className="chat-sidebar-portrait">
               <div className="chat-sidebar-portrait-img" aria-hidden="true">
-                {summary.roleName.slice(0, 1).toUpperCase()}
+                {rolePortraitUrl ? (
+                  <img
+                    src={rolePortraitUrl}
+                    alt={summary.roleName}
+                    className="chat-sidebar-portrait-photo"
+                  />
+                ) : (
+                  summary.roleName.slice(0, 1).toUpperCase()
+                )}
               </div>
               <div
                 className={`chat-sidebar-portrait-status${summary.activeChannels > 0 ? " live" : ""}`}
