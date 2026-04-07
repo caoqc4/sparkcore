@@ -10,6 +10,7 @@ import {
   runDeferredImPostProcessing,
   webImRuntimePort,
 } from "@/lib/chat/im-runtime-port";
+import { classifyAssistantError } from "@/lib/chat/assistant-error";
 import { updateAssistantPreviewMetadata } from "@/lib/chat/assistant-preview-metadata";
 import {
   claimQueuedImInboundJobs,
@@ -36,6 +37,22 @@ function nowMs() {
 
 function elapsedMs(startedAt: number) {
   return Math.max(0, nowMs() - startedAt);
+}
+
+const DEFAULT_PROVIDER_RETRY_DELAY_MS = 60_000;
+
+function parseRetryDelayMs(errorMessage: string) {
+  const retryMatch = errorMessage.match(/retry in\s+([0-9]+(?:\.[0-9]+)?)s/i);
+  if (!retryMatch) {
+    return DEFAULT_PROVIDER_RETRY_DELAY_MS;
+  }
+
+  const seconds = Number.parseFloat(retryMatch[1] ?? "");
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    return DEFAULT_PROVIDER_RETRY_DELAY_MS;
+  }
+
+  return Math.max(1_000, Math.ceil(seconds * 1000));
 }
 
 async function sendFallbackMessage(args: {
@@ -194,21 +211,35 @@ function getJobPayload(job: ImInboundJobRecord): TelegramInboundJobPayload {
 async function processTelegramInboundJob(args: {
   job: ImInboundJobRecord;
   claimedBy: string;
+  botToken: string;
 }) {
   const startedAt = nowMs();
   const admin = createAdminClient();
   const payload = getJobPayload(args.job);
   const characterChannelSlug = args.job.channel_slug as CharacterChannelSlug;
-  const { botToken } = getTelegramBotConfig(characterChannelSlug);
   let stage = "mark_processing";
   const stageTimings: Record<string, number> = {};
 
   async function measureStage<T>(name: string, fn: () => Promise<T>) {
     const stageStartedAt = nowMs();
+    console.info("[telegram-inbound-worker:stage:start]", {
+      channel_slug: characterChannelSlug,
+      job_id: args.job.id,
+      receipt_id: args.job.receipt_id,
+      stage: name
+    });
     try {
       return await fn();
     } finally {
-      stageTimings[name] = elapsedMs(stageStartedAt);
+      const durationMs = elapsedMs(stageStartedAt);
+      stageTimings[name] = durationMs;
+      console.info("[telegram-inbound-worker:stage:end]", {
+        channel_slug: characterChannelSlug,
+        job_id: args.job.id,
+        receipt_id: args.job.receipt_id,
+        stage: name,
+        duration_ms: durationMs
+      });
     }
   }
 
@@ -227,7 +258,7 @@ async function processTelegramInboundJob(args: {
     stage = "enrich_inbound";
     const inbound = await measureStage("enrich_inbound", async () =>
       enrichTelegramInboundMessage({
-        botToken,
+        botToken: args.botToken,
         inbound: payload.inbound
       })
     );
@@ -313,7 +344,7 @@ async function processTelegramInboundJob(args: {
       "outbound_messages" in result
         ? await measureStage("send_outbound", async () =>
             sendTelegramOutboundMessages({
-              botToken,
+              botToken: args.botToken,
               messages: orderedOutboundMessages
             })
           )
@@ -328,7 +359,7 @@ async function processTelegramInboundJob(args: {
       stage = "send_retry_fallback";
       await measureStage("send_retry_fallback", async () =>
         sendFallbackMessage({
-          botToken,
+          botToken: args.botToken,
           channelId: inbound.channel_id,
           content: "There was a temporary delivery issue just now. Please send your message again.",
         })
@@ -412,7 +443,7 @@ async function processTelegramInboundJob(args: {
 
         if (artifactOutboundMessages.length > 0) {
           await sendTelegramOutboundMessages({
-            botToken,
+            botToken: args.botToken,
             messages: artifactOutboundMessages,
           });
         }
@@ -539,6 +570,14 @@ async function processTelegramInboundJob(args: {
       }
     };
   } catch (error) {
+    const assistantFailure = classifyAssistantError(error);
+    const shouldRetryLater = assistantFailure.providerFailureCategory === "quota_or_plan";
+    const retryDelayMs =
+      shouldRetryLater && error instanceof Error
+        ? parseRetryDelayMs(error.message)
+        : null;
+    const nextAvailableAt =
+      retryDelayMs !== null ? new Date(nowMs() + retryDelayMs).toISOString() : null;
     const cause =
       error instanceof Error &&
       "cause" in error &&
@@ -550,13 +589,15 @@ async function processTelegramInboundJob(args: {
     await updateImInboundReceipt({
       supabase: admin,
       receiptId: args.job.receipt_id,
-      status: "processing_failed",
+      status: shouldRetryLater ? "received" : "processing_failed",
       lastError: error instanceof Error ? error.message : "Telegram inbound worker failed.",
       metadataPatch: {
         worker_failed_at: new Date().toISOString(),
         character_channel_slug: characterChannelSlug,
         job_id: args.job.id,
-        worker_failed_stage: stage
+        worker_failed_stage: stage,
+        worker_retry_scheduled_at: nextAvailableAt,
+        worker_retry_delay_ms: retryDelayMs
       }
     }).catch(() => null);
 
@@ -565,8 +606,11 @@ async function processTelegramInboundJob(args: {
       jobId: args.job.id,
       errorMessage:
         error instanceof Error ? error.message : "Telegram inbound worker failed.",
+      nextAvailableAt,
       resultPatch: {
-        worker_failed_at: new Date().toISOString()
+        worker_failed_at: new Date().toISOString(),
+        worker_retry_scheduled_at: nextAvailableAt,
+        worker_retry_delay_ms: retryDelayMs
       }
     }).catch(() => null);
 
@@ -577,6 +621,10 @@ async function processTelegramInboundJob(args: {
       status: "failed",
       stage,
       total_duration_ms: elapsedMs(startedAt),
+      retry_scheduled_at: nextAvailableAt,
+      retry_delay_ms: retryDelayMs,
+      assistant_error_type: assistantFailure.errorType,
+      provider_failure_category: assistantFailure.providerFailureCategory,
       worker_timing_ms: {
         ...stageTimings
       },
@@ -609,6 +657,7 @@ export async function runTelegramInboundWorker(args: {
 }) {
   const startedAt = nowMs();
   const admin = createAdminClient();
+  const { botToken } = getTelegramBotConfig(args.characterChannelSlug);
   const claimResult = await claimQueuedImInboundJobs({
     supabase: admin,
     jobType: "telegram_inbound_turn",
@@ -623,7 +672,8 @@ export async function runTelegramInboundWorker(args: {
   for (const job of claimResult.jobs) {
     const result = await processTelegramInboundJob({
       job,
-      claimedBy: args.claimedBy
+      claimedBy: args.claimedBy,
+      botToken
     });
 
     records.push({

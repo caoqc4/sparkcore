@@ -2,6 +2,7 @@ import { retryOnceOnTransientSupabaseFetch } from "@/lib/supabase/transient-fetc
 
 export const DEFAULT_IM_INBOUND_JOBS_TABLE = "im_inbound_jobs";
 const STALE_CLAIM_TIMEOUT_MS = 2 * 60 * 1000;
+const STALE_PROCESSING_TIMEOUT_MS = 10 * 60 * 1000;
 
 export type ImInboundJobType = "telegram_inbound_turn";
 
@@ -199,7 +200,9 @@ export async function claimQueuedImInboundJobs(args: {
   const staleClaimedBefore = toIsoString(
     Date.parse(now) - STALE_CLAIM_TIMEOUT_MS
   );
-  const staleStartedBefore = staleClaimedBefore;
+  const staleStartedBefore = toIsoString(
+    Date.parse(now) - STALE_PROCESSING_TIMEOUT_MS
+  );
   let queuedRows: ImInboundJobRecord[] | null = null;
 
   try {

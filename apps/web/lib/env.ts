@@ -25,6 +25,17 @@ export function getGoogleAiStudioEnv() {
   return { apiKey };
 }
 
+export function getOptionalReplicateEnv() {
+  const apiToken =
+    process.env.REPLICATE_API_TOKEN ?? process.env.REPLICATE_API_KEY ?? null;
+
+  if (!apiToken) {
+    return null;
+  }
+
+  return { apiToken };
+}
+
 export function getFalAiEnv() {
   const apiKey = process.env.FAL_KEY ?? process.env.FAL_API_KEY;
 

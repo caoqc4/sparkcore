@@ -1,8 +1,13 @@
 import {
+  FIXED_TEXT_MODEL_FALLBACK_ROUTES,
   FIXED_IMAGE_MODEL_ID,
   FIXED_TEXT_MODEL_ID
 } from "@/lib/ai/fixed-models";
-import { getFalAiEnv, getGoogleAiStudioEnv } from "@/lib/env";
+import {
+  getFalAiEnv,
+  getGoogleAiStudioEnv,
+  getOptionalReplicateEnv
+} from "@/lib/env";
 
 type AiRole = "system" | "user" | "assistant";
 
@@ -31,6 +36,13 @@ type GeminiGenerateContentResponse = {
       }>;
     };
   }>;
+};
+
+type ReplicateTextPredictionResponse = {
+  id?: string | null;
+  status?: string | null;
+  output?: string[] | string | null;
+  error?: string | null;
 };
 
 type FalImageResponse = {
@@ -199,7 +211,7 @@ export function classifyAiProviderFailure(error: unknown): AiProviderFailureCate
 }
 
 function logAiProviderSuccess(args: {
-  provider: "google_ai_studio" | "fal_ai";
+  provider: "google_ai_studio" | "replicate" | "fal_ai";
   operation: "chat_completions" | "image_understanding" | "image_generations";
   model: string;
   durationMs: number;
@@ -215,7 +227,7 @@ function logAiProviderSuccess(args: {
 }
 
 function logAiProviderFailure(args: {
-  provider: "google_ai_studio" | "fal_ai";
+  provider: "google_ai_studio" | "replicate" | "fal_ai";
   operation: "chat_completions" | "image_understanding" | "image_generations";
   model: string;
   durationMs: number;
@@ -385,6 +397,49 @@ function extractGeminiText(payload: GeminiGenerateContentResponse | null) {
     .trim() ?? "";
 }
 
+function buildReplicateTextPrompt(messages: AiMessage[]) {
+  return messages
+    .filter((message) => message.role !== "system")
+    .map((message) => {
+      const prefix = message.role === "assistant" ? "Assistant" : "User";
+      return `${prefix}: ${message.content}`;
+    })
+    .join("\n\n");
+}
+
+function extractReplicateText(
+  payload: ReplicateTextPredictionResponse | null
+) {
+  const output = payload?.output;
+
+  if (typeof output === "string") {
+    return output.trim();
+  }
+
+  if (Array.isArray(output)) {
+    return output
+      .map((item) => (typeof item === "string" ? item : ""))
+      .join("")
+      .trim();
+  }
+
+  return "";
+}
+
+function parseReplicateOfficialModelRef(modelRef: string) {
+  const normalized = modelRef.trim().replace(/^replicate\//, "");
+  const parts = normalized.split("/");
+
+  if (parts.length !== 2 || parts.some((part) => part.trim().length === 0)) {
+    throw new Error(`Invalid Replicate model ref: ${modelRef}`);
+  }
+
+  return {
+    owner: parts[0],
+    name: parts[1]
+  };
+}
+
 function mapFalImageSize(size: string) {
   switch (size) {
     case "1024x1024":
@@ -445,10 +500,6 @@ export async function generateText({
     };
   }
 
-  const { apiKey } = getGoogleAiStudioEnv();
-  const endpoint =
-    `https://generativelanguage.googleapis.com/v1beta/models/` +
-    `${encodeURIComponent(FIXED_TEXT_MODEL_ID)}:generateContent`;
   const systemInstruction = messages
     .filter((message) => message.role === "system")
     .map((message) => message.content.trim())
@@ -460,12 +511,17 @@ export async function generateText({
       role: message.role === "assistant" ? "model" : "user",
       parts: [{ text: message.content }]
     }));
+  const replicatePrompt = buildReplicateTextPrompt(messages);
 
-  async function executeChatCompletion(attempt: {
+  async function executeGoogleChatCompletion(attempt: {
     timeoutMs: number;
     maxOutputTokens: number | null | undefined;
     retryMode: "primary" | "fast_retry";
   }) {
+    const { apiKey } = getGoogleAiStudioEnv();
+    const endpoint =
+      `https://generativelanguage.googleapis.com/v1beta/models/` +
+      `${encodeURIComponent(FIXED_TEXT_MODEL_ID)}:generateContent`;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), attempt.timeoutMs);
 
@@ -546,12 +602,151 @@ export async function generateText({
 
     return {
       content,
-      retryMode: attempt.retryMode
+      retryMode: attempt.retryMode,
+      provider: "google_ai_studio" as const,
+      model: FIXED_TEXT_MODEL_ID
     };
   }
 
+  async function executeReplicateChatCompletion(args: {
+    modelRef: string;
+    timeoutMs: number;
+  }) {
+    const replicateEnv = getOptionalReplicateEnv();
+
+    if (!replicateEnv) {
+      throw new Error("Missing Replicate API token. Set REPLICATE_API_TOKEN.");
+    }
+
+    const { owner, name } = parseReplicateOfficialModelRef(args.modelRef);
+    const endpoint =
+      `https://api.replicate.com/v1/models/${encodeURIComponent(owner)}` +
+      `/${encodeURIComponent(name)}/predictions`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), args.timeoutMs);
+
+    let response: Response;
+
+    try {
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${replicateEnv.apiToken}`,
+          Prefer: `wait=${Math.max(1, Math.min(60, Math.floor(args.timeoutMs / 1000)))}`
+        },
+        body: JSON.stringify({
+          input: {
+            prompt: replicatePrompt,
+            ...(systemInstruction ? { system_instruction: systemInstruction } : {}),
+            temperature,
+            ...(typeof maxOutputTokens === "number"
+              ? { max_output_tokens: maxOutputTokens }
+              : {})
+          }
+        }),
+        signal: controller.signal
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new AiProviderTimeoutError(args.timeoutMs);
+      }
+
+      throw new AiProviderFetchError({
+        endpoint,
+        operation: "chat_completions",
+        cause: error
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    let payload: unknown = null;
+
+    try {
+      payload = await response.json();
+    } catch {
+      payload = null;
+    }
+
+    if (!response.ok) {
+      const message =
+        typeof payload === "object" &&
+        payload !== null &&
+        "detail" in payload &&
+        typeof payload.detail === "string"
+          ? payload.detail
+          : `Replicate request failed with status ${response.status}.`;
+
+      throw new AiProviderError(message, response.status, payload);
+    }
+
+    const data = payload as ReplicateTextPredictionResponse;
+    const content = extractReplicateText(data);
+
+    if (!content) {
+      throw new AiProviderError(
+        data?.error ||
+          `Replicate prediction did not complete synchronously (status: ${data?.status ?? "unknown"}).`,
+        response.status,
+        payload
+      );
+    }
+
+    return {
+      content,
+      retryMode: "provider_fallback" as const,
+      provider: "replicate" as const,
+      model: args.modelRef
+    };
+  }
+
+  async function executeFallbackChatCompletion() {
+    let lastError: unknown = null;
+
+    for (const route of FIXED_TEXT_MODEL_FALLBACK_ROUTES) {
+      console.warn("[ai-provider:fallback]", {
+        source_provider: "google_ai_studio",
+        source_model: FIXED_TEXT_MODEL_ID,
+        fallback_provider: route.provider,
+        fallback_model: route.model
+      });
+
+      try {
+        switch (route.provider) {
+          case "replicate":
+            return await executeReplicateChatCompletion({
+              modelRef: route.model,
+              timeoutMs
+            });
+          case "fal_ai":
+            console.warn("[ai-provider:fallback:skipped]", {
+              fallback_provider: route.provider,
+              fallback_model: route.model,
+              reason: "not_implemented"
+            });
+            continue;
+        }
+      } catch (fallbackError) {
+        lastError = fallbackError;
+        logAiProviderFailure({
+          provider: route.provider,
+          operation: "chat_completions",
+          model: route.model,
+          durationMs: Date.now() - startedAt,
+          error: fallbackError,
+          metadata: {
+            retry_mode: "provider_fallback"
+          }
+        });
+      }
+    }
+
+    throw lastError ?? new Error("No AI fallback providers succeeded.");
+  }
+
   try {
-    const primaryResult = await executeChatCompletion({
+    const primaryResult = await executeGoogleChatCompletion({
       timeoutMs,
       maxOutputTokens,
       retryMode: "primary"
@@ -570,7 +765,7 @@ export async function generateText({
 
     return {
       id: null,
-      model: FIXED_TEXT_MODEL_ID,
+      model: primaryResult.model,
       content: primaryResult.content
     };
   } catch (error) {
@@ -593,7 +788,7 @@ export async function generateText({
       });
 
       try {
-        const retryResult = await executeChatCompletion({
+        const retryResult = await executeGoogleChatCompletion({
           timeoutMs: FAST_RETRY_TIMEOUT_MS,
           maxOutputTokens:
             typeof maxOutputTokens === "number"
@@ -615,7 +810,7 @@ export async function generateText({
 
         return {
           id: null,
-          model: FIXED_TEXT_MODEL_ID,
+          model: retryResult.model,
           content: retryResult.content
         };
       } catch (retryError) {
@@ -629,7 +824,34 @@ export async function generateText({
             retry_mode: "fast_retry"
           }
         });
-        throw retryError;
+        error = retryError;
+      }
+    }
+
+    if (classifyAiProviderFailure(error) === "quota_or_plan") {
+      try {
+        const fallbackResult = await executeFallbackChatCompletion();
+
+        logAiProviderSuccess({
+          provider: fallbackResult.provider,
+          operation: "chat_completions",
+          model: fallbackResult.model,
+          durationMs: Date.now() - startedAt,
+          metadata: {
+            output_chars: fallbackResult.content.length,
+            retry_mode: fallbackResult.retryMode,
+            fallback_from_provider: "google_ai_studio",
+            fallback_from_model: FIXED_TEXT_MODEL_ID
+          }
+        });
+
+        return {
+          id: null,
+          model: fallbackResult.model,
+          content: fallbackResult.content
+        };
+      } catch (fallbackError) {
+        error = fallbackError;
       }
     }
 
