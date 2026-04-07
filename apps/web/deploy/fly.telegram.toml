@@ -1,0 +1,15 @@
+app = "sparkcore-telegram"
+primary_region = "nrt"
+kill_signal = "SIGINT"
+kill_timeout = "30s"
+
+[build]
+  dockerfile = "../Dockerfile"
+
+[processes]
+  app = "npm run telegram:inbound:worker"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"

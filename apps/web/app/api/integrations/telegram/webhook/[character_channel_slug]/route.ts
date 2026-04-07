@@ -1,4 +1,4 @@
-import { after, NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import {
   buildInboundDedupeKey,
 } from "@/lib/integrations/im-adapter";
@@ -203,24 +203,6 @@ export async function POST(
             workerError instanceof Error ? workerError.message : String(workerError)
         });
       }
-    } else {
-      after(async () => {
-        try {
-          await runTelegramInboundWorker({
-            characterChannelSlug,
-            limit: 1,
-            claimedBy
-          });
-        } catch (workerError) {
-          console.error("[telegram-webhook:after-worker]", {
-            character_channel_slug: characterChannelSlug,
-            receipt_id: receiptId,
-            job_id: enqueuedJob.job.id,
-            error_message:
-              workerError instanceof Error ? workerError.message : String(workerError)
-          });
-        }
-      });
     }
 
     console.info("[telegram-webhook]", {

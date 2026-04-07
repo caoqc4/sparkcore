@@ -374,24 +374,22 @@ export async function POST(request: NextRequest) {
       result.runtime_output.deferred_post_processing
     ) {
       const deferred = result.runtime_output.deferred_post_processing;
-      after(async () => {
-        try {
-          await runDeferredImPostProcessing({
-            assistantMessageId: deferred.assistant_message_id,
-            threadId: deferred.thread_id,
-            workspaceId: deferred.workspace_id,
-            userId: deferred.user_id,
-            agentId: deferred.agent_id,
-            sourceMessageId: deferred.source_message_id,
-            runtimeTurnResult: {
-              memory_write_requests: result.runtime_output.memory_write_requests,
-              follow_up_requests: result.runtime_output.follow_up_requests
-            }
-          });
-        } catch (postProcessingError) {
-          console.error("Deferred IM post-processing failed:", postProcessingError);
-        }
-      });
+      try {
+        await runDeferredImPostProcessing({
+          assistantMessageId: deferred.assistant_message_id,
+          threadId: deferred.thread_id,
+          workspaceId: deferred.workspace_id,
+          userId: deferred.user_id,
+          agentId: deferred.agent_id,
+          sourceMessageId: deferred.source_message_id,
+          runtimeTurnResult: {
+            memory_write_requests: result.runtime_output.memory_write_requests,
+            follow_up_requests: result.runtime_output.follow_up_requests
+          }
+        });
+      } catch (postProcessingError) {
+        console.error("Deferred IM post-processing failed:", postProcessingError);
+      }
     }
 
     return NextResponse.json({

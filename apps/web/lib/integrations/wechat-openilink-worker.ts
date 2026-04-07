@@ -8,6 +8,7 @@ import {
   claimImInboundReceipt,
   updateImInboundReceipt
 } from "@/lib/integrations/im-inbound-receipts";
+import { runDeferredPostProcessingForInboundResult } from "@/lib/integrations/im-deferred-processing";
 import { InboundDedupeWindow } from "@/lib/integrations/inbound-dedupe";
 import {
   type WeChatOpenILinkSession,
@@ -168,6 +169,10 @@ export async function startWeChatOpenILinkWorkerWithClient(
             client,
             messages: result.outbound_messages
           });
+
+          if (result.status === "processed") {
+            await runDeferredPostProcessingForInboundResult(result);
+          }
 
           logger.info("[wechat-openilink-worker:delivery]", {
             event_id: inbound.event_id,

@@ -1,5 +1,4 @@
 import {
-  type AdapterRuntimeOutput,
   type OutboundChannelMessage,
   SupabaseBindingRepository,
   createSupabaseBindingLookup,
@@ -24,6 +23,7 @@ import {
   isTelegramInvalidDeliveryResponse,
   sendTelegramOutboundMessages,
 } from "@/lib/integrations/telegram";
+import { getDeferredPostProcessingTask } from "@/lib/integrations/im-deferred-processing";
 import { getTelegramBotConfig } from "@/lib/env";
 import { updateImInboundReceipt } from "@/lib/integrations/im-inbound-receipts";
 import { updateOwnedChannelBindingStatus } from "@/lib/product/channels";
@@ -339,20 +339,17 @@ async function processTelegramInboundJob(args: {
       result.status === "processed"
         ? result.runtime_output.deferred_artifact_generation
         : null;
-    const deferredPostProcessing =
-      result.status === "processed"
-        ? result.runtime_output.deferred_post_processing
-        : null;
+    const deferredPostProcessing = getDeferredPostProcessingTask(result);
 
     if (deferredPostProcessing) {
       stage = "update_preview_metadata";
       await measureStage("update_preview_metadata", async () =>
         updateAssistantPreviewMetadata({
           supabase: admin,
-          assistantMessageId: deferredPostProcessing.assistant_message_id,
-          threadId: deferredPostProcessing.thread_id,
-          workspaceId: deferredPostProcessing.workspace_id,
-          userId: deferredPostProcessing.user_id,
+          assistantMessageId: deferredPostProcessing.task.assistant_message_id,
+          threadId: deferredPostProcessing.task.thread_id,
+          workspaceId: deferredPostProcessing.task.workspace_id,
+          userId: deferredPostProcessing.task.user_id,
           updates: (currentMetadata) => ({
             im_delivery: {
               ...(currentMetadata?.im_delivery &&
@@ -367,6 +364,72 @@ async function processTelegramInboundJob(args: {
               character_channel_slug: characterChannelSlug
             }
           })
+        })
+      );
+    }
+
+    if (deferredArtifactGeneration) {
+      stage = "run_deferred_artifacts";
+      await measureStage("run_deferred_artifacts", async () => {
+        const artifacts = await runDeferredImArtifactGeneration({
+          assistantMessageId: deferredArtifactGeneration.assistant_message_id,
+          threadId: deferredArtifactGeneration.thread_id,
+          workspaceId: deferredArtifactGeneration.workspace_id,
+          userId: deferredArtifactGeneration.user_id,
+          agentId: deferredArtifactGeneration.agent_id,
+          userMessage: deferredArtifactGeneration.user_message,
+          assistantReply: deferredArtifactGeneration.assistant_reply,
+          agentName: deferredArtifactGeneration.agent_name,
+          personaSummary: deferredArtifactGeneration.persona_summary,
+          preGeneratedImageArtifact:
+            deferredArtifactGeneration.pre_generated_image_artifact ?? null,
+          audioTranscriptOverride:
+            deferredArtifactGeneration.audio_transcript_override ?? null,
+          explicitImageRequested:
+            deferredArtifactGeneration.explicit_image_requested ?? false,
+          explicitAudioRequested:
+            deferredArtifactGeneration.explicit_audio_requested ?? false,
+          deliveryGate: deferredArtifactGeneration.delivery_gate
+            ? {
+                clarifyBeforeAction:
+                  deferredArtifactGeneration.delivery_gate.clarify_before_action === true,
+                reason: deferredArtifactGeneration.delivery_gate.reason ?? null,
+                conflictHint:
+                  deferredArtifactGeneration.delivery_gate.conflict_hint ?? null,
+              }
+            : null,
+          imageArtifactAction:
+            deferredArtifactGeneration.image_artifact_action ?? null,
+          audioArtifactAction:
+            deferredArtifactGeneration.audio_artifact_action ?? null,
+        });
+
+        const artifactOutboundMessages = buildArtifactOutboundMessages({
+          channelId: inbound.channel_id,
+          peerId: inbound.peer_id,
+          artifacts,
+        });
+
+        if (artifactOutboundMessages.length > 0) {
+          await sendTelegramOutboundMessages({
+            botToken,
+            messages: artifactOutboundMessages,
+          });
+        }
+      });
+    }
+
+    if (deferredPostProcessing) {
+      stage = "run_deferred_post_processing";
+      await measureStage("run_deferred_post_processing", async () =>
+        runDeferredImPostProcessing({
+          assistantMessageId: deferredPostProcessing.task.assistant_message_id,
+          threadId: deferredPostProcessing.task.thread_id,
+          workspaceId: deferredPostProcessing.task.workspace_id,
+          userId: deferredPostProcessing.task.user_id,
+          agentId: deferredPostProcessing.task.agent_id,
+          sourceMessageId: deferredPostProcessing.task.source_message_id,
+          runtimeTurnResult: deferredPostProcessing.runtimeTurnResult,
         })
       );
     }
@@ -475,90 +538,6 @@ async function processTelegramInboundJob(args: {
         ...stageTimings
       }
     };
-
-    if (deferredArtifactGeneration) {
-      const artifactTask = deferredArtifactGeneration!;
-      void (async () => {
-        try {
-          const artifacts = await runDeferredImArtifactGeneration({
-            assistantMessageId: artifactTask.assistant_message_id,
-            threadId: artifactTask.thread_id,
-            workspaceId: artifactTask.workspace_id,
-            userId: artifactTask.user_id,
-            agentId: artifactTask.agent_id,
-            userMessage: artifactTask.user_message,
-            assistantReply: artifactTask.assistant_reply,
-            agentName: artifactTask.agent_name,
-            personaSummary: artifactTask.persona_summary,
-            preGeneratedImageArtifact:
-              artifactTask.pre_generated_image_artifact ?? null,
-            audioTranscriptOverride:
-              artifactTask.audio_transcript_override ?? null,
-            explicitImageRequested:
-              artifactTask.explicit_image_requested ?? false,
-            explicitAudioRequested:
-              artifactTask.explicit_audio_requested ?? false,
-            deliveryGate: artifactTask.delivery_gate
-              ? {
-                  clarifyBeforeAction:
-                    artifactTask.delivery_gate.clarify_before_action === true,
-                  reason: artifactTask.delivery_gate.reason ?? null,
-                  conflictHint:
-                    artifactTask.delivery_gate.conflict_hint ?? null,
-                }
-              : null,
-            imageArtifactAction:
-              artifactTask.image_artifact_action ?? null,
-            audioArtifactAction:
-              artifactTask.audio_artifact_action ?? null,
-          });
-
-          const artifactOutboundMessages = buildArtifactOutboundMessages({
-            channelId: inbound.channel_id,
-            peerId: inbound.peer_id,
-            artifacts
-          });
-
-          if (artifactOutboundMessages.length > 0) {
-            await sendTelegramOutboundMessages({
-              botToken,
-              messages: artifactOutboundMessages
-            });
-          }
-        } catch (artifactGenerationError) {
-          console.error("Deferred IM artifact generation failed:", artifactGenerationError);
-        }
-      })();
-    }
-
-    if (deferredPostProcessing && result.status === "processed" && "runtime_output" in result) {
-      const postProcessingTask = deferredPostProcessing!;
-      const runtimeOutput = (result as {
-        runtime_output: {
-          memory_write_requests: AdapterRuntimeOutput["memory_write_requests"];
-          follow_up_requests: AdapterRuntimeOutput["follow_up_requests"];
-        };
-      }).runtime_output;
-      const runtimeTurnResult = {
-        memory_write_requests: runtimeOutput.memory_write_requests,
-        follow_up_requests: runtimeOutput.follow_up_requests
-      };
-      void (async () => {
-        try {
-          await runDeferredImPostProcessing({
-            assistantMessageId: postProcessingTask.assistant_message_id,
-            threadId: postProcessingTask.thread_id,
-            workspaceId: postProcessingTask.workspace_id,
-            userId: postProcessingTask.user_id,
-            agentId: postProcessingTask.agent_id,
-            sourceMessageId: postProcessingTask.source_message_id,
-            runtimeTurnResult
-          });
-        } catch (postProcessingError) {
-          console.error("Deferred IM post-processing failed:", postProcessingError);
-        }
-      })();
-    }
   } catch (error) {
     const cause =
       error instanceof Error &&

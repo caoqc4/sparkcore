@@ -15,6 +15,7 @@ import {
   claimImInboundReceipt,
   updateImInboundReceipt
 } from "@/lib/integrations/im-inbound-receipts";
+import { runDeferredPostProcessingForInboundResult } from "@/lib/integrations/im-deferred-processing";
 import { InboundDedupeWindow } from "@/lib/integrations/inbound-dedupe";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -100,6 +101,10 @@ async function processFeishuMessageReceive(args: {
       const delivery = await sendFeishuOutboundMessages({
         messages: result.outbound_messages
       });
+
+      if (result.status === "processed") {
+        await runDeferredPostProcessingForInboundResult(result);
+      }
 
       args.logger.info("[feishu-ws-worker:delivery]", {
         event_id: inbound.event_id,

@@ -14,6 +14,7 @@ import {
   normalizeDiscordInboundMessage,
   sendDiscordOutboundMessages
 } from "@/lib/integrations/discord";
+import { runDeferredPostProcessingForInboundResult } from "@/lib/integrations/im-deferred-processing";
 import { InboundDedupeWindow } from "@/lib/integrations/inbound-dedupe";
 import { getDiscordEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -134,6 +135,10 @@ async function processDiscordMessageCreate(args: {
         botToken: args.botToken,
         messages: result.outbound_messages
       });
+
+      if (result.status === "processed") {
+        await runDeferredPostProcessingForInboundResult(result);
+      }
 
       args.logger.info("[discord-gateway-worker:delivery]", {
         event_id: inbound.event_id,
