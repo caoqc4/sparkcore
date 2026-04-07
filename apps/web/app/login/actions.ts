@@ -1,11 +1,28 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
 
-function getAppUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+async function getAppUrl() {
+  const requestHeaders = await headers();
+  const forwardedHost = requestHeaders.get("x-forwarded-host")?.trim();
+  const forwardedProto = requestHeaders.get("x-forwarded-proto")?.trim();
+  const host = requestHeaders.get("host")?.trim();
+
+  const resolvedHost = forwardedHost || host;
+  if (resolvedHost) {
+    const resolvedProto =
+      forwardedProto ||
+      (resolvedHost.startsWith("localhost") || resolvedHost.startsWith("127.0.0.1")
+        ? "http"
+        : "https");
+
+    return `${resolvedProto}://${resolvedHost}`.replace(/\/+$/, "");
+  }
+
+  return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "");
 }
 
 function getSafeNextPath(value: FormDataEntryValue | null) {
@@ -24,12 +41,13 @@ export async function signInWithGoogle(formData: FormData) {
   const { contentLanguage } = await getSiteLanguageState();
   const isZh = contentLanguage === "zh-CN";
   const next = getSafeNextPath(formData.get("next"));
+  const appUrl = await getAppUrl();
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${getAppUrl()}/auth/confirm?next=${encodeURIComponent(
+      redirectTo: `${appUrl}/auth/confirm?next=${encodeURIComponent(
         next
       )}`,
       queryParams: {
