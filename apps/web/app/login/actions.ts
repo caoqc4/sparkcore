@@ -37,11 +37,11 @@ async function getAppUrl() {
 
 function getSafeNextPath(value: FormDataEntryValue | null) {
   if (typeof value !== "string" || value.trim().length === 0) {
-    return "/app";
+    return "/?preview=landing";
   }
 
   if (!value.startsWith("/") || value.startsWith("//")) {
-    return "/app";
+    return "/?preview=landing";
   }
 
   return value;
@@ -78,9 +78,7 @@ export async function signInWithGoogle(formData: FormData) {
 }
 
 export async function signOut() {
-  const { contentLanguage } = await getSiteLanguageState();
-  const isZh = contentLanguage === "zh-CN";
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect(`/login?message=${encodeURIComponent(isZh ? "已成功退出登录。" : "Signed out successfully.")}`);
+  redirect("/?preview=landing");
 }

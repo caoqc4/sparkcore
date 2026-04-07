@@ -175,13 +175,35 @@ export function RoleCreateWizard({
     nextMode: "companion" | "assistant";
     nextGender: GenderKey;
   }) {
-    const matchingOptions = buildPortraitOptionsForMode(args.nextMode).filter(
-      (p) => (p.gender === args.nextGender || p.gender === "neutral") && p.eligibleForMode,
-    );
+    const matchingOptions = buildFilteredPortraitOptions({
+      nextMode: args.nextMode,
+      nextGender: args.nextGender,
+      presetSlug: args.preset,
+    });
     const presetPortraitIndex = matchingOptions.findIndex(
       (p) => p.characterSlug === args.preset,
     );
     return presetPortraitIndex >= 0 ? presetPortraitIndex : 0;
+  }
+
+  function buildFilteredPortraitOptions(args: {
+    nextMode: "companion" | "assistant";
+    nextGender: GenderKey;
+    presetSlug: "caria" | "teven" | "velia" | null;
+  }) {
+    const matchingOptions = buildPortraitOptionsForMode(args.nextMode).filter(
+      (p) => (p.gender === args.nextGender || p.gender === "neutral") && p.eligibleForMode,
+    );
+
+    if (!args.presetSlug) {
+      return matchingOptions;
+    }
+
+    const presetSpecificOptions = matchingOptions.filter(
+      (p) => p.characterSlug === args.presetSlug,
+    );
+
+    return presetSpecificOptions.length > 0 ? presetSpecificOptions : matchingOptions;
   }
   const voiceOptions = filterAudioVoiceOptionsForRole({
     options: audioOptions,
@@ -343,10 +365,11 @@ export function RoleCreateWizard({
   }
 
   // Filtered presets for step 3
-  const portraitOptions: PortraitAssetOption[] = buildPortraitOptionsForMode(mode);
-  const filteredPresets = portraitOptions.filter(
-    (p) => (p.gender === gender || p.gender === "neutral") && p.eligibleForMode,
-  );
+  const filteredPresets: PortraitAssetOption[] = buildFilteredPortraitOptions({
+    nextMode: mode,
+    nextGender: gender,
+    presetSlug: selectedPresetSlug,
+  });
   const totalPortraits = filteredPresets.length;
   const safeIndex = Math.min(photoIndex, totalPortraits - 1);
   const currentChar = filteredPresets[safeIndex] ?? null;

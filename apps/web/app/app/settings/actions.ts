@@ -561,7 +561,7 @@ export async function signOutAllProductSessions(formData: FormData) {
     metadata: { signed_out_scope: "global" }
   });
 
-  redirect(`/login?message=${encodeURIComponent(copy.signedOutAll)}`);
+  redirect("/?preview=landing");
 }
 
 export async function deleteCurrentProductAccount(formData: FormData) {
@@ -659,7 +659,7 @@ export async function deleteCurrentProductAccount(formData: FormData) {
   });
 
   await supabase.auth.signOut({ scope: "global" });
-  redirect(`/login?message=${encodeURIComponent(copy.accountDeleted)}`);
+  redirect("/?preview=landing");
 }
 
 export async function exportCurrentProductData(formData: FormData) {
