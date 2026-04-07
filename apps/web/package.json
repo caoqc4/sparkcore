@@ -13,6 +13,8 @@
     "telegram:webhook:delete": "tsx scripts/telegram-delete-webhook.ts",
     "telegram:binding:upsert": "tsx scripts/telegram-upsert-binding.ts",
     "telegram:binding:delete": "tsx scripts/telegram-delete-binding.ts",
+    "telegram:worker:deploy": "bash scripts/telegram-worker-deploy.sh",
+    "telegram:worker:post-deploy-check": "tsx scripts/telegram-worker-post-deploy-check.ts",
     "telegram:inbound:worker": "tsx scripts/telegram-inbound-worker.ts",
     "discord:gateway:dev": "tsx scripts/discord-gateway-dev.ts",
     "discord:gateway:worker": "tsx scripts/discord-gateway-worker.ts",
