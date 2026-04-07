@@ -22,13 +22,22 @@ import { createClient } from "@/lib/supabase/server";
 export async function generateMetadata() {
   return buildLocalizedPageMetadata({
     title: {
-      en: "AI Companion That Remembers You and Stays With You in IM",
+      en: "AI Companion with Long Memory & IM Continuity",
       "zh-CN": "会记住你、并在 IM 中持续陪着你的 AI 伴侣",
     },
     description: {
       en: "Meet your AI companion who actually remembers you. Long memory, IM-native relationship loop, and a web control center for memory, privacy, and channel settings.",
       "zh-CN": "认识一个真正会记住你的 AI 伴侣。长期记忆、IM 原生关系循环，以及用于记忆、隐私和渠道设置的网页控制中心。",
     },
+    keywords: [
+      "ai companion",
+      "ai girlfriend",
+      "ai boyfriend",
+      "replika alternative",
+      "character ai alternative",
+      "ai with long memory",
+      "im chat ai",
+    ],
     path: "/",
   });
 }
@@ -153,11 +162,28 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     ...presetMeta[slug],
   }));
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
+
   return (
     <SiteShell>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareAppSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       {/* Hero Section */}
       <section id="home-hero" className="home-section">

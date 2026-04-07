@@ -8,8 +8,8 @@ import { buildLocalizedPageMetadata } from "@/lib/site";
 export async function generateMetadata() {
   return buildLocalizedPageMetadata({
     title: {
-      en: "Lagun Pricing: Free & Pro AI Companion Plans",
-      "zh-CN": "Lagun 定价：免费版与 Pro AI 伴侣方案",
+      en: "Pricing: Free & Pro AI Companion Plans",
+      "zh-CN": "定价：免费版与 Pro AI 伴侣方案",
     },
     description: {
       en: "Lagun offers a free plan and a Pro plan starting at $14.99/mo. Memory visibility, IM channel access, and relationship continuity are included in both.",

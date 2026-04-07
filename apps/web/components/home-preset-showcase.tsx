@@ -56,6 +56,7 @@ export function HomePresetShowcase({
                 className="home-role-showcase-portrait-img"
                 src={preset.portraitUrl}
                 alt={preset.name}
+                title={preset.name}
               />
             ) : (
               <div className="img-placeholder img-placeholder-role" aria-hidden="true">

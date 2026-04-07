@@ -22,6 +22,7 @@ export async function generateMetadata() {
       en: "Lagun is an AI companion built around long-term memory and IM-native relationship continuity — with a visible memory control center so nothing is hidden.",
       "zh-CN": "Lagun 是围绕长期记忆和 IM 原生关系连续性构建的 AI 伴侣，并提供可见的记忆控制中心，让关键状态不再隐藏。",
     },
+    keywords: ["ai companion", "ai companion app", "ai with long memory", "im ai companion", "ai relationship"],
     path: "/ai-companion",
   });
 }

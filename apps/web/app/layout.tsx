@@ -30,6 +30,11 @@ export const metadata: Metadata = {
     template: "%s"
   },
   description: buildPageDescription(),
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg"
+  },
   openGraph: {
     title: buildPageTitle(),
     description: buildPageDescription(),

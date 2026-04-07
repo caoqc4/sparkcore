@@ -14,6 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
       en: "Compare Lagun with Replika when you want a companion relationship with more visible memory, clearer controls, and IM-native continuity.",
       "zh-CN": "如果你希望一段伴侣关系拥有更可见的记忆、更清晰的控制和 IM 原生连续性，可以把 Lagun 与 Replika 对比。",
     },
+    keywords: ["replika alternative", "better than replika", "replika with memory", "ai companion replika"],
     path: "/alternatives/replika"
   });
 }

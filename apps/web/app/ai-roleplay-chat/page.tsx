@@ -15,13 +15,14 @@ import { createClient } from "@/lib/supabase/server";
 export async function generateMetadata() {
   return buildLocalizedPageMetadata({
     title: {
-      en: "AI Roleplay Chat With Persistent Memory | Characters That Never Reset",
-      "zh-CN": "带持久记忆的 AI 角色扮演聊天 | 不会重置的角色",
+      en: "AI Roleplay Chat with Persistent Memory & Continuity",
+      "zh-CN": "带持久记忆的 AI 角色扮演聊天，角色不会重置",
     },
     description: {
       en: "Lagun brings persistent memory to AI roleplay chat — your character stays in role across every session and continues the story in IM, no re-introduction needed.",
       "zh-CN": "Lagun 把持久记忆带入 AI 角色扮演聊天：你的角色能跨会话保持角色感，并在 IM 中继续故事，无需反复重新介绍。",
     },
+    keywords: ["ai roleplay", "ai roleplay chat", "character ai roleplay", "ai with persistent memory"],
     path: "/ai-roleplay-chat",
   });
 }

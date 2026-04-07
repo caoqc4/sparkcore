@@ -84,7 +84,7 @@ export function buildPageMetadata({
     description: resolvedDescription,
     keywords,
     alternates: {
-      canonical: path,
+      canonical: path === "/" ? siteConfig.appUrl : `${siteConfig.appUrl}${path}`,
     },
     openGraph: {
       title: resolvedTitle,
@@ -107,7 +107,14 @@ export function buildPageMetadata({
             follow: false,
           },
         }
-      : undefined,
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+          },
+        },
   };
 }
 

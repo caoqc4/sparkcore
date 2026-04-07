@@ -14,6 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
       en: "Compare Lagun with Character.AI when you want stronger memory continuity, IM-native chat, and a clearer relationship control center.",
       "zh-CN": "如果你希望更强的记忆连续性、IM 原生聊天和更清晰的关系控制中心，可以把 Lagun 与 Character.AI 对比。",
     },
+    keywords: ["character ai alternative", "character.ai alternative", "better than character ai", "character ai with memory"],
     path: "/alternatives/character-ai"
   });
 }

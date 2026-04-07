@@ -209,6 +209,7 @@ export function HomeHeroPreview({ draft, portraitUrl, language = "en" }: HomeHer
               className="home-hero-portrait-img home-hero-portrait-photo"
               src={portraitUrl}
               alt={draft.name || (isZh ? "伴侣头像" : "Companion portrait")}
+              title={draft.name || (isZh ? "伴侣头像" : "Companion portrait")}
             />
           ) : (
             <div className="home-hero-portrait-img home-hero-portrait-silhouette">

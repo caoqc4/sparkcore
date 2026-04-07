@@ -16,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
       en: "Lagun frames AI boyfriend as an ongoing relationship experience with long memory, IM-native contact, and visible web controls.",
       "zh-CN": "Lagun 将 AI 男友定义为一段持续中的关系体验，具备长期记忆、IM 原生联系能力和可见网页控制层。",
     },
+    keywords: ["ai boyfriend", "virtual boyfriend", "ai boyfriend with memory", "boyfriend ai app"],
     path: "/ai-boyfriend"
   });
 }

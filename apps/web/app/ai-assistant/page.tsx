@@ -15,13 +15,14 @@ import { createClient } from "@/lib/supabase/server";
 export async function generateMetadata() {
   return buildLocalizedPageMetadata({
     title: {
-      en: "Personal AI Assistant With Memory — Learns How You Work",
+      en: "Personal AI Assistant with Memory & IM Access",
       "zh-CN": "带记忆的个人 AI 助手，会逐步学会你的工作方式",
     },
     description: {
       en: "Lagun is a personal AI assistant that remembers your working style, preferences, and context — not just your last request. Configurable personality and IM-native access.",
       "zh-CN": "Lagun 是一个会记住你的工作风格、偏好和上下文的个人 AI 助手，而不只记得你上一条请求。支持可配置人格和 IM 原生接入。",
     },
+    keywords: ["ai assistant", "personal ai assistant", "ai assistant with memory", "im ai assistant"],
     path: "/ai-assistant",
   });
 }

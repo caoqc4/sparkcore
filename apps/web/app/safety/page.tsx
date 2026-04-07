@@ -7,7 +7,7 @@ import { buildLocalizedPageMetadata } from "@/lib/site";
 
 export async function generateMetadata() {
   return buildLocalizedPageMetadata({
-    title: { en: "Safety", "zh-CN": "安全" },
+    title: { en: "AI Companion Safety & Relationship Boundaries", "zh-CN": "AI 伴侣安全与关系边界" },
     description: {
       en: "Lagun safety focuses on relationship boundaries, manageable memory, and visible web controls for IM-native companion experiences.",
       "zh-CN": "Lagun 的安全设计聚焦于关系边界、可管理记忆和面向 IM 原生伴侣体验的可见网页控制。",

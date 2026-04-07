@@ -7,11 +7,12 @@ import { buildLocalizedPageMetadata } from "@/lib/site";
 
 export async function generateMetadata() {
   return buildLocalizedPageMetadata({
-    title: { en: "How It Works", "zh-CN": "工作原理" },
+    title: { en: "How Lagun Works: AI Companion Setup & IM Loop", "zh-CN": "工作原理：AI 伴侣创建与 IM 关系循环" },
     description: {
       en: "See the Lagun loop from role creation to IM connection to memory and privacy control on the web.",
       "zh-CN": "查看 Lagun 从角色创建、IM 连接到网页上的记忆与隐私控制的完整循环。",
     },
+    keywords: ["how ai companion works", "ai companion setup", "ai girlfriend setup"],
     path: "/how-it-works"
   });
 }

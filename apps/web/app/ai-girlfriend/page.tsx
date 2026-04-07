@@ -15,13 +15,14 @@ import { createClient } from "@/lib/supabase/server";
 export async function generateMetadata() {
   return buildLocalizedPageMetadata({
     title: {
-      en: "AI Girlfriend Who Remembers You — Built for Real Relationship Continuity",
+      en: "AI Girlfriend with Long Memory & IM Continuity",
       "zh-CN": "会记住你、并为真实关系连续性而设计的 AI 女友",
     },
     description: {
       en: "Create an AI girlfriend who remembers your story, stays consistent across every session, and lives in your IM — not an app you have to log into.",
       "zh-CN": "创建一个会记住你的故事、在每次会话中保持一致，并存在于你的 IM 中的 AI 女友，而不是一个还要登录进去的 App。",
     },
+    keywords: ["ai girlfriend", "virtual girlfriend", "ai girlfriend with memory", "girlfriend ai app"],
     path: "/ai-girlfriend",
   });
 }

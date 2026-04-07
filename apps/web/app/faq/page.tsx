@@ -8,13 +8,14 @@ import { buildLocalizedPageMetadata } from "@/lib/site";
 export async function generateMetadata() {
   return buildLocalizedPageMetadata({
     title: {
-      en: "AI Companion FAQ: Memory, IM Chat, and Privacy Controls",
+      en: "AI Companion FAQ: Memory, IM Chat & Privacy",
       "zh-CN": "AI 伴侣 FAQ：记忆、IM 聊天与隐私控制",
     },
     description: {
       en: "Find answers about Lagun memory, IM-native chat, privacy controls, supported channels, and how the website control center fits the product.",
       "zh-CN": "查看关于 Lagun 记忆、IM 原生聊天、隐私控制、支持渠道以及网页控制中心定位的答案。",
     },
+    keywords: ["ai companion faq", "ai girlfriend faq", "ai companion questions"],
     path: "/faq"
   });
 }

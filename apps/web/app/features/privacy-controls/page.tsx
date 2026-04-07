@@ -8,13 +8,14 @@ import { buildLocalizedPageMetadata } from "@/lib/site";
 export async function generateMetadata() {
   return buildLocalizedPageMetadata({
     title: {
-      en: "Privacy Controls for Long-Memory AI Companion Products",
+      en: "AI Companion Privacy Controls & Memory Visibility",
       "zh-CN": "面向长期记忆 AI 伴侣产品的隐私控制",
     },
     description: {
       en: "Lagun privacy controls focus on visible memory, explicit boundaries, and channel awareness so companion continuity stays inspectable.",
       "zh-CN": "Lagun 的隐私控制重点在于可见记忆、明确边界和渠道感知，让伴侣连续性保持可检查。",
     },
+    keywords: ["ai companion privacy", "ai memory privacy", "ai girlfriend privacy controls"],
     path: "/features/privacy-controls"
   });
 }

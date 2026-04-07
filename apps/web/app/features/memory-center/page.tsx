@@ -8,13 +8,14 @@ import { buildLocalizedPageMetadata } from "@/lib/site";
 export async function generateMetadata() {
   return buildLocalizedPageMetadata({
     title: {
-      en: "Memory Center for Long-Term AI Companion Relationships",
+      en: "AI Companion Memory Center: Visible Long-Term Memory",
       "zh-CN": "面向长期 AI 伴侣关系的记忆中心",
     },
     description: {
       en: "See how Lagun memory center makes long-term AI companion memory visible, correctable, and trustworthy enough to support relationship continuity.",
       "zh-CN": "了解 Lagun 的记忆中心如何让长期 AI 伴侣记忆保持可见、可修正，并足够可信以支撑关系连续性。",
     },
+    keywords: ["ai companion memory", "ai long term memory", "ai girlfriend memory", "persistent ai memory"],
     path: "/features/memory-center"
   });
 }

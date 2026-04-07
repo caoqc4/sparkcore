@@ -8,13 +8,14 @@ import { buildLocalizedPageMetadata } from "@/lib/site";
 export async function generateMetadata() {
   return buildLocalizedPageMetadata({
     title: {
-      en: "IM-Native AI Companion: Build Your Relationship Outside the Browser",
+      en: "AI Companion via IM Chat: Beyond the Browser",
       "zh-CN": "IM 原生 AI 伴侣：把关系建立在浏览器之外",
     },
     description: {
       en: "Understand why Lagun keeps the main companion relationship in IM while the website stays focused on setup, memory, and control.",
       "zh-CN": "理解为什么 Lagun 把主要伴侣关系放在 IM 中，而网站则专注于设置、记忆和控制。",
     },
+    keywords: ["ai companion im chat", "im ai chat", "ai in telegram", "ai companion outside browser"],
     path: "/features/im-chat"
   });
 }
