@@ -260,6 +260,12 @@ export async function POST(request: NextRequest) {
             audioTranscriptOverride: deferredArtifactGeneration.audio_transcript_override ?? null,
             explicitImageRequested: deferredArtifactGeneration.explicit_image_requested ?? false,
             explicitAudioRequested: deferredArtifactGeneration.explicit_audio_requested ?? false,
+            explicitHumanSubjectRequested:
+              deferredArtifactGeneration.explicit_human_subject_requested ?? false,
+            shouldUseRolePortraitReference:
+              deferredArtifactGeneration.should_use_role_portrait_reference ?? false,
+            rolePortraitReferenceStrength:
+              deferredArtifactGeneration.role_portrait_reference_strength ?? "none",
             deliveryGate: deferredArtifactGeneration.delivery_gate
               ? {
                   clarifyBeforeAction:

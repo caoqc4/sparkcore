@@ -192,6 +192,9 @@ export async function runDeferredImArtifactGeneration(args: {
   audioTranscriptOverride?: string | null;
   explicitImageRequested?: boolean;
   explicitAudioRequested?: boolean;
+  explicitHumanSubjectRequested?: boolean;
+  shouldUseRolePortraitReference?: boolean;
+  rolePortraitReferenceStrength?: "none" | "light" | "strong";
   deliveryGate?: {
     clarifyBeforeAction: boolean;
     reason: string | null;
@@ -262,9 +265,14 @@ export async function runDeferredImArtifactGeneration(args: {
             audioRequested:
               (args.explicitAudioRequested ?? false) &&
               args.audioArtifactAction !== "block",
-            explicitHumanSubjectRequested: false,
-            shouldUseRolePortraitReference: false,
-            rolePortraitReferenceStrength: "none",
+            explicitHumanSubjectRequested:
+              (args.explicitHumanSubjectRequested ?? false) &&
+              args.imageArtifactAction !== "block",
+            shouldUseRolePortraitReference:
+              (args.shouldUseRolePortraitReference ?? false) &&
+              args.imageArtifactAction !== "block",
+            rolePortraitReferenceStrength:
+              args.rolePortraitReferenceStrength ?? "none",
             imageConfidence: (args.explicitImageRequested ?? false) ? 1 : 0.01,
             audioConfidence: (args.explicitAudioRequested ?? false) ? 1 : 0.01,
             source: "fallback_rules",
@@ -624,6 +632,14 @@ async function runImRuntimeTurnWithSupabase(args: {
 
     const explicitImageRequested = Boolean(preparedArtifactContext?.intent.imageRequested);
     const explicitAudioRequested = Boolean(preparedArtifactContext?.intent.audioRequested);
+    const explicitHumanSubjectRequested = Boolean(
+      preparedArtifactContext?.intent.explicitHumanSubjectRequested
+    );
+    const shouldUseRolePortraitReference = Boolean(
+      preparedArtifactContext?.intent.shouldUseRolePortraitReference
+    );
+    const rolePortraitReferenceStrength =
+      preparedArtifactContext?.intent.rolePortraitReferenceStrength ?? "none";
     const explicitAudioTranscriptOverride =
       preparedArtifactContext?.audioTranscriptOverride ?? null;
     const billingRetryEvents = preparedArtifactContext?.billingRetryEvents ?? [];
@@ -876,6 +892,9 @@ async function runImRuntimeTurnWithSupabase(args: {
         audio_transcript_override: explicitAudioTranscriptOverride,
         explicit_image_requested: explicitImageRequested,
         explicit_audio_requested: explicitAudioRequested,
+        explicit_human_subject_requested: explicitHumanSubjectRequested,
+        should_use_role_portrait_reference: shouldUseRolePortraitReference,
+        role_portrait_reference_strength: rolePortraitReferenceStrength,
         delivery_gate: deliveryGate
           ? {
               clarify_before_action: deliveryGate.clarifyBeforeAction,

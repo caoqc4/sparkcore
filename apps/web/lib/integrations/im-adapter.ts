@@ -201,6 +201,9 @@ export type AdapterRuntimeOutput = {
     audio_transcript_override?: string | null;
     explicit_image_requested?: boolean;
     explicit_audio_requested?: boolean;
+    explicit_human_subject_requested?: boolean;
+    should_use_role_portrait_reference?: boolean;
+    role_portrait_reference_strength?: "none" | "light" | "strong";
     delivery_gate?: {
       clarify_before_action: boolean;
       reason: string | null;
