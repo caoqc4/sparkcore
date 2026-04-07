@@ -487,6 +487,7 @@ async function runImRuntimeTurnWithSupabase(args: {
           agent.metadata && typeof agent.metadata === "object" && !Array.isArray(agent.metadata)
             ? (agent.metadata as Record<string, unknown>)
             : null,
+        preGenerateImage: false,
       });
       artifactPreparationDurationMs = elapsedMs(artifactPreparationStartedAt);
       artifactPreparationTiming = preparedArtifactContext?.timingMs ?? {
@@ -514,6 +515,9 @@ async function runImRuntimeTurnWithSupabase(args: {
       const generationHints = [
         clarifyBeforeAction
           ? `The user's current request is not aligned yet${preparedArtifactContext.deliveryGate?.conflictHint ? ` (${preparedArtifactContext.deliveryGate.conflictHint})` : ""}. Ask one short clarifying question first. Do not continue with image delivery, advice expansion, or action-taking in this turn.`
+          : "",
+        preparedArtifactContext.intent.imageRequested && !imageReady && !imageFailed
+          ? "The user explicitly requested an image. Do not wait for the image before replying. Send a short natural text reply first, then let the image arrive shortly after as a follow-up delivery. Do not claim the image is already attached or already prepared."
           : "",
         imageReady
           ? "The user explicitly requested an image. An image has already been prepared and will be delivered shortly after your text reply. Let the image lead. Keep your text to 1-3 short sentences. Open from the scene, atmosphere, or feeling of seeing it, not from agent-led delivery phrasing. For companion-style delivery, structure it like shared viewing: sentence one notices the scene, sentence two stays in quiet resonance or co-feeling, and an optional third sentence gently invites the user back into the moment. Let the cadence vary naturally by moment: sometimes one short line is enough, sometimes two beats, and only occasionally a third. Avoid turning the image copy into a polished takeaway, emotional summary, user-serving benefit statement, or image-review paragraph. Do not sound like a museum caption, travel brochure, curated mood board, or aesthetic commentary. Use one or two concrete visual details and keep the wording colloquial, as if speaking while looking at it together. Favor short spoken sentences, simple phrasing, and slight natural looseness over polished prose. Avoid stacked modifiers, balanced parallel phrases, abstract summary nouns, or neat concluding lines. Briefly acknowledge it naturally and do not say you cannot generate images."
@@ -640,12 +644,14 @@ async function runImRuntimeTurnWithSupabase(args: {
     const allowAudioDelivery = audioArtifactAction !== "block";
     const deliverableImageRequested = explicitImageRequested && allowImageDelivery;
     const deliverableAudioRequested = explicitAudioRequested && allowAudioDelivery;
+    const shouldUseImmediateArtifactDelivery = false;
 
     let immediateArtifacts: Array<Record<string, unknown>> = [];
     let immediateArtifactGenerationFailed = false;
     let immediateArtifactDurationMs: number | null = null;
 
     if (
+      shouldUseImmediateArtifactDelivery &&
       preparedArtifactContext &&
       (deliverableImageRequested || deliverableAudioRequested) &&
       allowArtifactDelivery
@@ -825,7 +831,9 @@ async function runImRuntimeTurnWithSupabase(args: {
 
     const shouldDeferArtifacts =
       (allowArtifactDelivery &&
-      (immediateArtifactGenerationFailed ||
+      ((!shouldUseImmediateArtifactDelivery &&
+        (deliverableImageRequested || deliverableAudioRequested)) ||
+      immediateArtifactGenerationFailed ||
       (!deliverableAudioRequested &&
         (!deliverableImageRequested ||
           !preGeneratedImageArtifact ||
@@ -834,6 +842,15 @@ async function runImRuntimeTurnWithSupabase(args: {
     return {
       ...runtimeTurnResult,
       immediate_artifacts: immediateArtifacts,
+      debug_metadata: {
+        ...(runtimeTurnResult.debug_metadata ?? {}),
+        explicit_image_requested: deliverableImageRequested,
+        explicit_audio_requested: deliverableAudioRequested,
+        explicit_media_delivery_mode:
+          deliverableImageRequested || deliverableAudioRequested
+            ? "deferred_artifact"
+            : runtimeTurnResult.debug_metadata?.explicit_media_delivery_mode,
+      },
       deferred_post_processing: {
         assistant_message_id: assistantPlaceholder.id,
         source_message_id: insertedMessage.id,
