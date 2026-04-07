@@ -203,7 +203,15 @@ export function RoleCreateWizard({
       (p) => p.characterSlug === args.presetSlug,
     );
 
-    return presetSpecificOptions.length > 0 ? presetSpecificOptions : matchingOptions;
+    if (presetSpecificOptions.length === 0) {
+      return matchingOptions;
+    }
+
+    const fallbackOptions = matchingOptions.filter(
+      (p) => p.characterSlug !== args.presetSlug,
+    );
+
+    return [...presetSpecificOptions, ...fallbackOptions];
   }
   const voiceOptions = filterAudioVoiceOptionsForRole({
     options: audioOptions,
