@@ -1,5 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { resetSmokeStateWithRetry } from "@/tests/helpers/smoke-reset";
 
 const smokeSecret =
   process.env.PLAYWRIGHT_SMOKE_SECRET ?? "sparkcore-smoke-local";
@@ -413,13 +414,7 @@ test.describe("real runtime centralization", () => {
   );
 
   test.beforeEach(async ({ page, request }) => {
-    const resetResponse = await request.post("/api/test/smoke-reset", {
-      headers: {
-        "x-smoke-secret": smokeSecret
-      }
-    });
-
-    expect(resetResponse.ok()).toBeTruthy();
+    await resetSmokeStateWithRetry(request, smokeSecret);
 
     await page.goto(`/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat`);
     await expect(page).toHaveURL(/\/chat/);

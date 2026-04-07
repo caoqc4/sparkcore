@@ -4,6 +4,7 @@ import {
   isTransientSupabaseFetchError,
   retryOnceOnTransientSupabaseFetch
 } from "@/lib/supabase/transient-fetch";
+import { resetSmokeStateWithRetry } from "@/tests/helpers/smoke-reset";
 
 const smokeSecret = process.env.PLAYWRIGHT_SMOKE_SECRET ?? "sparkcore-smoke-local";
 const hasServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -306,13 +307,7 @@ test.describe("core chat smoke", () => {
   );
 
   test.beforeEach(async ({ page, request }) => {
-    const resetResponse = await request.post("/api/test/smoke-reset", {
-      headers: {
-        "x-smoke-secret": smokeSecret
-      }
-    });
-
-    expect(resetResponse.ok()).toBeTruthy();
+    await resetSmokeStateWithRetry(request, smokeSecret);
 
     await page.goto(`/api/test/smoke-login?secret=${smokeSecret}&redirect=/chat`);
     await expect(page).toHaveURL(/\/chat/);

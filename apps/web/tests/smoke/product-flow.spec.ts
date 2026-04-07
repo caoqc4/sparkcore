@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { resetSmokeStateWithRetry } from "@/tests/helpers/smoke-reset";
 
 const smokeSecret = process.env.PLAYWRIGHT_SMOKE_SECRET ?? "sparkcore-smoke-local";
 const smokeEmail = process.env.PLAYWRIGHT_SMOKE_EMAIL ?? "smoke@example.com";
@@ -47,13 +48,7 @@ test.describe("product flow smoke", () => {
   );
 
   test.beforeEach(async ({ request }) => {
-    const resetResponse = await request.post("/api/test/smoke-reset", {
-      headers: {
-        "x-smoke-secret": smokeSecret
-      }
-    });
-
-    expect(resetResponse.ok()).toBeTruthy();
+    await resetSmokeStateWithRetry(request, smokeSecret);
   });
 
   test("creates a product role, binds telegram, and lands on dashboard", async ({

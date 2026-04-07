@@ -1,5 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { resetSmokeStateWithRetry } from "@/tests/helpers/smoke-reset";
 
 const smokeSecret =
   process.env.PLAYWRIGHT_SMOKE_SECRET ?? "sparkcore-smoke-local";
@@ -36,13 +37,7 @@ function getWebDeliveryMetadata(
 }
 
 async function resetSmokeState(request: APIRequestContext) {
-  const response = await request.post("/api/test/smoke-reset", {
-    headers: {
-      "x-smoke-secret": smokeSecret
-    }
-  });
-
-  expect(response.ok()).toBe(true);
+  await resetSmokeStateWithRetry(request, smokeSecret);
 }
 
 async function createSmokeThread(request: APIRequestContext, agentName: string) {
