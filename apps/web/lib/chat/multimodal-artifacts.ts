@@ -383,6 +383,9 @@ function buildImagePrompt(args: {
   referenceImageUrl?: string | null;
 }) {
   const wantsPhotoStyle = isPhotoStyleRequest(args.userMessage);
+  const explicitlyRequestsHumanSubject = detectExplicitHumanSubjectRequest(
+    args.userMessage
+  );
   const appearance = resolveStoredProductRoleAppearance(args.agentMetadata ?? null);
   const genderLine =
     appearance.avatarGender === "female"
@@ -402,6 +405,12 @@ function buildImagePrompt(args: {
         ? "Use the supplied role portrait as a strong identity reference so the person clearly reads as the same character."
         : "Use the supplied role portrait as a light identity reference so the person loosely preserves the same character features."
       : "";
+  const noRandomHumanLine =
+    "Do not add any person, face, silhouette, or body unless the user explicitly asked for a person or the character to appear.";
+  const roleSubjectLine =
+    args.agentName && explicitlyRequestsHumanSubject
+      ? `If a person is requested here, make the subject read as ${args.agentName} rather than a random stranger. Keep the identity consistent with the role, but let clothing, pose, and styling adapt naturally to the requested scene.`
+      : "";
 
   if (wantsPhotoStyle) {
     return [
@@ -410,15 +419,18 @@ function buildImagePrompt(args: {
       "Respect real-world plausibility unless the user explicitly asks for fantasy, surrealism, or impossible imagery.",
       "Do not invent magical, surreal, or physically implausible elements for a normal photo request.",
       "If the request mentions a moon, sky, water, landscape, or weather scene, keep colors and lighting believable for a real photograph.",
-      args.agentName
-        ? `If a human subject appears, keep only a subtle visual echo of ${args.agentName}; do not force a character portrait unless the user explicitly asked for a person.`
-        : "",
+      explicitlyRequestsHumanSubject
+        ? roleSubjectLine
+        : args.agentName
+          ? `If a human subject appears despite the scene-first request, keep only a subtle visual echo of ${args.agentName}; do not force a character portrait unless the user explicitly asked for a person.`
+          : "",
       genderLine,
       personaLine,
       referenceLine,
       `User request: ${args.userMessage.trim()}`,
       "Style target: believable photo, natural lighting, camera-like detail, grounded composition, not an illustration.",
       sceneFirstLine,
+      noRandomHumanLine,
       args.recentImageVariationHint?.trim() ?? "",
       "Keep the image tasteful, emotionally warm, and safe for a general audience.",
       "No text overlays unless the user explicitly asked for text in the image.",
@@ -434,6 +446,7 @@ function buildImagePrompt(args: {
   return [
     "Create a polished conversational companion image that satisfies the user's request.",
     roleLine,
+    explicitlyRequestsHumanSubject ? roleSubjectLine : noRandomHumanLine,
     genderLine,
     personaLine,
     referenceLine,
@@ -448,6 +461,24 @@ function buildImagePrompt(args: {
   ]
     .filter((line) => line.length > 0)
     .join("\n");
+}
+
+function detectExplicitHumanSubjectRequest(content: string) {
+  const normalized = content.normalize("NFKC").trim();
+  if (!normalized) {
+    return false;
+  }
+
+  const patterns = [
+    /(你本人|你自己|你本人的?|她本人|他本人)[\s\S]{0,12}(照片|相片|图片|头像|样子|长相|脸)/u,
+    /(你的|她的|他的)[\s\S]{0,8}(照片|相片|图片|头像|脸|长相|样子)/u,
+    /自拍|半身照|全身照|近照|证件照|头像照/u,
+    /\b(photo|picture|image|portrait|avatar)\b[\s\S]{0,24}\b(of you|of yourself|yourself|you|her|him)\b/i,
+    /\b(show|draw|make|create)\b[\s\S]{0,24}\b(you|yourself|her|him)\b/i,
+    /\b(what do you look like|show me yourself|show me your face)\b/i,
+  ];
+
+  return patterns.some((pattern) => pattern.test(normalized));
 }
 
 function buildImageAltText(args: { agentName: string | null; userMessage: string }) {
