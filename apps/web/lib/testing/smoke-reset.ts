@@ -23,9 +23,7 @@ export async function resetSmokeState() {
         persistSession: false
       }
     });
-    const smokeUser = await ensureSmokeUserState(admin, config, {
-      resetPassword: true
-    });
+    const smokeUser = await ensureSmokeUserState(admin, config);
     const { error: upsertError } = await upsertSmokeModelProfiles(admin);
 
     if (upsertError) {

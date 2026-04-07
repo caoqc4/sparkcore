@@ -17,7 +17,7 @@ BUILD_SUBMIT_OUTPUT="$(
     --substitutions "_IMAGE_URI=${IMAGE_URI}" \
     --async \
     --suppress-logs \
-    .
+    . 2>&1
 )"
 
 echo "${BUILD_SUBMIT_OUTPUT}"

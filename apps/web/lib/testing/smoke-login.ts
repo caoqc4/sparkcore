@@ -29,28 +29,46 @@ export async function createSmokeLoginResponse(
         persistSession: false
       }
     });
-    await ensureSmokeUserState(admin, config, {
-      resetPassword: true
-    });
+    await ensureSmokeUserState(admin, config);
 
     let response = NextResponse.redirect(new URL(redirectPath, request.url));
-    const supabase = createServerClient(config.url, config.anonKey, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
+    const createSmokeSessionClient = () =>
+      createServerClient(config.url, config.anonKey, {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options);
+            });
+          }
         }
-      }
-    });
+      });
 
-    const { error } = await supabase.auth.signInWithPassword({
+    let supabase = createSmokeSessionClient();
+
+    let { error } = await supabase.auth.signInWithPassword({
       email: config.email,
       password: config.password
     });
+
+    if (
+      error &&
+      (error.message.toLowerCase().includes("invalid login credentials") ||
+        error.message.toLowerCase().includes("email not confirmed"))
+    ) {
+      await ensureSmokeUserState(admin, config, {
+        resetPassword: true
+      });
+
+      response = NextResponse.redirect(new URL(redirectPath, request.url));
+      supabase = createSmokeSessionClient();
+      ({ error } = await supabase.auth.signInWithPassword({
+        email: config.email,
+        password: config.password
+      }));
+    }
 
     if (error?.message === "Email logins are disabled") {
       const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
