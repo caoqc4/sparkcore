@@ -5,6 +5,7 @@ import { buildSmokeProfileMemorySeedPayload } from "@/lib/testing/smoke-profile-
 import {
   mergeSmokeSeedMetadata
 } from "@/lib/testing/smoke-seed-metadata";
+import { isTransientSmokeConstraintVisibilityError } from "@/lib/testing/smoke-retry";
 
 export type SmokeProfileMemorySeedingInput = {
   supabase: SupabaseClient;
@@ -43,10 +44,26 @@ export async function upsertSmokeProfileMemory(args: SmokeProfileMemorySeedingIn
     return { created: false as const };
   }
 
-  const { error } = await insertMemoryItem({
-    supabase: args.supabase,
-    payload: buildSmokeProfileMemorySeedPayload(args)
-  });
+  let error: { message: string } | null = null;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const result = await insertMemoryItem({
+      supabase: args.supabase,
+      payload: buildSmokeProfileMemorySeedPayload(args)
+    });
+
+    error = result.error;
+
+    if (!error || attempt === 3) {
+      break;
+    }
+
+    if (!isTransientSmokeConstraintVisibilityError(error)) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+  }
 
   if (error) {
     throw new Error(`Failed to seed smoke memory: ${error.message}`);

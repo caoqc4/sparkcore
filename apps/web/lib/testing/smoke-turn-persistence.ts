@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { insertMessage } from "@/lib/chat/message-persistence";
 import { buildThreadActivityPatch } from "@/lib/chat/thread-activity";
 import { updateOwnedThread } from "@/lib/chat/runtime-turn-context";
+import { isTransientSmokeConstraintVisibilityError } from "@/lib/testing/smoke-retry";
 
 export async function insertSmokeUserTurn(args: {
   supabase: SupabaseClient;
@@ -10,8 +11,11 @@ export async function insertSmokeUserTurn(args: {
   userId: string;
   content: string;
 }) {
-  const { data: insertedUserMessage, error: insertedUserMessageError } =
-    await insertMessage({
+  let insertedUserMessage: { id: string } | null = null;
+  let insertedUserMessageError: { message: string } | null = null;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const result = await insertMessage({
       supabase: args.supabase,
       threadId: args.threadId,
       workspaceId: args.workspaceId,
@@ -22,6 +26,20 @@ export async function insertSmokeUserTurn(args: {
       },
       select: "id"
     }).single();
+
+    insertedUserMessage = result.data;
+    insertedUserMessageError = result.error;
+
+    if (!insertedUserMessageError || attempt === 3) {
+      break;
+    }
+
+    if (!isTransientSmokeConstraintVisibilityError(insertedUserMessageError)) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+  }
 
   if (insertedUserMessageError || !insertedUserMessage) {
     throw new Error(

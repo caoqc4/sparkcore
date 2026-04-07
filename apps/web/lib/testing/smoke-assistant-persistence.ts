@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { insertMessage } from "@/lib/chat/message-persistence";
+import { isTransientSmokeConstraintVisibilityError } from "@/lib/testing/smoke-retry";
 import type {
   SmokeApproxContextPressure,
   SmokeAnswerQuestionType,
@@ -69,8 +70,11 @@ export type SmokeAnalyzedAssistantInsertArgs = {
 } & SmokeAssistantPersistenceSharedFields;
 
 export async function insertSmokeAssistantReply(args: SmokeAssistantInsertArgs) {
-  const { data: insertedAssistantMessage, error: insertedAssistantMessageError } =
-    await insertMessage({
+  let insertedAssistantMessage: { id: string } | null = null;
+  let insertedAssistantMessageError: { message: string } | null = null;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const result = await insertMessage({
       supabase: args.supabase as SupabaseClient,
       threadId: args.threadId,
       workspaceId: args.workspaceId,
@@ -78,6 +82,20 @@ export async function insertSmokeAssistantReply(args: SmokeAssistantInsertArgs) 
       payload: buildSmokeAssistantMessagePayload(args),
       select: "id"
     }).single();
+
+    insertedAssistantMessage = result.data;
+    insertedAssistantMessageError = result.error;
+
+    if (!insertedAssistantMessageError || attempt === 3) {
+      break;
+    }
+
+    if (!isTransientSmokeConstraintVisibilityError(insertedAssistantMessageError)) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+  }
 
   if (insertedAssistantMessageError || !insertedAssistantMessage) {
     throw new Error(

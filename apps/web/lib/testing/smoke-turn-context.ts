@@ -9,6 +9,10 @@ import { loadRecentOwnedMemories } from "@/lib/chat/memory-item-read";
 import { requireSmokeConfig } from "@/lib/testing/smoke-config";
 import { ensureSmokeUserState } from "@/lib/testing/smoke-user-state";
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function loadSmokeTurnContext(args: {
   threadId: string;
 }) {
@@ -23,12 +27,26 @@ export async function loadSmokeTurnContext(args: {
     }
   });
   const smokeUser = await ensureSmokeUserState(admin, config);
-  const { data: thread, error: threadError } = await loadOwnedThread({
-    supabase: admin,
-    threadId: args.threadId,
-    workspaceId: smokeUser.workspaceId,
-    userId: smokeUser.id
-  });
+  let thread: Awaited<ReturnType<typeof loadOwnedThread>>["data"] = null;
+  let threadError: Awaited<ReturnType<typeof loadOwnedThread>>["error"] = null;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const result = await loadOwnedThread({
+      supabase: admin,
+      threadId: args.threadId,
+      workspaceId: smokeUser.workspaceId,
+      userId: smokeUser.id
+    });
+
+    thread = result.data;
+    threadError = result.error;
+
+    if (threadError || thread || attempt === 3) {
+      break;
+    }
+
+    await sleep(250 * (attempt + 1));
+  }
 
   if (threadError || !thread) {
     throw new Error(
@@ -40,12 +58,26 @@ export async function loadSmokeTurnContext(args: {
     throw new Error("The smoke thread is not bound to an agent.");
   }
 
-  const { data: agent, error: agentError } = await loadOwnedActiveAgent({
-    supabase: admin,
-    agentId: thread.agent_id,
-    workspaceId: smokeUser.workspaceId,
-    userId: smokeUser.id
-  });
+  let agent: Awaited<ReturnType<typeof loadOwnedActiveAgent>>["data"] = null;
+  let agentError: Awaited<ReturnType<typeof loadOwnedActiveAgent>>["error"] = null;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const result = await loadOwnedActiveAgent({
+      supabase: admin,
+      agentId: thread.agent_id,
+      workspaceId: smokeUser.workspaceId,
+      userId: smokeUser.id
+    });
+
+    agent = result.data;
+    agentError = result.error;
+
+    if (agentError || agent || attempt === 3) {
+      break;
+    }
+
+    await sleep(250 * (attempt + 1));
+  }
 
   if (agentError || !agent) {
     throw new Error(

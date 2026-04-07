@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadOwnedRelationshipMemoryByValue } from "@/lib/chat/memory-item-read";
 import { insertMemoryItem } from "@/lib/chat/memory-item-persistence";
 import { buildSmokeRelationshipMemorySeedPayload } from "@/lib/testing/smoke-relationship-memory-seed-payload";
+import { isTransientSmokeConstraintVisibilityError } from "@/lib/testing/smoke-retry";
 import type { SmokeRelationshipMemoryKey } from "@/lib/testing/smoke-relationship-memory-types";
 
 export async function ensureSmokeRelationshipMemory(args: {
@@ -30,10 +31,26 @@ export async function ensureSmokeRelationshipMemory(args: {
     return { created: false as const };
   }
 
-  const { error } = await insertMemoryItem({
-    supabase: args.supabase,
-    payload: buildSmokeRelationshipMemorySeedPayload(args)
-  });
+  let error: { message: string } | null = null;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const result = await insertMemoryItem({
+      supabase: args.supabase,
+      payload: buildSmokeRelationshipMemorySeedPayload(args)
+    });
+
+    error = result.error;
+
+    if (!error || attempt === 3) {
+      break;
+    }
+
+    if (!isTransientSmokeConstraintVisibilityError(error)) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+  }
 
   if (error) {
     throw new Error(`Failed to seed ${args.errorLabel} memory: ${error.message}`);

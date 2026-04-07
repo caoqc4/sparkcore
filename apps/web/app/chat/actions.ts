@@ -853,6 +853,7 @@ export async function restoreMemory(formData: FormData) {
     memoryItemId: memoryItem.id,
     patch: {
       status: "active",
+      last_confirmed_at: new Date().toISOString(),
       metadata: nextMetadata,
       updated_at: new Date().toISOString()
     }

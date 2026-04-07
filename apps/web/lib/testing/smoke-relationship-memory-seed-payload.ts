@@ -16,7 +16,7 @@ export function buildSmokeRelationshipMemorySeedPayload(args: {
   return {
     workspace_id: args.workspaceId,
     user_id: args.userId,
-    agent_id: args.agentId,
+    agent_id: null,
     source_message_id: args.sourceMessageId,
     memory_type: null,
     content: args.value,
