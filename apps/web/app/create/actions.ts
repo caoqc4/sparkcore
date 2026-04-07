@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { CHARACTER_MANIFEST, type CharacterSlug } from "@/lib/characters/manifest";
+import { getProductCharacterPresetDefaults } from "@/lib/characters/preset-defaults";
 import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
 import { getDefaultModelProfile } from "@/lib/chat/runtime-model-profile-resolution";
@@ -100,6 +101,9 @@ export async function createProductRole(formData: FormData) {
   const recommendedAudioAssetId = trimProductText(formData.get("recommended_audio_asset_id"));
   const avatarGender = safeProductRoleAvatarGender(trimProductText(formData.get("avatar_gender")));
   const presetDefinition = presetSlug ? CHARACTER_MANIFEST[presetSlug] : null;
+  const presetDefaults = presetSlug
+    ? getProductCharacterPresetDefaults(presetSlug, effectiveSystemLanguage)
+    : null;
   const name =
     trimProductText(formData.get("name")) ||
     (presetDefinition?.displayName ??
@@ -117,7 +121,8 @@ export async function createProductRole(formData: FormData) {
   const boundaries =
     trimProductText(formData.get("boundaries")) ||
     (isZh ? "保持支持与尊重，避免操控或强迫行为。" : "Be supportive, respectful, and avoid manipulative or coercive behavior.");
-  const backgroundSummary = trimProductText(formData.get("background_summary")) || null;
+  const backgroundSummary =
+    trimProductText(formData.get("background_summary")) || presetDefaults?.backgroundSummary || null;
   let avatarStyle = avatarPresetId ? detectAvatarStyleFromPreset(avatarPresetId) : null;
 
   if (portraitAssetId) {

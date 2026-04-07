@@ -266,7 +266,7 @@ export function RoleCreateWizard({
       // Apply preset defaults (boundaries, backgroundSummary, relationshipMode)
       if (presetSlug) {
         const definition = CHARACTER_MANIFEST[presetSlug];
-        const defaults = getProductCharacterPresetDefaults(presetSlug);
+        const defaults = getProductCharacterPresetDefaults(presetSlug, language);
         setSelectedPresetSlug(presetSlug);
         setMode(definition.mode);
         setSelectedTraits(defaults?.traits ?? []);
@@ -298,7 +298,7 @@ export function RoleCreateWizard({
   useEffect(() => {
     if (defaultPresetSlug) {
       const definition = CHARACTER_MANIFEST[defaultPresetSlug];
-      const defaults = getProductCharacterPresetDefaults(defaultPresetSlug);
+      const defaults = getProductCharacterPresetDefaults(defaultPresetSlug, language);
       setSelectedPresetSlug(defaultPresetSlug);
       setMode(defaultMode ?? definition.mode);
       setGender(defaultGender ?? definition.avatarGender);
@@ -338,7 +338,7 @@ export function RoleCreateWizard({
 
   function applyPreset(preset: "caria" | "teven" | "velia") {
     const definition = CHARACTER_MANIFEST[preset];
-    const defaults = getProductCharacterPresetDefaults(preset);
+    const defaults = getProductCharacterPresetDefaults(preset, language);
     setSelectedPresetSlug(preset);
     setMode(definition.mode);
     setGender(definition.avatarGender);

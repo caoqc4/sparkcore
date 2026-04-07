@@ -87,7 +87,7 @@ function resolvePresetModeAndGender(
 
 function buildDraftFromPreset(slug: CharacterSlug, allowedIdentities?: IdentityType[]): CompanionDraft {
   const definition = CHARACTER_MANIFEST[slug];
-  const defaults = getProductCharacterPresetDefaults(slug);
+  const defaults = getProductCharacterPresetDefaults(slug, "en");
   const { gender, mode } = resolvePresetModeAndGender(slug, allowedIdentities);
   return {
     gender,

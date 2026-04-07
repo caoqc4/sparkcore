@@ -388,7 +388,10 @@ export async function restoreProductRoleDefaults(formData: FormData) {
     typeof (sourcePack.metadata as Record<string, unknown>).character_slug === "string"
       ? ((sourcePack.metadata as Record<string, unknown>).character_slug as string)
       : null;
-  const presetDefaults = getProductCharacterPresetDefaults(sourceCharacterSlug);
+  const presetDefaults = getProductCharacterPresetDefaults(
+    sourceCharacterSlug,
+    copy.isZh ? "zh-CN" : "en"
+  );
 
   if (!presetDefaults) {
     redirectWithMessage(redirectPath, copy.presetUnavailable, "error");
