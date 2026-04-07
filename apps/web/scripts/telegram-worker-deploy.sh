@@ -8,7 +8,10 @@ APP_NAME="${APP_NAME:-sparkcore-telegram}"
 FLY_CONFIG="${FLY_CONFIG:-${APP_ROOT}/deploy/fly.telegram.toml}"
 
 echo "==> Deploying Fly app ${APP_NAME}"
-fly deploy -c "${FLY_CONFIG}"
+(
+  cd "${APP_ROOT}"
+  fly deploy -c "deploy/fly.telegram.toml"
+)
 
 echo "==> Running post-deploy check for ${APP_NAME}"
 pnpm -C "${APP_ROOT}" telegram:worker:post-deploy-check -- --app "${APP_NAME}"
