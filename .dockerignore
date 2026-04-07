@@ -10,7 +10,6 @@ node_modules
 **/playwright-report
 **/test-results
 apps/web/tests
-apps/web/scripts
 apps/web/tsconfig.tsbuildinfo
 doc_private
 docs

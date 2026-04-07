@@ -4,8 +4,8 @@ kill_signal = "SIGINT"
 kill_timeout = "30s"
 
 [build]
-  dockerfile = "../Dockerfile"
-  ignorefile = "../../.dockerignore"
+  dockerfile = "Dockerfile.telegram"
+  ignorefile = ".dockerignore.telegram"
 
 [processes]
   app = "npm run telegram:inbound:worker"
