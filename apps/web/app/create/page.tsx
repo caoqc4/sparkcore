@@ -116,6 +116,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
             </aside>
             <div className="site-card rcw-shell-card">
               <RoleCreateWizard
+                key={presetSlug ?? "blank"}
                 createSurface="/create"
                 defaultPresetSlug={presetSlug ?? undefined}
                 defaultMode={presetDefinition?.mode}
