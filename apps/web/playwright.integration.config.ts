@@ -70,14 +70,14 @@ export default defineConfig({
     timeout: 30_000
   },
   use: {
-    baseURL: "http://localhost:3002",
+    baseURL: "http://127.0.0.1:3002",
     trace: "retain-on-failure"
   },
   webServer: {
     command:
-      `npm run build && PLAYWRIGHT_SMOKE_SECRET=${shellQuote(smokeSecret)} PLAYWRIGHT_SMOKE_EMAIL=${shellQuote(smokeEmail)} PLAYWRIGHT_SMOKE_PASSWORD=${shellQuote(smokePassword)} npm run start -- --hostname localhost --port 3002`,
+      `npm run build && PLAYWRIGHT_SMOKE_SECRET=${shellQuote(smokeSecret)} PLAYWRIGHT_SMOKE_EMAIL=${shellQuote(smokeEmail)} PLAYWRIGHT_SMOKE_PASSWORD=${shellQuote(smokePassword)} npm run start -- --hostname 127.0.0.1 --port 3002`,
     cwd: __dirname,
-    url: "http://localhost:3002/login",
+    url: "http://127.0.0.1:3002/login",
     reuseExistingServer: false,
     timeout: 180_000
   },

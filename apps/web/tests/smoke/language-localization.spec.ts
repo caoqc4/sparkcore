@@ -16,7 +16,7 @@ test.describe("language localization smoke", () => {
       page.getByRole("heading", { name: "Create an AI companion that remembers you." })
     ).toBeVisible();
     await expect(page).toHaveTitle(
-      "AI Companion That Remembers You and Stays With You in IM | Lagun"
+      "AI Companion with Long Memory & IM Continuity | Lagun"
     );
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     await expect(await getMetaDescription(page)).toBe(
@@ -31,7 +31,7 @@ test.describe("language localization smoke", () => {
     await expect(
       page.getByRole("heading", { name: "创建一个会记住你的 AI 陪伴。" })
     ).toBeVisible();
-    await expect(page).toHaveTitle("会记住你、并在 IM 中持续陪伴你的 AI 陪伴 | Lagun");
+    await expect(page).toHaveTitle("会记住你、并在 IM 中持续陪着你的 AI 伴侣 | Lagun");
     await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
     await expect(await getMetaDescription(page)).toBe(
       "认识一个真正会记住你的 AI 陪伴。长期记忆、IM 原生关系循环，以及用于记忆、隐私和渠道设置的网页控制中心。"

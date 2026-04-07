@@ -45,7 +45,17 @@ function resolveChromeExecutable() {
   return candidates.find((candidate) => candidate && fs.existsSync(candidate));
 }
 
+function shellQuote(value: string) {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
 const chromeExecutablePath = resolveChromeExecutable();
+const smokeSecret =
+  process.env.PLAYWRIGHT_SMOKE_SECRET ?? "sparkcore-smoke-local";
+const smokeEmail =
+  process.env.PLAYWRIGHT_SMOKE_EMAIL ?? "smoke@example.com";
+const smokePassword =
+  process.env.PLAYWRIGHT_SMOKE_PASSWORD ?? "SparkcoreSmoke123!";
 
 export default defineConfig({
   testDir: "./tests/smoke",
@@ -57,14 +67,14 @@ export default defineConfig({
     timeout: 20_000
   },
   use: {
-    baseURL: "http://localhost:3001",
+    baseURL: "http://127.0.0.1:3001",
     trace: "retain-on-failure"
   },
   webServer: {
     command:
-      "npm run build && PLAYWRIGHT_SMOKE_MODE=1 PLAYWRIGHT_SMOKE_SECRET=sparkcore-smoke-local PLAYWRIGHT_SMOKE_EMAIL=smoke@example.com PLAYWRIGHT_SMOKE_PASSWORD=SparkcoreSmoke123! npm run start -- --hostname localhost --port 3001",
+      `npm run build && PLAYWRIGHT_SMOKE_MODE=1 PLAYWRIGHT_SMOKE_SECRET=${shellQuote(smokeSecret)} PLAYWRIGHT_SMOKE_EMAIL=${shellQuote(smokeEmail)} PLAYWRIGHT_SMOKE_PASSWORD=${shellQuote(smokePassword)} npm run start -- --hostname 127.0.0.1 --port 3001`,
     cwd: __dirname,
-    url: "http://localhost:3001/login",
+    url: "http://127.0.0.1:3001/login",
     reuseExistingServer: false,
     timeout: 120_000
   },

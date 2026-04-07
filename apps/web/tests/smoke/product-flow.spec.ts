@@ -58,9 +58,9 @@ test.describe("product flow smoke", () => {
     await expect(page).toHaveURL(/\/app\/create/);
 
     await page.getByLabel("Name").fill("Flow Smoke Role");
-    await page.getByRole("button", { name: "Next — Personality →" }).click();
+    await page.getByRole("button", { name: "Next →" }).click();
     await page.getByLabel("Relationship mode").fill("daily supportive companion");
-    await page.getByRole("button", { name: "Next — Choose look →" }).click();
+    await page.getByRole("button", { name: "Next →" }).click();
     await page.getByRole("button", { name: "Create Flow Smoke Role →" }).click();
 
     await expect(page).toHaveURL(/\/app\/role/);
@@ -111,8 +111,8 @@ test.describe("product flow smoke", () => {
     await expect(page).toHaveURL(/\/app\/create\?preset=caria/);
 
     await expect(page.getByText("Choose a starting point")).toBeVisible();
-    await page.getByRole("button", { name: "Next — Personality →" }).click();
-    await page.getByRole("button", { name: "Next — Choose look →" }).click();
+    await page.getByRole("button", { name: "Next →" }).click();
+    await page.getByRole("button", { name: "Next →" }).click();
     await page.getByRole("button", { name: "Create Caria →" }).click();
     await expect(page).toHaveURL(/\/app\/role/);
 

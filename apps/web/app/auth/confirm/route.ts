@@ -18,13 +18,12 @@ function resolveExternalOrigin(request: NextRequest) {
     return `${resolvedProto}://${resolvedHost}`.replace(/\/+$/, "");
   }
 
-  if (configuredAppUrl) {
-    return configuredAppUrl;
+  if (resolvedHost && resolvedHostIsLocal) {
+    return `http://${resolvedHost}`.replace(/\/+$/, "");
   }
 
-  if (resolvedHost) {
-    const resolvedProto = resolvedHostIsLocal ? "http" : forwardedProto || "https";
-    return `${resolvedProto}://${resolvedHost}`.replace(/\/+$/, "");
+  if (configuredAppUrl) {
+    return configuredAppUrl;
   }
 
   return new URL(request.url).origin.replace(/\/+$/, "");

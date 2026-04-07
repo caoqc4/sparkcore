@@ -23,13 +23,12 @@ async function getAppUrl() {
     return `${resolvedProto}://${resolvedHost}`.replace(/\/+$/, "");
   }
 
-  if (configuredAppUrl) {
-    return configuredAppUrl;
+  if (resolvedHost && resolvedHostIsLocal) {
+    return `http://${resolvedHost}`.replace(/\/+$/, "");
   }
 
-  if (resolvedHost) {
-    const resolvedProto = resolvedHostIsLocal ? "http" : forwardedProto || "https";
-    return `${resolvedProto}://${resolvedHost}`.replace(/\/+$/, "");
+  if (configuredAppUrl) {
+    return configuredAppUrl;
   }
 
   return "http://localhost:3000";

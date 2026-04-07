@@ -320,7 +320,9 @@ test.describe("core chat smoke", () => {
     page,
     request
   }) => {
-    await expect(page.getByText("No threads yet")).toBeVisible();
+    await expect(
+      page.getByRole("complementary").getByText("No threads yet")
+    ).toBeVisible();
     await expect(page.locator('select[name="agent_id"]')).toContainText(
       "Smoke Guide"
     );
