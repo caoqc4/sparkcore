@@ -1,6 +1,7 @@
 export type MultimodalIntentDecision = {
   imageRequested: boolean;
   audioRequested: boolean;
+  explicitHumanSubjectRequested: boolean;
   shouldUseRolePortraitReference: boolean;
   rolePortraitReferenceStrength: "none" | "light" | "strong";
   imageConfidence: number;
@@ -98,11 +99,16 @@ function decideRolePortraitReference(content: string) {
     /给我看她|给我看他|来一张她|来一张他/u,
     /给我看你|来一张你|画你|拍你/u,
     /画她|画他|拍她|拍他/u,
+    /你站在|你坐在|你走在|你在.+里|你在.+中|你在.+上/u,
     /以她为主|以他为主|主角是她|主角是他/u,
     /\b(her|him)\b[\s\S]{0,18}\b(photo|image|picture|portrait)\b/i,
     /\b(show|draw|make|create)\b[\s\S]{0,18}\b(her|him)\b/i,
     /\b(you|yourself)\b[\s\S]{0,18}\b(photo|image|picture|portrait)\b/i,
-    /\b(show|draw|make|create)\b[\s\S]{0,18}\b(you|yourself)\b/i
+    /\b(show|draw|make|create)\b[\s\S]{0,18}\b(you|yourself)\b/i,
+    /\byou\b[\s\S]{0,24}\b(in|inside|at|on|standing|sitting|walking)\b/i,
+    /\b(tu|tú|usted|vous|toi|dir|du|você|voce)\b[\s\S]{0,24}\b(en|dans|im|na|em)\b/i,
+    /(あなた|君|きみ)[\s\S]{0,16}(の中|にいる|に立つ|に座る)/u,
+    /(너|당신)[\s\S]{0,16}(안에|위에|서 있는|앉아 있는)/u
   ];
 
   const sceneFirstSignals = [
@@ -145,13 +151,56 @@ function decideRolePortraitReference(content: string) {
   };
 }
 
+function decideExplicitHumanSubjectRequest(content: string) {
+  const normalized = content.normalize("NFKC").trim();
+  if (!normalized) {
+    return false;
+  }
+
+  const strongPatterns = [
+    /(你本人|你自己|你本人的?|她本人|他本人)[\s\S]{0,12}(照片|相片|图片|头像|样子|长相|脸)/u,
+    /(你的|她的|他的)[\s\S]{0,8}(照片|相片|图片|头像|脸|长相|样子)/u,
+    /(你|她|他)[\s\S]{0,10}(站在|坐在|走在|待在|在)[\s\S]{0,24}(照片|相片|图片|画像|样子)/u,
+    /自拍|半身照|全身照|近照|证件照|头像照/u,
+    /\b(photo|picture|image|portrait|avatar|shot|selfie)\b[\s\S]{0,32}\b(of you|of yourself|yourself|you|her|him)\b/i,
+    /\b(your|her|his)\b[\s\S]{0,16}\b(photo|picture|image|portrait|avatar|selfie)\b/i,
+    /\b(show|draw|make|create|generate|send)\b[\s\S]{0,32}\b(you|yourself|her|him)\b/i,
+    /\b(what do you look like|show me yourself|show me your face|a photo of you|you standing in|you in the)\b/i,
+    /\b(photo|picture|portrait|imagen|foto)\b[\s\S]{0,24}\b(de ti|de usted|de você|de você mesma|de você mesmo|de toi|von dir)\b/i,
+    /\b(tú|tu|usted|vous|toi|du|dir|você|voce|あなた|君|너|당신)\b[\s\S]{0,24}\b(en|dans|im|na|em|在|の中で|안에)\b/i,
+  ];
+
+  if (strongPatterns.some((pattern) => pattern.test(normalized))) {
+    return true;
+  }
+
+  const hasImageNoun =
+    /(照片|相片|图片|画像|头像|写真|photo|picture|image|portrait|avatar|selfie|foto|imagen|imagem|fotoğraf|写真|画像|사진)/iu.test(
+      normalized
+    );
+  const hasCharacterCue =
+    /(你|你自己|你本人|她|他|yourself|you|herself|himself|her|him|tu|tú|usted|vous|toi|dir|du|você|voce|あなた|君|너|당신)/iu.test(
+      normalized
+    );
+  const hasScenePresenceCue =
+    /(站在|坐在|走在|待在|在.+里|在.+中|在.+上|inside|in the|at the|on the|standing in|standing on|sitting in|sitting on|walking in|walking through|dans|sur|en|im|am|auf|na|em|の中|にいる|안에|위에)/iu.test(
+      normalized
+    );
+
+  return hasImageNoun && hasCharacterCue && hasScenePresenceCue;
+}
+
 export async function detectMultimodalIntent(
   content: string
 ): Promise<MultimodalIntentDecision> {
   const ruleDecision = detectMultimodalIntentByRules(content);
+  const explicitHumanSubjectRequested = ruleDecision.imageRequested
+    ? decideExplicitHumanSubjectRequest(content)
+    : false;
   const portraitReferenceDecision = ruleDecision.imageRequested
     ? decideRolePortraitReference(content)
     : {
+        explicitHumanSubjectRequested: false,
         shouldUseRolePortraitReference: false,
         rolePortraitReferenceStrength: "none" as const,
         reasoning: "No image request detected, so no portrait reference is needed."
@@ -159,6 +208,7 @@ export async function detectMultimodalIntent(
   if (ruleDecision.imageRequested || ruleDecision.audioRequested) {
     return {
       ...ruleDecision,
+      explicitHumanSubjectRequested,
       shouldUseRolePortraitReference:
         portraitReferenceDecision.shouldUseRolePortraitReference,
       rolePortraitReferenceStrength:
@@ -178,6 +228,7 @@ export async function detectMultimodalIntent(
   return {
     imageRequested: false,
     audioRequested: false,
+    explicitHumanSubjectRequested: false,
     shouldUseRolePortraitReference: false,
     rolePortraitReferenceStrength: "none",
     imageConfidence: 0.01,

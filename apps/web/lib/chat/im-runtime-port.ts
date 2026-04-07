@@ -262,6 +262,7 @@ export async function runDeferredImArtifactGeneration(args: {
             audioRequested:
               (args.explicitAudioRequested ?? false) &&
               args.audioArtifactAction !== "block",
+            explicitHumanSubjectRequested: false,
             shouldUseRolePortraitReference: false,
             rolePortraitReferenceStrength: "none",
             imageConfidence: (args.explicitImageRequested ?? false) ? 1 : 0.01,

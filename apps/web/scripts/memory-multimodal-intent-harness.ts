@@ -49,6 +49,7 @@ async function main() {
       expected: {
         imageRequested: true,
         audioRequested: false,
+        explicitHumanSubjectRequested: true,
         shouldUseRolePortraitReference: true,
         rolePortraitReferenceStrength: "strong",
       }
@@ -59,8 +60,19 @@ async function main() {
       expected: {
         imageRequested: true,
         audioRequested: false,
+        explicitHumanSubjectRequested: true,
         shouldUseRolePortraitReference: true,
         rolePortraitReferenceStrength: "strong",
+      }
+    },
+    {
+      id: "scene_with_you_request_requires_human_subject",
+      actual: await detectMultimodalIntent("发一张你站在森林里的照片"),
+      expected: {
+        imageRequested: true,
+        audioRequested: false,
+        explicitHumanSubjectRequested: true,
+        shouldUseRolePortraitReference: true,
       }
     }
   ].map((result) => ({

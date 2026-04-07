@@ -381,11 +381,11 @@ function buildImagePrompt(args: {
   recentImageVariationHint?: string;
   referenceStrength?: "none" | "light" | "strong";
   referenceImageUrl?: string | null;
+  explicitHumanSubjectRequested?: boolean;
 }) {
   const wantsPhotoStyle = isPhotoStyleRequest(args.userMessage);
-  const explicitlyRequestsHumanSubject = detectExplicitHumanSubjectRequest(
-    args.userMessage
-  );
+  const explicitlyRequestsHumanSubject =
+    args.explicitHumanSubjectRequested === true;
   const appearance = resolveStoredProductRoleAppearance(args.agentMetadata ?? null);
   const genderLine =
     appearance.avatarGender === "female"
@@ -461,24 +461,6 @@ function buildImagePrompt(args: {
   ]
     .filter((line) => line.length > 0)
     .join("\n");
-}
-
-function detectExplicitHumanSubjectRequest(content: string) {
-  const normalized = content.normalize("NFKC").trim();
-  if (!normalized) {
-    return false;
-  }
-
-  const patterns = [
-    /(你本人|你自己|你本人的?|她本人|他本人)[\s\S]{0,12}(照片|相片|图片|头像|样子|长相|脸)/u,
-    /(你的|她的|他的)[\s\S]{0,8}(照片|相片|图片|头像|脸|长相|样子)/u,
-    /自拍|半身照|全身照|近照|证件照|头像照/u,
-    /\b(photo|picture|image|portrait|avatar)\b[\s\S]{0,24}\b(of you|of yourself|yourself|you|her|him)\b/i,
-    /\b(show|draw|make|create)\b[\s\S]{0,24}\b(you|yourself|her|him)\b/i,
-    /\b(what do you look like|show me yourself|show me your face)\b/i,
-  ];
-
-  return patterns.some((pattern) => pattern.test(normalized));
 }
 
 function buildImageAltText(args: { agentName: string | null; userMessage: string }) {
@@ -689,6 +671,7 @@ async function maybeGenerateImageArtifact(
     personaSummary: string;
     agentMetadata?: Record<string, unknown> | null;
     imageRequested: boolean;
+    explicitHumanSubjectRequested?: boolean;
     shouldUseRolePortraitReference?: boolean;
     rolePortraitReferenceStrength?: "none" | "light" | "strong";
   }
@@ -779,6 +762,7 @@ async function maybeGenerateImageArtifact(
     agentName: args.agentName,
     personaSummary: args.personaSummary,
     agentMetadata: args.agentMetadata ?? null,
+    explicitHumanSubjectRequested: args.explicitHumanSubjectRequested,
     referenceStrength: effectiveReferenceStrength,
     referenceImageUrl,
     recentImageVariationHint: buildRecentImageVariationHint({
@@ -961,6 +945,7 @@ export async function prepareExplicitArtifactContext(
           imageRequested: true,
           shouldUseRolePortraitReference: intent.shouldUseRolePortraitReference,
           rolePortraitReferenceStrength: intent.rolePortraitReferenceStrength,
+          explicitHumanSubjectRequested: intent.explicitHumanSubjectRequested,
         });
         imagePreGenerateDurationMs = elapsedMs(startedAt);
         return value;
@@ -1270,6 +1255,7 @@ export async function maybeGenerateAssistantArtifacts(
       shouldUseRolePortraitReference:
         intent.shouldUseRolePortraitReference && !gateClarifyBeforeAction,
       rolePortraitReferenceStrength: intent.rolePortraitReferenceStrength,
+      explicitHumanSubjectRequested: intent.explicitHumanSubjectRequested,
     }));
 
   if (imageResult.artifact) {
