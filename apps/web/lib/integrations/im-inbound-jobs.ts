@@ -1,6 +1,7 @@
 import { retryOnceOnTransientSupabaseFetch } from "@/lib/supabase/transient-fetch";
 
 export const DEFAULT_IM_INBOUND_JOBS_TABLE = "im_inbound_jobs";
+const STALE_CLAIM_TIMEOUT_MS = 2 * 60 * 1000;
 
 export type ImInboundJobType = "telegram_inbound_turn";
 
@@ -43,6 +44,89 @@ function asRecord(value: unknown) {
 
 const IM_INBOUND_JOB_SELECT =
   "id, receipt_id, platform, channel_slug, job_type, status, attempt_count, claimed_by, claimed_at, available_at, started_at, completed_at, failed_at, last_error, payload, result, created_at, updated_at";
+
+function toIsoString(value: number) {
+  return new Date(value).toISOString();
+}
+
+async function recycleStaleClaimedImInboundJobs(args: {
+  supabase: any;
+  jobType: ImInboundJobType;
+  staleClaimedBefore: string;
+  platform?: string;
+  channelSlug?: string;
+}) {
+  let query = args.supabase
+    .from(DEFAULT_IM_INBOUND_JOBS_TABLE)
+    .update({
+      status: "queued" as const,
+      claimed_by: null,
+      claimed_at: null,
+      available_at: new Date().toISOString(),
+      last_error: "stale_claim_requeued"
+    })
+    .eq("status", "claimed")
+    .eq("job_type", args.jobType)
+    .lt("claimed_at", args.staleClaimedBefore)
+    .is("started_at", null)
+    .select("id");
+
+  if (args.platform) {
+    query = query.eq("platform", args.platform);
+  }
+
+  if (args.channelSlug) {
+    query = query.eq("channel_slug", args.channelSlug);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(`Failed to recycle stale IM inbound claims: ${error.message}`);
+  }
+
+  return Array.isArray(data) ? data.length : 0;
+}
+
+async function recycleStaleProcessingImInboundJobs(args: {
+  supabase: any;
+  jobType: ImInboundJobType;
+  staleStartedBefore: string;
+  platform?: string;
+  channelSlug?: string;
+}) {
+  let query = args.supabase
+    .from(DEFAULT_IM_INBOUND_JOBS_TABLE)
+    .update({
+      status: "queued" as const,
+      claimed_by: null,
+      claimed_at: null,
+      started_at: null,
+      available_at: new Date().toISOString(),
+      last_error: "stale_processing_requeued"
+    })
+    .eq("status", "processing")
+    .eq("job_type", args.jobType)
+    .lt("started_at", args.staleStartedBefore)
+    .is("completed_at", null)
+    .select("id");
+
+  if (args.platform) {
+    query = query.eq("platform", args.platform);
+  }
+
+  if (args.channelSlug) {
+    query = query.eq("channel_slug", args.channelSlug);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(`Failed to recycle stale IM inbound processing jobs: ${error.message}`);
+  }
+
+  return Array.isArray(data) ? data.length : 0;
+}
 
 export async function enqueueImInboundJob(args: {
   supabase: any;
@@ -112,9 +196,28 @@ export async function claimQueuedImInboundJobs(args: {
   channelSlug?: string;
 }) {
   const now = args.now ?? new Date().toISOString();
+  const staleClaimedBefore = toIsoString(
+    Date.parse(now) - STALE_CLAIM_TIMEOUT_MS
+  );
+  const staleStartedBefore = staleClaimedBefore;
   let queuedRows: ImInboundJobRecord[] | null = null;
 
   try {
+    await recycleStaleClaimedImInboundJobs({
+      supabase: args.supabase,
+      jobType: args.jobType,
+      staleClaimedBefore,
+      platform: args.platform,
+      channelSlug: args.channelSlug
+    });
+    await recycleStaleProcessingImInboundJobs({
+      supabase: args.supabase,
+      jobType: args.jobType,
+      staleStartedBefore,
+      platform: args.platform,
+      channelSlug: args.channelSlug
+    });
+
     const result = await retryOnceOnTransientSupabaseFetch({
       task: async () => {
         let query = args.supabase
@@ -161,14 +264,16 @@ export async function claimQueuedImInboundJobs(args: {
   }
 
   const claimedAt = new Date().toISOString();
+  const startedAt = claimedAt;
   const claimResults = await Promise.all(
     rows.map(async (row) => {
       const { data, error } = await args.supabase
         .from(DEFAULT_IM_INBOUND_JOBS_TABLE)
         .update({
-          status: "claimed",
+          status: "processing",
           claimed_by: args.claimedBy,
           claimed_at: claimedAt,
+          started_at: startedAt,
           attempt_count: (row.attempt_count ?? 0) + 1
         })
         .eq("id", row.id)

@@ -122,12 +122,28 @@ function buildRuntimeUserMessageMetadata(args: {
   };
 }
 
+function buildRuntimeUserMessageInsertMetadata(args: {
+  runtimeTurnInput: RuntimeTurnInput;
+}) {
+  return {
+    source: args.runtimeTurnInput.message.source,
+    runtime_source_timestamp: args.runtimeTurnInput.message.timestamp,
+    adapter_metadata: args.runtimeTurnInput.message.metadata,
+    runtime_turn_input: args.runtimeTurnInput
+  };
+}
+
 type UserMessageTarget = {
   supabase: any;
   threadId: string;
   workspaceId: string;
   userId: string;
 };
+
+function hasInboundAttachments(runtimeTurnInput: RuntimeTurnInput) {
+  const adapterMetadata = asRecord(runtimeTurnInput.message.metadata);
+  return Array.isArray(adapterMetadata?.attachments) && adapterMetadata.attachments.length > 0;
+}
 
 export async function insertUserMessage(
   args: UserMessageTarget & {
@@ -178,12 +194,24 @@ export async function insertRuntimeUserMessage(
     runtimeTurnInput: RuntimeTurnInput;
   }
 ) {
+  const shouldPersistInlineMetadata = !hasInboundAttachments(args.runtimeTurnInput);
   const insertResult = await insertUserMessage({
     ...args,
-    content: args.content
+    content: args.content,
+    ...(shouldPersistInlineMetadata
+      ? {
+          metadata: buildRuntimeUserMessageInsertMetadata({
+            runtimeTurnInput: args.runtimeTurnInput
+          })
+        }
+      : {})
   });
 
   if (insertResult.error || !insertResult.data) {
+    return insertResult;
+  }
+
+  if (shouldPersistInlineMetadata) {
     return insertResult;
   }
 

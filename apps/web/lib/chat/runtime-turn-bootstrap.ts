@@ -48,32 +48,36 @@ export async function bootstrapRuntimeAssistantTurn(
     shouldSummarizeTitle: args.thread.title === "New chat"
   });
 
-  const updateThreadStartedAt = nowMs();
-  await updateOwnedThread({
-    supabase: args.supabase,
-    threadId: args.thread.id,
-    userId: args.userId,
-    patch: threadPatch
-  });
-  const updateThreadDurationMs = elapsedMs(updateThreadStartedAt);
+  const updateThreadPromise = (async () => {
+    const updateThreadStartedAt = nowMs();
+    await updateOwnedThread({
+      supabase: args.supabase,
+      threadId: args.thread.id,
+      userId: args.userId,
+      patch: threadPatch
+    });
 
-  const loadMessagesStartedAt = nowMs();
-  const { data: persistedMessages, error: persistedMessagesError } =
-    await loadRecentThreadMessages({
+    return elapsedMs(updateThreadStartedAt);
+  })();
+
+  const loadMessagesPromise = (async () => {
+    const loadMessagesStartedAt = nowMs();
+    const result = await loadRecentThreadMessages({
       supabase: args.supabase,
       threadId: args.thread.id,
       workspaceId: args.workspaceId,
       limit: IM_BOOTSTRAP_RECENT_MESSAGE_LIMIT
     });
-  const loadMessagesDurationMs = elapsedMs(loadMessagesStartedAt);
 
-  if (persistedMessagesError) {
-    throw new Error(persistedMessagesError.message);
-  }
+    return {
+      ...result,
+      durationMs: elapsedMs(loadMessagesStartedAt)
+    };
+  })();
 
-  const assistantPlaceholderStartedAt = nowMs();
-  const { data: assistantPlaceholder, error: assistantPlaceholderError } =
-    await insertPendingAssistantMessage({
+  const assistantPlaceholderPromise = (async () => {
+    const assistantPlaceholderStartedAt = nowMs();
+    const result = await insertPendingAssistantMessage({
       supabase: args.supabase,
       threadId: args.thread.id,
       workspaceId: args.workspaceId,
@@ -82,7 +86,34 @@ export async function bootstrapRuntimeAssistantTurn(
       userMessageId: args.userMessageId,
       source: args.source
     });
-  const assistantPlaceholderDurationMs = elapsedMs(assistantPlaceholderStartedAt);
+
+    return {
+      ...result,
+      durationMs: elapsedMs(assistantPlaceholderStartedAt)
+    };
+  })();
+
+  const [
+    updateThreadDurationMs,
+    {
+      data: persistedMessages,
+      error: persistedMessagesError,
+      durationMs: loadMessagesDurationMs
+    },
+    {
+      data: assistantPlaceholder,
+      error: assistantPlaceholderError,
+      durationMs: assistantPlaceholderDurationMs
+    }
+  ] = await Promise.all([
+    updateThreadPromise,
+    loadMessagesPromise,
+    assistantPlaceholderPromise
+  ]);
+
+  if (persistedMessagesError) {
+    throw new Error(persistedMessagesError.message);
+  }
 
   if (assistantPlaceholderError || !assistantPlaceholder) {
     throw new Error(

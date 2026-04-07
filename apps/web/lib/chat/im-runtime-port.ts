@@ -606,26 +606,7 @@ async function runImRuntimeTurnWithSupabase(args: {
     });
     const persistPreviewDurationMs = elapsedMs(persistPreviewStartedAt);
 
-    const previewPostProcessStartedAt = nowMs();
-    await updateAssistantPreviewMetadata({
-      supabase,
-      assistantMessageId: assistantPlaceholder.id,
-      threadId: thread.id,
-      workspaceId: workspace.id,
-      userId: input.user_id,
-      updates: (currentMetadata) => ({
-        im_delivery: {
-          ...(currentMetadata?.im_delivery &&
-          typeof currentMetadata.im_delivery === "object" &&
-          !Array.isArray(currentMetadata.im_delivery)
-            ? (currentMetadata.im_delivery as Record<string, unknown>)
-            : {}),
-          request_previews_persisted_at: new Date().toISOString(),
-          post_processing_status: "scheduled"
-        }
-      })
-    });
-    const previewPostProcessDurationMs = elapsedMs(previewPostProcessStartedAt);
+    const previewPostProcessDurationMs = 0;
 
     // Determine the pre-generated image artifact (from explicit path) to pass into deferred
     // so it is not regenerated later.
