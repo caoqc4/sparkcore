@@ -188,7 +188,9 @@ export function HomeHeroInteractive({
     if (typeof window !== "undefined") {
       sessionStorage.setItem("sparkcore_hero_draft", JSON.stringify(payload));
     }
-    const createPath = "/app/create";
+    const createPath = draft.presetSlug
+      ? `/app/create?preset=${encodeURIComponent(draft.presetSlug)}`
+      : "/app/create";
     if (user) {
       router.push(createPath);
     } else {
