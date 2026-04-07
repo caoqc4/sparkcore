@@ -62,9 +62,9 @@ jobs:
       CREEM_PRICE_CREDITS_100: ${{ secrets.CREEM_PRICE_CREDITS_100 }}
       CREEM_PRICE_CREDITS_250: ${{ secrets.CREEM_PRICE_CREDITS_250 }}
       CREEM_PRICE_CREDITS_700: ${{ secrets.CREEM_PRICE_CREDITS_700 }}
-      PLAYWRIGHT_SMOKE_SECRET: ${{ secrets.PLAYWRIGHT_SMOKE_SECRET }}
-      PLAYWRIGHT_SMOKE_EMAIL: ${{ secrets.PLAYWRIGHT_SMOKE_EMAIL }}
-      PLAYWRIGHT_SMOKE_PASSWORD: ${{ secrets.PLAYWRIGHT_SMOKE_PASSWORD }}
+      PLAYWRIGHT_SMOKE_SECRET: sparkcore-smoke-local
+      PLAYWRIGHT_SMOKE_EMAIL: smoke@example.com
+      PLAYWRIGHT_SMOKE_PASSWORD: SparkcoreSmoke123!
     steps:
       - uses: actions/checkout@v4
 

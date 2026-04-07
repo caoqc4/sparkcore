@@ -55,6 +55,10 @@ Three separate Fly apps are live:
 - `sparkcore-discord`
 - `sparkcore-feishu`
 
+Current primary region for all three workers:
+
+- `nrt`
+
 Fly is responsible for:
 
 - WeChat OpenILink session manager
@@ -439,6 +443,33 @@ Notes:
 
 - `--local-only` was the reliable path in this rollout
 - Docker local build avoided Fly remote builder instability during first setup
+
+### 8.6 Region Migration
+
+Changing only `primary_region` in a Fly config file does not move already-running machines.
+
+The verified migration from `iad` to `nrt` required an explicit machine migration for each app:
+
+1. clone the healthy started machine into the new region
+2. wait for the new machine to become healthy
+3. destroy the old machine in the previous region
+
+Operational takeaway:
+
+- `flyctl deploy` is enough to keep a new app in the desired region from the start
+- a live app changing regions needs a machine migration, not just a config edit
+
+After any region migration, confirm both the machine list and logs:
+
+```bash
+flyctl machine list -a sparkcore-discord
+flyctl machine list -a sparkcore-feishu
+flyctl machine list -a sparkcore-wechat
+
+flyctl logs -a sparkcore-discord --no-tail
+flyctl logs -a sparkcore-feishu --no-tail
+flyctl logs -a sparkcore-wechat --no-tail
+```
 
 ## 9. Domain Cutover
 

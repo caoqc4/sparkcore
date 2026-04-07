@@ -22,10 +22,15 @@ BUILD_SUBMIT_OUTPUT="$(
 
 echo "${BUILD_SUBMIT_OUTPUT}"
 
-BUILD_ID="$(
+BUILD_SUBMIT_OUTPUT_CLEAN="$(
   printf '%s\n' "${BUILD_SUBMIT_OUTPUT}" \
-    | sed -nE 's#.*?/builds/([a-z0-9-]+).*#\1#p' \
-    | tail -n 1
+    | perl -pe 's/\e(?:\[[0-9;?]*[ -\/]*[@-~]|\].*?(?:\a|\e\\\\))//g'
+)"
+
+BUILD_ID="$(
+  printf '%s\n' "${BUILD_SUBMIT_OUTPUT_CLEAN}" \
+    | grep -Eo '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' \
+    | head -n 1
 )"
 
 if [[ -z "${BUILD_ID}" ]]; then
