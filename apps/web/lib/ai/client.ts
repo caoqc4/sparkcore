@@ -97,6 +97,8 @@ export class AiProviderFetchError extends Error {
 }
 
 const DEFAULT_AI_TIMEOUT_MS = 18_000;
+const FAST_RETRY_TIMEOUT_MS = 6_000;
+const FAST_RETRY_MAX_OUTPUT_TOKENS = 320;
 const SMOKE_IMAGE_DATA_URL =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn8v1QAAAAASUVORK5CYII=";
 
@@ -447,8 +449,6 @@ export async function generateText({
   const endpoint =
     `https://generativelanguage.googleapis.com/v1beta/models/` +
     `${encodeURIComponent(FIXED_TEXT_MODEL_ID)}:generateContent`;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   const systemInstruction = messages
     .filter((message) => message.role === "system")
     .map((message) => message.content.trim())
@@ -461,120 +461,190 @@ export async function generateText({
       parts: [{ text: message.content }]
     }));
 
-  let response: Response;
+  async function executeChatCompletion(attempt: {
+    timeoutMs: number;
+    maxOutputTokens: number | null | undefined;
+    retryMode: "primary" | "fast_retry";
+  }) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), attempt.timeoutMs);
 
-  try {
-    response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey
-      },
-      body: JSON.stringify({
-        ...(systemInstruction
-          ? {
-              system_instruction: {
-                parts: [{ text: systemInstruction }]
+    let response: Response;
+
+    try {
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
+        body: JSON.stringify({
+          ...(systemInstruction
+            ? {
+                system_instruction: {
+                  parts: [{ text: systemInstruction }]
+                }
               }
-            }
-          : {}),
-        contents,
-        generationConfig: {
-          temperature,
-          ...(typeof maxOutputTokens === "number"
-            ? { maxOutputTokens }
-            : {})
-        }
-      }),
-      signal: controller.signal
-    });
-  } catch (error) {
-    logAiProviderFailure({
-      provider: "google_ai_studio",
-      operation: "chat_completions",
-      model: FIXED_TEXT_MODEL_ID,
-      durationMs: Date.now() - startedAt,
-      error
-    });
+            : {}),
+          contents,
+          generationConfig: {
+            temperature,
+            ...(typeof attempt.maxOutputTokens === "number"
+              ? { maxOutputTokens: attempt.maxOutputTokens }
+              : {})
+          }
+        }),
+        signal: controller.signal
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new AiProviderTimeoutError(attempt.timeoutMs);
+      }
 
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new AiProviderTimeoutError(timeoutMs);
+      throw new AiProviderFetchError({
+        endpoint,
+        operation: "chat_completions",
+        cause: error
+      });
+    } finally {
+      clearTimeout(timeoutId);
     }
 
-    throw new AiProviderFetchError({
-      endpoint,
-      operation: "chat_completions",
-      cause: error
-    });
-  } finally {
-    clearTimeout(timeoutId);
-  }
+    let payload: unknown = null;
 
-  let payload: unknown = null;
+    try {
+      payload = await response.json();
+    } catch {
+      payload = null;
+    }
+
+    if (!response.ok) {
+      const message =
+        typeof payload === "object" &&
+        payload !== null &&
+        "error" in payload &&
+        typeof payload.error === "object" &&
+        payload.error !== null &&
+        "message" in payload.error &&
+        typeof payload.error.message === "string"
+          ? payload.error.message
+          : `AI provider request failed with status ${response.status}.`;
+
+      throw new AiProviderError(message, response.status, payload);
+    }
+
+    const data = payload as GeminiGenerateContentResponse;
+    const content = extractGeminiText(data);
+
+    if (!content) {
+      throw new AiProviderError(
+        "Google AI Studio returned no assistant content.",
+        response.status,
+        payload
+      );
+    }
+
+    return {
+      content,
+      retryMode: attempt.retryMode
+    };
+  }
 
   try {
-    payload = await response.json();
-  } catch {
-    payload = null;
-  }
+    const primaryResult = await executeChatCompletion({
+      timeoutMs,
+      maxOutputTokens,
+      retryMode: "primary"
+    });
 
-  if (!response.ok) {
-    const message =
-      typeof payload === "object" &&
-      payload !== null &&
-      "error" in payload &&
-      typeof payload.error === "object" &&
-      payload.error !== null &&
-      "message" in payload.error &&
-      typeof payload.error.message === "string"
-        ? payload.error.message
-        : `AI provider request failed with status ${response.status}.`;
-
-    const providerError = new AiProviderError(message, response.status, payload);
-    logAiProviderFailure({
+    logAiProviderSuccess({
       provider: "google_ai_studio",
       operation: "chat_completions",
       model: FIXED_TEXT_MODEL_ID,
       durationMs: Date.now() - startedAt,
-      error: providerError
+      metadata: {
+        output_chars: primaryResult.content.length,
+        retry_mode: primaryResult.retryMode
+      }
     });
-    throw providerError;
-  }
 
-  const data = payload as GeminiGenerateContentResponse;
-  const content = extractGeminiText(data);
-
-  if (!content) {
-    const providerError = new AiProviderError(
-      "Google AI Studio returned no assistant content.",
-      response.status,
-      payload
-    );
-    logAiProviderFailure({
-      provider: "google_ai_studio",
-      operation: "chat_completions",
+    return {
+      id: null,
       model: FIXED_TEXT_MODEL_ID,
-      durationMs: Date.now() - startedAt,
-      error: providerError
-    });
-    throw providerError;
-  }
+      content: primaryResult.content
+    };
+  } catch (error) {
+    const eligibleForFastRetry =
+      error instanceof AiProviderTimeoutError || error instanceof AiProviderFetchError;
 
-  logAiProviderSuccess({
-    provider: "google_ai_studio",
-    operation: "chat_completions",
-    model: FIXED_TEXT_MODEL_ID,
-    durationMs: Date.now() - startedAt,
-    metadata: {
-      output_chars: content.length
+    if (eligibleForFastRetry) {
+      console.warn("[ai-provider:retry]", {
+        provider: "google_ai_studio",
+        operation: "chat_completions",
+        model: FIXED_TEXT_MODEL_ID,
+        initial_timeout_ms: timeoutMs,
+        retry_timeout_ms: FAST_RETRY_TIMEOUT_MS,
+        retry_max_output_tokens:
+          typeof maxOutputTokens === "number"
+            ? Math.min(maxOutputTokens, FAST_RETRY_MAX_OUTPUT_TOKENS)
+            : FAST_RETRY_MAX_OUTPUT_TOKENS,
+        retry_reason:
+          error instanceof AiProviderTimeoutError ? "timeout" : "network"
+      });
+
+      try {
+        const retryResult = await executeChatCompletion({
+          timeoutMs: FAST_RETRY_TIMEOUT_MS,
+          maxOutputTokens:
+            typeof maxOutputTokens === "number"
+              ? Math.min(maxOutputTokens, FAST_RETRY_MAX_OUTPUT_TOKENS)
+              : FAST_RETRY_MAX_OUTPUT_TOKENS,
+          retryMode: "fast_retry"
+        });
+
+        logAiProviderSuccess({
+          provider: "google_ai_studio",
+          operation: "chat_completions",
+          model: FIXED_TEXT_MODEL_ID,
+          durationMs: Date.now() - startedAt,
+          metadata: {
+            output_chars: retryResult.content.length,
+            retry_mode: retryResult.retryMode
+          }
+        });
+
+        return {
+          id: null,
+          model: FIXED_TEXT_MODEL_ID,
+          content: retryResult.content
+        };
+      } catch (retryError) {
+        logAiProviderFailure({
+          provider: "google_ai_studio",
+          operation: "chat_completions",
+          model: FIXED_TEXT_MODEL_ID,
+          durationMs: Date.now() - startedAt,
+          error: retryError,
+          metadata: {
+            retry_mode: "fast_retry"
+          }
+        });
+        throw retryError;
+      }
     }
-  });
 
-  return {
-    id: null,
-    model: FIXED_TEXT_MODEL_ID,
-    content
-  };
+    logAiProviderFailure({
+      provider: "google_ai_studio",
+      operation: "chat_completions",
+      model: FIXED_TEXT_MODEL_ID,
+      durationMs: Date.now() - startedAt,
+      error,
+      metadata: {
+        retry_mode: "primary"
+      }
+    });
+    throw error;
+  }
 }
 
 export async function describeImage(args: {

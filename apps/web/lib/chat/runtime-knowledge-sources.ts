@@ -1,6 +1,8 @@
 import { buildKnowledgeSnapshot, buildRuntimeKnowledgeSnippet, type RuntimeKnowledgeSnippet } from "@/lib/chat/memory-knowledge";
 import { getSupabaseAdminEnv } from "@/lib/env";
 
+const KNOWLEDGE_FETCH_TIMEOUT_MS = 1_500;
+
 type KnowledgeSnapshotRow = {
   id: string;
   knowledge_source_id: string;
@@ -64,6 +66,29 @@ export type RuntimeKnowledgeLoadResult = {
   gating: RuntimeKnowledgeGatingSummary;
 };
 
+function buildSuppressedKnowledgeLoadResult(args: {
+  knowledgeRoute?: string | null;
+  queryTokenCount?: number;
+  suppressionReason: string;
+}): RuntimeKnowledgeLoadResult {
+  return {
+    snippets: [] as RuntimeKnowledgeSnippet[],
+    gating: {
+      knowledge_route: args.knowledgeRoute ?? null,
+      query_token_count: args.queryTokenCount ?? 0,
+      available: false,
+      available_count: 0,
+      should_inject: false,
+      injection_gap_reason: null,
+      retained_count: 0,
+      suppressed: true,
+      suppression_reason: args.suppressionReason,
+      zero_match_filtered_count: 0,
+      weak_match_filtered_count: 0
+    }
+  };
+}
+
 async function loadKnowledgeSnapshotRows(args: {
   userId: string;
   workspaceId: string;
@@ -87,10 +112,14 @@ async function loadKnowledgeSnapshotRows(args: {
   };
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), KNOWLEDGE_FETCH_TIMEOUT_MS);
+
     try {
       const response = await fetch(endpoint, {
         headers,
-        cache: "no-store"
+        cache: "no-store",
+        signal: controller.signal
       });
 
       if (!response.ok) {
@@ -100,18 +129,23 @@ async function loadKnowledgeSnapshotRows(args: {
       const data = (await response.json()) as KnowledgeSnapshotRow[];
       return data ?? [];
     } catch (error) {
+      const isAbortError =
+        error instanceof DOMException && error.name === "AbortError";
       const message = error instanceof Error ? error.message : String(error);
       const shouldRetry =
         attempt === 0 &&
-        (message.toLowerCase().includes("fetch failed") ||
+        (!isAbortError &&
+          (message.toLowerCase().includes("fetch failed") ||
           message.toLowerCase().includes("econnreset") ||
-          message.toLowerCase().includes("tls"));
+          message.toLowerCase().includes("tls")));
 
       if (!shouldRetry) {
         throw new Error(`Failed to load relevant knowledge snapshots: ${message}`);
       }
 
       await new Promise((resolve) => setTimeout(resolve, 250));
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
@@ -341,48 +375,40 @@ export async function loadRelevantKnowledgeForRuntime(args: {
   });
 
   if (suppressionReason) {
-    return {
-      snippets: [] as RuntimeKnowledgeSnippet[],
-      gating: {
-        knowledge_route: args.knowledgeRoute ?? null,
-        query_token_count: 0,
-        available: false,
-        available_count: 0,
-        should_inject: false,
-        injection_gap_reason: null,
-        retained_count: 0,
-        suppressed: true,
-        suppression_reason: suppressionReason,
-        zero_match_filtered_count: 0,
-        weak_match_filtered_count: 0
-      }
-    };
+    return buildSuppressedKnowledgeLoadResult({
+      knowledgeRoute: args.knowledgeRoute,
+      suppressionReason
+    });
   }
-
-  const rows = (await loadKnowledgeSnapshotRows(args)).filter((row) => {
-    const source = normalizeKnowledgeSourceRelation(row.knowledge_source);
-    return source?.status === "active";
-  });
   const queryTokens = tokenizeKnowledgeQuery(args.latestUserMessage);
   const limit = args.limit ?? 8;
 
   if (queryTokens.length === 0) {
-    return {
-      snippets: [] as RuntimeKnowledgeSnippet[],
-      gating: {
-        knowledge_route: args.knowledgeRoute ?? null,
-        query_token_count: 0,
-        available: false,
-        available_count: 0,
-        should_inject: false,
-        injection_gap_reason: null,
-        retained_count: 0,
-        suppressed: true,
-        suppression_reason: "empty_query_tokens",
-        zero_match_filtered_count: 0,
-        weak_match_filtered_count: 0
-      }
-    };
+    return buildSuppressedKnowledgeLoadResult({
+      knowledgeRoute: args.knowledgeRoute,
+      suppressionReason: "empty_query_tokens"
+    });
+  }
+
+  let rows: KnowledgeSnapshotRow[];
+
+  try {
+    rows = (await loadKnowledgeSnapshotRows(args)).filter((row) => {
+      const source = normalizeKnowledgeSourceRelation(row.knowledge_source);
+      return source?.status === "active";
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+    const suppressionReason =
+      message.includes("abort") || message.includes("timeout")
+        ? "knowledge_fetch_timeout"
+        : "knowledge_fetch_failed";
+
+    return buildSuppressedKnowledgeLoadResult({
+      knowledgeRoute: args.knowledgeRoute,
+      queryTokenCount: queryTokens.length,
+      suppressionReason
+    });
   }
 
   const scoredRows = [...rows]

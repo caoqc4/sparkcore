@@ -379,14 +379,30 @@ export async function recallRelevantMemories({
   const supabase = providedSupabase ?? (await createClient());
   const selectColumns =
     "id, memory_type, content, confidence, category, key, value, scope, subject_user_id, target_agent_id, target_thread_id, stability, status, source_refs, source_message_id, last_used_at, last_confirmed_at, metadata, created_at, updated_at";
-  const { data, error } = await loadRecentOwnedMemoriesByTypes({
-    supabase,
-    workspaceId,
-    userId,
-    memoryTypes: ["profile", "preference"],
-    select: selectColumns,
-    limit: 60
-  }).gte("confidence", MEMORY_CONFIDENCE_THRESHOLD);
+  const shouldLoadMemoryRecords =
+    appliedRoutes.includes("episode") || appliedRoutes.includes("timeline");
+  const [
+    { data, error },
+    { data: memoryRecordRows, error: memoryRecordError }
+  ] = await Promise.all([
+    loadRecentOwnedMemoriesByTypes({
+      supabase,
+      workspaceId,
+      userId,
+      memoryTypes: ["profile", "preference"],
+      select: selectColumns,
+      limit: 60
+    }).gte("confidence", MEMORY_CONFIDENCE_THRESHOLD),
+    shouldLoadMemoryRecords
+      ? loadRecentOwnedMemories({
+          supabase,
+          workspaceId,
+          userId,
+          select: selectColumns,
+          limit: 80
+        })
+      : Promise.resolve({ data: [], error: null })
+  ]);
 
   if (error) {
     throw new Error(`Failed to load memory items: ${error.message}`);
@@ -422,19 +438,6 @@ export async function recallRelevantMemories({
   const activeStaticProfileMemories = activeMemories.filter((memory) =>
     isStoredMemorySemanticTarget(memory, "static_profile")
   );
-
-  const shouldLoadMemoryRecords =
-    appliedRoutes.includes("episode") || appliedRoutes.includes("timeline");
-  const { data: memoryRecordRows, error: memoryRecordError } =
-    shouldLoadMemoryRecords
-      ? await loadRecentOwnedMemories({
-          supabase,
-          workspaceId,
-          userId,
-          select: selectColumns,
-          limit: 80
-        })
-      : { data: [], error: null };
 
   if (memoryRecordError) {
     throw new Error(`Failed to load memory record rows: ${memoryRecordError.message}`);
@@ -746,63 +749,71 @@ export async function loadRuntimeMemoryContext({
     };
   }
 
-  const memoryRecallStartedAt = nowMs();
-  const memoryRecall = await recallRelevantMemories({
-    workspaceId,
-    userId,
-    agentId,
-    threadId,
-    latestUserMessage,
-    hasThreadState: threadStateRecall.applied,
-    allowDistantFallback: !preferSameThreadContinuation,
-    activeNamespace,
-    supabase: providedSupabase
-  });
-  const memoryRecallDurationMs = elapsedMs(memoryRecallStartedAt);
-
   const directNamingQuestion = isDirectAgentNamingQuestion(latestUserMessage);
   const directPreferredNameQuestion =
     isDirectUserPreferredNameQuestion(latestUserMessage);
+  const shouldRecallNickname =
+    directNamingQuestion || relationshipStylePrompt || sameThreadContinuity;
+  const shouldRecallPreferredName =
+    directPreferredNameQuestion || relationshipStylePrompt || sameThreadContinuity;
 
+  const memoryRecallStartedAt = nowMs();
   const nicknameRecallStartedAt = nowMs();
-  const nicknameRecall =
-    directNamingQuestion || relationshipStylePrompt || sameThreadContinuity
-      ? await recallAgentNickname({
+  const preferredNameRecallStartedAt = nowMs();
+  const addressStyleRecallStartedAt = nowMs();
+
+  const [
+    memoryRecall,
+    nicknameRecall,
+    preferredNameRecall,
+    addressStyleRecall
+  ] = await Promise.all([
+    recallRelevantMemories({
+      workspaceId,
+      userId,
+      agentId,
+      threadId,
+      latestUserMessage,
+      hasThreadState: threadStateRecall.applied,
+      allowDistantFallback: !preferSameThreadContinuation,
+      activeNamespace,
+      supabase: providedSupabase
+    }),
+    shouldRecallNickname
+      ? recallAgentNickname({
           workspaceId,
           userId,
           agentId,
           latestUserMessage,
           supabase: providedSupabase
         })
-      : {
+      : Promise.resolve({
           directNamingQuestion: false,
           nicknameMemory: null
-        };
-  const nicknameRecallDurationMs = elapsedMs(nicknameRecallStartedAt);
-
-  const preferredNameRecallStartedAt = nowMs();
-  const preferredNameRecall =
-    directPreferredNameQuestion || relationshipStylePrompt || sameThreadContinuity
-      ? await recallUserPreferredName({
+        }),
+    shouldRecallPreferredName
+      ? recallUserPreferredName({
           workspaceId,
           userId,
           agentId,
           latestUserMessage,
           supabase: providedSupabase
         })
-      : {
+      : Promise.resolve({
           directPreferredNameQuestion: false,
           preferredNameMemory: null
-        };
-  const preferredNameRecallDurationMs = elapsedMs(preferredNameRecallStartedAt);
+        }),
+    recallUserAddressStyle({
+      workspaceId,
+      userId,
+      agentId,
+      supabase: providedSupabase
+    })
+  ]);
 
-  const addressStyleRecallStartedAt = nowMs();
-  const addressStyleRecall = await recallUserAddressStyle({
-    workspaceId,
-    userId,
-    agentId,
-    supabase: providedSupabase
-  });
+  const memoryRecallDurationMs = elapsedMs(memoryRecallStartedAt);
+  const nicknameRecallDurationMs = elapsedMs(nicknameRecallStartedAt);
+  const preferredNameRecallDurationMs = elapsedMs(preferredNameRecallStartedAt);
   const addressStyleRecallDurationMs = elapsedMs(addressStyleRecallStartedAt);
 
   return {

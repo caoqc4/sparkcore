@@ -860,6 +860,7 @@ export async function prepareExplicitArtifactContext(
     agentName: string | null;
     personaSummary: string;
     agentMetadata?: Record<string, unknown> | null;
+    preGenerateImage?: boolean;
     overrides?: ExplicitArtifactPreparationOverrides | null;
   }
 ): Promise<PreparedExplicitArtifactContext | null> {
@@ -912,8 +913,9 @@ export async function prepareExplicitArtifactContext(
   ]);
 
   let imagePreGenerateDurationMs: number | null = null;
-  const imageResult = intent.imageRequested
-    && !deliveryGate.clarifyBeforeAction
+  const imageResult = (args.preGenerateImage ?? true) &&
+    intent.imageRequested &&
+    !deliveryGate.clarifyBeforeAction
     ? await (async () => {
         const startedAt = nowMs();
         const value = await maybeGenerateImageArtifact({

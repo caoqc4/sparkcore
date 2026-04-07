@@ -71,6 +71,7 @@ import type { ThreadStateRepository } from "@/lib/chat/thread-state-repository";
 import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_MODEL = "replicate-llama-3-8b";
+const MEMORY_EXTRACTION_TIMEOUT_MS = 3_000;
 
 export type GenericExtractionCandidate = {
   memory_type:
@@ -297,6 +298,7 @@ export async function planMemoryWriteRequestsWithPlannerInputs({
     extraction = await generateText({
       model: DEFAULT_MODEL,
       temperature: 0,
+      timeoutMs: MEMORY_EXTRACTION_TIMEOUT_MS,
       messages: [
         {
           role: "system",

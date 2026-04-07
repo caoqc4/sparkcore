@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { AiProviderError, AiProviderFetchError } from "@/lib/ai/client";
 import { classifyAssistantError } from "@/lib/chat/assistant-error";
@@ -62,6 +63,263 @@ import {
   CHAT_UI_LANGUAGE_COOKIE,
   resolveChatLocale
 } from "@/lib/i18n/chat-ui";
+
+function nowMs() {
+  return Date.now();
+}
+
+function elapsedMs(startedAt: number) {
+  return Math.max(0, nowMs() - startedAt);
+}
+
+function logWebChatActionSuccess(args: {
+  event: "send_message" | "retry_assistant_reply";
+  threadId: string;
+  agentId: string;
+  userId: string;
+  workspaceId: string;
+  assistantMessageId: string;
+  sourceMessageId: string;
+  durationMs: number;
+  stageTimings: Record<string, number>;
+}) {
+  console.info("[web-chat:action]", {
+    event: args.event,
+    status: "ok",
+    thread_id: args.threadId,
+    agent_id: args.agentId,
+    user_id: args.userId,
+    workspace_id: args.workspaceId,
+    assistant_message_id: args.assistantMessageId,
+    source_message_id: args.sourceMessageId,
+    total_duration_ms: args.durationMs,
+    stage_timings_ms: args.stageTimings
+  });
+}
+
+function logWebChatActionFailure(args: {
+  event: "send_message" | "retry_assistant_reply";
+  threadId: string;
+  agentId: string;
+  userId: string;
+  workspaceId: string;
+  assistantMessageId: string;
+  sourceMessageId: string;
+  durationMs: number;
+  stageTimings: Record<string, number>;
+  assistantFailure: ReturnType<typeof classifyAssistantError>;
+  error: unknown;
+}) {
+  console.error("[web-chat:action]", {
+    event: args.event,
+    status: "failed",
+    thread_id: args.threadId,
+    agent_id: args.agentId,
+    user_id: args.userId,
+    workspace_id: args.workspaceId,
+    assistant_message_id: args.assistantMessageId,
+    source_message_id: args.sourceMessageId,
+    total_duration_ms: args.durationMs,
+    stage_timings_ms: args.stageTimings,
+    error_type: args.assistantFailure.errorType,
+    provider_failure_category: args.assistantFailure.providerFailureCategory,
+    error_message: args.assistantFailure.message,
+    provider_status: args.error instanceof AiProviderError ? args.error.status : null,
+    provider_operation:
+      args.error instanceof AiProviderFetchError ? args.error.operation : null,
+    provider_endpoint:
+      args.error instanceof AiProviderFetchError ? args.error.endpoint : null,
+    cause_message:
+      args.error instanceof AiProviderFetchError &&
+      args.error.causeError instanceof Error
+        ? args.error.causeError.message
+        : null
+  });
+}
+
+async function runDeferredWebArtifactGeneration(args: {
+  supabase: any;
+  assistantMessageId: string;
+  threadId: string;
+  workspaceId: string;
+  userId: string;
+  agentId: string;
+  userMessage: string;
+  assistantReply: string;
+  agentName: string | null;
+  personaSummary: string;
+  agentMetadata: Record<string, unknown> | null;
+  preparedArtifactContext: NonNullable<
+    Awaited<ReturnType<typeof prepareExplicitArtifactContext>>
+  >;
+  deliverableImageRequested: boolean;
+  deliverableAudioRequested: boolean;
+}) {
+  try {
+    await maybeGenerateAssistantArtifacts({
+      supabase: args.supabase,
+      assistantMessageId: args.assistantMessageId,
+      threadId: args.threadId,
+      workspaceId: args.workspaceId,
+      userId: args.userId,
+      agentId: args.agentId,
+      userMessage: args.userMessage,
+      assistantReply: args.assistantReply,
+      agentName: args.agentName,
+      personaSummary: args.personaSummary,
+      agentMetadata: args.agentMetadata,
+      preparedContext: {
+        ...args.preparedArtifactContext,
+        intent: {
+          ...args.preparedArtifactContext.intent,
+          imageRequested: args.deliverableImageRequested,
+          audioRequested: args.deliverableAudioRequested,
+        },
+      },
+      audioTranscriptOverride:
+        args.preparedArtifactContext.audioTranscriptOverride ?? null,
+    });
+
+    await updateAssistantPreviewMetadata({
+      supabase: args.supabase,
+      assistantMessageId: args.assistantMessageId,
+      threadId: args.threadId,
+      workspaceId: args.workspaceId,
+      userId: args.userId,
+      updates: (currentMetadata) => ({
+        web_delivery: {
+          ...(currentMetadata?.web_delivery &&
+          typeof currentMetadata.web_delivery === "object" &&
+          !Array.isArray(currentMetadata.web_delivery)
+            ? (currentMetadata.web_delivery as Record<string, unknown>)
+            : {}),
+          artifact_generation_completed_at: new Date().toISOString(),
+          artifact_generation_status: "completed",
+          explicit_media_delivery_mode: "artifact_first",
+          explicit_audio_requested: args.deliverableAudioRequested,
+          explicit_image_requested: args.deliverableImageRequested,
+        }
+      })
+    });
+  } catch (artifactError) {
+    console.error("Deferred web artifact generation failed:", artifactError);
+
+    await updateAssistantPreviewMetadata({
+      supabase: args.supabase,
+      assistantMessageId: args.assistantMessageId,
+      threadId: args.threadId,
+      workspaceId: args.workspaceId,
+      userId: args.userId,
+      updates: (currentMetadata) => ({
+        web_delivery: {
+          ...(currentMetadata?.web_delivery &&
+          typeof currentMetadata.web_delivery === "object" &&
+          !Array.isArray(currentMetadata.web_delivery)
+            ? (currentMetadata.web_delivery as Record<string, unknown>)
+            : {}),
+          artifact_generation_completed_at: new Date().toISOString(),
+          artifact_generation_status: "failed",
+          artifact_generation_error:
+            artifactError instanceof Error
+              ? artifactError.message
+              : "web_artifact_generation_failed",
+          explicit_media_delivery_mode: "artifact_first",
+          explicit_audio_requested: args.deliverableAudioRequested,
+          explicit_image_requested: args.deliverableImageRequested,
+        }
+      })
+    });
+  }
+}
+
+async function runDeferredWebPostProcessing(args: {
+  supabase: any;
+  assistantMessageId: string;
+  threadId: string;
+  workspaceId: string;
+  userId: string;
+  agentId: string;
+  sourceMessageId: string;
+  activeMemoryNamespace?: ActiveRuntimeMemoryNamespace | null;
+  runtimeTurnResult: Parameters<typeof processAssistantRuntimePostProcessing>[0]["runtimeTurnResult"];
+}) {
+  try {
+    await updateAssistantPreviewMetadata({
+      supabase: args.supabase,
+      assistantMessageId: args.assistantMessageId,
+      threadId: args.threadId,
+      workspaceId: args.workspaceId,
+      userId: args.userId,
+      updates: (currentMetadata) => ({
+        web_delivery: {
+          ...(currentMetadata?.web_delivery &&
+          typeof currentMetadata.web_delivery === "object" &&
+          !Array.isArray(currentMetadata.web_delivery)
+            ? (currentMetadata.web_delivery as Record<string, unknown>)
+            : {}),
+          post_processing_started_at: new Date().toISOString(),
+          post_processing_status: "running"
+        }
+      })
+    });
+
+    await processAssistantRuntimePostProcessing({
+      supabase: args.supabase,
+      assistantMessageId: args.assistantMessageId,
+      threadId: args.threadId,
+      workspaceId: args.workspaceId,
+      userId: args.userId,
+      agentId: args.agentId,
+      sourceMessageId: args.sourceMessageId,
+      activeMemoryNamespace: args.activeMemoryNamespace ?? null,
+      runtimeTurnResult: args.runtimeTurnResult
+    });
+
+    await updateAssistantPreviewMetadata({
+      supabase: args.supabase,
+      assistantMessageId: args.assistantMessageId,
+      threadId: args.threadId,
+      workspaceId: args.workspaceId,
+      userId: args.userId,
+      updates: (currentMetadata) => ({
+        web_delivery: {
+          ...(currentMetadata?.web_delivery &&
+          typeof currentMetadata.web_delivery === "object" &&
+          !Array.isArray(currentMetadata.web_delivery)
+            ? (currentMetadata.web_delivery as Record<string, unknown>)
+            : {}),
+          post_processing_completed_at: new Date().toISOString(),
+          post_processing_status: "completed"
+        }
+      })
+    });
+  } catch (postProcessingError) {
+    console.error("[web-post-processing:failed]", postProcessingError);
+
+    await updateAssistantPreviewMetadata({
+      supabase: args.supabase,
+      assistantMessageId: args.assistantMessageId,
+      threadId: args.threadId,
+      workspaceId: args.workspaceId,
+      userId: args.userId,
+      updates: (currentMetadata) => ({
+        web_delivery: {
+          ...(currentMetadata?.web_delivery &&
+          typeof currentMetadata.web_delivery === "object" &&
+          !Array.isArray(currentMetadata.web_delivery)
+            ? (currentMetadata.web_delivery as Record<string, unknown>)
+            : {}),
+          post_processing_completed_at: new Date().toISOString(),
+          post_processing_status: "failed",
+          post_processing_error:
+            postProcessingError instanceof Error
+              ? postProcessingError.message
+              : "web_post_processing_failed"
+        }
+      })
+    });
+  }
+}
 
 export type SendMessageResult =
   | { ok: true; threadId: string }
@@ -963,6 +1221,8 @@ export async function markMemoryIncorrect(formData: FormData) {
 export async function sendMessage(
   formData: FormData
 ): Promise<SendMessageResult> {
+  const sendStartedAt = nowMs();
+  const sendStageTimings: Record<string, number> = {};
   const copy = await getChatActionCopy();
   const content = formData.get("content");
   const threadId = formData.get("thread_id");
@@ -993,10 +1253,12 @@ export async function sendMessage(
     };
   }
 
+  const resolveSessionStartedAt = nowMs();
   const supabase = await createClient();
   const {
     data: { user }
   } = await supabase.auth.getUser();
+  sendStageTimings.resolve_user_session = elapsedMs(resolveSessionStartedAt);
 
   if (!user) {
     return {
@@ -1006,10 +1268,12 @@ export async function sendMessage(
     };
   }
 
+  const loadWorkspaceStartedAt = nowMs();
   const { data: workspace } = await loadPrimaryWorkspace({
     supabase,
     userId: user.id
   });
+  sendStageTimings.load_workspace = elapsedMs(loadWorkspaceStartedAt);
 
   if (!workspace) {
     return {
@@ -1019,12 +1283,14 @@ export async function sendMessage(
     };
   }
 
+  const loadThreadStartedAt = nowMs();
   const { data: thread } = await loadOwnedThread({
     supabase,
     threadId,
     workspaceId: workspace.id,
     userId: user.id
   });
+  sendStageTimings.load_thread = elapsedMs(loadThreadStartedAt);
 
   if (!thread) {
     return {
@@ -1042,12 +1308,14 @@ export async function sendMessage(
     };
   }
 
+  const loadAgentStartedAt = nowMs();
   const { data: agent } = await loadOwnedActiveAgent({
     supabase,
     agentId: thread.agent_id,
     workspaceId: workspace.id,
     userId: user.id
   });
+  sendStageTimings.load_agent = elapsedMs(loadAgentStartedAt);
 
   if (!agent) {
     return {
@@ -1060,11 +1328,13 @@ export async function sendMessage(
   let preparedInput: Awaited<ReturnType<typeof prepareWebMediaInput>>;
 
   try {
+    const prepareMediaStartedAt = nowMs();
     preparedInput = await prepareWebMediaInput({
       content,
       imageFiles,
       audioFile
     });
+    sendStageTimings.prepare_media = elapsedMs(prepareMediaStartedAt);
   } catch (error) {
     return {
       ok: false,
@@ -1088,6 +1358,7 @@ export async function sendMessage(
   const runtimeContent =
     preparedInput.runtimeContent.trim() || displayContent;
 
+  const persistUserMessageStartedAt = nowMs();
   const {
     data: insertedMessage,
     error: insertError,
@@ -1111,6 +1382,7 @@ export async function sendMessage(
         trigger: "chat_send"
       })
   });
+  sendStageTimings.persist_user_message = elapsedMs(persistUserMessageStartedAt);
 
   if (insertError || !insertedMessage) {
     return {
@@ -1136,6 +1408,7 @@ export async function sendMessage(
   let assistantPlaceholder: { id: string };
 
   try {
+    const bootstrapStartedAt = nowMs();
     const bootstrap = await bootstrapRuntimeAssistantTurn({
       supabase,
       thread: {
@@ -1154,6 +1427,7 @@ export async function sendMessage(
     threadPatch = bootstrap.threadPatch;
     updatedMessages = bootstrap.persistedMessages;
     assistantPlaceholder = bootstrap.assistantPlaceholder;
+    sendStageTimings.bootstrap = elapsedMs(bootstrapStartedAt);
   } catch (bootstrapError) {
     return {
       ok: false,
@@ -1170,6 +1444,7 @@ export async function sendMessage(
   > | null = null;
 
   try {
+    const prepareArtifactContextStartedAt = nowMs();
     preparedArtifactContext = await prepareExplicitArtifactContext({
       supabase,
       assistantMessageId: assistantPlaceholder.id,
@@ -1184,7 +1459,10 @@ export async function sendMessage(
         agent.metadata && typeof agent.metadata === "object" && !Array.isArray(agent.metadata)
           ? (agent.metadata as Record<string, unknown>)
           : null,
+      preGenerateImage: false,
     });
+    sendStageTimings.prepare_artifact_context =
+      elapsedMs(prepareArtifactContextStartedAt);
   } catch (artifactPreparationError) {
     console.error("Explicit artifact preparation failed:", artifactPreparationError);
   }
@@ -1203,6 +1481,9 @@ export async function sendMessage(
     const generationHints = [
       clarifyBeforeAction
         ? `The user's current request is not aligned yet${preparedArtifactContext.deliveryGate?.conflictHint ? ` (${preparedArtifactContext.deliveryGate.conflictHint})` : ""}. Ask one short clarifying question first. Do not continue with image delivery, advice expansion, or action-taking in this turn.`
+        : "",
+      preparedArtifactContext.intent.imageRequested && !clarifyBeforeAction
+        ? "The user explicitly requested an image. Your text reply should stay brief and work as a lead-in to a separately generated image that may arrive shortly after this message. Do not claim the image is already attached unless you truly know that."
         : "",
       imageReady
         ? "The user explicitly requested an image. An image has already been prepared and will be delivered shortly after your text reply. Let the image lead. Keep your text to 1-3 short sentences. Open from the scene, atmosphere, or feeling of seeing it, not from agent-led delivery phrasing. For companion-style delivery, structure it like shared viewing: sentence one notices the scene, sentence two stays in quiet resonance or co-feeling, and an optional third sentence gently invites the user back into the moment. Let the cadence vary naturally by moment: sometimes one short line is enough, sometimes two beats, and only occasionally a third. Avoid turning the image copy into a polished takeaway, emotional summary, user-serving benefit statement, or image-review paragraph. Do not sound like a museum caption, travel brochure, curated mood board, or aesthetic commentary. Use one or two concrete visual details and keep the wording colloquial, as if speaking while looking at it together. Favor short spoken sentences, simple phrasing, and slight natural looseness over polished prose. Avoid stacked modifiers, balanced parallel phrases, abstract summary nouns, or neat concluding lines. Briefly acknowledge it naturally and do not say you cannot generate images."
@@ -1228,6 +1509,7 @@ export async function sendMessage(
   }
 
   try {
+    const runAgentTurnStartedAt = nowMs();
     const runtimeTurnResult = await runAgentTurn({
       input: runtimeTurnInput!,
       workspace: workspace as { id: string; name: string; kind: string },
@@ -1251,11 +1533,15 @@ export async function sendMessage(
       messages: updatedMessages,
       assistantMessageId: assistantPlaceholder.id
     });
+    sendStageTimings.run_agent_turn = elapsedMs(runAgentTurnStartedAt);
 
     if (!runtimeTurnResult.assistant_message) {
       throw new Error("Runtime completed without an assistant message.");
     }
 
+    const assistantReplyContent = runtimeTurnResult.assistant_message.content;
+
+    const persistRequestPreviewsStartedAt = nowMs();
     await persistAssistantRequestPreviews({
       supabase,
       assistantMessageId: assistantPlaceholder.id,
@@ -1268,9 +1554,38 @@ export async function sendMessage(
         } | undefined)?.memory_namespace ?? null),
       runtimeTurnResult
     });
+    sendStageTimings.persist_request_previews =
+      elapsedMs(persistRequestPreviewsStartedAt);
 
-    try {
-      await processAssistantRuntimePostProcessing({
+    const activeMemoryNamespace =
+      ((runtimeTurnResult.debug_metadata as {
+        memory_namespace?: ActiveRuntimeMemoryNamespace | null;
+      } | undefined)?.memory_namespace ?? null);
+
+    const schedulePostProcessingStartedAt = nowMs();
+    await updateAssistantPreviewMetadata({
+      supabase,
+      assistantMessageId: assistantPlaceholder.id,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      userId: user.id,
+      updates: (currentMetadata) => ({
+        web_delivery: {
+          ...(currentMetadata?.web_delivery &&
+          typeof currentMetadata.web_delivery === "object" &&
+          !Array.isArray(currentMetadata.web_delivery)
+            ? (currentMetadata.web_delivery as Record<string, unknown>)
+            : {}),
+          request_previews_persisted_at: new Date().toISOString(),
+          post_processing_status: "scheduled"
+        }
+      })
+    });
+    sendStageTimings.schedule_post_processing =
+      elapsedMs(schedulePostProcessingStartedAt);
+
+    after(async () => {
+      await runDeferredWebPostProcessing({
         supabase,
         assistantMessageId: assistantPlaceholder.id,
         threadId: thread.id,
@@ -1278,17 +1593,13 @@ export async function sendMessage(
         userId: user.id,
         agentId: thread.agent_id,
         sourceMessageId: insertedMessage.id,
-        activeMemoryNamespace:
-          ((runtimeTurnResult.debug_metadata as {
-            memory_namespace?: ActiveRuntimeMemoryNamespace | null;
-          } | undefined)?.memory_namespace ?? null),
+        activeMemoryNamespace,
         runtimeTurnResult
       });
-    } catch (memoryError) {
-      console.error("Post-processing failed:", memoryError);
-    }
+    });
 
     try {
+      const scheduleArtifactsStartedAt = nowMs();
       const artifactAction = readHumanizedArtifactAction(
         runtimeTurnResult.debug_metadata,
         "artifact_action"
@@ -1338,57 +1649,33 @@ export async function sendMessage(
           })
         });
 
-        await maybeGenerateAssistantArtifacts({
-          supabase,
-          assistantMessageId: assistantPlaceholder.id,
-          threadId: thread.id,
-          workspaceId: workspace.id,
-          userId: user.id,
-          agentId: thread.agent_id,
-          userMessage: runtimeContent,
-          assistantReply: runtimeTurnResult.assistant_message.content,
-          agentName: agent.name,
-          personaSummary: agent.persona_summary,
-          agentMetadata:
-            agent.metadata && typeof agent.metadata === "object" && !Array.isArray(agent.metadata)
-              ? (agent.metadata as Record<string, unknown>)
-              : null,
-          preparedContext: {
-            ...preparedArtifactContext,
-            intent: {
-              ...preparedArtifactContext.intent,
-              imageRequested: deliverableImageRequested,
-              audioRequested: deliverableAudioRequested,
-            },
-          },
-          audioTranscriptOverride:
-            preparedArtifactContext?.audioTranscriptOverride ?? null,
-        });
+        const agentMetadata =
+          agent.metadata && typeof agent.metadata === "object" && !Array.isArray(agent.metadata)
+            ? (agent.metadata as Record<string, unknown>)
+            : null;
 
-        await updateAssistantPreviewMetadata({
-          supabase,
-          assistantMessageId: assistantPlaceholder.id,
-          threadId: thread.id,
-          workspaceId: workspace.id,
-          userId: user.id,
-          updates: (currentMetadata) => ({
-            web_delivery: {
-              ...(currentMetadata?.web_delivery &&
-              typeof currentMetadata.web_delivery === "object" &&
-              !Array.isArray(currentMetadata.web_delivery)
-                ? (currentMetadata.web_delivery as Record<string, unknown>)
-                : {}),
-              artifact_generation_completed_at: new Date().toISOString(),
-              artifact_generation_status: "completed",
-              explicit_media_delivery_mode: "artifact_first",
-              explicit_audio_requested: deliverableAudioRequested,
-              explicit_image_requested: deliverableImageRequested,
-            }
-          })
+        after(async () => {
+          await runDeferredWebArtifactGeneration({
+            supabase,
+            assistantMessageId: assistantPlaceholder.id,
+            threadId: thread.id,
+            workspaceId: workspace.id,
+            userId: user.id,
+            agentId: thread.agent_id,
+            userMessage: runtimeContent,
+            assistantReply: assistantReplyContent,
+            agentName: agent.name,
+            personaSummary: agent.persona_summary,
+            agentMetadata,
+            preparedArtifactContext,
+            deliverableImageRequested,
+            deliverableAudioRequested,
+          });
         });
       }
+      sendStageTimings.schedule_artifacts = elapsedMs(scheduleArtifactsStartedAt);
     } catch (artifactError) {
-      console.error("Assistant artifact generation failed:", artifactError);
+      console.error("Assistant artifact scheduling failed:", artifactError);
 
       await updateAssistantPreviewMetadata({
         supabase,
@@ -1404,7 +1691,7 @@ export async function sendMessage(
               ? (currentMetadata.web_delivery as Record<string, unknown>)
               : {}),
             artifact_generation_completed_at: new Date().toISOString(),
-            artifact_generation_status: "scheduled",
+            artifact_generation_status: "failed",
             artifact_generation_error:
               artifactError instanceof Error
                 ? artifactError.message
@@ -1412,30 +1699,34 @@ export async function sendMessage(
           }
         })
       });
+      sendStageTimings.schedule_artifacts = 0;
     }
+
+    logWebChatActionSuccess({
+      event: "send_message",
+      threadId: thread.id,
+      agentId: thread.agent_id,
+      userId: user.id,
+      workspaceId: workspace.id,
+      assistantMessageId: assistantPlaceholder.id,
+      sourceMessageId: insertedMessage.id,
+      durationMs: elapsedMs(sendStartedAt),
+      stageTimings: sendStageTimings
+    });
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);
-
-    console.error("[web-chat:send-message-failed]", {
-      thread_id: thread.id,
-      agent_id: thread.agent_id,
-      user_id: user.id,
-      workspace_id: workspace.id,
-      assistant_message_id: assistantPlaceholder.id,
-      source_message_id: insertedMessage.id,
-      error_type: assistantFailure.errorType,
-      provider_failure_category: assistantFailure.providerFailureCategory,
-      error_message: assistantFailure.message,
-      provider_status: error instanceof AiProviderError ? error.status : null,
-      provider_operation:
-        error instanceof AiProviderFetchError ? error.operation : null,
-      provider_endpoint:
-        error instanceof AiProviderFetchError ? error.endpoint : null,
-      cause_message:
-        error instanceof AiProviderFetchError &&
-        error.causeError instanceof Error
-          ? error.causeError.message
-          : null
+    logWebChatActionFailure({
+      event: "send_message",
+      threadId: thread.id,
+      agentId: thread.agent_id,
+      userId: user.id,
+      workspaceId: workspace.id,
+      assistantMessageId: assistantPlaceholder.id,
+      sourceMessageId: insertedMessage.id,
+      durationMs: elapsedMs(sendStartedAt),
+      stageTimings: sendStageTimings,
+      assistantFailure,
+      error
     });
 
     await markAssistantMessageFailed({
@@ -1467,6 +1758,8 @@ export async function sendMessage(
 export async function retryAssistantReply(
   formData: FormData
 ): Promise<RetryAssistantReplyResult> {
+  const retryStartedAt = nowMs();
+  const retryStageTimings: Record<string, number> = {};
   const copy = await getChatActionCopy();
   const failedMessageId = formData.get("failed_message_id");
   const threadId = formData.get("thread_id");
@@ -1484,10 +1777,12 @@ export async function retryAssistantReply(
     };
   }
 
+  const resolveSessionStartedAt = nowMs();
   const supabase = await createClient();
   const {
     data: { user }
   } = await supabase.auth.getUser();
+  retryStageTimings.resolve_user_session = elapsedMs(resolveSessionStartedAt);
 
   if (!user) {
     return {
@@ -1497,10 +1792,12 @@ export async function retryAssistantReply(
     };
   }
 
+  const loadWorkspaceStartedAt = nowMs();
   const { data: workspace } = await loadPrimaryWorkspace({
     supabase,
     userId: user.id
   });
+  retryStageTimings.load_workspace = elapsedMs(loadWorkspaceStartedAt);
 
   if (!workspace) {
     return {
@@ -1510,12 +1807,14 @@ export async function retryAssistantReply(
     };
   }
 
+  const loadThreadStartedAt = nowMs();
   const { data: thread } = await loadOwnedThread({
     supabase,
     threadId,
     workspaceId: workspace.id,
     userId: user.id
   });
+  retryStageTimings.load_thread = elapsedMs(loadThreadStartedAt);
 
   if (!thread || !thread.agent_id) {
     return {
@@ -1525,12 +1824,14 @@ export async function retryAssistantReply(
     };
   }
 
+  const loadAgentStartedAt = nowMs();
   const { data: agent } = await loadOwnedActiveAgent({
     supabase,
     agentId: thread.agent_id,
     workspaceId: workspace.id,
     userId: user.id
   });
+  retryStageTimings.load_agent = elapsedMs(loadAgentStartedAt);
 
   if (!agent) {
     return {
@@ -1540,11 +1841,13 @@ export async function retryAssistantReply(
     };
   }
 
+  const loadMessagesStartedAt = nowMs();
   const { data: messages, error: messagesError } = await loadThreadMessages({
     supabase,
     threadId: thread.id,
     workspaceId: workspace.id
   });
+  retryStageTimings.load_thread_messages = elapsedMs(loadMessagesStartedAt);
 
   if (messagesError || !messages) {
     return {
@@ -1554,6 +1857,7 @@ export async function retryAssistantReply(
     };
   }
 
+  const recoverRetryTurnStartedAt = nowMs();
   const retryTurn = recoverRetryRuntimeTurn({
     messages: messages as Array<{
       id: string;
@@ -1565,6 +1869,7 @@ export async function retryAssistantReply(
     }>,
     failedMessageId
   });
+  retryStageTimings.recover_retry_turn = elapsedMs(recoverRetryTurnStartedAt);
 
   if (retryTurn.status === "failed_message_not_found") {
     return {
@@ -1584,6 +1889,7 @@ export async function retryAssistantReply(
 
   const { failedMessage, promptMessages, latestUserMessage } = retryTurn;
 
+  const markRetriedStartedAt = nowMs();
   await markAssistantMessageRetried({
     supabase,
     assistantMessageId: failedMessage.id,
@@ -1592,6 +1898,7 @@ export async function retryAssistantReply(
     userId: user.id,
     baseMetadata: failedMessage.metadata
   });
+  retryStageTimings.mark_message_retried = elapsedMs(markRetriedStartedAt);
 
   try {
     const runtimeTurnInput = buildWebRuntimeTurnInput({
@@ -1607,6 +1914,7 @@ export async function retryAssistantReply(
       triggerKind: "retry"
     });
 
+    const runAgentTurnStartedAt = nowMs();
     const runtimeTurnResult = await runAgentTurn({
       input: runtimeTurnInput,
       workspace: workspace as { id: string; name: string; kind: string },
@@ -1630,46 +1938,91 @@ export async function retryAssistantReply(
       messages: promptMessages,
       assistantMessageId: failedMessage.id
     });
+    retryStageTimings.run_agent_turn = elapsedMs(runAgentTurnStartedAt);
 
     if (!runtimeTurnResult.assistant_message) {
       throw new Error("Runtime retry completed without an assistant message.");
     }
 
+    const activeMemoryNamespace =
+      ((runtimeTurnResult.debug_metadata as {
+        memory_namespace?: ActiveRuntimeMemoryNamespace | null;
+      } | undefined)?.memory_namespace ?? null);
+
+    const persistRequestPreviewsStartedAt = nowMs();
     await persistAssistantRequestPreviews({
       supabase,
       assistantMessageId: failedMessage.id,
       threadId: thread.id,
       workspaceId: workspace.id,
       userId: user.id,
-      activeNamespace:
-        ((runtimeTurnResult.debug_metadata as {
-          memory_namespace?: ActiveRuntimeMemoryNamespace | null;
-        } | undefined)?.memory_namespace ?? null),
+      activeNamespace: activeMemoryNamespace,
       runtimeTurnResult
+    });
+    retryStageTimings.persist_request_previews =
+      elapsedMs(persistRequestPreviewsStartedAt);
+
+    const schedulePostProcessingStartedAt = nowMs();
+    await updateAssistantPreviewMetadata({
+      supabase,
+      assistantMessageId: failedMessage.id,
+      threadId: thread.id,
+      workspaceId: workspace.id,
+      userId: user.id,
+      updates: (currentMetadata) => ({
+        web_delivery: {
+          ...(currentMetadata?.web_delivery &&
+          typeof currentMetadata.web_delivery === "object" &&
+          !Array.isArray(currentMetadata.web_delivery)
+            ? (currentMetadata.web_delivery as Record<string, unknown>)
+            : {}),
+          request_previews_persisted_at: new Date().toISOString(),
+          post_processing_status: "scheduled"
+        }
+      })
+    });
+    retryStageTimings.schedule_post_processing =
+      elapsedMs(schedulePostProcessingStartedAt);
+
+    after(async () => {
+      await runDeferredWebPostProcessing({
+        supabase,
+        assistantMessageId: failedMessage.id,
+        threadId: thread.id,
+        workspaceId: workspace.id,
+        userId: user.id,
+        agentId: thread.agent_id,
+        sourceMessageId: latestUserMessage.id,
+        activeMemoryNamespace,
+        runtimeTurnResult
+      });
+    });
+
+    logWebChatActionSuccess({
+      event: "retry_assistant_reply",
+      threadId: thread.id,
+      agentId: thread.agent_id,
+      userId: user.id,
+      workspaceId: workspace.id,
+      assistantMessageId: failedMessage.id,
+      sourceMessageId: latestUserMessage.id,
+      durationMs: elapsedMs(retryStartedAt),
+      stageTimings: retryStageTimings
     });
   } catch (error) {
     const assistantFailure = classifyAssistantError(error);
-
-    console.error("[web-chat:retry-assistant-failed]", {
-      thread_id: thread.id,
-      agent_id: thread.agent_id,
-      user_id: user.id,
-      workspace_id: workspace.id,
-      assistant_message_id: failedMessage.id,
-      source_message_id: latestUserMessage.id,
-      error_type: assistantFailure.errorType,
-      provider_failure_category: assistantFailure.providerFailureCategory,
-      error_message: assistantFailure.message,
-      provider_status: error instanceof AiProviderError ? error.status : null,
-      provider_operation:
-        error instanceof AiProviderFetchError ? error.operation : null,
-      provider_endpoint:
-        error instanceof AiProviderFetchError ? error.endpoint : null,
-      cause_message:
-        error instanceof AiProviderFetchError &&
-        error.causeError instanceof Error
-          ? error.causeError.message
-          : null
+    logWebChatActionFailure({
+      event: "retry_assistant_reply",
+      threadId: thread.id,
+      agentId: thread.agent_id,
+      userId: user.id,
+      workspaceId: workspace.id,
+      assistantMessageId: failedMessage.id,
+      sourceMessageId: latestUserMessage.id,
+      durationMs: elapsedMs(retryStartedAt),
+      stageTimings: retryStageTimings,
+      assistantFailure,
+      error
     });
 
     await markAssistantMessageFailed({
