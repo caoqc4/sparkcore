@@ -1,13 +1,27 @@
 import type { Metadata } from "next";
 import { getSiteLanguageState, type AppLanguage } from "@/lib/i18n/site";
 
+const LOCAL_APP_URL = "http://localhost:3000";
+const PRODUCTION_APP_URL = "https://lagun.app";
+
+function resolveAppUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/+$/, "");
+  }
+
+  return process.env.NODE_ENV === "production"
+    ? PRODUCTION_APP_URL
+    : LOCAL_APP_URL;
+}
+
 export const siteConfig = {
   name: "Lagun",
   tagline: "AI companion that remembers you and stays with you in IM.",
   description:
     "Lagun is an IM-native AI companion with long memory, relationship continuity, and a web control center for memory, privacy, and channel management.",
-  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  canonicalHost: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  appUrl: resolveAppUrl(),
+  canonicalHost: resolveAppUrl(),
   nav: [
     { href: "/ai-companion", label: "AI Companion" },
     { href: "/ai-girlfriend", label: "AI Girlfriend" },
