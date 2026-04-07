@@ -23,6 +23,14 @@ function buildImageIntentPatterns() {
     /照片/,
     /相片/,
     /\b(generate|make|create|draw|send)\b[\s\S]{0,24}\b(image|picture|photo|portrait|avatar)\b/i,
+    /\b(give|show)\b[\s\S]{0,24}\b(me|us)?[\s\S]{0,24}\b(image|picture|photo|portrait|avatar)\b/i,
+    /\b(image|picture|photo|portrait|avatar)\b[\s\S]{0,24}\b(of|about|for)\b/i,
+    /\b(photo|picture|image|portrait|avatar)\b[\s\S]{0,24}\b(of you|of yourself|your|yourself)\b/i,
+    /\b(foto|imagen|retrato)\b[\s\S]{0,24}\b(tuya|tuya misma|de ti|tu)\b/i,
+    /\b(photo|image|portrait)\b[\s\S]{0,24}\b(de toi|toi|ta|ton)\b/i,
+    /\b(foto|bild|portr[aä]t)\b[\s\S]{0,24}\b(von dir|dein|deine|dich)\b/i,
+    /(你的|你自己|你本人的?)[\\s\\S]{0,12}(照片|相片|图片|头像|样子|长相)/u,
+    /(あなた|君|きみ)[のが]?[\\s\\S]{0,8}(写真|画像|顔|姿)/u,
     /\bimage\b[\s\S]{0,24}\bplease\b/i,
   ];
 }
@@ -72,18 +80,29 @@ function decideRolePortraitReference(content: string) {
     /她本人|他本人|她的样子|他的样子|她长什么样|他长什么样/u,
     /她的脸|他的脸|她的长相|他的长相/u,
     /她的照片|他的照片|她的相片|他的相片/u,
+    /你本人|你自己的样子|你长什么样|你的脸|你的长相/u,
+    /你的照片|你的相片|你的图片|你的头像/u,
     /自拍|近照|证件照|头像照/u,
     /\b(look like|looks like|face|facial features|selfie|headshot|close[- ]?up)\b/i,
-    /\b(photo of her|photo of him|picture of her|picture of him)\b/i
+    /\b(photo of her|photo of him|picture of her|picture of him)\b/i,
+    /\b(photo of you|picture of you|photo of yourself|picture of yourself|your photo|your picture|your portrait)\b/i,
+    /\b(what do you look like|show me yourself|show me your face)\b/i,
+    /\b(foto tuya|foto de ti|imagen tuya|retrato tuyo|como te ves)\b/i,
+    /\b(photo de toi|image de toi|portrait de toi|a quoi tu ressembles)\b/i,
+    /\b(dein foto|bild von dir|portr[aä]t von dir|wie siehst du aus)\b/i,
+    /(あなた|君|きみ)の(写真|画像|顔|姿)/u
   ];
 
   const lightSignals = [
     /她在|他在|她穿着|他穿着|她坐在|他坐在|她站在|他站在/u,
     /给我看她|给我看他|来一张她|来一张他/u,
+    /给我看你|来一张你|画你|拍你/u,
     /画她|画他|拍她|拍他/u,
     /以她为主|以他为主|主角是她|主角是他/u,
     /\b(her|him)\b[\s\S]{0,18}\b(photo|image|picture|portrait)\b/i,
-    /\b(show|draw|make|create)\b[\s\S]{0,18}\b(her|him)\b/i
+    /\b(show|draw|make|create)\b[\s\S]{0,18}\b(her|him)\b/i,
+    /\b(you|yourself)\b[\s\S]{0,18}\b(photo|image|picture|portrait)\b/i,
+    /\b(show|draw|make|create)\b[\s\S]{0,18}\b(you|yourself)\b/i
   ];
 
   const sceneFirstSignals = [

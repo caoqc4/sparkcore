@@ -1,5 +1,6 @@
 import {
   detectMultimodalIntentByRules,
+  detectMultimodalIntent,
   extractExplicitAudioContent,
 } from "@/lib/chat/multimodal-intent-decision";
 
@@ -33,10 +34,44 @@ async function main() {
         imageRequested: true,
         audioRequested: false,
       }
+    },
+    {
+      id: "natural_english_photo_request_is_detectable",
+      actual: detectMultimodalIntentByRules("Can you give me a photo about the sea?"),
+      expected: {
+        imageRequested: true,
+        audioRequested: false,
+      }
+    },
+    {
+      id: "your_photo_request_uses_role_consistency",
+      actual: await detectMultimodalIntent("Can you give me your photo?"),
+      expected: {
+        imageRequested: true,
+        audioRequested: false,
+        shouldUseRolePortraitReference: true,
+        rolePortraitReferenceStrength: "strong",
+      }
+    },
+    {
+      id: "chinese_self_photo_request_uses_role_consistency",
+      actual: await detectMultimodalIntent("可以给我看看你的照片吗？"),
+      expected: {
+        imageRequested: true,
+        audioRequested: false,
+        shouldUseRolePortraitReference: true,
+        rolePortraitReferenceStrength: "strong",
+      }
     }
   ].map((result) => ({
     ...result,
-    pass: JSON.stringify(result.actual) === JSON.stringify(result.expected)
+    pass:
+      typeof result.expected === "string"
+        ? result.actual === result.expected
+        : Object.entries(result.expected).every(
+            ([key, value]) =>
+              (result.actual as Record<string, unknown> | null | undefined)?.[key] === value
+          )
   }));
 
   const failed = results.filter((result) => !result.pass);
