@@ -409,7 +409,11 @@ function buildImagePrompt(args: {
     "Do not add any person, face, silhouette, or body unless the user explicitly asked for a person or the character to appear.";
   const roleSubjectLine =
     args.agentName && explicitlyRequestsHumanSubject
-      ? `If a person is requested here, make the subject read as ${args.agentName} rather than a random stranger. Keep the identity consistent with the role, but let clothing, pose, and styling adapt naturally to the requested scene.`
+      ? `If a person is requested here, make the subject read as ${args.agentName} rather than a random stranger. Keep the identity consistent with the role, but adapt clothing, hair styling, posture, facial expression, framing, and scene interaction naturally to the requested setting. Avoid default office portrait styling, formal businesswear, centered studio posing, and generic headshot composition unless the user explicitly asked for that look. Prefer environment-aware details such as practical outdoor clothing, relaxed body language, natural walking/standing/sitting poses, and believable interaction with the place.`
+      : "";
+  const roleSceneIntegrationLine =
+    explicitlyRequestsHumanSubject
+      ? "When the character appears in a place-oriented request, compose the image like an in-scene photograph rather than a pasted-in portrait. Let the environment meaningfully shape wardrobe, pose, camera distance, and body orientation."
       : "";
 
   if (wantsPhotoStyle) {
@@ -430,6 +434,7 @@ function buildImagePrompt(args: {
       `User request: ${args.userMessage.trim()}`,
       "Style target: believable photo, natural lighting, camera-like detail, grounded composition, not an illustration.",
       sceneFirstLine,
+      roleSceneIntegrationLine,
       noRandomHumanLine,
       args.recentImageVariationHint?.trim() ?? "",
       "Keep the image tasteful, emotionally warm, and safe for a general audience.",
@@ -456,6 +461,7 @@ function buildImagePrompt(args: {
       : "",
     args.recentImageVariationHint?.trim() ?? "",
     sceneFirstLine,
+    roleSceneIntegrationLine,
     "Keep the composition tasteful, emotionally warm, and safe for a general audience.",
     "Return a single clear image with strong visual focus and no text overlays unless the user explicitly asked for text in the image.",
   ]
