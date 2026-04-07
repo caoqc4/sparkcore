@@ -4,13 +4,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+REPO_ROOT="$(cd "${APP_ROOT}/.." && pwd)"
 APP_NAME="${APP_NAME:-sparkcore-telegram}"
 FLY_CONFIG="${FLY_CONFIG:-${APP_ROOT}/deploy/fly.telegram.toml}"
 
 echo "==> Deploying Fly app ${APP_NAME}"
 (
-  cd "${APP_ROOT}"
-  fly deploy -c "deploy/fly.telegram.toml"
+  cd "${REPO_ROOT}"
+  fly deploy . -c "${FLY_CONFIG}"
 )
 
 echo "==> Running post-deploy check for ${APP_NAME}"

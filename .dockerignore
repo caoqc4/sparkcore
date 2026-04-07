@@ -1,5 +1,6 @@
 .git
 .github
+.claude
 .next
 node_modules
 **/node_modules
@@ -8,6 +9,14 @@ node_modules
 **/coverage
 **/playwright-report
 **/test-results
+apps/web/tests
+apps/web/scripts
+apps/web/tsconfig.tsbuildinfo
+doc_private
+docs
+docs-public
+assets
+logo.png
 **/.env.local
 **/.env.production.local
 **/.env.development.local
