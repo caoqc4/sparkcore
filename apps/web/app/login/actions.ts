@@ -6,23 +6,33 @@ import { getSiteLanguageState } from "@/lib/i18n/site";
 import { createClient } from "@/lib/supabase/server";
 
 async function getAppUrl() {
+  const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/+$/, "");
   const requestHeaders = await headers();
   const forwardedHost = requestHeaders.get("x-forwarded-host")?.trim();
   const forwardedProto = requestHeaders.get("x-forwarded-proto")?.trim();
   const host = requestHeaders.get("host")?.trim();
 
   const resolvedHost = forwardedHost || host;
-  if (resolvedHost) {
-    const resolvedProto =
-      forwardedProto ||
-      (resolvedHost.startsWith("localhost") || resolvedHost.startsWith("127.0.0.1")
-        ? "http"
-        : "https");
+  const resolvedHostIsLocal = resolvedHost
+    ? resolvedHost.startsWith("localhost") || resolvedHost.startsWith("127.0.0.1")
+    : false;
+
+  if (resolvedHost && !resolvedHostIsLocal) {
+    const resolvedProto = forwardedProto || "https";
 
     return `${resolvedProto}://${resolvedHost}`.replace(/\/+$/, "");
   }
 
-  return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+  if (configuredAppUrl) {
+    return configuredAppUrl;
+  }
+
+  if (resolvedHost) {
+    const resolvedProto = resolvedHostIsLocal ? "http" : forwardedProto || "https";
+    return `${resolvedProto}://${resolvedHost}`.replace(/\/+$/, "");
+  }
+
+  return "http://localhost:3000";
 }
 
 function getSafeNextPath(value: FormDataEntryValue | null) {
