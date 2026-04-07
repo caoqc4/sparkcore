@@ -184,6 +184,36 @@ function buildArtifactOutboundMessages(args: {
   return messages;
 }
 
+function scheduleBackgroundImTask(args: {
+  name: "deferred_artifacts" | "deferred_post_processing";
+  channelSlug: CharacterChannelSlug;
+  jobId: string;
+  receiptId: string;
+  run: () => Promise<void>;
+}) {
+  void Promise.resolve()
+    .then(args.run)
+    .then(() => {
+      console.info("[telegram-inbound-worker:background]", {
+        channel_slug: args.channelSlug,
+        job_id: args.jobId,
+        receipt_id: args.receiptId,
+        task: args.name,
+        status: "completed"
+      });
+    })
+    .catch((error) => {
+      console.error("[telegram-inbound-worker:background]", {
+        channel_slug: args.channelSlug,
+        job_id: args.jobId,
+        receipt_id: args.receiptId,
+        task: args.name,
+        status: "failed",
+        error_message: error instanceof Error ? error.message : String(error)
+      });
+    });
+}
+
 type TelegramInboundJobPayload = {
   inbound: InboundChannelMessage;
   dedupe_key: string;
@@ -392,6 +422,7 @@ async function processTelegramInboundJob(args: {
               telegram_send_started_at: telegramSendStartedAt,
               telegram_sent_at: new Date().toISOString(),
               telegram_delivery_ok: outboundDelivery.every((item) => item.ok),
+              post_processing_status: "scheduled",
               character_channel_slug: characterChannelSlug
             }
           })
@@ -400,69 +431,122 @@ async function processTelegramInboundJob(args: {
     }
 
     if (deferredArtifactGeneration) {
-      stage = "run_deferred_artifacts";
-      await measureStage("run_deferred_artifacts", async () => {
-        const artifacts = await runDeferredImArtifactGeneration({
+      stage = "schedule_deferred_artifacts";
+      await measureStage("schedule_deferred_artifacts", async () =>
+        updateAssistantPreviewMetadata({
+          supabase: admin,
           assistantMessageId: deferredArtifactGeneration.assistant_message_id,
           threadId: deferredArtifactGeneration.thread_id,
           workspaceId: deferredArtifactGeneration.workspace_id,
           userId: deferredArtifactGeneration.user_id,
-          agentId: deferredArtifactGeneration.agent_id,
-          userMessage: deferredArtifactGeneration.user_message,
-          assistantReply: deferredArtifactGeneration.assistant_reply,
-          agentName: deferredArtifactGeneration.agent_name,
-          personaSummary: deferredArtifactGeneration.persona_summary,
-          preGeneratedImageArtifact:
-            deferredArtifactGeneration.pre_generated_image_artifact ?? null,
-          audioTranscriptOverride:
-            deferredArtifactGeneration.audio_transcript_override ?? null,
-          explicitImageRequested:
-            deferredArtifactGeneration.explicit_image_requested ?? false,
-          explicitAudioRequested:
-            deferredArtifactGeneration.explicit_audio_requested ?? false,
-          deliveryGate: deferredArtifactGeneration.delivery_gate
-            ? {
-                clarifyBeforeAction:
-                  deferredArtifactGeneration.delivery_gate.clarify_before_action === true,
-                reason: deferredArtifactGeneration.delivery_gate.reason ?? null,
-                conflictHint:
-                  deferredArtifactGeneration.delivery_gate.conflict_hint ?? null,
-              }
-            : null,
-          imageArtifactAction:
-            deferredArtifactGeneration.image_artifact_action ?? null,
-          audioArtifactAction:
-            deferredArtifactGeneration.audio_artifact_action ?? null,
-        });
+          updates: (currentMetadata) => ({
+            im_delivery: {
+              ...(currentMetadata?.im_delivery &&
+              typeof currentMetadata.im_delivery === "object" &&
+              !Array.isArray(currentMetadata.im_delivery)
+                ? (currentMetadata.im_delivery as Record<string, unknown>)
+                : {}),
+              artifact_generation_status: "scheduled",
+              artifact_generation_scheduled_at: new Date().toISOString()
+            }
+          })
+        })
+      );
 
-        const artifactOutboundMessages = buildArtifactOutboundMessages({
-          channelId: inbound.channel_id,
-          peerId: inbound.peer_id,
-          artifacts,
-        });
-
-        if (artifactOutboundMessages.length > 0) {
-          await sendTelegramOutboundMessages({
-            botToken: args.botToken,
-            messages: artifactOutboundMessages,
+      scheduleBackgroundImTask({
+        name: "deferred_artifacts",
+        channelSlug: characterChannelSlug,
+        jobId: args.job.id,
+        receiptId: args.job.receipt_id,
+        run: async () => {
+          const artifacts = await runDeferredImArtifactGeneration({
+            assistantMessageId: deferredArtifactGeneration.assistant_message_id,
+            threadId: deferredArtifactGeneration.thread_id,
+            workspaceId: deferredArtifactGeneration.workspace_id,
+            userId: deferredArtifactGeneration.user_id,
+            agentId: deferredArtifactGeneration.agent_id,
+            userMessage: deferredArtifactGeneration.user_message,
+            assistantReply: deferredArtifactGeneration.assistant_reply,
+            agentName: deferredArtifactGeneration.agent_name,
+            personaSummary: deferredArtifactGeneration.persona_summary,
+            preGeneratedImageArtifact:
+              deferredArtifactGeneration.pre_generated_image_artifact ?? null,
+            audioTranscriptOverride:
+              deferredArtifactGeneration.audio_transcript_override ?? null,
+            explicitImageRequested:
+              deferredArtifactGeneration.explicit_image_requested ?? false,
+            explicitAudioRequested:
+              deferredArtifactGeneration.explicit_audio_requested ?? false,
+            deliveryGate: deferredArtifactGeneration.delivery_gate
+              ? {
+                  clarifyBeforeAction:
+                    deferredArtifactGeneration.delivery_gate.clarify_before_action === true,
+                  reason: deferredArtifactGeneration.delivery_gate.reason ?? null,
+                  conflictHint:
+                    deferredArtifactGeneration.delivery_gate.conflict_hint ?? null,
+                }
+              : null,
+            imageArtifactAction:
+              deferredArtifactGeneration.image_artifact_action ?? null,
+            audioArtifactAction:
+              deferredArtifactGeneration.audio_artifact_action ?? null,
           });
+
+          const artifactOutboundMessages = buildArtifactOutboundMessages({
+            channelId: inbound.channel_id,
+            peerId: inbound.peer_id,
+            artifacts,
+          });
+
+          if (artifactOutboundMessages.length > 0) {
+            await sendTelegramOutboundMessages({
+              botToken: args.botToken,
+              messages: artifactOutboundMessages,
+            });
+          }
         }
       });
     }
 
     if (deferredPostProcessing) {
-      stage = "run_deferred_post_processing";
-      await measureStage("run_deferred_post_processing", async () =>
-        runDeferredImPostProcessing({
+      stage = "schedule_deferred_post_processing";
+      await measureStage("schedule_deferred_post_processing", async () =>
+        updateAssistantPreviewMetadata({
+          supabase: admin,
           assistantMessageId: deferredPostProcessing.task.assistant_message_id,
           threadId: deferredPostProcessing.task.thread_id,
           workspaceId: deferredPostProcessing.task.workspace_id,
           userId: deferredPostProcessing.task.user_id,
-          agentId: deferredPostProcessing.task.agent_id,
-          sourceMessageId: deferredPostProcessing.task.source_message_id,
-          runtimeTurnResult: deferredPostProcessing.runtimeTurnResult,
+          updates: (currentMetadata) => ({
+            im_delivery: {
+              ...(currentMetadata?.im_delivery &&
+              typeof currentMetadata.im_delivery === "object" &&
+              !Array.isArray(currentMetadata.im_delivery)
+                ? (currentMetadata.im_delivery as Record<string, unknown>)
+                : {}),
+              post_processing_status: "scheduled",
+              post_processing_scheduled_at: new Date().toISOString()
+            }
+          })
         })
       );
+
+      scheduleBackgroundImTask({
+        name: "deferred_post_processing",
+        channelSlug: characterChannelSlug,
+        jobId: args.job.id,
+        receiptId: args.job.receipt_id,
+        run: async () =>
+          runDeferredImPostProcessing({
+            assistantMessageId: deferredPostProcessing.task.assistant_message_id,
+            threadId: deferredPostProcessing.task.thread_id,
+            workspaceId: deferredPostProcessing.task.workspace_id,
+            userId: deferredPostProcessing.task.user_id,
+            agentId: deferredPostProcessing.task.agent_id,
+            sourceMessageId: deferredPostProcessing.task.source_message_id,
+            runtimeTurnResult: deferredPostProcessing.runtimeTurnResult,
+          })
+      });
     }
 
     if (outboundDelivery.some(isTelegramInvalidDeliveryResponse)) {
