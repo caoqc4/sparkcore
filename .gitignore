@@ -1,6 +1,9 @@
 # OS / editor noise
 .DS_Store
 
+# Claude Code IDE local config (session settings, worktrees)
+.claude/
+
 # JavaScript / Next.js
 node_modules/
 .next/
