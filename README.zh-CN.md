@@ -5,115 +5,255 @@
 <h1 align="center">SparkCore</h1>
 
 <p align="center">
+  面向 Web 和 IM 渠道的单 Agent 长记忆 AI 伴侣运行时框架
+</p>
+
+<p align="center">
   <a href="./README.md">English</a> | 简体中文
 </p>
 
-SparkCore 是一个面向单 Agent、长记忆、角色驱动 AI 系统的开源基础底座，目标是同时支撑 Web Chat 与 IM 渠道接入。
+<p align="center">
+  <a href="https://lagun.app">在线示例：lagun.app</a> &nbsp;·&nbsp;
+  <a href="./docs-public/">公开文档</a> &nbsp;·&nbsp;
+  <a href="./docs/architecture/">架构文档</a>
+</p>
 
-这个项目面向希望构建可复用 Agent Runtime 的团队，而不是只做一个单点聊天应用。当前主线聚焦于单 Agent runtime、长记忆角色连续性，以及以 IM 作为第一阶段产品入口。
+---
 
-## 项目愿景
+## SparkCore 是什么
 
-SparkCore 计划提供一套共享核心能力，用于支持：
+SparkCore 是一个开源的 AI Agent 框架底座，专注于解决一个核心问题：**如何让 AI Agent 跨会话、跨线程、跨平台真正记住用户**——而不只是在单次上下文窗口里假装记住。
 
-- 单 Agent 运行时
-- 长期记忆与记忆召回
-- 角色连续性与 persona 稳定性
-- Web Chat 与 IM 渠道接入
-- 模型网关与路由
-- 可扩展的适配器与后续升级方向
+它提供了一套完整的单 Agent 运行时，包含长期记忆、角色一致性维护，以及 Web 端和 IM 渠道（Telegram、Discord、微信、飞书）的接入能力。
 
-## 当前状态
+**[lagun.app](https://lagun.app)** 是基于 SparkCore 构建的参考产品，是一个 IM 原生的长记忆 AI 伴侣，展示了该运行时的生产级实现。
 
-SparkCore 现在已经具备一个可本地试用的 v1 聊天工作台：
+---
 
-- 支持多线程聊天与稳定的 `/chat?thread=<id>` 恢复
-- 支持 thread 绑定 agent，以及轻量创建、默认 agent、轻量编辑
-- 支持长期记忆的可见、trace、纠错、恢复与轻量收敛
-- 支持按回合展示的 runtime summary，说明 agent、model profile 和 memory 使用情况
-- 已接好 Supabase 登录与持久化，并补了本地 smoke 回归保护
+## 核心架构
 
-项目仍然处于早期，但已经不是只有脚手架的状态，而是可以交给别人本地试用的一版工作台。
+SparkCore 的设计围绕两个互锁的核心层展开：
 
-当前主线文档：
+### 五层记忆结构
 
-- 总纲：[`docs/strategy/sparkcore_repositioning_v1.0.md`](./docs/strategy/sparkcore_repositioning_v1.0.md)
-- 产品流程：[`docs/product/companion_mvp_flow_v1.0.md`](./docs/product/companion_mvp_flow_v1.0.md)
-- Runtime 设计：[`docs/architecture/single_agent_runtime_design_v1.0.md`](./docs/architecture/single_agent_runtime_design_v1.0.md)
-- 工程拆分方案：[`docs/engineering/project_split_plan_v1.0.md`](./docs/engineering/project_split_plan_v1.0.md)
+记忆不是单一的存储。SparkCore 将记忆拆分为五层，每层有不同的作用域、稳定性和生命周期：
 
-## 设计原则
+```
+┌─────────────────────────────────────────────────────┐
+│  A  角色核心（Role Core）                             │
+│     人格、身份、关系立场                               │
+│     作用域：Agent 全局 · 稳定性：不可变               │
+├─────────────────────────────────────────────────────┤
+│  B  结构化长期记忆（Structured LTM）                  │
+│     事实、偏好、关系线索、目标                         │
+│     作用域：用户全局 / 用户-Agent · 稳定性：高         │
+├─────────────────────────────────────────────────────┤
+│  C  知识层（Knowledge Layer）                         │
+│     项目文档、参考资料、世界知识                       │
+│     作用域：项目 / 世界 · 治理：门控注入               │
+├─────────────────────────────────────────────────────┤
+│  D  线程状态（Thread State）                          │
+│     当前会话焦点、短期工作模式                         │
+│     作用域：线程本地 · 稳定性：低                      │
+├─────────────────────────────────────────────────────┤
+│  E  近期对话（Recent Turns）                          │
+│     即时对话上下文窗口                                 │
+│     作用域：运行中 · 稳定性：临时                      │
+└─────────────────────────────────────────────────────┘
+```
 
-- 面向 open-core 友好的架构
-- 兼顾自部署场景
-- 清晰的模块边界
-- 可扩展到多种业务场景的 Runtime
-- 实用优先的开发者体验
+每一层都有独立的读写合约、作用域边界和生命周期规则。类型合约见 [`packages/core/memory/`](./packages/core/memory/)，设计说明见 [`docs/architecture/memory_layer_design_v1.0.md`](./docs/architecture/memory_layer_design_v1.0.md)。
 
-## 路线图
+### 四层调度逻辑
 
-近期重点：
+每轮对话时，运行时决定*加载什么*、*如何排优先级*、*如何组装最终的生成上下文*：
 
-1. 建立初始仓库结构
-2. 明确 role、memory、session 与 runtime 的模块边界
-3. 明确 IM adapter 与接入层边界
-4. 以增量方式拆分 core、integrations 与 product 三层结构
+```
+用户消息
+     │
+     ▼
+┌─────────────────────────────────────────────────────┐
+│  1  记忆组装（Memory Assembly）                       │
+│     决定加载哪些层、按什么顺序优先                     │
+│     由当前场景记忆包（Scenario Pack）驱动              │
+├─────────────────────────────────────────────────────┤
+│  2  知识门控（Knowledge Gating）                      │
+│     判断知识层是否可用、是否应注入                     │
+│     治理分类：权威性 / 上下文性                        │
+├─────────────────────────────────────────────────────┤
+│  3  答策路由（Answer Strategy Routing）               │
+│     问题类型 → 答复策略的映射                          │
+│     例如：直接事实型 → 结构化召回优先                   │
+├─────────────────────────────────────────────────────┤
+│  4  运行时合成（Runtime Composition）                 │
+│     组装系统提示、记忆上下文、知识片段、                │
+│     输出治理规则和人性化表达规范                       │
+└─────────────────────────────────────────────────────┘
+     │
+     ▼
+  LLM 生成
+```
+
+调度行为通过**场景记忆包（Scenario Memory Pack）**配置——这是一种声明式的配置文件，按使用场景定义组装顺序和优先路由。内置两个 Pack：
+
+| Pack | 优化目标 | 组装顺序 |
+|---|---|---|
+| `companion` | 长期伴侣，连续性优先 | thread_state → dynamic_profile → static_profile → memory_record |
+| `project_ops` | 项目执行，知识优先 | thread_state → knowledge → dynamic_profile → memory_record |
+
+Pack 合约见 [`packages/core/memory/packs.ts`](./packages/core/memory/packs.ts)。
+
+---
 
 ## 仓库结构
 
-当前仓库已经先搭好了最小骨架，后续功能可以直接落到对应目录，避免后面反复调整顶层结构。
+```
+sparkcore/
+├── packages/
+│   ├── core/memory/          # 五层记忆合约与类型定义
+│   └── integrations/         # IM 适配器合约与桥接层
+├── apps/
+│   └── web/                  # lagun.app — 完整参考实现
+│       ├── lib/chat/         # 运行时：记忆、调度、合成
+│       ├── app/              # Next.js 路由（Web UI + API）
+│       └── tests/            # 冒烟测试和集成测试
+├── supabase/
+│   └── migrations/           # 数据库 Schema（58 个迁移文件）
+├── scripts/
+│   └── litellm/              # 本地模型网关配置
+├── docs/
+│   ├── architecture/         # 系统设计文档
+│   ├── engineering/          # 工程实施手册
+│   └── product/              # 产品设计文档
+├── docs-public/              # 公开评估与测试记录
+└── .env.example              # 环境变量模板
+```
 
-- `apps/web`：主 Web 应用
-- `packages`：共享代码与复用模块
-- `supabase`：数据库与后端相关资源
-- `scripts`：开发与自动化脚本
-- `docs-public`：未来公开文档
+---
 
-## 快速试用
+## 自托管
 
-如果你想把当前 v1 在本地跑起来，建议按下面顺序开始：
+### 依赖要求
 
-1. 先看 Web 快速启动说明：[`apps/web/README.md`](./apps/web/README.md)
-2. 把 [`.env.example`](./.env.example) 复制为本地环境文件
-3. 准备一个 Supabase 项目，以及 LiteLLM 网关或本地 LiteLLM proxy
-4. 启动 Web 应用，并按试用清单逐项验证
+- [Supabase](https://supabase.com) 项目（认证 + 数据库）
+- LLM 接入 —— 通过 [LiteLLM](https://github.com/BerriAI/litellm) 代理或直接 API Key（Google AI Studio、Replicate 等）
+- 图片生成 —— [FAL](https://fal.ai)（可选，用于角色头像生成）
+- 文件存储 —— Cloudflare R2 或兼容 S3 的存储（可选，用于角色素材）
 
-可直接查看的文档：
+### 快速启动
 
-- 英文快速启动：[`apps/web/README.md`](./apps/web/README.md)
-- 中文快速启动：[`apps/web/README.zh-CN.md`](./apps/web/README.zh-CN.md)
-- 英文试用清单：[`docs-public/v1-trial-checklist.md`](./docs-public/v1-trial-checklist.md)
-- 中文试用清单：[`docs-public/v1-trial-checklist.zh-CN.md`](./docs-public/v1-trial-checklist.zh-CN.md)
+```bash
+# 1. 克隆仓库
+git clone https://github.com/your-org/sparkcore.git
+cd sparkcore
 
-## 开源说明
+# 2. 安装依赖
+cd apps/web && pnpm install
 
-部分内部规划文档目前有意不放入公开仓库，因为项目还在整理开源结构。后续会逐步把适合公开的文档沉淀到仓库中。
+# 3. 配置环境变量
+cp ../../.env.example .env.local
+# 填写 SUPABASE_URL、SUPABASE_ANON_KEY、LITELLM_BASE_URL 等
 
-历史上的多 Agent 规划文档仅保留为归档参考，不代表当前实现主线。
+# 4. 执行数据库迁移
+npx supabase db push
 
-## 环境变量
+# 5. 启动本地模型网关（可选）
+cd ../../scripts && bash start-litellm-proxy.sh
 
-开始本地开发或试用前，可以把 `.env.example` 复制为本地环境文件使用。
+# 6. 启动 Web 应用
+cd ../apps/web && pnpm dev
+```
 
-当前 MVP 相关变量：
+完整设置指南：[`apps/web/README.md`](./apps/web/README.md)
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `LITELLM_BASE_URL`
-- `LITELLM_API_KEY`
-- 如果你使用仓库内置的本地 LiteLLM proxy，还需要 `REPLICATE_API_KEY`
-- `NEXT_PUBLIC_APP_URL`
+试用清单：[`docs-public/v1-trial-checklist.zh-CN.md`](./docs-public/v1-trial-checklist.zh-CN.md)
 
-后续预留变量：
+### IM 渠道接入
 
-- Telegram 相关变量
-- 对象存储 / S3 兼容存储变量
+SparkCore 通过统一的适配器合约支持多个 IM 渠道，设置对应的环境变量并运行渠道 Worker 即可接入：
+
+- **Telegram** —— `apps/web/scripts/telegram-set-webhook.ts`
+- **Discord** —— `apps/web/deploy/fly.discord.toml`
+- **飞书 / Lark** —— `apps/web/deploy/fly.feishu.toml`
+- **微信 OpenILink** —— `apps/web/deploy/fly.wechat.toml`
+
+适配器合约见 [`docs/engineering/im_adapter_contract_v1.0.md`](./docs/engineering/im_adapter_contract_v1.0.md)，部署拓扑见 [`docs/engineering/2026-04-06-im-and-deployment-topology.md`](./docs/engineering/2026-04-06-im-and-deployment-topology.md)。
+
+---
+
+## 核心包说明
+
+### `packages/core/memory`
+
+记忆类型合约——整个运行时共享的设计语言：
+
+- [`contract.ts`](./packages/core/memory/contract.ts) — `MemoryRecord`、`MemoryWriteRequest`、`MemoryRecallQuery`，以及分类/作用域/稳定性/状态类型
+- [`records.ts`](./packages/core/memory/records.ts) — 标准记忆类型和记录辅助函数
+- [`knowledge.ts`](./packages/core/memory/knowledge.ts) — 知识治理类型
+- [`namespace.ts`](./packages/core/memory/namespace.ts) — 记忆命名空间层级（用户 → Agent → 线程 → 项目 → 世界）
+- [`packs.ts`](./packages/core/memory/packs.ts) — 场景记忆包定义
+- [`compaction.ts`](./packages/core/memory/compaction.ts) — 线程压缩和保留策略类型
+
+### `packages/integrations/im-adapter`
+
+IM 适配器合约——跨消息平台的统一接口：
+
+- [`contract.ts`](./packages/integrations/im-adapter/contract.ts) — 入站/出站消息类型
+- [`bridge.ts`](./packages/integrations/im-adapter/bridge.ts) — 消息路由与适配器编排
+
+### `apps/web/lib/chat`
+
+运行时实现——调度与合成逻辑所在：
+
+- `layer-prompt-builders.ts` — 记忆层组装
+- `memory-knowledge.ts` — 知识门控与治理路由
+- `answer-decision.ts` — 问题类型 → 答策路由
+- `runtime-generation-context.ts` — 最终上下文合成
+- `memory-packs.ts` — 当前场景包解析
+
+---
+
+## 参考实现：lagun.app
+
+[lagun.app](https://lagun.app) 是本仓库的生产部署——一个 IM 原生的长记忆 AI 伴侣。
+
+它在生产中展示了：
+
+- 五层记忆结构的完整运行（角色核心 → 长期记忆 → 知识层 → 线程状态 → 近期对话）
+- 多平台 IM 接入（Telegram 主线，微信/Discord/飞书可用）
+- Web 端伴侣界面，含记忆可见性、追踪、纠错和恢复流程
+- 角色创建、头像生成和知识库管理
+- 订阅与积分体系（基于 Creem，可替换）
+
+---
+
+## 架构文档索引
+
+- [单 Agent 运行时设计](./docs/architecture/single_agent_runtime_design_v1.0.md)
+- [记忆层设计](./docs/architecture/memory_layer_design_v1.0.md)
+- [角色层设计](./docs/architecture/role_layer_design_v1.0.md)
+- [会话层设计](./docs/architecture/session_layer_design_v1.0.md)
+- [运行时合约](./docs/architecture/runtime_contract_v1.0.md)
+- [IM 适配器合约](./docs/engineering/im_adapter_contract_v1.0.md)
+- [答策 / 问题类型矩阵](./docs-public/answer-strategy-question-matrix.zh-CN.md)
+
+---
 
 ## 参与贡献
 
-当前还没有正式发布贡献指南，但仓库正在按公开协作的方向进行准备。
+贡献指南正在完善中。欢迎提交 Issue、参与讨论和提交 PR。
 
-## License
+欢迎贡献的模块：
 
-许可证暂未确定。
+- 记忆层实现与召回策略
+- 新的 IM 适配器集成
+- 评估工具链和回归测试集
+- 自托管文档
+
+---
+
+## 开源协议
+
+[AGPL-3.0](./LICENSE) —— 你可以自由使用、修改和自托管本软件。如果你将修改版本作为网络服务运行，必须在相同协议下开放源代码。
+
+商业授权咨询请联系维护者。
