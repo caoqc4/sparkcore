@@ -103,6 +103,64 @@ Scheduling behavior is configured through **Scenario Memory Packs** — declarat
 
 See [`packages/core/memory/packs.ts`](./packages/core/memory/packs.ts) for the pack contracts.
 
+### Full Runtime Pipeline
+
+Putting both layers together, each turn flows through the complete pipeline:
+
+```
+  Web / IM channel
+        │
+        ▼
+┌─────────────────────────────────────────────────────┐
+│  Session Bootstrap                                   │
+│  Load agent, thread state, recent turns              │
+└─────────────────────┬───────────────────────────────┘
+                      │
+        ┌─────────────▼─────────────┐
+        │   Five-Layer Memory       │  ← Recall what's known about the user
+        │   A · B · C · D · E      │
+        └─────────────┬─────────────┘
+                      │
+        ┌─────────────▼─────────────┐
+        │   Four-Layer Scheduling   │  ← Decide what to use and how to assemble
+        │   Assembly · Gating       │
+        │   Routing · Composition   │
+        └─────────────┬─────────────┘
+                      │
+        ┌─────────────▼─────────────┐
+        │   Output Governance       │  ← Define how to express the response
+        │   RoleExpressionPacket    │    (identity, tone, expression principles)
+        │   RelationshipPacket      │    (stage, style, volatile overrides)
+        │   SceneDeliveryPacket     │    (modality, length, language)
+        │   KnowledgeBriefPacket    │    (knowledge injection rules)
+        └─────────────┬─────────────┘
+                      │
+        ┌─────────────▼─────────────┐
+        │   LLM Generation          │  ← Text / image / audio
+        └─────────────┬─────────────┘
+                      │
+        ┌─────────────▼─────────────┐
+        │   Humanized Delivery      │  ← Transform raw output into natural response
+        │   posture · rhythm        │    20+ dimensions: opening style, tone tension,
+        │   opening · follow-up     │    emotional recurrence, follow-up depth, etc.
+        └─────────────┬─────────────┘
+                      │
+        ┌─────────────▼─────────────┐
+        │   Post-generation         │  ← Memory write planning, artifact processing
+        │   + Feedback / Follow-up  │    Proactive outreach scheduling
+        └─────────────┬─────────────┘
+                      │
+        ┌─────────────▼─────────────┐
+        │   Web UI / IM delivery    │
+        └───────────────────────────┘
+```
+
+**Output Governance** controls *what* the agent expresses — it translates memory and scheduling decisions into four governance packets that constrain and guide generation. See [`apps/web/lib/chat/output-governance.ts`](./apps/web/lib/chat/output-governance.ts).
+
+**Humanized Delivery** controls *how* it's expressed — a post-processing layer that transforms the raw LLM output into a response with calibrated naturalness across 20+ dimensions (posture, rhythm, opening style, tone tension, follow-up depth, emotional recurrence, and more). See [`apps/web/lib/chat/humanized-delivery-strategy.ts`](./apps/web/lib/chat/humanized-delivery-strategy.ts).
+
+**Feedback / Follow-up** enables proactive agent behavior — scheduling gentle check-ins and follow-up messages based on conversation state. See [`apps/web/lib/chat/follow-up-executor.ts`](./apps/web/lib/chat/follow-up-executor.ts).
+
 ---
 
 ## Repository Structure
