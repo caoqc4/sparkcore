@@ -164,7 +164,9 @@ cd ../../scripts && bash start-litellm-proxy.sh
 cd ../apps/web && pnpm dev
 ```
 
-完整设置指南：[`apps/web/README.md`](./apps/web/README.md)
+完整自托管指南：[`docs-public/self-hosting.md`](./docs-public/self-hosting.md)
+
+Web 应用快速启动：[`apps/web/README.md`](./apps/web/README.md)
 
 试用清单：[`docs-public/v1-trial-checklist.zh-CN.md`](./docs-public/v1-trial-checklist.zh-CN.md)
 

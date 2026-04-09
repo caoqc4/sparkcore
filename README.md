@@ -164,7 +164,9 @@ cd ../../scripts && bash start-litellm-proxy.sh
 cd ../apps/web && pnpm dev
 ```
 
-Full setup guide: [`apps/web/README.md`](./apps/web/README.md)
+Full self-hosting guide: [`docs-public/self-hosting.md`](./docs-public/self-hosting.md)
+
+Quick start for the web app: [`apps/web/README.md`](./apps/web/README.md)
 
 Trial checklist: [`docs-public/v1-trial-checklist.md`](./docs-public/v1-trial-checklist.md)
 
